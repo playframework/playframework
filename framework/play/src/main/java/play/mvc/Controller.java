@@ -3,6 +3,8 @@ package play.mvc;
 import play.mvc.Http.*;
 import play.mvc.Result.*;
 
+import static java.lang.String.format;
+
 public abstract class Controller {
     
     public static Request request() {
@@ -10,18 +12,18 @@ public abstract class Controller {
     }
     
     public static Result Text(Object any, String... args) {
-        String text;
+        final String text;
         if(any == null) {
             text = "";
         } else {
             text = any.toString();
         }
-        String formatted = String.format(text, (Object)args);
+        final String formatted = format(text, (Object)args);
         return new Text(formatted);
     }
     
     public static Result Html(Object any) {
-        String html;
+        final String html;
         if(any == null) {
             html = "";
         } else {
