@@ -1,0 +1,23 @@
+@(link:String)
+
+@import controllers._
+
+<h1>Home</h1>
+
+<h2>Link from template</h2>
+
+<p>
+	<a href="@routes.JavaApplication.hello(10, "World")">Say hello</a>
+</p>
+
+<h2>Link from Java</h2>
+
+<p>
+	<a href="@link">Say hello</a>
+</p>
+
+<hr>
+
+<p>
+	<a href="@routes.Application.index">to Scala</a>
+</p>

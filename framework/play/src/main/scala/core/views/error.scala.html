@@ -1,0 +1,75 @@
+@(error:play.core.PlayException)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>@error.title</title>
+		<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJPSURBVDjLpZPLS5RhFMYfv9QJlelTQZwRb2OKlKuINuHGLlBEBEOLxAu46oL0F0QQFdWizUCrWnjBaDHgThCMoiKkhUONTqmjmDp2GZ0UnWbmfc/ztrC+GbM2dXbv4ZzfeQ7vefKMMfifyP89IbevNNCYdkN2kawkCZKfSPZTOGTf6Y/m1uflKlC3LvsNTWArr9BT2LAf+W73dn5jHclIBFZyfYWU3or7T4K7AJmbl/yG7EtX1BQXNTVCYgtgbAEAYHlqYHlrsTEVQWr63RZFuqsfDAcdQPrGRR/JF5nKGm9xUxMyr0YBAEXXHgIANq/3ADQobD2J9fAkNiMTMSFb9z8ambMAQER3JC1XttkYGGZXoyZEGyTHRuBuPgBTUu7VSnUAgAUAWutOV2MjZGkehgYUA6O5A0AlkAyRnotiX3MLlFKduYCqAtuGXpyH0XQmOj+TIURt51OzURTYZdBKV2UBSsOIcRp/TVTT4ewK6idECAihtUKOArWcjq/B8tQ6UkUR31+OYXP4sTOdisivrkMyHodWejlXwcC38Fvs8dY5xaIId89VlJy7ACpCNCFCuOp8+BJ6A631gANQSg1mVmOxxGQYRW2nHMha4B5WA3chsv22T5/B13AIicWZmNZ6cMchTXUe81Okzz54pLi0uQWp+TmkZqMwxsBV74Or3od4OISPr0e3SHa3PX0f3HXKofNH/UIG9pZ5PeUth+CyS2EMkEqs4fPEOBJLsyske48/+xD8oxcAYPzs4QaS7RR2kbLTTOTQieczfzfTv8QPldGvTGoF6/8AAAAASUVORK5CYII=" />
+		<style>
+			pre {
+				margin: 1px;
+				padding: 2px;
+				background: #eee;
+				min-height: 15px;
+			}
+			pre.error {
+				color: #c00;
+			}
+			span.marker {
+				background: #c00;
+				color: #fff;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>@error.title</h1>
+
+		<p>
+			@error.description
+		</p>
+
+		@error match {
+
+			case source:play.core.ExceptionSource => {
+
+				@source.file.map { file =>
+					<h2>
+						In @file @source.line.map { line =>
+							at line @line.
+						}
+					</h2>
+
+					@source.interestingLines().map { 
+
+						case (lines,errorIndex) => {
+
+							@lines.zipWithIndex.map { 
+
+								case (line,index) if index == errorIndex => {
+									<pre class="error">@(source.position.map(pos => line.zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</pre>
+
+								}
+
+								case (line, _) => {
+									<pre>@line</pre>
+								}
+
+							}
+						}
+
+					}
+
+				}
+
+			}
+
+			case _ => {
+				<!-- No source attached for this exception -->
+			}
+
+		}
+	</body>
+</html>
+
+
+

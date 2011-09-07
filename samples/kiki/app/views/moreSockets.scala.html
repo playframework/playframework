@@ -1,0 +1,10 @@
+@()
+@import controllers.routes._
+<html>
+    <body>
+        @Range(0,200).map{ i =>
+           <iframe width="40" height="40" src="@Application.websocketTest" ></iframe>
+          }
+    </body>
+
+</html>

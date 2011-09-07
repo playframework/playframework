@@ -1,0 +1,13 @@
+@(name:String, repeat:java.lang.Integer)
+
+@import controllers._
+
+<ul>
+	@for(i <- 0 to repeat) {
+		<li>Hello @name</li>
+	}
+</ul>
+
+<p>
+	<a href="@routes.JavaApplication().index()">Back</a>
+</p>

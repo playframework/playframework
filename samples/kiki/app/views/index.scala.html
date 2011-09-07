@@ -1,0 +1,17 @@
+@(name:String)
+
+@import controllers.routes._
+
+<html>
+    <head>
+        <link rel="shortcut icon" type="image/png" href="http://www.playframework.org/public/images/favicon.png">
+        <link rel="stylesheet" type="text/css" media="screen" href="@Assets.at("stylesheets/main.css")"> 
+    </head>
+    <body>
+        <h1>Hello @name!</h1>
+		<p>
+			<a href="@Application.list(1, "ASC")">list</a> -- <a href="@Application.goToJava">to Java</a>
+		</p>
+    </body>
+</html>
+            

@@ -1,0 +1,10 @@
+target/
+repository/
+dist/
+*.lock
+*.komodoproject
+.DS_Store
+project/boot/
+framework/project/boot/
+workspace/
+

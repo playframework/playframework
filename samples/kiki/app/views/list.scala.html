@@ -1,0 +1,23 @@
+@(page:Int, order:String)
+
+@import controllers.routes._
+
+<h1>Page @page, sorted @order</h1>
+
+<p>
+	<a href="@Application.list(Option(page - 1).map( p => if(p < 1) 1 else p).get, order)">Previous page</a> <a href="@Application.list(page + 1, order)">Next page</a>
+</p>
+
+<p>
+	@order match {
+		
+		case "ASC" => {
+			<strong>ASC</strong> <a href="@Application.list(page, "DESC")">DESC</a>
+		}
+		
+		case "DESC" => {
+			<a href="@Application.list(page, "ASC")">ASC</a> <strong>DESC</strong>
+		}
+		
+	}
+</p>
