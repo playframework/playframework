@@ -28,12 +28,12 @@ object Console {
         val defaultName = path.getName
         
         println()        
-        println("The new application will be created in %s".format(path.getAbsolutePath))
+        println("Uma nova aplicação vai ser criada em %s".format(path.getAbsolutePath))
         
         if(path.listFiles.size > 0) {
-            new ANSIBuffer().red("The directory is not empty, cannot create a new application here.")
+            new ANSIBuffer().red("O diretório não está vazio, não é possível criar uma nova aplicação aqui.")
         } else {
-            consoleReader.printString(new ANSIBuffer().cyan("What is the application name? ").toString)
+            consoleReader.printString(new ANSIBuffer().cyan("Qual é o nome da aplicação? ").toString)
             consoleReader.putString(defaultName)
             val name = Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(defaultName)
             println()
@@ -44,14 +44,14 @@ object Console {
     
     def helpCommand = {
         """
-            |Welcome to Play 2.0!
+            |Bem-vindo ao Play 2.0!
             |
-            |These commands are available:
+            |Estes comandos estão disponíveis:
             |-----------------------------
-            |(default)      Enter the development console.
-            |new            Create a new Play application in the current directory.
+            |(default)      Entrar no console de desenvolvimento.
+            |new            Criar uma nova aplicação do Play no diretório atual.
             |
-            |You can also browse the complete documentation at """.stripMargin +
+            |Você também pode ver a documentação completa em """.stripMargin +
             new ANSIBuffer().underscore("http://www.playframework.org").append(".")
     }
     
@@ -64,12 +64,12 @@ object Console {
             }.map { command =>
                 command()
             }.getOrElse {
-                new ANSIBuffer().red("\nThis is not a play application!\n").append(
+                new ANSIBuffer().red("\nEsta não é uma aplicação do Play!\n").append(
                     """|
-                       |Use `play new` to create a new Play application in the current directory, 
-                       |or go to an existing application and launch the development console using `play`.
+                       |Use `play new` para criar uma nova aplicação do play no diretório atual, 
+                       |ou vá para uma aplicação existente e inicie o ambiente de desenvolvimento usando `play`.
                        |
-                       |You can also browse the complete documentation at """.stripMargin +
+                       |Você também pode ver a documentação completa em """.stripMargin +
                        new ANSIBuffer().underscore("http://www.playframework.org").append(".")
                 ).toString
             }
@@ -92,7 +92,7 @@ case class NewApplication(path:File, name:String) {
                |public class Application extends Controller {
                |
                |    public static Result index() {
-               |        return Html(index.apply("World"));
+               |        return Html(index.apply("Mundo"));
                |    }
                |
                |}
@@ -108,7 +108,7 @@ case class NewApplication(path:File, name:String) {
                |        <link rel="stylesheet" type="text/css" media="screen" href="/public/stylesheets/main.css"> 
                |    </head>
                |    <body>
-               |        <h1>Hello @name!</h1>
+               |        <h1>Olá @name!</h1>
                |    </body>
                |</html>
             """.stripMargin
@@ -169,11 +169,9 @@ case class NewApplication(path:File, name:String) {
             """.stripMargin
         )
         
-        """|OK, application %s is created.
-           |Type `play` to enter the development console.
-           |Have fun!
+        """|OK, a aplicação %s foi criada.
+           |Digite `play` para entrar no ambiente de desenvolvimento.
+           |Divirta-se!
         """.stripMargin.format(name).trim
     }
-    
-    
 }
