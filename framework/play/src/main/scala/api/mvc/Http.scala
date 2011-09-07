@@ -5,10 +5,10 @@ package play.api.mvc {
     
     import scala.annotation._
 
-    @implicitNotFound("Cannot find any HTTP context here")
+    @implicitNotFound("Não foi possível achar um contexto HTTP aqui")
     case class Context(application:Application, request:Request)
 
-    @implicitNotFound("Cannot find any HTTP Request here")
+    @implicitNotFound("Não foi possível achar um contexto HTTP aqui")
     trait Request {
 
         def uri:String
