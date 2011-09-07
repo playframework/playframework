@@ -33,9 +33,9 @@ object PlayProject extends Plugin {
     // ----- Exceptions
     
     case class CompilationException(problem:xsbti.Problem) extends PlayException(
-        "Compilation error",
-        "The file %s could not be compiled. Error raised is: %s".format(
-            problem.position.sourcePath.getOrElse("(no source file defined?)"),
+        "Erro de compilação",
+        "O arquivo %s não pode ser compilado. O erro é: %s".format(
+            problem.position.sourcePath.getOrElse("(arquivo fonte não definido?)"),
             problem.message
         )
     ) with ExceptionSource {
@@ -45,8 +45,8 @@ object PlayProject extends Plugin {
     }
 
     case class TemplateCompilationException(source:File, message:String, atLine:Int, column:Int) extends PlayException(
-        "Compilation error",
-        "The file %s could not be compiled. Error raised is: %s".format(
+        "Erro de compilação",
+        "O arquivo %s não pode ser compilado. O erro é: %s".format(
             source.getAbsolutePath,
             message
         )
@@ -57,8 +57,8 @@ object PlayProject extends Plugin {
     }
     
     case class RoutesCompilationException(source:File, message:String, atLine:Option[Int], column:Option[Int]) extends PlayException(
-        "Compilation error",
-        "The file %s could not be compiled. Error raised is: %s".format(
+        "Erro de compilação",
+        "O arquivo %s não pode ser compilado. O erro é: %s".format(
             source.getAbsolutePath,
             message
         )
@@ -93,7 +93,7 @@ object PlayProject extends Plugin {
     val playCopyResourcesTask = (baseDirectory, playResourceDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b,r,t,c,s) =>
         val cacheFile = c / "copy-resources"
         val mappings = r.map( _ *** ).reduceLeft(_ +++ _) x rebase(b, t)
-        s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t","\n\t",""))
+        s.log.debug("Copie os mapeamentos dos recursos do play: " + mappings.mkString("\n\t","\n\t",""))
         Sync(cacheFile)(mappings)
         mappings
     }
@@ -103,7 +103,7 @@ object PlayProject extends Plugin {
         analysises.reduceLeft(_ ++ _)
     }
     
-    val dist = TaskKey[File]("dist", "Build the standalone application package")
+    val dist = TaskKey[File]("dist", "Construir o pacote de aplicação standalone")
     val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
 
         import sbt.NameFilter._
@@ -134,7 +134,7 @@ object PlayProject extends Plugin {
         IO.delete(run)
         
         println()
-        println("Your application is ready in " + zip.getCanonicalPath)
+        println("Sua aplicação está pronta em " + zip.getCanonicalPath)
         println()
 
         zip
@@ -373,7 +373,7 @@ object PlayProject extends Plugin {
         val server = new play.core.server.NettyServer(reloader)
         
         println()
-        println(new ANSIBuffer().green("(Server started, use Ctrl+D to stop and go back to the console...)").toString)
+        println(new ANSIBuffer().green("(Servidor iniciado, use Ctrl+D para parar e voltar para o console...)").toString)
         println()
         
         waitForKey()
@@ -392,7 +392,7 @@ object PlayProject extends Plugin {
         Project.evaluateTask(compile in Compile, state).get.toEither match {
             case Left(_) => {
                 println()
-                println("Cannot start with errors.")
+                println("Não é possível  começar com erros.")
                 println()
                 state.fail
             }
@@ -427,7 +427,7 @@ object PlayProject extends Plugin {
                     
                 }.right.getOrElse {
                     println()
-                    println("Oops, cannot start the server?")
+                    println("Oops, não consegue iniciar o servidor?")
                     println()
                     state.fail
                 }
@@ -441,22 +441,22 @@ object PlayProject extends Plugin {
 
         println(
             """
-                |Welcome to Play 2.0!
+                |Bem-vindo ao Play 2.0!
                 |
-                |These commands are available:
+                |Estes comandos estão disponíveis:
                 |-----------------------------
-                |clean          Clean all generated files.
-                |compile        Compile the current application.
-                |dist           Construct standalone application package.
-                |package        Package your application as a JAR.
-                |publish        Publish your application in a remote repository.
-                |publish-local  Publish your application in the local repository.
-                |reload         Reload the current application build file.
-                |run            Run the current application in DEV mode.
-                |start          Start the current application in another JVM in PROD mode.
-                |update         Update application dependencies.
+                |clean          Limpa todos os arquivos gerados.
+                |compile        Compila a aplicação atual.
+                |dist           Construir um pacote de aplicação standalone.
+                |package        Enpacotar sua aplicação como um JAR.
+                |publish        Publicar sua aplicação em um repositório remoto.
+                |publish-local  Publicar sua aplicação em um repositório local.
+                |reload         Recarregar o arquivo de build da aplicação atual.
+                |run            Execute a aplicação corrente no modo DEV (Desenvolvimento).
+                |start          Inicie a aplicação atual em outra JVM no modo PROD.
+                |update         Atualizar as dependências da aplicação.
                 |
-                |You can also browse the complete documentation at """.stripMargin +
+                |Você também pode ver a documentação completa em """.stripMargin +
                 new ANSIBuffer().underscore("http://www.playframework.org").append(".\n")
         )
         
@@ -471,8 +471,8 @@ object PlayProject extends Plugin {
         // Display logo
         println(play.console.Console.logo)
         println("""
-            |> Type "help" or "license" for more information.
-            |> Type "exit" or use Ctrl+D to leave this console.
+            |> Digite "help" ou "license" para mais informações.
+            |> Digite "exit" ou use Ctrl+D para deixar este ambiente.
             |""".stripMargin 
         )
 
