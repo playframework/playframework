@@ -3,6 +3,8 @@ package play.mvc;
 import play.mvc.Http.*;
 import play.mvc.Result.*;
 
+import static java.lang.String.format;
+
 public abstract class Controller {
     
     public static Request request() {
@@ -16,7 +18,7 @@ public abstract class Controller {
         } else {
             text = any.toString();
         }
-        final String formatted = String.format(text, (Object)args);
+        final String formatted = format(text, (Object)args);
         return new Text(formatted);
     }
     
