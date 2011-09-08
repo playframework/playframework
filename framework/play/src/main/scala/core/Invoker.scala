@@ -30,6 +30,13 @@ object DispatchStrategy{
                 .setCorePoolSize(3)
                 .setMaxPoolSize(3)
                 .build
+
+    val stmPromiseRedeem  = newExecutorBasedEventDrivenWorkStealingDispatcher("name")
+                .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
+                .setCorePoolSize(3)
+                .setMaxPoolSize(3)
+                .build
+
 }
 
 class Invoker(i:Int) extends Actor {
@@ -51,6 +58,25 @@ class Invoker(i:Int) extends Actor {
             response.handle(result)
         }
     }
+}
+
+case class Invoke[A](a:A,k: A=>Unit)
+class PromiseInvoker extends Actor {
+
+    self.dispatcher = DispatchStrategy.promises
+
+    def receive = {
+        case Invoke(a,k) => k(a)
+    }
+}
+object PromiseInvoker {
+    import akka.actor.Actor._
+    import akka.routing.Routing._
+    import akka.routing.SmallestMailboxFirstIterator
+
+    private def newInvoker() = {val inv = actorOf(new PromiseInvoker()); inv.start() ;inv }
+
+    val invoker = loadBalancerActor( new SmallestMailboxFirstIterator(List.fill(2)(newInvoker ()) ) ).start()
 }
 
 object Promise1 {

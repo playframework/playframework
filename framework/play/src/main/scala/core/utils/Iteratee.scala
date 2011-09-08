@@ -158,7 +158,49 @@ trait Promise[A]{
   def flatMap[B](f: A => Promise[B]) : Promise[B]
 }
 
+class STMPromise[A] extends Promise[A]{
+  import scala.concurrent.stm._
+
+  val actions :Ref[List[A => Unit]] = Ref(List())
+  var redeemed:Ref[Option[A]] =Ref(None)
+  def onRedeem(k: A => Unit):Unit = {
+      if(redeemed.single().isDefined){
+        redeemed.single().foreach(k)
+      } else {
+         val ok:Boolean =  atomic { implicit txn =>
+              if(!redeemed().isDefined){ actions() = actions() :+ k ; true}
+              else false
+              }
+          if(!ok) redeemed.single().foreach(invoke(_,k))
+      }
+  }
+
+  private def invoke(a:A, k:A=> Unit) = PromiseInvoker.invoker ! Invoke(a,k)
+
+  def redeem(a:A):Unit = {
+      
+      atomic { implicit txn => 
+          if(redeemed().isDefined) error("already redeemed")
+          redeemed() = Some(a);
+            }
+      actions.single.swap(List()).foreach(invoke(a,_)) //need to remove them from the list
+  }
+
+  def map[B](f: A => B): Promise[B] = {
+      val result = new STMPromise[B]()
+      this.onRedeem(a => result.redeem(f(a)))
+      result
+  }
+
+  def flatMap[B](f: A => Promise[B]) = {
+      val result = new STMPromise[B]()
+      this.onRedeem(a => f(a).onRedeem(result.redeem(_)))
+      result
+  }
+}
+
 object PurePromise{
+
     def apply[A](a:A): Promise[A] = new Promise[A] {
         def onRedeem(k: A => Unit) :Unit = k(a)
 
@@ -174,8 +216,7 @@ object PurePromise{
 
 object Promise{
     def pure[A](a:A) = PurePromise(a)
-    def apply[A]() = new play.core.Promise1.ActorPromise[A]()
-
+    def apply[A]() = new STMPromise[A]()
 }
 
 def fold[E,A](state:A)(f :(A,E) => A):Iteratee[E,A]=
