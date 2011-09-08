@@ -60,24 +60,37 @@ object Application extends Controller {
     def coco = Action {
         Text("Coco")
     }
+    
     import play.core.Iteratee._
+    
     def index = Action {
         Html(views.html.index("World").toString)
     }
+    
     def websocketTest = Action {
-
         Html(views.html.sockets().toString)
     }
+    
     def moreSockets = Action {
-
         Html(views.html.moreSockets().toString)
     }
+    
     def socketEchoReversed = Action {
-        import play.core.Iteratee._
-        SocketResult[String]{ (in ,out) => 
-         out <<: in.map{ case El("") => EOF
-                         case o => o.map(_.reverse)}
+        SocketResult[String]{ (in,out) => 
+            out <<: in.map {
+                case El("") => EOF
+                case o => o.map(_.reverse)
+            }
         }
+    }
+    
+    val specialTemplates = Map(
+        "home"  -> views.pages.html.home.f,
+        "about" -> views.pages.html.about.f
+    )
+    
+    def page(name:String) = Action {
+        Html(specialTemplates.get(name).getOrElse(views.pages.html.page.f)(name, "Dummy content").toString)
     }
     
     def list(page:Int, sort:String) = {

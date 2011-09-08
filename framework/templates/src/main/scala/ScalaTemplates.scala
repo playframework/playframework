@@ -155,7 +155,7 @@ package play.templates {
         case class Block(whitespace: String, args:Option[String], content:Seq[TemplateTree]) extends ScalaExpPart  with Positional
         case class Value(ident:PosString, block:Block) extends Positional
 
-        def compile(source:File, sourceDirectory:File, generatedDirectory:File) = {
+        def compile(source:File, sourceDirectory:File, generatedDirectory:File, resultType:String, formatterType:String, additionalImports:String = "") = {
             val (templateName,generatedSource) = generatedFile(source, sourceDirectory, generatedDirectory)
             if(generatedSource.needRecompilation) {
                 val generated = templateParser.parser(new CharSequenceReader(Path(source).slurpString)) match {
@@ -164,7 +164,10 @@ package play.templates {
                              source,
                              templateName.dropRight(1).mkString("."),
                              templateName.takeRight(1).mkString,
-                             parsed
+                             parsed,
+                             resultType,
+                             formatterType,
+                             additionalImports
                          )
                     }
                     case templateParser.Success(_, rest) => {
@@ -456,7 +459,12 @@ package play.templates {
             Nil :+ imports :+ "\n" :+ defs :+ "\n" :+ visit(template.content, Nil)
         }
 
-        def generateFinalTemplate(template: File, packageName: String, name: String, root:Template) = {
+        def generateFinalTemplate(template: File, packageName: String, name: String, root:Template, resultType:String, formatterType:String, additionalImports:String) = {
+            
+            val extra = TemplateAsFunctionCompiler.getFunctionMapping(
+                root.params.str,
+                resultType
+            )
 
             val generated = {
                 Nil :+ """
@@ -465,11 +473,19 @@ package play.templates {
                     import play.templates._
                     import play.templates.TemplateMagic._
                     
-                    object """ :+ name :+ """ extends BaseScalaTemplate[Html,Format[Html]](HtmlFormat) {
+                    """ :+ additionalImports :+ """
+                    
+                    object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,Format[""" :+ resultType :+ """]](""" :+ formatterType :+ """) with """ :+ extra._3 :+ """ {
 
-                        def apply""" :+ Source(root.params.str, root.params.pos) :+ """:Html = {
+                        def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {
                             _display_ {""" :+ templateCode(root) :+ """}
                         }
+                        
+                        """ :+ extra._1 :+ """
+                        
+                        """ :+ extra._2 :+ """
+                        
+                        def ref = this
 
                     }
  
@@ -477,6 +493,135 @@ package play.templates {
             }
 
             Source.finalSource(template, generated)
+        }
+        
+        object TemplateAsFunctionCompiler {
+
+            import java.io.File
+            import scala.tools.nsc.interactive.{Response, Global}
+            import scala.tools.nsc.io.AbstractFile
+            import scala.tools.nsc.util.{SourceFile, Position, BatchSourceFile}
+            import scala.tools.nsc.Settings
+            import scala.tools.nsc.reporters.ConsoleReporter
+
+            def getFunctionMapping(signature:String, returnType:String) = {
+
+                type Tree = PresentationCompiler.global.Tree
+                type DefDef = PresentationCompiler.global.DefDef
+                type TypeDef = PresentationCompiler.global.TypeDef
+                
+                def findSignature(tree:Tree):Option[DefDef] = {
+                    tree match {
+                        case t:DefDef if t.name.toString == "signature" => Some(t)
+                        case t:Tree => t.children.flatMap(findSignature).headOption
+                    }
+                }
+
+                val params = findSignature(
+                    PresentationCompiler.treeFrom("object FT { def signature" + signature + " }")
+                ).get.vparamss
+
+                val functionType = "(" + params.map(group => "(" + group.map {
+                    case a if a.mods.isByNameParam => " => " + a.tpt.children(1).toString
+                    case a => a.tpt.toString
+                }.mkString(",") + ")").mkString(" => ") + " => " + returnType + ")"
+
+                val renderCall = "def render%s = apply%s".format(
+                    "(" + params.flatten.map {
+                        case a if a.mods.isByNameParam => a.name.toString + ":" + a.tpt.children(1).toString
+                        case a => a.name.toString + ":" + a.tpt.toString
+                    }.mkString(",") + ")",
+                    params.map(group => "(" + group.map(_.name.toString).mkString(",") + ")").mkString
+                )
+                
+                var templateType = "Template%s[%s%s]".format(
+                    params.flatten.size,
+                    params.flatten.map {
+                        case a if a.mods.isByNameParam => a.tpt.children(1).toString
+                        case a => a.tpt.toString
+                    }.mkString(","),
+                    (if(params.flatten.isEmpty) "" else ",") + returnType
+                )
+
+                val f = "def f:%s = %s => apply%s".format(
+                    functionType,
+                    params.map(group => "(" + group.map(_.name.toString).mkString(",") + ")").mkString(" => "),
+                    params.map(group => "(" + group.map(_.name.toString).mkString(",") + ")").mkString
+                )
+
+                (renderCall, f, templateType)
+            }
+
+            class CompilerInstance {
+
+                def additionalClassPathEntry: Option[String] = None
+
+                lazy val compiler = {
+
+                    val settings = new Settings
+
+                    val scalaObjectSource = Class.forName("scala.ScalaObject").getProtectionDomain.getCodeSource
+
+                    // is null in Eclipse/OSGI but luckily we don't need it there
+                    if(scalaObjectSource != null) {
+                        val compilerPath = Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource.getLocation
+                        val libPath = scalaObjectSource.getLocation          
+                        val pathList = List(compilerPath,libPath)
+                        val origBootclasspath = settings.bootclasspath.value
+                        settings.bootclasspath.value = ((origBootclasspath :: pathList) ::: additionalClassPathEntry.toList) mkString File.pathSeparator
+                    }
+
+                    val compiler = new Global(settings, new ConsoleReporter(settings) {
+                        override def printMessage(pos: Position, msg: String) = ()
+                    })
+
+                    new compiler.Run  
+
+                    compiler
+                }
+            }
+
+            trait TreeCreationMethods {
+
+                val global: scala.tools.nsc.interactive.Global
+
+                val randomFileName = {
+                    val r = new java.util.Random
+                    () => "file"+ r.nextInt
+                }
+
+                def treeFrom(src: String): global.Tree = {
+                    val file = new BatchSourceFile(randomFileName(), src)
+                    treeFrom(file)
+                }
+
+                def treeFrom(file: SourceFile): global.Tree = {
+                    import tools.nsc.interactive.Response
+
+                    type Scala29Compiler = {
+                        def askParsedEntered(file: SourceFile, keepLoaded: Boolean, response: Response[global.Tree]): Unit
+                        def askType(file: SourceFile, forceReload: Boolean, respone: Response[global.Tree]): Unit
+                    }
+
+                    val newCompiler = global.asInstanceOf[Scala29Compiler]
+
+                    val r1 = new Response[global.Tree]
+                    newCompiler.askParsedEntered(file, true, r1)
+                    r1.get.left.get
+                }
+
+            }
+
+            object CompilerInstance extends CompilerInstance
+
+            object PresentationCompiler extends TreeCreationMethods {
+                val global = CompilerInstance.compiler
+
+                def shutdown() {
+                    global.askShutdown()
+                }
+            }
+
         }
 
     }
@@ -540,27 +685,6 @@ package play.templates {
         def escape(text:String):T
     }
 
-    case class Html(text:String) extends Appendable[Html] {
-        val buffer = new StringBuilder(text)
-
-        def +(other:Html) = {
-            buffer.append(other.buffer)
-            this
-        }
-        override def toString = buffer.toString
-    }
-
-    object Html {
-
-        def empty = Html("")
-
-    }
-
-    object HtmlFormat extends Format[Html] {
-        def raw(text:String) = Html(text)
-        def escape(text:String) = Html(text.replace("<","&lt;"))
-    }
-
     case class BaseScalaTemplate[T<:Appendable[T],F<:Format[T]](format: F) {
 
         def _display_(o:Any):T = {
@@ -577,6 +701,32 @@ package play.templates {
         }
 
     }
+    
+    /* ------ */
+    
+    trait Template0[Result] { def render():Result }    
+    trait Template1[A,Result] { def render(a:A):Result }
+    trait Template2[A,B,Result] { def render(a:A,b:B):Result }
+    trait Template3[A,B,C,Result] { def render(a:A,b:B,c:C):Result }
+    trait Template4[A,B,C,D,Result] { def render(a:A,b:B,c:C,d:D):Result }
+    trait Template5[A,B,C,D,E,Result] { def render(a:A,b:B,c:C,d:D,e:E):Result }
+    trait Template6[A,B,C,D,E,F,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F):Result }
+    trait Template7[A,B,C,D,E,F,G,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G):Result }
+    trait Template8[A,B,C,D,E,F,G,H,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H):Result }
+    trait Template9[A,B,C,D,E,F,G,H,I,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I):Result }
+    trait Template10[A,B,C,D,E,F,G,H,I,J,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J):Result }
+    trait Template11[A,B,C,D,E,F,G,H,I,J,K,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K):Result }
+    trait Template12[A,B,C,D,E,F,G,H,I,J,K,L,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L):Result }
+    trait Template13[A,B,C,D,E,F,G,H,I,J,K,L,M,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M):Result }
+    trait Template14[A,B,C,D,E,F,G,H,I,J,K,L,M,N,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N):Result }
+    trait Template15[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O):Result }
+    trait Template16[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P):Result }
+    trait Template17[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P,q:Q):Result }
+    trait Template18[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P,q:Q,r:R):Result }
+    trait Template19[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P,q:Q,r:R,s:S):Result }
+    trait Template20[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P,q:Q,r:R,s:S,t:T):Result }
+    trait Template21[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P,q:Q,r:R,s:S,t:T,u:U):Result }
+    trait Template22[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,Result] { def render(a:A,b:B,c:C,d:D,e:E,f:F,g:G,h:H,i:I,j:J,k:K,l:L,m:M,n:N,o:O,p:P,q:Q,r:R,s:S,t:T,u:U,v:V):Result }
 
     /* ------ */
 

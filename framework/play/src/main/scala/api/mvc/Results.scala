@@ -6,8 +6,6 @@ import play.core.Iteratee._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
 
-
-
 case class SimpleHttpResponse(status:Int, headers:Map[String,String] = Map.empty)
 
 sealed trait Result
@@ -52,8 +50,6 @@ object Results {
     import play.api.http.Status._
     import play.api.http.HeaderNames._    
     import play.core._
-
-    
 
     def EmptyStatus(status:Int) =   SimpleResult[String]( response = SimpleHttpResponse(status), body = Enumerator.empty[String])
     def Status(status:Int, content:String, mimeType:String = "text/html") = SimpleResult(response = SimpleHttpResponse(status, Map(CONTENT_TYPE -> mimeType)), body = Enumerator(content))

@@ -57,7 +57,7 @@ trait JavaAction extends Action {
             }
         }
         
-        finalAction.call(javaContext).original
+        finalAction.call(javaContext).getInternalResult
     }
     
 }

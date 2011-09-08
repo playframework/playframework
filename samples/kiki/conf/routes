@@ -22,5 +22,11 @@ GET     /java                           controllers.JavaApplication.index()
 GET     /toJava                         controllers.Application.goToJava
 GET     /back                           controllers.JavaApplication.back()
 
+GET     /pages                          controllers.JavaApplication.page(name="home")
+GET     /pages/:name                    controllers.JavaApplication.page(name)
+
+GET     /scala-pages/:name              controllers.Application.page(name)
+
 # Static assets
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)
+

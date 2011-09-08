@@ -75,6 +75,8 @@ object PlayProject extends Plugin {
     val distDirectory = SettingKey[File]("play-dist")
     val playResourceDirectories = SettingKey[Seq[File]]("play-resource-directories")
     val confDirectory = SettingKey[File]("play-conf")
+    val templatesAdditionalImport = SettingKey[String]("play-templates-imports")
+    val templatesTypes = SettingKey[(String => (String,String))]("play-templates-formats")
 
     
     // ----- Play specific tasks
@@ -162,13 +164,13 @@ object PlayProject extends Plugin {
         (generatedDir * "*.scala").get.map(_.getAbsoluteFile)
     }
     
-    val ScalaTemplates = (sourceDirectory:File, generatedDir:File) => {
+    val ScalaTemplates = (sourceDirectory:File, generatedDir:File, templateTypes:Function1[String,(String,String)], additionalImports:String) => {
         import play.templates._
         
         (generatedDir ** "template_*").get.map(GeneratedSource(_)).foreach(_.sync())
         try {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
-                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir)
+                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, additionalImports)
             }
         } catch {
             case TemplateCompilationError(source, message, line, column) => {
@@ -505,7 +507,7 @@ object PlayProject extends Plugin {
 
         sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
         
-        sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile) map ScalaTemplates,
+        sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesAdditionalImport) map ScalaTemplates,
 
         commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand),
 
@@ -531,7 +533,13 @@ object PlayProject extends Plugin {
         
         playResourceDirectories <+= baseDirectory / "conf",
         
-        playResourceDirectories <+= baseDirectory / "public"
+        playResourceDirectories <+= baseDirectory / "public",
+        
+        templatesAdditionalImport := "",
+        
+        templatesTypes := ((extension) => extension match {
+            case "html" => ("play.templates.Html", "play.templates.HtmlFormat")
+        })
         
     )
 

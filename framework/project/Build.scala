@@ -101,7 +101,8 @@ object PlayBuild extends Build {
         )
 
         val templates = Seq(
-            "com.github.scala-incubator.io"     %%  "file"              %   "0.1.2"
+            "com.github.scala-incubator.io"     %%  "file"              %   "0.1.2",
+            "org.scala-lang"                    %   "scala-compiler"    %   buildScalaVersion
         )
 
     }
@@ -270,9 +271,9 @@ object PlayBuild extends Build {
             }
             
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
-                val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File])
+                val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
-                    compile.invoke(null, template, sourceDirectory, generatedDir)
+                    compile.invoke(null, template, sourceDirectory, generatedDir, "play.templates.Html", "play.templates.HtmlFormat", "")
                 } catch {
                     case e:java.lang.reflect.InvocationTargetException =>{
                         val t = e.getTargetException

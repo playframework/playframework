@@ -2,37 +2,60 @@ package play.mvc;
 
 import play.api.mvc.Results.* ;
 
-public abstract class Result {
-    
+public interface Result {
 
-    public play.api.mvc.Result original;
+    public play.api.mvc.Result getInternalResult();
     
-    public Result(play.api.mvc.Result original) {
-        this.original = original;
-    }
-    
-    public static class Html extends Result {
+    public static class Html implements Result {
+        
+        private play.api.mvc.Result internalResult;
+        
         public Html(String html) {
-            super( play.api.mvc.Results.Html(html));
+            this.internalResult = play.api.mvc.Results.Html(html);
         }
+        
+        public play.api.mvc.Result getInternalResult() {
+            return this.internalResult;
+        }
+        
     }
     
-    public static class Ok extends Result {
-        public Ok() {
-            super( play.api.mvc.Results.Text("OK"));
-        }
-    }
-    
-    public static class Redirect extends Result {
+    public static class Redirect implements Result {
+        
+        private play.api.mvc.Result internalResult;
+        
         public Redirect(String url) {
-            super( play.api.mvc.Results.Redirect(url));
+            this.internalResult = play.api.mvc.Results.Redirect(url);
         }
+        
+        public play.api.mvc.Result getInternalResult() {
+            return this.internalResult;
+        }
+        
     }
     
-    public static class Text extends Result {
-        public Text(String text) {
-            super( play.api.mvc.Results.Text(text));
+    public static class Ok implements Result {
+        
+        private play.api.mvc.Result internalResult = play.api.mvc.Results.Text("OK");
+        
+        public play.api.mvc.Result getInternalResult() {
+            return this.internalResult;
         }
+        
+    }
+    
+    public static class Text implements Result {
+        
+        private play.api.mvc.Result internalResult;
+        
+        public Text(String text) {
+            this.internalResult = play.api.mvc.Results.Text(text);
+        }
+        
+        public play.api.mvc.Result getInternalResult() {
+            return this.internalResult;
+        }
+    
     }
     
 }
