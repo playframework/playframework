@@ -188,7 +188,7 @@ package play.templates {
 
         def generatedFile(template:File, sourceDirectory:File, generatedDirectory:File) = {
             val templateName = source2TemplateName(template, sourceDirectory).split('.')
-            templateName -> GeneratedSource(new File(generatedDirectory, "template_" + templateName.mkString("_") + ".scala"))
+            templateName -> GeneratedSource(new File(generatedDirectory, templateName.mkString("/") + ".template.scala"))
         }
 
         @tailrec def source2TemplateName(f:File, sourceDirectory:File, suffix:String = ""):String = {

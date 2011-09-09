@@ -255,7 +255,7 @@ object PlayBuild extends Build {
             val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
             val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
             
-            (generatedDir ** "template_*").get.foreach { source =>
+            (generatedDir ** "*.template.scala").get.foreach { source =>
                 val constructor = generatedSource.getDeclaredConstructor(classOf[java.io.File])
                 val sync = generatedSource.getDeclaredMethod("sync")
                 val generated = constructor.newInstance(source)
@@ -283,7 +283,7 @@ object PlayBuild extends Build {
                 }
             }
             
-            (generatedDir * "template_*.scala").get.map(_.getAbsoluteFile)
+            (generatedDir ** "*.scala").get.map(_.getAbsoluteFile)
         }
         
 

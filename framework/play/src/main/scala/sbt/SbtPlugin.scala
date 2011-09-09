@@ -186,7 +186,7 @@ object PlayProject extends Plugin {
     val ScalaTemplates = (sourceDirectory:File, generatedDir:File, templateTypes:Function1[String,(String,String)], additionalImports:String) => {
         import play.templates._
         
-        (generatedDir ** "template_*").get.map(GeneratedSource(_)).foreach(_.sync())
+        (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
         try {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, additionalImports)
@@ -198,7 +198,7 @@ object PlayProject extends Plugin {
             case e => throw e
         }
 
-        (generatedDir * "*.scala").get.map(_.getAbsoluteFile)
+        (generatedDir ** "*.scala").get.map(_.getAbsoluteFile)
     }
     
     
