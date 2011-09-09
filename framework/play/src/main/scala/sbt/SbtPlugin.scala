@@ -143,6 +143,25 @@ object PlayProject extends Plugin {
     }
     
     
+    // ----- Post compile
+    
+    val PostCompile = (compile in Compile, sourceManaged in Compile, classDirectory in Compile) map { (analysis,srcManaged,classes) =>
+        
+        val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
+        
+        val managedClasses = (srcManaged ** "*.scala").get.map { managedSourceFile =>
+            analysis.relations.products(managedSourceFile)
+        }.flatten x rebase(classes, managedClassesDirectory)
+        
+        // Copy modified class files
+        val managedSet = IO.copy(managedClasses)
+        
+        // Remove deleted class files
+        (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
+        
+        analysis
+    }
+    
     
     // ----- Source generators
     
@@ -516,6 +535,8 @@ object PlayProject extends Plugin {
         copyResources in Compile <<= (copyResources in Compile, playCopyResources) map { (r,pr) => r ++ pr },
 
         mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
+        
+        compile in (Compile) <<= PostCompile,
 
         dist <<= distTask,
 

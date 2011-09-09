@@ -468,28 +468,26 @@ package play.templates {
 
             val generated = {
                 Nil :+ """
-                    package """ :+ packageName :+ """
+package """ :+ packageName :+ """
 
-                    import play.templates._
-                    import play.templates.TemplateMagic._
-                    
-                    """ :+ additionalImports :+ """
-                    
-                    object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,Format[""" :+ resultType :+ """]](""" :+ formatterType :+ """) with """ :+ extra._3 :+ """ {
+import play.templates._
+import play.templates.TemplateMagic._
 
-                        def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {
-                            _display_ {""" :+ templateCode(root) :+ """}
-                        }
-                        
-                        """ :+ extra._1 :+ """
-                        
-                        """ :+ extra._2 :+ """
-                        
-                        def ref = this
+""" :+ additionalImports :+ """
 
-                    }
- 
-                """
+object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,Format[""" :+ resultType :+ """]](""" :+ formatterType :+ """) with """ :+ extra._3 :+ """ {
+
+    def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {
+        _display_ {""" :+ templateCode(root) :+ """}
+    }
+    
+    """ :+ extra._1 :+ """
+    
+    """ :+ extra._2 :+ """
+    
+    def ref = this
+
+}"""
             }
 
             Source.finalSource(template, generated)
