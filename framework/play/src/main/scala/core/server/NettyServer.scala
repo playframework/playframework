@@ -135,7 +135,7 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
 
                         val enumerator = new Enumerator[String]{
                             val iterateeAgent = Agent[Option[Iteratee[String,Any]]](None)
-                            private val promise: Promise[Iteratee[String,Any]]  =  Promise[Iteratee[String,Any]]()
+                            private val promise: Promise[Iteratee[String,Any]] with Redeemable[Iteratee[String,Any]]  =  Promise[Iteratee[String,Any]]()
 
                             def apply[R,EE >: String](i:Iteratee[EE,R]) = {
                                 iterateeAgent.send(_.orElse( Some(i.asInstanceOf[Iteratee[String,Any]])))

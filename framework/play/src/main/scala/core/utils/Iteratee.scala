@@ -8,15 +8,13 @@ object Iteratee {
             case Empty => Empty
             case EOF => EOF
         }
-
-
     }
     case class El[E](e: E) extends Input[E]
     case object Empty extends Input[Nothing]
     case object EOF extends Input[Nothing]
 
 
-def flatten[E,A](i:Promise[Iteratee[E,A]]):Iteratee[E,A] = new Iteratee[E,A] {
+    def flatten[E,A](i:Promise[Iteratee[E,A]]):Iteratee[E,A] = new Iteratee[E,A] {
 
         def fold[B](done: (A,Input[E]) => Promise[B],
                     cont: (Input[E] => Iteratee[E,A]) => Promise[B],
@@ -147,54 +145,112 @@ object Enumerator {
                                      (_,_) => i ) ) )
     }
 }
+trait PromiseValue[+A]
+
+trait NotWaiting[+A] extends PromiseValue[A]
+case class Thrown(e:Exception) extends NotWaiting[Nothing]
+case class Redeemed[+A](a:A) extends NotWaiting[A]
+case object Waiting extends PromiseValue[Nothing]
+
 trait Promise[A]{
 
   def onRedeem(k: A => Unit):Unit 
 
-  def redeem(a:A):Unit
+  def extend[B](k:Function1[Promise[A],B]):Promise[B]
+
+  def value: PromiseValue[A]
+
+  def filter(p: A => Boolean) : Promise[A]
 
   def map[B](f: A => B): Promise[B]
 
   def flatMap[B](f: A => Promise[B]) : Promise[B]
 }
 
-class STMPromise[A] extends Promise[A]{
+trait Redeemable[A]{ 
+    def redeem(a: => A):Unit
+}
+
+trait RIPPromise[A] extends Promise[A] {
+    def value: NotWaiting[A]
+}
+
+class STMPromise[A] extends Promise[A] with Redeemable[A] {
   import scala.concurrent.stm._
 
-  val actions :Ref[List[A => Unit]] = Ref(List())
+  val actions :Ref[List[Promise[A] => Unit]] = Ref(List())
   var redeemed:Ref[Option[A]] =Ref(None)
-  def onRedeem(k: A => Unit):Unit = {
+
+  def extend[B](k:Function1[Promise[A],B]):Promise[B] = {
+      val result = new STMPromise[B]()
+      onRedeem(_ => result.redeem(k(this)))
+      result
+  }
+
+  def filter(p: A => Boolean):Promise[A] = {
+      val result = new STMPromise[A]()
+      onRedeem(a => if(p(a)) result.redeem(a))
+      result
+  }
+
+  def collect[B](p: PartialFunction[A,B]) = {
+      val result = new STMPromise[B]()
+      onRedeem(a => p.lift(a).foreach( result.redeem(_)))
+      result
+  }
+
+  def onRedeem(k: A => Unit) : Unit = {
+      addAction( p => p.value match { case Redeemed(a) => k(a); case _ => })
+
+  }
+
+  private def addAction(k: Promise[A] => Unit):Unit = {
       if(redeemed.single().isDefined){
-        redeemed.single().foreach(k)
+        redeemed.single().foreach(_ => k(this))
       } else {
          val ok:Boolean =  atomic { implicit txn =>
               if(!redeemed().isDefined){ actions() = actions() :+ k ; true}
               else false
               }
-          if(!ok) redeemed.single().foreach(invoke(_,k))
+          if(!ok) redeemed.single().foreach(_ => invoke(this,k))
       }
   }
 
-  private def invoke(a:A, k:A=> Unit) = PromiseInvoker.invoker ! Invoke(a,k)
+  def value : PromiseValue[A] = redeemed.single().map(Redeemed(_)).getOrElse(Waiting)
 
-  def redeem(a:A):Unit = {
-      
+  private def invoke[T](a:T, k:T=> Unit) = PromiseInvoker.invoker ! Invoke(a,k)
+
+  def redeem(body: => A):Unit = {
+      val result = scala.util.control.Exception.allCatch[A].either(body)
       atomic { implicit txn => 
           if(redeemed().isDefined) error("already redeemed")
-          redeemed() = Some(a);
-            }
-      actions.single.swap(List()).foreach(invoke(a,_)) //need to remove them from the list
+          result.right.foreach{ a =>
+              redeemed() = Some(a)
+          }
+     }
+     actions.single.swap(List()).foreach(invoke(this,_)) //need to remove them from the list
   }
 
   def map[B](f: A => B): Promise[B] = {
       val result = new STMPromise[B]()
-      this.onRedeem(a => result.redeem(f(a)))
+      this.addAction(p => p.value match {
+          case Redeemed(a) => result.redeem(f(a))
+          case Thrown(e) => result.redeem(throw e)
+      })
       result
   }
 
   def flatMap[B](f: A => Promise[B]) = {
       val result = new STMPromise[B]()
-      this.onRedeem(a => f(a).onRedeem(result.redeem(_)))
+      this.addAction(p => p.value match {
+          case Redeemed(a) => 
+              f(a).extend(ip => ip.value match {
+                  case Redeemed(a) => result.redeem(a)
+                  case Thrown(e) => result.redeem(throw e)
+
+              })
+          case Thrown(e) => result.redeem(throw e)
+      })
       result
   }
 }
@@ -202,11 +258,33 @@ class STMPromise[A] extends Promise[A]{
 object PurePromise{
 
     def apply[A](a:A): Promise[A] = new Promise[A] {
+
+        private def neverRedeemed[A] :Promise[A] = new Promise[A] {
+              def onRedeem(k: A => Unit):Unit = ()
+
+              def extend[B](k:Function1[Promise[A],B]):Promise[B] = neverRedeemed[B]
+
+              def value: PromiseValue[A] = Waiting
+
+              def filter(p: A => Boolean) : Promise[A] = this
+
+              def map[B](f: A => B): Promise[B] = neverRedeemed[B]
+
+              def flatMap[B](f: A => Promise[B]) : Promise[B] = neverRedeemed[B]
+
+        }
+
         def onRedeem(k: A => Unit) :Unit = k(a)
 
-        def value : A = a
+        def value = Redeemed(a)
 
         def redeem(a:A) = error("Already redeemed")
+
+        def extend[B](f:(Promise[A] => B)):Promise[B] = {
+           apply(f(this))
+        }
+
+        def filter(p:A => Boolean) = if (p(a)) this else neverRedeemed[A]
 
         def map[B](f: A => B): Promise[B] = PurePromise[B](f(a))
 
