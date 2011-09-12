@@ -91,18 +91,20 @@ object PlayBuild extends Build {
     object Dependencies {
 
         val runtime = Seq(
-            "org.jboss.netty"                   %   "netty"             %   "3.2.4.Final",
-            "org.slf4j"                         %   "slf4j-api"         %   "1.6.1",
-            "com.github.scala-incubator.io"     %%  "file"              %   "0.1.2",
-            "se.scalablesolutions.akka"         %   "akka-actor"        %   "1.1.3",
-            "org.avaje"                         %   "ebean"             %   "2.7.1",
-            "com.h2database"                    %   "h2"                %   "1.3.158",
-            "org.scala-tools"                   %%   "scala-stm"         %   "0.3"
-        )
-
-        val templates = Seq(
-            "com.github.scala-incubator.io"     %%  "file"              %   "0.1.2",
-            "org.scala-lang"                    %   "scala-compiler"    %   buildScalaVersion
+            "org.jboss.netty"                   %    "netty"             %   "3.2.4.Final",
+            "org.slf4j"                         %    "slf4j-api"         %   "1.6.1",
+            "com.github.scala-incubator.io"     %%   "file"              %   "0.1.2",
+            "se.scalablesolutions.akka"         %    "akka-actor"        %   "1.1.3",
+            "org.avaje"                         %    "ebean"             %   "2.7.1",
+            "com.h2database"                    %    "h2"                %   "1.3.158",
+            "org.scala-tools"                   %%   "scala-stm"         %   "0.3",
+            "com.jolbox"                        %    "bonecp"            %   "0.7.1.RELEASE",
+            "org.yaml"                          %    "snakeyaml"         %   "1.9"
+        )                                            
+                                                     
+        val templates = Seq(                         
+            "com.github.scala-incubator.io"     %%   "file"              %   "0.1.2",
+            "org.scala-lang"                    %    "scala-compiler"    %   buildScalaVersion
         )
 
     }
@@ -205,7 +207,7 @@ object PlayBuild extends Build {
 
             IO.write(file("../play"),
                 """
-                    |if [ -f conf/application.yml ]
+                    |if [ -f conf/application.conf ]
                     |then
                     |	`dirname $0`/framework/build play "$@"
                     |else

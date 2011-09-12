@@ -46,7 +46,7 @@
 							@lines.zipWithIndex.map { 
 
 								case (line,index) if index == errorIndex => {
-									<pre class="error">@(source.position.map(pos => line.zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</pre>
+									<pre class="error">@(source.position.map(pos => (line+" ").zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</pre>
 
 								}
 
@@ -68,6 +68,13 @@
 			}
 
 		}
+		
+		@error.cause.map { cause =>
+		    <p>
+		        Caused by @cause.getClass.getName: @cause.getMessage
+		    </p>
+		}
+		
 	</body>
 </html>
 

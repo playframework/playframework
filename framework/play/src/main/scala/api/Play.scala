@@ -6,28 +6,34 @@ import play.api.mvc._
 
 import java.io._
 
-case class Application(path:File, classloader:ClassLoader, sources:SourceMapper) {
+import scala.collection.JavaConverters._
+
+object Play {
     
-    def actionFor(request:Request):Option[Action] = {
-        import java.lang.reflect._
+    private[play] var application:Application = _
+    
+    def start(app:Application) {
         
-        try {
-            classloader.loadClass("Routes").getDeclaredMethod("actionFor", classOf[Request]).invoke(null, request).asInstanceOf[Option[Action]]
-        } catch {
-            case e:InvocationTargetException if e.getTargetException.isInstanceOf[PlayException] => throw e.getTargetException
-            case e:InvocationTargetException => {
-                throw ExecutionException(e.getTargetException, sources.sourceFor(e.getTargetException))
+        // First stop previous app if exists
+        Option(application).map { 
+            _.plugins.foreach { p =>
+                try { p.onStop } catch { case _ => }
             }
-            case e => throw ExecutionException(e, sources.sourceFor(e))
         }
+        
+        Play.application = app
+        
+        app.plugins.foreach(_.onStart)
         
     }
     
     def resourceAsStream(name:String):Option[InputStream] = {
-        Option(classloader.getResourceAsStream(Option(name).map {
+        Option(application.classloader.getResourceAsStream(Option(name).map {
             case s if s.startsWith("/") => s.drop(1)
             case s => s
         }.get))
     }
+    
+    def configuration = application.configuration
     
 }

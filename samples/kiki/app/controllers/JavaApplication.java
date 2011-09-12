@@ -19,7 +19,7 @@ public class JavaApplication extends Controller {
     public static Result index() {
         System.out.println("REQUEST -> " + request());
         String url = routes.JavaApplication().hello(5, "World").url();
-        return Html(javaIndex.render(url));
+        return Html(javaIndex.render(url)); 
     }
 
     @With(LoggingAction.class)

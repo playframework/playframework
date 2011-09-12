@@ -620,10 +620,9 @@ object Router {
             def sentence = (comment | positioned(route)) <~ newLine
 
             def parser:Parser[List[Route]] = phrase( ( blankLine | sentence *) <~ end ) ^^ {
-                case routes => routes.filter {
-                    case Comment(_) => false
-                    case Route(_,_,_) => true
-                }.asInstanceOf[List[Route]]
+                case routes => routes.collect {
+                    case r@Route(_,_,_) => r
+                }
             }
 
             def parse(text:String) = {

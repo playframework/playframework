@@ -39,25 +39,34 @@ object DispatchStrategy{
 
 }
 
-class Invoker(i:Int) extends Actor {
+class Invoker extends Actor {
     self.dispatcher = DispatchStrategy.d
 
     def receive = {
-        case (request:Request, response:Response,appProvider:ApplicationProvider) => {
-            val result =
+        case (request:Request, response:Response, appProvider:ApplicationProvider) => {
+
+            val result = try {
                 appProvider.get.fold(
                     error => InternalServerError(error),
-                    application => try {
+                    application => {
                         application.actionFor(request).map { action =>
-                            action(Context(application, request))
+                            try {
+                                action(Context(request))
+                            } catch {
+                                case e:Exception => throw ExecutionException(e, application.sources.sourceFor(e))
+                            }
                         }.getOrElse(NotFound)
-                    } catch {
-                          case e:PlayException => InternalServerError(e)
-                          case e => InternalServerError(UnexpectedException(unexpected = Some(e)))
-                    } )
+                    } 
+                )
+            } catch {
+                case e:PlayException => InternalServerError(e)
+                case e => InternalServerError(UnexpectedException(unexpected = Some(e)))
+            }
+                    
             response.handle(result)
         }
     }
+    
 }
 
 case class Invoke[A](a:A,k: A=>Unit)

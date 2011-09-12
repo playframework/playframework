@@ -1,4 +1,4 @@
-if [ -f conf/application.yml ]
+if [ -f conf/application.conf ]
 then
 	`dirname $0`/framework/build play "$@"
 else

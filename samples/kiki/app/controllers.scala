@@ -55,6 +55,12 @@ object Blocking extends Controller {
 
 }
 
+object TOTO {
+    
+    lazy val a = System.currentTimeMillis
+    
+}
+
 object Application extends Controller {
     
     def coco = Action {
@@ -64,7 +70,7 @@ object Application extends Controller {
     import play.core.Iteratee._
     
     def index = Action {
-        Html(views.html.index("World").toString)
+        Html(views.html.index("World " + TOTO.a).toString)
     }
     
     def websocketTest = Action {

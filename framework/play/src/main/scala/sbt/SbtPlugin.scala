@@ -228,12 +228,16 @@ object PlayProject extends Plugin {
         
             
             // ----- Internal state used for reloading is kept here
+            
+            val watchFiles = Seq(
+                extracted.currentProject.base / "conf" / "application.conf"
+            )
         
             var currentProducts = Map.empty[java.io.File,Long]
             var currentAnalysis = Option.empty[sbt.inc.Analysis]
         
             def updateAnalysis(newAnalysis:sbt.inc.Analysis) = {
-                val classFiles = newAnalysis.stamps.allProducts
+                val classFiles = newAnalysis.stamps.allProducts ++ watchFiles
                 val newProducts = classFiles.map { classFile =>
                     classFile -> classFile.lastModified
                 }.toMap
@@ -249,10 +253,11 @@ object PlayProject extends Plugin {
             }
         
             def findSource(className:String) = {
+                val topType = className.split('$').head
                 currentAnalysis.flatMap { analysis =>
                     analysis.apis.internal.flatMap {
                         case (sourceFile, source) => {
-                            source.api.definitions.find( defined => defined.name == className || (defined.name + "$") == className).map(_ => {
+                            source.api.definitions.find(defined => defined.name == topType).map(_ => {
                                 sourceFile:java.io.File
                             })
                         }
@@ -367,9 +372,9 @@ object PlayProject extends Plugin {
                         }
                         .right.map { compilationResult =>
                             updateAnalysis(compilationResult).map { _ =>
-                                new java.net.URLClassLoader({
+                                new ApplicationClassLoader(this.getClass.getClassLoader, {
                                     Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray
-                                }, this.getClass.getClassLoader)
+                                })
                             }
                         }
                     
