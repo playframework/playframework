@@ -37,3 +37,8 @@ object Play {
     def configuration = application.configuration
     
 }
+
+trait Content {
+    def body:String
+    def contentType:String
+}

@@ -44,37 +44,68 @@ object Writeable {
     implicit val wBytes : Writeable[Array[Byte]] = AsBytes[Array[Byte]](identity)
 }
 
-object Results {
+object Results extends Results
 
-    import play.core.Iteratee._
-    import play.api.http.Status._
-    import play.api.http.HeaderNames._    
+object JResults extends Results {
+    def writeContent:Writeable[play.api.Content] = wContent[play.api.Content]
+    def writeString:Writeable[String] = Writeable.wString
+}
+
+trait Results {
+    
     import play.core._
-
-    def EmptyStatus(status:Int) =   SimpleResult[String]( response = SimpleHttpResponse(status), body = Enumerator.empty[String])
+    import play.core.Iteratee._
+    
+    import play.api._
+    import play.api.http.Status._
+    import play.api.http.HeaderNames._
+    
+    implicit def wContent[C <: Content]:Writeable[C] = AsString[C](c => c.body) 
+    
     def Status(status:Int, content:String, mimeType:String = "text/html") = SimpleResult(response = SimpleHttpResponse(status, Map(CONTENT_TYPE -> mimeType)), body = Enumerator(content))
-    val Ok =  EmptyStatus(OK)
-    def Text(content:String) =   SimpleResult( response = SimpleHttpResponse(OK, Map(CONTENT_TYPE -> "text/plain")), Enumerator(content) )
-    def Html[A](content:A)(implicit writeable:Writeable[A]) = SimpleResult( response = SimpleHttpResponse( OK, Map(CONTENT_TYPE -> "text/html")), Enumerator(content))
-    def Html(content:String) = SimpleResult( response = SimpleHttpResponse( OK, Map(CONTENT_TYPE -> "text/html")), Enumerator(content))
-    def NotFound(content:String, mimeType:String = "text/html") = Status(NOT_FOUND, content, mimeType)
-    val NotFound = EmptyStatus(NOT_FOUND)
-    def Forbidden(content:String, mimeType:String = "text/html") = Status(FORBIDDEN, content, mimeType)
-    val Forbidden = EmptyStatus(FORBIDDEN)
-    def BadRequest(content:String, mimeType:String = "text/html") = Status(BAD_REQUEST, content, mimeType)
-    val BadRequest = EmptyStatus(BAD_REQUEST)
-    def InternalServerError(oops:PlayException) = Status(INTERNAL_SERVER_ERROR, core.views.html.error(oops).toString)
-    val InternalServerError = EmptyStatus(INTERNAL_SERVER_ERROR)
-    def Redirect(url:String): SimpleResult[String] = { val r = EmptyStatus(FOUND); r.copy(r.response.copy(headers = Map(LOCATION -> url))) }
-    def Redirect(call:Call): SimpleResult[String]= Redirect(call.url)
+    def EmptyStatus(status:Int) = SimpleResult[String](response = SimpleHttpResponse(status), body = Enumerator.empty[String])
+    
+    class Status(status:Int) extends SimpleResult[String](response = SimpleHttpResponse(status), body = Enumerator.empty[String]) {
+        
+        def apply[C](content:C, contentType:String = "text/html")(implicit writeable:Writeable[C]):SimpleResult[C] = {
+            SimpleResult(response = SimpleHttpResponse(status, Map(CONTENT_TYPE -> contentType)), Enumerator(content))
+        }
+        
+        def apply[C <: Content](content:C)(implicit writeable:Writeable[C]):SimpleResult[C] = apply(content, content.contentType)
+        
+    }
+    
+    val Ok = new Status(OK)
+    val NotFound = new Status(NOT_FOUND)
+    val Forbidden = new Status(FORBIDDEN)
+    val BadRequest = new Status(BAD_REQUEST)
+    
+    class InternalServerErrorStatus extends Status(INTERNAL_SERVER_ERROR) {
+        
+        def apply(e:Exception):SimpleResult[play.api.templates.Html] = apply(core.views.html.error(e match {
+            case e:PlayException => e
+            case e => UnexpectedException(unexpected = Some(e))
+        }))
+        
+    }
+    
+    val InternalServerError = new InternalServerErrorStatus()
+    
+    def Redirect(url:String):SimpleResult[String] = { val r = EmptyStatus(FOUND); r.copy(r.response.copy(headers = Map(LOCATION -> url))) }
+    def Redirect(call:Call):SimpleResult[String]= Redirect(call.url)
+    
     def Binary(stream:java.io.InputStream, length:Option[Long] = None, contentType:String = "application/octet-stream") = {
         import scalax.io.Resource
         val e = Enumerator(Resource.fromInputStream(stream).byteArray)
 
-        SimpleResult[Array[Byte]](response = SimpleHttpResponse(OK, 
-                                                                Map(CONTENT_TYPE -> contentType) ++ length.map( length =>
-                                                                    Map(CONTENT_LENGTH -> (length.toString))).getOrElse(Map.empty) ) , body = e) 
+        SimpleResult[Array[Byte]](response = SimpleHttpResponse(
+            OK, 
+            Map(CONTENT_TYPE -> contentType) ++ length.map( length =>
+                Map(CONTENT_LENGTH -> (length.toString))).getOrElse(Map.empty) 
+            ), 
+            body = e
+        ) 
         
     }
-
+    
 }

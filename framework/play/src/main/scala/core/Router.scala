@@ -682,7 +682,7 @@ object Router {
         //
 
         def badRequest(error:String) = new Action {
-            def apply(ctx:Context) = BadRequest(error, mimeType = "text/plain")
+            def apply(ctx:Context) = BadRequest(error, contentType = "text/plain")
         }
         
         def call(generator: => Action) = {

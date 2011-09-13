@@ -1,7 +1,7 @@
 package controllers;
 
 import play.mvc.*;
-import play.templates.*;
+import play.api.templates.*;
 
 import views.html.*;
 import views.pages.html.*;
@@ -19,16 +19,16 @@ public class JavaApplication extends Controller {
     public static Result index() {
         System.out.println("REQUEST -> " + request());
         String url = routes.JavaApplication().hello(5, "World").url();
-        return Html(javaIndex.render(url)); 
+        return ok(javaIndex.render(url)); 
     }
 
     @With(LoggingAction.class)
     public static Result hello(Integer repeat, String name) {
-        return Html(hello.render(name, repeat));
+        return ok(hello.render(name, repeat));
     }
     
     public static Result back() {
-        return Redirect(routes.JavaApplication().hello(30, "Redirected"));
+        return redirect(routes.JavaApplication().hello(30, "Redirected"));
     }
     
     static Map<String,Template2<String,String,Html>> pageTemplates = new HashMap<String,Template2<String,String,Html>>();
@@ -42,7 +42,7 @@ public class JavaApplication extends Controller {
         if(template == null) {
             template = page.ref();
         }
-        return Html(template.render(name, "Dummy content"));
+        return ok(template.render(name, "Dummy content"));
     }
     
     // ~~~

@@ -275,7 +275,7 @@ object PlayBuild extends Build {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
-                    compile.invoke(null, template, sourceDirectory, generatedDir, "play.templates.Html", "play.templates.HtmlFormat", "")
+                    compile.invoke(null, template, sourceDirectory, generatedDir, "play.api.templates.Html", "play.api.templates.HtmlFormat", "import play.api.templates._")
                 } catch {
                     case e:java.lang.reflect.InvocationTargetException =>{
                         val t = e.getTargetException

@@ -26,7 +26,7 @@ public class Security {
                 if(predicate.check(ctx, configuration.data())) {
                     return deleguate.call(ctx);
                 } else {
-                    return new Html("INTERDIT");
+                    return new Forbidden("INTERDIT");
                 }
             } catch(RuntimeException e) {
                 throw e;

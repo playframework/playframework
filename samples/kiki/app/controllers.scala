@@ -45,7 +45,7 @@ object Blocking extends Controller {
 
     def unblockEveryone(status:Int) = Action {
         waited.redeem(status) 
-        Text("OK")
+        Ok
     }
 
     def waitForUnblock = Action {
@@ -64,21 +64,21 @@ object TOTO {
 object Application extends Controller {
     
     def coco = Action {
-        Text("Coco")
+        NotFound("oops")
     }
     
     import play.core.Iteratee._
     
     def index = Action {
-        Html(views.html.index("World " + TOTO.a).toString)
+        Ok(views.html.index("World " + TOTO.a))
     }
     
     def websocketTest = Action {
-        Html(views.html.sockets().toString)
+        Ok(views.html.sockets())
     }
     
     def moreSockets = Action {
-        Html(views.html.moreSockets().toString)
+        Ok(views.html.moreSockets())
     }
     
     def socketEchoReversed = Action {
@@ -96,7 +96,7 @@ object Application extends Controller {
     )
     
     def page(name:String) = Action {
-        Html(specialTemplates.get(name).getOrElse(views.pages.html.page.f)(name, "Dummy content").toString)
+        Ok(specialTemplates.get(name).getOrElse(views.pages.html.page.f)(name, "Dummy content"))
     }
     
     def list(page:Int, sort:String) = {
@@ -107,8 +107,8 @@ object Application extends Controller {
             Cached(p, sort) { 
                 Action {
                     println("Listing page " + p + " using " + sort)
-                    Html(views.html.list(p, sort).toString)
-                } 
+                    Ok(views.html.list(p, sort).toString)
+                }
             }
         } 
     }

@@ -2,7 +2,6 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.mvc.Results._
 import play.api.libs._
 
 import scalax.io._

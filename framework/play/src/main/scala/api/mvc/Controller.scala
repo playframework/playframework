@@ -1,6 +1,6 @@
 package play.api.mvc
 
-trait Controller {
+trait Controller extends Results {
     
     def Action(block: => Result):Action = new DefaultAction(_ => block)
     def Action(block:Context => Result):Action = new DefaultAction(block)

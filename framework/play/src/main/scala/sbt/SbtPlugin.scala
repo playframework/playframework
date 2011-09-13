@@ -177,7 +177,7 @@ object PlayProject extends Plugin {
         (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
         try {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
-                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, additionalImports)
+                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, "import play.api.templates._\n" + additionalImports)
             }
         } catch {
             case TemplateCompilationError(source, message, line, column) => {
@@ -556,7 +556,7 @@ object PlayProject extends Plugin {
         templatesAdditionalImport := "",
         
         templatesTypes := ((extension) => extension match {
-            case "html" => ("play.templates.Html", "play.templates.HtmlFormat")
+            case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
         })
         
     )

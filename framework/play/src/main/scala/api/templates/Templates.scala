@@ -1,13 +1,19 @@
-package play.templates
+package play.api.templates
 
-case class Html(text:String) extends Appendable[Html] {
+import play.api._
+import play.templates._
+
+case class Html(text:String) extends Appendable[Html] with Content {
     val buffer = new StringBuilder(text)
 
-    def +(other:play.templates.Html) = {
+    def +(other:Html) = {
         buffer.append(other.buffer)
         this
     }
     override def toString = buffer.toString
+    
+    def contentType = "text/html"
+    def body = toString
     
 }
 
