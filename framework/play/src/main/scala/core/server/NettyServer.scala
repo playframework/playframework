@@ -13,6 +13,7 @@ import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
+import org.jboss.netty.channel.group._
 import java.util.concurrent._
 
 import play.core._
@@ -32,6 +33,8 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
             Executors.newCachedThreadPool()
         )
     )
+    
+    val allChannels = new DefaultChannelGroup
     
     bootstrap.setPipelineFactory(
         new ChannelPipelineFactory {
@@ -185,6 +188,8 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                     }
 
                     override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
+                        
+                        allChannels.add(e.getChannel)
 
                         e.getMessage match {
                             case nettyHttpRequest:HttpRequest =>
@@ -261,12 +266,14 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
         }
     )
     
-    val channel = bootstrap.bind(new java.net.InetSocketAddress(9000))
+    allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(9000)))
+    
     Logger.log("Listening for HTTP on port 9000...")
     
     def stop() {
         Logger.log("Stopping Play server...")
-        channel.close().awaitUninterruptibly()
+        allChannels.close().awaitUninterruptibly()
+        bootstrap.releaseExternalResources()
     }
     
 }
