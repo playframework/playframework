@@ -33,11 +33,7 @@ object PlayProject extends Plugin {
     // ----- Exceptions
     
     case class CompilationException(problem:xsbti.Problem) extends PlayException(
-        "Compilation error",
-        "The file %s could not be compiled. Error raised is: %s".format(
-            problem.position.sourcePath.getOrElse("(no source file defined?)"),
-            problem.message
-        )
+        "Compilation error", problem.message
     ) with ExceptionSource {
         def line = problem.position.line.map(m => Some(m.asInstanceOf[Int])).getOrElse(None)
         def position = problem.position.pointer.map(m => Some(m.asInstanceOf[Int])).getOrElse(None)
@@ -45,11 +41,7 @@ object PlayProject extends Plugin {
     }
 
     case class TemplateCompilationException(source:File, message:String, atLine:Int, column:Int) extends PlayException(
-        "Compilation error",
-        "The file %s could not be compiled. Error raised is: %s".format(
-            source.getAbsolutePath,
-            message
-        )
+        "Compilation error", message
     ) with ExceptionSource {
         def line = Some(atLine)
         def position = Some(column)
@@ -57,11 +49,7 @@ object PlayProject extends Plugin {
     }
     
     case class RoutesCompilationException(source:File, message:String, atLine:Option[Int], column:Option[Int]) extends PlayException(
-        "Compilation error",
-        "The file %s could not be compiled. Error raised is: %s".format(
-            source.getAbsolutePath,
-            message
-        )
+        "Compilation error", message
     ) with ExceptionSource {
         def line = atLine
         def position = column
@@ -323,15 +311,19 @@ object PlayProject extends Plugin {
                 (Compiler.allProblems(incomplete) ++ {
                     Incomplete.linearize(incomplete).filter(i => i.node.isDefined && i.node.get.isInstanceOf[ScopedKey[_]]).flatMap { i =>
                         val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
+                        val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
                         val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
                         
                         Project.evaluateTask(streamsManager, state).get.toEither.right.toOption.map { streamsManager =>
+                            var parsed:(Option[(String,String,String)], Option[Int]) = (None,None)
                             Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect { 
-                                case JavacError(file,line,message) => (file,line,message)
-                                case JavacErrorPosition(pos) => pos.size  
+                                case JavacError(file,line,message) => parsed = Some((file,line,message)) -> None
+                                case JavacErrorInfo(key,message) => parsed._1.foreach { o => 
+                                    parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
+                                }
+                                case JavacErrorPosition(pos) => parsed = parsed._1 -> Some(pos.size)
                             }
-                        }.map { errors =>
-                            errors.headOption.filter(_.isInstanceOf[Tuple3[_,_,_]]).asInstanceOf[Option[Tuple3[String,String,String]]] -> errors.drop(1).headOption.filter(_.isInstanceOf[Int]).asInstanceOf[Option[Int]]
+                            parsed
                         }.collect {
                             case (Some(error), maybePosition) => new xsbti.Problem {
                                 def message = error._3

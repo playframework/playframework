@@ -12,9 +12,13 @@ trait ExceptionSource {
     def position:Option[Int]
     def file:Option[File]
     
-    def interestingLines(border:Int = 4):Option[(Seq[String],Int)] = {
+    def interestingLines(border:Int = 4):Option[(Int,Seq[String],Int)] = {
         for(f <- file; l <- line; val (first,last) = IO.readLines(f).splitAt(l-1); focus <- last.headOption) yield {
-            ((first.takeRight(border) :+ focus) ++ last.drop(1).take(border)) -> first.takeRight(border).size
+            val before = first.takeRight(border)
+            val after = last.drop(1).take(border)
+            val firstLine = l - before.size
+            val errorLine = before.size
+            (firstLine, (before :+ focus) ++ after, errorLine)
         }
     }
     
