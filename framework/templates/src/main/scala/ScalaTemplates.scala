@@ -420,7 +420,7 @@ package play.templates {
             }
 
             def templateDeclaration:Parser[(PosString,PosString)] = {
-                at ~> positioned(identifier ^^ {case s => PosString(s)}) ~ positioned(several(parentheses) ^^ {case s => PosString(s.mkString)}) ^^ {
+                at ~> positioned(identifier ^^ {case s => PosString(s)}) ~ positioned(opt(squareBrackets) ~ several(parentheses) ^^ {case t~p => PosString(t.getOrElse("") + p.mkString)}) ^^ {
                     case name~params => name -> params
                 }
             }
