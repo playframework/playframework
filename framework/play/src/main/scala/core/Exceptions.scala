@@ -36,6 +36,8 @@ case class UnexpectedException(message:Option[String] = None, unexpected:Option[
     unexpected
 )
 
+case class RequestParsingException(error:Throwable) extends RuntimeException(error)
+
 case class ExecutionException(target:Throwable, source:Option[(File,Int)]) extends PlayException(
     "Execution exception",
     "%s: %s".format(target.getClass.getSimpleName, target.getMessage),

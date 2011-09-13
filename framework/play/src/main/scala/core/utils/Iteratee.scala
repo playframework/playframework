@@ -87,7 +87,9 @@ trait Enumerator[+E]{
     def apply[A,EE >: E](i:Iteratee[EE,A]):Promise[Iteratee[EE,A]]
     def <<:[A,EE >: E](i:Iteratee[EE,A]):Promise[Iteratee[EE,A]] = apply(i)
 
-
+    def andThen[F >: E](e:Enumerator[F]): Enumerator[F] = new Enumerator[F]{
+        def apply[A,FF >: F](i:Iteratee[FF,A]):Promise[Iteratee[FF,A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove EOF in the end of first
+    }
 
     def map[U](f: Input[E] => Input[U]) = new Enumerator[U] {
         def apply[A,UU >: U](it:Iteratee[UU,A]) = {
@@ -145,10 +147,14 @@ object Enumerator {
                                      (_,_) => i ) ) )
     }
 }
-trait PromiseValue[+A]
+sealed trait PromiseValue[+A]{
+
+    def isDefined = this match { case Waiting => false;case _ => true}
+
+}
 
 trait NotWaiting[+A] extends PromiseValue[A]
-case class Thrown(e:Exception) extends NotWaiting[Nothing]
+case class Thrown(e:scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a:A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
 
@@ -158,7 +164,7 @@ trait Promise[A]{
 
   def extend[B](k:Function1[Promise[A],B]):Promise[B]
 
-  def value: PromiseValue[A]
+  private[core] def value: NotWaiting[A]
 
   def filter(p: A => Boolean) : Promise[A]
 
@@ -171,15 +177,11 @@ trait Redeemable[A]{
     def redeem(a: => A):Unit
 }
 
-trait RIPPromise[A] extends Promise[A] {
-    def value: NotWaiting[A]
-}
-
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
   import scala.concurrent.stm._
 
   val actions :Ref[List[Promise[A] => Unit]] = Ref(List())
-  var redeemed:Ref[Option[A]] =Ref(None)
+  var redeemed:Ref[PromiseValue[A]] =Ref(Waiting)
 
   def extend[B](k:Function1[Promise[A],B]):Promise[B] = {
       val result = new STMPromise[B]()
@@ -206,17 +208,20 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   private def addAction(k: Promise[A] => Unit):Unit = {
       if(redeemed.single().isDefined){
-        redeemed.single().foreach(_ => k(this))
+        k(this)
       } else {
          val ok:Boolean =  atomic { implicit txn =>
               if(!redeemed().isDefined){ actions() = actions() :+ k ; true}
               else false
               }
-          if(!ok) redeemed.single().foreach(_ => invoke(this,k))
+          if(!ok)  invoke(this,k)
       }
   }
 
-  def value : PromiseValue[A] = redeemed.single().map(Redeemed(_)).getOrElse(Waiting)
+  private[core] def value :NotWaiting[A] = atomic { implicit txn =>
+      if(redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
+      else retry
+  }
 
   private def invoke[T](a:T, k:T=> Unit) = PromiseInvoker.invoker ! Invoke(a,k)
 
@@ -224,11 +229,9 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
       val result = scala.util.control.Exception.allCatch[A].either(body)
       atomic { implicit txn => 
           if(redeemed().isDefined) error("already redeemed")
-          result.right.foreach{ a =>
-              redeemed() = Some(a)
-          }
-     }
-     actions.single.swap(List()).foreach(invoke(this,_)) //need to remove them from the list
+          redeemed() = result.fold(Thrown(_),Redeemed(_))
+      }
+     actions.single.swap(List()).foreach(invoke(this,_))
   }
 
   def map[B](f: A => B): Promise[B] = {
@@ -264,7 +267,7 @@ object PurePromise{
 
               def extend[B](k:Function1[Promise[A],B]):Promise[B] = neverRedeemed[B]
 
-              def value: PromiseValue[A] = Waiting
+              private[core] def value: NotWaiting[A] = scala.sys.error("not redeemed")
 
               def filter(p: A => Boolean) : Promise[A] = this
 
@@ -276,7 +279,7 @@ object PurePromise{
 
         def onRedeem(k: A => Unit) :Unit = k(a)
 
-        def value = Redeemed(a)
+        private[core] def value = Redeemed(a)
 
         def redeem(a:A) = error("Already redeemed")
 

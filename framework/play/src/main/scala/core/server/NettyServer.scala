@@ -198,12 +198,20 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                 val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.map {
                                     case (key,values) => (key,values.asScala)
                                 }
-
+                                import org.jboss.netty.util.CharsetUtil;
+                                val body = nettyHttpRequest.getContent().toString(CharsetUtil.UTF_8)
+                                val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
                                 invoke( new Request {
                                             def uri = nettyHttpRequest.getUri
                                             def path = nettyUri.getPath
                                             def method = nettyHttpRequest.getMethod.getName
                                             def queryString = parameters
+                                            def bodyE = bodyEnumerator
+                                            def body[R](parser:Iteratee[String,R]):R = (parser <<: bodyE).flatMap(_.run).value match {
+                                                case Redeemed(a) => a
+                                                case Thrown(e) => throw RequestParsingException(e)
+                                            }
+                                            //def urlEncoded
                                         },
                                     
                                        new Response {
