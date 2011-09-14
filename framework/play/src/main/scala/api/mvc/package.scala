@@ -4,5 +4,4 @@ package object mvc {
     
     implicit def request(implicit ctx:Context) = ctx.request
 
-
 }

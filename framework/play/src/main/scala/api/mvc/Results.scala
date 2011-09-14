@@ -79,17 +79,7 @@ trait Results {
     val NotFound = new Status(NOT_FOUND)
     val Forbidden = new Status(FORBIDDEN)
     val BadRequest = new Status(BAD_REQUEST)
-    
-    class InternalServerErrorStatus extends Status(INTERNAL_SERVER_ERROR) {
-        
-        def apply(e:Exception):SimpleResult[play.api.templates.Html] = apply(core.views.html.error(e match {
-            case e:PlayException => e
-            case e => UnexpectedException(unexpected = Some(e))
-        }))
-        
-    }
-    
-    val InternalServerError = new InternalServerErrorStatus()
+    val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
     
     def Redirect(url:String):SimpleResult[String] = { val r = EmptyStatus(FOUND); r.copy(r.response.copy(headers = Map(LOCATION -> url))) }
     def Redirect(call:Call):SimpleResult[String]= Redirect(call.url)

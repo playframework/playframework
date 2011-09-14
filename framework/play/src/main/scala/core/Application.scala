@@ -18,21 +18,20 @@ class ApplicationClassLoader(parent:ClassLoader, urls:Array[URL] = Array.empty) 
     
 }
 
-case class Application(path:File, classloader:ApplicationClassLoader, sources:SourceMapper) {
+case class Application(path:File, classloader:ApplicationClassLoader, sources:SourceMapper, mode:Play.Mode.Mode) {
     
-    def actionFor(request:Request):Option[Action] = {
-        import java.lang.reflect._
-        
-        try {
-            classloader.loadClassParentLast("Routes").getDeclaredMethod("actionFor", classOf[Request]).invoke(null, request).asInstanceOf[Option[Action]]
-        } catch {
-            case e:InvocationTargetException if e.getTargetException.isInstanceOf[PlayException] => throw e.getTargetException
-            case e:InvocationTargetException => {
-                throw ExecutionException(e.getTargetException, sources.sourceFor(e.getTargetException))
-            }
-            case e => throw ExecutionException(e, sources.sourceFor(e))
-        }
-        
+    val global:GlobalSettings = try {
+        classloader.loadClassParentLast("Global$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
+    } catch {
+        case e:ClassNotFoundException => DefaultGlobal
+        case e => throw e
+    }
+    
+    val routes:Option[Router.Routes] = try {
+        Some(classloader.loadClassParentLast("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes])
+    } catch {
+        case e:ClassNotFoundException => None
+        case e => throw e
     }
     
     val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
@@ -91,7 +90,7 @@ trait ApplicationProvider {
 }
 
 class StaticApplication(applicationPath:File) extends ApplicationProvider {
-    val application = Application(applicationPath, new ApplicationClassLoader(classOf[StaticApplication].getClassLoader), NoSourceAvailable())
+    val application = Application(applicationPath, new ApplicationClassLoader(classOf[StaticApplication].getClassLoader), NoSourceAvailable(), Play.Mode.Prod)
     
     Play.start(application)
     
@@ -114,7 +113,7 @@ abstract class ReloadableApplication(applicationPath:File) extends ApplicationPr
                     
                     val newApplication = Application(applicationPath, classloader, new SourceMapper {
                         def sourceOf(className:String) = findSource(className)
-                    })
+                    }, Play.Mode.Dev)
                     
                     Play.start(newApplication)
                     

@@ -3,7 +3,11 @@ package play.core
 import java.io.File
 import sbt.IO
 
-case class PlayException(title:String, description:String, cause:Option[Throwable] = None) extends RuntimeException("%s -> %s".format(title, description), cause.orNull)
+case class PlayException(title:String, description:String, cause:Option[Throwable] = None) extends RuntimeException("%s -> %s".format(title, description), cause.orNull) {
+    
+    val id = "x"
+    
+}
 
 trait ExceptionSource {
     self:PlayException =>

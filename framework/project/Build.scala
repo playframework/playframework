@@ -99,7 +99,8 @@ object PlayBuild extends Build {
             "com.h2database"                    %    "h2"                %   "1.3.158",
             "org.scala-tools"                   %%   "scala-stm"         %   "0.3",
             "com.jolbox"                        %    "bonecp"            %   "0.7.1.RELEASE",
-            "org.yaml"                          %    "snakeyaml"         %   "1.9"
+            "org.yaml"                          %    "snakeyaml"         %   "1.9",
+            "commons-beanutils"                 %    "commons-beanutils" %   "1.8.3"
         )                                            
                                                      
         val templates = Seq(                         

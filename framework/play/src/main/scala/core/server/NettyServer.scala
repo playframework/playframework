@@ -272,7 +272,7 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
     
     def stop() {
         Logger.log("Stopping Play server...")
-        allChannels.close().awaitUninterruptibly()
+        allChannels.close()
         bootstrap.releaseExternalResources()
     }
     

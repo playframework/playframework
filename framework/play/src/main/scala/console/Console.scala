@@ -22,10 +22,12 @@ object Console {
         new ANSIBuffer().append("""http://www.playframework.org""").toString
     )
     
-    def newCommand = {
+    def newCommand(args:Array[String]) = {
         
-        val path = new File(".").getCanonicalFile
+        val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
         val defaultName = path.getName
+        
+        Option(path).filterNot(_.exists).foreach(IO.createDirectory(_))
         
         println()        
         println("The new application will be created in %s".format(path.getAbsolutePath))
@@ -42,7 +44,7 @@ object Console {
         
     }
     
-    def helpCommand = {
+    def helpCommand(args:Array[String]) = {
         """
             |Welcome to Play 2.0!
             |
@@ -62,7 +64,7 @@ object Console {
                 case "new"  => newCommand _
                 case "help" => helpCommand _
             }.map { command =>
-                command()
+                command(args.drop(1))
             }.getOrElse {
                 new ANSIBuffer().red("\nThis is not a play application!\n").append(
                     """|
@@ -92,7 +94,7 @@ case class NewApplication(path:File, name:String) {
                |public class Application extends Controller {
                |
                |    public static Result index() {
-               |        return Html(index.apply("World"));
+               |        return ok(index.render("World"));
                |    }
                |
                |}
@@ -105,7 +107,7 @@ case class NewApplication(path:File, name:String) {
                |    <head>
                |        <title>Home</title>
                |        <link rel="shortcut icon" type="image/png" href="http://www.playframework.org/public/images/favicon.png">
-               |        <link rel="stylesheet" type="text/css" media="screen" href="/public/stylesheets/main.css"> 
+               |        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")"> 
                |    </head>
                |    <body>
                |        <h1>Hello @name!</h1>
@@ -121,12 +123,22 @@ case class NewApplication(path:File, name:String) {
             """.stripMargin
         )
         
-        IO.write(new File(path, "conf/application.yml"), "")
+        IO.write(new File(path, "conf/application.conf"), 
+            """|# Configuration
+               |
+               |application.name=%s
+            """.stripMargin.format(name)
+        )
         
         IO.write(new File(path, "conf/routes"), 
-            """|# Routes 
+            """|# Routes
+               |# This file defines all application routes (Higher priority routes first)
+               |# ~~~~
                |
-               |GET      /           controllers.Application.index()
+               |GET     /                       controllers.Application.index()
+               |
+               |# Map static resources from the /public folder to the /public path
+               |GET     /public/*file           controllers.Assets.at(path="/public", file)
                |
             """.stripMargin
         )

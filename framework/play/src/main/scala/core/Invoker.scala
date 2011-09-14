@@ -47,20 +47,21 @@ class Invoker extends Actor {
 
             val result = try {
                 appProvider.get.fold(
-                    error => InternalServerError(error),
-                    application => {
-                        application.actionFor(request).map { action =>
+                    error => DefaultGlobal.onError(error),
+                    application => try {
+                        application.global.onRouteRequest(request).map { action =>
                             try {
                                 action(Context(request))
                             } catch {
                                 case e:Exception => throw ExecutionException(e, application.sources.sourceFor(e))
                             }
-                        }.getOrElse(NotFound)
-                    } 
+                        }.getOrElse(application.global.onActionNotFound(request))
+                    } catch {
+                        case e => application.global.onError(e)
+                    }
                 )
             } catch {
-                case e:PlayException => InternalServerError(e)
-                case e => InternalServerError(UnexpectedException(unexpected = Some(e)))
+                case e => DefaultGlobal.onError(e)
             }
                     
             response.handle(result)

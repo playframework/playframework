@@ -49,6 +49,11 @@ object Router {
             case _ => false
         }
         
+        override def toString = parts.map {
+            case DynamicPart(name,constraint) => "$" + name + "<" + constraint + ">"
+            case StaticPart(path) => path
+        }.mkString
+        
     }
     
     object RoutesCompiler {
@@ -210,10 +215,8 @@ object Router {
                 |
                 |%s 
                 |    
-                |def routes:PartialFunction[Request,Action] = {
-                |        
+                |def routes:PartialFunction[Request,Action] = {        
                 |%s
-                |        
                 |}
                 |    
                 |}
@@ -416,9 +419,14 @@ object Router {
                             r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
                             i,
                             r.verb.value,
-                            r.path
+                            "PathPattern(List(" + r.path.parts.map(_.toString).mkString(",") + "))"
                       )
-            }.mkString("\n")
+            }.mkString("\n") + 
+            """|
+               |def documentation = List(%s)
+            """.stripMargin.format(
+                routes.map { r => "(\"\"\"" + r.verb + "\"\"\",\"\"\"" + r.path + "\"\"\",\"\"\"" + r.call + "\"\"\")" }.mkString(",")
+            )
         }
 
         /**
@@ -476,9 +484,17 @@ object Router {
 
         // --- Parser
 
-        case class HttpVerb(value:String)
-        case class ActionCall(packageName:String, controller:String, method:String, parameters:Option[Seq[Parameter]]) extends Positional
-        case class Parameter(name:String, typeName:String, fixed:Option[String], default:Option[String]) extends Positional
+        case class HttpVerb(value:String) {
+            override def toString = value
+        }
+        case class ActionCall(packageName:String, controller:String, method:String, parameters:Option[Seq[Parameter]]) extends Positional {
+            override def toString = packageName + "." + controller + "." + method + parameters.map { params =>
+                "(" + params.mkString(", ") + ")"
+            }.getOrElse("")
+        }
+        case class Parameter(name:String, typeName:String, fixed:Option[String], default:Option[String]) extends Positional {
+            override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
+        }
         case class Route(verb:HttpVerb, path:PathPattern, call:ActionCall) extends Positional
         case class Comment(comment:String)
 
@@ -676,6 +692,8 @@ object Router {
     }
     
     trait Routes {
+        
+        def documentation:Seq[(String,String,String)]
         
         def routes:PartialFunction[Request,Action]
         

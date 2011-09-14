@@ -15,7 +15,7 @@ import models.*;
 
 public class JavaApplication extends Controller {
 
-    @Cached
+    @Secured @Cached
     public static Result index() {
         System.out.println("REQUEST -> " + request());
         String url = routes.JavaApplication().hello(5, "World").url();

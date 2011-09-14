@@ -117,10 +117,11 @@ object PlayProject extends Plugin {
         IO.write(run, 
             """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /**/
         )
-        ("chmod a+x " + run.getAbsolutePath) !
         val scripts = Seq(run -> (packageName + "/run"))
+        
+        val conf = Seq( (root / "conf" / "application.conf") -> (packageName + "/conf/application.conf"))
 
-        IO.zip(libs ++ scripts, zip)
+        IO.zip(libs ++ scripts ++ conf, zip)
         IO.delete(run)
         
         println()
@@ -177,7 +178,7 @@ object PlayProject extends Plugin {
         (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
         try {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
-                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, "import play.api.templates._\n" + additionalImports)
+                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, "import play.api.templates._\nimport controllers._" + additionalImports)
             }
         } catch {
             case TemplateCompilationError(source, message, line, column) => {

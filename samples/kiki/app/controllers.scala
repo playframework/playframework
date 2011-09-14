@@ -63,6 +63,13 @@ object TOTO {
 
 object Application extends Controller {
     
+    override def Action(block:Context => Result) = new Action {
+        def apply(ctx:Context) = {
+            println("Request for Application controller")
+            block(ctx)
+        }
+    }
+    
     def coco = Action {
         NotFound("oops")
     }

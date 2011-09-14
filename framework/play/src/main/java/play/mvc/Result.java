@@ -67,10 +67,6 @@ public interface Result {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(content, contentType, play.api.mvc.JResults.writeString());
         }
         
-        public InternalServerError(Exception e) {
-            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(e);
-        }
-        
         public play.api.mvc.Result getWrappedResult() {
             return this.wrappedResult;
         }
