@@ -195,11 +195,14 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                             case nettyHttpRequest:HttpRequest =>
                                 val keepAlive = nettyHttpRequest.isKeepAlive
                                 val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-                                val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.map {
-                                    case (key,values) => (key,values.asScala)
-                                }
+                                val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
                                 import org.jboss.netty.util.CharsetUtil;
-                                val body = nettyHttpRequest.getContent().toString(CharsetUtil.UTF_8)
+                                val body = { //explodes memory, need to do a smart strategy of putting into memory
+                                    val cBuffer = nettyHttpRequest.getContent()
+                                    val bytes = new Array[Byte](cBuffer.readableBytes())
+                                    cBuffer.readBytes(bytes)
+                                    bytes
+                                }
                                 val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
                                 invoke( new Request {
                                             def uri = nettyHttpRequest.getUri
@@ -207,11 +210,13 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                             def method = nettyHttpRequest.getMethod.getName
                                             def queryString = parameters
                                             def bodyE = bodyEnumerator
-                                            def body[R](parser:Iteratee[String,R]):R = (parser <<: bodyE).flatMap(_.run).value match {
+                                            def bodyPromise[R](parser:Iteratee[Array[Byte],R]):Promise[R] = (parser <<: bodyE).flatMap(_.run)
+                                            def body[R](parser:Iteratee[Array[Byte],R]):R = bodyPromise(parser).value match {
                                                 case Redeemed(a) => a
                                                 case Thrown(e) => throw RequestParsingException(e)
                                             }
-                                            //def urlEncoded
+
+                                            def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded(""))
                                         },
                                     
                                        new Response {

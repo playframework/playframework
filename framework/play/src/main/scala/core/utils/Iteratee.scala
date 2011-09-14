@@ -33,6 +33,11 @@ trait Iteratee[E,+A] {
                 cont: (Input[E] => Iteratee[E,A]) => Promise[B],
                 error: (String,Input[E]) => Promise[B]):Promise[B]
 
+    def mapDone[B](f:A => B): Iteratee[E,B] = 
+        flatten(this.fold((a,e) => Promise.pure(Done(f(a),e)),
+                        k => Promise.pure(Cont((in:Input[E]) => k(in).mapDone(f))),
+                        (err,e) => Promise.pure[Iteratee[E,B]](Error(err,e))) )
+
 
     def flatMap[B](f : A => Iteratee[E,B] ):Iteratee[E,B] = new Iteratee[E,B] {
         
