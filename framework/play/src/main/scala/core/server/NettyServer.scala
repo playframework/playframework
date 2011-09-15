@@ -216,7 +216,7 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                                 case Thrown(e) => throw RequestParsingException(e)
                                             }
 
-                                            def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded(""))
+                                            def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded("UTF-8"))
                                         },
                                     
                                        new Response {
