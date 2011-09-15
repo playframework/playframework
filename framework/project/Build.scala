@@ -105,6 +105,7 @@ object PlayBuild extends Build {
                                                      
         val templates = Seq(                         
             "com.github.scala-incubator.io"     %%   "file"              %   "0.1.2",
+            "org.scala-tools.testing"           %%   "specs"             %   "1.6.8"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"    %   buildScalaVersion
         )
 

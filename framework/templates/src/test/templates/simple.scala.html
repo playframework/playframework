@@ -1,0 +1,13 @@
+@(name:String, users:List[Account])
+
+<h1>@name</h1>
+
+<h2>@users.size</h2>
+
+<ul>
+@users.map { u =>
+    
+    <li>@u.name</li>
+    
+}
+</ul>
