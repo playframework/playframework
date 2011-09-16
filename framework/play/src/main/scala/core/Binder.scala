@@ -42,6 +42,11 @@ object QueryStringBindable {
         }
         def unbind(key:String, value:Integer) = key + "=" + value.toString
     }
+    
+    implicit def bindableOption[T : QueryStringBindable] = new QueryStringBindable[Option[T]] {
+      def bind(key:String, params:Map[String,Seq[String]]) = implicitly[QueryStringBindable[T]].bind(key, params).map(_.right.map(Option(_)))
+      def unbind(key:String, value:Option[T]) = value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
+    }
 
 }
 
