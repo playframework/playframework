@@ -123,5 +123,21 @@ object Application extends Controller {
     def goToJava = Action {
         Redirect(routes.JavaApplication.index)
     }
+    
+    def bindOptions(p1: Option[Int], p2: Option[Int]) = Action {
+      Ok( """
+        params: p1=%s, p2=%s
+        reversed: %s
+        reversed: %s
+        reversed: %s
+        reversed: %s
+      """.format(
+        p1, p2,
+        routes.Application.bindOptions(None, None),
+        routes.Application.bindOptions(Some(42), None),
+        routes.Application.bindOptions(None, Some(42)),
+        routes.Application.bindOptions(Some(42), Some(42))
+      ))
+    }
 
 }

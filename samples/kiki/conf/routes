@@ -13,6 +13,8 @@ GET     /sockets/reversed-echo          controllers.Application.socketEchoRevers
 GET     /sockets/test                   controllers.Application.websocketTest
 GET     /sockets/more-sockets           controllers.Application.moreSockets
 
+GET     /options                        controllers.Application.bindOptions(p1: Option[Int] ?= None, p2: Option[Int] ?= None)
+
 GET     /blocking/wait                  controllers.Blocking.waitForUnblock
 GET     /blocking/unblockAll/:status    controllers.Blocking.unblockEveryone(status:Int)
 
