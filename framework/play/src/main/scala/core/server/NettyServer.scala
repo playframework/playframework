@@ -35,159 +35,149 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
     )
     
     val allChannels = new DefaultChannelGroup
-    
-    bootstrap.setPipelineFactory(
-        new ChannelPipelineFactory {
-            def getPipeline = {
-                val newPipeline = pipeline()
-                newPipeline.addLast("decoder", new HttpRequestDecoder())
-                newPipeline.addLast("aggregator", new HttpChunkAggregator(1048576))
-                newPipeline.addLast("encoder", new HttpResponseEncoder())
-                newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
-                newPipeline.addLast("handler",         
-                
-                new SimpleChannelUpstreamHandler  {    
+
+    class PlayDefaultUpstreamHandler extends SimpleChannelUpstreamHandler  {    
                     
-                    override def exceptionCaught(ctx:ChannelHandlerContext, e:ExceptionEvent) {
-                        e.getChannel.close()
-                    }
+        override def exceptionCaught(ctx:ChannelHandlerContext, e:ExceptionEvent) {
+            e.getChannel.close()
+        }
             
-                    private def isWebSocket(request:HttpRequest) = 
-                        HttpHeaders.Values.UPGRADE.equalsIgnoreCase(request.getHeader(CONNECTION)) &&
-                        HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.UPGRADE))
+        private def isWebSocket(request:HttpRequest) = 
+            HttpHeaders.Values.UPGRADE.equalsIgnoreCase(request.getHeader(CONNECTION)) &&
+            HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.UPGRADE))
 
 
-                    private def websocketHandshake( ctx:ChannelHandlerContext, req:HttpRequest, e:MessageEvent):Enumerator[String] = {
-                        //** copy paste from Netty example
-                        // Create the WebSocket handshake response.
-                        val res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(101, "Web Socket Protocol Handshake"))
-                        res.addHeader(HttpHeaders.Names.UPGRADE, HttpHeaders.Values.WEBSOCKET)
-                        res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE)
+        private def websocketHandshake( ctx:ChannelHandlerContext, req:HttpRequest, e:MessageEvent):Enumerator[String] = {
+            //** copy paste from Netty example
+            // Create the WebSocket handshake response.
+            val res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(101, "Web Socket Protocol Handshake"))
+            res.addHeader(HttpHeaders.Names.UPGRADE, HttpHeaders.Values.WEBSOCKET)
+            res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE)
 
-                        // Fill in the headers and contents depending on handshake method.
-                        if (req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2)) {
-                            // New handshake method with a challenge:
-                            res.addHeader(SEC_WEBSOCKET_ORIGIN, req.getHeader(ORIGIN))
-                            res.addHeader(SEC_WEBSOCKET_LOCATION, "ws://" + req.getHeader(HttpHeaders.Names.HOST) + req.getUri())
-                            val protocol = req.getHeader(SEC_WEBSOCKET_PROTOCOL);
-                            if (protocol != null) {
-                                res.addHeader(SEC_WEBSOCKET_PROTOCOL, protocol);
-                            }
+            // Fill in the headers and contents depending on handshake method.
+            if (req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2)) {
+                // New handshake method with a challenge:
+                res.addHeader(SEC_WEBSOCKET_ORIGIN, req.getHeader(ORIGIN))
+                res.addHeader(SEC_WEBSOCKET_LOCATION, "ws://" + req.getHeader(HttpHeaders.Names.HOST) + req.getUri())
+                val protocol = req.getHeader(SEC_WEBSOCKET_PROTOCOL);
+                if (protocol != null) {
+                    res.addHeader(SEC_WEBSOCKET_PROTOCOL, protocol);
+                }
 
-                            // Calculate the answer of the challenge.
-                            val key1 = req.getHeader(SEC_WEBSOCKET_KEY1);
-                            val key2 = req.getHeader(SEC_WEBSOCKET_KEY2);
-                            val a =  (key1.replaceAll("[^0-9]", "").toLong / key1.replaceAll("[^ ]", "").length()).toInt
-                            val b =  (key2.replaceAll("[^0-9]", "").toLong / key2.replaceAll("[^ ]", "").length()).toInt
-                            val c = req.getContent().readLong()
-                            val input = ChannelBuffers.buffer(16)
-                            input.writeInt(a)
-                            input.writeInt(b)
-                            input.writeLong(c)
-                                  import java.security.NoSuchAlgorithmException
+                // Calculate the answer of the challenge.
+                val key1 = req.getHeader(SEC_WEBSOCKET_KEY1);
+                val key2 = req.getHeader(SEC_WEBSOCKET_KEY2);
+                val a =  (key1.replaceAll("[^0-9]", "").toLong / key1.replaceAll("[^ ]", "").length()).toInt
+                val b =  (key2.replaceAll("[^0-9]", "").toLong / key2.replaceAll("[^ ]", "").length()).toInt
+                val c = req.getContent().readLong()
+                val input = ChannelBuffers.buffer(16)
+                input.writeInt(a)
+                input.writeInt(b)
+                input.writeLong(c)
+                import java.security.NoSuchAlgorithmException
                             
-                            try {
-                                  import java.security.MessageDigest
-                                  val output:ChannelBuffer = ChannelBuffers.wrappedBuffer(MessageDigest.getInstance("MD5").digest(input.array()))
-                                  res.setContent(output)
-                            } catch { case ex:NoSuchAlgorithmException => throw new UnexpectedException(unexpected = Some(ex)) }
+                try {
+                    import java.security.MessageDigest
+                    val output:ChannelBuffer = ChannelBuffers.wrappedBuffer(MessageDigest.getInstance("MD5").digest(input.array()))
+                    res.setContent(output)
+                } catch { case ex:NoSuchAlgorithmException => throw new UnexpectedException(unexpected = Some(ex)) }
 
-                        } else {
-                            // Old handshake method with no challenge:
-                            res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
-                            res.addHeader(WEBSOCKET_LOCATION, "ws://" + req.getHeader(HttpHeaders.Names.HOST) + req.getUri());
-                            val protocol = req.getHeader(WEBSOCKET_PROTOCOL);
-                            if (protocol != null) {
-                                res.addHeader(WEBSOCKET_PROTOCOL, protocol);
-                            }
-                        }
-                        //***
+            } else {
+                // Old handshake method with no challenge:
+                res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
+                res.addHeader(WEBSOCKET_LOCATION, "ws://" + req.getHeader(HttpHeaders.Names.HOST) + req.getUri());
+                val protocol = req.getHeader(WEBSOCKET_PROTOCOL);
+                if (protocol != null) {
+                    res.addHeader(WEBSOCKET_PROTOCOL, protocol);
+                }
+            }
+            //***
 
-                        // Upgrade the connection and send the handshake response.
-                        val p:ChannelPipeline = ctx.getChannel().getPipeline();
-                        p.remove("aggregator");
-                        p.replace("decoder", "wsdecoder", new WebSocketFrameDecoder());
+            // Upgrade the connection and send the handshake response.
+            val p:ChannelPipeline = ctx.getChannel().getPipeline();
+            p.remove("aggregator");
+            p.replace("decoder", "wsdecoder", new WebSocketFrameDecoder());
 
-                        // Connect
-                        ctx.getChannel().write(res);
+            // Connect
+            ctx.getChannel().write(res);
 
-                        p.replace("encoder", "wsencoder", new WebSocketFrameEncoder());
-                        req.setMethod(new HttpMethod("WEBSOCKET"));
+            p.replace("encoder", "wsencoder", new WebSocketFrameEncoder());
+            req.setMethod(new HttpMethod("WEBSOCKET"));
 
-                        val (enumerator,handler) = newWebSocketInHandler()
+            val (enumerator,handler) = newWebSocketInHandler()
 
-                        p.replace("handler", "handler", handler);
+            p.replace("handler", "handler", handler);
 
-                        enumerator
-                    }
+            enumerator
+        }
 
-                    private def socketOut[A](ctx:ChannelHandlerContext)(writeable:AsString[A]): Iteratee[A,Unit] = {
-                        val channel = ctx.getChannel()
+        private def socketOut[A](ctx:ChannelHandlerContext)(writeable:AsString[A]): Iteratee[A,Unit] = {
+            val channel = ctx.getChannel()
                         
-                        def step(future:Option[ChannelFuture])(input:Input[A]):Iteratee[A,Unit] =
-                            input match {
-                                    case El(e) => Cont(step(Some(channel.write(new DefaultWebSocketFrame(writeable.transform(e))))))
-                                    case e@EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()) ; Done((),e)
-                                    case Empty => Cont(step(future))
-                            }
+            def step(future:Option[ChannelFuture])(input:Input[A]):Iteratee[A,Unit] =
+                input match {
+                    case El(e) => Cont(step(Some(channel.write(new DefaultWebSocketFrame(writeable.transform(e))))))
+                    case e@EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()) ; Done((),e)
+                    case Empty => Cont(step(future))
+                }
                         
-                        Cont(step(None))
-                    }
+            Cont(step(None))
+        }
 
-                    private def newWebSocketInHandler() = {
+        private def newWebSocketInHandler() = {
 
-                        val enumerator = new Enumerator[String]{
-                            val iterateeAgent = Agent[Option[Iteratee[String,Any]]](None)
-                            private val promise: Promise[Iteratee[String,Any]] with Redeemable[Iteratee[String,Any]]  =  Promise[Iteratee[String,Any]]()
+            val enumerator = new Enumerator[String]{
+                val iterateeAgent = Agent[Option[Iteratee[String,Any]]](None)
+                private val promise: Promise[Iteratee[String,Any]] with Redeemable[Iteratee[String,Any]]  =  Promise[Iteratee[String,Any]]()
 
-                            def apply[R,EE >: String](i:Iteratee[EE,R]) = {
-                                iterateeAgent.send(_.orElse( Some(i.asInstanceOf[Iteratee[String,Any]])))
-                                promise.asInstanceOf[Promise[Iteratee[EE,R]]]
-                            }
+                def apply[R,EE >: String](i:Iteratee[EE,R]) = {
+                    iterateeAgent.send(_.orElse( Some(i.asInstanceOf[Iteratee[String,Any]])))
+                    promise.asInstanceOf[Promise[Iteratee[EE,R]]]
+                }
 
-                            def frameReceived(ctx:ChannelHandlerContext,input:Input[String]){
-                                iterateeAgent.send( iteratee =>
-                                    iteratee.map(it => flatten(it.fold(
-                                        (a,e) => { error("Getting messages on a supposedly closed socket? frame: "+input)},
-                                        k => { val next = k(input)
-                                              next.fold(
-                                                  (a,e) => { 
-                                                      ctx.getChannel().disconnect();
-                                                      iterateeAgent.close();
-                                                      promise.redeem(next);
-                                                      println("cleaning for channel "+ctx.getChannel());
-                                                      Promise.pure(next)
-                                                  },
-                                                  _ => Promise.pure(next),
-                                                  (msg,e) => {/* deal with error, maybe close the socket */ Promise.pure(next) })
-                                            },
-                                        (err,e) => /* handle error, maybe close the socket */ Promise.pure(it) ) ) ))
-                            }
-                        }
+                def frameReceived(ctx:ChannelHandlerContext,input:Input[String]){
+                    iterateeAgent.send( iteratee =>
+                        iteratee.map(it => flatten(it.fold(
+                            (a,e) => { error("Getting messages on a supposedly closed socket? frame: "+input)},
+                            k => { val next = k(input)
+                                   next.fold(
+                                       (a,e) => { 
+                                           ctx.getChannel().disconnect();
+                                           iterateeAgent.close();
+                                           promise.redeem(next);
+                                           println("cleaning for channel "+ctx.getChannel());
+                                           Promise.pure(next)
+                                       },
+                                       _ => Promise.pure(next),
+                                       (msg,e) => {/* deal with error, maybe close the socket */ Promise.pure(next) })
+                                },
+                            (err,e) => /* handle error, maybe close the socket */ Promise.pure(it) ) ) ))
+                }
+            }
 
-                        (enumerator,
-                         new SimpleChannelUpstreamHandler {
+          (enumerator,
+           new SimpleChannelUpstreamHandler {
 
-                             override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
-                                 e.getMessage match {
-                                     case frame:WebSocketFrame => enumerator.frameReceived(ctx,El(frame.getTextData()))
-                                 }
-                             }
+               override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
+                   e.getMessage match {
+                       case frame:WebSocketFrame => enumerator.frameReceived(ctx,El(frame.getTextData()))
+                   }
+               }
 
-                           override def exceptionCaught(ctx: ChannelHandlerContext, e:ExceptionEvent){
-                                 e.getCause().printStackTrace();
-                                 e.getChannel().close();
-                               }
-                             override def channelDisconnected(ctx:ChannelHandlerContext, e: ChannelStateEvent)  {
-                                 enumerator.frameReceived(ctx,EOF)
-                                 println("disconnecting socket")
-                                 println("disconnected socket")
-                             }
-                             })
+               override def exceptionCaught(ctx: ChannelHandlerContext, e:ExceptionEvent){
+                   e.getCause().printStackTrace();
+                   e.getChannel().close();
+               }
+               override def channelDisconnected(ctx:ChannelHandlerContext, e: ChannelStateEvent)  {
+                   enumerator.frameReceived(ctx,EOF)
+                   println("disconnecting socket")
+                   println("disconnected socket")
+               }
+           })
 
-                    }
+        }
 
-                    override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
+        override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
                         
                         allChannels.add(e.getChannel)
 
@@ -273,11 +263,20 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                         }
                     }
                     
-                })
+                }
+
+    class DefaultPipelineFactory extends  ChannelPipelineFactory {
+            def getPipeline = {
+                val newPipeline = pipeline()
+                newPipeline.addLast("decoder", new HttpRequestDecoder())
+                newPipeline.addLast("aggregator", new HttpChunkAggregator(1048576))
+                newPipeline.addLast("encoder", new HttpResponseEncoder())
+                newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
+                newPipeline.addLast("handler", new PlayDefaultUpstreamHandler() )
                 newPipeline
             }
         }
-    )
+    bootstrap.setPipelineFactory(new DefaultPipelineFactory)
     
     allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(9000)))
     

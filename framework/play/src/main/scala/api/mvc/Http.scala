@@ -34,6 +34,29 @@ package play.api.mvc {
         override def toString = url
     }
     
+    trait HeaderValue {
+        def string:String
+
+        protected lazy val upper = string.toUpperCase
+
+        override def equals(other:Any) = other match {
+            case h:HeaderValue => this.upper == h.upper
+            case _ => false
+        }
+
+        override lazy val hashCode = upper.hashCode 
+    }
+
+    trait Headers{
+
+        def get(key:String):Option[HeaderValue]
+
+        def apply(key:String):HeaderValue
+
+        def getAll: Seq[String]        
+
+    }
+
 }
 
 package play.api.http {
