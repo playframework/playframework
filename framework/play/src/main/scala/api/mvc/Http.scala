@@ -22,6 +22,8 @@ package play.api.mvc {
             method + " " + uri
         }
 
+        def headers: Headers
+
         def urlEncoded: Map[String,Seq[String]]
 
     }

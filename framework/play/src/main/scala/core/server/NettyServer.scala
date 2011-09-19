@@ -198,7 +198,10 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                 val keepAlive = nettyHttpRequest.isKeepAlive
                                 val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
                                 val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
+
+                                val requestHeaders = getHeaders(nettyHttpRequest)
                                 import org.jboss.netty.util.CharsetUtil;
+
                                 val body = { //explodes memory, need to do a smart strategy of putting into memory
                                     val cBuffer = nettyHttpRequest.getContent()
                                     val bytes = new Array[Byte](cBuffer.readableBytes())
@@ -219,6 +222,8 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                             }
 
                                             def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded("UTF-8"))
+
+                                            def headers = requestHeaders
                                         },
                                     
                                        new Response {
