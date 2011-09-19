@@ -44,16 +44,24 @@ package play.api.mvc {
             case _ => false
         }
 
-        override lazy val hashCode = upper.hashCode 
+        override lazy val hashCode = upper.hashCode
+
+        override def toString = upper
+    }
+
+    object HeaderValue {
+
+        def apply(headerValue:String) = new HeaderValue { def string = headerValue }
+
     }
 
     trait Headers{
 
-        def get(key:String):Option[HeaderValue]
+        def get(key:String):Option[HeaderValue] = getAll(key).headOption
 
-        def apply(key:String):HeaderValue
+        def apply(key:String):HeaderValue = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
 
-        def getAll: Seq[String]        
+        def getAll(key:String): Seq[HeaderValue]        
 
     }
 

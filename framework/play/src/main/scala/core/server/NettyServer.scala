@@ -177,6 +177,18 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
 
         }
 
+        private def getHeaders(nettyRequest:HttpRequest) :Headers ={
+        
+            val headers = 
+                nettyRequest
+                    .getHeaderNames().asScala
+                    .map(key => ( key.toUpperCase, nettyRequest.getHeaders(key).asScala.map(HeaderValue(_))) )
+                    .toMap
+
+            new Headers { def getAll(key:String) = headers.get(key.toUpperCase).flatten.toSeq
+                          override def toString = headers.toString}
+        }
+
         override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
                         
                         allChannels.add(e.getChannel)

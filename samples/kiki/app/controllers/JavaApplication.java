@@ -11,8 +11,6 @@ import controllers.Cache.*;
 
 import java.util.*;
 
-import models.*;
-
 public class JavaApplication extends Controller {
 
     @Cached
