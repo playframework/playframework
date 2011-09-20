@@ -49,9 +49,25 @@
 				}
 
 			}
+			
+			case play.core.PlayException(_, _ , Some(throwable)) => {
+			    
+			    <h2>
+			        No source available, here is the exception stack trace:
+			    </h2>
+			    
+			    <div>
+			        
+			        <pre class="error"><span class="line">-></span><span class="code">@throwable.getClass.getName: @throwable.getMessage</span></pre>
+			        
+			        @throwable.getStackTrace.map { line =>
+						<pre><span class="line">&nbsp;</span><span class="code">    @line</span></pre>
+			        }
+			    </div>
+			    
+			}
 
 			case _ => {
-				<!-- No source attached for this exception -->
 			}
 
 		}

@@ -49,6 +49,9 @@ class Invoker extends Actor {
                 appProvider.get.fold(
                     error => DefaultGlobal.onError(error),
                     application => try {
+                        
+                        Thread.currentThread.setContextClassLoader(application.classloader)
+                        
                         application.global.onRouteRequest(request).map { action =>
                             try {
                                 action(Context(request))
@@ -57,7 +60,10 @@ class Invoker extends Actor {
                             }
                         }.getOrElse(application.global.onActionNotFound(request))
                     } catch {
-                        case e => application.global.onError(e)
+                        case e => {
+                            e.printStackTrace()
+                            application.global.onError(e)
+                        }
                     }
                 )
             } catch {

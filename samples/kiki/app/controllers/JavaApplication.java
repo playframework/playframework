@@ -1,6 +1,7 @@
 package controllers;
 
 import play.mvc.*;
+import play.data.*;
 import play.api.templates.*;
 
 import views.html.*;
@@ -41,6 +42,19 @@ public class JavaApplication extends Controller {
             template = page.ref();
         }
         return ok(template.render(name, "Dummy content"));
+    }
+    
+    public static Result newTask() {
+        return ok(newTask.render(blank(Task.class)));
+    }
+    
+    public static Result saveTask() {
+        Form<Task> task = form(Task.class);
+        if(task.hasErrors()) {
+            return ok(newTask.render(task));
+        } else {
+            return ok("SAVED -> " + task);
+        }
     }
     
     // ~~~

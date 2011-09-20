@@ -1,0 +1,44 @@
+@(taskForm:play.data.Form[models.Task])
+
+<h1>New task</h1>
+
+<form action="@routes.JavaApplication.saveTask()" method="POST">
+    
+    @using(taskForm.field("id")) { f =>
+        <p>
+            <input type="text" name="@f.name" value="@f.value"> <span style="color:#c00">@f.error</span>
+            <br>
+            @f.constraints
+        </p>
+    }
+    
+    @using(taskForm.field("name")) { f =>
+        <p>
+            <input type="text" name="@f.name" value="@f.value"> <span style="color:#c00">@f.error</span>
+            <br>
+            @f.constraints
+        </p>
+    }
+    
+    @using(taskForm.field("dueDate")) { f =>
+        <p>
+            <input type="text" name="@f.name" value="@f.value"> <span style="color:#c00">@f.error</span>
+            <br>
+            @f.constraints
+        </p>
+    }
+    
+    @using(taskForm.field("done")) { f =>
+        <p>
+            <input type="checkbox" name="@f.name" value="true" @(if(f.value == "true") "checked" else "")> <span style="color:#c00">@f.error</span>
+            <br>
+            @f.constraints
+        </p>
+    }
+    
+    <p>
+        <input type="submit">
+    </p>
+    
+</form>
+

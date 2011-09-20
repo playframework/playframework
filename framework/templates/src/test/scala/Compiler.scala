@@ -5,6 +5,54 @@ import play.templates._
 
 import java.io._
 
+object TemplateCompiler extends Specification("Template compiler") {
+    
+    import Helper._
+    
+    "The template compiler" should {
+        
+        "success for" in {
+            
+            "static.scala.html" in {
+                compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must ==(
+                    "<h1>It works</h1>"
+                )
+            }
+            
+            "hello.scala.html" in {
+                compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must ==(
+                    "<h1>Hello World!</h1>"
+                )
+            }
+            
+            "real.scala.html" in {
+                compile[((String,List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A","B"))(4).toString.trim must beLike {
+                    case html => {
+                        html.contains("<h1>Hello World</h1>") &&
+                        html.contains("You have 2 items") &&
+                        html.contains("EA") &&
+                        html.contains("EB")
+                    }
+                }
+            }
+            
+        }
+        
+        "fail for" in {
+            
+            "error.scala.html" in {
+                compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like { 
+                    case CompilationError(_, 2, 12) => true
+                    case _ => false
+                } 
+            }
+            
+        }
+        
+    }
+    
+}
+
 object Helper {
     
     case class Html(text:String) extends Appendable[Html] {
@@ -91,54 +139,6 @@ object Helper {
         val t = classloader.loadClass(className + "$").getDeclaredField("MODULE$").get(null)
             
         t.getClass.getDeclaredMethod("f").invoke(t).asInstanceOf[T]
-    }
-    
-}
-
-object TemplateCompiler extends Specification("Template compiler") {
-    
-    import Helper._
-    
-    "The template compiler" should {
-        
-        "success for" in {
-            
-            "static.scala.html" in {
-                compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must ==(
-                    "<h1>It works</h1>"
-                )
-            }
-            
-            "hello.scala.html" in {
-                compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must ==(
-                    "<h1>Hello World!</h1>"
-                )
-            }
-            
-            "real.scala.html" in {
-                compile[((String,List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A","B"))(4).toString.trim must beLike {
-                    case html => {
-                        html.contains("<h1>Hello World</h1>") &&
-                        html.contains("You have 2 items") &&
-                        html.contains("EA") &&
-                        html.contains("EB")
-                    }
-                }
-            }
-            
-        }
-        
-        "fail for" in {
-            
-            "error.scala.html" in {
-                compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like { 
-                    case CompilationError(_, 2, 12) => true
-                    case _ => false
-                } 
-            }
-            
-        }
-        
     }
     
 }

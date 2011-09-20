@@ -91,16 +91,19 @@ object PlayBuild extends Build {
     object Dependencies {
 
         val runtime = Seq(
-            "org.jboss.netty"                   %    "netty"             %   "3.2.4.Final",
-            "org.slf4j"                         %    "slf4j-api"         %   "1.6.1",
-            "com.github.scala-incubator.io"     %%   "file"              %   "0.1.2",
-            "se.scalablesolutions.akka"         %    "akka-actor"        %   "1.1.3",
-            "org.avaje"                         %    "ebean"             %   "2.7.1",
-            "com.h2database"                    %    "h2"                %   "1.3.158",
-            "org.scala-tools"                   %%   "scala-stm"         %   "0.3",
-            "com.jolbox"                        %    "bonecp"            %   "0.7.1.RELEASE",
-            "org.yaml"                          %    "snakeyaml"         %   "1.9",
-            "commons-beanutils"                 %    "commons-beanutils" %   "1.8.3"
+            "org.jboss.netty"                   %    "netty"                %   "3.2.4.Final",
+            "org.slf4j"                         %    "slf4j-api"            %   "1.6.1",
+            "com.github.scala-incubator.io"     %%   "file"                 %   "0.1.2",
+            "se.scalablesolutions.akka"         %    "akka-actor"           %   "1.1.3",
+            "org.avaje"                         %    "ebean"                %   "2.7.1",
+            "com.h2database"                    %    "h2"                   %   "1.3.158",
+            "org.scala-tools"                   %%   "scala-stm"            %   "0.3",
+            "com.jolbox"                        %    "bonecp"               %   "0.7.1.RELEASE",
+            "org.yaml"                          %    "snakeyaml"            %   "1.9",
+            "commons-beanutils"                 %    "commons-beanutils"    %   "1.8.3",
+            "org.hibernate"                     %    "hibernate-validator"  %   "4.2.0.Final",
+            "org.springframework"               %    "spring-context"       %   "3.0.6.RELEASE",
+            "joda-time"                         %    "joda-time"            %   "2.0"
         )                                            
                                                      
         val templates = Seq(                         

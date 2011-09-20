@@ -1,5 +1,7 @@
 package play.mvc;
 
+import java.util.*;
+
 public class Http {
     
     public abstract static class Context {
@@ -19,6 +21,7 @@ public class Http {
         public abstract String uri();
         public abstract String method();
         public abstract String path();
+        public abstract Map<String,String[]> urlEncoded();
         
     }
     

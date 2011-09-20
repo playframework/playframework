@@ -1,5 +1,7 @@
 package play.core.j
 
+import scala.collection.JavaConverters._
+
 import play.api.mvc._
 
 import play.mvc.{Action => JAction, Result => JResult}
@@ -20,6 +22,10 @@ trait JavaAction extends Action {
                 def uri = ctx.request.uri
                 def method = ctx.request.method
                 def path = ctx.request.method
+                
+                def urlEncoded = {
+                    ctx.request.urlEncoded.mapValues(_.toArray).asJava
+                }
                 
                 override def toString = ctx.request.toString
                 
