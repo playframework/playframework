@@ -32,7 +32,7 @@ package play.api.mvc {
         def handle( result : Result) : Unit
     }
 
-    case class Call(method:String, url:String) {
+    case class Call(method:String, url:String) extends play.mvc.Call {
         override def toString = url
     }
     

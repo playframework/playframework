@@ -103,7 +103,8 @@ object PlayBuild extends Build {
             "commons-beanutils"                 %    "commons-beanutils"    %   "1.8.3",
             "org.hibernate"                     %    "hibernate-validator"  %   "4.2.0.Final",
             "org.springframework"               %    "spring-context"       %   "3.0.6.RELEASE",
-            "joda-time"                         %    "joda-time"            %   "2.0"
+            "joda-time"                         %    "joda-time"            %   "2.0",
+            "mysql"                             %    "mysql-connector-java" %   "5.1.17"
         )                                            
                                                      
         val templates = Seq(                         

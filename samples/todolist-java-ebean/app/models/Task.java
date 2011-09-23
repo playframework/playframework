@@ -3,29 +3,21 @@ package models;
 import java.util.*;
 import javax.persistence.*;
 
-import javax.validation.*;
-import javax.validation.constraints.*;
-
-import org.hibernate.validator.constraints.*;
-
+import play.data.validation.*;
 import play.data.format.*;
 
-@Entity
+@Entity 
 public class Task {
 
     @Id
-    @Min(40)
     public Long id;
     
-    @NotEmpty
+    @Constraints.Required
     public String name;
     
     public boolean done;
     
-    @Valid
-    public User user;
-    
-    @Formats.DateTime(pattern="dd/MM/yy")
+    @Formats.DateTime(pattern="dd/MM/yyyy")
     public Date dueDate = new Date();
     
     public Long getId() {
@@ -44,14 +36,6 @@ public class Task {
         this.name = name;
     }
     
-    public void setUser(User u) {
-        this.user = u;
-    }
-    
-    public User getUser() {
-        return user;
-    }
-    
     public void setDone(Boolean u) {
         this.done = u;
     }
@@ -66,10 +50,6 @@ public class Task {
     
     public Date getDueDate() {
         return dueDate;
-    }
-    
-    public String toString() {
-        return "Task(" + id + "," + name + "," + user + "," + done + "," + dueDate + ")";
     }
     
 }

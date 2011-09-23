@@ -7,4 +7,4 @@ object Global extends GlobalSettings {
         println("Application start")
     }
     
-}
+} 

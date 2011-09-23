@@ -114,7 +114,7 @@ object Router {
 
         def compile(file:File, generatedDir:File) {
             
-            val generated = GeneratedSource(new File(generatedDir, "routes_main.scala"))
+            val generated = GeneratedSource(new File(generatedDir, "routes_routing.scala"))
             
             if(generated.needsRecompilation) {
                 
@@ -122,14 +122,15 @@ object Router {
                 val routeFile = Path(file).toAbsolute
                 val routesContent = routeFile.slurpString
                 
-                Path(generated.file).write(
-                    parser.parse(routesContent) match {
-                        case parser.Success(parsed, _) => generate(routeFile, parsed)
-                        case parser.NoSuccess(message, in) => {
-                            throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
-                        }
+                (parser.parse(routesContent) match {
+                    case parser.Success(parsed, _) => generate(routeFile, parsed)
+                    case parser.NoSuccess(message, in) => {
+                        throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
                     }
-                )
+                }).foreach { item =>
+                    Path(new File(generatedDir, item._1)).write(item._2)
+                }
+                
             }
             
         }
@@ -193,41 +194,88 @@ object Router {
         /**
          * Generate the actual Scala code for this router
          */
-        private def generate(file:Path, routes:List[Route]) = {
+        private def generate(file:Path, routes:List[Route]):Seq[(String,String)] = {
 
             check(new File(file.path), routes);
+            
+            val (path,hash,date) = (file.path,Hash(file.byteArray),new java.util.Date().toString)
 
-            """ |// @SOURCE:%s
-                |// @HASH:%s
-                |// @DATE:%s
-                |
-                |import play.core._
-                |import play.core.Router._
-                |import play.core.j._
-                |
-                |import play.api.mvc._
-                |
-                |import Router.queryString
-                |
-                |%s
-                |
-                |object Routes extends Router.Routes {
-                |
-                |%s 
-                |    
-                |def routes:PartialFunction[Request,Action] = {        
-                |%s
-                |}
-                |    
-                |}
-            """.stripMargin.format(
-                file.path,
-                Hash(file.byteArray),
-                new java.util.Date().toString,
-                reverseRouting(routes), 
-                routeDefinitions(routes), 
-                routing(routes)
-            )
+            Seq((
+                "routes_reverseRouting.scala",
+                """ |// @SOURCE:%s
+                    |// @HASH:%s
+                    |// @DATE:%s
+                    |
+                    |import play.core._
+                    |import play.core.Router._
+                    |import play.core.j._
+                    |
+                    |import play.api.mvc._
+                    |
+                    |import Router.queryString
+                    |
+                    |%s
+                """.stripMargin.format(path,hash,date,reverseRouting(routes))
+            ),
+            (
+                "routes_routing.scala",
+                """ |// @SOURCE:%s
+                    |// @HASH:%s
+                    |// @DATE:%s
+                    |
+                    |import play.core._
+                    |import play.core.Router._
+                    |import play.core.j._
+                    |
+                    |import play.api.mvc._
+                    |
+                    |import Router.queryString
+                    |
+                    |object Routes extends Router.Routes {
+                    |
+                    |%s 
+                    |    
+                    |def routes:PartialFunction[Request,Action] = {        
+                    |%s
+                    |}
+                    |    
+                    |}
+                """.stripMargin.format(path,hash,date,routeDefinitions(routes), routing(routes))
+            )) ++ {
+                
+                // Generate Java wrappers
+                
+                routes.groupBy(_.call.packageName).map {
+                    case (packageName, routes) => {
+                
+                        (packageName.replace(".","/") + "/routes.java") -> {
+                            
+                            """ |// @SOURCE:%s
+                                |// @HASH:%s
+                                |// @DATE:%s
+                                |
+                                |package %s;
+                                |
+                                |public class routes {
+                                |%s    
+                                |}
+                            """.stripMargin.format(
+                                path,hash,date,
+                                packageName,
+                                routes.groupBy(_.call.controller).map { 
+                                    case (controller, _) => {
+                                        "public static final Reverse" + controller + " " + controller + " = new Reverse" + controller + "();"
+                                    } 
+                                }.mkString("\n")
+                            )
+                            
+                        }
+                        
+                    }
+                }
+                
+            }
+
         }
 
         /**
@@ -242,11 +290,6 @@ object Router {
                         |%s
                         |package %s {
                         |%s
-                        |
-                        |object routes {
-                        |%s 
-                        |}
-                        |
                         |}
                     """.stripMargin.format(
                         markLines(routes:_*),
@@ -256,7 +299,7 @@ object Router {
                             case (controller, routes) => 
                             """
                                 |%s
-                                |object routes_%s {
+                                |class Reverse%s {
                                 |    
                                 |%s
                                 |    
@@ -391,11 +434,6 @@ object Router {
                                 }.mkString("\n")
 
                             )
-                        }.mkString("\n"),
-
-                        // routes object
-                        routes.groupBy(_.call.controller).map { 
-                            case (controller, _) => "def %s() = routes_%s".format(controller, controller)
                         }.mkString("\n")
 
                     )
@@ -735,7 +773,10 @@ object Router {
                     new play.core.j.JavaAction { 
                         def invocation = call
                         def controller = action.ref.getClass.getClassLoader.loadClass(action.controller)
-                        def method = controller.getDeclaredMethod(action.method, action.parameterTypes:_*)
+                        def method = controller.getDeclaredMethod(action.method, action.parameterTypes.map {
+                            case c if c == classOf[Long] => classOf[java.lang.Long]
+                            case c => c
+                        }:_*)
                     }
                 }
             }

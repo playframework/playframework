@@ -36,9 +36,7 @@ case class Application(path:File, classloader:ApplicationClassLoader, sources:So
     
     val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
     
-    configuration.getInt("pool.size")
-    
-    val plugins = {
+    val plugins:Map[Class[_],Plugin] = {
         
         import scalax.file._
         import scalax.io.Input.asInputConverter
@@ -48,17 +46,27 @@ case class Application(path:File, classloader:ApplicationClassLoader, sources:So
         val PluginDeclaration = """([0-9_]+):(.*)""".r
         
         classloader.getResources("play.plugins").asScala.toList.distinct.map { plugins =>
-            plugins.asInput.slurpString.split("\n").map(_.trim).filterNot(_.isEmpty).collect {
-                case PluginDeclaration(priority, className) if className.endsWith("$") => {
-                    Integer.parseInt(priority) -> classloader.loadClassParentLast(className).getDeclaredField("MODULE$").get(null).asInstanceOf[Plugin]
-                }
+            plugins.asInput.slurpString.split("\n").map(_.trim).filterNot(_.isEmpty).map {
                 case PluginDeclaration(priority, className) => {
-                    Integer.parseInt(priority) -> classloader.loadClassParentLast(className).newInstance.asInstanceOf[Plugin]
+                    try {
+                        Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
+                    } catch {
+                        case e => throw PlayException(
+                            "Cannot load plugin",
+                            "Plugin [" + className + "] cannot been instantiated.",
+                            Some(e)
+                        )
+                    }
                 }
             }
-        }.flatten.toList.sortBy(_._1).map(_._2)
+        }.flatten.toList.sortBy(_._1).map(_._2).map(p => p.getClass -> p).toMap
         
     }
+    
+    def plugin[T](implicit m:Manifest[T]):T = plugin(m.erasure).asInstanceOf[T]
+    def plugin[T](c:Class[T]):T = plugins.get(c).get.asInstanceOf[T]
+    
+    def getFile(subPath:String) = new File(path, subPath)
     
 }
 
@@ -87,6 +95,7 @@ case class NoSourceAvailable() extends SourceMapper {
 trait ApplicationProvider {
     def path:File
     def get:Either[PlayException,Application]
+    def handleWebCommand(request:play.api.mvc.Request):Option[Result] = None
 }
 
 class StaticApplication(applicationPath:File) extends ApplicationProvider {
@@ -102,39 +111,43 @@ abstract class ReloadableApplication(applicationPath:File) extends ApplicationPr
     
     Logger.log("Running the application from SBT, auto-reloading is enabled")
     
-    var lastState:Either[PlayException,Application] = Left(PlayException("Not initialized", ""))
+    var lastState:Either[PlayException,Application] = Left(PlayException("Not initialized", "?"))
     
     def get = {
         
-        reload.right.flatMap { maybeClassloader =>
+        synchronized {
             
-            val maybeApplication:Option[Either[PlayException,Application]] = maybeClassloader.map { classloader =>
-                try {
+            reload.right.flatMap { maybeClassloader =>
+            
+                val maybeApplication:Option[Either[PlayException,Application]] = maybeClassloader.map { classloader =>
+                    try {
                     
-                    val newApplication = Application(applicationPath, classloader, new SourceMapper {
-                        def sourceOf(className:String) = findSource(className)
-                    }, Play.Mode.Dev)
+                        val newApplication = Application(applicationPath, classloader, new SourceMapper {
+                            def sourceOf(className:String) = findSource(className)
+                        }, Play.Mode.Dev)
                     
-                    Play.start(newApplication)
+                        Play.start(newApplication)
                     
-                    Right(newApplication)
-                } catch {
-                    case e:PlayException => {
-                        lastState = Left(e)
-                        lastState
-                    }
-                    case e => {
-                        lastState = Left(UnexpectedException(unexpected=Some(e)))
-                        lastState
+                        Right(newApplication)
+                    } catch {
+                        case e:PlayException => {
+                            lastState = Left(e)
+                            lastState
+                        }
+                        case e => {
+                            lastState = Left(UnexpectedException(unexpected=Some(e)))
+                            lastState
+                        }
                     }
                 }
-            }
             
-            maybeApplication.flatMap(_.right.toOption).foreach { app => 
-                lastState = Right(app)
+                maybeApplication.flatMap(_.right.toOption).foreach { app => 
+                    lastState = Right(app)
+                }
+                
+                maybeApplication.getOrElse(lastState)
             }
-            
-            maybeApplication.getOrElse(lastState)
+        
         }
     }
     def reload:Either[PlayException,Option[ApplicationClassLoader]]

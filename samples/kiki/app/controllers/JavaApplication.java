@@ -3,6 +3,8 @@ package controllers;
 import play.mvc.*;
 import play.data.*;
 import play.api.templates.*;
+import play.libs.F.*;
+import static play.libs.F.*;
 
 import views.html.*;
 import views.pages.html.*;
@@ -12,12 +14,14 @@ import controllers.Cache.*;
 
 import java.util.*;
 
+import com.avaje.ebean.*;
+
 public class JavaApplication extends Controller {
 
     @Cached
     public static Result index() throws Exception {                
         System.out.println("REQUEST -> " + request());
-        String url = routes.JavaApplication().hello(5, "World").url();
+        String url = routes.JavaApplication.hello(5, "World").url();
         return ok(javaIndex.render(url)); 
     }
 
@@ -27,7 +31,7 @@ public class JavaApplication extends Controller {
     }
     
     public static Result back() {
-        return redirect(routes.JavaApplication().hello(30, "Redirected"));
+        return redirect(routes.JavaApplication.hello(30, "Redirected"));
     }
     
     static Map<String,Template2<String,String,Html>> pageTemplates = new HashMap<String,Template2<String,String,Html>>();
@@ -42,19 +46,6 @@ public class JavaApplication extends Controller {
             template = page.ref();
         }
         return ok(template.render(name, "Dummy content"));
-    }
-    
-    public static Result newTask() {
-        return ok(newTask.render(blank(Task.class)));
-    }
-    
-    public static Result saveTask() {
-        Form<Task> task = form(Task.class);
-        if(task.hasErrors()) {
-            return ok(newTask.render(task));
-        } else {
-            return ok("SAVED -> " + task);
-        }
     }
     
     // ~~~

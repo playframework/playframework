@@ -32,6 +32,17 @@ object QueryStringBindable {
         def unbind(key:String, value:Int) = key + "=" + value.toString
     }
     
+    implicit def bindableLong = new QueryStringBindable[Long] {
+        def bind(key:String, params:Map[String,Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+            try {
+                Right(java.lang.Long.parseLong(i))
+            } catch {
+                case e:NumberFormatException => Left("Cannot parse parameter " + key + " as Long: " + e.getMessage)
+            }
+        }
+        def unbind(key:String, value:Long) = key + "=" + value.toString
+    }
+    
     implicit def bindableInteger = new QueryStringBindable[Integer] {
         def bind(key:String, params:Map[String,Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
             try {
@@ -71,6 +82,17 @@ object PathBindable {
             }
         }
         def unbind(key:String, value:Int) = value.toString
+    }
+    
+    implicit def bindableLong = new PathBindable[Long] {
+        def bind(key:String, value:String) = {
+            try {
+                Right(java.lang.Long.parseLong(value))
+            } catch {
+                case e:NumberFormatException => Left("Cannot parse parameter " + key + " as Long: " + e.getMessage)
+            }
+        }
+        def unbind(key:String, value:Long) = value.toString
     }
     
     implicit def bindableInteger = new PathBindable[Integer] {

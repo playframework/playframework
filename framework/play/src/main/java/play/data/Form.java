@@ -104,7 +104,6 @@ public class Form<T> {
             for(Object o: form.internal._2) {
                 Object value = form.beanWrapper.getPropertyValue(name);
                 if(value != null) {
-                    System.out.println(name);
                     return play.data.format.Formatters.print(form.beanWrapper.getPropertyTypeDescriptor(name), value);
                 } else {
                     return "";

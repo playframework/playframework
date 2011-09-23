@@ -10,41 +10,49 @@ import scala.collection.JavaConverters._
 
 object Play {
     
+    implicit def currentApplication = Option(_currentApp).get
+    
     object Mode extends Enumeration {
         type Mode = Value
         val Dev, Prod = Value
     }
     
-    private[play] var application:Application = _
+    private[play] var _currentApp:Application = _
     
     def start(app:Application) {
         
         // First stop previous app if exists
-        Option(application).map { 
-            _.plugins.foreach { p =>
+        Option(_currentApp).map { 
+            _.plugins.values.foreach { p =>
                 try { p.onStop } catch { case _ => }
             }
         }
         
-        Play.application = app
+        _currentApp = app
         
-        app.plugins.foreach(_.onStart)
+        println("Application has restarted")
+        
+        app.plugins.values.foreach(_.onStart)
         
     }
     
-    def resourceAsStream(name:String):Option[InputStream] = {
-        Option(application.classloader.getResourceAsStream(Option(name).map {
+    def unsafeApplication = _currentApp
+    
+    def resourceAsStream(name:String)(implicit app:Application):Option[InputStream] = {
+        Option(app.classloader.getResourceAsStream(Option(name).map {
             case s if s.startsWith("/") => s.drop(1)
             case s => s
         }.get))
     }
     
-    def configuration   = application.configuration
-    def routes          = application.routes
-    def mode            = application.mode
+    def application(implicit app:Application)     = app    
+    def classloader(implicit app:Application)     = app.classloader
+    def configuration(implicit app:Application)   = app.configuration
+    def routes(implicit app:Application)          = app.routes
+    def mode(implicit app:Application)            = app.mode
     
-    def isDev = application.mode == Play.Mode.Dev
-    def isProd = application.mode == Play.Mode.Prod
+    def isDev(implicit app:Application)           = app.mode == Play.Mode.Dev
+    def isProd(implicit app:Application)          = app.mode == Play.Mode.Prod
     
 }
 
@@ -58,12 +66,12 @@ trait GlobalSettings {
     def onStop {
     }
         
-    def onRouteRequest(request:Request):Option[Action] = Play.application.routes.flatMap { router =>
+    def onRouteRequest(request:Request):Option[Action] = Play._currentApp.routes.flatMap { router =>
         router.actionFor(request)
     }
     
     def onError(ex:Throwable):Result = {
-        InternalServerError(Option(Play.application).map {
+        InternalServerError(Option(Play._currentApp).map {
             case app if app.mode == Play.Mode.Dev => core.views.html.devError.f
             case app => core.views.html.error.f
         }.getOrElse(core.views.html.devError.f)  {
@@ -75,10 +83,10 @@ trait GlobalSettings {
     }
     
     def onActionNotFound(request:Request):Result = {
-        NotFound(Option(Play.application).map {
+        NotFound(Option(Play._currentApp).map {
             case app if app.mode == Play.Mode.Dev => core.views.html.devNotFound.f
             case app => core.views.html.notFound.f
-        }.getOrElse(core.views.html.devNotFound.f)(request, Option(Play.application).flatMap(_.routes)))
+        }.getOrElse(core.views.html.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
     }
     
 }

@@ -10,7 +10,17 @@
 		<h1>@error.title</h1>
 
 		<p id="detail">
-			@error.description
+		    @error match {
+		        
+		        case description:play.core.RichDescription => {
+		            @play.api.templates.Html(description.htmlDescription)
+		        }
+		        
+		        case _ => {
+		            @error.description
+    			}
+		        
+		    }
 		</p>
 		
 		@error match {
@@ -48,6 +58,22 @@
 
 				}
 
+			}
+			
+			case attachment:play.core.ExceptionAttachment => {
+			    
+			    <h2>@attachment.subTitle</h2>
+			    
+			    <div>
+			        @attachment.content.split("\n").zipWithIndex.map {
+			            
+			            case (line,index) => {
+			                <pre><span class="line">@(index+1)</span><span class="code">@line</span></pre>
+			            }
+			            
+			        }
+			    </div>
+			    
 			}
 			
 			case play.core.PlayException(_, _ , Some(throwable)) => {
@@ -97,6 +123,21 @@
 		        text-shadow: 1px 1px 1px rgba(255,255,255,.3);
 		        font-size: 14px;
 		        border-bottom: 1px solid #BA7A7A;
+		    }
+		    p#detail input {
+		        background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#AE1113), to(#A31012));
+                border: 1px solid #790000;
+                padding: 3px 10px;
+                text-shadow: 1px 1px 0 rgba(0, 0, 0, .5);
+                color: white;
+                border-radius: 3px;
+                cursor: pointer;
+                font-family: Monaco;
+                font-size: 12px;
+                margin: 0 10px;
+                display: inline-block;
+                position: relative;
+                top: -1px;
 		    }
 		    h2 {
 		        margin: 0;

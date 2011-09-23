@@ -9,15 +9,16 @@
 </p>
 
 <p>
-	@order match {
-		
-		case "ASC" => {
-			<strong>ASC</strong> <a href="@Application.list(page, "DESC")">DESC</a>
-		}
-		
-		case "DESC" => {
-			<a href="@Application.list(page, "ASC")">ASC</a> <strong>DESC</strong>
-		}
-		
-	}
+    @order match {
+        
+        case "ASC" => {
+            <strong>ASC</strong> <a href="@Application.list(page, "DESC")">DESC</a>
+        }
+        
+        case "DESC" => {
+            <a href="@Application.list(page, "ASC")">ASC</a> <strong>DESC</strong>
+        }
+        
+    }
+    
 </p>

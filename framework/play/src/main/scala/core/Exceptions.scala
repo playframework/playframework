@@ -28,6 +28,20 @@ trait ExceptionSource {
     
 }
 
+trait ExceptionAttachment {
+    self:PlayException =>
+    
+    def subTitle:String
+    def content:String
+    
+}
+
+trait RichDescription {
+    self:PlayException =>
+    
+    def htmlDescription:String
+}
+
 case class UnexpectedException(message:Option[String] = None, unexpected:Option[Throwable] = None) extends PlayException(
     "Unexpected exception",
     message.getOrElse {

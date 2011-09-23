@@ -1,0 +1,16 @@
+@(body:Html)
+<html>
+    <head>
+        <title>TODO List</title>
+        <link rel="shortcut icon" type="image/png" href="http://www.playframework.org/public/images/favicon.png">
+        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")"> 
+    </head>
+    <body>
+        <h1>TODO List</h1>
+        <hr>
+        @body
+        <hr>
+        <a href="@routes.Tasks.list()">Home</a>
+    </body>
+</html>
+            

@@ -85,7 +85,11 @@ public class Constraints {
         }
         
         public boolean isValid(Number object) {
-            return object.longValue() < min;
+            if(object == null) {
+                return true;
+            }
+            
+            return object.longValue() >= min;
         }
         
     }

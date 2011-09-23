@@ -25,3 +25,14 @@ object HtmlFormat extends Format[Html] {
     def raw(text:String) = Html(text)
     def escape(text:String) = Html(text.replace("<","&lt;"))
 }
+
+object PlayMagic {
+    
+    implicit def javaOptionToScala[T](x:play.libs.F.Option[T]):Option[T] = {
+        x match {
+            case x:play.libs.F.Some[T] => Some(x.get)
+            case x:play.libs.F.None[T] => None
+        }
+    }
+    
+}

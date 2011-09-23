@@ -63,9 +63,9 @@ object PlayProject extends Plugin {
     val distDirectory = SettingKey[File]("play-dist")
     val playResourceDirectories = SettingKey[Seq[File]]("play-resource-directories")
     val confDirectory = SettingKey[File]("play-conf")
-    val templatesAdditionalImport = SettingKey[String]("play-templates-imports")
+    val templatesAdditionalImport = SettingKey[Seq[String]]("play-templates-imports")
     val templatesTypes = SettingKey[(String => (String,String))]("play-templates-formats")
-
+    
     
     // ----- Play specific tasks
         
@@ -134,7 +134,27 @@ object PlayProject extends Plugin {
     
     // ----- Post compile
     
-    val PostCompile = (compile in Compile, sourceManaged in Compile, classDirectory in Compile) map { (analysis,srcManaged,classes) =>
+    val PostCompile = (dependencyClasspath in Compile, compile in Compile, sourceManaged in Compile, classDirectory in Compile) map { (deps,analysis,srcManaged,classes) =>
+        
+        // EBean
+        
+        try {
+            
+            val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
+
+            import com.avaje.ebean.enhance.agent._
+            import com.avaje.ebean.enhance.ant._
+
+            val cl = ClassLoader.getSystemClassLoader
+            val t = new Transformer(cp, "debug=0")
+            val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
+            ft.process("models/**")
+            
+        } catch {
+            case _ => 
+        }
+        
+        // Copy managed classes
         
         val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
         
@@ -156,8 +176,8 @@ object PlayProject extends Plugin {
     
     val RouteFiles = (confDirectory:File, generatedDir:File) => {
         import play.core.Router.RoutesCompiler._
-        
-        (generatedDir ** "routes_*").get.map(GeneratedSource(_)).foreach(_.sync())
+
+        ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
         try {
             (confDirectory * "routes").get.foreach { routesFile =>
                 compile(routesFile, generatedDir)
@@ -169,16 +189,24 @@ object PlayProject extends Plugin {
             case e => throw e
         }
         
-        (generatedDir * "*.scala").get.map(_.getAbsoluteFile)
+        ((generatedDir ** "routes_*.scala").get ++ (generatedDir ** "routes.java").get).map(_.getAbsoluteFile)
+        
     }
     
-    val ScalaTemplates = (sourceDirectory:File, generatedDir:File, templateTypes:Function1[String,(String,String)], additionalImports:String) => {
+    val ScalaTemplates = (sourceDirectory:File, generatedDir:File, templateTypes:Function1[String,(String,String)], additionalImports:Seq[String]) => {
         import play.templates._
         
         (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
         try {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
-                ScalaTemplateCompiler.compile(template, sourceDirectory, generatedDir, templateTypes("html")._1, templateTypes("html")._2, "import play.api.templates._\nimport controllers._" + additionalImports)
+                ScalaTemplateCompiler.compile(
+                    template, 
+                    sourceDirectory, 
+                    generatedDir, 
+                    templateTypes("html")._1, 
+                    templateTypes("html")._2, 
+                    additionalImports.map("import " + _).mkString("\n")
+                )
             }
         } catch {
             case TemplateCompilationError(source, message, line, column) => {
@@ -187,7 +215,7 @@ object PlayProject extends Plugin {
             case e => throw e
         }
 
-        (generatedDir ** "*.scala").get.map(_.getAbsoluteFile)
+        (generatedDir ** "*.template.scala").get.map(_.getAbsoluteFile)
     }
     
     
@@ -220,23 +248,28 @@ object PlayProject extends Plugin {
             
             val watchFiles = Seq(
                 extracted.currentProject.base / "conf" / "application.conf"
-            )
+            ) ++ ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get
         
+            var forceReload = false
             var currentProducts = Map.empty[java.io.File,Long]
             var currentAnalysis = Option.empty[sbt.inc.Analysis]
+            
+            def forceReloadNextTime() {forceReload = true}
         
             def updateAnalysis(newAnalysis:sbt.inc.Analysis) = {
                 val classFiles = newAnalysis.stamps.allProducts ++ watchFiles
                 val newProducts = classFiles.map { classFile =>
                     classFile -> classFile.lastModified
                 }.toMap
-                val updated = if(newProducts != currentProducts) {
+                val updated = if(newProducts != currentProducts || forceReload) {
                     Some(newProducts)
                 } else {
                     None
                 }
                 updated.foreach(currentProducts = _)
                 currentAnalysis = Some(newAnalysis)
+            
+                forceReload = false
             
                 updated
             }
@@ -344,6 +377,12 @@ object PlayProject extends Plugin {
                     }
                 }).map(remapProblemForGeneratedSources)
             }
+            
+            private def newClassloader = {
+                new ApplicationClassLoader(this.getClass.getClassLoader, {
+                    Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray
+                })
+            }
         
             def reload = {
                 
@@ -365,15 +404,36 @@ object PlayProject extends Plugin {
                         }
                         .right.map { compilationResult =>
                             updateAnalysis(compilationResult).map { _ =>
-                                new ApplicationClassLoader(this.getClass.getClassLoader, {
-                                    Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray
-                                })
+                                newClassloader
                             }
                         }
                     
                 }
             
             }
+            
+            override def handleWebCommand(request:play.api.mvc.Request) = {
+                
+                val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
+                
+                request.path match {
+                    
+                    case applyEvolutions(db) => {
+                        import play.api.db._
+                        import play.api.mvc.Results._
+                        
+                        OfflineEvolutions.applyScript(extracted.currentProject.base, newClassloader, db)
+                        
+                        forceReloadNextTime()
+                        
+                        Some(Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")))
+                    }
+                    
+                    case _ => None
+                    
+                }
+            }
+            
         }
     
     }
@@ -554,7 +614,7 @@ object PlayProject extends Plugin {
         
         playResourceDirectories <+= baseDirectory / "public",
         
-        templatesAdditionalImport := "",
+        templatesAdditionalImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._", "java.lang.Long"),
         
         templatesTypes := ((extension) => extension match {
             case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")

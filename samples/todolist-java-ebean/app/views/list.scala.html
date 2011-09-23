@@ -1,0 +1,18 @@
+@(tasks:java.util.List[models.Task])
+
+@main {
+    
+    <h2>@tasks.size tasks</h2>
+
+    <ul>
+        @tasks.map { task =>
+            <li><a href="@routes.Tasks.edit(task.id)">@task.name</a></li>
+        }    
+    </ul>
+
+    <p>
+        <a href="@routes.Tasks.create()">new task</a>
+    </p>
+    
+}
+

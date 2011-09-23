@@ -46,26 +46,34 @@ class Invoker extends Actor {
         case (request:Request, response:Response, appProvider:ApplicationProvider) => {
 
             val result = try {
-                appProvider.get.fold(
-                    error => DefaultGlobal.onError(error),
-                    application => try {
-                        
-                        Thread.currentThread.setContextClassLoader(application.classloader)
-                        
-                        application.global.onRouteRequest(request).map { action =>
-                            try {
-                                action(Context(request))
-                            } catch {
-                                case e:Exception => throw ExecutionException(e, application.sources.sourceFor(e))
+                
+                appProvider.handleWebCommand(request).getOrElse {
+                    
+                    appProvider.get.fold(
+                        error => DefaultGlobal.onError(error),
+                        application => try {
+
+                            // Be sure to use the Play classloader in this Thread
+                            Thread.currentThread.setContextClassLoader(application.classloader)
+
+                            application.global.onRouteRequest(request).map { action =>
+                                try {
+                                    action(Context(request))
+                                } catch {
+                                    case e:Exception => throw ExecutionException(e, application.sources.sourceFor(e))
+                                }
+                            }.getOrElse(application.global.onActionNotFound(request))
+
+                        } catch {
+                            case e => {
+                                e.printStackTrace()
+                                application.global.onError(e)
                             }
-                        }.getOrElse(application.global.onActionNotFound(request))
-                    } catch {
-                        case e => {
-                            e.printStackTrace()
-                            application.global.onError(e)
                         }
-                    }
-                )
+                    )
+                    
+                }
+                
             } catch {
                 case e => DefaultGlobal.onError(e)
             }

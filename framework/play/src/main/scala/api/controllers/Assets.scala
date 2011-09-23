@@ -4,6 +4,8 @@ import play.api._
 import play.api.mvc._
 import play.api.libs._
 
+import Play.currentApplication
+
 import scalax.io._
 
 object Assets extends Controller {

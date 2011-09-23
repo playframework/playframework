@@ -119,6 +119,10 @@ case class Configuration(data:Map[String,Config], root:String = "") {
         case (k, c) => k.drop(key.size + 1) -> c
     }.toMap).filterNot(_.isEmpty).map(Configuration(_, full(key) + "."))
     
+    def sub(key:String):Configuration = getSub(key).getOrElse {
+        throw globalError("No configuration found '" + key + "'") 
+    }
+    
     def keys:Set[String] = data.keySet
     
     def subKeys:Set[String] = keys.map(_.split('.').head)

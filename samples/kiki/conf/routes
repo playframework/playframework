@@ -24,11 +24,6 @@ GET     /java                           controllers.JavaApplication.index()
 GET     /toJava                         controllers.Application.goToJava
 GET     /back                           controllers.JavaApplication.back()
 
-
-# Tasks
-GET     /tasks/new                      controllers.JavaApplication.newTask()
-POST    /tasks                          controllers.JavaApplication.saveTask()
-
 GET     /pages                          controllers.JavaApplication.page(name="home")
 GET     /pages/:name                    controllers.JavaApplication.page(name)
 

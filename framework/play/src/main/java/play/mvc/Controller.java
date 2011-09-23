@@ -114,7 +114,7 @@ public abstract class Controller {
         return new Redirect(url);
     }
     
-    public static Result redirect(play.api.mvc.Call call) {
+    public static Result redirect(Call call) {
         return new Redirect(call.url());
     }
     
