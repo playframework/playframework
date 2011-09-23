@@ -134,6 +134,7 @@ object PlayProject extends Plugin {
     
     // ----- Post compile
     
+<<<<<<< HEAD
     val PostCompile = (dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile) map { (deps,analysis,javaSrc,srcManaged,classes) =>
         
         // Properties
@@ -146,6 +147,9 @@ object PlayProject extends Plugin {
         
         javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
         javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
+=======
+    val PostCompile = (dependencyClasspath in Compile, compile in Compile, sourceManaged in Compile, classDirectory in Compile) map { (deps,analysis,srcManaged,classes) =>
+>>>>>>> EBean integration
         
         // EBean
         
@@ -157,7 +161,9 @@ object PlayProject extends Plugin {
             import com.avaje.ebean.enhance.ant._
 
             val cl = ClassLoader.getSystemClassLoader
+
             val t = new Transformer(cp, "debug=-1")
+
             val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
             ft.process("models/**")
             

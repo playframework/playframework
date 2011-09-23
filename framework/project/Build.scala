@@ -107,6 +107,7 @@ object PlayBuild extends Build {
             "joda-time"                         %    "joda-time"            %   "2.0",
             "mysql"                             %    "mysql-connector-java" %   "5.1.17",
             "javassist"                         %    "javassist"            %   "3.12.1.GA"
+
         )                                            
                                                      
         val templates = Seq(                         
