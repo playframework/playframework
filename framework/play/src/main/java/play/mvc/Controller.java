@@ -17,11 +17,11 @@ public abstract class Controller {
     
     // -- Form
     
-    public static Form<Form.Dynamic> blank() {
-        return blank(Form.Dynamic.class);
+    public static Form<Form.Dynamic> form() {
+        return form(Form.Dynamic.class);
     }
     
-    public static <T> Form<T> blank(Class<T> clazz) {
+    public static <T> Form<T> form(Class<T> clazz) {
         try {
             return new Form(clazz.newInstance());
         } catch(Exception e) {
@@ -29,15 +29,15 @@ public abstract class Controller {
         }
     }
     
-    public static <T> Form<T> blank(T t) {
+    public static <T> Form<T> form(T t) {
         return new Form(t);
     }
     
-    public static Form<Form.Dynamic> form() {
-        return form(Form.Dynamic.class);
+    public static Form<Form.Dynamic> bind() {
+        return bind(Form.Dynamic.class);
     }
     
-    public static <T> Form<T> form(Class<T> clazz) {
+    public static <T> Form<T> bind(Class<T> clazz) {
         try {
             return Form.bind(_data(), clazz.newInstance());
         } catch(Exception e) {
@@ -45,7 +45,7 @@ public abstract class Controller {
         }
     }
     
-    public static <T> Form<T> form(T t) {
+    public static <T> Form<T> bind(T t) {
         return Form.bind(_data(), t);
     }
     

@@ -3,11 +3,12 @@ package models;
 import java.util.*;
 import javax.persistence.*;
 
-import play.data.validation.*;
+import play.db.ebean.*;
 import play.data.format.*;
+import play.data.validation.*;
 
 @Entity 
-public class Task {
+public class Task extends Model {
 
     @Id
     public Long id;
@@ -19,6 +20,10 @@ public class Task {
     
     @Formats.DateTime(pattern="dd/MM/yyyy")
     public Date dueDate = new Date();
+    
+    public static Finder<Long,Task> find = new Finder(Long.class, Task.class);
+    
+    // -- should be generated
     
     public Long getId() {
         return id;

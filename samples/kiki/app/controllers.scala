@@ -59,7 +59,7 @@ object TOTO {
     
     lazy val a = System.currentTimeMillis
     
-}
+} 
 
 object Application extends Controller {
     

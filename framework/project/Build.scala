@@ -35,7 +35,8 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(typesafe, akkaRepo),
-            sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates
+            sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
+            compile in (Compile) <<= PostCompile
         )
     ).dependsOn(TemplatesProject)
     
@@ -131,6 +132,28 @@ object PlayBuild extends Build {
         }
 
     }
+    
+    // ----- Post compile
+    
+    lazy val PostCompile = (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map { (deps,analysis,classes) =>
+        
+        // Ebean (really hacky sorry)
+        
+        import java.net._
+        
+        val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
+        val cl = new URLClassLoader(cp)
+        
+        val t = cl.loadClass("com.avaje.ebean.enhance.agent.Transformer").getConstructor(classOf[Array[URL]], classOf[String]).newInstance(cp, "debug=0").asInstanceOf[AnyRef]
+        val ft = cl.loadClass("com.avaje.ebean.enhance.ant.OfflineFileTransform").getConstructor(
+            t.getClass, classOf[ClassLoader], classOf[String], classOf[String]
+        ).newInstance(t, ClassLoader.getSystemClassLoader, classes.getAbsolutePath, classes.getAbsolutePath).asInstanceOf[AnyRef]
+        
+        ft.getClass.getDeclaredMethod("process", classOf[String]).invoke(ft,"play/db/ebean/**")
+            
+        analysis
+    }
+    
 
     object Tasks {
 

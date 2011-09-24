@@ -3,55 +3,48 @@ package controllers;
 import play.mvc.*;
 import play.data.*;
 
-import views.html.*;
-
 import java.util.*;
 
 import models.*;
-
-import com.avaje.ebean.*;
+import views.html.*;
 
 public class Tasks extends Controller {
      
-    static Call HOME = routes.Tasks.list();
-
     public static Result list() {
-        List<Task> tasks = Ebean.find(Task.class).findList();
-        return ok(list.render(tasks));
+        return ok(list.render(Task.find.all()));
     }
     
     public static Result edit(Long id) {
-        Task task = Ebean.find(Task.class, id);
-        return ok(form.render(id, blank(task)));
+        return ok(form.render(id, form(Task.find.byId(id))));
     }
     
     public static Result create() {
-        return ok(form.render(null, blank(Task.class)));
+        return ok(form.render(null, form(Task.class)));
     }
     
     public static Result save() {
-        Form<Task> taskForm = form(Task.class);
+        Form<Task> taskForm = bind(Task.class);
         if(taskForm.hasErrors()) {
             return badRequest(form.render(null, taskForm));
         } else {
-            Ebean.save(taskForm.get());
-            return redirect(HOME);
+            taskForm.get().save();
+            return redirect(routes.Tasks.list());
         }
     }
     
     public static Result update(Long id) {
-        Form<Task> taskForm = form(Ebean.find(Task.class, id));
+        Form<Task> taskForm = bind(Task.find.byId(id));
         if(taskForm.hasErrors()) {
             return badRequest(form.render(id, taskForm));
         } else {
-            Ebean.update(taskForm.get());
-            return redirect(HOME);
+            taskForm.get().update();
+            return redirect(routes.Tasks.list());
         }
     }
     
     public static Result delete(Long id) {
-        Ebean.delete(Ebean.getReference(Task.class, id));
-        return redirect(HOME);
+        Task.find.ref(id).delete();
+        return redirect(routes.Tasks.list());
     }
 
 }

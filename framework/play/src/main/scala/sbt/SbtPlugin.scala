@@ -146,7 +146,7 @@ object PlayProject extends Plugin {
             import com.avaje.ebean.enhance.ant._
 
             val cl = ClassLoader.getSystemClassLoader
-            val t = new Transformer(cp, "debug=0")
+            val t = new Transformer(cp, "debug=-1")
             val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
             ft.process("models/**")
             
