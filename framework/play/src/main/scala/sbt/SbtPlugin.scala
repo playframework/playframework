@@ -134,7 +134,18 @@ object PlayProject extends Plugin {
     
     // ----- Post compile
     
-    val PostCompile = (dependencyClasspath in Compile, compile in Compile, sourceManaged in Compile, classDirectory in Compile) map { (deps,analysis,srcManaged,classes) =>
+    val PostCompile = (dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile) map { (deps,analysis,javaSrc,srcManaged,classes) =>
+        
+        // Properties
+        
+        val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(":")
+        
+        val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
+            analysis.relations.products(sourceFile)
+        }.flatten.distinct
+        
+        javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
+        javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
         
         // EBean
         

@@ -21,41 +21,7 @@ public class Task extends Model {
     @Formats.DateTime(pattern="dd/MM/yyyy")
     public Date dueDate = new Date();
     
-    public static Finder<Long,Task> find = new Finder(Long.class, Task.class);
-    
-    // -- should be generated
-    
-    public Long getId() {
-        return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public void setDone(Boolean u) {
-        this.done = u;
-    }
-    
-    public Boolean getDone() {
-        return done;
-    }
-    
-    public void setDueDate(Date u) {
-        this.dueDate = u;
-    }
-    
-    public Date getDueDate() {
-        return dueDate;
-    }
+    public static Finder<Long,Task> find = new Finder(Long.class, Task.class); 
     
 }
 
