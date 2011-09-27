@@ -7,13 +7,13 @@ import play.api.mvc._
 import play.mvc.{Action => JAction, Result => JResult}
 import play.mvc.Http.{Context => JContext, Request => JRequest}
 
-trait JavaAction extends Action {
+trait JavaAction extends DefaultAction {
     
     def invocation:JResult
     def controller:Class[_]
     def method:java.lang.reflect.Method
     
-    def apply(ctx:Context) = {
+    def apply(ctx:Context[Map[String,Seq[String]]]) = {
         
         val javaContext = new JContext {
             

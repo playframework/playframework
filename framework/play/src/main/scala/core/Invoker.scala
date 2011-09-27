@@ -38,52 +38,37 @@ object DispatchStrategy{
                 .build
 
 }
-
+case class HandleAction[A](request:Request1[A], response:Response, action:(Context[A] => Result), app:Application)
 class Invoker extends Actor {
     self.dispatcher = DispatchStrategy.d
 
     def receive = {
-        case (request:Request, response:Response, appProvider:ApplicationProvider) => {
 
-            val result = try {
-                
-                appProvider.handleWebCommand(request).getOrElse {
-                    
-                    appProvider.get.fold(
-                        error => DefaultGlobal.onError(error),
-                        application => try {
+        case HandleAction(request, response:Response, action, app:Application) =>
 
-                            // Be sure to use the Play classloader in this Thread
-                            Thread.currentThread.setContextClassLoader(application.classloader)
-
-                            application.global.onRouteRequest(request).map { action =>
-                                try {
-                                    action(Context(request))
-                                } catch {
-                                    case e:Exception => throw ExecutionException(e, application.sources.sourceFor(e))
-                                }
-                            }.getOrElse(application.global.onActionNotFound(request))
-
-                        } catch {
-                            case e => {
+            val result = 
+                try {
+                    // Be sure to use the Play classloader in this Thread
+                    Thread.currentThread.setContextClassLoader(app.classloader)
+                    try{
+                        action(Context(request))
+                    } catch { 
+                        case e:Exception => throw ExecutionException(e, app.sources.sourceFor(e))
+                    }
+                }catch { case e => 
+                            try {
                                 e.printStackTrace()
-                                application.global.onError(e)
-                            }
-                        }
-                    )
-                    
-                }
-                
-            } catch {
-                case e => DefaultGlobal.onError(e)
-            }
-                    
-            response.handle(result)
-        }
-    }
-    
-}
+                                app.global.onError(e)
+                                } 
+                            catch{ case e => DefaultGlobal.onError(e) }
+                      }
 
+            response.handle(result)
+
+
+    }
+}
+    
 case class Invoke[A](a:A,k: A=>Unit)
 class PromiseInvoker extends Actor {
 

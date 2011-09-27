@@ -66,7 +66,7 @@ trait GlobalSettings {
     def onStop {
     }
         
-    def onRouteRequest(request:Request):Option[Action] = Play._currentApp.routes.flatMap { router =>
+    def onRouteRequest(request:RequestHeader):Option[Action] = Play._currentApp.routes.flatMap { router =>
         router.actionFor(request)
     }
     
@@ -82,7 +82,7 @@ trait GlobalSettings {
         })
     }
     
-    def onActionNotFound(request:Request):Result = {
+    def onActionNotFound(request:RequestHeader):Result = {
         NotFound(Option(Play._currentApp).map {
             case app if app.mode == Play.Mode.Dev => core.views.html.devNotFound.f
             case app => core.views.html.notFound.f

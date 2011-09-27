@@ -235,7 +235,7 @@ object Router {
                     |
                     |%s 
                     |    
-                    |def routes:PartialFunction[Request,Action] = {        
+                    |def routes:PartialFunction[RequestHeader,Action] = {        
                     |%s
                     |}
                     |    
@@ -691,7 +691,7 @@ object Router {
         
         def apply(method:String, pathPattern:PathPattern) = new {
 
-            def unapply(request:Request):Option[RouteParams] = {
+            def unapply(request:RequestHeader):Option[RouteParams] = {
                 if(method == request.method) {
                     pathPattern(request.path).map { groups =>
                         RouteParams(groups, request.queryString)
@@ -733,13 +733,12 @@ object Router {
         
         def documentation:Seq[(String,String,String)]
         
-        def routes:PartialFunction[Request,Action]
+        def routes:PartialFunction[RequestHeader,Action]
         
         //
 
-        def badRequest(error:String) = new Action {
-            def apply(ctx:Context) = BadRequest(error, contentType = "text/plain")
-        }
+        def badRequest(error:String) =  Action (
+            ctx => BadRequest(error, contentType = "text/plain") )
         
         def call(generator: => Action) = {
             generator
@@ -753,7 +752,7 @@ object Router {
             (for(a <- pa.value.right; b <- pb.value.right) yield (a,b)).fold(badRequest, {case (a,b) => generator(a,b)})
         }
         
-        def actionFor(request:Request):Option[Action] = {
+        def actionFor(request:RequestHeader):Option[Action] = {
             routes.lift(request)
         }
         

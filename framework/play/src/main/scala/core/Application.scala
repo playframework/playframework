@@ -95,7 +95,7 @@ case class NoSourceAvailable() extends SourceMapper {
 trait ApplicationProvider {
     def path:File
     def get:Either[PlayException,Application]
-    def handleWebCommand(request:play.api.mvc.Request):Option[Result] = None
+    def handleWebCommand(requestHeader:play.api.mvc.RequestHeader):Option[Result] = None
 }
 
 class StaticApplication(applicationPath:File) extends ApplicationProvider {

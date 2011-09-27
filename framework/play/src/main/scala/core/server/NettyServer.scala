@@ -189,98 +189,128 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                           override def toString = headers.toString}
         }
 
+       
+
+
         override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
                         
-                        allChannels.add(e.getChannel)
+            allChannels.add(e.getChannel)
 
-                        e.getMessage match {
-                            case nettyHttpRequest:HttpRequest =>
-                                val keepAlive = nettyHttpRequest.isKeepAlive
-                                val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-                                val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
-                                val requestHeaders = getHeaders(nettyHttpRequest)
-                                import org.jboss.netty.util.CharsetUtil;
 
-                                val body = { //explodes memory, need to do a smart strategy of putting into memory
-                                    val cBuffer = nettyHttpRequest.getContent()
-                                    val bytes = new Array[Byte](cBuffer.readableBytes())
-                                    cBuffer.readBytes(bytes)
-                                    bytes
+            e.getMessage match {
+                case nettyHttpRequest:HttpRequest =>
+                    val keepAlive = nettyHttpRequest.isKeepAlive
+                    val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
+                    val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
+
+                    val rHeaders = getHeaders(nettyHttpRequest)
+                    import org.jboss.netty.util.CharsetUtil;
+
+                    val body = { //explodes memory, need to do a smart strategy of putting into memory
+                        val cBuffer = nettyHttpRequest.getContent()
+                        val bytes = new Array[Byte](cBuffer.readableBytes())
+                        cBuffer.readBytes(bytes)
+                        bytes
+                    }
+
+                    val requestHeader = new RequestHeader {
+                            def uri = nettyHttpRequest.getUri
+                            def path = nettyUri.getPath
+                            def method = nettyHttpRequest.getMethod.getName
+                            def queryString = parameters
+                            def headers = rHeaders
+                    }
+
+                    val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
+
+                    val action = getActionFor(requestHeader)
+        
+                    val response = new Response {
+                        def handle(result:Result) =  result match {
+
+                            case AsyncResult(p) => p.onRedeem(handle)
+
+                            case r@SocketResult(f) if (isWebSocket(nettyHttpRequest)) => 
+                                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
+                                f(enumerator,socketOut(ctx)(r.writeable))
+
+                            case r@SocketResult(_)  => handle(Results.BadRequest)
+
+                            case _ if (isWebSocket(nettyHttpRequest)) => handle(Results.BadRequest)
+
+                            case r@SimpleResult(SimpleHttpResponse(status, headers), body) =>
+                                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+                                headers.foreach {
+                                    case (name,value) => nettyResponse.setHeader(name,value)
                                 }
-                                val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
-                                invoke( new Request {
-                                            def uri = nettyHttpRequest.getUri
-                                            def path = nettyUri.getPath
-                                            def method = nettyHttpRequest.getMethod.getName
-                                            def queryString = parameters
-                                            def bodyE = bodyEnumerator
-                                            def bodyPromise[R](parser:Iteratee[Array[Byte],R]):Promise[R] = (parser <<: bodyE).flatMap(_.run)
-                                            def body[R](parser:Iteratee[Array[Byte],R]):R = bodyPromise(parser).value match {
-                                                case Redeemed(a) => a
-                                                case Thrown(e) => throw RequestParsingException(e)
-                                            }
+                                val channelBuffer = ChannelBuffers.dynamicBuffer(512)
+                                val writer :Function2[ChannelBuffer,r.E,Unit]= 
+                                    r.writeable match { case AsString(f) => (c,x) => c.writeBytes(f(x).getBytes())
+                                                       case AsBytes(f) => (c,x) => c.writeBytes(f(x)) }
+                                val stringIteratee = fold(channelBuffer)((c,e:r.E) => {writer(c,e); c})
+                                val p = stringIteratee <<: body
+                                p.flatMap( i => i.run)
+                                 .onRedeem{ buffer =>
+                                     nettyResponse.setContent(buffer)
+                                           if (keepAlive) { nettyResponse.setHeader(CONTENT_LENGTH, nettyResponse.getContent.readableBytes) }
+                                           val f =e.getChannel.write(nettyResponse)
+                                           if(!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                                         }
 
-                                            def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded("UTF-8"))
-
-                                            def headers = requestHeaders
-                                        },
-                                    
-                                       new Response {
-                                           def handle(result:Result) =  result match {
-
-                                               case AsyncResult(p) => p.onRedeem(handle)
-
-                                               case r@SocketResult(f) if (isWebSocket(nettyHttpRequest)) => 
-                                                   val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
-                                                   f(enumerator,socketOut(ctx)(r.writeable))
-
-                                               case r@SocketResult(_)  => handle(Results.BadRequest)
-
-                                               case _ if (isWebSocket(nettyHttpRequest)) => handle(Results.BadRequest)
-
-                                               case r@SimpleResult(SimpleHttpResponse(status, headers), body) =>
-                                                   val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
-                                                   headers.foreach {
-                                                       case (name,value) => nettyResponse.setHeader(name,value)
-                                                   }
-                                                   val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-                                                   val writer :Function2[ChannelBuffer,r.E,Unit]= 
-                                                       r.writeable match { case AsString(f) => (c,x) => c.writeBytes(f(x).getBytes())
-                                                                           case AsBytes(f) => (c,x) => c.writeBytes(f(x)) }
-                                                   val stringIteratee = fold(channelBuffer)((c,e:r.E) => {writer(c,e); c})
-                                                   val p = stringIteratee <<: body
-                                                   p.flatMap( i => i.run)
-                                                    .onRedeem{ buffer =>
-                                                        nettyResponse.setContent(buffer)
-                                                        if (keepAlive) { nettyResponse.setHeader(CONTENT_LENGTH, nettyResponse.getContent.readableBytes) }
-                                                        val f =e.getChannel.write(nettyResponse)
-                                                        if(!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
-                                                      }
-
-                                               case r@ChunkedResult(SimpleHttpResponse(status, headers), chunks) =>
-                                                   val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
-                                                   headers.foreach {
-                                                       case (name,value) => nettyResponse.setHeader(name,value)
-                                                   }
-                                                   nettyResponse.setHeader(TRANSFER_ENCODING,HttpHeaders.Values.CHUNKED)
-                                                   nettyResponse.setChunked(true)
-                                                   
-                                                   val writer :Function1[r.E,ChannelFuture]= 
-                                                       r.writeable match { case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
-                                                                           case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x)))) }
-                                                   val chunksIteratee = fold(e.getChannel.write(nettyResponse))((_,e:r.E) => writer(e) )
-                                                   val p = chunksIteratee <<: chunks
-                                                   p.flatMap( i => i.run)
-                                                    .onRedeem{ _ => val f =e.getChannel.write(HttpChunk.LAST_CHUNK);
-                                                                    if(!keepAlive) f.addListener(ChannelFutureListener.CLOSE) }
-                                        }
-                                    }
-                                )
+                          case r@ChunkedResult(SimpleHttpResponse(status, headers), chunks) =>
+                              val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+                              headers.foreach {
+                                  case (name,value) => nettyResponse.setHeader(name,value)
+                              }
+                              nettyResponse.setHeader(TRANSFER_ENCODING,HttpHeaders.Values.CHUNKED)
+                              nettyResponse.setChunked(true)
+              
+                              val writer :Function1[r.E,ChannelFuture]= 
+                                  r.writeable match { case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
+                                                     case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x)))) }
+                              val chunksIteratee = fold(e.getChannel.write(nettyResponse))((_,e:r.E) => writer(e) )
+                              val p = chunksIteratee <<: chunks
+                              p.flatMap( i => i.run)
+                               .onRedeem{ _ => 
+                                   val f =e.getChannel.write(HttpChunk.LAST_CHUNK);
+                                   if(!keepAlive) f.addListener(ChannelFutureListener.CLOSE) }
                         }
                     }
+       
+                    action match { 
+                        case Right((action,app)) =>
+
+                            val params@ActionParams(bodyParser,f) = action.con
+
+                            val request = new Request1[params.B] {
+                                def uri = nettyHttpRequest.getUri
+                                def path = nettyUri.getPath
+                                def method = nettyHttpRequest.getMethod.getName
+                                def queryString = parameters
+                                def bodyE = bodyEnumerator
+                                def bodyPromise[R](parser:Iteratee[Array[Byte],R]):Promise[R] = (parser <<: bodyE).flatMap(_.run)
+                                def body[R](parser:Iteratee[Array[Byte],R]):R = bodyPromise(parser).value match {
+                                    case Redeemed(a) => a
+                                    case Thrown(e) => throw RequestParsingException(e)
+                                }
+                                lazy val body = bodyPromise(bodyParser(requestHeader))
+                                
+                                def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded("UTF-8" /* should get charset from content type */)(requestHeader))
+
+                                def headers = rHeaders
+                            }
+
+
+                          invoke(request,response,f.asInstanceOf[Context[params.B]=>Result],app)
+
+                      case Left(e) => response.handle(e)
+
+                    }
+            }
+        }
                     
-                }
+    }
 
     class DefaultPipelineFactory extends  ChannelPipelineFactory {
             def getPipeline = {

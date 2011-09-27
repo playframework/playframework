@@ -425,7 +425,7 @@ object PlayProject extends Plugin {
             
             }
             
-            override def handleWebCommand(request:play.api.mvc.Request) = {
+            override def handleWebCommand(request:play.api.mvc.RequestHeader) = {
                 
                 val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
                 

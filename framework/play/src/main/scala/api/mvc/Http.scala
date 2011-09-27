@@ -6,10 +6,28 @@ package play.api.mvc {
     import scala.annotation._
 
     @implicitNotFound("Cannot find any HTTP context here")
-    case class Context(request:Request)
+    case class Context[A](request:Request1[A])
+    trait Request extends Request1[Any]
+
+    trait RequestHeader{
+        def uri:String
+        def path:String
+        def method:String
+        def queryString:Map[String,Seq[String]]
+        
+        def rawQueryString = uri.split('?').drop(1).mkString("?")
+        
+        override def toString = {
+            method + " " + uri
+        }
+
+        def headers: Headers
+
+
+    }
 
     @implicitNotFound("Cannot find any HTTP Request here")
-    trait Request {
+    trait Request1[A] {
 
         def uri:String
         def path:String
@@ -23,6 +41,7 @@ package play.api.mvc {
         }
 
         def headers: Headers
+        def body: Promise[A]
 
         def urlEncoded: Map[String,Seq[String]]
 

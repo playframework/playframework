@@ -1,5 +1,5 @@
 package play.core.server
-
+import play.api._
 import play.core._
 import play.api.mvc._
 
@@ -16,9 +16,26 @@ trait Server {
     
     val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
 
-    def invoke(request:Request, response:Response) {
-        invoker ! (request, response, applicationProvider)
+    def getActionFor(rqHeader:RequestHeader):Either[Result,(Action,Application)] = {
+         def sendAction :Either[Throwable,(Action,Application)]=
+            applicationProvider.get.right.map { application => 
+                            val maybeAction = application.global.onRouteRequest(rqHeader)
+                           ( maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(rqHeader))),application ) }
+                       
+
+      import scala.util.control.Exception
+       applicationProvider.handleWebCommand(rqHeader).toLeft{
+          Exception.allCatch[Either[Throwable,(Action,Application)]]
+                   .either (sendAction)
+                   .joinRight
+                   .left.map(e =>  DefaultGlobal.onError(e)) }.joinRight
+
+      
     }
+    def errorResult(e:Throwable):Result = DefaultGlobal.onError(e)
+
+    def invoke[A](request:Request1[A], response:Response,a:(Context[A]=>Result), app:Application) = invoker ! HandleAction(request,response,a,app)
+
     
     def applicationProvider:ApplicationProvider
     
