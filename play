@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# find correct directory of script
+# credits to user25866 at stackoverflow.com
+# source: http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in/179231#179231
+
 SCRIPTPATH="${BASH_SOURCE[0]}";
 if ([ -L "${SCRIPTPATH}" ]) then
   while([ -h "${SCRIPTPATH}" ]) do SCRIPTPATH=`readlink "${SCRIPTPATH}"`; done
