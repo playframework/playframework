@@ -106,8 +106,8 @@ object PlayBuild extends Build {
             "org.springframework"               %    "spring-context"       %   "3.0.6.RELEASE",
             "joda-time"                         %    "joda-time"            %   "2.0",
             "mysql"                             %    "mysql-connector-java" %   "5.1.17",
-            "javassist"                         %    "javassist"            %   "3.12.1.GA"
-
+            "javassist"                         %    "javassist"            %   "3.12.1.GA",
+            "commons-lang"                      %    "commons-lang"         %   "2.6"
         )                                            
                                                      
         val templates = Seq(                         
@@ -306,7 +306,7 @@ object PlayBuild extends Build {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
-                    compile.invoke(null, template, sourceDirectory, generatedDir, "play.api.templates.Html", "play.api.templates.HtmlFormat", "import play.api.templates._")
+                    compile.invoke(null, template, sourceDirectory, generatedDir, "play.api.templates.Html", "play.api.templates.HtmlFormat", "import play.api.templates._\nimport play.api.templates.PlayMagic._")
                 } catch {
                     case e:java.lang.reflect.InvocationTargetException =>{
                         val t = e.getTargetException

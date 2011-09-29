@@ -1,0 +1,15 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /                               controllers.Tasks.list
+GET     /tasks/new                      controllers.Tasks.create
+GET     /tasks/:id                      controllers.Tasks.edit(id:Long)
+POST    /tasks                          controllers.Tasks.save
+POST    /tasks/:id                      controllers.Tasks.update(id:Long)
+POST    /tasks/:id/delete               controllers.Tasks.delete(id:Long)
+
+# Map static resources from the /public folder to the /public path
+GET     /public/*file           controllers.Assets.at(path="/public", file)
+
+            

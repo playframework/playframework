@@ -3,7 +3,7 @@ package play.db.ebean;
 import play.*;
 import play.db.*;
 
-import play.core.*;
+import play.api.Application;
 import play.api.libs.Files;
 
 import java.io.*;

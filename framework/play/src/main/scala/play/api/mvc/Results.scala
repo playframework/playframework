@@ -80,6 +80,7 @@ trait Results {
     val Forbidden = new Status(FORBIDDEN)
     val BadRequest = new Status(BAD_REQUEST)
     val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
+    val NotImplemented = new Status(NOT_IMPLEMENTED)
     
     def Redirect(url:String):SimpleResult[String] = { val r = EmptyStatus(FOUND); r.copy(r.response.copy(headers = Map(LOCATION -> url))) }
     def Redirect(call:Call):SimpleResult[String]= Redirect(call.url)

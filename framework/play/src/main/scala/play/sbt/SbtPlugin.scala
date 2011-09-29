@@ -627,7 +627,7 @@ object PlayProject extends Plugin {
         
         playResourceDirectories <+= baseDirectory / "public",
         
-        templatesAdditionalImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._", "java.lang.Long"),
+        templatesAdditionalImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._"),
         
         templatesTypes := ((extension) => extension match {
             case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")

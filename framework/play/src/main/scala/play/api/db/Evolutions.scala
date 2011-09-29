@@ -20,7 +20,28 @@ trait Script { val evolution:Evolution; val sql:String }
 case class UpScript(evolution:Evolution, sql:String) extends Script
 case class DownScript(evolution:Evolution, sql:String) extends Script
 
-object Evolutions {
+
+object Evolutions  {
+    
+    def updateEvolutionScript(db:String = "default", revision:Int = 1, comment:String = "Generated", ups:String, downs:String)(implicit application:Application) {
+        import play.api.libs._
+        
+        val evolutions = application.getFile("db/evolutions/" + db + "/" + revision + ".sql");
+        Files.createDirectory(application.getFile("db/evolutions/" + db));
+        Files.writeFileIfChanged(evolutions,
+            """|# --- %s
+               |
+               |# --- !Ups
+               |%s
+               |
+               |# --- !Downs
+               |%s
+               |
+               |""".stripMargin.format(comment, ups, downs)
+        );
+    }
+    
+    // --
     
     private def evolutionsDirectory(applicationPath:File, db:String):Option[File] = {
         Option(new File(applicationPath, "db/evolutions/" + db)).filter(_.exists)

@@ -1,0 +1,18 @@
+@(tasks:List[(Long,String)])
+
+@main {
+    
+    <h2>@tasks.size tasks</h2>
+
+    <ul>
+        @tasks.map { task =>
+            <li><a href="@routes.Tasks.edit(task._1)">@task._2</a></li>
+        }    
+    </ul>
+
+    <p>
+        <a href="@routes.Tasks.create()">new task</a>
+    </p>
+    
+}
+

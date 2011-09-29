@@ -40,12 +40,27 @@ object DBApi {
             }
         }
         
+        val autocommit = conf.getBoolean("autocommit").getOrElse(true)
+        val isolation = conf.getString("isolation").getOrElse("READ_COMMITTED") match {
+            case "NONE" => Connection.TRANSACTION_NONE
+            case "READ_COMMITTED" => Connection.TRANSACTION_READ_COMMITTED
+            case "READ_UNCOMMITTED " => Connection.TRANSACTION_READ_UNCOMMITTED
+            case "REPEATABLE_READ " => Connection.TRANSACTION_REPEATABLE_READ
+            case "SERIALIZABLE" => Connection.TRANSACTION_SERIALIZABLE
+            case unknown => throw conf.reportError("isolation", "Unknown isolation level [" + unknown + "]")
+        }
+        val catalog = conf.getString("defaultCatalog")
+        val readOnly = conf.getBoolean("readOnly").getOrElse(false)
+        
         datasource.setClassLoader(classloader)
-        datasource.setDefaultAutoCommit(false)
-        datasource.setDefaultTransactionIsolation("READ_COMMITTED")
+        
+        // Re-apply per connection config @ checkout
         datasource.setConnectionHook(new AbstractConnectionHook {
             override def onCheckOut(connection:ConnectionHandle) {
-                connection.setAutoCommit(false)
+                connection.setAutoCommit(autocommit)
+                connection.setTransactionIsolation(isolation)
+                connection.setReadOnly(readOnly)
+                catalog.map(connection.setCatalog(_))
             }
         })
         
@@ -57,6 +72,19 @@ object DBApi {
         conf.getString("user").map(datasource.setUsername(_))
         conf.getString("pass").map(datasource.setPassword(_))
         
+        // Pool configuration
+        conf.getInt("partitionCount").map(datasource.setPartitionCount(_))
+        conf.getInt("maxConnectionsPerPartition").map(datasource.setMaxConnectionsPerPartition(_))
+        conf.getInt("minConnectionsPerPartition").map(datasource.setMinConnectionsPerPartition(_))
+        conf.getInt("acquireIncrement").map(datasource.setAcquireIncrement(_))
+        conf.getInt("acquireRetryAttempts").map(datasource.setAcquireRetryAttempts(_))
+        conf.getInt("acquireRetryDelay").map(datasource.setAcquireRetryDelayInMs(_))
+        conf.getInt("connectionTimeout").map(datasource.setConnectionTimeoutInMs(_))
+        conf.getInt("idleMaxAge").map(datasource.setIdleMaxAgeInSeconds(_))
+        conf.getString("initSQL").map(datasource.setInitSQL(_))
+        conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
+        conf.getInt("maxConnectionAge").map(datasource.setMaxConnectionAgeInSeconds(_))
+
         datasource -> conf.full("url")
     }
     

@@ -548,22 +548,24 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
                 val functionType = "(" + params.map(group => "(" + group.map {
                     case a if a.mods.isByNameParam => " => " + a.tpt.children(1).toString
-                    case a => a.tpt.toString
+                    case a => a.tpt.toString.replace("_root_.scala.<repeated>", "Array")
                 }.mkString(",") + ")").mkString(" => ") + " => " + returnType + ")"
 
                 val renderCall = "def render%s = apply%s".format(
                     "(" + params.flatten.map {
                         case a if a.mods.isByNameParam => a.name.toString + ":" + a.tpt.children(1).toString
-                        case a => a.name.toString + ":" + a.tpt.toString
+                        case a => a.name.toString + ":" + a.tpt.toString.replace("_root_.scala.<repeated>", "Array")
                     }.mkString(",") + ")",
-                    params.map(group => "(" + group.map(_.name.toString).mkString(",") + ")").mkString
+                    params.map(group => "(" + group.map { p =>
+                        p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ":_*").getOrElse("")
+                    }.mkString(",") + ")").mkString
                 )
                 
                 var templateType = "play.api.templates.Template%s[%s%s]".format(
                     params.flatten.size,
                     params.flatten.map {
                         case a if a.mods.isByNameParam => a.tpt.children(1).toString
-                        case a => a.tpt.toString
+                        case a => a.tpt.toString.replace("_root_.scala.<repeated>", "Array")
                     }.mkString(","),
                     (if(params.flatten.isEmpty) "" else ",") + returnType
                 )
@@ -571,7 +573,9 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                 val f = "def f:%s = %s => apply%s".format(
                     functionType,
                     params.map(group => "(" + group.map(_.name.toString).mkString(",") + ")").mkString(" => "),
-                    params.map(group => "(" + group.map(_.name.toString).mkString(",") + ")").mkString
+                    params.map(group => "(" + group.map { p =>
+                        p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ":_*").getOrElse("")
+                    }.mkString(",") + ")").mkString
                 )
 
                 (renderCall, f, templateType)
