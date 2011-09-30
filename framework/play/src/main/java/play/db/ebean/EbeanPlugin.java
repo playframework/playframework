@@ -36,7 +36,7 @@ public class EbeanPlugin extends Plugin {
                 ServerConfig config = new ServerConfig();
                 config.setName(key);
                 try {
-                    config.setDataSource(DB.getDataSource(key));
+                    config.setDataSource(new WrappingDatasource(DB.getDataSource(key)));
                 } catch(Exception e) {
                     throw ebeanConf.reportError(
                         key,
@@ -97,6 +97,58 @@ public class EbeanPlugin extends Plugin {
             "\n" +
             downs
         );
+    }
+    
+    /**
+     * DataSource wrapper to ensure that every retrieved connection is set automatically to autoCommit=false
+     */
+    public static class WrappingDatasource implements javax.sql.DataSource {
+        
+        public java.sql.Connection wrap(java.sql.Connection connection) throws java.sql.SQLException {
+            connection.setAutoCommit(false);
+            return connection;
+        }
+        
+        // --
+        
+        final javax.sql.DataSource wrapped;
+        
+        public WrappingDatasource(javax.sql.DataSource wrapped) {
+            this.wrapped = wrapped;
+        }
+        
+        public java.sql.Connection getConnection() throws java.sql.SQLException {
+            return wrap(wrapped.getConnection());
+        }
+        
+        public java.sql.Connection getConnection(String username, String password) throws java.sql.SQLException {
+            return wrap(wrapped.getConnection(username, password));
+        }
+        
+        public int getLoginTimeout() throws java.sql.SQLException {
+            return wrapped.getLoginTimeout();
+        }
+        
+        public java.io.PrintWriter getLogWriter() throws java.sql.SQLException {
+            return wrapped.getLogWriter();
+        }
+        
+        public void setLoginTimeout(int seconds) throws java.sql.SQLException {
+            wrapped.setLoginTimeout(seconds);
+        }
+        
+        public void setLogWriter(java.io.PrintWriter out) throws java.sql.SQLException {
+            wrapped.setLogWriter(out);
+        }
+        
+        public boolean isWrapperFor(Class<?> iface) throws java.sql.SQLException {
+            return wrapped.isWrapperFor(iface);
+        }
+        
+        public <T> T unwrap(Class<T> iface) throws java.sql.SQLException {
+            return wrapped.unwrap(iface);
+        }
+        
     }
     
     

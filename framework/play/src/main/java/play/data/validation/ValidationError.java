@@ -1,48 +1,33 @@
 package play.data.validation;
 
+import java.util.*;
+
 public class ValidationError {
     
-    private boolean isBindingFailure;
-    private String[] codes;
-    private Object[] arguments;
-    private String defaultMessage;
+    private String key;
+    private String message;
+    private List<Object> arguments;
     
-    public ValidationError(boolean isBindingFailure, String[] codes, Object[] arguments, String defaultMessage) {
-        this.isBindingFailure = isBindingFailure;
-        this.codes = codes;
+    public ValidationError(String key, String message, List<Object> arguments) {
+        this.key = key;
+        this.message = message;
         this.arguments = arguments;
-        this.defaultMessage = defaultMessage;
     }
     
-    public String[] codes() {
-        return codes;
-    }
-    
-    public String code() {
-        if(codes.length > 0) {
-            return codes[0];
-        }
-        return null;
-    }
-    
-    public Object[] arguments() {
-        return codes;
+    public String key() {
+        return key;
     }
     
     public String message() {
-        return defaultMessage;
+        return message;
     }
     
-    public boolean isBindingFailure() {
-        return isBindingFailure;
+    public List<Object> arguments() {
+        return arguments;
     }
     
     public String toString() {
-        if(isBindingFailure) {
-            return "invalid value";
-        } else {
-            return message();
-        }
+        return "ValidationError(" + key + "," + message + "," + arguments + ")";
     }
     
 }

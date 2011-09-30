@@ -23,7 +23,7 @@ public class Tasks extends Controller {
     }
     
     public static Result save() {
-        Form<Task> taskForm = bind(Task.class);
+        Form<Task> taskForm = form(Task.class).bind();
         if(taskForm.hasErrors()) {
             return badRequest(form.render(null, taskForm));
         } else {
@@ -33,11 +33,11 @@ public class Tasks extends Controller {
     }
     
     public static Result update(Long id) {
-        Form<Task> taskForm = bind(Task.find.byId(id));
+        Form<Task> taskForm = form(Task.class).bind();
         if(taskForm.hasErrors()) {
             return badRequest(form.render(id, taskForm));
         } else {
-            taskForm.get().update();
+            taskForm.get().update(id);
             return redirect(routes.Tasks.list());
         }
     }

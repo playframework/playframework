@@ -30,8 +30,9 @@ public class Formats {
         
     }
     
-    @Target({METHOD, FIELD, ANNOTATION_TYPE})
+    @Target({FIELD})
     @Retention(RUNTIME)
+    @play.data.Form.Display(name="format.date", attributes={"pattern"})
     public static @interface DateTime {
         String pattern();
     }

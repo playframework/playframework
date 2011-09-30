@@ -22,42 +22,11 @@ public abstract class Controller {
     }
     
     public static <T> Form<T> form(Class<T> clazz) {
-        try {
-            return new Form(clazz.newInstance());
-        } catch(Exception e) {
-            throw new RuntimeException(e);
-        }
+        return new Form(clazz);
     }
     
     public static <T> Form<T> form(T t) {
         return new Form(t);
-    }
-    
-    public static Form<Form.Dynamic> bind() {
-        return bind(Form.Dynamic.class);
-    }
-    
-    public static <T> Form<T> bind(Class<T> clazz) {
-        try {
-            return Form.bind(_data(), clazz.newInstance());
-        } catch(Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public static <T> Form<T> bind(T t) {
-        return Form.bind(_data(), t);
-    }
-    
-    private static Map<String,String> _data() {
-        Map<String,String> data = new HashMap<String,String>();
-        for(String key: request().urlEncoded().keySet()) {
-            String[] value = request().urlEncoded().get(key);
-            if(value.length > 0) {
-                data.put(key, value[0]);
-            }
-        }
-        return data;
     }
     
     // -- Results

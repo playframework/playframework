@@ -1,11 +1,15 @@
 package play.data.validation;
 
+import play.libs.F.*;
+import static play.libs.F.*;
+
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.*;
 
 import javax.validation.*;
+import javax.validation.metadata.*;
 
 import java.util.*;
 
@@ -18,11 +22,30 @@ public class Constraints {
         }
     }
     
+    public static List<T2<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
+        List<T2<String,List<Object>>> displayable = new ArrayList<T2<String,List<Object>>>();
+        for(ConstraintDescriptor<?> c: constraints) {
+            Class<?> annotationType = c.getAnnotation().annotationType();
+            if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
+                play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
+                String name = d.name();
+                List<Object> attributes = new ArrayList<Object>();
+                Map<String,Object> annotationAttributes = c.getAttributes();
+                for(String attr: d.attributes()) {
+                    attributes.add(annotationAttributes.get(attr));
+                }
+                displayable.add(T2(name, attributes)); 
+            }
+        }        
+        return displayable;
+    }
+    
     // --- Required
     
-    @Target({METHOD, FIELD, ANNOTATION_TYPE})
+    @Target({FIELD})
     @Retention(RUNTIME)
     @Constraint(validatedBy = RequiredValidator.class)
+    @play.data.Form.Display(name="constraint.required")
     public static @interface Required {
         String message() default RequiredValidator.message;
         Class<?>[] groups() default {};
@@ -59,9 +82,10 @@ public class Constraints {
     
     // --- Min
     
-    @Target({METHOD, FIELD, ANNOTATION_TYPE})
+    @Target({FIELD})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinValidator.class)
+    @play.data.Form.Display(name="constraint.required", attributes={"value"})
     public static @interface Min {
         String message() default MinValidator.message;
         Class<?>[] groups() default {};

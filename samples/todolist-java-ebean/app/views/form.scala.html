@@ -4,37 +4,19 @@
 
     @Option(maybeId).map { id => <h1>Edit task @id</h1> }.getOrElse { <h1>New task</h1> }
 
-    <form action="@Option(maybeId).map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())" method="POST">
-    
-        @using(taskForm.field("name")) { f =>
-            <p>
-                <input type="text" name="@f.name" value="@f.value"> <span style="color:#c00">@f.error</span>
-                <br>
-                @f.constraints
-            </p>
-        }
-    
-        @using(taskForm.field("dueDate")) { f =>
-            <p>
-                <input type="text" name="@f.name" value="@f.value"> <span style="color:#c00">@f.error</span>
-                <br>
-                @f.constraints
-            </p>
-        }
-    
-        @using(taskForm.field("done")) { f =>
-            <p>
-                <input type="checkbox" name="@f.name" value="true" @(if(f.value == "true") "checked" else "")> <span style="color:#c00">@f.error</span>
-                <br>
-                @f.constraints
-            </p>
-        }
+    @helper.html.form(Option(maybeId).map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())) {
+        
+        @helper.html.inputText(taskForm("name"))
+        
+        @helper.html.inputText(taskForm("dueDate"))
+        
+        @helper.html.checkbox(taskForm("done"))
     
         <p>
             <a href="@routes.Tasks.list()">Cancel</a> <input type="submit">
         </p>
-    
-    </form>
+        
+    }
     
     @Option(maybeId).map { id =>
         

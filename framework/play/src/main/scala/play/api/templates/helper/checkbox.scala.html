@@ -2,6 +2,6 @@
 
 @using(Utils.filter(args, 'id -> field.id, 'label -> field.name, 'value -> "true")) { args =>
     @input(field, args._1('id), Some(args._1('label)), showInfo = false) { (id,name,value) =>
-        <input type="checkbox" id="@id" name="@name" value="@args._1('value)" @(if(value == Some(args._1('value))) "checked" else "") @args._2.toHtmlArgs>
+        <input type="checkbox" id="@id" name="@name" value="@args._1('value)" @(if(value == Some(args._1('value))) "checked" else "") @toHtmlArgs(args._2)>
     }
 }

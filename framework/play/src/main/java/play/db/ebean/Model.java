@@ -1,11 +1,70 @@
 package play.db.ebean;
 
 import java.util.*;
+import java.beans.*;
+import java.lang.reflect.*;
 
 import com.avaje.ebean.*;
 
+import play.libs.F.*;
+import static play.libs.F.*;
+
+import org.springframework.beans.*;
+
 @javax.persistence.MappedSuperclass
 public class Model {
+    
+    // -- Magic to dynamically access the @Id property
+    
+    @javax.persistence.Transient
+    private T2<Method,Method> _idGetSet;
+    
+    private T2<Method,Method> _idAccessors() {
+        if(_idGetSet == null) {
+            try {
+                Class<?> clazz = this.getClass();
+                while(clazz != null) {
+                    for(Field f:clazz.getDeclaredFields()) {
+                        if(f.isAnnotationPresent(javax.persistence.Id.class)) {
+                            PropertyDescriptor idProperty = new BeanWrapperImpl(this).getPropertyDescriptor(f.getName());
+                            _idGetSet = T2(idProperty.getReadMethod() , idProperty.getWriteMethod());
+                        }
+                    }
+                    clazz = clazz.getSuperclass();
+                }                
+                if(_idGetSet == null) {
+                    throw new RuntimeException("No @javax.persistence.Id field found in class [" + this.getClass() + "]");                    
+                }
+            } catch(RuntimeException e) {
+                throw e;
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return _idGetSet;
+    }
+    
+    private Object _getId() {
+        try {
+            return _idAccessors()._1.invoke(this);
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private void _setId(Object id) {
+        try {
+            _idAccessors()._2.invoke(this,id);
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    // --
     
     public void save() {
         Ebean.save(this);
@@ -20,6 +79,16 @@ public class Model {
     }
     
     public void update(String server) {
+        Ebean.getServer(server).update(this);
+    }
+    
+    public void update(Object id) {
+        _setId(id);
+        Ebean.update(this);
+    }
+    
+    public void update(Object id, String server) {
+        _setId(id);
         Ebean.getServer(server).update(this);
     }
     

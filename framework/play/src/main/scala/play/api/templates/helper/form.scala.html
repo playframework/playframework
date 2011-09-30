@@ -1,5 +1,5 @@
 @(action:play.api.mvc.Call, args:(Symbol,String)*)(body: => Html) 
 
-<form action="@action.url" method="@action.method" @args.toHtmlArgs>
+<form action="@action.url" method="@action.method" @toHtmlArgs(args)>
     @body
 </form>

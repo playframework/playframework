@@ -63,7 +63,7 @@ object PlayProject extends Plugin {
     val distDirectory = SettingKey[File]("play-dist")
     val playResourceDirectories = SettingKey[Seq[File]]("play-resource-directories")
     val confDirectory = SettingKey[File]("play-conf")
-    val templatesAdditionalImport = SettingKey[Seq[String]]("play-templates-imports")
+    val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
     val templatesTypes = SettingKey[(String => (String,String))]("play-templates-formats")
     
     
@@ -597,7 +597,7 @@ object PlayProject extends Plugin {
 
         sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
         
-        sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesAdditionalImport) map ScalaTemplates,
+        sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
         commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand),
 
@@ -627,7 +627,7 @@ object PlayProject extends Plugin {
         
         playResourceDirectories <+= baseDirectory / "public",
         
-        templatesAdditionalImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._"),
+        templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._"),
         
         templatesTypes := ((extension) => extension match {
             case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")

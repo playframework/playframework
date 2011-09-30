@@ -47,15 +47,11 @@ package validation {
     
     case object Valid extends ValidationResult
     case class Invalid(errors:Seq[ValidationError]) extends ValidationResult {
-
         def ++(other:Invalid) = Invalid(this.errors ++ other.errors)
-
     }
 
     object Invalid {
-
         def apply(error:ValidationError):Invalid = Invalid(Seq(error))
-
     }
 
     case class ValidationError(msg:String,args:Any*) 
@@ -191,15 +187,13 @@ case class Form[T](mapping:Mapping[T],data:Map[String,String],errors:Seq[FormErr
 }
 
 case class Field(name:String,constraints:Seq[(String,Seq[Any])],format:Option[(String,Seq[Any])],errors:Seq[FormError],value:Option[String]) {
-    val id = name.replace('.','_')
+    lazy val id = name.replace('.','_')
     def error = errors.headOption
 }
 
 object Form {
-    
     def apply[T](m:Mapping[T]):Form[T] = Form(m, Map.empty, Nil, None)
     def apply[T](m:(String,Mapping[T])):Form[T] = Form(m._2.withPrefix(m._1), Map.empty, Nil, None)
-    
 }
 
 object `package` {
@@ -218,10 +212,16 @@ object `package` {
         ObjectMapping3(apply,a,b,c)
     }
     
+    def of[T<:Product,A,B,C,D](apply:Function4[A,B,C,D,T])(a:(String,Mapping[A]),b:(String,Mapping[B]),c:(String,Mapping[C]),d:(String,Mapping[D])):Mapping[T] = {
+        ObjectMapping4(apply,a,b,c,d)
+    }
+    
+    
     def of[A,B](a:(String,Mapping[A]),b:(String,Mapping[B])):Mapping[(A,B)] = of((a:A,b:B) => (a,b))(a,b)
     def of[A,B,C](a:(String,Mapping[A]),b:(String,Mapping[B]),c:(String,Mapping[C])):Mapping[(A,B,C)] = of((a:A,b:B,c:C) => (a,b,c))(a,b,c)
+    def of[A,B,C,D](a:(String,Mapping[A]),b:(String,Mapping[B]),c:(String,Mapping[C]),d:(String,Mapping[D])):Mapping[(A,B,C,D)] = of((a:A,b:B,c:C,d:D) => (a,b,c,d))(a,b,c,d)
     
-    //
+    // --
     
     import Form._
     import Formats._
@@ -253,7 +253,7 @@ object `package` {
     
 }
 
-case class FormError(key:String,msg:String,args:Seq[Any])
+case class FormError(key:String,message:String,arguments:Seq[Any])
 
 trait Mapping[T] {
     
@@ -429,6 +429,47 @@ case class ObjectMapping3[T<:Product,A,B,C](apply:Function3[A,B,C,T],fa:(String,
     }
     
     val mappings = Seq(this) ++ fieldA.mappings ++ fieldB.mappings ++ fieldC.mappings
+    
+}
+
+case class ObjectMapping4[T<:Product,A,B,C,D](apply:Function4[A,B,C,D,T],fa:(String,Mapping[A]),fb:(String,Mapping[B]),fc:(String,Mapping[C]),fd:(String,Mapping[D]),val key:String = "",val constraints:Seq[Constraint[T]] = Nil) extends Mapping[T] with ObjectMapping {
+    
+    val fieldA = fa._2.withPrefix(fa._1).withPrefix(key)
+    val fieldB = fb._2.withPrefix(fb._1).withPrefix(key)
+    val fieldC = fc._2.withPrefix(fc._1).withPrefix(key)
+    val fieldD = fd._2.withPrefix(fd._1).withPrefix(key)
+    
+    def bind(data:Map[String,String]) = {
+        
+        merge(fieldA.bind(data), fieldB.bind(data), fieldC.bind(data), fieldD.bind(data)) match {
+            case Left(errors) => Left(errors)
+            case Right(values) => {
+                applyConstraints(apply(
+                    values(0).asInstanceOf[A],
+                    values(1).asInstanceOf[B],
+                    values(2).asInstanceOf[C],
+                    values(3).asInstanceOf[D]
+                ))
+            }
+        }
+        
+    }
+    
+    def unbind(value:T) = {
+        val a = fieldA.unbind(value.productElement(0).asInstanceOf[A])
+        val b = fieldB.unbind(value.productElement(1).asInstanceOf[B])
+        val c = fieldC.unbind(value.productElement(2).asInstanceOf[C])
+        val d = fieldD.unbind(value.productElement(3).asInstanceOf[D])
+        (a._1 ++ b._1 ++ c._1 ++ d._1) -> (a._2 ++ b._2 ++ c._2 ++ d._2)
+    }
+    
+    def withPrefix(prefix:String) = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
+    
+    def verifying(addConstraints:Constraint[T]*) = {
+        this.copy(constraints = constraints ++ addConstraints.toSeq)
+    }
+    
+    val mappings = Seq(this) ++ fieldA.mappings ++ fieldB.mappings ++ fieldC.mappings ++ fieldD.mappings
     
 }
 
