@@ -4,7 +4,7 @@
 
     @Option(maybeId).map { id => <h1>Edit task @id</h1> }.getOrElse { <h1>New task</h1> }
 
-    @helper.html.form(Option(maybeId).map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())) {
+    @helper.html.form(Option(maybeId).map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())) { 
         
         @helper.html.inputText(taskForm("name"))
         

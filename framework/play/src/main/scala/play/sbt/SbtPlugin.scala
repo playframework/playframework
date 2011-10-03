@@ -80,9 +80,9 @@ object PlayProject extends Plugin {
     }
     
     val playCopyResources = TaskKey[Seq[(File,File)]]("play-copy-resources") 
-    val playCopyResourcesTask = (baseDirectory, playResourceDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b,r,t,c,s) =>
+    val playCopyResourcesTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playResourceDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b,resources,resourcesDirectories,r,t,c,s) =>
         val cacheFile = c / "copy-resources"
-        val mappings = r.map( _ *** ).reduceLeft(_ +++ _) x rebase(b, t)
+        val mappings = (r.map( _ *** ).reduceLeft(_ +++ _) x rebase(b, t)) ++ (resources x rebase(resourcesDirectories, t))
         s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t","\n\t",""))
         Sync(cacheFile)(mappings)
         mappings
@@ -131,10 +131,89 @@ object PlayProject extends Plugin {
         zip
     }
     
+    // ----- Assets
     
-    // ----- Post compile
+    val LessCompiler = (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory) map { (src,resources,cache) =>
+        
+        import java.io._
+        
+        val cacheFile = cache / "less"
+        val lessFiles = (src / "assets") ** "*.less"
+        val currentInfos = lessFiles.get.map(f => f -> FileInfo.lastModified(f)).toMap
+        val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
+        
+        if(previousInfo != currentInfos) {
+            
+            // Delete previous generated CSS files
+            previousRelation._2s.foreach(IO.delete)
+            
+            val generated = ((lessFiles --- ((src / "assets") ** "_*")) x relativeTo(Seq(src / "assets"))).map {
+                case (lessFile,name) => lessFile -> ("public/" + name.replace(".less", ".css"))
+            }.flatMap {
+                case (lessFile,name) => {
+                    val ((css,dependencies),out) = play.core.less.LessCompiler.compile(lessFile) -> new File(resources, name)
+                    IO.write(out, css)
+                    dependencies.map(_ -> out)
+                }
+            }
+            
+            Sync.writeInfo(cacheFile, 
+                Relation.empty[File,File] ++ generated,
+                currentInfos
+            )(FileInfo.lastModified.format)
+            
+            // Return new CSS
+            generated.toMap.values.toSeq
+            
+        } else {
+            
+            // Return previously generated CSS
+            previousRelation._2s.toSeq
+            
+        }
+
+    }
     
-    val PostCompile = (dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile) map { (deps,analysis,javaSrc,srcManaged,classes) =>
+    val CoffeescriptCompiler = (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory) map { (src,resources,cache) =>
+        
+        import java.io._
+        
+        val cacheFile = cache / "coffeescript"
+        val currentRelation = Relation.empty ++ ((src / "assets") ** "*.coffee" x relativeTo(Seq(src / "assets"))).map {
+            case (csFile,name) => csFile -> new File(resources, "public/" + name.replace(".coffee", ".js"))
+        }
+        val currentInfos = currentRelation._1s.map(f => f -> FileInfo.lastModified(f)).toMap
+        val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
+        
+        val removeTargets = previousRelation._2s -- currentRelation._2s
+        val update = currentRelation filter { (source,target) =>
+            if(target.exists) {
+                target.lastModified < source.lastModified
+            } else {
+                true
+            }
+        }
+
+        removeTargets.foreach(IO.delete)
+        update.all.foreach { 
+            case (source,target) => {
+                val compiled = play.core.coffeescript.CoffeescriptCompiler.compile(source)
+                IO.write(target, compiled)
+            }
+        }
+        
+        Sync.writeInfo(cacheFile, 
+            currentRelation,
+            currentInfos
+        )(FileInfo.lastModified.format)
+        
+        currentRelation._2s.toSeq
+    }
+    
+    
+    // ----- Post compile (need to be refactored and fully configurable)
+    
+    val PostCompile = (sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile) map { (src,deps,analysis,javaSrc,srcManaged,classes) =>
         
         // Properties
         
@@ -620,6 +699,10 @@ object PlayProject extends Plugin {
         playReload <<= playReloadTask,
 
         cleanFiles <+= distDirectory.identity,
+        
+        resourceGenerators in Compile <+= LessCompiler,
+        
+        resourceGenerators in Compile <+= CoffeescriptCompiler,
         
         playResourceDirectories := Seq.empty[File],
         

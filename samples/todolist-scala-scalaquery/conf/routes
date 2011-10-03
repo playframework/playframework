@@ -10,6 +10,4 @@ POST    /tasks/:id                      controllers.Tasks.update(id:Long)
 POST    /tasks/:id/delete               controllers.Tasks.delete(id:Long)
 
 # Map static resources from the /public folder to the /public path
-GET     /public/*file           controllers.Assets.at(path="/public", file)
-
-            
+GET     /public/*file                   controllers.Assets.at(path="/public", file)
