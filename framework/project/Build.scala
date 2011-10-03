@@ -34,7 +34,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            resolvers ++= Seq(typesafe, akkaRepo, mavenLocal),
+            resolvers ++= Seq(typesafe, akkaRepo),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
         )
@@ -87,8 +87,6 @@ object PlayBuild extends Build {
         val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
         val akkaRepo = "Akka Repo" at "http://akka.io/repository"
         
-        val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
-
     }
 
     object Dependencies {
@@ -110,7 +108,7 @@ object PlayBuild extends Build {
             "mysql"                             %    "mysql-connector-java" %   "5.1.17",
             "javassist"                         %    "javassist"            %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"         %   "2.6",
-            "com.asual.lesscss"                 %    "lesscss-engine"       %   "1.1.4"
+            "rhino"                             %    "js"                   %   "1.7R2"
         )                                            
                                                      
         val templates = Seq(                         
