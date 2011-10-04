@@ -1,11 +1,12 @@
 package play.api.mvc
 
+
 trait Controller extends Results {
     
     final def Action(block: => Result):Action[Map[String,Seq[String]]] = Action {(_:Context[Map[String,Seq[String]]]) => block}
-    def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result):Action[A] = Action[A]( bodyParser,block)
+    def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result):Action[A] = play.api.mvc.Action[A]( bodyParser,block)
 
-    final def Action(block:Context[Map[String,Seq[String]]] => Result):Action[Map[String,Seq[String]]] =  Action[Map[String,Seq[String]]]( play.api.data.RequestData.urlEncoded("UTF-8" /* should get charset from content type */), block)
+    final def Action(block:Context[Map[String,Seq[String]]] => Result):Action[Map[String,Seq[String]]] =  play.api.mvc.Action[Map[String,Seq[String]]]( play.api.data.RequestData.urlEncoded("UTF-8" /* should get charset from content type */), block)
 
     val TODO:Action[Map[String,Seq[String]]] = Action { NotImplemented(play.core.views.html.todo()) }
 
