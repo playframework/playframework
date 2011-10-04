@@ -6,8 +6,7 @@ package play.api.mvc {
     import scala.annotation._
 
     @implicitNotFound("Cannot find any HTTP context here")
-    case class Context[A](request:Request1[A])
-    trait Request extends Request1[Any]
+    case class Context[+A](request:Request[A])
 
     trait RequestHeader{
         def uri:String
@@ -27,7 +26,7 @@ package play.api.mvc {
     }
 
     @implicitNotFound("Cannot find any HTTP Request here")
-    trait Request1[A] {
+    trait Request[+A] {
 
         def uri:String
         def path:String
@@ -40,10 +39,9 @@ package play.api.mvc {
             method + " " + uri
         }
 
-        def headers: Headers
-        def body: Promise[A]
+        def body:A
 
-        def urlEncoded: Map[String,Seq[String]]
+        def headers: Headers
 
     }
 

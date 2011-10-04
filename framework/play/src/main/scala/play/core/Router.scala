@@ -235,7 +235,7 @@ object Router {
                     |
                     |%s 
                     |    
-                    |def routes:PartialFunction[RequestHeader,Action] = {        
+                    |def routes:PartialFunction[RequestHeader,Action[_]] = {        
                     |%s
                     |}
                     |    
@@ -733,38 +733,38 @@ object Router {
         
         def documentation:Seq[(String,String,String)]
         
-        def routes:PartialFunction[RequestHeader,Action]
+        def routes:PartialFunction[RequestHeader,Action[_]]
         
         //
 
         def badRequest(error:String) =  Action (
             ctx => BadRequest(error, contentType = "text/plain") )
         
-        def call(generator: => Action) = {
+        def call(generator: => Action[_]) = {
             generator
         }
 
-        def call[A](pa:Param[A])(generator: (A) => Action) = {
+        def call[P](pa:Param[P])(generator: (P) => Action[_]) = {
             pa.value.fold(badRequest, generator)
         }
 
-        def call[A,B](pa:Param[A], pb:Param[B])(generator: (A,B) => Action) = {
+        def call[P1,P2](pa:Param[P1], pb:Param[P2])(generator: (P1,P2) => Action[_]) = {
             (for(a <- pa.value.right; b <- pb.value.right) yield (a,b)).fold(badRequest, {case (a,b) => generator(a,b)})
         }
         
-        def actionFor(request:RequestHeader):Option[Action] = {
+        def actionFor(request:RequestHeader):Option[Action[_]] = {
             routes.lift(request)
         }
         
         @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an action")
         trait ActionInvoker[T] {
-            def call(call: => T, action:ActionDef):Action
+            def call(call: => T, action:ActionDef):Action[_]
         }
 
         object ActionInvoker {
             
-            implicit def passThrought:ActionInvoker[Action] = new ActionInvoker[Action] {
-                def call(call: => Action, action:ActionDef):Action = call
+            implicit def passThrought[A]:ActionInvoker[Action[A]] = new ActionInvoker[Action[A]] {
+                def call(call: => Action[A], action:ActionDef):Action[A] = call
             }
             
             implicit def wrapJava:ActionInvoker[play.mvc.Result] = new ActionInvoker[play.mvc.Result] {
@@ -782,7 +782,7 @@ object Router {
             
         }
         
-        def invokeAction[T](call: => T, action:ActionDef)(implicit d:ActionInvoker[T]):Action = {
+        def invokeAction[T](call: => T, action:ActionDef)(implicit d:ActionInvoker[T]):Action[_] = {
             d.call(call, action)
         }
         

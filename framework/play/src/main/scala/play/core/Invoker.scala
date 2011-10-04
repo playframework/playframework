@@ -38,7 +38,7 @@ object DispatchStrategy{
                 .build
 
 }
-case class HandleAction[A](request:Request1[A], response:Response, action:(Context[A] => Result), app:Application)
+case class HandleAction[A](request:Request[A], response:Response, action:(Context[A] => Result), app:Application)
 class Invoker extends Actor {
     self.dispatcher = DispatchStrategy.d
 

@@ -123,7 +123,7 @@ trait GlobalSettings {
     def onStop(app:Application) {
     }
         
-    def onRouteRequest(request:RequestHeader):Option[Action] = Play._currentApp.routes.flatMap { router =>
+    def onRouteRequest(request:RequestHeader):Option[Action[_]] = Play._currentApp.routes.flatMap { router =>
         router.actionFor(request)
     }
     

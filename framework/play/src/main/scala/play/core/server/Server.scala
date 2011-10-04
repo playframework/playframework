@@ -16,8 +16,8 @@ trait Server {
     
     val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
 
-    def getActionFor(rqHeader:RequestHeader):Either[Result,(Action,Application)] = {
-         def sendAction :Either[Throwable,(Action,Application)]=
+    def getActionFor(rqHeader:RequestHeader):Either[Result,(Action[_],Application)] = {
+         def sendAction :Either[Throwable,(Action[_],Application)]=
             applicationProvider.get.right.map { application => 
                             val maybeAction = application.global.onRouteRequest(rqHeader)
                            ( maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(rqHeader))),application ) }
@@ -25,7 +25,7 @@ trait Server {
 
       import scala.util.control.Exception
        applicationProvider.handleWebCommand(rqHeader).toLeft{
-          Exception.allCatch[Either[Throwable,(Action,Application)]]
+          Exception.allCatch[Either[Throwable,(Action[Any],Application)]]
                    .either (sendAction)
                    .joinRight
                    .left.map(e =>  DefaultGlobal.onError(e)) }.joinRight
@@ -34,7 +34,7 @@ trait Server {
     }
     def errorResult(e:Throwable):Result = DefaultGlobal.onError(e)
 
-    def invoke[A](request:Request1[A], response:Response,a:(Context[A]=>Result), app:Application) = invoker ! HandleAction(request,response,a,app)
+    def invoke[A](request:Request[A], response:Response,a:(Context[A]=>Result), app:Application) = invoker ! HandleAction(request,response,a,app)
 
     
     def applicationProvider:ApplicationProvider

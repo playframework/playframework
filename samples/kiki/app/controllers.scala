@@ -5,35 +5,30 @@ import play.api.mvc.Results._
 
 object Actions {
     
-    def Secured(predicate:Context=>Boolean)(action:Action):Action = new Action {
-        
-        def apply(ctx:Context) = {
-            if(predicate(ctx)) {
-                action(ctx)
-            } else {
+    def Secured[A](predicate:Context[A]=>Boolean)(action:Action[A]):Action[A] =  Action[A](action.con.parser, ctx => 
+      {
+          if(predicate(ctx)) {
+                action.con.f(ctx)
+          } else {
                 Forbidden
-            }
-        }
-        
-    }
+          }
+      })
     
-    def Secured(predicate: =>Boolean)(action:Action):Action = Secured(_ => predicate)(action)
+    def Secured[A](predicate: =>Boolean)(action:Action[A]):Action[A] = Secured((_:Context[A]) => predicate)(action)
     
     val cache = scala.collection.mutable.HashMap.empty[String,Result] 
     
-    def Cached(args: Any*)(action:Action) = new Action {
+    def Cached[A](args: Any*)(action:Action[A]) = Action[A](action.con.parser, ctx =>
+        {
         
-        val key = args.mkString
+            val key = args.mkString
         
-        def apply(ctx:Context) = {
             cache.get(key).getOrElse {
-                val r = action(ctx)
+                val r = action.con.f(ctx)
                 cache.put(key, r)
                 r
             }
-        }
-        
-    }
+        } )
     
 }
 
@@ -63,12 +58,10 @@ object TOTO {
 
 object Application extends Controller {
     
-    override def Action(block:Context => Result) = new Action {
-        def apply(ctx:Context) = {
+    override def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result) =  super.Action(bodyParser,ctx => {
             println("Request for Application controller")
             block(ctx)
-        }
-    }
+        })
     
     def coco = Action {
         NotFound("oops")

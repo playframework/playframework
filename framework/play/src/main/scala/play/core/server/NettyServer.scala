@@ -123,6 +123,41 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                         
             Cont(step(None))
         }
+/*
+        private def newRequestBodyHandler = {
+
+            var iteratee: Iteratee[EE,Any] = _
+            val P:Promise[Any] = _
+            val bodyEnumerator = new Enumerator[Array[Byte]]{
+                def apply[R,EE >: Array[Byte]](i:Iteratee[EE,R]) = {
+                    iteratee = i  
+                    val promise = Promise[EE]()
+                    p = promise
+                    p
+                }
+            }
+
+            new SimpleChannelUpstreamHandler {
+                override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
+                  e.getMessage match {
+                    case chunk: WebSocketFrame => enumerator.frameReceived(ctx,El(frame.getTextData()))
+                  }
+                }
+
+                override def exceptionCaught(ctx: ChannelHandlerContext, e:ExceptionEvent){
+                  e.getCause().printStackTrace();
+                  e.getChannel().close();
+                }
+                override def channelDisconnected(ctx:ChannelHandlerContext, e: ChannelStateEvent)  {
+                  enumerator.frameReceived(ctx,EOF)
+                  println("disconnecting socket")
+                  println("disconnected socket")
+                }
+
+            }
+
+        }
+        */
 
         private def newWebSocketInHandler() = {
 
@@ -206,20 +241,20 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
 
                     val rHeaders = getHeaders(nettyHttpRequest)
                     import org.jboss.netty.util.CharsetUtil;
-
-                    val body = { //explodes memory, need to do a smart strategy of putting into memory
-                        val cBuffer = nettyHttpRequest.getContent()
-                        val bytes = new Array[Byte](cBuffer.readableBytes())
-                        cBuffer.readBytes(bytes)
-                        bytes
-                    }
-
+                    
                     val requestHeader = new RequestHeader {
                             def uri = nettyHttpRequest.getUri
                             def path = nettyUri.getPath
                             def method = nettyHttpRequest.getMethod.getName
                             def queryString = parameters
                             def headers = rHeaders
+                    }
+
+                    val body = { //explodes memory, need to do a smart strategy of putting into memory
+                        val cBuffer = nettyHttpRequest.getContent()
+                        val bytes = new Array[Byte](cBuffer.readableBytes())
+                        cBuffer.readBytes(bytes)
+                        bytes
                     }
 
                     val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
@@ -283,21 +318,18 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
 
                             val params@ActionParams(bodyParser,f) = action.con
 
-                            val request = new Request1[params.B] {
+                            val request = new Request[params.B] {
                                 def uri = nettyHttpRequest.getUri
                                 def path = nettyUri.getPath
                                 def method = nettyHttpRequest.getMethod.getName
                                 def queryString = parameters
                                 def bodyE = bodyEnumerator
-                                def bodyPromise[R](parser:Iteratee[Array[Byte],R]):Promise[R] = (parser <<: bodyE).flatMap(_.run)
-                                def body[R](parser:Iteratee[Array[Byte],R]):R = bodyPromise(parser).value match {
+
+                                val body = (bodyParser(requestHeader) <<: bodyE).flatMap(_.run).value match {
                                     case Redeemed(a) => a
                                     case Thrown(e) => throw RequestParsingException(e)
                                 }
-                                lazy val body = bodyPromise(bodyParser(requestHeader))
                                 
-                                def urlEncoded: Map[String,Seq[String]] = body( play.core.data.RequestData.urlEncoded("UTF-8" /* should get charset from content type */)(requestHeader))
-
                                 def headers = rHeaders
                             }
 

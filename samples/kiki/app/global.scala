@@ -3,7 +3,7 @@ import play.api.mvc._
 
 object Global extends GlobalSettings {
     
-    override def onStart {
+    override def onStart(app:Application) {
         println("Application start")
     }
 

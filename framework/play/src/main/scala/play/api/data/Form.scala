@@ -163,8 +163,8 @@ case class Form[T](mapping:Mapping[T],data:Map[String,String],errors:Seq[FormErr
         value => this.copy(data = data, errors = Nil , value = Some(value))
     )
     
-    def bind()(implicit request:play.api.mvc.Request):Form[T] = {
-        bind(request.urlEncoded.mapValues(_.headOption.getOrElse("")))
+    def bind()(implicit request:play.api.mvc.Request[Map[String,Seq[String]]]):Form[T] = {
+        bind(request.body.mapValues(_.headOption.getOrElse("")))
     }
     
     def fill(value:T) = {

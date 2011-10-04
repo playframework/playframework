@@ -1,4 +1,4 @@
-package play.core.data
+package play.api.data
 
 import play.core.Iteratee._
 import play.core.Iteratee
@@ -20,3 +20,4 @@ object RequestData {
     }
 
 }
+

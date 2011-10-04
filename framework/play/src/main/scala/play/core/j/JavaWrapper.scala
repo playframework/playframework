@@ -24,7 +24,7 @@ trait JavaAction extends DefaultAction {
                 def path = ctx.request.method
                 
                 def urlEncoded = {
-                    ctx.request.urlEncoded.mapValues(_.toArray).asJava
+                    ctx.request.body.mapValues(_.toArray).asJava
                 }
                 
                 override def toString = ctx.request.toString
