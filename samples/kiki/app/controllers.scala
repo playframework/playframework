@@ -58,7 +58,7 @@ object TOTO {
 
 object Application extends Controller {
     
-    override def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result) =  super.Action(bodyParser,ctx => {
+    override def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result) =  play.api.mvc.Action(bodyParser,ctx => {
             println("Request for Application controller")
             block(ctx)
         })
