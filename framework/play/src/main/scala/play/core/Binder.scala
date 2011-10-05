@@ -6,12 +6,47 @@ import scala.annotation._
 trait QueryStringBindable[A] {
     def bind(key:String, params:Map[String,Seq[String]]):Option[Either[String,A]]
     def unbind(key:String, value:A):String
+    def javascriptUnbind:String = """function(k,v) {return k+'='+v}"""
 }
 
 @implicitNotFound("No URL path binder found for type ${A}. Try to implement an implicit PathBindable for this type.")
 trait PathBindable[A] {
     def bind(key:String, value:String):Either[String,A]
     def unbind(key:String, value:A):String
+    def javascriptUnbind:String = """function(k,v) {return v}"""
+}
+
+@implicitNotFound("No JavaScript litteral binder found for type ${A}. Try to implement an implicit JavascriptLitteral for this type.")
+trait JavascriptLitteral[A] {
+    def to(value:A):String
+}
+
+object JavascriptLitteral {
+    
+    implicit def litteralString = new JavascriptLitteral[String] {
+        def to(value:String) = "\"" + value + "\""
+    }
+    
+    implicit def litteralInt = new JavascriptLitteral[Int] {
+        def to(value:Int) = value.toString
+    }
+    
+    implicit def litteralInteger = new JavascriptLitteral[Integer] {
+        def to(value:Integer) = value.toString
+    }
+    
+    implicit def litteralLong = new JavascriptLitteral[Long] {
+        def to(value:Long) = value.toString
+    }
+    
+    implicit def litteralBoolean = new JavascriptLitteral[Boolean] {
+        def to(value:Boolean) = value.toString
+    }
+    
+    implicit def litteralOption[T](implicit jsl:JavascriptLitteral[T]) = new JavascriptLitteral[Option[T]] {
+        def to(value:Option[T]) = value.map(jsl.to(_)).getOrElse("null")
+    }
+    
 }
 
 object QueryStringBindable {

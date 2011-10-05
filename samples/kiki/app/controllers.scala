@@ -59,9 +59,10 @@ object TOTO {
 object Application extends Controller {
     
     override def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result) =  super.Action(bodyParser,ctx => {
-            println("Request for Application controller")
-            block(ctx)
-        }) 
+        println("Request for Application controller")
+        block(ctx)
+    }) 
+
     
     def coco = Action {
         NotFound("oops")

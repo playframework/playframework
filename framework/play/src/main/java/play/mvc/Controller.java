@@ -31,6 +31,10 @@ public abstract class Controller {
     
     // -- Results
     
+    public static Result ok() {
+        return new Ok("");
+    }
+    
     public static Result ok(Content content) {
         return new Ok(content);
     }
@@ -41,6 +45,10 @@ public abstract class Controller {
     
     public static Result ok(String content, String contentType) {
         return new Ok(content, contentType);
+    }
+    
+    public static Result notFound() {
+        return new NotFound("");
     }
     
     public static Result notFound(Content content) {
@@ -55,6 +63,10 @@ public abstract class Controller {
         return new NotFound(content, contentType);
     }
     
+    public static Result forbidden() {
+        return new Forbidden("");
+    }
+    
     public static Result forbidden(Content content) {
         return new Forbidden(content);
     }
@@ -65,6 +77,10 @@ public abstract class Controller {
     
     public static Result forbidden(String content, String contentType) {
         return new Forbidden(content, contentType);
+    }
+    
+    public static Result badRequest() {
+        return new BadRequest("");
     }
     
     public static Result badRequest(Content content) {

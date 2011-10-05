@@ -1,0 +1,103 @@
+<html>
+    <head>
+        <title>Home</title>
+        <link rel="shortcut icon" type="image/png" href="http://www.playframework.org/public/images/favicon.png">
+        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")"> 
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.6.4.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-play-1.6.4.js")"></script>
+        
+        @import helper.html._
+        @import controllers.routes.javascript._
+        
+        @javascriptRouter("jsRoutes")(
+            Application.list,
+            Application.add,
+            Application.delete
+        )
+        
+    </head>
+    <body>
+        
+        <h1>Users registration</h1>
+        
+        <div id="users">
+            
+        </div>
+        
+        <hr>
+        
+        <p>
+            <label for="name">Name</label>
+            <input type="text" id="name">
+        </p>
+        
+        <p>
+            <label for="login">Login</label>
+            <input type="text" id="login">
+        </p>
+        
+        <p>
+            <label for="password">Password</label>
+            <input type="text" id="password">
+        </p>
+        
+        <p>
+            <input type="button" value="Add this user" id="add">
+        </p>
+        
+        <script type="text/javascript" charset="utf-8">
+        
+            var updateUsers = function() {
+                jsRoutes.controllers.Application.list().ajax({
+                    success: function(data) {
+                        $('#users').html(data);
+                    }
+                })
+            }
+            
+            var addUser = function() {
+                jsRoutes.controllers.Application.add().ajax({
+                    data: {
+                        name: $('#name').val(), 
+                        credential:{
+                            login: $('#login').val(),
+                            password: $('#password').val()
+                        } 
+                    },
+                    success: function() {
+                        updateUsers()
+                        $('#name').val('')
+                        $('#login').val('')
+                        $('#password').val('')
+                    },
+                    error: function() {
+                        alert("Cannot add this user")
+                    }
+                })
+            }
+            
+            var deleteUser = function(name) {
+                jsRoutes.controllers.Application.delete(name).ajax({
+                    success: function() {
+                        updateUsers()
+                    },
+                    error: function() {
+                        alert("Cannot delete user")
+                    }
+                })
+            }
+            
+            // Bind events
+            $('#add').click(addUser)
+            $('button.delete').live('click', function() {
+                deleteUser($(this).data('name'))
+            })
+            
+            // Init
+            updateUsers()
+            
+        </script>
+        
+    </body>
+</html>
+            

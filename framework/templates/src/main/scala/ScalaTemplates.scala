@@ -456,11 +456,11 @@ package play.templates {
                     val tripleQuote = "\"\"\""
                     visit(tail, head match {
                         case p@Plain(text) => (if(previous.isEmpty) Nil else previous :+ ",") :+ "format.raw" :+ Source("(", p.pos) :+ tripleQuote :+ text :+ tripleQuote :+ ")"
-                        case Display(exp) => (if(previous.isEmpty) Nil else previous :+ ",") :+ "_display_(List(" :+ visit(Seq(exp), Nil) :+ "))"
+                        case Display(exp) => (if(previous.isEmpty) Nil else previous :+ ",") :+ "_display_(Seq(" :+ visit(Seq(exp), Nil) :+ "))"
                         case ScalaExp(parts) => previous :+ parts.map {
                             case s@Simple(code) => Source(code, s.pos)
                             case b@Block(whitespace,args,content) if(content.forall(_.isInstanceOf[ScalaExp])) => Nil :+ Source(whitespace + "{" + args.getOrElse(""), b.pos) :+ visit(content, Nil) :+ "}"
-                            case b@Block(whitespace,args,content) => Nil :+ Source(whitespace + "{" + args.getOrElse(""), b.pos) :+ "_display_(List(" :+ visit(content, Nil) :+ "))}"
+                            case b@Block(whitespace,args,content) => Nil :+ Source(whitespace + "{" + args.getOrElse(""), b.pos) :+ "_display_(Seq(" :+ visit(content, Nil) :+ "))}"
                         }
                     })
                 case Nil => previous
@@ -483,7 +483,7 @@ package play.templates {
 
             val imports = template.imports.map(_.code).mkString("\n")
 
-            Nil :+ imports :+ "\n" :+ defs :+ "\n" :+ "List(" :+ visit(template.content, Nil) :+ ")"
+            Nil :+ imports :+ "\n" :+ defs :+ "\n" :+ "Seq(" :+ visit(template.content, Nil) :+ ")"
         }
 
         def generateFinalTemplate(template: File, packageName: String, name: String, root:Template, resultType:String, formatterType:String, additionalImports:String) = {

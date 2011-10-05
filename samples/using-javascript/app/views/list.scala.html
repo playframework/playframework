@@ -1,0 +1,18 @@
+@(users:List[User])
+
+@if(users.isEmpty) {
+    
+    <h2>No users registred</h2>
+    
+} else {
+    
+    <h2>@users.size user@(if(users.size > 1) "s" else "")</h2>
+
+    @users.map { user =>
+        <div class="user">
+            <strong>@user.name</strong> (@user.credential.login/@user.credential.password) - <button class="delete" data-name="@user.name">Delete</button>
+        </div>
+    }
+    
+}
+
