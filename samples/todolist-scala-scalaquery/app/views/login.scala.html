@@ -1,0 +1,24 @@
+@(loginForm:play.api.data.Form[(String,String)])
+
+@main {
+    
+    @loginForm.globalError.map { msg =>
+        <p style="color:#fff; background:#c00">
+            @msg.message
+        </p>
+    }
+    
+    @helper.html.form(routes.Authentication.authenticate()) {
+        
+        @helper.html.inputText(loginForm("login"))
+        
+        @helper.html.inputPassword(loginForm("password"))
+        
+        <p>
+            <input type="submit" value="Login!">
+        </p>
+        
+    }
+    
+}
+

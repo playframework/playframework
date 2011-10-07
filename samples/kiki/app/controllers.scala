@@ -5,46 +5,41 @@ import play.api.mvc.Results._
 
 object Actions {
     
-    def Secured[A](predicate:Context[A]=>Boolean)(action:Action[A]):Action[A] =  Action[A](action.con.parser, ctx => 
-      {
-          if(predicate(ctx)) {
-                action.con.f(ctx)
-          } else {
-                Forbidden
-          }
-      })
+    def Secured[A](predicate:Context[A]=>Boolean)(action:Action[A]):Action[A] = Action(action.parser, ctx => {
+        if(predicate(ctx)) {
+            action(ctx)
+        } else {
+            Forbidden
+        }
+    })
     
     def Secured[A](predicate: =>Boolean)(action:Action[A]):Action[A] = Secured((_:Context[A]) => predicate)(action)
     
     val cache = scala.collection.mutable.HashMap.empty[String,Result] 
     
-    def Cached[A](args: Any*)(action:Action[A]) = Action[A](action.con.parser, ctx =>
-        {
+    def Cached[A](args: Any*)(action:Action[A]) = Action[A](action.parser, ctx => {
+        val key = args.mkString
         
-            val key = args.mkString
-        
-            cache.get(key).getOrElse {
-                val r = action.con.f(ctx)
-                cache.put(key, r)
-                r
-            }
-        } )
+        cache.get(key).getOrElse {
+            val r = action(ctx)
+            cache.put(key, r)
+            r
+        }
+    })
     
 }
-
-import Actions._
 
 object Blocking extends Controller {
 
     val waited = play.core.Iteratee.Promise[Int]()
 
-    def unblockEveryone(status:Int) = Action {
+    def unblockEveryone(status:Int) = Action { ctx =>
         waited.redeem(status) 
         Ok
     }
 
     def waitForUnblock = Action {
-        AsyncResult(waited.map{ status => println("status"); EmptyStatus(status)})
+        AsyncResult(waited.map{ status => println("status"); Status(status)})
 
     }
 
@@ -58,7 +53,7 @@ object TOTO {
 
 object Application extends Controller {
     
-    override def Action[A](bodyParser:BodyParser[A], block:Context[A] => Result) =  super.Action(bodyParser,ctx => {
+    override def Action[A](bodyParser:BodyParser[A],block:Context[A]=>Result) = super.Action(bodyParser,ctx => {
         println("Request for Application controller")
         block(ctx)
     }) 
@@ -104,8 +99,8 @@ object Application extends Controller {
         
         val p = if(page > 0) page else 1
         
-        Secured(p != 42) { 
-            Cached(p, sort) { 
+        Actions.Secured(p != 42) { 
+            Actions.Cached(p, sort) { 
                 Action {
                     println("Listing page " + p + " using " + sort)
                     Ok(views.html.list(p, sort).toString)

@@ -11,7 +11,13 @@ package validation {
         def apply[T](name:String,args:Any*)(f:(T=>ValidationResult)):Constraint[T] = apply(Some(name),args.toSeq)(f)
     }
     
-    object Constraints {
+    object Constraints extends Constraints
+    
+    trait Constraints {
+        
+        def required = Constraint[String]("constraint.required") { o =>
+            if(o.isEmpty) Invalid(ValidationError("error.required")) else Valid
+        }
         
         def min(l:Long) = Constraint[Long]("constraint.min", l) { o =>
             if(o >= l) Valid else Invalid(ValidationError("error.min", l))
@@ -182,6 +188,9 @@ case class Form[T](mapping:Mapping[T],data:Map[String,String],errors:Seq[FormErr
         data.get(key)
     )
     
+    def globalError:Option[FormError] = globalErrors.headOption
+    def globalErrors:Seq[FormError] = errors.filter(_.key.isEmpty)
+    
     def forField[R](key:String)(handler:Field=>R):R = handler(this(key))
     
 }
@@ -268,10 +277,10 @@ trait Mapping[T] {
     def withPrefix(prefix:String):Mapping[T]
     
     def verifying(constraints:Constraint[T]*):Mapping[T]
-    
-    def verifying(constraint:(T=>Boolean)):Mapping[T] = {
+    def verifying(constraint:(T=>Boolean)):Mapping[T] = verifying("error.unknown", constraint)
+    def verifying(error:String, constraint:(T=>Boolean)):Mapping[T] = {
         verifying(Constraint { t:T =>
-            if(constraint(t)) Valid else Invalid(Seq(ValidationError("error")))
+            if(constraint(t)) Valid else Invalid(Seq(ValidationError(error)))
         })
     }
 

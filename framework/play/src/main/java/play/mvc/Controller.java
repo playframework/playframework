@@ -40,13 +40,9 @@ public abstract class Controller {
     }
     
     public static Result ok(String content) {
-        return ok(content, "text/html");
+        return new Ok(content);
     }
-    
-    public static Result ok(String content, String contentType) {
-        return new Ok(content, contentType);
-    }
-    
+        
     public static Result notFound() {
         return new NotFound("");
     }
@@ -56,13 +52,9 @@ public abstract class Controller {
     }
     
     public static Result notFound(String content) {
-        return notFound(content, "text/html");
+        return new NotFound(content);
     }
-    
-    public static Result notFound(String content, String contentType) {
-        return new NotFound(content, contentType);
-    }
-    
+        
     public static Result forbidden() {
         return new Forbidden("");
     }
@@ -72,13 +64,9 @@ public abstract class Controller {
     }
     
     public static Result forbidden(String content) {
-        return forbidden(content, "text/html");
+        return new Forbidden(content);
     }
-    
-    public static Result forbidden(String content, String contentType) {
-        return new Forbidden(content, contentType);
-    }
-    
+        
     public static Result badRequest() {
         return new BadRequest("");
     }
@@ -88,13 +76,9 @@ public abstract class Controller {
     }
     
     public static Result badRequest(String content) {
-        return badRequest(content, "text/html");
+        return new BadRequest(content);
     }
-    
-    public static Result badRequest(String content, String contentType) {
-        return new BadRequest(content, contentType);
-    }
-    
+        
     public static Result redirect(String url) {
         return new Redirect(url);
     }

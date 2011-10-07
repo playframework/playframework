@@ -921,7 +921,7 @@ object Router {
         //
 
         def badRequest(error:String) =  Action (
-            ctx => BadRequest(error, contentType = "text/plain") )
+            ctx => BadRequest(error) )
         
         def call(generator: => Action[_]) = {
             generator
@@ -946,8 +946,12 @@ object Router {
 
         object ActionInvoker {
             
-            implicit def passThrought[A]:ActionInvoker[Action[A]] = new ActionInvoker[Action[A]] {
-                def call(call: => Action[A], action:ActionDef):Action[A] = call
+            implicit def passThrought[A <: Action[_]]:ActionInvoker[A] = new ActionInvoker[A] {
+                def call(call: => A, action:ActionDef):Action[_] = call
+            }
+            
+            implicit def wrapResult[A <: Result]:ActionInvoker[A] = new ActionInvoker[A] {
+                def call(call: => A, action:ActionDef):Action[_] = DefaultAction(_ => call)
             }
             
             implicit def wrapJava:ActionInvoker[play.mvc.Result] = new ActionInvoker[play.mvc.Result] {

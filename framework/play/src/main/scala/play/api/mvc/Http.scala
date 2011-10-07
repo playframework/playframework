@@ -5,90 +5,134 @@ package play.api.mvc {
     
     import scala.annotation._
 
-    @implicitNotFound("Cannot find any HTTP context here")
+    @implicitNotFound("Cannot find any HTTP Context here")
     case class Context[+A](request:Request[A])
 
-    trait RequestHeader{
+    @implicitNotFound("Cannot find any HTTP Request Header here")
+    trait RequestHeader {
+        
         def uri:String
         def path:String
         def method:String
         def queryString:Map[String,Seq[String]]
+        def headers:Headers
+        def cookies:Cookies
         
-        def rawQueryString = uri.split('?').drop(1).mkString("?")
+        lazy val session:Map[String,String] = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
+        lazy val rawQueryString = uri.split('?').drop(1).mkString("?")
         
         override def toString = {
             method + " " + uri
         }
-
-        def headers: Headers
-
 
     }
 
     @implicitNotFound("Cannot find any HTTP Request here")
-    trait Request[+A] {
-
-        def uri:String
-        def path:String
-        def method:String
-        def queryString:Map[String,Seq[String]]
-        
-        def rawQueryString = uri.split('?').drop(1).mkString("?")
-        
-        override def toString = {
-            method + " " + uri
-        }
-
+    trait Request[+A] extends RequestHeader {
         def body:A
-
-        def headers: Headers
-
     }
 
     trait Response {
-        def handle( result : Result) : Unit
+        def handle(result:Result):Unit
     }
 
     case class Call(method:String, url:String) extends play.mvc.Call {
         override def toString = url
     }
+
+    trait Headers {
+        def get(key:String):Option[String] = getAll(key).headOption
+        def apply(key:String):String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
+        def getAll(key:String):Seq[String]        
+    }
     
-    trait HeaderValue {
-        def string:String
-
-        protected lazy val upper = string.toUpperCase
-
-        override def equals(other:Any) = other match {
-            case h:HeaderValue => this.upper == h.upper
-            case _ => false
+    case class Cookie(name:String, value:String, maxAge:Int = -1, path:Option[String] = None, domain:Option[String] = None, secure:Boolean = false, httpOnly:Boolean = true)
+    
+    trait Cookies {
+        def get(name:String):Option[Cookie]
+        def apply(name:String):Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
+    }
+    
+    object Session {
+        
+        val SESSION_COOKIE_NAME = "PLAY_SESSION"
+        val blankSession = Map.empty[String,String]
+        
+        def encode(data:Map[String,String]):String = {
+            java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
         }
-
-        override lazy val hashCode = upper.hashCode
-
-        override def toString = upper
+        
+        def decode(data:String):Map[String,String] = {
+            try {
+                Option(data.trim).filterNot(_.isEmpty).map { data =>
+                    java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+                }.getOrElse(blankSession)
+            } catch {
+                // fail gracefully is the session cookie is corrupted
+                case _ => blankSession
+            }
+        }
+        
+        def encodeAsCookie(data:Map[String,String]):Cookie = {
+            Cookie(SESSION_COOKIE_NAME, encode(data))
+        }
+        
+        def decodeFromCookie(sessionCookie:Option[Cookie]):Map[String,String] = {
+            sessionCookie.filter(_.name == SESSION_COOKIE_NAME).map(c => decode(c.value)).getOrElse(blankSession)
+        }
+        
     }
-
-    object HeaderValue {
-
-        def apply(headerValue:String) = new HeaderValue { def string = headerValue }
-
-    }
-
-    trait Headers{
-
-        def get(key:String):Option[HeaderValue] = getAll(key).headOption
-
-        def apply(key:String):HeaderValue = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
-
-        def getAll(key:String): Seq[HeaderValue]        
-
+    
+    object Cookies {
+        
+        import scala.collection.JavaConverters._
+        
+        // We use netty here but just as an API to handle cookies encoding
+        import org.jboss.netty.handler.codec.http.{CookieEncoder,CookieDecoder,DefaultCookie}
+        
+        def encode(cookies:Seq[Cookie],discard:Seq[String] = Nil):String = {
+            val encoder = new CookieEncoder(true)
+            cookies.foreach { c =>
+                encoder.addCookie {
+                    val nc = new DefaultCookie(c.name, c.value)
+                    nc.setMaxAge(c.maxAge)
+                    c.path.map(nc.setPath(_))
+                    c.domain.map(nc.setDomain(_))
+                    nc.setSecure(c.secure)
+                    nc.setHttpOnly(c.httpOnly)
+                    nc
+                }
+            }
+            discard.foreach { n =>
+                encoder.addCookie {
+                    val nc = new DefaultCookie(n, "")
+                    nc.setMaxAge(0)
+                    nc
+                }
+            }
+            encoder.encode()
+        }
+        
+        def decode(cookieHeader:String):Seq[Cookie] = {
+            new CookieDecoder().decode(cookieHeader).asScala.map { c =>
+                Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+            }.toSeq
+        }
+        
+        def merge(cookieHeader:String,cookies:Seq[Cookie],discard:Seq[String] = Nil):String = {
+            encode(decode(cookieHeader) ++ cookies, discard)
+        }
+        
+        
     }
 
 }
 
 package play.api.http {
     
-    object Status {
+    object Status extends Status
+    
+    trait Status {
 
         val CONTINUE = 100
         val SWITCHING_PROTOCOLS = 101
@@ -136,8 +180,10 @@ package play.api.http {
         val HTTP_VERSION_NOT_SUPPORTED = 505
         
     }
+    
+    object HeaderNames extends HeaderNames
 
-    object HeaderNames {
+    trait HeaderNames {
         
         val ACCEPT = "Accept"
         val ACCEPT_CHARSET = "Accept-Charset"

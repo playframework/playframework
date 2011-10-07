@@ -12,15 +12,21 @@ public interface Result {
         final private play.api.mvc.Result wrappedResult;
         
         public Ok(String content) {
-            this(content, "text/html");
+            wrappedResult = play.api.mvc.JResults.Ok().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeString(),
+                play.api.mvc.JResults.contentTypeOfString()
+            );
         }
         
         public Ok(Content content) {
-            wrappedResult = play.api.mvc.JResults.Ok().apply(content, play.api.mvc.JResults.writeContent());
-        }
-        
-        public Ok(String content, String contentType) {
-            wrappedResult = play.api.mvc.JResults.Ok().apply(content, contentType, play.api.mvc.JResults.writeString());
+            wrappedResult = play.api.mvc.JResults.Ok().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeContent(),
+                play.api.mvc.JResults.contentTypeOfContent()
+            );
         }
         
         public play.api.mvc.Result getWrappedResult() {
@@ -34,17 +40,23 @@ public interface Result {
         final private play.api.mvc.Result wrappedResult;
         
         public NotFound(String content) {
-            this(content, "text/html");
+            wrappedResult = play.api.mvc.JResults.NotFound().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeString(),
+                play.api.mvc.JResults.contentTypeOfString()
+            );
         }
         
         public NotFound(Content content) {
-            wrappedResult = play.api.mvc.JResults.NotFound().apply(content, play.api.mvc.JResults.writeContent());
+            wrappedResult = play.api.mvc.JResults.NotFound().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeContent(),
+                play.api.mvc.JResults.contentTypeOfContent()
+            );        
         }
-        
-        public NotFound(String content, String contentType) {
-            wrappedResult = play.api.mvc.JResults.NotFound().apply(content, contentType, play.api.mvc.JResults.writeString());
-        }
-        
+                
         public play.api.mvc.Result getWrappedResult() {
             return this.wrappedResult;
         }
@@ -56,17 +68,23 @@ public interface Result {
         final private play.api.mvc.Result wrappedResult;
         
         public InternalServerError(String content) {
-            this(content, "text/html");
+            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeString(),
+                play.api.mvc.JResults.contentTypeOfString()
+            );
         }
         
         public InternalServerError(Content content) {
-            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(content, play.api.mvc.JResults.writeContent());
+            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeContent(),
+                play.api.mvc.JResults.contentTypeOfContent()
+            );        
         }
-        
-        public InternalServerError(String content, String contentType) {
-            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(content, contentType, play.api.mvc.JResults.writeString());
-        }
-        
+                
         public play.api.mvc.Result getWrappedResult() {
             return this.wrappedResult;
         }
@@ -78,17 +96,23 @@ public interface Result {
         final private play.api.mvc.Result wrappedResult;
         
         public Forbidden(String content) {
-            this(content, "text/html");
+            wrappedResult = play.api.mvc.JResults.Forbidden().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeString(),
+                play.api.mvc.JResults.contentTypeOfString()
+            );
         }
         
         public Forbidden(Content content) {
-            wrappedResult = play.api.mvc.JResults.Forbidden().apply(content, play.api.mvc.JResults.writeContent());
+            wrappedResult = play.api.mvc.JResults.Forbidden().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeContent(),
+                play.api.mvc.JResults.contentTypeOfContent()
+            );        
         }
-        
-        public Forbidden(String content, String contentType) {
-            wrappedResult = play.api.mvc.JResults.Forbidden().apply(content, contentType, play.api.mvc.JResults.writeString());
-        }
-        
+                
         public play.api.mvc.Result getWrappedResult() {
             return this.wrappedResult;
         }
@@ -100,17 +124,23 @@ public interface Result {
         final private play.api.mvc.Result wrappedResult;
         
         public BadRequest(String content) {
-            this(content, "text/html");
+            wrappedResult = play.api.mvc.JResults.BadRequest().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeString(),
+                play.api.mvc.JResults.contentTypeOfString()
+            );
         }
         
         public BadRequest(Content content) {
-            wrappedResult = play.api.mvc.JResults.BadRequest().apply(content, play.api.mvc.JResults.writeContent());
+            wrappedResult = play.api.mvc.JResults.BadRequest().apply(
+                content,
+                play.api.mvc.JResults.emptyHeaders(), 
+                play.api.mvc.JResults.writeContent(),
+                play.api.mvc.JResults.contentTypeOfContent()
+            );        
         }
-        
-        public BadRequest(String content, String contentType) {
-            wrappedResult = play.api.mvc.JResults.BadRequest().apply(content, contentType, play.api.mvc.JResults.writeString());
-        }
-        
+                
         public play.api.mvc.Result getWrappedResult() {
             return this.wrappedResult;
         }

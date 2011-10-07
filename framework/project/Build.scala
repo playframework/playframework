@@ -108,13 +108,14 @@ object PlayBuild extends Build {
             "mysql"                             %    "mysql-connector-java" %   "5.1.17",
             "javassist"                         %    "javassist"            %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"         %   "2.6",
-            "rhino"                             %    "js"                   %   "1.7R2"
+            "rhino"                             %    "js"                   %   "1.7R2",
+            "org.specs2"                        %%   "specs2"               %   "1.5"    %   "test" // need to move to 1.6.1 with scala 2.9.1
         )                                            
                                                      
         val templates = Seq(                         
-            "com.github.scala-incubator.io"     %%   "file"              %   "0.1.2",
-            "org.scala-tools.testing"           %%   "specs"             %   "1.6.8"    %   "test",
-            "org.scala-lang"                    %    "scala-compiler"    %   buildScalaVersion
+            "com.github.scala-incubator.io"     %%   "file"                 %   "0.1.2",
+            "org.specs2"                        %%   "specs2"               %   "1.5"    %   "test",
+            "org.scala-lang"                    %    "scala-compiler"       %   buildScalaVersion
         )
 
     }

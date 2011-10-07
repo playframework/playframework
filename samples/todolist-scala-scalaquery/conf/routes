@@ -9,5 +9,9 @@ POST    /tasks                          controllers.Tasks.save
 POST    /tasks/:id                      controllers.Tasks.update(id:Long)
 POST    /tasks/:id/delete               controllers.Tasks.delete(id:Long)
 
+GET     /login                          controllers.Authentication.login
+POST    /login                          controllers.Authentication.authenticate
+GET     /logout                         controllers.Authentication.logout
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file                   controllers.Assets.at(path="/public", file)

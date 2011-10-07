@@ -212,19 +212,35 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
 
         }
 
-        private def getHeaders(nettyRequest:HttpRequest) :Headers ={
+        private def getHeaders(nettyRequest:HttpRequest):Headers = {
         
-            val headers = 
-                nettyRequest
-                    .getHeaderNames().asScala
-                    .map(key => ( key.toUpperCase, nettyRequest.getHeaders(key).asScala.map(HeaderValue(_))) )
-                    .toMap
+            val headers:Map[String,Seq[String]] = nettyRequest.getHeaderNames.asScala.map { key => 
+                key.toUpperCase -> nettyRequest.getHeaders(key).asScala
+            }.toMap
 
-            new Headers { def getAll(key:String) = headers.get(key.toUpperCase).flatten.toSeq
-                          override def toString = headers.toString}
+            new Headers { 
+                def getAll(key:String) = headers.get(key.toUpperCase).flatten.toSeq
+                override def toString = headers.toString
+            }
+            
         }
 
-       
+        private def getCookies(nettyRequest:HttpRequest):Cookies = {
+            
+            val cookies:Map[String,play.api.mvc.Cookie] = getHeaders(nettyRequest).get(play.api.http.HeaderNames.COOKIE).map { cookiesHeader =>
+                new CookieDecoder().decode(cookiesHeader).asScala.map { c =>
+                    c.getName -> play.api.mvc.Cookie(
+                        c.getName, c.getValue, c.getMaxAge, Option(c.getPath), Option(c.getDomain), c.isSecure, c.isHttpOnly
+                    )                    
+                }.toMap
+            }.getOrElse(Map.empty)
+            
+            new Cookies {
+                def get(name:String) = cookies.get(name)
+                override def toString = cookies.toString
+            }
+            
+        }
 
 
         override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
@@ -240,6 +256,8 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                     val parameters = Map.empty[String,Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
                     val rHeaders = getHeaders(nettyHttpRequest)
+                    val rCookies = getCookies(nettyHttpRequest)
+                    
                     import org.jboss.netty.util.CharsetUtil;
                     
                     val requestHeader = new RequestHeader {
@@ -248,6 +266,7 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                             def method = nettyHttpRequest.getMethod.getName
                             def queryString = parameters
                             def headers = rHeaders
+                            def cookies = rCookies
                     }
 
                     val body = { //explodes memory, need to do a smart strategy of putting into memory
@@ -277,6 +296,19 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                             case r@SimpleResult(SimpleHttpResponse(status, headers), body) =>
                                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                                 headers.foreach {
+                                    
+                                    // Fix a bug for Set-Cookie header. 
+                                    // Multiple cookies could be merge in a single header
+                                    // but it's not properly supported by some browsers
+                                    case (name@play.api.http.HeaderNames.SET_COOKIE,value) => {
+                                        
+                                        import scala.collection.JavaConverters._
+                                        import play.api.mvc._
+                                        
+                                        nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
+
+                                    }
+                                    
                                     case (name,value) => nettyResponse.setHeader(name,value)
                                 }
                                 val channelBuffer = ChannelBuffers.dynamicBuffer(512)
@@ -296,6 +328,19 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                           case r@ChunkedResult(SimpleHttpResponse(status, headers), chunks) =>
                               val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                               headers.foreach {
+                                  
+                                  // Fix a bug for Set-Cookie header. 
+                                  // Multiple cookies could be merge in a single header
+                                  // but it's not properly supported by some browsers
+                                  case (name@play.api.http.HeaderNames.SET_COOKIE,value) => {
+
+                                     import scala.collection.JavaConverters._
+                                     import play.api.mvc._
+
+                                     nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
+
+                                  }
+                                  
                                   case (name,value) => nettyResponse.setHeader(name,value)
                               }
                               nettyResponse.setHeader(TRANSFER_ENCODING,HttpHeaders.Values.CHUNKED)
@@ -316,9 +361,9 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                     action match { 
                         case Right((action,app)) =>
 
-                            val params@ActionParams(bodyParser,f) = action.con
+                            val bodyParser = action.parser
 
-                            val request = new Request[params.B] {
+                            val request = new Request[action.BODY_CONTENT] {
                                 def uri = nettyHttpRequest.getUri
                                 def path = nettyUri.getPath
                                 def method = nettyHttpRequest.getMethod.getName
@@ -331,10 +376,11 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                 }
                                 
                                 def headers = rHeaders
+                                def cookies = rCookies
                             }
 
 
-                          invoke(request,response,f.asInstanceOf[Context[params.B]=>Result],app)
+                          invoke(request,response,action.asInstanceOf[Action[action.BODY_CONTENT]],app)
 
                       case Left(e) => response.handle(e)
 

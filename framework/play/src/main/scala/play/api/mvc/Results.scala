@@ -13,10 +13,34 @@ sealed trait Result
 // add lenses and pattern matching
 case class SimpleResult[A](response:SimpleHttpResponse,body:Enumerator[A])(implicit val writeable:Writeable[A]) extends Result {
     type E=A
+    
+    def withHeaders(headers:(String,String)*) = {
+        copy(response = response.copy(headers = response.headers ++ headers))
+    }
+    
+    def withCookies(cookies:Cookie*) = {
+        withHeaders(SET_COOKIE -> Cookies.merge(response.headers.get(SET_COOKIE).getOrElse(""), cookies))
+    }
+    
+    def discardingCookies(names:String*) = {
+        withHeaders(SET_COOKIE -> Cookies.merge(response.headers.get(SET_COOKIE).getOrElse(""), Nil, discard = names))
+    }
+    
+    def withSession(session:Map[String,String]):SimpleResult[A] = {
+        if(session.isEmpty) discardingCookies(Session.SESSION_COOKIE_NAME) else withCookies(Session.encodeAsCookie(session))
+    }
+    
+    def withSession(session:(String,String)*):SimpleResult[A] = withSession(session.toMap)
+    
+    def withNewSession = withSession(Map.empty[String,String])
+    
+    def as(contentType:String) = withHeaders(CONTENT_TYPE -> contentType)
+    
 }
 
 case class ChunkedResult[A](response:SimpleHttpResponse, chunks:Enumerator[A])(implicit val writeable:Writeable[A]) extends Result {
     type E=A
+
 }
 
 case class SocketResult[A](f: (Enumerator[String], Iteratee[A,Unit]) => Unit)(implicit val writeable: AsString[A]) extends Result
@@ -30,13 +54,6 @@ case class AsyncResult(result:Promise[Result]) extends Result
 sealed trait Writeable[A]
 
 case class AsString[A](transform:(A => String)) extends Writeable[A]
-
-object AsString {
-
-    implicit val asS_String: AsString[String] =  AsString[String](identity)
-
-}
-
 case class AsBytes[A](transform:(A => Array[Byte])) extends Writeable[A]
 
 object Writeable {
@@ -44,11 +61,20 @@ object Writeable {
     implicit val wBytes : Writeable[Array[Byte]] = AsBytes[Array[Byte]](identity)
 }
 
-object Results extends Results
+case class ContentTypeOf[A](resolve:(A => Option[String]))
+
+
+
+object Results extends Results {
+    case class Empty()
+}
 
 object JResults extends Results {
-    def writeContent:Writeable[play.api.Content] = wContent[play.api.Content]
-    def writeString:Writeable[String] = Writeable.wString
+    def writeContent:Writeable[play.api.Content] = writeableStringOf_Content[play.api.Content]
+    def writeString:Writeable[String] = writeableStringOf_String
+    def contentTypeOfString:ContentTypeOf[String] = contentTypeOf_String
+    def contentTypeOfContent:ContentTypeOf[play.api.Content] = contentTypeOf_Content[play.api.Content]
+    def emptyHeaders = Map.empty[String,String]
 }
 
 trait Results {
@@ -60,30 +86,37 @@ trait Results {
     import play.api.http.Status._
     import play.api.http.HeaderNames._
     
-    implicit def wContent[C <: Content]:Writeable[C] = AsString[C](c => c.body) 
+    implicit val writeableStringOf_String: AsString[String] = AsString[String](identity)
+    implicit def writeableStringOf_Content[C <: Content]:Writeable[C] = AsString[C](c => c.body) 
+    implicit def writeableStringOf_NodeSeq[C <: scala.xml.NodeSeq] = AsString[C](x => x.toString)
+    implicit val writeableStringOf_Empty = AsString[Results.Empty](_ => "")
     
-    def Status(status:Int, content:String, mimeType:String = "text/html") = SimpleResult(response = SimpleHttpResponse(status, Map(CONTENT_TYPE -> mimeType)), body = Enumerator(content))
-    def EmptyStatus(status:Int) = SimpleResult[String](response = SimpleHttpResponse(status), body = Enumerator.empty[String])
-    
+    implicit val contentTypeOf_String = ContentTypeOf[String](_ => Some("text/plain"))
+    implicit def contentTypeOf_Content[C <: Content] = ContentTypeOf[C](c => Some(c.contentType))
+    implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq] = ContentTypeOf[C](_ => Some("text/xml"))
+    implicit def contentTypeOf_Empty = ContentTypeOf[Results.Empty](_ => None)
+        
+        
+        
     class Status(status:Int) extends SimpleResult[String](response = SimpleHttpResponse(status), body = Enumerator.empty[String]) {
         
-        def apply[C](content:C, contentType:String = "text/html")(implicit writeable:Writeable[C]):SimpleResult[C] = {
-            SimpleResult(response = SimpleHttpResponse(status, Map(CONTENT_TYPE -> contentType)), Enumerator(content))
+        def apply[C](content:C = Results.Empty(), headers:Map[String,String] = Map.empty)(implicit writeable:Writeable[C], contentTypeOf:ContentTypeOf[C]):SimpleResult[C] = {
+            SimpleResult(response = SimpleHttpResponse(status, contentTypeOf.resolve(content).map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty) ++ headers), Enumerator(content))
         }
-        
-        def apply[C <: Content](content:C)(implicit writeable:Writeable[C]):SimpleResult[C] = apply(content, content.contentType)
         
     }
     
     val Ok = new Status(OK)
+    val Unauthorized = new Status(UNAUTHORIZED)
     val NotFound = new Status(NOT_FOUND)
     val Forbidden = new Status(FORBIDDEN)
     val BadRequest = new Status(BAD_REQUEST)
     val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
     val NotImplemented = new Status(NOT_IMPLEMENTED)
+    def Status(code:Int) = new Status(code)
     
-    def Redirect(url:String):SimpleResult[String] = { val r = EmptyStatus(FOUND); r.copy(r.response.copy(headers = Map(LOCATION -> url))) }
-    def Redirect(call:Call):SimpleResult[String]= Redirect(call.url)
+    def Redirect(url:String):SimpleResult[Results.Empty] = Status(FOUND)(headers = Map(LOCATION -> url))
+    def Redirect(call:Call):SimpleResult[Results.Empty] = Redirect(call.url)
     
     def Binary(stream:java.io.InputStream, length:Option[Long] = None, contentType:String = "application/octet-stream") = {
         import scalax.io.Resource
