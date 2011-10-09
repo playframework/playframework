@@ -55,9 +55,9 @@ object TemplateCompiler extends Specification("Template compiler") {
 
 object Helper {
     
-    case class Html(text:String) extends Appendable[Html] {
+    case class Html(text: String) extends Appendable[Html] {
         val buffer = new StringBuilder(text)
-        def +(other:Html) = {
+        def +(other: Html) = {
             buffer.append(other.buffer)
             this
         }
@@ -65,8 +65,8 @@ object Helper {
     }
 
     object HtmlFormat extends Format[Html] {
-        def raw(text:String) = Html(text)
-        def escape(text:String) = Html(text.replace("<","&lt;"))
+        def raw(text: String) = Html(text)
+        def escape(text: String) = Html(text.replace("<","&lt;"))
     }
     
     import scala.tools.nsc.interactive.{Response, Global}
@@ -88,7 +88,7 @@ object Helper {
     
     val classloader = new URLClassLoader(Array(generatedClasses.toURI.toURL), Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader)
     
-    case class CompilationError(message:String, line:Int, column:Int) extends RuntimeException(message)
+    case class CompilationError(message: String, line: Int, column: Int) extends RuntimeException(message)
     
     val compiler = {
         
@@ -120,7 +120,7 @@ object Helper {
         compiler
     }
     
-    def compile[T](templateName:String, className:String):T = {
+    def compile[T](templateName: String, className: String): T = {
         val templateFile = new File(sourceDir, templateName)
         val Some(generated) = templateCompiler.compile(templateFile, sourceDir, generatedDir, "play.templates.test.Helper.Html", "play.templates.test.Helper.HtmlFormat")
         

@@ -9,15 +9,15 @@ import javax.sql._
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
-case class DBApi(datasources:Map[String,(BoneCPDataSource,String)]) {
+case class DBApi(datasources: Map[String,(BoneCPDataSource,String)]) {
     
-    def getConnection(name:String, autocommit:Boolean = true):Connection = {
+    def getConnection(name: String, autocommit: Boolean = true): Connection = {
         val connection = getDataSource(name).getConnection
         connection.setAutoCommit(autocommit)
         connection
     }
     
-    def getDataSource(name:String):DataSource = {
+    def getDataSource(name: String): DataSource = {
         datasources.get(name).map { _._1 }.getOrElse {
             throw new Exception("No database [" + name + "] is registred")
         }
@@ -27,7 +27,7 @@ case class DBApi(datasources:Map[String,(BoneCPDataSource,String)]) {
 
 object DBApi {
     
-    def createDataSource(conf:Configuration, classloader:ClassLoader = ClassLoader.getSystemClassLoader) = {
+    def createDataSource(conf: Configuration, classloader: ClassLoader = ClassLoader.getSystemClassLoader) = {
         
         val datasource = new BoneCPDataSource
         
@@ -56,7 +56,7 @@ object DBApi {
         
         // Re-apply per connection config @ checkout
         datasource.setConnectionHook(new AbstractConnectionHook {
-            override def onCheckOut(connection:ConnectionHandle) {
+            override def onCheckOut(connection: ConnectionHandle) {
                 connection.setAutoCommit(autocommit)
                 connection.setTransactionIsolation(isolation)
                 connection.setReadOnly(readOnly)
@@ -92,12 +92,12 @@ object DBApi {
 
 object DB {
     
-    def getConnection(name:String = "default", autocommit:Boolean = true)(implicit app:Application):Connection = app.plugin[DBPlugin].api.getConnection(name, autocommit)
-    def getDataSource(name:String = "default")(implicit app:Application):DataSource = app.plugin[DBPlugin].api.getDataSource(name)
+    def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].api.getConnection(name, autocommit)
+    def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].api.getDataSource(name)
     
 }
 
-class DBPlugin(app:Application) extends Plugin {
+class DBPlugin(app: Application) extends Plugin {
     
     lazy val db = {
         DBApi(app.configuration.getSub("db").map { dbConf =>

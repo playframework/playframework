@@ -553,8 +553,8 @@ object MimeTypes {
         parts(0) -> parts.drop(1).mkString
     ).toMap
     
-    def forExtension(ext:String) = types.get(ext)
+    def forExtension(ext: String) = types.get(ext)
     
-    def forFileName(name:String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
+    def forFileName(name: String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
     
 }

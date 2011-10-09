@@ -6,19 +6,19 @@ package play.api.mvc {
     import scala.annotation._
 
     @implicitNotFound("Cannot find any HTTP Context here")
-    case class Context[+A](request:Request[A])
+    case class Context[+A](request: Request[A])
 
     @implicitNotFound("Cannot find any HTTP Request Header here")
     trait RequestHeader {
         
-        def uri:String
-        def path:String
-        def method:String
-        def queryString:Map[String,Seq[String]]
-        def headers:Headers
-        def cookies:Cookies
+        def uri: String
+        def path: String
+        def method: String
+        def queryString: Map[String,Seq[String]]
+        def headers: Headers
+        def cookies: Cookies
         
-        lazy val session:Map[String,String] = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
+        lazy val session: Map[String,String] = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
         lazy val rawQueryString = uri.split('?').drop(1).mkString("?")
         
         override def toString = {
@@ -29,28 +29,28 @@ package play.api.mvc {
 
     @implicitNotFound("Cannot find any HTTP Request here")
     trait Request[+A] extends RequestHeader {
-        def body:A
+        def body: A
     }
 
     trait Response {
-        def handle(result:Result):Unit
+        def handle(result: Result): Unit
     }
 
-    case class Call(method:String, url:String) extends play.mvc.Call {
+    case class Call(method: String, url: String) extends play.mvc.Call {
         override def toString = url
     }
 
     trait Headers {
-        def get(key:String):Option[String] = getAll(key).headOption
-        def apply(key:String):String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
-        def getAll(key:String):Seq[String]        
+        def get(key: String): Option[String] = getAll(key).headOption
+        def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
+        def getAll(key: String): Seq[String]        
     }
     
-    case class Cookie(name:String, value:String, maxAge:Int = -1, path:Option[String] = None, domain:Option[String] = None, secure:Boolean = false, httpOnly:Boolean = true)
+    case class Cookie(name: String, value: String, maxAge: Int = -1, path: Option[String] = None, domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
     
     trait Cookies {
-        def get(name:String):Option[Cookie]
-        def apply(name:String):Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
+        def get(name: String): Option[Cookie]
+        def apply(name: String): Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
     }
     
     object Session {
@@ -58,11 +58,11 @@ package play.api.mvc {
         val SESSION_COOKIE_NAME = "PLAY_SESSION"
         val blankSession = Map.empty[String,String]
         
-        def encode(data:Map[String,String]):String = {
+        def encode(data: Map[String,String]): String = {
             java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
         }
         
-        def decode(data:String):Map[String,String] = {
+        def decode(data: String): Map[String,String] = {
             try {
                 Option(data.trim).filterNot(_.isEmpty).map { data =>
                     java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
@@ -73,11 +73,11 @@ package play.api.mvc {
             }
         }
         
-        def encodeAsCookie(data:Map[String,String]):Cookie = {
+        def encodeAsCookie(data: Map[String,String]): Cookie = {
             Cookie(SESSION_COOKIE_NAME, encode(data))
         }
         
-        def decodeFromCookie(sessionCookie:Option[Cookie]):Map[String,String] = {
+        def decodeFromCookie(sessionCookie: Option[Cookie]): Map[String,String] = {
             sessionCookie.filter(_.name == SESSION_COOKIE_NAME).map(c => decode(c.value)).getOrElse(blankSession)
         }
         
@@ -90,7 +90,7 @@ package play.api.mvc {
         // We use netty here but just as an API to handle cookies encoding
         import org.jboss.netty.handler.codec.http.{CookieEncoder,CookieDecoder,DefaultCookie}
         
-        def encode(cookies:Seq[Cookie],discard:Seq[String] = Nil):String = {
+        def encode(cookies: Seq[Cookie],discard: Seq[String] = Nil): String = {
             val encoder = new CookieEncoder(true)
             cookies.foreach { c =>
                 encoder.addCookie {
@@ -113,13 +113,13 @@ package play.api.mvc {
             encoder.encode()
         }
         
-        def decode(cookieHeader:String):Seq[Cookie] = {
+        def decode(cookieHeader: String): Seq[Cookie] = {
             new CookieDecoder().decode(cookieHeader).asScala.map { c =>
                 Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath), Option(c.getDomain), c.isSecure, c.isHttpOnly)
             }.toSeq
         }
         
-        def merge(cookieHeader:String,cookies:Seq[Cookie],discard:Seq[String] = Nil):String = {
+        def merge(cookieHeader: String,cookies: Seq[Cookie],discard: Seq[String] = Nil): String = {
             encode(decode(cookieHeader) ++ cookies, discard)
         }
         

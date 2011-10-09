@@ -12,18 +12,18 @@ import play.api.db._
 import play.api.libs.F._
 import play.api.libs.Codec._
 
-case class Evolution(revision:Int, sql_up:String = "", sql_down:String = "") {
+case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
     val hash = sha1(sql_down + sql_up)
 }
 
-trait Script { val evolution:Evolution; val sql:String }
-case class UpScript(evolution:Evolution, sql:String) extends Script
-case class DownScript(evolution:Evolution, sql:String) extends Script
+trait Script { val evolution: Evolution; val sql: String }
+case class UpScript(evolution: Evolution, sql: String) extends Script
+case class DownScript(evolution: Evolution, sql: String) extends Script
 
 
 object Evolutions  {
     
-    def updateEvolutionScript(db:String = "default", revision:Int = 1, comment:String = "Generated", ups:String, downs:String)(implicit application:Application) {
+    def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
         import play.api.libs._
         
         val evolutions = application.getFile("db/evolutions/" + db + "/" + revision + ".sql");
@@ -43,25 +43,25 @@ object Evolutions  {
     
     // --
     
-    private def evolutionsDirectory(applicationPath:File, db:String):Option[File] = {
+    private def evolutionsDirectory(applicationPath: File, db: String): Option[File] = {
         Option(new File(applicationPath, "db/evolutions/" + db)).filter(_.exists)
     }
     
-    private def executeQuery(sql:String)(implicit c:Connection) = {
+    private def executeQuery(sql: String)(implicit c: Connection) = {
         c.createStatement.executeQuery(sql)
     }
     
-    private def execute(sql:String)(implicit c:Connection) = {
+    private def execute(sql: String)(implicit c: Connection) = {
         c.createStatement.execute(sql)
     }
     
-    private def prepare(sql:String)(implicit c:Connection) = {
+    private def prepare(sql: String)(implicit c: Connection) = {
         c.prepareStatement(sql)
     }
     
     // --
     
-    def resolve(api:DBApi, db:String, revision:Int) {
+    def resolve(api: DBApi, db: String, revision: Int) {
         implicit val connection = api.getConnection(db, autocommit=true)
         
         try {
@@ -72,7 +72,7 @@ object Evolutions  {
         }
     }
     
-    def checkEvolutionsState(api:DBApi, db:String) {
+    def checkEvolutionsState(api: DBApi, db: String) {
         implicit val connection = api.getConnection(db, autocommit=true)
         
         try {
@@ -113,7 +113,7 @@ object Evolutions  {
         
     }
     
-    def applyScript(api:DBApi, db:String, script:Seq[Script]) {
+    def applyScript(api: DBApi, db: String, script: Seq[Script]) {
         implicit val connection = api.getConnection(db, autocommit=true)
         
         checkEvolutionsState(api, db)
@@ -170,7 +170,7 @@ object Evolutions  {
         } catch {
             case e => {
                 val message = e match {
-                    case ex:SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
+                    case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
                     case ex => ex.getMessage
                 }
                 val ps = prepare("update play_evolutions set last_problem = ? where id = ?")
@@ -184,7 +184,7 @@ object Evolutions  {
         
     }
     
-    def toHumanReadableScript(script:Seq[Script]) = {
+    def toHumanReadableScript(script: Seq[Script]) = {
         val txt = script.map {
             case UpScript(ev,sql)   => "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + sql + "\n"
             case DownScript(ev,sql) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + sql + "\n"
@@ -196,7 +196,7 @@ object Evolutions  {
         }.map(_ => "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n").getOrElse("") + txt
     }
     
-    def evolutionScript(api:DBApi, applicationPath:File, db:String) = {
+    def evolutionScript(api: DBApi, applicationPath: File, db: String) = {
         val application = applicationEvolutions(applicationPath, db)
         val database = databaseEvolutions(api, db) 
         
@@ -213,7 +213,7 @@ object Evolutions  {
         downs ++ ups
     }
     
-    def databaseEvolutions(api:DBApi, db:String) = {
+    def databaseEvolutions(api: DBApi, db: String) = {
         implicit val connection = api.getConnection(db, autocommit=true)
         
         checkEvolutionsState(api, db)
@@ -242,7 +242,7 @@ object Evolutions  {
         }
     }
     
-    def applicationEvolutions(applicationPath:File, db:String) = {
+    def applicationEvolutions(applicationPath: File, db: String) = {
         evolutionsDirectory(applicationPath,db).map { dir =>
             
             val evolutionScript = """^([0-9]+)[.]sql$""".r
@@ -253,13 +253,13 @@ object Evolutions  {
             val DOWNS = "DOWNS"
             val UNKNOWN = "UNKNOWN"
             
-            val mapUpsAndDowns:PartialFunction[String,String] = { 
+            val mapUpsAndDowns: PartialFunction[String,String] = { 
                 case upsMarker() => UPS
                 case downsMarker() => DOWNS
                 case _ => UNKNOWN
             }
             
-            val isMarker:PartialFunction[String,Boolean] = {
+            val isMarker: PartialFunction[String,Boolean] = {
                 case upsMarker() => true
                 case downsMarker() => true
                 case _ => false
@@ -295,7 +295,7 @@ object Evolutions  {
     
 }
 
-class EvolutionsPlugin(app:Application) extends Plugin {
+class EvolutionsPlugin(app: Application) extends Plugin {
     
     import Evolutions._
     
@@ -316,7 +316,7 @@ class EvolutionsPlugin(app:Application) extends Plugin {
 
 object OfflineEvolutions {
     
-    def applyScript(applicationPath:File, classloader:ClassLoader, dbName:String) = {
+    def applyScript(applicationPath: File, classloader: ClassLoader, dbName: String) = {
         
         import play.api._
         
@@ -335,7 +335,7 @@ object OfflineEvolutions {
     
 }
 
-case class InvalidDatabaseRevision(db:String, script:String) extends PlayException(
+case class InvalidDatabaseRevision(db: String, script: String) extends PlayException(
     "Database '" + db + "' needs evolution!",
     "An SQL script need to be run on your database.",
     None
@@ -357,7 +357,7 @@ case class InvalidDatabaseRevision(db:String, script:String) extends PlayExcepti
     
 }
 
-case class InconsistentDatabase(db:String) extends PlayException(
+case class InconsistentDatabase(db: String) extends PlayException(
     "Database '" + db + "' is in inconsistent state!",
     "An evolution has not been applied properly. Please check the problem and resolve it manually before making it as resolved.",
     None

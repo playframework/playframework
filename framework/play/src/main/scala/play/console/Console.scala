@@ -22,7 +22,7 @@ object Console {
         new ANSIBuffer().append("""http://www.playframework.org""").toString
     )
     
-    def newCommand(args:Array[String]) = {
+    def newCommand(args: Array[String]) = {
         
         val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
         val defaultName = path.getName
@@ -44,7 +44,7 @@ object Console {
         
     }
     
-    def helpCommand(args:Array[String]) = {
+    def helpCommand(args: Array[String]) = {
         """
             |Welcome to Play 2.0!
             |
@@ -57,7 +57,7 @@ object Console {
             new ANSIBuffer().underscore("http://www.playframework.org").append(".")
     }
     
-    def main(args:Array[String]) {
+    def main(args: Array[String]) {
         println(logo)
         println(
             args.headOption.collect {
@@ -81,7 +81,7 @@ object Console {
     
 }
 
-case class NewApplication(path:File, name:String) {
+case class NewApplication(path: File, name: String) {
     
     def create() = {
         
@@ -102,7 +102,7 @@ case class NewApplication(path:File, name:String) {
         )
         
         IO.write(new File(path, "app/views/index.scala.html"),
-            """|@(name:String)
+            """|@(name: String)
                |<html>
                |    <head>
                |        <title>Home</title>

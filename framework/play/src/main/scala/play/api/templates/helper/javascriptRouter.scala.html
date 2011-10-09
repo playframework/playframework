@@ -1,5 +1,5 @@
-@(name:String = "Router")(routes:play.core.Router.JavascriptReverseRoute*) 
+@(name: String = "Router")(routes: play.core.Router.JavascriptReverseRoute*) 
 
 <script type="text/javascript">
-    @Html(play.api.Routes.javascriptRouter(name)(routes:_*))
+    @Html(play.api.Routes.javascriptRouter(name)(routes: _*))
 </script>

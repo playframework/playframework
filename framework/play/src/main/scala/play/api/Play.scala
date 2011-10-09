@@ -17,9 +17,9 @@ object Play {
         val Dev, Prod = Value
     }
     
-    private[play] var _currentApp:Application = _
+    private[play] var _currentApp: Application = _
     
-    def start(app:Application) {
+    def start(app: Application) {
         
         // First stop previous app if exists
         Option(_currentApp).map { 
@@ -38,45 +38,45 @@ object Play {
     
     def unsafeApplication = _currentApp
     
-    def resourceAsStream(name:String)(implicit app:Application):Option[InputStream] = {
+    def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
         Option(app.classloader.getResourceAsStream(Option(name).map {
             case s if s.startsWith("/") => s.drop(1)
             case s => s
         }.get))
     }
     
-    def application(implicit app:Application)     = app    
-    def classloader(implicit app:Application)     = app.classloader
-    def configuration(implicit app:Application)   = app.configuration
-    def routes(implicit app:Application)          = app.routes
-    def mode(implicit app:Application)            = app.mode
+    def application(implicit app: Application)     = app    
+    def classloader(implicit app: Application)     = app.classloader
+    def configuration(implicit app: Application)   = app.configuration
+    def routes(implicit app: Application)          = app.routes
+    def mode(implicit app: Application)            = app.mode
     
-    def isDev(implicit app:Application)           = app.mode == Play.Mode.Dev
-    def isProd(implicit app:Application)          = app.mode == Play.Mode.Prod
+    def isDev(implicit app: Application)           = app.mode == Play.Mode.Dev
+    def isProd(implicit app: Application)          = app.mode == Play.Mode.Prod
     
 }
 
-case class Application(path:File, classloader:ApplicationClassLoader, sources:SourceMapper, mode:Play.Mode.Mode) {
+case class Application(path: File, classloader: ApplicationClassLoader, sources: SourceMapper, mode: Play.Mode.Mode) {
     
-    val global:GlobalSettings = try {
+    val global: GlobalSettings = try {
         classloader.loadClassParentLast("Global$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
     } catch {
-        case e:ClassNotFoundException => DefaultGlobal
+        case e: ClassNotFoundException => DefaultGlobal
         case e => throw e
     }
     
     global.beforeStart(this)
     
-    val routes:Option[Router.Routes] = try {
+    val routes: Option[Router.Routes] = try {
         Some(classloader.loadClassParentLast("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes])
     } catch {
-        case e:ClassNotFoundException => None
+        case e: ClassNotFoundException => None
         case e => throw e
     }
     
     val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
     
-    val plugins:Map[Class[_],Plugin] = {
+    val plugins: Map[Class[_],Plugin] = {
         
         import scalax.file._
         import scalax.io.Input.asInputConverter
@@ -103,10 +103,10 @@ case class Application(path:File, classloader:ApplicationClassLoader, sources:So
         
     }
     
-    def plugin[T](implicit m:Manifest[T]):T = plugin(m.erasure).asInstanceOf[T]
-    def plugin[T](c:Class[T]):T = plugins.get(c).get.asInstanceOf[T]
+    def plugin[T](implicit m: Manifest[T]): T = plugin(m.erasure).asInstanceOf[T]
+    def plugin[T](c: Class[T]): T = plugins.get(c).get.asInstanceOf[T]
     
-    def getFile(subPath:String) = new File(path, subPath)
+    def getFile(subPath: String) = new File(path, subPath)
     
 }
 
@@ -114,32 +114,32 @@ trait GlobalSettings {
     
     import Results._
     
-    def beforeStart(app:Application) {
+    def beforeStart(app: Application) {
     }
     
-    def onStart(app:Application) {
+    def onStart(app: Application) {
     }
     
-    def onStop(app:Application) {
+    def onStop(app: Application) {
     }
         
-    def onRouteRequest(request:RequestHeader):Option[Action[_]] = Play._currentApp.routes.flatMap { router =>
+    def onRouteRequest(request: RequestHeader): Option[Action[_]] = Play._currentApp.routes.flatMap { router =>
         router.actionFor(request)
     }
     
-    def onError(ex:Throwable):Result = {
+    def onError(ex: Throwable): Result = {
         InternalServerError(Option(Play._currentApp).map {
             case app if app.mode == Play.Mode.Dev => play.core.views.html.devError.f
             case app => play.core.views.html.error.f
         }.getOrElse(play.core.views.html.devError.f)  {
             ex match {
-                case e:PlayException => e
+                case e: PlayException => e
                 case e => UnexpectedException(unexpected = Some(e))
             }
         })
     }
     
-    def onActionNotFound(request:RequestHeader):Result = {
+    def onActionNotFound(request: RequestHeader): Result = {
         NotFound(Option(Play._currentApp).map {
             case app if app.mode == Play.Mode.Dev => play.core.views.html.devNotFound.f
             case app => play.core.views.html.notFound.f
@@ -149,6 +149,6 @@ trait GlobalSettings {
 }
 
 trait Content {
-    def body:String
-    def contentType:String
+    def body: String
+    def contentType: String
 }

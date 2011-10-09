@@ -32,18 +32,18 @@ object CoffeescriptCompiler {
         
         Context.exit
         
-        (source:File) => {
+        (source: File) => {
             val coffeeCode = Path(source).slurpString.replace("\r", "")
             Context.call(null, compilerFunction, scope, scope, Array(coffeeCode)).asInstanceOf[String]
         }
         
     }
     
-    def compile(source:File):String = {
+    def compile(source: File): String = {
         try {
             compiler(source)
         } catch {
-            case e:JavaScriptException => {
+            case e: JavaScriptException => {
                 
                 val line = """.*on line ([0-9]+).*""".r
                 val error = e.getValue.asInstanceOf[Scriptable]
@@ -67,7 +67,7 @@ object CoffeescriptCompiler {
     
 }
 
-case class CompilationException(message:String, coffeeFile:File, atLine:Option[Int]) extends PlayException(
+case class CompilationException(message: String, coffeeFile: File, atLine: Option[Int]) extends PlayException(
     "Compilation error", message
 ) with ExceptionSource {
     def line = atLine

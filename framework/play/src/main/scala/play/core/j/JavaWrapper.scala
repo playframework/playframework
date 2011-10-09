@@ -9,11 +9,11 @@ import play.mvc.Http.{Context => JContext, Request => JRequest}
 
 trait JavaAction extends DefaultAction {
     
-    def invocation:JResult
-    def controller:Class[_]
-    def method:java.lang.reflect.Method
+    def invocation: JResult
+    def controller: Class[_]
+    def method: java.lang.reflect.Method
     
-    def apply(ctx:Context[Map[String,Seq[String]]]) = {
+    def apply(ctx: Context[Map[String,Seq[String]]]) = {
         
         val javaContext = new JContext {
             
@@ -37,7 +37,7 @@ trait JavaAction extends DefaultAction {
         
         val rootAction = new JAction[Any] {
             
-            def call(ctx:JContext):JResult = {
+            def call(ctx: JContext): JResult = {
                 try {
                     JContext.current.set(ctx)
                     invocation

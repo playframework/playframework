@@ -15,9 +15,9 @@ object TemplateUtils extends Specification("Template utils") {
             
             "HTML for example" in {
                 
-                case class Html(text:String) extends Appendable[Html] {
+                case class Html(text: String) extends Appendable[Html] {
                     val buffer = new StringBuilder(text)
-                    def +(other:Html) = {
+                    def +(other: Html) = {
                         buffer.append(other.buffer)
                         this
                     }
@@ -25,8 +25,8 @@ object TemplateUtils extends Specification("Template utils") {
                 }
 
                 object HtmlFormat extends Format[Html] {
-                    def raw(text:String) = Html(text)
-                    def escape(text:String) = Html(text.replace("<","&lt;"))
+                    def raw(text: String) = Html(text)
+                    def escape(text: String) = Html(text.replace("<","&lt;"))
                 }
                 
                 val html = HtmlFormat.raw("<h1>") + HtmlFormat.escape("Hello <world>") + HtmlFormat.raw("</h1>")
@@ -37,9 +37,9 @@ object TemplateUtils extends Specification("Template utils") {
             
             "Text for example" in {
                 
-                case class Text(text:String) extends Appendable[Text] {
+                case class Text(text: String) extends Appendable[Text] {
                     val buffer = new StringBuilder(text)
-                    def +(other:Text) = {
+                    def +(other: Text) = {
                         buffer.append(other.buffer)
                         this
                     }
@@ -47,8 +47,8 @@ object TemplateUtils extends Specification("Template utils") {
                 }
 
                 object TextFormat extends Format[Text] {
-                    def raw(text:String) = Text(text)
-                    def escape(text:String) = Text(text)
+                    def raw(text: String) = Text(text)
+                    def escape(text: String) = Text(text)
                 }
                 
                 val text = TextFormat.raw("<h1>") + TextFormat.escape("Hello <world>") + TextFormat.raw("</h1>")

@@ -11,19 +11,19 @@ object TemplateParser extends Specification("Template parser") {
         
         val parser = ScalaTemplateCompiler.templateParser
         
-        def get(templateName:String) = {
+        def get(templateName: String) = {
             new CharSequenceReader(scalax.file.Path("templates/src/test/templates/" + templateName).slurpString)
         }
         
-        def parse(templateName:String) = {
+        def parse(templateName: String) = {
             parser.parser(get(templateName))
         }
         
-        val fullyParsed:PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template],Boolean] = {
+        val fullyParsed: PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template],Boolean] = {
             case parser.Success(_, rest) => rest.atEnd
         }
         
-        def failAt(message:String,line:Int,column:Int):PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template],Boolean] = {
+        def failAt(message: String,line: Int,column: Int): PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template],Boolean] = {
             case parser.NoSuccess(msg, rest) => {
                 message == msg && rest.pos.line == line && rest.pos.column == column
             }

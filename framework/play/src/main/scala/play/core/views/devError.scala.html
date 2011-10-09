@@ -1,4 +1,4 @@
-@(error:play.core.PlayException)
+@(error: play.core.PlayException)
 
 <!DOCTYPE html>
 <html>
@@ -11,7 +11,7 @@
 		<p id="detail">
 		    @error match {
 		        
-		        case description:play.core.RichDescription => {
+		        case description: play.core.RichDescription => {
 		            @play.api.templates.Html(description.htmlDescription)
 		        }
 		        
@@ -24,7 +24,7 @@
 		
 		@error match {
 
-			case source:play.core.ExceptionSource => {
+			case source: play.core.ExceptionSource => {
 
 				@source.file.map { file =>
 					<h2>
@@ -59,7 +59,7 @@
 
 			}
 			
-			case attachment:play.core.ExceptionAttachment => {
+			case attachment: play.core.ExceptionAttachment => {
 			    
 			    <h2>@attachment.subTitle</h2>
 			    
@@ -172,10 +172,10 @@
 			    right: 0;
 			    left: 40px;
 			}
-			pre:first-child span.code {
+			pre: first-child span.code {
 			    border-top: 4px solid #CDCDCD;
 			}
-			pre:first-child span.line {
+			pre: first-child span.line {
 			    border-top: 4px solid #B6B6B6;
 			}
 			pre.error span.line {
