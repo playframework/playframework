@@ -6,25 +6,25 @@ import play.templates._
 import java.io._
 
 object TemplateCompiler extends Specification("Template compiler") {
-    
+
     import Helper._
-    
+
     "The template compiler" should {
-        
+
         "success for" in {
-            
+
             "static.scala.html" in {
                 compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must ==(
                     "<h1>It works</h1>"
                 )
             }
-            
+
             "hello.scala.html" in {
                 compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must ==(
                     "<h1>Hello World!</h1>"
                 )
             }
-            
+
             "real.scala.html" in {
                 compile[((String,List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A","B"))(4).toString.trim must beLike {
                     case html => {
@@ -35,26 +35,26 @@ object TemplateCompiler extends Specification("Template compiler") {
                     }
                 }
             }
-            
+
         }
-        
+
         "fail for" in {
-            
+
             "error.scala.html" in {
-                compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like { 
+                compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like {
                     case CompilationError(_, 2, 12) => true
                     case _ => false
-                } 
+                }
             }
-            
+
         }
-        
+
     }
-    
+
 }
 
 object Helper {
-    
+
     case class Html(text: String) extends Appendable[Html] {
         val buffer = new StringBuilder(text)
         def +(other: Html) = {
@@ -68,30 +68,30 @@ object Helper {
         def raw(text: String) = Html(text)
         def escape(text: String) = Html(text.replace("<","&lt;"))
     }
-    
+
     import scala.tools.nsc.interactive.{Response, Global}
     import scala.tools.nsc.io.AbstractFile
     import scala.tools.nsc.util.{SourceFile, Position, BatchSourceFile}
     import scala.tools.nsc.Settings
     import scala.tools.nsc.reporters.ConsoleReporter
-    
+
     import java.net._
-    
+
     val templateCompiler = ScalaTemplateCompiler
     val sourceDir = new File("templates/src/test/templates")
     val generatedDir = new File("templates/target/test/generated-templates")
     val generatedClasses = new File("templates/target/test/generated-classes")
-    
+
     scalax.file.Path(generatedDir).deleteRecursively()
     scalax.file.Path(generatedClasses).deleteRecursively()
     scalax.file.Path(generatedClasses).createDirectory()
-    
+
     val classloader = new URLClassLoader(Array(generatedClasses.toURI.toURL), Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader)
-    
+
     case class CompilationError(message: String, line: Int, column: Int) extends RuntimeException(message)
-    
+
     val compiler = {
-        
+
         def additionalClassPathEntry: Option[String] = Some(
             Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader.asInstanceOf[URLClassLoader].getURLs.map(_.getFile).mkString(":")
         )
@@ -102,7 +102,7 @@ object Helper {
         // is null in Eclipse/OSGI but luckily we don't need it there
         if(scalaObjectSource != null) {
             val compilerPath = Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource.getLocation
-            val libPath = scalaObjectSource.getLocation          
+            val libPath = scalaObjectSource.getLocation
             val pathList = List(compilerPath,libPath)
             val origBootclasspath = settings.bootclasspath.value
             settings.bootclasspath.value = ((origBootclasspath :: pathList) ::: additionalClassPathEntry.toList) mkString File.pathSeparator
@@ -115,19 +115,19 @@ object Helper {
             }
         })
 
-        new compiler.Run  
+        new compiler.Run
 
         compiler
     }
-    
+
     def compile[T](templateName: String, className: String): T = {
         val templateFile = new File(sourceDir, templateName)
         val Some(generated) = templateCompiler.compile(templateFile, sourceDir, generatedDir, "play.templates.test.Helper.Html", "play.templates.test.Helper.HtmlFormat")
-        
+
         val mapper = GeneratedSource(generated)
-        
+
         val run = new compiler.Run
-        
+
         try {
             run.compile(List(generated.getAbsolutePath))
         } catch {
@@ -135,10 +135,10 @@ object Helper {
                 msg, mapper.mapLine(line), mapper.mapPosition(column)
             )
         }
-        
+
         val t = classloader.loadClass(className + "$").getDeclaredField("MODULE$").get(null)
-            
+
         t.getClass.getDeclaredMethod("f").invoke(t).asInstanceOf[T]
     }
-    
+
 }

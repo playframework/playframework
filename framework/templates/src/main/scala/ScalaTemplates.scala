@@ -1,6 +1,6 @@
 package play.api.templates {
-    
-    trait Template0[Result] { def render(): Result }    
+
+    trait Template0[Result] { def render(): Result }
     trait Template1[A,Result] { def render(a: A): Result }
     trait Template2[A,B,Result] { def render(a: A,b: B): Result }
     trait Template3[A,B,C,Result] { def render(a: A,b: B,c: C): Result }
@@ -23,7 +23,7 @@ package play.api.templates {
     trait Template20[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,Result] { def render(a: A,b: B,c: C,d: D,e: E,f: F,g: G,h: H,i: I,j: J,k: K,l: L,m: M,n: N,o: O,p: P,q: Q,r: R,s: S,t: T): Result }
     trait Template21[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,Result] { def render(a: A,b: B,c: C,d: D,e: E,f: F,g: G,h: H,i: I,j: J,k: K,l: L,m: M,n: N,o: O,p: P,q: Q,r: R,s: S,t: T,u: U): Result }
     trait Template22[A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,Result] { def render(a: A,b: B,c: C,d: D,e: E,f: F,g: G,h: H,i: I,j: J,k: K,l: L,m: M,n: N,o: O,p: P,q: Q,r: R,s: S,t: T,u: U,v: V): Result }
-    
+
 }
 
 package play.templates {
@@ -31,9 +31,9 @@ package play.templates {
     import scalax.file._
     import java.io.File
     import scala.annotation.tailrec
-    
+
     object Hash {
-        
+
         def apply(bytes: Array[Byte]) = {
             import java.security.MessageDigest
             val digest = MessageDigest.getInstance("SHA-1")
@@ -41,13 +41,13 @@ package play.templates {
             digest.update(bytes)
             digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
         }
-        
+
     }
-    
+
     case class TemplateCompilationError(source: File, message: String, line: Int, column: Int) extends RuntimeException(message)
-    
+
     object MaybeGeneratedSource {
-        
+
         def unapply(source: File) = {
             val generated = GeneratedSource(source)
             if(generated.meta.isDefinedAt("SOURCE")) {
@@ -56,7 +56,7 @@ package play.templates {
                 None
             }
         }
-        
+
     }
 
     case class GeneratedSource(file: File) {
@@ -205,7 +205,7 @@ package play.templates {
                 }
 
                 Path(generatedSource.file).write(generated.toString)
-                
+
                 Some(generatedSource.file)
             } else {
                 None
@@ -277,7 +277,7 @@ package play.templates {
                     }
                 )
             }
-            
+
             def squareBrackets: Parser[String] = {
                 "[" ~ (several((squareBrackets | not("]") ~> any))) ~ commit("]") ^^ {
                     case p1~charList~p2 => p1 + charList.mkString + p2
@@ -487,7 +487,7 @@ package play.templates {
         }
 
         def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String) = {
-            
+
             val extra = TemplateAsFunctionCompiler.getFunctionMapping(
                 root.params.str,
                 resultType
@@ -507,11 +507,11 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
     def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {
         _display_ {""" :+ templateCode(root) :+ """}
     }
-    
+
     """ :+ extra._1 :+ """
-    
+
     """ :+ extra._2 :+ """
-    
+
     def ref = this
 
 }"""
@@ -519,7 +519,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
             Source.finalSource(template, generated)
         }
-        
+
         object TemplateAsFunctionCompiler {
 
             import java.io.File
@@ -534,7 +534,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                 type Tree = PresentationCompiler.global.Tree
                 type DefDef = PresentationCompiler.global.DefDef
                 type TypeDef = PresentationCompiler.global.TypeDef
-                
+
                 def findSignature(tree: Tree): Option[DefDef] = {
                     tree match {
                         case t: DefDef if t.name.toString == "signature" => Some(t)
@@ -560,7 +560,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                         p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ": _*").getOrElse("")
                     }.mkString(",") + ")").mkString
                 )
-                
+
                 var templateType = "play.api.templates.Template%s[%s%s]".format(
                     params.flatten.size,
                     params.flatten.map {
@@ -594,7 +594,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                     // is null in Eclipse/OSGI but luckily we don't need it there
                     if(scalaObjectSource != null) {
                         val compilerPath = Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource.getLocation
-                        val libPath = scalaObjectSource.getLocation          
+                        val libPath = scalaObjectSource.getLocation
                         val pathList = List(compilerPath,libPath)
                         val origBootclasspath = settings.bootclasspath.value
                         settings.bootclasspath.value = ((origBootclasspath :: pathList) ::: additionalClassPathEntry.toList) mkString File.pathSeparator
@@ -604,7 +604,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                         override def printMessage(pos: Position, msg: String) = ()
                     })
 
-                    new compiler.Run  
+                    new compiler.Run
 
                     compiler
                 }
@@ -731,13 +731,13 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
         }
 
     }
-    
+
     /* ------ */
 
     object TemplateMagic {
-        
+
         // --- UTILS
-        
+
         def using[T](t: T)(handler: T => Any) = {
             handler(t)
         }
@@ -749,12 +749,12 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
         implicit def stringToBoolean(x: String) = x != null && !x.isEmpty
 
         // --- JAVA
-        
+
         implicit def javaCollectionToScala[T](x: java.lang.Iterable[T]) = {
             import scala.collection.JavaConverters._
             x.asScala
         }
-        
+
         // --- DEFAULT
 
         case class Default(default: Any) {

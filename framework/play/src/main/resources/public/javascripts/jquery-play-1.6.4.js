@@ -1,5 +1,5 @@
 jQuery.param = function( a, traditional ) {
-    
+
     var buildParams = function( prefix, obj, traditional, add ) {
     	if ( jQuery.isArray( obj ) ) {
     		// Serialize array item.
@@ -31,7 +31,7 @@ jQuery.param = function( a, traditional ) {
     		add( prefix, obj );
     	}
     }
-    
+
 	var s = [],
 		add = function( key, value ) {
 			// If value is a function, invoke it and return its value

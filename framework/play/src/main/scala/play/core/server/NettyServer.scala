@@ -33,16 +33,16 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
             Executors.newCachedThreadPool()
         )
     )
-    
+
     val allChannels = new DefaultChannelGroup
 
-    class PlayDefaultUpstreamHandler extends SimpleChannelUpstreamHandler  {    
-                    
+    class PlayDefaultUpstreamHandler extends SimpleChannelUpstreamHandler  {
+
         override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
             e.getChannel.close()
         }
-            
-        private def isWebSocket(request: HttpRequest) = 
+
+        private def isWebSocket(request: HttpRequest) =
             HttpHeaders.Values.UPGRADE.equalsIgnoreCase(request.getHeader(CONNECTION)) &&
             HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.UPGRADE))
 
@@ -75,7 +75,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                 input.writeInt(b)
                 input.writeLong(c)
                 import java.security.NoSuchAlgorithmException
-                            
+
                 try {
                     import java.security.MessageDigest
                     val output: ChannelBuffer = ChannelBuffers.wrappedBuffer(MessageDigest.getInstance("MD5").digest(input.array()))
@@ -113,14 +113,14 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
 
         private def socketOut[A](ctx: ChannelHandlerContext)(writeable: AsString[A]): Iteratee[A,Unit] = {
             val channel = ctx.getChannel()
-                        
+
             def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A,Unit] =
                 input match {
                     case El(e) => Cont(step(Some(channel.write(new DefaultWebSocketFrame(writeable.transform(e))))))
                     case e@EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()) ; Done((),e)
                     case Empty => Cont(step(future))
                 }
-                        
+
             Cont(step(None))
         }
 /*
@@ -130,7 +130,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
             val P: Promise[Any] = _
             val bodyEnumerator = new Enumerator[Array[Byte]]{
                 def apply[R,EE >: Array[Byte]](i: Iteratee[EE,R]) = {
-                    iteratee = i  
+                    iteratee = i
                     val promise = Promise[EE]()
                     p = promise
                     p
@@ -176,7 +176,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                             (a,e) => { error("Getting messages on a supposedly closed socket? frame: "+input)},
                             k => { val next = k(input)
                                    next.fold(
-                                       (a,e) => { 
+                                       (a,e) => {
                                            ctx.getChannel().disconnect();
                                            iterateeAgent.close();
                                            promise.redeem(next);
@@ -213,38 +213,38 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
         }
 
         private def getHeaders(nettyRequest: HttpRequest): Headers = {
-        
-            val headers: Map[String,Seq[String]] = nettyRequest.getHeaderNames.asScala.map { key => 
+
+            val headers: Map[String,Seq[String]] = nettyRequest.getHeaderNames.asScala.map { key =>
                 key.toUpperCase -> nettyRequest.getHeaders(key).asScala
             }.toMap
 
-            new Headers { 
+            new Headers {
                 def getAll(key: String) = headers.get(key.toUpperCase).flatten.toSeq
                 override def toString = headers.toString
             }
-            
+
         }
 
         private def getCookies(nettyRequest: HttpRequest): Cookies = {
-            
+
             val cookies: Map[String,play.api.mvc.Cookie] = getHeaders(nettyRequest).get(play.api.http.HeaderNames.COOKIE).map { cookiesHeader =>
                 new CookieDecoder().decode(cookiesHeader).asScala.map { c =>
                     c.getName -> play.api.mvc.Cookie(
                         c.getName, c.getValue, c.getMaxAge, Option(c.getPath), Option(c.getDomain), c.isSecure, c.isHttpOnly
-                    )                    
+                    )
                 }.toMap
             }.getOrElse(Map.empty)
-            
+
             new Cookies {
                 def get(name: String) = cookies.get(name)
                 override def toString = cookies.toString
             }
-            
+
         }
 
 
         override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
-                        
+
             allChannels.add(e.getChannel)
 
 
@@ -257,9 +257,9 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
 
                     val rHeaders = getHeaders(nettyHttpRequest)
                     val rCookies = getCookies(nettyHttpRequest)
-                    
+
                     import org.jboss.netty.util.CharsetUtil;
-                    
+
                     val requestHeader = new RequestHeader {
                             def uri = nettyHttpRequest.getUri
                             def path = nettyUri.getPath
@@ -279,13 +279,13 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                     val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
 
                     val action = getActionFor(requestHeader)
-        
+
                     val response = new Response {
                         def handle(result: Result) =  result match {
 
                             case AsyncResult(p) => p.onRedeem(handle)
 
-                            case r@SocketResult(f) if (isWebSocket(nettyHttpRequest)) => 
+                            case r@SocketResult(f) if (isWebSocket(nettyHttpRequest)) =>
                                 val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
                                 f(enumerator,socketOut(ctx)(r.writeable))
 
@@ -296,23 +296,23 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                             case r@SimpleResult(SimpleHttpResponse(status, headers), body) =>
                                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                                 headers.foreach {
-                                    
-                                    // Fix a bug for Set-Cookie header. 
+
+                                    // Fix a bug for Set-Cookie header.
                                     // Multiple cookies could be merge in a single header
                                     // but it's not properly supported by some browsers
                                     case (name@play.api.http.HeaderNames.SET_COOKIE,value) => {
-                                        
+
                                         import scala.collection.JavaConverters._
                                         import play.api.mvc._
-                                        
+
                                         nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
 
                                     }
-                                    
+
                                     case (name,value) => nettyResponse.setHeader(name,value)
                                 }
                                 val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-                                val writer : Function2[ChannelBuffer,r.E,Unit]= 
+                                val writer : Function2[ChannelBuffer,r.E,Unit]=
                                     r.writeable match { case AsString(f) => (c,x) => c.writeBytes(f(x).getBytes())
                                                        case AsBytes(f) => (c,x) => c.writeBytes(f(x)) }
                                 val stringIteratee = fold(channelBuffer)((c,e: r.E) => {writer(c,e); c})
@@ -328,8 +328,8 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                           case r@ChunkedResult(SimpleHttpResponse(status, headers), chunks) =>
                               val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                               headers.foreach {
-                                  
-                                  // Fix a bug for Set-Cookie header. 
+
+                                  // Fix a bug for Set-Cookie header.
                                   // Multiple cookies could be merge in a single header
                                   // but it's not properly supported by some browsers
                                   case (name@play.api.http.HeaderNames.SET_COOKIE,value) => {
@@ -340,25 +340,25 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                                      nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
 
                                   }
-                                  
+
                                   case (name,value) => nettyResponse.setHeader(name,value)
                               }
                               nettyResponse.setHeader(TRANSFER_ENCODING,HttpHeaders.Values.CHUNKED)
                               nettyResponse.setChunked(true)
-              
-                              val writer : Function1[r.E,ChannelFuture]= 
+
+                              val writer : Function1[r.E,ChannelFuture]=
                                   r.writeable match { case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
                                                      case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x)))) }
                               val chunksIteratee = fold(e.getChannel.write(nettyResponse))((_,e: r.E) => writer(e) )
                               val p = chunksIteratee <<: chunks
                               p.flatMap( i => i.run)
-                               .onRedeem{ _ => 
+                               .onRedeem{ _ =>
                                    val f =e.getChannel.write(HttpChunk.LAST_CHUNK);
                                    if(!keepAlive) f.addListener(ChannelFutureListener.CLOSE) }
                         }
                     }
-       
-                    action match { 
+
+                    action match {
                         case Right((action,app)) =>
 
                             val bodyParser = action.parser
@@ -374,7 +374,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                                     case Redeemed(a) => a
                                     case Thrown(e) => throw RequestParsingException(e)
                                 }
-                                
+
                                 def headers = rHeaders
                                 def cookies = rCookies
                             }
@@ -387,7 +387,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                     }
             }
         }
-                    
+
     }
 
     class DefaultPipelineFactory extends  ChannelPipelineFactory {
@@ -402,40 +402,40 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
             }
         }
     bootstrap.setPipelineFactory(new DefaultPipelineFactory)
-    
+
     allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(9000)))
-    
+
     Logger.log("Listening for HTTP on port 9000...")
-    
+
     def stop() {
         Logger.log("Stopping Play server...")
         allChannels.close().awaitUninterruptibly()
         bootstrap.releaseExternalResources()
     }
-    
+
 }
 
 object NettyServer {
-    
+
     def main(args: Array[String]) {
-        
+
         import java.io._
-        
+
         args.headOption.orElse(
             Option(System.getProperty("user.dir"))
         ).map(new File(_)).filter(p => p.exists && p.isDirectory).map { applicationPath =>
-            
+
             // Manage RUNNING_PID file
             java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
                 val pidFile = new File(applicationPath, "RUNNING_PID")
-                
+
                 if(pidFile.exists) {
                     Logger.log("This application is already running (Or delete the RUNNING_PID file).")
                     System.exit(-1)
                 }
-                
+
                 Logger.log("Process ID is " + pid)
-                
+
                 new FileOutputStream(pidFile).write(pid.getBytes)
                 Runtime.getRuntime.addShutdownHook(new Thread {
                     override def run {
@@ -455,11 +455,11 @@ object NettyServer {
                 }
             }
 
-            
+
         }.getOrElse {
             println("Not a valid Play application")
         }
 
     }
-    
+
 }

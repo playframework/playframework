@@ -8,35 +8,35 @@ import play.mvc.{Action => JAction, Result => JResult}
 import play.mvc.Http.{Context => JContext, Request => JRequest}
 
 trait JavaAction extends DefaultAction {
-    
+
     def invocation: JResult
     def controller: Class[_]
     def method: java.lang.reflect.Method
-    
+
     def apply(ctx: Context[Map[String,Seq[String]]]) = {
-        
+
         val javaContext = new JContext {
-            
+
             def request = new JRequest {
-                
+
                 def uri = ctx.request.uri
                 def method = ctx.request.method
                 def path = ctx.request.method
-                
+
                 def urlEncoded = {
                     ctx.request.body.mapValues(_.toArray).asJava
                 }
-                
+
                 override def toString = ctx.request.toString
-                
+
             }
-            
+
             override def toString = ctx.toString
-            
+
         }
-        
+
         val rootAction = new JAction[Any] {
-            
+
             def call(ctx: JContext): JResult = {
                 try {
                     JContext.current.set(ctx)
@@ -45,8 +45,8 @@ trait JavaAction extends DefaultAction {
                     JContext.current.remove()
                 }
             }
-        } 
-        
+        }
+
         val actionMixins = {
             method.getDeclaredAnnotations
                 .filter(_.annotationType.isAnnotationPresent(classOf[play.mvc.With]))
@@ -54,7 +54,7 @@ trait JavaAction extends DefaultAction {
                 .reverse
         }
 
-        val finalAction = actionMixins.foldLeft(rootAction) { 
+        val finalAction = actionMixins.foldLeft(rootAction) {
             case (deleguate, (annotation, actionClass)) => {
                 val action = actionClass.newInstance().asInstanceOf[JAction[Any]]
                 action.configuration = annotation
@@ -62,8 +62,8 @@ trait JavaAction extends DefaultAction {
                 action
             }
         }
-        
+
         finalAction.call(javaContext).getWrappedResult
     }
-    
+
 }

@@ -4,7 +4,7 @@ import play.core._
 import play.api.mvc._
 
 trait Server {
-    
+
     import akka.actor._
     import akka.actor.Actor._
     import akka.routing.Routing._
@@ -13,15 +13,15 @@ trait Server {
     import akka.config.Supervision._
 
     def newInvoker = {val inv = actorOf[Invoker]; inv.start(); inv}
-    
+
     val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
 
     def getActionFor(rqHeader: RequestHeader): Either[Result,(Action[_],Application)] = {
          def sendAction : Either[Throwable,(Action[_],Application)]=
-            applicationProvider.get.right.map { application => 
+            applicationProvider.get.right.map { application =>
                             val maybeAction = application.global.onRouteRequest(rqHeader)
                            ( maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(rqHeader))),application ) }
-                       
+
 
       import scala.util.control.Exception
        applicationProvider.handleWebCommand(rqHeader).toLeft{
@@ -30,13 +30,13 @@ trait Server {
                    .joinRight
                    .left.map(e =>  DefaultGlobal.onError(e)) }.joinRight
 
-      
+
     }
     def errorResult(e: Throwable): Result = DefaultGlobal.onError(e)
 
     def invoke[A](request: Request[A], response: Response,a:(Context[A]=>Result), app: Application) = invoker ! HandleAction(request,response,a,app)
 
-    
+
     def applicationProvider: ApplicationProvider
-    
+
 }

@@ -11,7 +11,7 @@ object RequestData {
         val it = Iteratee.fold[Array[Byte],ArrayBuffer[Byte]](ArrayBuffer[Byte]())( _  ++= _)
         import play.data.parsing.UrlEncodedParser
         BodyParser( _ =>
-        it.mapDone{a => 
+        it.mapDone{a =>
             UrlEncodedParser.parse(new String(a.toArray /* should give encoding here */),encoding)
                             .asScala
                             .toMap

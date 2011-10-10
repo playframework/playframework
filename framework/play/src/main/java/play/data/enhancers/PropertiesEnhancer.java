@@ -15,28 +15,28 @@ import java.lang.annotation.Target;
 import java.lang.annotation.Retention;
 
 public class PropertiesEnhancer {
-    
+
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedAccessor {}
-    
+
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedGetAccessor {}
-    
+
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedSetAccessor {}
-    
+
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface RewrittenAccessor {}
-    
+
     public static void generateAccessors(String classpath, File classFile) throws Exception {
         ClassPool classPool = new ClassPool();
         classPool.appendSystemPath();
         classPool.appendPathList(classpath);
-        
+
         FileInputStream is = new FileInputStream(classFile);
         try {
             CtClass ctClass = classPool.makeClass(is);
@@ -46,7 +46,7 @@ public class PropertiesEnhancer {
             }
             for (CtField ctField : ctClass.getDeclaredFields()) {
                 if(isProperty(ctField)) {
-                    
+
                     // Property name
                     String propertyName = ctField.getName().substring(0, 1).toUpperCase() + ctField.getName().substring(1);
                     String getter = "get" + propertyName;
@@ -77,18 +77,18 @@ public class PropertiesEnhancer {
                         createAnnotation(getAnnotations(setMethod), GeneratedAccessor.class);
                         createAnnotation(getAnnotations(ctField), GeneratedSetAccessor.class);
                     }
-                    
+
                 }
-                
+
             }
-            
+
             createAnnotation(getAnnotations(ctClass), GeneratedAccessor.class);
-            
+
             is.close();
             FileOutputStream os = new FileOutputStream(classFile);
             os.write(ctClass.toBytecode());
             os.close();
-            
+
         } catch(Exception e) {
             e.printStackTrace();
             try {
@@ -99,12 +99,12 @@ public class PropertiesEnhancer {
             throw e;
         }
     }
-    
+
     public static void rewriteAccess(String classpath, File classFile) throws Exception {
         ClassPool classPool = new ClassPool();
         classPool.appendSystemPath();
         classPool.appendPathList(classpath);
-        
+
         FileInputStream is = new FileInputStream(classFile);
         try {
             CtClass ctClass = classPool.makeClass(is);
@@ -112,7 +112,7 @@ public class PropertiesEnhancer {
                 is.close();
                 return;
             }
-            
+
             for (final CtBehavior ctMethod : ctClass.getDeclaredBehaviors()) {
                 ctMethod.instrument(new ExprEditor() {
 
@@ -133,9 +133,9 @@ public class PropertiesEnhancer {
                                 }
 
                                 if (propertyName == null || !propertyName.equals(fieldAccess.getFieldName())) {
-                                    
+
                                     String getSet = fieldAccess.getFieldName().substring(0,1).toUpperCase() + fieldAccess.getFieldName().substring(1);
-                                    
+
                                     if (fieldAccess.isReader() && hasAnnotation(fieldAccess.getField(), GeneratedGetAccessor.class)) {
                                         // Rewrite read access
                                         fieldAccess.replace("$_ = $0.get" + getSet + "();");
@@ -152,14 +152,14 @@ public class PropertiesEnhancer {
                     }
                 });
             }
-            
+
             createAnnotation(getAnnotations(ctClass), RewrittenAccessor.class);
-            
+
             is.close();
             FileOutputStream os = new FileOutputStream(classFile);
             os.write(ctClass.toBytecode());
             os.close();
-            
+
         } catch(Exception e) {
             e.printStackTrace();
             try {
@@ -170,9 +170,9 @@ public class PropertiesEnhancer {
             throw e;
         }
     }
-    
+
     // --
-    
+
     static boolean isProperty(CtField ctField) {
         if (ctField.getName().equals(ctField.getName().toUpperCase()) || ctField.getName().substring(0, 1).equals(ctField.getName().substring(0, 1).toUpperCase())) {
             return false;
@@ -181,15 +181,15 @@ public class PropertiesEnhancer {
                 && !Modifier.isFinal(ctField.getModifiers())
                 && !Modifier.isStatic(ctField.getModifiers());
     }
-    
+
     static boolean isAccessor(CtField ctField) throws Exception {
         return hasAnnotation(ctField, GeneratedGetAccessor.class) || hasAnnotation(ctField, GeneratedSetAccessor.class);
     }
-    
+
     // --
-    
+
     /**
-     * Test if a class has the provided annotation 
+     * Test if a class has the provided annotation
      */
     static boolean hasAnnotation(CtClass ctClass, Class<? extends java.lang.annotation.Annotation> annotationType) throws ClassNotFoundException {
         for (Object object : ctClass.getAvailableAnnotations()) {
@@ -202,8 +202,8 @@ public class PropertiesEnhancer {
     }
 
     /**
-     * Test if a field has the provided annotation 
-     */    
+     * Test if a field has the provided annotation
+     */
     static boolean hasAnnotation(CtField ctField, Class<? extends java.lang.annotation.Annotation> annotationType) throws ClassNotFoundException {
         for (Object object : ctField.getAvailableAnnotations()) {
             java.lang.annotation.Annotation ann = (java.lang.annotation.Annotation) object;
@@ -213,7 +213,7 @@ public class PropertiesEnhancer {
         }
         return false;
     }
-    
+
     /**
      * Retrieve all class annotations.
      */
@@ -225,10 +225,10 @@ public class PropertiesEnhancer {
         }
         return annotationsAttribute;
     }
-    
+
     /**
      * Retrieve all field annotations.
-     */    
+     */
     static AnnotationsAttribute getAnnotations(CtField ctField) {
         AnnotationsAttribute annotationsAttribute = (AnnotationsAttribute) ctField.getFieldInfo().getAttribute(AnnotationsAttribute.visibleTag);
         if (annotationsAttribute == null) {
@@ -240,7 +240,7 @@ public class PropertiesEnhancer {
 
     /**
      * Retrieve all method annotations.
-     */    
+     */
     static AnnotationsAttribute getAnnotations(CtMethod ctMethod) {
         AnnotationsAttribute annotationsAttribute = (AnnotationsAttribute) ctMethod.getMethodInfo().getAttribute(AnnotationsAttribute.visibleTag);
         if (annotationsAttribute == null) {
@@ -249,7 +249,7 @@ public class PropertiesEnhancer {
         }
         return annotationsAttribute;
     }
-    
+
     /**
      * Create a new annotation to be dynamically inserted in the byte code.
      */
@@ -263,9 +263,9 @@ public class PropertiesEnhancer {
 
     /**
      * Create a new annotation to be dynamically inserted in the byte code.
-     */    
+     */
     static void createAnnotation(AnnotationsAttribute attribute, Class<? extends java.lang.annotation.Annotation> annotationType) {
         createAnnotation(attribute, annotationType, new HashMap<String, MemberValue>());
     }
-    
+
 }

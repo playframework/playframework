@@ -5,33 +5,33 @@ import java.io._
 import sbt.IO
 
 object Console {
-    
+
     val consoleReader = new jline.ConsoleReader
-    
+
     val logo = new ANSIBuffer().yellow(
-        """|       _            _ 
+        """|       _            _
            | _ __ | | __ _ _  _| |
            || '_ \| |/ _' | || |_|
            ||  __/|_|\____|\__ (_)
-           ||_|            |__/ 
-           |             
+           ||_|            |__/
+           |
            |""".stripMargin
     ).append(
         "play! " + play.core.PlayVersion.current + ", "
     ).underscore(
         new ANSIBuffer().append("""http://www.playframework.org""").toString
     )
-    
+
     def newCommand(args: Array[String]) = {
-        
+
         val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
         val defaultName = path.getName
-        
+
         Option(path).filterNot(_.exists).foreach(IO.createDirectory(_))
-        
-        println()        
+
+        println()
         println("The new application will be created in %s".format(path.getAbsolutePath))
-        
+
         if(path.listFiles.size > 0) {
             new ANSIBuffer().red("The directory is not empty, cannot create a new application here.")
         } else {
@@ -41,9 +41,9 @@ object Console {
             println()
             NewApplication(path, name).create()
         }
-        
+
     }
-    
+
     def helpCommand(args: Array[String]) = {
         """
             |Welcome to Play 2.0!
@@ -56,7 +56,7 @@ object Console {
             |You can also browse the complete documentation at """.stripMargin +
             new ANSIBuffer().underscore("http://www.playframework.org").append(".")
     }
-    
+
     def main(args: Array[String]) {
         println(logo)
         println(
@@ -68,7 +68,7 @@ object Console {
             }.getOrElse {
                 new ANSIBuffer().red("\nThis is not a play application!\n").append(
                     """|
-                       |Use `play new` to create a new Play application in the current directory, 
+                       |Use `play new` to create a new Play application in the current directory,
                        |or go to an existing application and launch the development console using `play`.
                        |
                        |You can also browse the complete documentation at """.stripMargin +
@@ -78,13 +78,13 @@ object Console {
         )
         println()
     }
-    
+
 }
 
 case class NewApplication(path: File, name: String) {
-    
+
     def create() = {
-        
+
         IO.write(new File(path, "app/controllers/Application.java"),
             """|package controllers;
                |
@@ -100,14 +100,14 @@ case class NewApplication(path: File, name: String) {
                |}
             """.stripMargin
         )
-        
+
         IO.write(new File(path, "app/views/index.scala.html"),
             """|@(name: String)
                |<html>
                |    <head>
                |        <title>Home</title>
                |        <link rel="shortcut icon" type="image/png" href="http://www.playframework.org/public/images/favicon.png">
-               |        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")"> 
+               |        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
                |    </head>
                |    <body>
                |        <h1>Hello @name!</h1>
@@ -115,22 +115,22 @@ case class NewApplication(path: File, name: String) {
                |</html>
             """.stripMargin
         )
-        
+
         IO.write(new File(path, "public/stylesheets/main.css"),
             """|h1 {
                |    color: blue;
                |}
             """.stripMargin
         )
-        
-        IO.write(new File(path, "conf/application.conf"), 
+
+        IO.write(new File(path, "conf/application.conf"),
             """|# Configuration
                |
                |application.name=%s
             """.stripMargin.format(name)
         )
-        
-        IO.write(new File(path, "conf/routes"), 
+
+        IO.write(new File(path, "conf/routes"),
             """|# Routes
                |# This file defines all application routes (Higher priority routes first)
                |# ~~~~
@@ -159,7 +159,7 @@ case class NewApplication(path: File, name: String) {
                |}
             """.stripMargin.format(name)
         )
-        
+
         IO.write(new File(path, "project/plugins/project/Play.scala"),
             """|import sbt._
                |import Keys._
@@ -180,12 +180,12 @@ case class NewApplication(path: File, name: String) {
                |}
             """.stripMargin
         )
-        
+
         """|OK, application %s is created.
            |Type `play` to enter the development console.
            |Have fun!
         """.stripMargin.format(name).trim
     }
-    
-    
+
+
 }

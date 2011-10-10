@@ -4,18 +4,18 @@ import java.io.File
 import sbt.IO
 
 case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s -> %s".format(title, description), cause.orNull) {
-    
+
     val id = "x"
-    
+
 }
 
 trait ExceptionSource {
     self: PlayException =>
-    
+
     def line: Option[Int]
     def position: Option[Int]
     def file: Option[File]
-    
+
     def interestingLines(border: Int = 4): Option[(Int,Seq[String],Int)] = {
         for(f <- file; l <- line; val (first,last) = IO.readLines(f).splitAt(l-1); focus <- last.headOption) yield {
             val before = first.takeRight(border)
@@ -25,20 +25,20 @@ trait ExceptionSource {
             (firstLine, (before :+ focus) ++ after, errorLine)
         }
     }
-    
+
 }
 
 trait ExceptionAttachment {
     self: PlayException =>
-    
+
     def subTitle: String
     def content: String
-    
+
 }
 
 trait RichDescription {
     self: PlayException =>
-    
+
     def htmlDescription: String
 }
 

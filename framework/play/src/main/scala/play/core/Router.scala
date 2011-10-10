@@ -4,7 +4,7 @@ import play.api.mvc._
 import play.api.mvc.Results._
 
 object Router {
-    
+
     import scala.util.parsing.input._
     import scala.util.parsing.combinator._
     import scala.util.matching._
@@ -17,22 +17,22 @@ object Router {
         override def toString = """StaticPart("""" + value + """")"""
     }
     case class PathPattern(parts: Seq[PathPart]) {
-        
+
         import java.util.regex._
-        
+
         lazy val (regex,groups) = {
-            Some(parts.foldLeft("", Map.empty[String,Int], 0) { (s,e) => 
+            Some(parts.foldLeft("", Map.empty[String,Int], 0) { (s,e) =>
                 e match {
                     case StaticPart(p) => ((s._1 + Pattern.quote(p)), s._2, s._3)
                     case DynamicPart(k, r) => {
                         ((s._1 + "(" + r + ")"), (s._2 + (k -> (s._3 + 1))), s._3 + 1 + Pattern.compile(r).matcher("").groupCount)
                     }
-                } 
+                }
             }).map {
                 case (r,g,_) => Pattern.compile("^" + r + "$") -> g
             }.get
         }
-        
+
         def apply(path: String) = {
             val matcher = regex.matcher(path)
             if(matcher.matches) {
@@ -43,19 +43,19 @@ object Router {
                 None
             }
         }
-        
+
         def has(key: String) = parts.exists {
             case DynamicPart(name, _) if name == key => true
             case _ => false
         }
-        
+
         override def toString = parts.map {
             case DynamicPart(name,constraint) => "$" + name + "<" + constraint + ">"
             case StaticPart(path) => path
         }.mkString
-        
+
     }
-    
+
     object RoutesCompiler {
 
         object Hash {
@@ -98,9 +98,9 @@ object Router {
             }
 
         }
-        
+
         object MaybeGeneratedSource {
-            
+
             def unapply(source: File) = {
                 val generated = GeneratedSource(source)
                 if(generated.isGenerated) {
@@ -109,19 +109,19 @@ object Router {
                     None
                 }
             }
-            
+
         }
 
         def compile(file: File, generatedDir: File) {
-            
+
             val generated = GeneratedSource(new File(generatedDir, "routes_routing.scala"))
-            
+
             if(generated.needsRecompilation) {
-                
+
                 val parser = new RouteFileParser
                 val routeFile = Path(file).toAbsolute
                 val routesContent = routeFile.slurpString
-                
+
                 (parser.parse(routesContent) match {
                     case parser.Success(parsed, _) => generate(routeFile, parsed)
                     case parser.NoSuccess(message, in) => {
@@ -130,9 +130,9 @@ object Router {
                 }).foreach { item =>
                     Path(new File(generatedDir, item._1)).write(item._2)
                 }
-                
+
             }
-            
+
         }
 
         /**
@@ -197,7 +197,7 @@ object Router {
         private def generate(file: Path, routes: List[Route]): Seq[(String,String)] = {
 
             check(new File(file.path), routes);
-            
+
             val (path,hash,date) = (file.path,Hash(file.byteArray),new java.util.Date().toString)
 
             Seq((
@@ -235,23 +235,23 @@ object Router {
                     |
                     |object Routes extends Router.Routes {
                     |
-                    |%s 
-                    |    
-                    |def routes: PartialFunction[RequestHeader,Action[_]] = {        
+                    |%s
+                    |
+                    |def routes: PartialFunction[RequestHeader,Action[_]] = {
                     |%s
                     |}
-                    |    
+                    |
                     |}
                 """.stripMargin.format(path,hash,date,routeDefinitions(routes), routing(routes))
             )) ++ {
-                
+
                 // Generate Java wrappers
-                
+
                 routes.groupBy(_.call.packageName).map {
                     case (packageName, routes) => {
-                
+
                         (packageName.replace(".","/") + "/routes.java") -> {
-                            
+
                             """ |// @SOURCE:%s
                                 |// @HASH:%s
                                 |// @DATE:%s
@@ -261,33 +261,33 @@ object Router {
                                 |public class routes {
                                 |%s
                                 |public static class javascript {
-                                |%s    
-                                |}    
+                                |%s
+                                |}
                                 |}
                             """.stripMargin.format(
                                 path,hash,date,
                                 packageName,
-                                routes.groupBy(_.call.controller).map { 
+                                routes.groupBy(_.call.controller).map {
                                     case (controller, _) => {
                                         "public static final " + packageName + ".Reverse" + controller + " " + controller + " = new " + packageName + ".Reverse" + controller + "();"
-                                    } 
+                                    }
                                 }.mkString("\n"),
-                                routes.groupBy(_.call.controller).map { 
+                                routes.groupBy(_.call.controller).map {
                                     case (controller, _) => {
                                         "public static final " + packageName + ".javascript.Reverse" + controller + " " + controller + " = new " + packageName + ".javascript.Reverse" + controller + "();"
-                                    } 
+                                    }
                                 }.mkString("\n")
                             )
-                            
+
                         }
-                        
+
                     }
                 }
-                
+
             }
 
         }
-        
+
         /**
          * Generate the reverse routing operations
          */
@@ -305,14 +305,14 @@ object Router {
                         markLines(routes: _*),
                         packageName,
 
-                        routes.groupBy(_.call.controller).map { 
-                            case (controller, routes) => 
+                        routes.groupBy(_.call.controller).map {
+                            case (controller, routes) =>
                             """
                                 |%s
                                 |class Reverse%s {
-                                |    
+                                |
                                 |%s
-                                |    
+                                |
                                 |}
                             """.stripMargin.format(
                                 markLines(routes: _*),
@@ -321,7 +321,7 @@ object Router {
                                 controller.replace(".", "_"),
 
                                 // reverse method
-                                routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map { 
+                                routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map {
                                     case ((m, _), routes) =>
 
                                         assert(routes.size > 0, "Empty routes set???")
@@ -363,7 +363,7 @@ object Router {
                                                     """ + _qS([%s])""".format(
                                                         queryParams.map { p =>
                                                             ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
-                                                        }.map { 
+                                                        }.map {
                                                             case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == \"\"\" +  implicitly[JavascriptLitteral[" + typeName.replace(".", "_") + "]].to(" + default + ") + \"\"\" ? null : " + u + ")"
                                                             case (u, Parameter(name, typeName, None, None)) => u
                                                         }.mkString(", ")
@@ -374,12 +374,12 @@ object Router {
                                             }
 
                                         )
-                                        
+
 
                                         routes match {
 
                                             case Seq(route) => {
-                                                """ 
+                                                """
                                                     |%s
                                                     |def %s = JavascriptReverseRoute(
                                                     |   "%s",
@@ -401,7 +401,7 @@ object Router {
                                             }
 
                                             case Seq(route, routes@_*) => {
-                                                """ 
+                                                """
                                                     |%s
                                                     |def %s = JavascriptReverseRoute(
                                                     |   "%s",
@@ -420,16 +420,16 @@ object Router {
 
                                                     // route selection
                                                     (route +: routes).map { route =>
-                                                        
+
                                                         val localNames = reverseParameters.map {
                                                             case (lp,i) => route.call.parameters.get(i).name -> lp.name
                                                         }.toMap
 
 
                                                         "      if (%s) {\n%s\n      }".format(
-                                                            
+
                                                             // Fixed constraints
-                                                            Option(route.call.parameters.getOrElse(Nil).filter { p => 
+                                                            Option(route.call.parameters.getOrElse(Nil).filter { p =>
                                                                 localNames.contains(p.name) && p.fixed.isDefined
                                                             }.map { p =>
                                                                 p.name + " == \"\"\" + implicitly[JavascriptLitteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
@@ -439,7 +439,7 @@ object Router {
                                                         )
 
                                                     }.mkString("\n"),
-                                                    
+
                                                     "\"\"\""
                                                 )
                                             }
@@ -457,7 +457,7 @@ object Router {
             }.mkString("\n")
 
         }
-        
+
 
         /**
          * Generate the reverse routing operations
@@ -476,14 +476,14 @@ object Router {
                         markLines(routes: _*),
                         packageName,
 
-                        routes.groupBy(_.call.controller).map { 
-                            case (controller, routes) => 
+                        routes.groupBy(_.call.controller).map {
+                            case (controller, routes) =>
                             """
                                 |%s
                                 |class Reverse%s {
-                                |    
+                                |
                                 |%s
-                                |    
+                                |
                                 |}
                             """.stripMargin.format(
                                 markLines(routes: _*),
@@ -492,7 +492,7 @@ object Router {
                                 controller.replace(".", "_"),
 
                                 // reverse method
-                                routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map { 
+                                routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map {
                                     case ((m, _), routes) =>
 
                                         assert(routes.size > 0, "Empty routes set???")
@@ -541,7 +541,7 @@ object Router {
                                                     """ + queryString(List(%s))""".format(
                                                         queryParams.map { p =>
                                                             ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
-                                                        }.map { 
+                                                        }.map {
                                                             case (u, Parameter(name, typeName, None, Some(default))) => """if(""" + localNames.get(name).getOrElse(name) + """ == """ + default + """) None else Some(""" + u + """)"""
                                                             case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
                                                         }.mkString(", ")
@@ -556,7 +556,7 @@ object Router {
                                         routes match {
 
                                             case Seq(route) => {
-                                                """ 
+                                                """
                                                     |%s
                                                     |def %s(%s) = {
                                                     |   %s
@@ -570,11 +570,11 @@ object Router {
                                             }
 
                                             case Seq(route, routes@_*) => {
-                                                """ 
+                                                """
                                                     |%s
                                                     |def %s(%s) = {
                                                     |   (%s) match {
-                                                    |%s    
+                                                    |%s
                                                     |   }
                                                     |}
                                                 """.stripMargin.format(
@@ -597,7 +597,7 @@ object Router {
                                                             reverseParameters.map(_._1.name).mkString(", "),
 
                                                             // Fixed constraints
-                                                            Option(route.call.parameters.getOrElse(Nil).filter { p => 
+                                                            Option(route.call.parameters.getOrElse(Nil).filter { p =>
                                                                 localNames.contains(p.name) && p.fixed.isDefined
                                                             }.map { p =>
                                                                 p.name + " == " + p.fixed.get
@@ -629,7 +629,7 @@ object Router {
          */
         def routeDefinitions(routes: List[Route]) = {
             routes.zipWithIndex.map {
-                case (r,i) => 
+                case (r,i) =>
                     """
                         |%s
                         |val %s%s = Route("%s", %s)
@@ -640,7 +640,7 @@ object Router {
                             r.verb.value,
                             "PathPattern(List(" + r.path.parts.map(_.toString).mkString(",") + "))"
                       )
-            }.mkString("\n") + 
+            }.mkString("\n") +
             """|
                |def documentation = List(%s)
             """.stripMargin.format(
@@ -653,7 +653,7 @@ object Router {
          */
         def routing(routes: List[Route]) = {
             routes.zipWithIndex.map {
-                case (r,i) => 
+                case (r,i) =>
                     """
                         |%s
                         |case %s%s(params) => {
@@ -665,7 +665,7 @@ object Router {
                         markLines(r),
 
                         // alias
-                        r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method, 
+                        r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
                         i,
 
                         // binding
@@ -726,11 +726,11 @@ object Router {
                 lastNoSuccess = null
                 def apply(in: Input) = p(in) match {
                     case s @ Success(out, in1) =>
-                        if (in1.atEnd) 
+                        if (in1.atEnd)
                             s
                         else if (lastNoSuccess == null || lastNoSuccess.next.pos < in1.pos)
                             Failure("end of input expected", in1)
-                        else 
+                        else
                             lastNoSuccess
                     case _ => lastNoSuccess
                 }
@@ -816,7 +816,7 @@ object Router {
 
             def staticPathPart = (not(":") ~> not("*") ~> not("$") ~> """[^\s]""".r +) ^^ {
                 case chars => StaticPart(chars.mkString)
-            } 
+            }
 
             def path = ( ( positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(regexComponentPathPart) | staticPathPart ) + ) ^^ {
                 case parts => PathPattern(parts)
@@ -842,7 +842,7 @@ object Router {
                 case name~t~d => Parameter(name, t.getOrElse("String"), d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
             }
 
-            def parameters = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")" 
+            def parameters = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
             def call = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
                 case action~parameters => ActionCall(action.dropRight(2).mkString("."), action.takeRight(2).dropRight(1).mkString("."), action.takeRight(1).mkString, parameters)
@@ -867,9 +867,9 @@ object Router {
         }
 
     }
-    
+
     object Route {
-        
+
         def apply(method: String, pathPattern: PathPattern) = new {
 
             def unapply(request: RequestHeader): Option[RouteParams] = {
@@ -883,46 +883,46 @@ object Router {
             }
 
         }
-        
+
     }
-    
+
     case class JavascriptReverseRoute(name: String,f: String)
-    
+
     case class Param[T](name: String, value: Either[String,T])
-    
+
     case class RouteParams(path: Map[String,String], queryString: Map[String,Seq[String]]) {
-        
+
         def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] = {
             Param(key, path.get(key).map(binder.bind(key, _)).getOrElse {
                 default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
             })
         }
-        
+
         def fromQuery[T](key: String, default: Option[T] = None)(implicit binder: QueryStringBindable[T]): Param[T] = {
             Param(key, binder.bind(key, queryString).getOrElse {
                 default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
             })
         }
-        
+
     }
-    
+
     case class ActionDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]])
-            
+
     def queryString(items: List[Option[String]]) = {
         Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
     }
-    
+
     trait Routes {
-        
+
         def documentation: Seq[(String,String,String)]
-        
+
         def routes: PartialFunction[RequestHeader,Action[_]]
-        
+
         //
 
         def badRequest(error: String) =  Action (
             ctx => BadRequest(error) )
-        
+
         def call(generator: => Action[_]) = {
             generator
         }
@@ -934,29 +934,29 @@ object Router {
         def call[P1,P2](pa: Param[P1], pb: Param[P2])(generator: (P1,P2) => Action[_]) = {
             (for(a <- pa.value.right; b <- pb.value.right) yield (a,b)).fold(badRequest, {case (a,b) => generator(a,b)})
         }
-        
+
         def actionFor(request: RequestHeader): Option[Action[_]] = {
             routes.lift(request)
         }
-        
+
         @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an action")
         trait ActionInvoker[T] {
             def call(call: => T, action: ActionDef): Action[_]
         }
 
         object ActionInvoker {
-            
+
             implicit def passThrought[A <: Action[_]]: ActionInvoker[A] = new ActionInvoker[A] {
                 def call(call: => A, action: ActionDef): Action[_] = call
             }
-            
+
             implicit def wrapResult[A <: Result]: ActionInvoker[A] = new ActionInvoker[A] {
                 def call(call: => A, action: ActionDef): Action[_] = DefaultAction(_ => call)
             }
-            
+
             implicit def wrapJava: ActionInvoker[play.mvc.Result] = new ActionInvoker[play.mvc.Result] {
                 def call(call: => play.mvc.Result, action: ActionDef) = {
-                    new play.core.j.JavaAction { 
+                    new play.core.j.JavaAction {
                         def invocation = call
                         def controller = action.ref.getClass.getClassLoader.loadClass(action.controller)
                         def method = controller.getDeclaredMethod(action.method, action.parameterTypes.map {
@@ -966,13 +966,13 @@ object Router {
                     }
                 }
             }
-            
+
         }
-        
+
         def invokeAction[T](call: => T, action: ActionDef)(implicit d: ActionInvoker[T]): Action[_] = {
             d.call(call, action)
         }
-        
+
     }
-    
+
 }

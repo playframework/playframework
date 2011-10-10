@@ -1,7 +1,7 @@
 package play.core
 
 object Iteratee {
- 
+
     trait Input[+E]{
         def map[U](f:(E => U) ): Input[U] = this match {
             case El(e) => El(f(e))
@@ -28,22 +28,22 @@ trait Iteratee[E,+A] {
                                                             _ => error("diverging iteratee after EOF"),
                                                             (msg,e) => error(msg)),
                                           (msg,e) => error(msg))
-    
+
     def fold[B](done: (A,Input[E]) => Promise[B],
                 cont: (Input[E] => Iteratee[E,A]) => Promise[B],
                 error: (String,Input[E]) => Promise[B]): Promise[B]
 
-    def mapDone[B](f: A => B): Iteratee[E,B] = 
+    def mapDone[B](f: A => B): Iteratee[E,B] =
         flatten(this.fold((a,e) => Promise.pure(Done(f(a),e)),
                         k => Promise.pure(Cont((in: Input[E]) => k(in).mapDone(f))),
                         (err,e) => Promise.pure[Iteratee[E,B]](Error(err,e))) )
 
 
     def flatMap[B](f : A => Iteratee[E,B] ): Iteratee[E,B] = new Iteratee[E,B] {
-        
+
         def fold[C](done: (B,Input[E]) => Promise[C],
                     cont: (Input[E] => Iteratee[E,B]) => Promise[C],
-                    error: (String,Input[E]) => Promise[C]) = 
+                    error: (String,Input[E]) => Promise[C]) =
 
              self.fold( {case (a,Empty) => f(a).fold(done,cont,error)
                          case (a,e) => f(a).fold( (a,_) => done(a,e),
@@ -51,7 +51,7 @@ trait Iteratee[E,+A] {
                                                            error)},
                        ((k) => cont(e => (k(e).flatMap(f)))),
                        error)
-   
+
     }
 
 
@@ -106,7 +106,7 @@ trait Enumerator[+E]{
 
                 in match {
                     case OuterEOF => Done(ri,EOF)
-                    case any => 
+                    case any =>
                         flatten(
                             ri.fold( (a,_) => Promise.pure(Done(ri,any)),
                                       k => {val next = k(f(any))
@@ -115,7 +115,7 @@ trait Enumerator[+E]{
                                                         (msg,_) => Promise.pure[R](Error(msg,in) ))},
                                         (msg,_) => Promise.pure[R](Error(msg,any))))
                 }
-            
+
             parent.apply(Cont(step(it)))
                   .flatMap( _.fold( (a,_) => Promise.pure(a),
                                    k => k(OuterEOF).fold(
@@ -146,7 +146,7 @@ object Enumerator {
 
     }
     def enumerate[E,A]: ( Seq[E], Iteratee[E,A] ) => Promise[Iteratee[E,A]] = {
-        (l,i) =>  l.foldLeft(Promise.pure(i)) ((i,e) => 
+        (l,i) =>  l.foldLeft(Promise.pure(i)) ((i,e) =>
                     i.flatMap(_.fold((_,_) => i,
                                      k =>Promise.pure(k(El(e))),
                                      (_,_) => i ) ) )
@@ -165,7 +165,7 @@ case object Waiting extends PromiseValue[Nothing]
 
 trait Promise[A]{
 
-  def onRedeem(k: A => Unit): Unit 
+  def onRedeem(k: A => Unit): Unit
 
   def extend[B](k: Function1[Promise[A],B]): Promise[B]
 
@@ -178,7 +178,7 @@ trait Promise[A]{
   def flatMap[B](f: A => Promise[B]) : Promise[B]
 }
 
-trait Redeemable[A]{ 
+trait Redeemable[A]{
     def redeem(a: => A): Unit
 }
 
@@ -232,7 +232,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   def redeem(body: => A): Unit = {
       val result = scala.util.control.Exception.allCatch[A].either(body)
-      atomic { implicit txn => 
+      atomic { implicit txn =>
           if(redeemed().isDefined) error("already redeemed")
           redeemed() = result.fold(Thrown(_),Redeemed(_))
       }
@@ -251,7 +251,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
   def flatMap[B](f: A => Promise[B]) = {
       val result = new STMPromise[B]()
       this.addAction(p => p.value match {
-          case Redeemed(a) => 
+          case Redeemed(a) =>
               f(a).extend(ip => ip.value match {
                   case Redeemed(a) => result.redeem(a)
                   case Thrown(e) => result.redeem(throw e)

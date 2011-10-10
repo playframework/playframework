@@ -10,18 +10,18 @@
 
 		<p id="detail">
 		    @error match {
-		        
+
 		        case description: play.core.RichDescription => {
 		            @play.api.templates.Html(description.htmlDescription)
 		        }
-		        
+
 		        case _ => {
 		            @error.description
     			}
-		        
+
 		    }
 		</p>
-		
+
 		@error match {
 
 			case source: play.core.ExceptionSource => {
@@ -34,11 +34,11 @@
 					</h2>
 
                     <div>
-    					@source.interestingLines().map { 
+    					@source.interestingLines().map {
 
     						case (first,lines,errorIndex) => {
 
-    							@lines.zipWithIndex.map { 
+    							@lines.zipWithIndex.map {
 
     								case (line,index) if index == errorIndex => {
     									<pre class="error"><span class="line">@(first+index)</span><span class="code">@(source.position.map(pos => (line+" ").zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</span></pre>
@@ -58,38 +58,38 @@
 				}
 
 			}
-			
+
 			case attachment: play.core.ExceptionAttachment => {
-			    
+
 			    <h2>@attachment.subTitle</h2>
-			    
+
 			    <div>
 			        @attachment.content.split("\n").zipWithIndex.map {
-			            
+
 			            case (line,index) => {
 			                <pre><span class="line">@(index+1)</span><span class="code">@line</span></pre>
 			            }
-			            
+
 			        }
 			    </div>
-			    
+
 			}
-			
+
 			case play.core.PlayException(_, _ , Some(throwable)) => {
-			    
+
 			    <h2>
 			        No source available, here is the exception stack trace:
 			    </h2>
-			    
+
 			    <div>
-			        
+
 			        <pre class="error"><span class="line">-></span><span class="code">@throwable.getClass.getName: @throwable.getMessage</span></pre>
-			        
+
 			        @throwable.getStackTrace.map { line =>
 						<pre><span class="line">&nbsp;</span><span class="code">    @line</span></pre>
 			        }
 			    </div>
-			    
+
 			}
 
 			case _ => {

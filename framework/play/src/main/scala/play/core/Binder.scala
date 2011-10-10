@@ -22,31 +22,31 @@ trait JavascriptLitteral[A] {
 }
 
 object JavascriptLitteral {
-    
+
     implicit def litteralString = new JavascriptLitteral[String] {
         def to(value: String) = "\"" + value + "\""
     }
-    
+
     implicit def litteralInt = new JavascriptLitteral[Int] {
         def to(value: Int) = value.toString
     }
-    
+
     implicit def litteralInteger = new JavascriptLitteral[Integer] {
         def to(value: Integer) = value.toString
     }
-    
+
     implicit def litteralLong = new JavascriptLitteral[Long] {
         def to(value: Long) = value.toString
     }
-    
+
     implicit def litteralBoolean = new JavascriptLitteral[Boolean] {
         def to(value: Boolean) = value.toString
     }
-    
+
     implicit def litteralOption[T](implicit jsl: JavascriptLitteral[T]) = new JavascriptLitteral[Option[T]] {
         def to(value: Option[T]) = value.map(jsl.to(_)).getOrElse("null")
     }
-    
+
 }
 
 object QueryStringBindable {
@@ -66,7 +66,7 @@ object QueryStringBindable {
         }
         def unbind(key: String, value: Int) = key + "=" + value.toString
     }
-    
+
     implicit def bindableLong = new QueryStringBindable[Long] {
         def bind(key: String, params: Map[String,Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
             try {
@@ -77,7 +77,7 @@ object QueryStringBindable {
         }
         def unbind(key: String, value: Long) = key + "=" + value.toString
     }
-    
+
     implicit def bindableInteger = new QueryStringBindable[Integer] {
         def bind(key: String, params: Map[String,Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
             try {
@@ -88,9 +88,9 @@ object QueryStringBindable {
         }
         def unbind(key: String, value: Integer) = key + "=" + value.toString
     }
-    
+
     implicit def bindableOption[T : QueryStringBindable] = new QueryStringBindable[Option[T]] {
-      def bind(key: String, params: Map[String,Seq[String]]) = 
+      def bind(key: String, params: Map[String,Seq[String]]) =
           Some( implicitly[QueryStringBindable[T]]
                     .bind(key, params)
                     .map(_.right.map(Some(_)))
@@ -102,12 +102,12 @@ object QueryStringBindable {
 
 
 object PathBindable {
-    
+
     implicit def bindableString = new PathBindable[String] {
         def bind(key: String, value: String) = Right(value)
         def unbind(key: String, value: String) = value
     }
-    
+
     implicit def bindableInt = new PathBindable[Int] {
         def bind(key: String, value: String) = {
             try {
@@ -118,7 +118,7 @@ object PathBindable {
         }
         def unbind(key: String, value: Int) = value.toString
     }
-    
+
     implicit def bindableLong = new PathBindable[Long] {
         def bind(key: String, value: String) = {
             try {
@@ -129,7 +129,7 @@ object PathBindable {
         }
         def unbind(key: String, value: Long) = value.toString
     }
-    
+
     implicit def bindableInteger = new PathBindable[Integer] {
         def bind(key: String, value: String) = {
             try {
@@ -140,5 +140,5 @@ object PathBindable {
         }
         def unbind(key: String, value: Integer) = value.toString
     }
-    
+
 }

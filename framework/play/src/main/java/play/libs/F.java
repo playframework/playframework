@@ -37,7 +37,7 @@ public class F {
     public static <A> Some<A> Some(A a) {
         return new Some(a);
     }
-    
+
     public static None None() {
         return new None();
     }
