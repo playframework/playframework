@@ -1,9 +1,9 @@
-@(field:play.api.data.Field, id:String, label:Option[String], showInfo:Boolean = true)(inputDef: (String,String,Option[String]) => Html)
+@(field: play.api.data.Field, id: String, label: Option[String], showInfo: Boolean = true)(inputDef: (String,String,Option[String]) => Html)
 
 <dl>
     <dt>
         @label.map { label =>
-            <label for="@id">@label</label> 
+            <label for="@id">@label</label>
         }
     </dt>
     <dd>@inputDef(id,field.name,field.value)</dd>

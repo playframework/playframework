@@ -4,28 +4,28 @@ import java.io._
 import play.core._
 
 object LessCompiler {
-    
+
     import org.mozilla.javascript._
     import org.mozilla.javascript.tools.shell._
-    
+
     import scala.collection.JavaConverters._
-    
+
     import scalax.file._
-    
+
     private lazy val compiler = {
         val ctx = Context.enter
         val global = new Global; global.init(ctx)
         val scope = ctx.initStandardObjects(global)
-        
+
         val wrappedLessCompiler = Context.javaToJS(this, scope)
         ScriptableObject.putProperty(scope, "LessCompiler", wrappedLessCompiler)
-        
+
         ctx.evaluateString(scope,
             """
                 var timers = [],
                     window = {
                         document: {
-                            getElementById: function(id) { 
+                            getElementById: function(id) {
                                 return [];
                             },
                             getElementsByTagName: function(tagName) {
@@ -33,8 +33,8 @@ object LessCompiler {
                             }
                         },
                         location: {
-                            protocol: 'file:', 
-                            hostname: 'localhost', 
+                            protocol: 'file:',
+                            hostname: 'localhost',
                             port: '80'
                         },
                         setInterval: function(fn, time) {
@@ -46,7 +46,7 @@ object LessCompiler {
                     document = window.document,
                     location = window.location,
                     setInterval = window.setInterval;
-                        
+
             """,
             "browser.js",
             1, null
@@ -58,77 +58,77 @@ object LessCompiler {
             1, null
         )
         ctx.evaluateString(scope,
-            """            
+            """
                 var compile = function(source) {
-                    
+
                     var compiled;
                     var dependencies = [source]
-                    
+
                     window.less.Parser.importer = function(path, paths, fn) {
                         var imported = LessCompiler.resolve(source, path)
                         dependencies.push(imported)
-                        new(window.less.Parser)({optimization:3, filename:String(imported.getCanonicalPath())}).parse(String(LessCompiler.readContent(imported)), function (e,root) {
+                        new(window.less.Parser)({optimization: 3, filename: String(imported.getCanonicalPath())}).parse(String(LessCompiler.readContent(imported)), function (e,root) {
                             fn(root)
                             if(e instanceof Object) {
                                 throw e
                             }
                         })
                     }
-                    
-                    new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
+
+                    new(window.less.Parser)({optimization: 3, filename: String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
                         compiled = root.toCSS()
                         if(e instanceof Object) {
                             throw e
                         }
                     })
-                    
-                    return {css:compiled, dependencies:dependencies}
+
+                    return {css: compiled, dependencies: dependencies}
                 }
             """,
             "compiler.js",
             1, null
         )
         val compilerFunction = scope.get("compile", scope).asInstanceOf[Function]
-        
+
         Context.exit
-        
-        (source:File) => {
+
+        (source: File) => {
             val result = Context.call(null, compilerFunction, scope, scope, Array(source)).asInstanceOf[Scriptable]
             val css = ScriptableObject.getProperty(result, "css").asInstanceOf[String]
             val dependencies = ScriptableObject.getProperty(result, "dependencies").asInstanceOf[NativeArray]
-            
+
             css -> (0 until dependencies.getLength.toInt).map(ScriptableObject.getProperty(dependencies,_) match {
-                case f:File => f
-                case o:NativeJavaObject => o.unwrap.asInstanceOf[File]
+                case f: File => f
+                case o: NativeJavaObject => o.unwrap.asInstanceOf[File]
             })
         }
     }
-    
-    def compile(source:File):(String,Seq[File]) = {
+
+    def compile(source: File):(String,Seq[File]) = {
         try {
             compiler(source)
         } catch {
-            case e:JavaScriptException => {
-                
+            case e: JavaScriptException => {
+
                 val error = e.getValue.asInstanceOf[Scriptable]
-                
+
                 throw CompilationException(
                     ScriptableObject.getProperty(error, "message").asInstanceOf[String],
                     new File(ScriptableObject.getProperty(error, "filename").asInstanceOf[String]),
                     ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue,
                     ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue
                 )
-                
+
             }
         }
     }
-    
-    def readContent(file:File) = Path(file).slurpString.replace("\r", "")
-    def resolve(originalSource:File, imported:String) = new File(originalSource.getParentFile,imported)
-    
+
+    def readContent(file: File) = Path(file).slurpString.replace("\r", "")
+    def resolve(originalSource: File, imported: String) = new File(originalSource.getParentFile,imported)
+
 }
 
-case class CompilationException(message:String, lessFile:File, atLine:Int, atColumn:Int) extends PlayException(
+case class CompilationException(message: String, lessFile: File, atLine: Int, atColumn: Int) extends PlayException(
     "Compilation error", message
 ) with ExceptionSource {
     def line = Some(atLine)

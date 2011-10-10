@@ -38,28 +38,28 @@ object DispatchStrategy{
                 .build
 
 }
-case class HandleAction[A](request:Request[A], response:Response, action:(Context[A] => Result), app:Application)
+case class HandleAction[A](request: Request[A], response: Response, action:(Context[A] => Result), app: Application)
 class Invoker extends Actor {
     self.dispatcher = DispatchStrategy.d
 
     def receive = {
 
-        case HandleAction(request, response:Response, action, app:Application) =>
+        case HandleAction(request, response: Response, action, app: Application) =>
 
-            val result = 
+            val result =
                 try {
                     // Be sure to use the Play classloader in this Thread
                     Thread.currentThread.setContextClassLoader(app.classloader)
                     try{
                         action(Context(request))
-                    } catch { 
-                        case e:Exception => throw ExecutionException(e, app.sources.sourceFor(e))
+                    } catch {
+                        case e: Exception => throw ExecutionException(e, app.sources.sourceFor(e))
                     }
-                }catch { case e => 
+                }catch { case e =>
                             try {
                                 e.printStackTrace()
                                 app.global.onError(e)
-                                } 
+                                }
                             catch{ case e => DefaultGlobal.onError(e) }
                       }
 
@@ -68,8 +68,8 @@ class Invoker extends Actor {
 
     }
 }
-    
-case class Invoke[A](a:A,k: A=>Unit)
+
+case class Invoke[A](a: A,k: A=>Unit)
 class PromiseInvoker extends Actor {
 
     self.dispatcher = DispatchStrategy.promises
@@ -90,27 +90,27 @@ object PromiseInvoker {
 
 
 object Agent{
-    def apply[A](a:A)= {
+    def apply[A](a: A)= {
         import akka.actor.Actor._
-        var actor = actorOf(new Agent[A](a)); 
+        var actor = actorOf(new Agent[A](a));
         actor.start()
         new {
             def send(action:(A=>A)){ actor ! action}
-          
+
             def close() = { actor.exit(); actor=null; }
         }
     }
 }
 
 
-private class Agent[A](var a:A) extends Actor {
+private class Agent[A](var a: A) extends Actor {
 
     self.dispatcher = DispatchStrategy.sockets
 
     def receive = {
-        
+
         case action: Function1[A,A] => a = action(a)
-                    
+
     }
-    
+
 }

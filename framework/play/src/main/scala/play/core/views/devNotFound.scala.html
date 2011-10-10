@@ -1,4 +1,4 @@
-@(request:play.api.mvc.RequestHeader, router:Option[play.core.Router.Routes])
+@(request: play.api.mvc.RequestHeader, router: Option[play.core.Router.Routes])
 
 <!DOCTYPE html>
 <html>
@@ -11,11 +11,11 @@
 		<p id="detail">
 			For request '@request'
 		</p>
-		
+
 		@router match {
 
 			case Some(routes) => {
-			    
+
 			    <h2>
         			These routes have been tried, in this order:
         		</h2>
@@ -33,7 +33,7 @@
         			No router defined.
         		</h2>
 			}
-		
+
         }
 
         <style>
@@ -116,10 +116,10 @@
 			    overflow: hidden;
 			    margin-right: 10px;
 			}
-			pre:first-child span.route {
+			pre: first-child span.route {
 			    border-top: 4px solid #CDCDCD;
 			}
-			pre:first-child span.line {
+			pre: first-child span.line {
 			    border-top: 4px solid #B6B6B6;
 			}
 			pre.error span.line {

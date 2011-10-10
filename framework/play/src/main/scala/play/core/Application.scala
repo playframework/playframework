@@ -10,21 +10,21 @@ import java.net._
 
 object DefaultGlobal extends GlobalSettings
 
-class ApplicationClassLoader(parent:ClassLoader, urls:Array[URL] = Array.empty) extends URLClassLoader(urls, parent) {
-    
-    def loadClassParentLast(name:String) = try {
+class ApplicationClassLoader(parent: ClassLoader, urls: Array[URL] = Array.empty) extends URLClassLoader(urls, parent) {
+
+    def loadClassParentLast(name: String) = try {
         findClass(name)
     } catch {
         case e => loadClass(name)
     }
-    
+
 }
 
 trait SourceMapper {
-    
-    def sourceOf(className:String):Option[File]
-    
-    def sourceFor(e:Throwable):Option[(File,Int)] = {
+
+    def sourceOf(className: String): Option[File]
+
+    def sourceFor(e: Throwable): Option[(File,Int)] = {
         e.getStackTrace.find(element => sourceOf(element.getClassName).isDefined).map { interestingStackTrace =>
             sourceOf(interestingStackTrace.getClassName).get -> interestingStackTrace.getLineNumber
         }.map {
@@ -35,52 +35,52 @@ trait SourceMapper {
             }
         }
     }
-    
+
 }
 
 case class NoSourceAvailable() extends SourceMapper {
-    def sourceOf(className:String) = None
+    def sourceOf(className: String) = None
 }
 
 trait ApplicationProvider {
-    def path:File
-    def get:Either[PlayException,Application]
-    def handleWebCommand(requestHeader:play.api.mvc.RequestHeader):Option[Result] = None
+    def path: File
+    def get: Either[PlayException,Application]
+    def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 
-class StaticApplication(applicationPath:File) extends ApplicationProvider {
+class StaticApplication(applicationPath: File) extends ApplicationProvider {
     val application = Application(applicationPath, new ApplicationClassLoader(classOf[StaticApplication].getClassLoader), NoSourceAvailable(), Play.Mode.Prod)
-    
+
     Play.start(application)
-    
+
     def get = Right(application)
     def path = applicationPath
 }
 
-abstract class ReloadableApplication(applicationPath:File) extends ApplicationProvider {
-    
+abstract class ReloadableApplication(applicationPath: File) extends ApplicationProvider {
+
     Logger.log("Running the application from SBT, auto-reloading is enabled")
-    
-    var lastState:Either[PlayException,Application] = Left(PlayException("Not initialized", "?"))
-    
+
+    var lastState: Either[PlayException,Application] = Left(PlayException("Not initialized", "?"))
+
     def get = {
-        
+
         synchronized {
-            
+
             reload.right.flatMap { maybeClassloader =>
-            
-                val maybeApplication:Option[Either[PlayException,Application]] = maybeClassloader.map { classloader =>
+
+                val maybeApplication: Option[Either[PlayException,Application]] = maybeClassloader.map { classloader =>
                     try {
-                    
+
                         val newApplication = Application(applicationPath, classloader, new SourceMapper {
-                            def sourceOf(className:String) = findSource(className)
+                            def sourceOf(className: String) = findSource(className)
                         }, Play.Mode.Dev)
-                    
+
                         Play.start(newApplication)
-                    
+
                         Right(newApplication)
                     } catch {
-                        case e:PlayException => {
+                        case e: PlayException => {
                             lastState = Left(e)
                             lastState
                         }
@@ -90,18 +90,18 @@ abstract class ReloadableApplication(applicationPath:File) extends ApplicationPr
                         }
                     }
                 }
-            
-                maybeApplication.flatMap(_.right.toOption).foreach { app => 
+
+                maybeApplication.flatMap(_.right.toOption).foreach { app =>
                     lastState = Right(app)
                 }
-                
+
                 maybeApplication.getOrElse(lastState)
             }
-        
+
         }
     }
-    def reload:Either[PlayException,Option[ApplicationClassLoader]]
+    def reload: Either[PlayException,Option[ApplicationClassLoader]]
     def path = applicationPath
-    def findSource(className:String):Option[File]
+    def findSource(className: String): Option[File]
 
 }

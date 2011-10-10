@@ -17,9 +17,9 @@ import play.mvc.Http;
  * Parse url-encoded requests.
  */
 public class UrlEncodedParser  {
-    
+
     boolean forQueryString = false;
-    
+
     public static Map<String, String[]> parse(String urlEncoded, String encoding) {
         try {
             return new UrlEncodedParser().parse(new ByteArrayInputStream(urlEncoded.getBytes( encoding )),encoding);
@@ -27,7 +27,7 @@ public class UrlEncodedParser  {
             throw new RuntimeException(ex);
         }
     }
-    
+
     public static Map<String, String[]> parseQueryString(InputStream is,String encoding) {
         UrlEncodedParser parser = new UrlEncodedParser();
         parser.forQueryString = true;

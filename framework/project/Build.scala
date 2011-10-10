@@ -71,7 +71,7 @@ object PlayBuild extends Build {
 
         import BuildSettings._
 
-        def isJar(f:java.io.File) = f.getName.endsWith(".jar")
+        def isJar(f: java.io.File) = f.getName.endsWith(".jar")
 
         val sbtJars = {
             file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
@@ -122,7 +122,7 @@ object PlayBuild extends Build {
 
     object Generators {
 
-        val PlayVersion = { dir:File =>
+        val PlayVersion = { dir: File =>
             val file = dir / "PlayVersion.scala"
             IO.write(file, 
                 """|package play.core
@@ -178,7 +178,7 @@ object PlayBuild extends Build {
         val buildRepository = TaskKey[Unit]("build-repository")
         val buildRepositoryTask = TaskKey[Unit]("build-repository") <<= (resetRepository, publish, dependencyClasspath in Runtime, sbtVersion) map { (repository, published, classpath, sbtVersion) =>
 
-            def checksum(algo:String)(bytes:Array[Byte]) = {
+            def checksum(algo: String)(bytes: Array[Byte]) = {
                 import java.security.MessageDigest
                 val digest = MessageDigest.getInstance(algo)
                 digest.reset()
@@ -193,7 +193,7 @@ object PlayBuild extends Build {
                 }
             }
 
-            def writeWithChecksums(f:File, content:String) {
+            def writeWithChecksums(f: File, content: String) {
                 IO.write(f, content)
                 Seq("md5","sha1").foreach { algo =>
                     IO.write(file(f.getAbsolutePath + "." + algo), checksum(algo)(content.getBytes))
@@ -285,7 +285,7 @@ object PlayBuild extends Build {
         
         // ----- Compile templates
         
-        val ScalaTemplates = { (classpath:Seq[Attributed[File]], templateEngine:File, sourceDirectory:File, generatedDir:File) =>
+        val ScalaTemplates = { (classpath: Seq[Attributed[File]], templateEngine: File, sourceDirectory: File, generatedDir: File) =>
             val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, this.getClass.getClassLoader)
             val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
             val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
@@ -297,7 +297,7 @@ object PlayBuild extends Build {
                 try {
                     sync.invoke(generated)
                 } catch {
-                    case e:java.lang.reflect.InvocationTargetException =>{
+                    case e: java.lang.reflect.InvocationTargetException =>{
                         val t = e.getTargetException
                         t.printStackTrace()
                         throw t
@@ -310,7 +310,7 @@ object PlayBuild extends Build {
                 try {
                     compile.invoke(null, template, sourceDirectory, generatedDir, "play.api.templates.Html", "play.api.templates.HtmlFormat", "import play.api.templates._\nimport play.api.templates.PlayMagic._")
                 } catch {
-                    case e:java.lang.reflect.InvocationTargetException =>{
+                    case e: java.lang.reflect.InvocationTargetException =>{
                         val t = e.getTargetException
                         t.printStackTrace()
                         throw t

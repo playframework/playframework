@@ -6,15 +6,15 @@ import jline._
 import play.core._
 
 object PlayProject extends Plugin {
-    
-    
-    
+
+
+
     // ----- We need this later
-    
+
     private val consoleReader = new jline.ConsoleReader
-    
+
     private def waitForKey() = {
-        consoleReader.getTerminal.disableEcho() 
+        consoleReader.getTerminal.disableEcho()
         def waitEOF {
             consoleReader.readVirtualKey() match {
                 case 4 => // STOP
@@ -22,17 +22,17 @@ object PlayProject extends Plugin {
                 case 10 => println(); waitEOF
                 case _ => waitEOF
             }
-            
+
         }
         waitEOF
         consoleReader.getTerminal.enableEcho()
     }
-    
-    
-    
+
+
+
     // ----- Exceptions
-    
-    case class CompilationException(problem:xsbti.Problem) extends PlayException(
+
+    case class CompilationException(problem: xsbti.Problem) extends PlayException(
         "Compilation error", problem.message
     ) with ExceptionSource {
         def line = problem.position.line.map(m => Some(m.asInstanceOf[Int])).getOrElse(None)
@@ -40,46 +40,46 @@ object PlayProject extends Plugin {
         def file = problem.position.sourceFile.map(m => Some(m)).getOrElse(None)
     }
 
-    case class TemplateCompilationException(source:File, message:String, atLine:Int, column:Int) extends PlayException(
+    case class TemplateCompilationException(source: File, message: String, atLine: Int, column: Int) extends PlayException(
         "Compilation error", message
     ) with ExceptionSource {
         def line = Some(atLine)
         def position = Some(column)
         def file = Some(source)
     }
-    
-    case class RoutesCompilationException(source:File, message:String, atLine:Option[Int], column:Option[Int]) extends PlayException(
+
+    case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException(
         "Compilation error", message
     ) with ExceptionSource {
         def line = atLine
         def position = column
         def file = Some(source)
     }
-    
-    
-    
+
+
+
     // ----- Keys
-    
+
     val distDirectory = SettingKey[File]("play-dist")
     val playResourceDirectories = SettingKey[Seq[File]]("play-resource-directories")
     val confDirectory = SettingKey[File]("play-conf")
     val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
     val templatesTypes = SettingKey[(String => (String,String))]("play-templates-formats")
-    
-    
+
+
     // ----- Play specific tasks
-        
-    val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything") 
+
+    val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
     val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s,r) =>
         Defaults.inAllDependencies(r, (compile in Compile).task, Project structure s).join
     }
-    
-    val playPackageEverything = TaskKey[Seq[File]]("play-package-everything") 
+
+    val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
     val playPackageEverythingTask = (state, thisProjectRef) flatMap { (s,r) =>
         Defaults.inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
     }
-    
-    val playCopyResources = TaskKey[Seq[(File,File)]]("play-copy-resources") 
+
+    val playCopyResources = TaskKey[Seq[(File,File)]]("play-copy-resources")
     val playCopyResourcesTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playResourceDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b,resources,resourcesDirectories,r,t,c,s) =>
         val cacheFile = c / "copy-resources"
         val mappings = (r.map( _ *** ).reduceLeft(_ +++ _) x rebase(b, t)) ++ (resources x rebase(resourcesDirectories, t))
@@ -87,12 +87,12 @@ object PlayProject extends Plugin {
         Sync(cacheFile)(mappings)
         mappings
     }
-        
+
     val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
     val playReloadTask = (playCopyResources, playCompileEverything) map { (_,analysises) =>
         analysises.reduceLeft(_ ++ _)
     }
-    
+
     val dist = TaskKey[File]("dist", "Build the standalone application package")
     val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
 
@@ -111,42 +111,42 @@ object PlayProject extends Plugin {
                     module.organization + "." + module.name + "-" + module.revision + ".jar"
                 }.getOrElse(dependency.data.getName)))
             } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
-        } 
-        
+        }
+
         val run = target / "run"
-        IO.write(run, 
+        IO.write(run,
             """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /**/
         )
         val scripts = Seq(run -> (packageName + "/run"))
-        
+
         val conf = Seq( (root / "conf" / "application.conf") -> (packageName + "/conf/application.conf"))
 
         IO.zip(libs ++ scripts ++ conf, zip)
         IO.delete(run)
-        
+
         println()
         println("Your application is ready in " + zip.getCanonicalPath)
         println()
 
         zip
     }
-    
+
     // ----- Assets
-    
+
     val LessCompiler = (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory) map { (src,resources,cache) =>
-        
+
         import java.io._
-        
+
         val cacheFile = cache / "less"
         val lessFiles = (src / "assets") ** "*.less"
         val currentInfos = lessFiles.get.map(f => f -> FileInfo.lastModified(f)).toMap
         val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
-        
+
         if(previousInfo != currentInfos) {
-            
+
             // Delete previous generated CSS files
             previousRelation._2s.foreach(IO.delete)
-            
+
             val generated = ((lessFiles --- ((src / "assets") ** "_*")) x relativeTo(Seq(src / "assets"))).map {
                 case (lessFile,name) => lessFile -> ("public/" + name.replace(".less", ".css"))
             }.flatMap {
@@ -156,35 +156,35 @@ object PlayProject extends Plugin {
                     dependencies.map(_ -> out)
                 }
             }
-            
-            Sync.writeInfo(cacheFile, 
+
+            Sync.writeInfo(cacheFile,
                 Relation.empty[File,File] ++ generated,
                 currentInfos
             )(FileInfo.lastModified.format)
-            
+
             // Return new CSS
             generated.toMap.values.toSeq
-            
+
         } else {
-            
+
             // Return previously generated CSS
             previousRelation._2s.toSeq
-            
+
         }
 
     }
-    
+
     val CoffeescriptCompiler = (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory) map { (src,resources,cache) =>
-        
+
         import java.io._
-        
+
         val cacheFile = cache / "coffeescript"
         val currentRelation = Relation.empty ++ ((src / "assets") ** "*.coffee" x relativeTo(Seq(src / "assets"))).map {
             case (csFile,name) => csFile -> new File(resources, "public/" + name.replace(".coffee", ".js"))
         }
         val currentInfos = currentRelation._1s.map(f => f -> FileInfo.lastModified(f)).toMap
         val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
-        
+
         val removeTargets = previousRelation._2s -- currentRelation._2s
         val update = currentRelation filter { (source,target) =>
             if(target.exists) {
@@ -195,41 +195,41 @@ object PlayProject extends Plugin {
         }
 
         removeTargets.foreach(IO.delete)
-        update.all.foreach { 
+        update.all.foreach {
             case (source,target) => {
                 val compiled = play.core.coffeescript.CoffeescriptCompiler.compile(source)
                 IO.write(target, compiled)
             }
         }
-        
-        Sync.writeInfo(cacheFile, 
+
+        Sync.writeInfo(cacheFile,
             currentRelation,
             currentInfos
         )(FileInfo.lastModified.format)
-        
+
         currentRelation._2s.toSeq
     }
-    
-    
+
+
     // ----- Post compile (need to be refactored and fully configurable)
-    
+
     val PostCompile = (sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile) map { (src,deps,analysis,javaSrc,srcManaged,classes) =>
-        
+
         // Properties
-        
+
         val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(":")
-        
+
         val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
             analysis.relations.products(sourceFile)
         }.flatten.distinct
-        
+
         javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
         javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
-        
+
         // EBean
-        
+
         try {
-            
+
             val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
 
             import com.avaje.ebean.enhance.agent._
@@ -241,32 +241,32 @@ object PlayProject extends Plugin {
 
             val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
             ft.process("models/**")
-            
+
         } catch {
-            case _ => 
+            case _ =>
         }
-        
+
         // Copy managed classes
-        
+
         val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
-        
+
         val managedClasses = (srcManaged ** "*.scala").get.map { managedSourceFile =>
             analysis.relations.products(managedSourceFile)
         }.flatten x rebase(classes, managedClassesDirectory)
-        
+
         // Copy modified class files
         val managedSet = IO.copy(managedClasses)
-        
+
         // Remove deleted class files
         (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
-        
+
         analysis
     }
-    
-    
+
+
     // ----- Source generators
-    
-    val RouteFiles = (confDirectory:File, generatedDir:File) => {
+
+    val RouteFiles = (confDirectory: File, generatedDir: File) => {
         import play.core.Router.RoutesCompiler._
 
         ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
@@ -280,23 +280,23 @@ object PlayProject extends Plugin {
             }
             case e => throw e
         }
-        
+
         ((generatedDir ** "routes_*.scala").get ++ (generatedDir ** "routes.java").get).map(_.getAbsoluteFile)
-        
+
     }
-    
-    val ScalaTemplates = (sourceDirectory:File, generatedDir:File, templateTypes:Function1[String,(String,String)], additionalImports:Seq[String]) => {
+
+    val ScalaTemplates = (sourceDirectory: File, generatedDir: File, templateTypes: Function1[String,(String,String)], additionalImports: Seq[String]) => {
         import play.templates._
-        
+
         (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
         try {
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 ScalaTemplateCompiler.compile(
-                    template, 
-                    sourceDirectory, 
-                    generatedDir, 
-                    templateTypes("html")._1, 
-                    templateTypes("html")._2, 
+                    template,
+                    sourceDirectory,
+                    generatedDir,
+                    templateTypes("html")._1,
+                    templateTypes("html")._2,
                     additionalImports.map("import " + _).mkString("\n")
                 )
             }
@@ -309,46 +309,46 @@ object PlayProject extends Plugin {
 
         (generatedDir ** "*.template.scala").get.map(_.getAbsoluteFile)
     }
-    
-    
-    
+
+
+
     // ----- Play prompt
-    
-    val playPrompt = { state:State =>
-        
+
+    val playPrompt = { state: State =>
+
         val extracted = Project.extract(state)
         import extracted._
-        
+
         (name in currentRef get structure.data).map { name =>
             new ANSIBuffer().append("[").cyan(name).append("] $ ").toString
-        }.getOrElse("> ")  
-        
+        }.getOrElse("> ")
+
     }
-    
-    
-    
+
+
+
     // ----- Reloader
-    
-    def newReloader(state:State) = {
-        
+
+    def newReloader(state: State) = {
+
         val extracted = Project.extract(state)
-    
+
         new ReloadableApplication(extracted.currentProject.base) {
-        
-            
+
+
             // ----- Internal state used for reloading is kept here
-            
+
             val watchFiles = Seq(
                 extracted.currentProject.base / "conf" / "application.conf"
             ) ++ ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get
-        
+
             var forceReload = false
             var currentProducts = Map.empty[java.io.File,Long]
             var currentAnalysis = Option.empty[sbt.inc.Analysis]
-            
+
             def forceReloadNextTime() {forceReload = true}
-        
-            def updateAnalysis(newAnalysis:sbt.inc.Analysis) = {
+
+            def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
                 val classFiles = newAnalysis.stamps.allProducts ++ watchFiles
                 val newProducts = classFiles.map { classFile =>
                     classFile -> classFile.lastModified
@@ -360,29 +360,29 @@ object PlayProject extends Plugin {
                 }
                 updated.foreach(currentProducts = _)
                 currentAnalysis = Some(newAnalysis)
-            
+
                 forceReload = false
-            
+
                 updated
             }
-        
-            def findSource(className:String) = {
+
+            def findSource(className: String) = {
                 val topType = className.split('$').head
                 currentAnalysis.flatMap { analysis =>
                     analysis.apis.internal.flatMap {
                         case (sourceFile, source) => {
                             source.api.definitions.find(defined => defined.name == topType).map(_ => {
-                                sourceFile:java.io.File
+                                sourceFile: java.io.File
                             })
                         }
                     }.headOption
                 }
             }
-            
-            def remapProblemForGeneratedSources(problem:xsbti.Problem) = {
-                
+
+            def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
+
                 problem.position.sourceFile.collect {
-                    
+
                     // Templates
                     case play.templates.MaybeGeneratedSource(generatedSource) => {
                         new xsbti.Problem {
@@ -407,7 +407,7 @@ object PlayProject extends Plugin {
                             def severity = problem.severity
                         }
                     }
-                    
+
                     // Routes files
                     case play.core.Router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
                         new xsbti.Problem {
@@ -426,25 +426,25 @@ object PlayProject extends Plugin {
                             def severity = problem.severity
                         }
                     }
-                    
+
                 }.getOrElse {
                     problem
                 }
-                
+
             }
-            
-            def getProblems(incomplete:Incomplete):Seq[xsbti.Problem] = {
+
+            def getProblems(incomplete: Incomplete): Seq[xsbti.Problem] = {
                 (Compiler.allProblems(incomplete) ++ {
                     Incomplete.linearize(incomplete).filter(i => i.node.isDefined && i.node.get.isInstanceOf[ScopedKey[_]]).flatMap { i =>
                         val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
                         val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
                         val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
-                        
+
                         Project.evaluateTask(streamsManager, state).get.toEither.right.toOption.map { streamsManager =>
                             var parsed:(Option[(String,String,String)], Option[Int]) = (None,None)
-                            Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect { 
+                            Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
                                 case JavacError(file,line,message) => parsed = Some((file,line,message)) -> None
-                                case JavacErrorInfo(key,message) => parsed._1.foreach { o => 
+                                case JavacErrorInfo(key,message) => parsed._1.foreach { o =>
                                     parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
                                 }
                                 case JavacErrorPosition(pos) => parsed = parsed._1 -> Some(pos.size)
@@ -465,26 +465,26 @@ object PlayProject extends Plugin {
                                 def severity = xsbti.Severity.Error
                             }
                         }
-                        
+
                     }
                 }).map(remapProblemForGeneratedSources)
             }
-            
+
             private def newClassloader = {
                 new ApplicationClassLoader(this.getClass.getClassLoader, {
                     Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray
                 })
             }
-        
+
             def reload = {
-                
+
                 PlayProject.synchronized {
-                    
+
                     Project.evaluateTask(playReload, state).get.toEither
                         .left.map { incomplete =>
                             Incomplete.allExceptions(incomplete).headOption.map {
-                                case e:PlayException => e 
-                                case e:xsbti.CompileFailed => {
+                                case e: PlayException => e
+                                case e: xsbti.CompileFailed => {
                                     getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
                                         UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
                                     }
@@ -499,67 +499,67 @@ object PlayProject extends Plugin {
                                 newClassloader
                             }
                         }
-                    
+
                 }
-            
+
             }
-            
-            override def handleWebCommand(request:play.api.mvc.RequestHeader) = {
-                
+
+            override def handleWebCommand(request: play.api.mvc.RequestHeader) = {
+
                 val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
-                
+
                 request.path match {
-                    
+
                     case applyEvolutions(db) => {
                         import play.api.db._
                         import play.api.mvc.Results._
-                        
+
                         OfflineEvolutions.applyScript(extracted.currentProject.base, newClassloader, db)
-                        
+
                         forceReloadNextTime()
-                        
+
                         Some(Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")))
                     }
-                    
+
                     case _ => None
-                    
+
                 }
             }
-            
+
         }
-    
+
     }
-    
-    
-    
-    
+
+
+
+
     // ----- Play commands
-    
-    val playRunCommand = Command.command("run") { state:State =>
-        
+
+    val playRunCommand = Command.command("run") { state: State =>
+
         val reloader = newReloader(state)
-        
+
         println()
-        
+
         val server = new play.core.server.NettyServer(reloader)
-        
+
         println()
         println(new ANSIBuffer().green("(Server started, use Ctrl+D to stop and go back to the console...)").toString)
         println()
-        
+
         waitForKey()
-        
+
         server.stop()
-        
+
         println()
-        
-        state     
+
+        state
     }
-    
-    val playStartCommand = Command.command("start") { state:State =>
-        
+
+    val playStartCommand = Command.command("start") { state: State =>
+
         val extracted = Project.extract(state)
-        
+
         Project.evaluateTask(compile in Compile, state).get.toEither match {
             case Left(_) => {
                 println()
@@ -568,16 +568,16 @@ object PlayProject extends Plugin {
                 state.fail
             }
             case Right(_) => {
-                
+
                 Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.map { dependencies =>
-                    
+
                     val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
-                    
+
                     import java.lang.{ProcessBuilder => JProcessBuilder}
                     val builder = new JProcessBuilder(Array(
                         "java", "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath
                     ) : _*)
-                    
+
                     new Thread {
                         override def run {
                             System.exit(Process(builder) !)
@@ -589,26 +589,26 @@ object PlayProject extends Plugin {
                            |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
                            |""".stripMargin
                     ).toString)
-                    
+
                     waitForKey()
 
                     println()
 
-                    state.copy(remainingCommands = Seq.empty)   
-                    
+                    state.copy(remainingCommands = Seq.empty)
+
                 }.right.getOrElse {
                     println()
                     println("Oops, cannot start the server?")
                     println()
                     state.fail
                 }
-                
+
             }
         }
-        
+
     }
-    
-    val playHelpCommand = Command.command("help") { state:State =>
+
+    val playHelpCommand = Command.command("help") { state: State =>
 
         println(
             """
@@ -630,12 +630,12 @@ object PlayProject extends Plugin {
                 |You can also browse the complete documentation at """.stripMargin +
                 new ANSIBuffer().underscore("http://www.playframework.org").append(".\n")
         )
-        
+
         state
     }
-    
-    val playCommand = Command.command("play") { state:State =>
-        
+
+    val playCommand = Command.command("play") { state: State =>
+
         val extracted = Project.extract(state)
         import extracted._
 
@@ -644,26 +644,26 @@ object PlayProject extends Plugin {
         println("""
             |> Type "help" or "license" for more information.
             |> Type "exit" or use Ctrl+D to leave this console.
-            |""".stripMargin 
+            |""".stripMargin
         )
 
         state.copy(
             remainingCommands = state.remainingCommands :+ "shell"
         )
-        
+
     }
-    
-    
-    
-    
+
+
+
+
     // ----- Default settings
-    
+
     lazy val defaultSettings = Seq[Setting[_]](
-        
+
         target <<= baseDirectory / "target",
 
         sourceDirectory in Compile <<= baseDirectory / "app",
-        
+
         confDirectory <<= baseDirectory / "conf",
 
         scalaSource in Compile <<= baseDirectory / "app",
@@ -675,7 +675,7 @@ object PlayProject extends Plugin {
         libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
 
         sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
-        
+
         sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
         commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand),
@@ -685,7 +685,7 @@ object PlayProject extends Plugin {
         copyResources in Compile <<= (copyResources in Compile, playCopyResources) map { (r,pr) => r ++ pr },
 
         mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
-        
+
         compile in (Compile) <<= PostCompile,
 
         dist <<= distTask,
@@ -699,35 +699,35 @@ object PlayProject extends Plugin {
         playReload <<= playReloadTask,
 
         cleanFiles <+= distDirectory.identity,
-        
+
         resourceGenerators in Compile <+= LessCompiler,
-        
+
         resourceGenerators in Compile <+= CoffeescriptCompiler,
-        
+
         playResourceDirectories := Seq.empty[File],
-        
+
         playResourceDirectories <+= baseDirectory / "conf",
-        
+
         playResourceDirectories <+= baseDirectory / "public",
-        
+
         templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._"),
-        
+
         templatesTypes := ((extension) => extension match {
             case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
         })
-        
+
     )
 
-    
-    
+
+
     // ----- Create a Play project with default settings
-    
-    def apply(name:String, applicationVersion:String = "0.1", dependencies:Seq[ModuleID] = Nil, path:File = file(".")) = {
-            
+
+    def apply(name: String, applicationVersion: String = "0.1", dependencies: Seq[ModuleID] = Nil, path: File = file(".")) = {
+
         Project(name, path)
             .settings( PlayProject.defaultSettings : _*)
             .settings(
-        
+
                 version := applicationVersion,
 
                 libraryDependencies ++= dependencies,
@@ -735,9 +735,9 @@ object PlayProject extends Plugin {
                 resolvers ++= Option(System.getProperty("play.home")).map { home =>
                     Resolver.file("play-repository", file(home) / "../repository")
                 }.toSeq
-            
+
             )
-        
+
     }
-    
+
 }
