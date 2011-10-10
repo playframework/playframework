@@ -1,6 +1,23 @@
-if [ -f conf/application.conf ]
+#!/usr/bin/env bash
+
+# find correct directory of script
+# credits to user25866 at stackoverflow.com
+# source: http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in/179231#179231
+
+SCRIPTPATH="${BASH_SOURCE[0]}";
+if ([ -L "${SCRIPTPATH}" ]) then
+  while([ -h "${SCRIPTPATH}" ]) do SCRIPTPATH=`readlink "${SCRIPTPATH}"`; done
+fi
+pushd . > /dev/null
+cd `dirname $0`
+cd `dirname ${SCRIPTPATH}` > /dev/null
+SCRIPTPATH=`pwd -P`;
+popd > /dev/null
+
+
+if [ -f conf/application.yml ]
 then
-	`dirname $0`/framework/build play "$@"
+	$SCRIPTPATH/framework/build play "$@"
 else
-	java -cp `dirname $0`/framework/sbt/boot/scala-2.9.0/lib/*:`dirname $0`/framework/sbt/boot/scala-2.9.0/org.scala-tools.sbt/sbt/0.10.1/*:`dirname $0`/repository/play/play_2.9.0/2.0/jars/* play.console.Console "$@"
+	java -cp $SCRIPTPATH/framework/sbt/boot/scala-2.9.0/lib/*:$SCRIPTPATH/framework/sbt/boot/scala-2.9.0/org.scala-tools.sbt/sbt/0.10.1/*:$SCRIPTPATH/repository/play/play_2.9.0/2.0/jars/* play.console.Console "$@"
 fi
