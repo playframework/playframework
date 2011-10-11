@@ -5,7 +5,7 @@ import play.api.mvc.Results._
 
 object Actions {
     
-    def Secured[A](predicate:Context[A]=>Boolean)(action:Action[A]):Action[A] = Action(action.parser, ctx => {
+    def Secured[A](predicate:Request[A]=>Boolean)(action:Action[A]):Action[A] = Action(action.parser, ctx => {
         if(predicate(ctx)) {
             action(ctx)
         } else {
@@ -13,7 +13,7 @@ object Actions {
         }
     })
     
-    def Secured[A](predicate: =>Boolean)(action:Action[A]):Action[A] = Secured((_:Context[A]) => predicate)(action)
+    def Secured[A](predicate: =>Boolean)(action:Action[A]):Action[A] = Secured((_:Request[A]) => predicate)(action)
     
     val cache = scala.collection.mutable.HashMap.empty[String,Result] 
     
@@ -53,7 +53,7 @@ object TOTO {
 
 object Application extends Controller {
     
-    override def Action[A](bodyParser:BodyParser[A],block:Context[A]=>Result) = super.Action(bodyParser,ctx => {
+    override def Action[A](bodyParser:BodyParser[A],block:Request[A]=>Result) = super.Action(bodyParser,ctx => {
         println("Request for Application controller")
         block(ctx)
     }) 
@@ -103,7 +103,7 @@ object Application extends Controller {
             Actions.Cached(p, sort) { 
                 Action {
                     println("Listing page " + p + " using " + sort)
-                    Ok(views.html.list(p, sort).toString)
+                    Ok(views.html.list(p, sort))
                 }
             }
         } 

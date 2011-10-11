@@ -1,9 +1,10 @@
 package play.templates.test
 
-import org.specs._
+import org.specs2.mutable._
+
 import play.templates._
 
-object TemplateParser extends Specification("Template parser") {
+object TemplateParser extends Specification {
     
     "The template parser" should {
         
@@ -19,10 +20,6 @@ object TemplateParser extends Specification("Template parser") {
             parser.parser(get(templateName))
         }
         
-        val fullyParsed:PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template],Boolean] = {
-            case parser.Success(_, rest) => rest.atEnd
-        }
-        
         def failAt(message:String,line:Int,column:Int):PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template],Boolean] = {
             case parser.NoSuccess(msg, rest) => {
                 message == msg && rest.pos.line == line && rest.pos.column == column
@@ -32,15 +29,15 @@ object TemplateParser extends Specification("Template parser") {
         "success for" in {
             
             "static.scala.html" in {
-                parse("static.scala.html") must beLike(fullyParsed)
+                parse("static.scala.html") must beLike({case parser.Success(_, rest) => if(rest.atEnd) ok else ko})
             }
             
             "simple.scala.html" in {
-                parse("simple.scala.html") must beLike(fullyParsed)
+                parse("simple.scala.html") must beLike({case parser.Success(_, rest) => if(rest.atEnd) ok else ko})
             }
             
             "complicated.scala.html" in {
-                parse("complicated.scala.html") must beLike(fullyParsed)
+                parse("complicated.scala.html") must beLike({case parser.Success(_, rest) => if(rest.atEnd) ok else ko})
             }
             
         }
@@ -48,15 +45,27 @@ object TemplateParser extends Specification("Template parser") {
         "fail for" in {
             
             "unclosedBracket.scala.html" in {
-                parse("unclosedBracket.scala.html") must beLike(failAt("Unmatched bracket", 8, 12))
+                parse("unclosedBracket.scala.html") must beLike({
+                    case parser.NoSuccess(msg, rest) => {
+                        if(msg == "Unmatched bracket" && rest.pos.line == 8 && rest.pos.column == 12) ok else ko
+                    }
+                })
             }
             
             "unclosedBracket2.scala.html" in {
-                parse("unclosedBracket2.scala.html") must beLike(failAt("Unmatched bracket", 13, 20))
+                parse("unclosedBracket2.scala.html") must beLike({
+                    case parser.NoSuccess(msg, rest) => {
+                        if(msg == "Unmatched bracket" && rest.pos.line == 13 && rest.pos.column == 20) ok else ko
+                    }
+                })
             }
             
             "invalidAt.scala.html" in {
-                parse("invalidAt.scala.html") must beLike(failAt("`identifier' expected but `<' found", 5, 6))
+                parse("invalidAt.scala.html") must beLike({
+                    case parser.NoSuccess(msg, rest) => {
+                        if(msg == "identifier' expected but `<' found" && rest.pos.line == 5 && rest.pos.column == 6) ok else ko
+                    }
+                })
             }
             
         }

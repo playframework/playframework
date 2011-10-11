@@ -5,9 +5,6 @@ package play.api.mvc {
     
     import scala.annotation._
 
-    @implicitNotFound("Cannot find any HTTP Context here")
-    case class Context[+A](request:Request[A])
-
     @implicitNotFound("Cannot find any HTTP Request Header here")
     trait RequestHeader {
         
@@ -17,8 +14,9 @@ package play.api.mvc {
         def queryString:Map[String,Seq[String]]
         def headers:Headers
         def cookies:Cookies
+        def username:Option[String]
         
-        lazy val session:Map[String,String] = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
+        lazy val session:Session = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
         lazy val rawQueryString = uri.split('?').drop(1).mkString("?")
         
         override def toString = {
@@ -30,6 +28,7 @@ package play.api.mvc {
     @implicitNotFound("Cannot find any HTTP Request here")
     trait Request[+A] extends RequestHeader {
         def body:A
+
     }
 
     trait Response {
@@ -53,19 +52,27 @@ package play.api.mvc {
         def apply(name:String):Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
     }
     
+    case class Session(data:Map[String,String] = Map.empty[String,String]) {
+        
+        def get(key:String) = data.get(key)
+        def isEmpty:Boolean = data.isEmpty
+        def +(kv:(String,String)) = copy(data + kv)
+        
+    }
+    
     object Session {
         
         val SESSION_COOKIE_NAME = "PLAY_SESSION"
-        val blankSession = Map.empty[String,String]
+        val blankSession = new Session
         
-        def encode(data:Map[String,String]):String = {
-            java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
+        def encode(session:Session):String = {
+            java.net.URLEncoder.encode(session.data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
         }
         
-        def decode(data:String):Map[String,String] = {
+        def decode(data:String):Session = {
             try {
                 Option(data.trim).filterNot(_.isEmpty).map { data =>
-                    java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+                    Session(java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap)
                 }.getOrElse(blankSession)
             } catch {
                 // fail gracefully is the session cookie is corrupted
@@ -73,11 +80,11 @@ package play.api.mvc {
             }
         }
         
-        def encodeAsCookie(data:Map[String,String]):Cookie = {
+        def encodeAsCookie(data:Session):Cookie = {
             Cookie(SESSION_COOKIE_NAME, encode(data))
         }
         
-        def decodeFromCookie(sessionCookie:Option[Cookie]):Map[String,String] = {
+        def decodeFromCookie(sessionCookie:Option[Cookie]):Session = {
             sessionCookie.filter(_.name == SESSION_COOKIE_NAME).map(c => decode(c.value)).getOrElse(blankSession)
         }
         

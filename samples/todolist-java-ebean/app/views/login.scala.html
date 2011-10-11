@@ -1,8 +1,8 @@
-@(loginForm:play.api.data.Form[(String,String)])(implicit request:play.api.mvc.RequestHeader)
+@(loginForm:play.data.Form[Authentication.Login])
 
 @main {
     
-    @loginForm.globalError.map { error =>
+    @Option(loginForm.globalError).map { error =>
         <p style="color:#fff; background:#c00">
             @error.message
         </p>
@@ -10,7 +10,7 @@
     
     @helper.html.form(routes.Authentication.authenticate()) {
         
-        @helper.html.inputText(loginForm("login"))
+        @helper.html.inputText(loginForm("username"))
         
         @helper.html.inputPassword(loginForm("password"))
         
@@ -19,6 +19,7 @@
         </p>
         
     }
+    
     
 }
 

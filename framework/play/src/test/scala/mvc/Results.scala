@@ -2,7 +2,7 @@ package play.test
 
 import org.specs2.mutable._
 
-class ResultsTests extends Specification  with org.specs2.matcher.ResultMatchers {
+class ResultsTests extends Specification {
     
     import play.api.mvc._
     import play.api.mvc.Results._
@@ -49,7 +49,7 @@ class ResultsTests extends Specification  with org.specs2.matcher.ResultMatchers
                 Ok("hello").as("text/html")
                     .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
                     .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
-                    .discardCookies("logged")
+                    .discardingCookies("logged")
                     
             val setCookies = Cookies.decode(headers("Set-Cookie")).map(c => c.name -> c).toMap
             setCookies.size must be_==(4)
@@ -61,21 +61,21 @@ class ResultsTests extends Specification  with org.specs2.matcher.ResultMatchers
         
         "support session helper" in {
             
-            Session.decode("  ").size must be_==(0)
+            Session.decode("  ").isEmpty must be_==(true)
             
             val data = Map("user" -> "kiki", "bad:key" -> "yop", "langs" -> "fr:en:de")
-            val encodedSession = Session.encode(data)
+            val encodedSession = Session.encode(Session(data))
             val decodedSession = Session.decode(encodedSession)
             
-            decodedSession.size must be_==(2)
-            decodedSession must havePair("user" -> "kiki")
-            decodedSession must havePair("langs" -> "fr:en:de")
+            decodedSession.data.size must be_==(2)
+            decodedSession.data must havePair("user" -> "kiki")
+            decodedSession.data must havePair("langs" -> "fr:en:de")
             
             val SimpleResult(SimpleHttpResponse(_, headers),_) = 
                 Ok("hello").as("text/html")
                     .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
-                    .discardCookies("logged")
-                    .withSession(Map("user" -> "kiki", "langs" -> "fr:en:de"))
+                    .discardingCookies("logged")
+                    .withSession("user" -> "kiki", "langs" -> "fr:en:de")
                     .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
                     
             val setCookies = Cookies.decode(headers("Set-Cookie")).map(c => c.name -> c).toMap
@@ -86,9 +86,9 @@ class ResultsTests extends Specification  with org.specs2.matcher.ResultMatchers
             setCookies("logged").maxAge must be_==(0)
             
             val playSession = Session.decodeFromCookie(setCookies.get(Session.SESSION_COOKIE_NAME))
-            playSession.size must be_==(2)
-            playSession must havePair("user" -> "kiki")
-            playSession must havePair("langs" -> "fr:en:de")
+            playSession.data.size must be_==(2)
+            playSession.data must havePair("user" -> "kiki")
+            playSession.data must havePair("langs" -> "fr:en:de")
         }
         
         

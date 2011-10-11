@@ -38,7 +38,7 @@ object DispatchStrategy{
                 .build
 
 }
-case class HandleAction[A](request:Request[A], response:Response, action:(Context[A] => Result), app:Application)
+case class HandleAction[A](request:Request[A], response:Response, action:Action[A], app:Application)
 class Invoker extends Actor {
     self.dispatcher = DispatchStrategy.d
 
@@ -51,7 +51,7 @@ class Invoker extends Actor {
                     // Be sure to use the Play classloader in this Thread
                     Thread.currentThread.setContextClassLoader(app.classloader)
                     try{
-                        action(Context(request))
+                        action(request)
                     } catch { 
                         case e:Exception => throw ExecutionException(e, app.sources.sourceFor(e))
                     }

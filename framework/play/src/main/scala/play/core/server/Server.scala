@@ -34,7 +34,7 @@ trait Server {
     }
     def errorResult(e:Throwable):Result = DefaultGlobal.onError(e)
 
-    def invoke[A](request:Request[A], response:Response,a:(Context[A]=>Result), app:Application) = invoker ! HandleAction(request,response,a,app)
+    def invoke[A](request:Request[A], response:Response, action:Action[A], app:Application) = invoker ! HandleAction(request,response,action,app)
 
     
     def applicationProvider:ApplicationProvider

@@ -1,4 +1,4 @@
-@(maybeId:Option[Long], taskForm:play.api.data.Form[(String,java.sql.Date,Boolean)])
+@(maybeId:Option[Long], taskForm:play.api.data.Form[(String,java.sql.Date,Boolean)])(implicit request:play.api.mvc.RequestHeader)
 
 @doneOptions = @{
     Map("" -> "-- Choose --", "true" -> "It's done", "false" -> "Not yet")

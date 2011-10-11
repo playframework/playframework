@@ -26,13 +26,13 @@ case class SimpleResult[A](response:SimpleHttpResponse,body:Enumerator[A])(impli
         withHeaders(SET_COOKIE -> Cookies.merge(response.headers.get(SET_COOKIE).getOrElse(""), Nil, discard = names))
     }
     
-    def withSession(session:Map[String,String]):SimpleResult[A] = {
+    def withSession(session:Session):SimpleResult[A] = {
         if(session.isEmpty) discardingCookies(Session.SESSION_COOKIE_NAME) else withCookies(Session.encodeAsCookie(session))
     }
     
-    def withSession(session:(String,String)*):SimpleResult[A] = withSession(session.toMap)
+    def withSession(session:(String,String)*):SimpleResult[A] = withSession(Session(session.toMap))
     
-    def withNewSession = withSession(Map.empty[String,String])
+    def withNewSession = withSession(Session())
     
     def as(contentType:String) = withHeaders(CONTENT_TYPE -> contentType)
     
@@ -72,9 +72,12 @@ object Results extends Results {
 object JResults extends Results {
     def writeContent:Writeable[play.api.Content] = writeableStringOf_Content[play.api.Content]
     def writeString:Writeable[String] = writeableStringOf_String
+    def writeEmpty:Writeable[Results.Empty] = writeableStringOf_Empty
     def contentTypeOfString:ContentTypeOf[String] = contentTypeOf_String
     def contentTypeOfContent:ContentTypeOf[play.api.Content] = contentTypeOf_Content[play.api.Content]
+    def contentTypeOfEmpty:ContentTypeOf[Results.Empty] = contentTypeOf_Empty
     def emptyHeaders = Map.empty[String,String]
+    def empty = Results.Empty()
 }
 
 trait Results {

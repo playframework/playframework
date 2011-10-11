@@ -950,10 +950,6 @@ object Router {
                 def call(call: => A, action:ActionDef):Action[_] = call
             }
             
-            implicit def wrapResult[A <: Result]:ActionInvoker[A] = new ActionInvoker[A] {
-                def call(call: => A, action:ActionDef):Action[_] = DefaultAction(_ => call)
-            }
-            
             implicit def wrapJava:ActionInvoker[play.mvc.Result] = new ActionInvoker[play.mvc.Result] {
                 def call(call: => play.mvc.Result, action:ActionDef) = {
                     new play.core.j.JavaAction { 

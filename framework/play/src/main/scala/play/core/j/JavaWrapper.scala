@@ -7,33 +7,35 @@ import play.api.mvc._
 import play.mvc.{Action => JAction, Result => JResult}
 import play.mvc.Http.{Context => JContext, Request => JRequest}
 
-trait JavaAction extends DefaultAction {
+trait JavaAction extends Action[AnyContent] {
+    
+    def parser = play.api.data.RequestData.urlEncoded("UTF-8" /* should get charset from content type */)
     
     def invocation:JResult
     def controller:Class[_]
     def method:java.lang.reflect.Method
     
-    def apply(ctx:Context[Map[String,Seq[String]]]) = {
+    def apply(req:Request[AnyContent]) = {
         
-        val javaContext = new JContext {
+        val javaContext = new JContext(
             
-            def request = new JRequest {
+            new JRequest {
                 
-                def uri = ctx.request.uri
-                def method = ctx.request.method
-                def path = ctx.request.method
+                def uri = req.uri
+                def method = req.method
+                def path = req.method
                 
-                def urlEncoded = {
-                    ctx.request.body.mapValues(_.toArray).asJava
+                def urlFormEncoded = {
+                    req.body.urlFormEncoded.mapValues(_.toArray).asJava
                 }
                 
-                override def toString = ctx.request.toString
+                override def toString = req.toString
                 
-            }
+            },
             
-            override def toString = ctx.toString
+            req.session.data.asJava
             
-        }
+        )
         
         val rootAction = new JAction[Any] {
             
@@ -48,7 +50,7 @@ trait JavaAction extends DefaultAction {
         } 
         
         val actionMixins = {
-            method.getDeclaredAnnotations
+            (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations)
                 .filter(_.annotationType.isAnnotationPresent(classOf[play.mvc.With]))
                 .map(a => a -> a.annotationType.getAnnotation(classOf[play.mvc.With]).value())
                 .reverse
@@ -63,7 +65,14 @@ trait JavaAction extends DefaultAction {
             }
         }
         
-        finalAction.call(javaContext).getWrappedResult
+        finalAction.call(javaContext).getWrappedResult match {
+            case result@SimpleResult(_,_) => {
+                result
+                    .withHeaders(javaContext.response.getHeaders.asScala.toSeq:_*)
+                    .withSession(Session(javaContext.session.asScala.toMap))
+            }
+            case other => other
+        }
     }
     
 }

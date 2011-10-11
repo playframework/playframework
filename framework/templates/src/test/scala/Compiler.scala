@@ -1,11 +1,11 @@
 package play.templates.test
 
-import org.specs._
+import org.specs2.mutable._
 import play.templates._
 
 import java.io._
 
-object TemplateCompiler extends Specification("Template compiler") {
+object TemplateCompiler extends Specification {
     
     import Helper._
     
@@ -14,13 +14,13 @@ object TemplateCompiler extends Specification("Template compiler") {
         "success for" in {
             
             "static.scala.html" in {
-                compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must ==(
+                compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must be_==(
                     "<h1>It works</h1>"
                 )
             }
             
             "hello.scala.html" in {
-                compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must ==(
+                compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
                     "<h1>Hello World!</h1>"
                 )
             }
@@ -28,10 +28,10 @@ object TemplateCompiler extends Specification("Template compiler") {
             "real.scala.html" in {
                 compile[((String,List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A","B"))(4).toString.trim must beLike {
                     case html => {
-                        html.contains("<h1>Hello World</h1>") &&
+                        if(html.contains("<h1>Hello World</h1>") &&
                         html.contains("You have 2 items") &&
                         html.contains("EA") &&
-                        html.contains("EB")
+                        html.contains("EB")) ok else ko
                     }
                 }
             }
@@ -42,8 +42,8 @@ object TemplateCompiler extends Specification("Template compiler") {
             
             "error.scala.html" in {
                 compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like { 
-                    case CompilationError(_, 2, 12) => true
-                    case _ => false
+                    case CompilationError(_, 2, 12) => ok
+                    case _ => ko
                 } 
             }
             

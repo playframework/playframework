@@ -122,7 +122,7 @@ public class PropertiesEnhancer {
 
                             // Has accessor
                             if (isAccessor(fieldAccess.getField())) {
-
+                                
                                 String propertyName = null;
                                 if (fieldAccess.getField().getDeclaringClass().equals(ctMethod.getDeclaringClass())
                                     || ctMethod.getDeclaringClass().subclassOf(fieldAccess.getField().getDeclaringClass())) {
@@ -147,7 +147,6 @@ public class PropertiesEnhancer {
                             }
 
                         } catch (Exception e) {
-                            throw new CannotCompileException(e);
                         }
                     }
                 });

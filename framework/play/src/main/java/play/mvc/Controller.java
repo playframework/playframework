@@ -11,14 +11,26 @@ import java.util.*;
 
 public abstract class Controller {
     
+    public static Context ctx() {
+        return Http.Context.current();
+    }
+    
     public static Request request() {
         return Http.Context.current().request();
     }
     
+    public static Response response() {
+        return Http.Context.current().response();
+    }
+    
+    public static Session session() {
+        return Http.Context.current().session();
+    }
+    
     // -- Form
     
-    public static Form<Form.Dynamic> form() {
-        return form(Form.Dynamic.class);
+    public static DynamicForm form() {
+        return new DynamicForm();
     }
     
     public static <T> Form<T> form(Class<T> clazz) {
@@ -31,8 +43,12 @@ public abstract class Controller {
     
     // -- Results
     
+    public static Result todo() {
+        return new Todo();
+    }
+    
     public static Result ok() {
-        return new Ok("");
+        return new Ok();
     }
     
     public static Result ok(Content content) {
@@ -44,7 +60,7 @@ public abstract class Controller {
     }
         
     public static Result notFound() {
-        return new NotFound("");
+        return new NotFound();
     }
     
     public static Result notFound(Content content) {
@@ -56,7 +72,7 @@ public abstract class Controller {
     }
         
     public static Result forbidden() {
-        return new Forbidden("");
+        return new Forbidden();
     }
     
     public static Result forbidden(Content content) {
@@ -66,9 +82,21 @@ public abstract class Controller {
     public static Result forbidden(String content) {
         return new Forbidden(content);
     }
+    
+    public static Result unauthorized() {
+        return new Unauthorized();
+    }
+    
+    public static Result unauthorized(Content content) {
+        return new Unauthorized(content);
+    }
+    
+    public static Result unauthorized(String content) {
+        return new Unauthorized(content);
+    }
         
     public static Result badRequest() {
-        return new BadRequest("");
+        return new BadRequest();
     }
     
     public static Result badRequest(Content content) {

@@ -1,4 +1,4 @@
-@(body:Html)
+@(body:Html)(implicit request:play.api.mvc.RequestHeader)
 <html>
     <head>
         <title>TODO List</title>
@@ -10,6 +10,9 @@
         <hr>
         @body
         <hr>
-        <a href="@routes.Tasks.list()">Home</a> - <a href="@routes.Authentication.logout()">Logout</a>
+        <a href="@routes.Tasks.list">Home</a>
+        @request.username.map { user =>
+            - Connected as @user (<a href="@routes.Authentication.logout">Logout</a>)
+        }
     </body>
 </html>

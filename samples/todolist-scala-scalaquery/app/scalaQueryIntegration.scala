@@ -5,9 +5,9 @@ import play.api.Play.currentApplication
 
 import org.scalaquery.session._ 
 
-trait ScalaQuery {
+object ScalaQuery {
     
-    val database = Database.forDataSource(DB.getDataSource())
+    lazy val database = Database.forDataSource(DB.getDataSource())
     
     def withSession[T](block:Session => T) = database withSession { session =>
         block(session)

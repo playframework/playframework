@@ -8,6 +8,7 @@ import java.util.*;
 import models.*;
 import views.html.*;
 
+@Security.Authenticated(Authentication.Authenticator.class)
 public class Tasks extends Controller {
      
     public static Result list() {

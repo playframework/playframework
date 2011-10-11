@@ -60,9 +60,9 @@ public class Form<T> {
     
     public Form<T> bind() {
         Map<String,String> data = new HashMap<String,String>();
-        Map<String,String[]> urlEncoded = play.mvc.Controller.request().urlEncoded();
-        for(String key: urlEncoded.keySet()) {
-            String[] value = urlEncoded.get(key);
+        Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().urlFormEncoded();
+        for(String key: urlFormEncoded.keySet()) {
+            String[] value = urlFormEncoded.get(key);
             if(value.length > 0) {
                 data.put(key, value[0]);
             }
@@ -98,6 +98,19 @@ public class Form<T> {
             }
             return new Form(backedType, data, errors, None());
         } else {
+            String globalError = null;
+            if(result.getTarget() != null) {
+                try {
+                    java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
+                    globalError = (String)v.invoke(result.getTarget());
+                } catch(Exception e) {}
+            }
+            if(globalError != null) {
+                Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
+                errors.put("", new ArrayList<ValidationError>());
+                errors.get("").add(new ValidationError("", globalError, new ArrayList()));
+                return new Form(backedType, data, errors, None());
+            }
             return new Form(backedType, data, errors, Some((T)result.getTarget()));
         }
     }
@@ -110,6 +123,27 @@ public class Form<T> {
         return !errors.isEmpty();
     }
     
+    public boolean hasGlobalErrors() {
+        return errors.containsKey("") && !errors.get("").isEmpty();
+    }
+    
+    public List<ValidationError> globalErrors() {
+        List<ValidationError> e = errors.get("");
+        if(e == null) {
+            e = new ArrayList<ValidationError>();
+        }
+        return e;
+    }
+    
+    public ValidationError globalError() {
+        List<ValidationError> errors = globalErrors();
+        if(errors.isEmpty()) {
+            return null;
+        } else {
+            return errors.get(0);
+        }
+    }
+    
     public Map<String,List<ValidationError>> errors() {
         return errors;
     }
@@ -120,6 +154,29 @@ public class Form<T> {
     
     public Field apply(String key) {
         return field(key);
+    }
+    
+    public void reject(ValidationError error) {
+        if(!errors.containsKey(error.key())) {
+           errors.put(error.key(), new ArrayList<ValidationError>()); 
+        }
+        errors.get(error.key()).add(error);
+    }
+    
+    public void reject(String key, String error, List<Object> args) {
+        reject(new ValidationError(key, error, args));
+    }
+    
+    public void reject(String key, String error) {
+        reject(key, error, new ArrayList());
+    }
+    
+    public void reject(String error, List<Object> args) {
+        reject(new ValidationError("", error, args));
+    }
+    
+    public void reject(String error) {
+        reject("", error, new ArrayList());
     }
     
     public Field field(String key) {
@@ -147,23 +204,26 @@ public class Form<T> {
         // Format
         T2<String,List<Object>> format = null;
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance);
-        for(Annotation a: beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
-            Class<?> annotationType = a.annotationType();
-            if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
-                play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
-                if(d.name().startsWith("format.")) {
-                    List<Object> attributes = new ArrayList<Object>();
-                    for(String attr: d.attributes()) {
-                        Object attrValue = null;
-                        try {
-                            attrValue = a.getClass().getDeclaredMethod(attr).invoke(a);
-                        } catch(Exception e) {}
-                        attributes.add(attrValue);
+        try {
+            for(Annotation a: beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
+                Class<?> annotationType = a.annotationType();
+                if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
+                    play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
+                    if(d.name().startsWith("format.")) {
+                        List<Object> attributes = new ArrayList<Object>();
+                        for(String attr: d.attributes()) {
+                            Object attrValue = null;
+                            try {
+                                attrValue = a.getClass().getDeclaredMethod(attr).invoke(a);
+                            } catch(Exception e) {}
+                            attributes.add(attrValue);
+                        }
+                        format = T2(d.name(), attributes);
                     }
-                    format = T2(d.name(), attributes);
                 }
             }
-        }
+        } catch(NullPointerException e) {}
+
         
         // Constraints
         PropertyDescriptor property = play.data.validation.Validation.getValidator().getConstraintsForClass(backedType).getConstraintsForProperty(key);
@@ -219,24 +279,6 @@ public class Form<T> {
             return "Form.Field(" + name + ")";
         }
     
-    }
-    
-    public static class Dynamic {
-        
-        private Map data;
-        
-        public Map getData() {
-            return data;
-        }
-        
-        public void setData(Map data) {
-            this.data = data;
-        }
-        
-        public String toString() {
-            return "Form.Dynamic(" + data.toString() + ")";
-        }
-        
     }
     
 }

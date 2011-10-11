@@ -1,14 +1,15 @@
 package play.templates.test
 
-import org.specs._
+import org.specs2.mutable._
+
 import play.templates._
 
-object TemplateUtils extends Specification("Template utils") {
+object TemplateUtils extends Specification {
     
     "Templates" should {
         
         "provide a HASH util" in {
-            Hash("itShouldWork".getBytes) must ==("31c0c4e0e142fe9b605fff44528fedb3dd8ae254")
+            Hash("itShouldWork".getBytes) must be_==("31c0c4e0e142fe9b605fff44528fedb3dd8ae254")
         }
         
         "provide a Format API" in {     
@@ -31,7 +32,7 @@ object TemplateUtils extends Specification("Template utils") {
                 
                 val html = HtmlFormat.raw("<h1>") + HtmlFormat.escape("Hello <world>") + HtmlFormat.raw("</h1>")
                 
-                html.toString must ==("<h1>Hello &lt;world></h1>")
+                html.toString must be_==("<h1>Hello &lt;world></h1>")
                 
             }
             
@@ -53,7 +54,7 @@ object TemplateUtils extends Specification("Template utils") {
                 
                 val text = TextFormat.raw("<h1>") + TextFormat.escape("Hello <world>") + TextFormat.raw("</h1>")
                 
-                text.toString must ==("<h1>Hello <world></h1>")
+                text.toString must be_==("<h1>Hello <world></h1>")
                 
             }
             

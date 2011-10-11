@@ -267,6 +267,7 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                             def queryString = parameters
                             def headers = rHeaders
                             def cookies = rCookies
+                            def username = None
                     }
 
                     val body = { //explodes memory, need to do a smart strategy of putting into memory
@@ -368,15 +369,15 @@ class NettyServer(appProvider:ApplicationProvider) extends Server {
                                 def path = nettyUri.getPath
                                 def method = nettyHttpRequest.getMethod.getName
                                 def queryString = parameters
-                                def bodyE = bodyEnumerator
+                                def headers = rHeaders
+                                def cookies = rCookies
+                                def username = None
 
-                                val body = (bodyParser(requestHeader) <<: bodyE).flatMap(_.run).value match {
+                                val body = (bodyParser(requestHeader) <<: bodyEnumerator).flatMap(_.run).value match {
                                     case Redeemed(a) => a
                                     case Thrown(e) => throw RequestParsingException(e)
                                 }
                                 
-                                def headers = rHeaders
-                                def cookies = rCookies
                             }
 
 
