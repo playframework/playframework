@@ -7,9 +7,8 @@ object Global extends GlobalSettings {
         
         import models._
         import play.api.db.Evolutions._
-        import org.scalaquery.ql.extended.H2Driver.Implicit._
         
-        val ddl = Tasks.ddl
+        val ddl = Task.evolution
         
         updateEvolutionScript(
             ups = ddl.createStatements.mkString("\n"),

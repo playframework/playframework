@@ -3,10 +3,10 @@
 # ~~~~
 
 GET     /                               controllers.Tasks.list
-GET     /tasks/new                      controllers.Tasks.create
-GET     /tasks/:id                      controllers.Tasks.edit(id:Long)
-POST    /tasks                          controllers.Tasks.save
-POST    /tasks/:id                      controllers.Tasks.update(id:Long)
+GET     /tasks/new                      controllers.Tasks.form(id:Option[Long] = None)
+GET     /tasks/:id                      controllers.Tasks.form(id:Option[Long])
+POST    /tasks                          controllers.Tasks.save(id:Option[Long] = None)
+POST    /tasks/:id                      controllers.Tasks.save(id:Option[Long])
 POST    /tasks/:id/delete               controllers.Tasks.delete(id:Long)
 
 GET     /login                          controllers.Authentication.login

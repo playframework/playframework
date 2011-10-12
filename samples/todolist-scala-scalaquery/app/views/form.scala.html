@@ -1,20 +1,18 @@
 @(maybeId:Option[Long], taskForm:play.api.data.Form[(String,java.sql.Date,Boolean)])(implicit request:play.api.mvc.RequestHeader)
 
-@doneOptions = @{
-    Map("" -> "-- Choose --", "true" -> "It's done", "false" -> "Not yet")
-}
-
 @main {
 
     @maybeId.map { id => <h1>Edit task @id</h1> }.getOrElse { <h1>New task</h1> }
     
-    @helper.html.form(maybeId.map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())) {
+    @helper.html.form(routes.Tasks.save(maybeId)) {
         
         @helper.html.inputText(taskForm("name"))
         
         @helper.html.inputText(taskForm("dueDate"))
         
-        @helper.html.select(taskForm("done"), options = doneOptions)
+        @helper.html.select(taskForm("done"), options = Map(
+            "true" -> "It's done", "false" -> "Not yet"
+        ))
     
         <p>
             <a href="@routes.Tasks.list()">Cancel</a> <input type="submit">

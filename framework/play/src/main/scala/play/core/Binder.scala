@@ -90,11 +90,13 @@ object QueryStringBindable {
     }
     
     implicit def bindableOption[T : QueryStringBindable] = new QueryStringBindable[Option[T]] {
-      def bind(key:String, params:Map[String,Seq[String]]) = 
-          Some( implicitly[QueryStringBindable[T]]
-                    .bind(key, params)
+        def bind(key:String, params:Map[String,Seq[String]]) = {
+            Some(
+                implicitly[QueryStringBindable[T]].bind(key, params)
                     .map(_.right.map(Some(_)))
-                    .getOrElse(Right(None)) )
+                    .getOrElse(Right(None)) 
+            )
+        }
       def unbind(key:String, value:Option[T]) = value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
     }
 
@@ -139,6 +141,13 @@ object PathBindable {
             }
         }
         def unbind(key:String, value:Integer) = value.toString
+    }
+    
+    implicit def bindableOption[T : PathBindable] = new PathBindable[Option[T]] {
+        def bind(key:String, value:String) = {
+            implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
+        }
+        def unbind(key:String, value:Option[T]) = value.map( v => implicitly[PathBindable[T]].unbind(key, v) ).getOrElse("")
     }
     
 }

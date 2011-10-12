@@ -11,8 +11,10 @@
         @body
         <hr>
         <a href="@routes.Tasks.list">Home</a>
+        
         @request.username.map { user =>
             - Connected as @user (<a href="@routes.Authentication.logout">Logout</a>)
         }
+        
     </body>
 </html>

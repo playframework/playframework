@@ -6,12 +6,12 @@
 
     <ul>
         @tasks.map { task =>
-            <li><a href="@routes.Tasks.edit(task._1)">@task._2</a></li>
+            <li><a href="@routes.Tasks.form(Some(task._1))">@task._2</a></li>
         }    
     </ul>
 
     <p>
-        <a href="@routes.Tasks.create()">new task</a>
+        <a href="@routes.Tasks.form(None)">new task</a>
     </p>
     
 }
