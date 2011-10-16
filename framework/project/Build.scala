@@ -29,7 +29,7 @@ object PlayBuild extends Build {
         settings = buildSettings ++ Seq(
             libraryDependencies := runtime,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-            unmanagedJars in Compile ++= sbtJars,
+            unmanagedJars in Compile  ++=  sbtJars,
             publishMavenStyle := false,
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
@@ -38,7 +38,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
         )
-    ).dependsOn(TemplatesProject)
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject)
     
     val Root = Project(
         "Root",
@@ -49,15 +49,15 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             publish <<= (publish in PlayProject, publish in TemplatesProject) map { (_,_) => }
-        )
+        ) 
     ).dependsOn(PlayProject).aggregate(TemplatesProject, PlayProject)
     
     object BuildSettings {
 
         val buildOrganization = "play"
         val buildVersion      = "2.0"
-        val buildScalaVersion = "2.9.0"
-        val buildSbtVersion   = "0.10.1"
+        val buildScalaVersion = "2.9.1"
+        val buildSbtVersion   = "0.11.0"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
@@ -73,11 +73,11 @@ object PlayBuild extends Build {
 
         def isJar(f:java.io.File) = f.getName.endsWith(".jar")
 
-        val sbtJars = {
+        val sbtJars:Seq[java.io.File] = {
             file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
             file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
             Seq(file("sbt/boot/scala-" + buildScalaVersion + "/lib/jline.jar"))
-        }.map(jar => Attributed.blank(jar.getAbsoluteFile))
+        }
 
     }
 
@@ -94,7 +94,7 @@ object PlayBuild extends Build {
         val runtime = Seq(
             "org.jboss.netty"                   %    "netty"                %   "3.2.4.Final",
             "org.slf4j"                         %    "slf4j-api"            %   "1.6.1",
-            "com.github.scala-incubator.io"     %%   "file"                 %   "0.1.2",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"        %   "0.2.0",
             "se.scalablesolutions.akka"         %    "akka-actor"           %   "1.1.3",
             "org.avaje"                         %    "ebean"                %   "2.7.1",
             "com.h2database"                    %    "h2"                   %   "1.3.158",
@@ -115,7 +115,7 @@ object PlayBuild extends Build {
         )                                            
                                                      
         val templates = Seq(                         
-            "com.github.scala-incubator.io"     %%   "file"                 %   "0.1.2",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"                 %   "0.2.0",
             "org.specs2"                        %%   "specs2"               %   "1.5"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"       %   buildScalaVersion
         )

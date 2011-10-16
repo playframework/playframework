@@ -60,16 +60,29 @@ object PlayProject extends Plugin {
   val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
   val templatesTypes = SettingKey[(String => (String, String))]("play-templates-formats")
 
-  // ----- Play specific tasks
+  // -- Utility methods for 0.10-> 0.11 migration
+  def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: ScopedSetting[T], data: Settings[Scope]): Seq[T] =
+    inAllProjects(Dag.topologicalSort(base)(deps), key, data)
+  def inAllProjects[T](allProjects: Seq[Reference], key: ScopedSetting[T], data: Settings[Scope]): Seq[T] =
+    allProjects.flatMap { p => key in p get data }
 
+  def inAllDependencies[T](base: ProjectRef, key: ScopedSetting[T], structure: Load.BuildStructure): Seq[T] = {
+    def deps(ref: ProjectRef): Seq[ProjectRef] =
+      Project.getProject(ref, structure).toList.flatMap { p =>
+        p.dependencies.map(_.project) ++ p.aggregate
+      }
+    inAllDeps(base, deps, key, structure.data)
+  }
+
+  // ----- Play specific tasks
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
-    Defaults.inAllDependencies(r, (compile in Compile).task, Project structure s).join
+    inAllDependencies(r, (compile in Compile).task, Project structure s).join
   }
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
   val playPackageEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
-    Defaults.inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
+    inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
   }
 
   val playCopyResources = TaskKey[Seq[(File, File)]]("play-copy-resources")

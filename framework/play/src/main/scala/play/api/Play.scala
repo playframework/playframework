@@ -81,8 +81,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
   val plugins: Map[Class[_], Plugin] = {
 
     import scalax.file._
-    import scalax.io.Input.asInputConverter
-
+    import scalax.io.JavaConverters._
     import scala.collection.JavaConverters._
 
     val PluginDeclaration = """([0-9_]+):(.*)""".r
