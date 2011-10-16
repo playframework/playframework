@@ -4,39 +4,38 @@ import play.core._
 import play.api.mvc._
 
 trait Server {
-    
-    import akka.actor._
-    import akka.actor.Actor._
-    import akka.routing.Routing._
-    import akka.routing.SmallestMailboxFirstIterator
-    import akka.config._
-    import akka.config.Supervision._
 
-    def newInvoker = {val inv = actorOf[Invoker]; inv.start(); inv}
-    
-    val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
+  import akka.actor._
+  import akka.actor.Actor._
+  import akka.routing.Routing._
+  import akka.routing.SmallestMailboxFirstIterator
+  import akka.config._
+  import akka.config.Supervision._
 
-    def getActionFor(rqHeader:RequestHeader):Either[Result,(Action[_],Application)] = {
-         def sendAction :Either[Throwable,(Action[_],Application)]=
-            applicationProvider.get.right.map { application => 
-                            val maybeAction = application.global.onRouteRequest(rqHeader)
-                           ( maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(rqHeader))),application ) }
-                       
+  def newInvoker = { val inv = actorOf[Invoker]; inv.start(); inv }
 
-      import scala.util.control.Exception
-       applicationProvider.handleWebCommand(rqHeader).toLeft{
-          Exception.allCatch[Either[Throwable,(Action[Any],Application)]]
-                   .either (sendAction)
-                   .joinRight
-                   .left.map(e =>  DefaultGlobal.onError(e)) }.joinRight
+  val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
 
-      
-    }
-    def errorResult(e:Throwable):Result = DefaultGlobal.onError(e)
+  def getActionFor(rqHeader: RequestHeader): Either[Result, (Action[_], Application)] = {
+    def sendAction: Either[Throwable, (Action[_], Application)] =
+      applicationProvider.get.right.map { application =>
+        val maybeAction = application.global.onRouteRequest(rqHeader)
+        (maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(rqHeader))), application)
+      }
 
-    def invoke[A](request:Request[A], response:Response, action:Action[A], app:Application) = invoker ! HandleAction(request,response,action,app)
+    import scala.util.control.Exception
+    applicationProvider.handleWebCommand(rqHeader).toLeft {
+      Exception.allCatch[Either[Throwable, (Action[Any], Application)]]
+        .either(sendAction)
+        .joinRight
+        .left.map(e => DefaultGlobal.onError(e))
+    }.joinRight
 
-    
-    def applicationProvider:ApplicationProvider
-    
+  }
+  def errorResult(e: Throwable): Result = DefaultGlobal.onError(e)
+
+  def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = invoker ! HandleAction(request, response, action, app)
+
+  def applicationProvider: ApplicationProvider
+
 }

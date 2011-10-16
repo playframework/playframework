@@ -1,9 +1,9 @@
 package play.api.libs
 
 object MimeTypes {
-    
-    val types = 
-    
+
+  val types =
+
     """
         3dm=x-world/x-3dmf
         3dmf=x-world/x-3dmf
@@ -549,12 +549,11 @@ object MimeTypes {
         # Extensions for Mozilla apps (Firefox and friends)
         xpi=application/x-xpinstall
         
-    """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map( parts =>
-        parts(0) -> parts.drop(1).mkString
-    ).toMap
-    
-    def forExtension(ext:String) = types.get(ext)
-    
-    def forFileName(name:String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
-    
+    """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
+      parts(0) -> parts.drop(1).mkString).toMap
+
+  def forExtension(ext: String) = types.get(ext)
+
+  def forFileName(name: String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
+
 }
