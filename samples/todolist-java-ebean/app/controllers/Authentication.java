@@ -3,7 +3,7 @@ package controllers;
 import play.mvc.*;
 import play.data.*;
 
-import html.views.*;
+import views.html.*;
 
 import play.data.format.*;
 import play.data.validation.*;

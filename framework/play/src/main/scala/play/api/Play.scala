@@ -147,9 +147,9 @@ trait GlobalSettings {
 
   def onError(ex: Throwable): Result = {
     InternalServerError(Option(Play._currentApp).map {
-      case app if app.mode == Play.Mode.Dev => html.views.defaultpages.devError.f
-      case app => html.views.defaultpages.error.f
-    }.getOrElse(html.views.defaultpages.devError.f) {
+      case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devError.f
+      case app => views.html.defaultpages.error.f
+    }.getOrElse(views.html.defaultpages.devError.f) {
       ex match {
         case e: PlayException => e
         case e => UnexpectedException(unexpected = Some(e))
@@ -159,9 +159,9 @@ trait GlobalSettings {
 
   def onActionNotFound(request: RequestHeader): Result = {
     NotFound(Option(Play._currentApp).map {
-      case app if app.mode == Play.Mode.Dev => html.views.defaultpages.devNotFound.f
-      case app => html.views.defaultpages.notFound.f
-    }.getOrElse(html.views.defaultpages.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
+      case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devNotFound.f
+      case app => views.html.defaultpages.notFound.f
+    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
   }
 
 }

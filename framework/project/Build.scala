@@ -21,7 +21,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := false,
             resolvers += typesafe
         )
-    )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
     val PlayProject = Project(
         "Play",
@@ -111,12 +111,12 @@ object PlayBuild extends Build {
             "rhino"                             %    "js"                   %   "1.7R2",
             "org.reflections"                   %    "reflections"          %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"    %   "3.0.1",
-            "org.specs2"                        %%   "specs2"               %   "1.5"    %   "test" // need to move to 1.6.1 with scala 2.9.1
+            "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test" 
         )                                            
                                                      
         val templates = Seq(                         
-            "com.github.scala-incubator.io"     %%   "scala-io-file"                 %   "0.2.0",
-            "org.specs2"                        %%   "specs2"               %   "1.5"    %   "test",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"        %   "0.2.0",
+            "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"       %   buildScalaVersion
         )
 

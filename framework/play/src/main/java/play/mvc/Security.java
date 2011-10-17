@@ -46,7 +46,7 @@ public class Security {
         }
         
         public Result onUnauthorized(Context ctx) {
-            return new Unauthorized(html.views.defaultpages.unauthorized.render());
+            return new Unauthorized(views.html.defaultpages.unauthorized.render());
         }
         
     }

@@ -9,7 +9,7 @@ object Security {
 
   def Authenticated[A](
     username: RequestHeader => Option[String] = (req => req.session.get(USERNAME)),
-    onUnauthorized: RequestHeader => Result = (_ => Unauthorized(html.views.defaultpages.unauthorized())))(action: Action[A]): Action[A] = {
+    onUnauthorized: RequestHeader => Result = (_ => Unauthorized(views.html.defaultpages.unauthorized())))(action: Action[A]): Action[A] = {
 
     action.compose { (request, originalAction) =>
       username(request).map { authenticatedUser =>
@@ -43,7 +43,7 @@ object Security {
     }
 
     def username(request: RequestHeader): Option[String] = request.session.get("username")
-    def onUnauthorized(request: RequestHeader): Result = Unauthorized(html.views.defaultpages.unauthorized())
+    def onUnauthorized(request: RequestHeader): Result = Unauthorized(views.html.defaultpages.unauthorized())
 
   }
 
