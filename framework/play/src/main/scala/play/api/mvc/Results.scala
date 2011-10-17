@@ -34,6 +34,12 @@ case class SimpleResult[A](response:SimpleHttpResponse,body:Enumerator[A])(impli
     
     def withNewSession = withSession(Session())
     
+    def flashing(flash:Flash):SimpleResult[A] = {
+        withCookies(Flash.encodeAsCookie(flash))
+    }
+    
+    def flashing(values:(String,String)*):SimpleResult[A] = flashing(Flash(values.toMap))
+    
     def as(contentType:String) = withHeaders(CONTENT_TYPE -> contentType)
     
 }

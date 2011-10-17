@@ -17,6 +17,7 @@ package play.api.mvc {
         def username:Option[String]
         
         lazy val session:Session = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
+        lazy val flash:Flash = Flash.decodeFromCookie(cookies.get(Flash.FLASH_COOKIE_NAME))
         lazy val rawQueryString = uri.split('?').drop(1).mkString("?")
         
         override def toString = {
@@ -45,19 +46,12 @@ package play.api.mvc {
         def getAll(key:String):Seq[String]        
     }
     
-    case class Cookie(name:String, value:String, maxAge:Int = -1, path:Option[String] = None, domain:Option[String] = None, secure:Boolean = false, httpOnly:Boolean = true)
-    
-    trait Cookies {
-        def get(name:String):Option[Cookie]
-        def apply(name:String):Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
-    }
-    
     case class Session(data:Map[String,String] = Map.empty[String,String]) {
-        
         def get(key:String) = data.get(key)
         def isEmpty:Boolean = data.isEmpty
         def +(kv:(String,String)) = copy(data + kv)
-        
+        def -(key:String) = copy(data - key)
+        def apply(key:String) = data(key)
     }
     
     object Session {
@@ -90,6 +84,51 @@ package play.api.mvc {
         
     }
     
+    case class Flash(data:Map[String,String] = Map.empty[String,String]) {
+        def get(key:String) = data.get(key)
+        def isEmpty:Boolean = data.isEmpty
+        def +(kv:(String,String)) = copy(data + kv)
+        def -(key:String) = copy(data - key)
+        def apply(key:String) = data(key)
+    }
+    
+    object Flash {
+        
+        val FLASH_COOKIE_NAME = "PLAY_FLASH"
+        val blankFlash = new Flash
+        
+        def encode(flash:Flash):String = {
+            java.net.URLEncoder.encode(flash.data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
+        }
+        
+        def decode(data:String):Flash = {
+            try {
+                Option(data.trim).filterNot(_.isEmpty).map { data =>
+                    Flash(java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap)
+                }.getOrElse(blankFlash)
+            } catch {
+                // fail gracefully is the flash cookie is corrupted
+                case _ => blankFlash
+            }
+        }
+        
+        def encodeAsCookie(data:Flash):Cookie = {
+            Cookie(FLASH_COOKIE_NAME, encode(data))
+        }
+        
+        def decodeFromCookie(flashCookie:Option[Cookie]):Flash = {
+            flashCookie.filter(_.name == FLASH_COOKIE_NAME).map(c => decode(c.value)).getOrElse(blankFlash)
+        }
+        
+    }
+    
+    case class Cookie(name:String, value:String, maxAge:Int = -1, path:String = "/", domain:Option[String] = None, secure:Boolean = false, httpOnly:Boolean = true)
+    
+    trait Cookies {
+        def get(name:String):Option[Cookie]
+        def apply(name:String):Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
+    }
+    
     object Cookies {
         
         import scala.collection.JavaConverters._
@@ -103,7 +142,7 @@ package play.api.mvc {
                 encoder.addCookie {
                     val nc = new DefaultCookie(c.name, c.value)
                     nc.setMaxAge(c.maxAge)
-                    c.path.map(nc.setPath(_))
+                    nc.setPath(c.path)
                     c.domain.map(nc.setDomain(_))
                     nc.setSecure(c.secure)
                     nc.setHttpOnly(c.httpOnly)
@@ -122,7 +161,7 @@ package play.api.mvc {
         
         def decode(cookieHeader:String):Seq[Cookie] = {
             new CookieDecoder().decode(cookieHeader).asScala.map { c =>
-                Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+                Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
             }.toSeq
         }
         

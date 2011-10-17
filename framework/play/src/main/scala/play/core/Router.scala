@@ -935,6 +935,14 @@ object Router {
             (for(a <- pa.value.right; b <- pb.value.right) yield (a,b)).fold(badRequest, {case (a,b) => generator(a,b)})
         }
         
+        def call[P1,P2,P3](pa:Param[P1], pb:Param[P2], pc:Param[P3])(generator: (P1,P2,P3) => Action[_]) = {
+            (for(a <- pa.value.right; b <- pb.value.right; c <- pc.value.right) yield (a,b,c)).fold(badRequest, {case (a,b,c) => generator(a,b,c)})
+        }
+        
+        def call[P1,P2,P3,P4](pa:Param[P1], pb:Param[P2], pc:Param[P3], pd:Param[P4])(generator: (P1,P2,P3,P4) => Action[_]) = {
+            (for(a <- pa.value.right; b <- pb.value.right; c <- pc.value.right; d <- pd.value.right) yield (a,b,c,d)).fold(badRequest, {case (a,b,c,d) => generator(a,b,c,d)})
+        }
+        
         def actionFor(request:RequestHeader):Option[Action[_]] = {
             routes.lift(request)
         }
@@ -946,7 +954,7 @@ object Router {
 
         object ActionInvoker {
             
-            implicit def passThrought[A <: Action[_]]:ActionInvoker[A] = new ActionInvoker[A] {
+            implicit def passThrough[A <: Action[_]]:ActionInvoker[A] = new ActionInvoker[A] {
                 def call(call: => A, action:ActionDef):Action[_] = call
             }
             

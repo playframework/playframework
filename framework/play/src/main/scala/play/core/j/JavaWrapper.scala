@@ -33,7 +33,8 @@ trait JavaAction extends Action[AnyContent] {
                 
             },
             
-            req.session.data.asJava
+            req.session.data.asJava,
+            req.flash.data.asJava
             
         )
         
@@ -67,9 +68,22 @@ trait JavaAction extends Action[AnyContent] {
         
         finalAction.call(javaContext).getWrappedResult match {
             case result@SimpleResult(_,_) => {
-                result
-                    .withHeaders(javaContext.response.getHeaders.asScala.toSeq:_*)
-                    .withSession(Session(javaContext.session.asScala.toMap))
+                val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq:_*)
+                
+                if(javaContext.session.isDirty && javaContext.flash.isDirty) {
+                    wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+                } else {
+                    if(javaContext.session.isDirty) {
+                        wResult.withSession(Session(javaContext.session.asScala.toMap))
+                    } else {
+                        if(javaContext.flash.isDirty) {
+                            wResult.flashing(Flash(javaContext.flash.asScala.toMap))
+                        } else {
+                            wResult
+                        }
+                    }
+                }
+
             }
             case other => other
         }

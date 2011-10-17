@@ -10,7 +10,9 @@ import scala.collection.JavaConverters._
 
 object Play {
     
-    implicit def currentApplication = Option(_currentApp).get
+    def unsafeApplication = _currentApp
+    def maybeApplication = Option(_currentApp)
+    implicit def currentApplication = maybeApplication.get
     
     object Mode extends Enumeration {
         type Mode = Value
@@ -36,14 +38,14 @@ object Play {
         
     }
     
-    def unsafeApplication = _currentApp
-    
     def resourceAsStream(name:String)(implicit app:Application):Option[InputStream] = {
         Option(app.classloader.getResourceAsStream(Option(name).map {
             case s if s.startsWith("/") => s.drop(1)
             case s => s
         }.get))
     }
+    
+    def getFile(subPath:String)(implicit app:Application) = app.getFile(subPath)
     
     def application(implicit app:Application)     = app    
     def classloader(implicit app:Application)     = app.classloader
@@ -91,6 +93,17 @@ case class Application(path:File, classloader:ApplicationClassLoader, sources:So
                     try {
                         Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
                     } catch {
+                        case e:java.lang.NoSuchMethodException => {
+                            try {
+                                Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
+                            } catch {
+                                case e => throw PlayException(
+                                    "Cannot load plugin",
+                                    "Plugin [" + className + "] cannot been instantiated.",
+                                    Some(e)
+                                )
+                            }
+                        }
                         case e => throw PlayException(
                             "Cannot load plugin",
                             "Plugin [" + className + "] cannot been instantiated.",
@@ -107,6 +120,15 @@ case class Application(path:File, classloader:ApplicationClassLoader, sources:So
     def plugin[T](c:Class[T]):T = plugins.get(c).get.asInstanceOf[T]
     
     def getFile(subPath:String) = new File(path, subPath)
+    
+    def getTypesAnnotatedWith[T <: java.lang.annotation.Annotation](packageName:String, annotation: Class[T]):Set[String] = {
+        import org.reflections._
+        new Reflections(
+            new util.ConfigurationBuilder()
+            .addUrls(util.ClasspathHelper.forPackage(packageName, classloader))
+            .setScanners(new scanners.TypeAnnotationsScanner())
+        ).getStore.getTypesAnnotatedWith(annotation.getName).asScala.toSet
+    }
     
 }
 
@@ -129,9 +151,9 @@ trait GlobalSettings {
     
     def onError(ex:Throwable):Result = {
         InternalServerError(Option(Play._currentApp).map {
-            case app if app.mode == Play.Mode.Dev => play.core.views.html.devError.f
-            case app => play.core.views.html.error.f
-        }.getOrElse(play.core.views.html.devError.f)  {
+            case app if app.mode == Play.Mode.Dev => html.views.defaultpages.devError.f
+            case app => html.views.defaultpages.error.f
+        }.getOrElse(html.views.defaultpages.devError.f)  {
             ex match {
                 case e:PlayException => e
                 case e => UnexpectedException(unexpected = Some(e))
@@ -141,9 +163,9 @@ trait GlobalSettings {
     
     def onActionNotFound(request:RequestHeader):Result = {
         NotFound(Option(Play._currentApp).map {
-            case app if app.mode == Play.Mode.Dev => play.core.views.html.devNotFound.f
-            case app => play.core.views.html.notFound.f
-        }.getOrElse(play.core.views.html.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
+            case app if app.mode == Play.Mode.Dev => html.views.defaultpages.devNotFound.f
+            case app => html.views.defaultpages.notFound.f
+        }.getOrElse(html.views.defaultpages.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
     }
     
 }

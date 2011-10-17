@@ -109,6 +109,8 @@ object PlayBuild extends Build {
             "javassist"                         %    "javassist"            %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"         %   "2.6",
             "rhino"                             %    "js"                   %   "1.7R2",
+            "org.reflections"                   %    "reflections"          %   "0.9.5",
+            "javax.servlet"                     %    "javax.servlet-api"    %   "3.0.1",
             "org.specs2"                        %%   "specs2"               %   "1.5"    %   "test" // need to move to 1.6.1 with scala 2.9.1
         )                                            
                                                      

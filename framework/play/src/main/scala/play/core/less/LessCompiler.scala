@@ -133,5 +133,6 @@ case class CompilationException(message:String, lessFile:File, atLine:Int, atCol
 ) with ExceptionSource {
     def line = Some(atLine)
     def position = Some(atColumn)
-    def file = Some(lessFile)
+    def input = Some(scalax.file.Path(lessFile))
+    def sourceName = Some(lessFile.getAbsolutePath)
 }

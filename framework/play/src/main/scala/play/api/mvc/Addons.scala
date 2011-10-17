@@ -9,7 +9,7 @@ object Security {
     
     def Authenticated[A](
         username: RequestHeader=>Option[String] = (req => req.session.get(USERNAME)), 
-        onUnauthorized: RequestHeader=>Result = (_ => Unauthorized(play.core.views.html.unauthorized()))
+        onUnauthorized: RequestHeader=>Result = (_ => Unauthorized(html.views.defaultpages.unauthorized()))
     )(action:Action[A]):Action[A] = {
         
         action.compose { (request,originalAction) =>
@@ -45,7 +45,7 @@ object Security {
         }
         
         def username(request:RequestHeader):Option[String] = request.session.get("username")
-        def onUnauthorized(request:RequestHeader):Result = Unauthorized(play.core.views.html.unauthorized())
+        def onUnauthorized(request:RequestHeader):Result = Unauthorized(html.views.defaultpages.unauthorized())
         
     }
     

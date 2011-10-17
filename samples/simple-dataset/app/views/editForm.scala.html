@@ -1,0 +1,36 @@
+@(id:Long, computerForm:Form[Computer])
+
+@import helper._
+
+@main {
+    
+    <h1>Edit computer</h1>
+    
+    @form(routes.Application.update(id)) {
+        
+        <fieldset>
+        
+            @inputText(computerForm("name"), 'label -> "Computer name")(utils.twitterBootstrapInput.f)
+            @inputText(computerForm("introduced"), 'label -> "Introduced date")(utils.twitterBootstrapInput.f)
+            @inputText(computerForm("discontinued"), 'label -> "Discontinued date")(utils.twitterBootstrapInput.f)
+            
+            @select(
+                computerForm("company.id"), 
+                Company.options, 
+                'label -> "Company", 'default -> "-- Choose a company --"
+            )(utils.twitterBootstrapInput.f)
+        
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Save this computer" class="btn primary"> or 
+            <a href="@routes.Application.list()" class="btn">Cancel</a> 
+        </div>
+        
+    }
+    
+    @form(routes.Application.delete(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this computer" class="btn danger">
+    }
+    
+}

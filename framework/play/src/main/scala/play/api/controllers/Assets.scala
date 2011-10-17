@@ -12,7 +12,7 @@ object Assets extends Controller {
     
     def at(path:String, file:String) = Action {
         Play.resourceAsStream(path + "/" + file).map {
-            is => Binary(is, length = Some(is.available), contentType = MimeTypes.forFileName(file).getOrElse("application/octet-stream"))
+            is => Binary(is, length = Some(is.available), contentType = MimeTypes.forFileName(file).getOrElse("application/octet-stream")).withHeaders(CACHE_CONTROL -> "max-age=3600")
         }.getOrElse(NotFound)
     }
 

@@ -74,6 +74,7 @@ public class Form<T> {
         DataBinder dataBinder = new DataBinder(blankInstance);
         dataBinder.setValidator(new SpringValidatorAdapter(play.data.validation.Validation.getValidator()));
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
+        dataBinder.setAutoGrowNestedPaths(true);
         dataBinder.bind(new MutablePropertyValues(data));
         dataBinder.validate();
         BindingResult result = dataBinder.getBindingResult();
@@ -94,7 +95,7 @@ public class Form<T> {
                 if(!errors.containsKey(key)) {
                    errors.put(key, new ArrayList<ValidationError>()); 
                 }
-                errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));
+                errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
             }
             return new Form(backedType, data, errors, None());
         } else {
@@ -116,6 +117,9 @@ public class Form<T> {
     }
     
     public Form<T> fill(T value) {
+        if(value == null) {
+            throw new RuntimeException("Cannot fill a form with a null value");
+        }
         return new Form(backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
     }
     
@@ -185,6 +189,7 @@ public class Form<T> {
         String fieldValue = null;
         if(value.isDefined()) {
             BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
+            beanWrapper.setAutoGrowNestedPaths(true);
             Object oValue = beanWrapper.getPropertyValue(key);
             if(oValue != null) {
                 fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(key), oValue);
@@ -204,6 +209,7 @@ public class Form<T> {
         // Format
         T2<String,List<Object>> format = null;
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance);
+        beanWrapper.setAutoGrowNestedPaths(true);
         try {
             for(Annotation a: beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
                 Class<?> annotationType = a.annotationType();

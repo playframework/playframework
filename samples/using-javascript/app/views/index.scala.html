@@ -6,10 +6,9 @@
         <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.6.4.js")"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-play-1.6.4.js")"></script>
         
-        @import helper.html._
-        @import controllers.routes.javascript._
+        @import routes.javascript._
         
-        @javascriptRouter("jsRoutes")(
+        @helper.javascriptRouter("jsRoutes")(
             Application.list,
             Application.add,
             Application.delete

@@ -1,0 +1,7 @@
+# Default messages
+
+# --- Constraints
+constraint.required=Required field
+
+# --- Formats
+format.date=Date (''{0}'')

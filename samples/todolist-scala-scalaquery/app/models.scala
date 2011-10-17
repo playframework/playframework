@@ -25,25 +25,25 @@ object Task extends Table[(Long, String, Date, Boolean)]("tasks") {
     def noID = name ~ dueDate ~ done
     
     def findAll = database.withSession { implicit db:Session =>
-        (for(t <- Task) yield t.id ~ t.name).list
+        (for(t <- this) yield t.id ~ t.name).list
     }
     
     def findById(id:Long) = database.withSession { implicit db:Session =>
-        (for(t <- Task if t.id === id) yield t.name ~ t.dueDate ~ t.done).first
+        (for(t <- this if t.id === id) yield t.name ~ t.dueDate ~ t.done).first
     }
     
     def update(id:Long, values:(String,Date,Boolean)) = database.withSession { implicit db:Session =>
-        (for(t <- Task if t.id === id) yield t.name ~ t.dueDate ~ t.done).update(values)
+        (for(t <- this if t.id === id) yield t.name ~ t.dueDate ~ t.done).update(values)
     }
     
     def insert(values:(String,Date,Boolean)) = database.withSession { implicit db:Session =>
-        Task.noID.insert(values)
+        noID.insert(values)
     }
     
     def delete(id:Long) = database.withSession { implicit db:Session =>
-        Task.where(_.id ===  id).delete
+        this.where(_.id ===  id).delete
     }
     
-    def evolution = Task.ddl
+    def evolution = ddl
     
 }

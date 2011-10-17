@@ -6,8 +6,8 @@ import play.api.templates.*;
 import play.libs.F.*;
 import static play.libs.F.*;
 
-import views.html.*;
-import views.pages.html.*;
+import html.views.*;
+import html.views.pages.*;
 
 import controllers.Security.*;
 import controllers.Cache.*;

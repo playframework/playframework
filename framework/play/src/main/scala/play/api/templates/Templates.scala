@@ -26,27 +26,6 @@ object HtmlFormat extends Format[Html] {
     def escape(text:String) = Html(org.apache.commons.lang.StringEscapeUtils.escapeHtml(text))
 }
 
-package helper.html {
-    
-    object Utils {
-        
-        def filter(args:Seq[(Symbol,Any)], keysWithDefault:(Symbol,String)*) = {
-            val keys = keysWithDefault.map(_._1)
-            val (values,remainingArgs) = args.partition(a => keys.contains(a._1))
-            (keysWithDefault.toMap ++ values.map(e => e._1 -> e._2.toString).toMap) -> remainingArgs
-        }
-        
-    }
-    
-    object select {
-        
-        def apply(field:play.api.data.Field, options:Map[String,String], args:(Symbol,Any)*) = genericSelect(field,options,args:_*)
-        def apply(field:play.api.data.Field, options:Seq[String], args:(Symbol,Any)*) = genericSelect(field,options.map(v => v -> v).toMap,args:_*)
-        
-    }
-    
-}
-
 object PlayMagic {
     
     import scala.collection.JavaConverters._

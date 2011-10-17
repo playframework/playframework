@@ -11,7 +11,7 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
     
     def Action[A](bodyParser:BodyParser[A], block:Request[A] => Result):Action[A] = play.api.mvc.Action[A](bodyParser,block)
 
-    val TODO = Action { NotImplemented(play.core.views.html.todo()) }
+    val TODO = Action { NotImplemented(html.views.defaultpages.todo()) }
     
     implicit def session(implicit request:RequestHeader) = request.session
     
@@ -31,6 +31,9 @@ trait Action[A] extends (Request[A] => Result) {
             def apply(request:Request[A]) = composer(request, self)
         }
     }
+    
+    // For better support in the routes file
+    def apply() = this
     
 }
 

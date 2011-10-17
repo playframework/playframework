@@ -262,7 +262,7 @@ object `package` {
     
 }
 
-case class FormError(key:String,message:String,arguments:Seq[Any])
+case class FormError(key:String,message:String,args:Seq[Any])
 
 trait Mapping[T] {
     

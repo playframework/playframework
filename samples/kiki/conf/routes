@@ -3,7 +3,7 @@
 # Routes file
 # ----------- 
 
-GET     /                               controllers.Application.index
+GET     /                               controllers.Application.index()
 GET     /items                          controllers.Application.list(page:Int=1, sort?= "ASC")
 GET     /itemsAtPage10                  controllers.Application.list(page:Int=10, sort)
 GET     /itemsAtPage20                  controllers.Application.list(page:Int=20, sort?= "DESC")

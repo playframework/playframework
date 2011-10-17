@@ -6,6 +6,7 @@ import play.core.Iteratee._
 import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.http.HeaderNames._
 
 import akka.actor.Actor
 import akka.dispatch.Dispatchers._
@@ -46,24 +47,50 @@ class Invoker extends Actor {
 
         case HandleAction(request, response:Response, action, app:Application) =>
 
-            val result = 
-                try {
-                    // Be sure to use the Play classloader in this Thread
-                    Thread.currentThread.setContextClassLoader(app.classloader)
-                    try{
-                        action(request)
-                    } catch { 
-                        case e:Exception => throw ExecutionException(e, app.sources.sourceFor(e))
-                    }
-                }catch { case e => 
-                            try {
-                                e.printStackTrace()
-                                app.global.onError(e)
-                                } 
-                            catch{ case e => DefaultGlobal.onError(e) }
-                      }
+            val result = try {
+                // Be sure to use the Play classloader in this Thread
+                Thread.currentThread.setContextClassLoader(app.classloader)
+                try{
+                    action(request)
+                } catch { 
+                    case e:Exception => throw ExecutionException(e, app.sources.sourceFor(e))
+                }
+            } catch { 
+                case e => try {
+                    e.printStackTrace()
+                    app.global.onError(e)
+                } catch { 
+                    case e => DefaultGlobal.onError(e) 
+                }
+            }
 
-            response.handle(result)
+            response.handle {
+                
+                // Handle Flash Scope (probably not the good place to do it)
+                result match {
+                    case r@SimpleResult(response, _) => {
+
+                        val flashCookie = {
+                            response.headers.get(SET_COOKIE)
+                                .map(Cookies.decode(_))
+                                .flatMap(_.find(_.name == Flash.FLASH_COOKIE_NAME)).orElse {
+                                    Option(request.flash).filterNot(_.isEmpty).map { _ =>
+                                        Cookie(Flash.FLASH_COOKIE_NAME, "", 0)
+                                    }
+                                }
+                        }
+
+                        flashCookie.map { newCookie =>
+                            r.copy(response = response.copy(headers = response.headers + (
+                                SET_COOKIE -> Cookies.merge(response.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie))
+                            )))
+                        }.getOrElse(r)
+
+                    }
+                    case r => r 
+                }
+                
+            }
 
 
     }

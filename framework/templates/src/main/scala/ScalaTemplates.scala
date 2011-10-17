@@ -174,8 +174,9 @@ package play.templates {
             override def toString = str
         }
         case class Def(name:PosString, params:PosString, code:Simple) extends Positional
-        case class Plain(text:String) extends TemplateTree  with Positional
-        case class Display(exp:ScalaExp) extends TemplateTree  with Positional
+        case class Plain(text:String) extends TemplateTree with Positional
+        case class Display(exp:ScalaExp) extends TemplateTree with Positional
+        case class Comment(msg:String) extends TemplateTree with Positional
         case class ScalaExp(parts:Seq[ScalaExpPart]) extends TemplateTree  with Positional
         case class Simple(code:String) extends ScalaExpPart  with Positional
         case class Block(whitespace: String, args:Option[String], content:Seq[TemplateTree]) extends ScalaExpPart  with Positional
@@ -213,17 +214,17 @@ package play.templates {
         }
 
         def generatedFile(template:File, sourceDirectory:File, generatedDirectory:File) = {
-            val templateName = source2TemplateName(template, sourceDirectory).split('.')
+            val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head).split('.')
             templateName -> GeneratedSource(new File(generatedDirectory, templateName.mkString("/") + ".template.scala"))
         }
 
-        @tailrec def source2TemplateName(f:File, sourceDirectory:File, suffix:String = ""):String = {
+        @tailrec def source2TemplateName(f:File, sourceDirectory:File, ext:String, suffix:String = ""):String = {
             val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
             (f, f.getName) match {
-                case (f, Name(name,ext)) if f.isFile && f.getParentFile == sourceDirectory => ext + "." + name
-                case (f, Name(name,ext)) if f.isFile => source2TemplateName(f.getParentFile, sourceDirectory, ext + "." + name)
-                case (f, name) if f.getParentFile == sourceDirectory => name + "." + suffix
-                case (f, name) => source2TemplateName(f.getParentFile, sourceDirectory, name + "." + suffix)
+                case (f, Name(name,_)) if f.isFile && f.getParentFile == sourceDirectory => ext + "." + name
+                case (f, Name(name,_)) if f.isFile => source2TemplateName(f.getParentFile, sourceDirectory, ext, name)
+                case (f, name) if f.getParentFile == sourceDirectory => ext + "." + name + "." + suffix
+                case (f, name) => source2TemplateName(f.getParentFile, sourceDirectory, ext, name + "." + suffix)
             }
         }
 
@@ -288,6 +289,10 @@ package play.templates {
                 "(" ~ (several((parentheses | not(")") ~> any))) ~ commit(")") ^^ {
                     case p1~charList~p2 => p1 + charList.mkString + p2
                 }
+            }
+            
+            def comment:Parser[Comment] = {
+                (at ~ "*") ~> ( (not("*@") ~> any *) ^^ {case chars => Comment(chars.mkString)}) <~ ("*" ~ at)
             }
 
             def brackets:Parser[String] = {
@@ -397,7 +402,7 @@ package play.templates {
             }
 
             def mixed:Parser[Seq[TemplateTree]] = {
-                ((scalaBlockDisplayed | caseExpression | matchExpression | forExpression | safeExpression | plain | expression) ^^ {case t => List(t)}) |
+                ((comment | scalaBlockDisplayed | caseExpression | matchExpression | forExpression | safeExpression | plain | expression) ^^ {case t => List(t)}) |
                 ("{" ~ several(mixed) ~ "}") ^^ {case p1~content~p2 => Plain(p1) +: content.flatten :+ Plain(p2)}
             }
 
@@ -456,6 +461,7 @@ package play.templates {
                     val tripleQuote = "\"\"\""
                     visit(tail, head match {
                         case p@Plain(text) => (if(previous.isEmpty) Nil else previous :+ ",") :+ "format.raw" :+ Source("(", p.pos) :+ tripleQuote :+ text :+ tripleQuote :+ ")"
+                        case Comment(msg) => Nil
                         case Display(exp) => (if(previous.isEmpty) Nil else previous :+ ",") :+ "_display_(Seq(" :+ visit(Seq(exp), Nil) :+ "))"
                         case ScalaExp(parts) => previous :+ parts.map {
                             case s@Simple(code) => Source(code, s.pos)
@@ -473,7 +479,7 @@ package play.templates {
                 i match {
                     case t:Template if t.name == "" => templateCode(t)
                     case t:Template => {
-                        Nil :+ """def """ :+ Source(t.name.str, t.name.pos) :+ Source(t.params.str, t.params.pos) :+ " = {" :+ templateCode(t) :+ "};"
+                        Nil :+ """def """ :+ Source(t.name.str, t.name.pos) :+ Source(t.params.str, t.params.pos) :+ " = {_display_(" :+ templateCode(t) :+ ")};"
                     }
                     case Def(name, params, block) => {
                         Nil :+ """def """ :+ Source(name.str, name.pos) :+ Source(params.str, params.pos) :+ " = {" :+ block.code :+ "};"

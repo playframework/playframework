@@ -95,6 +95,7 @@ object Evolutions  {
             }
             
         } catch {
+            case e:InconsistentDatabase => throw e
             case _ => execute(
                 """
                     create table play_evolutions (
@@ -222,7 +223,7 @@ object Evolutions  {
             
             unfoldLeft(executeQuery(
                 """
-                    select id, hash, apply_script, revert_script from play_evolutions
+                    select id, hash, apply_script, revert_script from play_evolutions order by id
                 """
             )) { rs =>
                 rs.next match {
@@ -271,7 +272,7 @@ object Evolutions  {
             }.toList.sortBy(_._1).map {
                 case (revision, script) => {
                     
-                    val parsed = unfoldLeft(("", script.split('\n').toList)) {
+                    val parsed = unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
                         case (_, Nil) => None
                         case (context, lines) => {
                             val (some,next) = lines.span(l => !isMarker(l)) 
@@ -281,14 +282,14 @@ object Evolutions  {
                             ))
                         }
                     }.reverse.drop(1).groupBy(i => i._1).mapValues { _.map(_._2).mkString("\n").trim }
-
+                    
                     Evolution(
                         revision, 
                         parsed.get(UPS).getOrElse(""),
                         parsed.get(DOWNS).getOrElse("")
                     )
                 }
-            }
+            }.reverse
             
         }.getOrElse(Nil)
     }
@@ -303,10 +304,14 @@ class EvolutionsPlugin(app:Application) extends Plugin {
         val api = app.plugin[DBPlugin].api
         
         api.datasources.foreach {
-            case (db, _) => {
-                val script = evolutionScript(api, app.path, db)
+            case (db, (ds, _)) => {
+                val script = evolutionScript(api, app.path, db) 
                 if(!script.isEmpty) {
-                    throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+                    //if(ds.getJdbcUrl.startsWith("jdbc:h2:mem:") && script.headOption.filter {case UpScript(ev,_) => ev.revision == 1}.isDefined) {
+                    //    Evolutions.applyScript(api, db, script)
+                    //} else  {
+                        throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+                    //}
                 }
             }
         }

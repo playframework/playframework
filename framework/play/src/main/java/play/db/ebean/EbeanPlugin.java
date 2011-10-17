@@ -3,7 +3,6 @@ package play.db.ebean;
 import play.*;
 import play.db.*;
 
-import play.api.Application;
 import play.api.libs.Files;
 
 import java.io.*;
@@ -48,21 +47,25 @@ public class EbeanPlugin extends Plugin {
                     config.setDefaultServer(true);
                 }
                 
-                String load = ebeanConf.getString(key);
-                if(load.equals("auto")) {
-                    
-                } else {
-                    String[] classes = load.split(",");
-                    for(String clazz: classes) {
-                        try {
-                            config.addClass(Class.forName(clazz, true, application.classloader()));
-                        } catch(Exception e) {
-                            throw ebeanConf.reportError(
-                                key,
-                                "Cannot register class [" + clazz + "] in Ebean server",
-                                e
-                            );
-                        }
+                String[] toLoad = ebeanConf.getString(key).split(",");
+                Set<String> classes = new HashSet<String>();
+                for(String load: toLoad) {
+                    load = load.trim();
+                    if(load.endsWith(".*")) {
+                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length()-2), javax.persistence.Entity.class));
+                    } else {
+                        classes.add(load);
+                    }
+                }
+                for(String clazz: classes) {
+                    try {
+                        config.addClass(Class.forName(clazz, true, application.classloader()));
+                    } catch(Throwable e) {
+                        throw ebeanConf.reportError(
+                            key,
+                            "Cannot register class [" + clazz + "] in Ebean server",
+                            e
+                        );
                     }
                 }
                 

@@ -6,7 +6,7 @@ import play.data.*;
 import java.util.*;
 
 import models.*;
-import views.html.*;
+import html.views.*;
 
 @Security.Authenticated(Authentication.Authenticator.class)
 public class Tasks extends Controller {

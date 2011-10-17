@@ -8,11 +8,11 @@
         </p>
     }
     
-    @helper.html.form(routes.Authentication.authenticate()) {
+    @helper.form(routes.Authentication.authenticate()) {
         
-        @helper.html.inputText(loginForm("username"))
+        @helper.inputText(loginForm("username"))(helper.defaultInput)
         
-        @helper.html.inputPassword(loginForm("password"))
+        @helper.inputPassword(loginForm("password"))(helper.defaultInput)
         
         <p>
             <input type="submit" value="Login!">

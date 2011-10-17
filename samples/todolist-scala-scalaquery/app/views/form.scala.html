@@ -4,15 +4,15 @@
 
     @maybeId.map { id => <h1>Edit task @id</h1> }.getOrElse { <h1>New task</h1> }
     
-    @helper.html.form(routes.Tasks.save(maybeId)) {
+    @helper.form(routes.Tasks.save(maybeId)) {
         
-        @helper.html.inputText(taskForm("name"))
+        @helper.inputText(taskForm("name"))(helper.defaultInput)
         
-        @helper.html.inputText(taskForm("dueDate"))
+        @helper.inputText(taskForm("dueDate"))(helper.defaultInput)
         
-        @helper.html.select(taskForm("done"), options = Map(
-            "true" -> "It's done", "false" -> "Not yet"
-        ))
+        @helper.select(taskForm("done"), options = Map(
+            "false" -> "Not yet", "true" -> "It's done"
+        ))(helper.defaultInput)
     
         <p>
             <a href="@routes.Tasks.list()">Cancel</a> <input type="submit">

@@ -66,15 +66,15 @@ object Application extends Controller {
     import play.core.Iteratee._
     
     def index = Action {
-        Ok(views.html.index("World " + TOTO.a))
+        Ok(html.views.index("World " + TOTO.a)).flashing("success" -> "DONE!")
     }
     
     def websocketTest = Action {
-        Ok(views.html.sockets())
+        Ok(html.views.sockets())
     }
     
     def moreSockets = Action {
-        Ok(views.html.moreSockets())
+        Ok(html.views.moreSockets())
     }
     
     def socketEchoReversed = Action {
@@ -87,12 +87,12 @@ object Application extends Controller {
     }
     
     val specialTemplates = Map(
-        "home"  -> views.pages.html.home.f,
-        "about" -> views.pages.html.about.f
+        "home"  -> html.views.pages.home.f,
+        "about" -> html.views.pages.about.f
     )
     
     def page(name:String) = Action {
-        Ok(specialTemplates.get(name).getOrElse(views.pages.html.page.f)(name, "Dummy content"))
+        Ok(specialTemplates.get(name).getOrElse(html.views.pages.page.f)(name, "Dummy content"))
     }
     
     def list(page:Int, sort:String) = {
@@ -103,7 +103,7 @@ object Application extends Controller {
             Actions.Cached(p, sort) { 
                 Action {
                     println("Listing page " + p + " using " + sort)
-                    Ok(views.html.list(p, sort))
+                    Ok(html.views.list(p, sort))
                 }
             }
         } 

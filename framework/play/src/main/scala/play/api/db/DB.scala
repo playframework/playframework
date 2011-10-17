@@ -23,6 +23,12 @@ case class DBApi(datasources:Map[String,(BoneCPDataSource,String)]) {
         }
     }
     
+    def getDataSourceURL(name:String):String = {
+        datasources.get(name).map { _._2 }.getOrElse {
+            throw new Exception("No database [" + name + "] is registred")
+        }
+    }
+    
 }
 
 object DBApi {

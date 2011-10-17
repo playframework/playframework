@@ -26,9 +26,9 @@
 
 			case source:play.core.ExceptionSource => {
 
-				@source.file.map { file =>
+				@source.sourceName.map { name =>
 					<h2>
-						In @file @source.line.map { line =>
+						In @name @source.line.map { line =>
 							at line @line.
 						}
 					</h2>
@@ -167,7 +167,6 @@
 			}
 			pre span.code {
 			    padding: 5px 5px;
-			    display: inline-block;
 			    position: absolute;
 			    right: 0;
 			    left: 40px;

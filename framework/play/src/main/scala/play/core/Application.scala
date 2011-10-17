@@ -100,8 +100,11 @@ abstract class ReloadableApplication(applicationPath:File) extends ApplicationPr
         
         }
     }
-    def reload:Either[PlayException,Option[ApplicationClassLoader]]
+    
     def path = applicationPath
+    
+    // Abstract
+    def reload:Either[PlayException,Option[ApplicationClassLoader]]
     def findSource(className:String):Option[File]
 
 }

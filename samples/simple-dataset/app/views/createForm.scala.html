@@ -1,0 +1,33 @@
+@(computerForm:Form[Computer])
+
+@import helper._
+
+@main {
+    
+    <h1>Add a computer</h1>
+    
+    @form(routes.Application.save()) {
+        
+        <fieldset>
+        
+            @inputText(computerForm("name"), 'label -> "Computer name")(utils.twitterBootstrapInput.f)
+            @inputText(computerForm("introduced"), 'label -> "Introduced date")(utils.twitterBootstrapInput.f)
+            @inputText(computerForm("discontinued"), 'label -> "Discontinued date")(utils.twitterBootstrapInput.f)
+
+            @select(
+                computerForm("company.id"), 
+                Company.options, 
+                'label -> "Company", 'default -> "-- Choose a company --"
+            )(utils.twitterBootstrapInput.f)
+            
+
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Create this computer" class="btn primary"> or 
+            <a href="@routes.Application.list()" class="btn">Cancel</a> 
+        </div>
+        
+    }
+    
+}

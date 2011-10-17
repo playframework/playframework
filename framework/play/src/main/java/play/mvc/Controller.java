@@ -27,6 +27,26 @@ public abstract class Controller {
         return Http.Context.current().session();
     }
     
+    public static void session(String key, String value) {
+        session().put(key, value);
+    }
+    
+    public static String session(String key) {
+        return session().get(key);
+    }
+    
+    public static Flash flash() {
+        return Http.Context.current().flash();
+    }
+    
+    public static void flash(String key, String value) {
+        flash().put(key, value);
+    }
+    
+    public static String flash(String key) {
+        return flash().get(key);
+    }
+    
     // -- Form
     
     public static DynamicForm form() {
@@ -43,9 +63,7 @@ public abstract class Controller {
     
     // -- Results
     
-    public static Result todo() {
-        return new Todo();
-    }
+    public static Result TODO = new Todo();
     
     public static Result ok() {
         return new Ok();

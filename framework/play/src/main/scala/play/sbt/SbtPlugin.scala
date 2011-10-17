@@ -35,9 +35,10 @@ object PlayProject extends Plugin {
     case class CompilationException(problem:xsbti.Problem) extends PlayException(
         "Compilation error", problem.message
     ) with ExceptionSource {
-        def line = problem.position.line.map(m => Some(m.asInstanceOf[Int])).getOrElse(None)
-        def position = problem.position.pointer.map(m => Some(m.asInstanceOf[Int])).getOrElse(None)
-        def file = problem.position.sourceFile.map(m => Some(m)).getOrElse(None)
+        def line = problem.position.line.map(m => m.asInstanceOf[Int])
+        def position = problem.position.pointer.map(m => m.asInstanceOf[Int])
+        def input = problem.position.sourceFile.map(scalax.file.Path(_))
+        def sourceName = problem.position.sourceFile.map(_.getAbsolutePath)
     }
 
     case class TemplateCompilationException(source:File, message:String, atLine:Int, column:Int) extends PlayException(
@@ -45,7 +46,8 @@ object PlayProject extends Plugin {
     ) with ExceptionSource {
         def line = Some(atLine)
         def position = Some(column)
-        def file = Some(source)
+        def input = Some(scalax.file.Path(source))
+        def sourceName = Some(source.getAbsolutePath)
     }
     
     case class RoutesCompilationException(source:File, message:String, atLine:Option[Int], column:Option[Int]) extends PlayException(
@@ -53,7 +55,8 @@ object PlayProject extends Plugin {
     ) with ExceptionSource {
         def line = atLine
         def position = column
-        def file = Some(source)
+        def input = Some(scalax.file.Path(source))
+        def sourceName = Some(source.getAbsolutePath)
     }
     
     
@@ -340,7 +343,7 @@ object PlayProject extends Plugin {
             
             val watchFiles = Seq(
                 extracted.currentProject.base / "conf" / "application.conf"
-            ) ++ ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get
+            ) ++ ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "messages").get
         
             var forceReload = false
             var currentProducts = Map.empty[java.io.File,Long]
@@ -653,7 +656,12 @@ object PlayProject extends Plugin {
         
     }
     
-    
+    val h2Command = Command.command("h2") { state:State =>
+        try {
+            org.h2.tools.Server.main()
+        }
+        state
+    }
     
     
     // ----- Default settings
@@ -678,7 +686,7 @@ object PlayProject extends Plugin {
         
         sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
-        commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand),
+        commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command),
 
         shellPrompt := playPrompt,
 

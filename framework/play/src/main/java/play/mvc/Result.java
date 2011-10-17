@@ -13,7 +13,7 @@ public interface Result {
         
         public Todo() {
             wrappedResult = play.api.mvc.JResults.NotImplemented().apply(
-                play.core.views.html.todo.render(),
+                html.views.defaultpages.todo.render(),
                 play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()

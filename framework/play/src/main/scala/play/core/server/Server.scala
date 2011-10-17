@@ -36,7 +36,6 @@ trait Server {
 
     def invoke[A](request:Request[A], response:Response, action:Action[A], app:Application) = invoker ! HandleAction(request,response,action,app)
 
-    
     def applicationProvider:ApplicationProvider
     
 }

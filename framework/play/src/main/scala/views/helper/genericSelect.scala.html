@@ -1,0 +1,14 @@
+@(field:play.api.data.Field, options:Seq[(String,String)], args:(Symbol,Any)*)(handler:(Html,Html,Seq[String],Seq[String]) => Html)
+
+@using(Utils.filter(args, 'id -> field.id, 'label -> field.name, 'default -> null)) { args =>
+    @input(field, args._1('id), Some(args._1('label)), showInfo = false) { (id,name,value) =>
+        <select id="@id" name="@name" @toHtmlArgs(args._2)>
+            @Option(args._1('default)).map { txt =>
+                <option class="blank" value="">@txt</option>
+            }
+            @options.map { v =>
+                <option value="@v._1" @(if(value == Some(v._1)) "selected" else "")>@v._2</option>
+            }
+        </select>
+    }(handler)
+}

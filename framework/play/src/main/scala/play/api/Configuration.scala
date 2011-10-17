@@ -72,7 +72,8 @@ object Configuration {
                     throw new PlayException("Configuration error", message) with ExceptionSource {
                         def line = Some(in.pos.line)
                         def position = Some(in.pos.column-1)
-                        def file = Some(configurationFile)
+                        def input = Some(scalax.file.Path(configurationFile))
+                        def sourceName = Some(configurationFile.getAbsolutePath)
                     }
                 }
             }
@@ -142,7 +143,8 @@ case class Configuration(data:Map[String,Config], root:String = "") {
             new PlayException("Configuration error", message, e) with ExceptionSource {
                 def line = Some(c._2.pos.line)
                 def position = None
-                def file = Some(c._2.file)
+                def input = Some(scalax.file.Path(c._2.file))
+                def sourceName = Some(c._2.file.getAbsolutePath)
             }
         }.getOrElse {
             new PlayException("Configuration error", message, e)
@@ -153,7 +155,8 @@ case class Configuration(data:Map[String,Config], root:String = "") {
         new PlayException("Configuration error", message, e) with ExceptionSource {
             def line = Some(config.pos.line)
             def position = Some(config.pos.column + config.key.size)
-            def file = Some(config.file)
+            def input = Some(scalax.file.Path(config.file))
+            def sourceName = Some(config.file.getAbsolutePath)
         } 
     }
     

@@ -20,7 +20,7 @@ object Authentication extends Controller {
     )
     
     def login = Action { implicit request =>
-        Unauthorized(views.html.login(loginForm))
+        Unauthorized(html.views.login(loginForm))
     }
     
     def logout = Action {
@@ -29,7 +29,7 @@ object Authentication extends Controller {
     
     def authenticate = Action { implicit request =>
         loginForm.bind().fold(
-            errors => BadRequest(views.html.login(errors)),
+            errors => BadRequest(html.views.login(errors)),
             {case (user,_) => Redirect(routes.Tasks.list).withSession(session + (Security.USERNAME -> user))}
         )
     }
@@ -49,18 +49,20 @@ object Tasks extends Controller with Security.AllAuthenticated {
     override def onUnauthorized(request:RequestHeader) = Redirect(routes.Authentication.login)    
     
     def list = Action { implicit request =>
-        Ok(views.html.list(Task.findAll))
+        Ok(html.views.list(Task.findAll))
     }
     
     def form(id:Option[Long]) = Action { implicit request =>
-       Ok(views.html.form(id, id.map( id => taskForm.fill(Task.findById(id))).getOrElse(taskForm)))
+       Ok(html.views.form(id, id.map(id => taskForm.fill(Task.findById(id))).getOrElse(taskForm)))
     }
     
     def save(id:Option[Long]) = Action { implicit request =>
         taskForm.bind().fold(
-            f => BadRequest(views.html.form(id, f)),
-            t => {
-                id.map(Task.update(_, t)).getOrElse(Task.insert(t))
+            f => {
+                BadRequest(html.views.form(id, f))
+            },
+            v => {
+                id.map(Task.update(_, v)).getOrElse(Task.insert(v))
                 Redirect(routes.Tasks.list)
             }
         )

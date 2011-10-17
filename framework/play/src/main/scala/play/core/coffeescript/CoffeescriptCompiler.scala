@@ -72,5 +72,6 @@ case class CompilationException(message:String, coffeeFile:File, atLine:Option[I
 ) with ExceptionSource {
     def line = atLine
     def position = None
-    def file = Some(coffeeFile)
+    def input = Some(scalax.file.Path(coffeeFile))
+    def sourceName = Some(coffeeFile.getAbsolutePath)
 }

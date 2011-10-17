@@ -1,7 +1,6 @@
 package play.core
 
 import java.io.File
-import sbt.IO
 
 case class PlayException(title:String, description:String, cause:Option[Throwable] = None) extends RuntimeException("%s -> %s".format(title, description), cause.orNull) {
     
@@ -14,10 +13,11 @@ trait ExceptionSource {
     
     def line:Option[Int]
     def position:Option[Int]
-    def file:Option[File]
+    def input:Option[scalax.io.Input]
+    def sourceName:Option[String]
     
     def interestingLines(border:Int = 4):Option[(Int,Seq[String],Int)] = {
-        for(f <- file; l <- line; val (first,last) = IO.readLines(f).splitAt(l-1); focus <- last.headOption) yield {
+        for(f <- input; l <- line; val (first,last) = f.slurpString.split('\n').splitAt(l-1); focus <- last.headOption) yield {
             val before = first.takeRight(border)
             val after = last.drop(1).take(border)
             val firstLine = l - before.size
@@ -59,5 +59,6 @@ case class ExecutionException(target:Throwable, source:Option[(File,Int)]) exten
 ) with ExceptionSource {
     def line = source.map(_._2)
     def position = None
-    def file = source.map(_._1)
+    def input = source.map(_._1).map(scalax.file.Path(_))
+    def sourceName = source.map(_._1.getAbsolutePath)
 }

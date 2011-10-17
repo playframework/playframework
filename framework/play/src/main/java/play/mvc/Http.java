@@ -14,16 +14,16 @@ public class Http {
         
         //
         
-        Request request;
-        Response response;
-        Session session;
-        Map<String,Object> data;
+        final Request request;
+        final Response response;
+        final Session session;
+        final Flash flash;
         
-        public Context(Request request, Map<String,String> sessionData) {
+        public Context(Request request, Map<String,String> sessionData, Map<String,String> flashData) {
             this.request = request;
             this.response = new Response();
             this.session = new Session(sessionData);
-            this.data = new HashMap<String,Object>();
+            this.flash = new Flash(flashData);
         }
         
         public Request request() {
@@ -38,12 +38,28 @@ public class Http {
             return session;
         }
         
-        public Object get(String key) {
-            return data.get(key);
+        public Flash flash() {
+            return flash;
         }
         
-        public void set(String key, Object value) {
-            data.put(key, value);
+        public static class Implicit {
+            
+            public static Response response() {
+                return Context.current().response();
+            }
+            
+            public static Request request() {
+                return Context.current().request();
+            }
+            
+            public static Flash flash() {
+                return Context.current().flash();
+            }
+            
+            public static Session session() {
+                return Context.current().session();
+            }
+            
         }
         
     }
@@ -87,9 +103,69 @@ public class Http {
     
     public static class Session extends HashMap<String,String>{
         
+        public boolean isDirty = false;
+        
         public Session(Map<String,String> data) {
             super(data);
         }
+        
+        @Override
+        public String remove(Object key) {
+            isDirty = true;
+            return super.remove(key);
+        }
+        
+        @Override
+        public String put(String key, String value) {
+            isDirty = true;
+            return super.put(key, value);
+        }
+        
+        @Override
+        public void putAll(Map<? extends String,? extends String> values) {
+            isDirty = true;
+            super.putAll(values);
+        }
+        
+        @Override
+        public void clear() {
+            isDirty = true;
+            super.clear();
+        }
+        
+    }
+    
+    public static class Flash extends HashMap<String,String>{
+        
+        public boolean isDirty = false;
+        
+        public Flash(Map<String,String> data) {
+            super(data);
+        }
+        
+        @Override
+        public String remove(Object key) {
+            isDirty = true;
+            return super.remove(key);
+        }
+        
+        @Override
+        public String put(String key, String value) {
+            isDirty = true;
+            return super.put(key, value);
+        }
+        
+        @Override
+        public void putAll(Map<? extends String,? extends String> values) {
+            isDirty = true;
+            super.putAll(values);
+        }
+        
+        @Override
+        public void clear() {
+            isDirty = true;
+            super.clear();
+        }        
         
     }
     
