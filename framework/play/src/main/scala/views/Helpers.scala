@@ -2,7 +2,7 @@ import play.api.templates._
 
 import scala.collection.JavaConverters._
 
-package html.views.helper {
+package views.html.helper {
 
   object Utils {
 

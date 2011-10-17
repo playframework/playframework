@@ -6,7 +6,7 @@ import play.data.*;
 import java.util.*;
 
 import models.*;
-import html.views.*;
+import views.html.*;
 
 public class Application extends Controller {
     
