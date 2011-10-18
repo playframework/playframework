@@ -6,11 +6,19 @@ import play.templates._
 import java.io._
 
 object TemplateCompilerSpec extends Specification {
+
   import Helper._
+
+  val sourceDir = new File("templates/src/test/templates")
+  val generatedDir = new File("templates/target/test/generated-templates")
+  val generatedClasses = new File("templates/target/test/generated-classes")
+  scalax.file.Path(generatedDir).deleteRecursively()
+  scalax.file.Path(generatedClasses).deleteRecursively()
+  scalax.file.Path(generatedClasses).createDirectory()
 
   "The template compiler" should {
     "successfully compile" in {
-      val helper = new CompilerHelper
+      val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
       helper.compile[((String, List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A", "B"))(4).toString.trim must beLike {
         case html =>
           {
@@ -28,7 +36,7 @@ object TemplateCompilerSpec extends Specification {
       }
     }
     "fail compilation for error.scala.html" in {
-      val helper = new CompilerHelper
+      val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
       helper.compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like {
         case CompilationError(_, 2, 12) => ok
         case _ => ko
@@ -57,7 +65,7 @@ object Helper {
 
   case class CompilationError(message: String, line: Int, column: Int) extends RuntimeException(message)
 
-  class CompilerHelper {
+  class CompilerHelper(sourceDir: File, generatedDir: File, generatedClasses: File) {
     import scala.tools.nsc.interactive.{ Response, Global }
     import scala.tools.nsc.io.AbstractFile
     import scala.tools.nsc.util.{ SourceFile, Position, BatchSourceFile }
@@ -67,15 +75,6 @@ object Helper {
     import java.net._
 
     val templateCompiler = ScalaTemplateCompiler
-    val sourceDir = new File("templates/src/test/templates")
-    val generatedDir = new File("templates/target/test/generated-templates")
-    val generatedClasses = new File("templates/target/test/generated-classes")
-
-    try {
-      scalax.file.Path(generatedDir).deleteRecursively()
-      scalax.file.Path(generatedClasses).deleteRecursively()
-      scalax.file.Path(generatedClasses).createDirectory()
-    } catch { case _ => }
 
     val classloader = new URLClassLoader(Array(generatedClasses.toURI.toURL), Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader)
 
