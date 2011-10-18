@@ -13,11 +13,11 @@ trait Plugin {
  * Global plugin executes application's globalSettings onStart and onStop.
  */
 class GlobalPlugin(app: Application) extends Plugin {
-  override def onStart = {
+  override def onStart {
     app.global.onStart(app)
   }
 
-  override def onStop = {
+  override def onStop {
     app.global.onStop(app)
   }
 }

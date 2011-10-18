@@ -60,12 +60,25 @@ object Play {
 
 case class Application(path: File, classloader: ApplicationClassLoader, sources: SourceMapper, mode: Play.Mode.Mode) {
 
-  val global: GlobalSettings = try {
+  private val javaGlobal: Option[play.GlobalSettings] = try {
+    // lookup java application Global
+    Option(classloader.loadClassParentLast("Global").newInstance().asInstanceOf[play.GlobalSettings])
+  } catch {
+    case e: ClassNotFoundException => None
+    case e => throw e
+  }
+
+  private val scalaGlobal: GlobalSettings = try {
+    // lookup application's global.scala
     classloader.loadClassParentLast("Global$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
   } catch {
     case e: ClassNotFoundException => DefaultGlobal
     case e => throw e
   }
+
+  val global: GlobalSettings = javaGlobal.map(new JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
+
+  println("Using GlobalSettings " + global.getClass.getName)
 
   global.beforeStart(this)
 
@@ -129,7 +142,6 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
 }
 
 trait GlobalSettings {
-
   import Results._
 
   def beforeStart(app: Application) {
@@ -163,7 +175,39 @@ trait GlobalSettings {
       case app => views.html.defaultpages.notFound.f
     }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
   }
+}
 
+object DefaultScalaGlobalSettings extends GlobalSettings
+
+/**
+ * Adapter that holds the java GlobalSettings and acts as a scala GlobalSettings for the framework.
+ */
+class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends GlobalSettings {
+  require(javaGlobalSettings != null, "javaGlobalSettings cannot be null")
+
+  override def beforeStart(app: Application) {
+    javaGlobalSettings.beforeStart(new play.Application(app))
+  }
+
+  override def onStart(app: Application) {
+    javaGlobalSettings.onStart(new play.Application(app))
+  }
+
+  override def onStop(app: Application) {
+    javaGlobalSettings.onStop(new play.Application(app))
+  }
+
+  override def onRouteRequest(request: RequestHeader): Option[Action[_]] = {
+    super.onRouteRequest(request)
+  }
+
+  override def onError(ex: Throwable): Result = {
+    Option(javaGlobalSettings.onError(ex)).map(_.getWrappedResult).getOrElse(super.onError(ex))
+  }
+
+  override def onActionNotFound(request: RequestHeader): Result = {
+    Option(javaGlobalSettings.onActionNotFound(request.path)).map(_.getWrappedResult).getOrElse(super.onActionNotFound(request))
+  }
 }
 
 trait Content {
