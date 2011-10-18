@@ -48,6 +48,7 @@ object PlayBuild extends Build {
             resetRepositoryTask,
             buildRepositoryTask,
             distTask,
+            generateAPIDocsTask,
             publish <<= (publish in PlayProject, publish in TemplatesProject) map { (_,_) => }
         ) 
     ).dependsOn(PlayProject).aggregate(TemplatesProject, PlayProject)
@@ -173,6 +174,24 @@ object PlayBuild extends Build {
             IO.delete(repository)
             IO.createDirectory(repository)
             repository
+        }
+        
+        // ----- Generate API docs
+        
+        val generateAPIDocs = TaskKey[Unit]("api-docs")
+        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Compile, compilers, streams) map { (classpath, cs, s) => 
+          
+          IO.delete(file("../documentation/api"))
+          
+          // Scaladoc
+          val sourceFiles = (file("play/src/main/scala/play/api") ** "*.scala").get ++ (file("play/src/main/scala/views") ** "*.scala").get ++ (file("play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
+          new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
+
+          // Javadoc
+          val javaSources = file("play/src/main/java")
+          val javaApiTarget = file("../documentation/api/java")
+          <x>javadoc -sourcepath {javaSources} -d {javaApiTarget} -subpackages play -exclude play.api:play.core -classpath {classpath.map(_.data).mkString(":")}</x> ! s.log       
+
         }
 
         // ----- Build repo

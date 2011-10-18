@@ -105,7 +105,7 @@ public class EbeanPlugin extends Plugin {
     /**
      * DataSource wrapper to ensure that every retrieved connection is set automatically to autoCommit=false
      */
-    public static class WrappingDatasource implements javax.sql.DataSource {
+    static class WrappingDatasource implements javax.sql.DataSource {
         
         public java.sql.Connection wrap(java.sql.Connection connection) throws java.sql.SQLException {
             connection.setAutoCommit(false);

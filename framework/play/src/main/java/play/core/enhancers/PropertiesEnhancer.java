@@ -1,4 +1,4 @@
-package play.data.enhancers;
+package play.core.enhancers;
 
 import java.io.*;
 import java.util.*;

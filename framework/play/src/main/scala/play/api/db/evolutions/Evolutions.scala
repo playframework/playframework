@@ -1,4 +1,4 @@
-package play.api.db
+package play.api.db.evolutions
 
 import java.io._
 import java.sql.{ Date, Connection, SQLException }

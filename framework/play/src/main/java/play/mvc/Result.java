@@ -1,6 +1,7 @@
 package play.mvc;
 
 import play.api.*;
+import play.api.mvc.*;
 import play.api.mvc.Results.* ;
 
 public interface Result {

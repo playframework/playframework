@@ -8,8 +8,6 @@ import play.core.logger._
 import java.io._
 import java.net._
 
-object DefaultGlobal extends GlobalSettings
-
 class ApplicationClassLoader(parent: ClassLoader, urls: Array[URL] = Array.empty) extends URLClassLoader(urls, parent) {
 
   def loadClassParentLast(name: String) = try {

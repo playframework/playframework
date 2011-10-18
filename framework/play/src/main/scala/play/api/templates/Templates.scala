@@ -1,6 +1,6 @@
 package play.api.templates
 
-import play.api._
+import play.api.mvc._
 import play.templates._
 
 case class Html(text: String) extends Appendable[Html] with Content {

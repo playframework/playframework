@@ -3,6 +3,7 @@ package sbt
 import Keys._
 import jline._
 
+import play.api._
 import play.core._
 
 object PlayProject extends Plugin {
@@ -225,8 +226,8 @@ object PlayProject extends Plugin {
       analysis.relations.products(sourceFile)
     }.flatten.distinct
 
-    javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
-    javaClasses.foreach(play.data.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
+    javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
+    javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
 
     // EBean
 
@@ -505,6 +506,7 @@ object PlayProject extends Plugin {
 
           case applyEvolutions(db) => {
             import play.api.db._
+            import play.api.db.evolutions._
             import play.api.mvc.Results._
 
             OfflineEvolutions.applyScript(extracted.currentProject.base, newClassloader, db)

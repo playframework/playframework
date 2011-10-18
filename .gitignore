@@ -6,6 +6,7 @@ dist/
 .DS_Store
 project/boot/
 framework/project/boot/
+documentation/api
 workspace/
 framework/sbt/boot
 

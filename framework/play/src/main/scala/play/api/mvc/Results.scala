@@ -73,17 +73,6 @@ object Results extends Results {
   case class Empty()
 }
 
-object JResults extends Results {
-  def writeContent: Writeable[play.api.Content] = writeableStringOf_Content[play.api.Content]
-  def writeString: Writeable[String] = writeableStringOf_String
-  def writeEmpty: Writeable[Results.Empty] = writeableStringOf_Empty
-  def contentTypeOfString: ContentTypeOf[String] = contentTypeOf_String
-  def contentTypeOfContent: ContentTypeOf[play.api.Content] = contentTypeOf_Content[play.api.Content]
-  def contentTypeOfEmpty: ContentTypeOf[Results.Empty] = contentTypeOf_Empty
-  def emptyHeaders = Map.empty[String, String]
-  def empty = Results.Empty()
-}
-
 trait Results {
 
   import play.core._

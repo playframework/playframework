@@ -16,6 +16,7 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
 
+import play.api._
 import play.core._
 import play.core.logger._
 import play.core.Iteratee._

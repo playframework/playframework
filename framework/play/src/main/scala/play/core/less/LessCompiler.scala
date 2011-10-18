@@ -1,7 +1,7 @@
 package play.core.less
 
 import java.io._
-import play.core._
+import play.api._
 
 object LessCompiler {
 

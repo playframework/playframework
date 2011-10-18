@@ -1,4 +1,4 @@
 100:play.api.i18n.MessagesPlugin
 200:play.api.db.DBPlugin
 300:play.db.ebean.EbeanPlugin
-400:play.api.db.EvolutionsPlugin
+400:play.api.db.evolutions.EvolutionsPlugin
