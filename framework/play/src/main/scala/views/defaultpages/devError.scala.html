@@ -1,4 +1,4 @@
-@(error:play.core.PlayException)
+@(error:play.api.PlayException)
 
 <!DOCTYPE html>
 <html>
@@ -11,7 +11,7 @@
 		<p id="detail">
 		    @error match {
 		        
-		        case description:play.core.RichDescription => {
+		        case description:play.api.RichDescription => {
 		            @play.api.templates.Html(description.htmlDescription)
 		        }
 		        
@@ -24,7 +24,7 @@
 		
 		@error match {
 
-			case source:play.core.ExceptionSource => {
+			case source:play.api.ExceptionSource => {
 
 				@source.sourceName.map { name =>
 					<h2>
@@ -59,7 +59,7 @@
 
 			}
 			
-			case attachment:play.core.ExceptionAttachment => {
+			case attachment:play.api.ExceptionAttachment => {
 			    
 			    <h2>@attachment.subTitle</h2>
 			    
@@ -75,7 +75,7 @@
 			    
 			}
 			
-			case play.core.PlayException(_, _ , Some(throwable)) => {
+			case play.api.PlayException(_, _ , Some(throwable)) => {
 			    
 			    <h2>
 			        No source available, here is the exception stack trace:

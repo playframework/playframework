@@ -1,4 +1,4 @@
-package play.data.parsing;
+package play.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

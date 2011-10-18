@@ -1,7 +1,5 @@
 package play.api
 
-import play.core._
-
 import java.io._
 
 import scala.util.parsing.input._

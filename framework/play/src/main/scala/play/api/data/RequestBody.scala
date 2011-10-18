@@ -9,7 +9,7 @@ import play.api.mvc.{ BodyParser, AnyContent }
 object RequestData {
   def urlEncoded(encoding: String): BodyParser[AnyContent] = {
     val it = Iteratee.fold[Array[Byte], ArrayBuffer[Byte]](ArrayBuffer[Byte]())(_ ++= _)
-    import play.data.parsing.UrlEncodedParser
+    import play.core.UrlEncodedParser
     BodyParser(_ =>
       it.mapDone { a =>
         AnyContent(

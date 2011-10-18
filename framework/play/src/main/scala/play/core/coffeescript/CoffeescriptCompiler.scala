@@ -1,7 +1,7 @@
 package play.core.coffeescript
 
 import java.io._
-import play.core._
+import play.api._
 
 object CoffeescriptCompiler {
 
