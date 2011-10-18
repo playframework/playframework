@@ -26,7 +26,7 @@ object TemplateParserSpec extends Specification {
       }
     }
 
-    "success for" in {
+    "succeed for" in {
 
       "static.scala.html" in {
         parse("static.scala.html") must beLike({ case parser.Success(_, rest) => if (rest.atEnd) ok else ko })
