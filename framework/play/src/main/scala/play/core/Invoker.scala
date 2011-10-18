@@ -31,12 +31,6 @@ object DispatchStrategy {
     .setMaxPoolSize(3)
     .build
 
-  val stmPromiseRedeem = newExecutorBasedEventDrivenWorkStealingDispatcher("name")
-    .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
-    .setCorePoolSize(3)
-    .setMaxPoolSize(3)
-    .build
-
 }
 case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 class Invoker extends Actor {
