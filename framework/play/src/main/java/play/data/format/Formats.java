@@ -24,7 +24,9 @@ public class Formats {
             if(text == null || text.trim().isEmpty()) {
                 return null;
             }
-            return new SimpleDateFormat(pattern, locale).parse(text);
+             SimpleDateFormat sdf = new SimpleDateFormat(pattern, locale);
+             sdf.setLenient(false);  
+            return sdf.parse(text);
         }
         
         public String print(Date date, Locale locale) {
@@ -49,7 +51,9 @@ public class Formats {
             if(text == null || text.trim().isEmpty()) {
                 return null;
             }
-            return new SimpleDateFormat(a.pattern(), locale).parse(text);
+            SimpleDateFormat sdf = new SimpleDateFormat(a.pattern(), locale);
+            sdf.setLenient(false);  
+            return sdf.parse(text);
         }
         
         public String print(DateTime a, Date date, Locale locale) {

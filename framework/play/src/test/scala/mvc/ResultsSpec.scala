@@ -1,10 +1,9 @@
-package play.test
+package play.api.mvc
 
 import org.specs2.mutable._
 
-class ResultsSpec extends Specification {
+object ResultsSpec extends Specification {
 
-  import play.api.mvc._
   import play.api.mvc.Results._
 
   "SimpleResult" should {

@@ -17,7 +17,7 @@ object TemplateCompilerSpec extends Specification {
   scalax.file.Path(generatedClasses).createDirectory()
 
   "The template compiler" should {
-    "successfully compile" in {
+    "compile successfully" in {
       val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
       helper.compile[((String, List[String]) => (Int) => Html)]("real.scala.html", "html.real")("World", List("A", "B"))(4).toString.trim must beLike {
         case html =>
