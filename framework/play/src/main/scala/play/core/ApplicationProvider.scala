@@ -36,10 +36,6 @@ trait SourceMapper {
 
 }
 
-case class NoSourceAvailable() extends SourceMapper {
-  def sourceOf(className: String) = None
-}
-
 trait ApplicationProvider {
   def path: File
   def get: Either[PlayException, Application]
@@ -47,7 +43,7 @@ trait ApplicationProvider {
 }
 
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
-  val application = Application(applicationPath, new ApplicationClassLoader(classOf[StaticApplication].getClassLoader), NoSourceAvailable(), Play.Mode.Prod)
+  val application = Application(applicationPath, new ApplicationClassLoader(classOf[StaticApplication].getClassLoader), None, Play.Mode.Prod)
 
   Play.start(application)
 
@@ -70,9 +66,9 @@ abstract class ReloadableApplication(applicationPath: File) extends ApplicationP
         val maybeApplication: Option[Either[PlayException, Application]] = maybeClassloader.map { classloader =>
           try {
 
-            val newApplication = Application(applicationPath, classloader, new SourceMapper {
+            val newApplication = Application(applicationPath, classloader, Some(new SourceMapper {
               def sourceOf(className: String) = findSource(className)
-            }, Play.Mode.Dev)
+            }), Play.Mode.Dev)
 
             Play.start(newApplication)
 

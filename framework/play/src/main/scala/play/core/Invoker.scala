@@ -46,7 +46,7 @@ class Invoker extends Actor {
         try {
           action(request)
         } catch {
-          case e: Exception => throw ExecutionException(e, app.sources.sourceFor(e))
+          case e: Exception => throw ExecutionException(e, app.sources.flatMap(_.sourceFor(e)))
         }
       } catch {
         case e => try {

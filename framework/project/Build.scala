@@ -14,12 +14,24 @@ object PlayBuild extends Build {
         "Templates",
         file("templates"),
         settings = buildSettings ++ Seq(
-            libraryDependencies := templates,
+            libraryDependencies := templatesDependencies,
             publishMavenStyle := false,
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
+    
+    val AnormProject = Project(
+        "Anorm",
+        file("anorm"),
+        settings = buildSettings ++ Seq(
+            libraryDependencies := anormDependencies,
+            publishMavenStyle := false,
+            publishTo := Some(playRepository),
+            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in (Compile, packageSrc) := false
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
@@ -51,7 +63,7 @@ object PlayBuild extends Build {
             generateAPIDocsTask,
             publish <<= (publish in PlayProject, publish in TemplatesProject) map { (_,_) => }
         ) 
-    ).dependsOn(PlayProject).aggregate(TemplatesProject, PlayProject)
+    ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject)
     
     object BuildSettings {
 
@@ -115,10 +127,14 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test" 
         )                                            
                                                      
-        val templates = Seq(                         
+        val templatesDependencies = Seq(                         
             "com.github.scala-incubator.io"     %%   "scala-io-file"        %   "0.2.0",
             "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"       %   buildScalaVersion
+        )
+        
+        val anormDependencies = Seq(
+            "org.scala-lang"                    %    "scalap"               %   buildScalaVersion 
         )
 
     }
