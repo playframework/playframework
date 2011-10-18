@@ -37,7 +37,7 @@ object FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
 
     }
-    "have an error due to bad integer" in {
+    "have an error due to bad value in Id field" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
