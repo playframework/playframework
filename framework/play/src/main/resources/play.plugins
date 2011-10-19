@@ -2,3 +2,4 @@
 200:play.api.db.DBPlugin
 300:play.db.ebean.EbeanPlugin
 400:play.api.db.evolutions.EvolutionsPlugin
+10000:play.api.GlobalPlugin

@@ -23,6 +23,10 @@ public class Task extends Model {
     public Date dueDate = new Date();
     
     public static Finder<Long,Task> find = new Finder(Long.class, Task.class); 
-    
+
+    public static int count() {
+        return new Finder(Long.class, Task.class).findRowCount();
+    }
+
 }
 
