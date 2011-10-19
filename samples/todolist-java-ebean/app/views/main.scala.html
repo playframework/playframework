@@ -3,15 +3,32 @@
     <head>
         <title>TODO List</title>
         <link rel="shortcut icon" type="image/png" href="http://www.playframework.org/public/images/favicon.png">
-        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/styles.css")"> 
-        <script src="@routes.Assets.at("scripts/test.js")" type="text/javascript" charset="utf-8"></script>
+        <link rel="stylesheet" type="text/css" media="screen" href='@routes.Assets.at("stylesheets/styles.css")'>
+        <script src='@routes.Assets.at("scripts/test.js")' type="text/javascript" charset="utf-8"></script>
+<!--[if lt IE 7]>
+
+<style>
+h1 span {
+  background: none;
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='/assets/images/gradient-white.png', sizingMethod='scale');
+}
+</style>
+
+<![endif]-->
     </head>
     <body>
-        <h1>TODO List</h1>
+        <div class="container">
+        <h1><span></span>TODO List</h1>
         <hr>
         @body
         <hr>
         <a href="@routes.Tasks.list()">Home</a> - (<a href="@routes.Authentication.logout">Logout</a>)
+
+        <div class="footer">
+            Play! Framework v2.0 Sample application
+        </div>
+        </div>
+
     </body>
 </html>
             

@@ -3,23 +3,28 @@
 @main {
     
     @Option(loginForm.globalError).map { error =>
-        <p style="color:#fff; background:#c00">
+        <p class="errorBox">
             @error.message
         </p>
     }
     
     @helper.form(routes.Authentication.authenticate()) {
-        
-        @helper.inputText(loginForm("username"))(helper.defaultInput)
+        <div class="fieldContainer">
+            <fieldset>
+                <legend>TODO Authentication form</legend>
+
+
+        @helper.inputText(loginForm("username"), 'placeholder->"Your username")(helper.defaultInput)
         
         @helper.inputPassword(loginForm("password"))(helper.defaultInput)
-        
-        <p>
-            <input type="submit" value="Login!">
-        </p>
+            </fieldset>
+            <div class="centered">
+            <input type="submit" value="Login!" class="submitButton">
+                </div>
+        </div>
         
     }
-    
+    <legend>For the sample application, authenticate with login=demo and password=demo</legend>
     
 }
 

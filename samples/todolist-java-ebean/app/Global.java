@@ -1,6 +1,12 @@
+import models.Task;
+import org.joda.time.DateTime;
 import play.Application;
 import play.GlobalSettings;
+import play.data.format.Formats;
 import play.mvc.Result;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Executes some database setup when the application starts.
@@ -28,7 +34,23 @@ public final class Global extends GlobalSettings {
         System.out.println("onStart...");
 
         // Create some test entries
-        // todo
+        if(Task.count()==0) {
+            Task task1=new Task();
+            task1.name="Subscribe to Play! Developer's list";
+            task1.dueDate=new DateTime().plusDays(3).toDate();
+            task1.save();
+
+            Task task2=new Task();
+            task2.name="Send a giftcard to Emma";
+            task2.dueDate=new DateTime().plusMonths(1).toDate();
+            task2.save();
+
+            Task task3=new Task();
+            task3.name="Buy a Devoxx ticket";
+            task3.dueDate=new DateTime().minusDays(5).toDate();
+            task3.done=Boolean.TRUE;
+            task3.save();
+        }
     }
 
     /**
@@ -51,7 +73,7 @@ public final class Global extends GlobalSettings {
     @Override
     public Result onError(Throwable t) {
         System.out.println("onError with " + t);
-        return new Result.InternalServerError(t.getMessage());
+        return null; // if you return null, Play will delegate to the default error handler.
     }
 
     /**
@@ -63,7 +85,7 @@ public final class Global extends GlobalSettings {
     @Override
     public Result onActionNotFound(String uri) {
         if (uri != null) {
-            return new Result.NotFound("Custom not found for URI=" + uri);
+            return new Result.NotFound("Resource not found: " + uri);
         } else {
             return super.onActionNotFound(uri);
         }
