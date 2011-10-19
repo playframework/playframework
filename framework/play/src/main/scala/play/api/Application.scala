@@ -27,6 +27,13 @@ import scala.collection.JavaConverters._
  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
+  // Reconfigure logger
+  Logger.configure(
+    getExistingFile("conf/logger.xml").map(_.toURI.toURL).getOrElse {
+      resource("conf/logger.xml").getOrElse(null)
+    },
+    Map("application.home" -> path.getAbsolutePath))
+
   /**
    * The global settings used by this application.
    * @see play.api.GlobalSettings
@@ -172,6 +179,20 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
       new util.ConfigurationBuilder()
         .addUrls(util.ClasspathHelper.forPackage(packageName, classloader))
         .setScanners(new scanners.TypeAnnotationsScanner())).getStore.getTypesAnnotatedWith(annotation.getName).asScala.toSet
+  }
+
+  def resource(name: String): Option[java.net.URL] = {
+    Option(classloader.getResource(Option(name).map {
+      case s if s.startsWith("/") => s.drop(1)
+      case s => s
+    }.get))
+  }
+
+  def resourceAsStream(name: String): Option[InputStream] = {
+    Option(classloader.getResourceAsStream(Option(name).map {
+      case s if s.startsWith("/") => s.drop(1)
+      case s => s
+    }.get))
   }
 
 }

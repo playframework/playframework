@@ -1,4 +1,5 @@
 target/
+logs/
 repository/
 dist/
 *.lock

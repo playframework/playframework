@@ -19,7 +19,12 @@ trait GlobalSettings {
     router.actionFor(request)
   }
 
-  def onError(ex: Throwable): Result = {
+  def onError(request: RequestHeader, ex: Throwable): Result = {
+    Logger.error(
+      """
+      |
+      |! Internal server error, for request [%s] ->
+      |""".stripMargin.format(request), ex)
     InternalServerError(Option(Play._currentApp).map {
       case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devError.f
       case app => views.html.defaultpages.error.f

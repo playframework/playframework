@@ -334,8 +334,9 @@ object PlayProject extends Plugin {
 
       // ----- Internal state used for reloading is kept here
 
-      val watchFiles = Seq(
-        extracted.currentProject.base / "conf" / "application.conf") ++ ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "messages").get
+      val watchFiles = {
+        ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "*").get
+      }
 
       var forceReload = false
       var currentProducts = Map.empty[java.io.File, Long]
@@ -436,15 +437,21 @@ object PlayProject extends Plugin {
             val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
 
             Project.evaluateTask(streamsManager, state).get.toEither.right.toOption.map { streamsManager =>
+              var first: (Option[(String, String, String)], Option[Int]) = (None, None)
               var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
               Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
                 case JavacError(file, line, message) => parsed = Some((file, line, message)) -> None
                 case JavacErrorInfo(key, message) => parsed._1.foreach { o =>
                   parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
                 }
-                case JavacErrorPosition(pos) => parsed = parsed._1 -> Some(pos.size)
+                case JavacErrorPosition(pos) => {
+                  parsed = parsed._1 -> Some(pos.size)
+                  if (first == (None, None)) {
+                    first = parsed
+                  }
+                }
               }
-              parsed
+              first
             }.collect {
               case (Some(error), maybePosition) => new xsbti.Problem {
                 def message = error._3
@@ -640,11 +647,38 @@ object PlayProject extends Plugin {
 
   }
 
-  val h2Command = Command.command("h2") { state: State =>
+  val h2Command = Command.command("h2-browser") { state: State =>
     try {
       org.h2.tools.Server.main()
+    } catch {
+      case _ =>
     }
     state
+  }
+
+  val classpathCommand = Command.command("classpath") { state: State =>
+
+    val extracted = Project.extract(state)
+
+    Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither match {
+      case Left(_) => {
+        println()
+        println("Cannot compute the classpath")
+        println()
+        state.fail
+      }
+      case Right(classpath) => {
+        println()
+        println("Here is the computed classpath of your application:")
+        println()
+        classpath.foreach { item =>
+          println("\t- " + item.data.getAbsolutePath)
+        }
+        println()
+        state
+      }
+    }
+
   }
 
   // ----- Default settings
@@ -669,7 +703,7 @@ object PlayProject extends Plugin {
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
-    commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command),
+    commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand),
 
     shellPrompt := playPrompt,
 

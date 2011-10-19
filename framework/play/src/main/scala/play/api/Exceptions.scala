@@ -2,7 +2,7 @@ package play.api
 
 import java.io.File
 
-case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s -> %s".format(title, description), cause.orNull) {
+case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s [%s]".format(title, description), cause.orNull) {
   val id = "x"
 }
 

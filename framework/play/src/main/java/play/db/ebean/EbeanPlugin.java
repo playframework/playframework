@@ -83,6 +83,10 @@ public class EbeanPlugin extends Plugin {
         
     }
     
+    public void onStop() {
+        //com.avaje.ebeaninternal.server.lib.ShutdownManager.shutdown();
+    }
+    
     public static String generateEvolutionScript(EbeanServer server, ServerConfig config) {
         DdlGenerator ddl = new DdlGenerator((SpiEbeanServer)server, config.getDatabasePlatform(), config);
         String ups = ddl.generateCreateDdl();

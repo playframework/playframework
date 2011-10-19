@@ -50,10 +50,9 @@ class Invoker extends Actor {
         }
       } catch {
         case e => try {
-          e.printStackTrace()
-          app.global.onError(e)
+          app.global.onError(request, e)
         } catch {
-          case e => DefaultGlobal.onError(e)
+          case e => DefaultGlobal.onError(request, e)
         }
       }
 

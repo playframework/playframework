@@ -42,10 +42,6 @@ public class Form<T> {
         this(clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None());
     }
     
-    public Form(T t) {
-        this((Class<T>)t.getClass(), new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), Some(t));
-    }
-    
     public Form(Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
         this.backedType = clazz;
         this.data = data;
@@ -58,7 +54,7 @@ public class Form<T> {
         }
     }
     
-    public Form<T> bind() {
+    public Form<T> bindFromRequest() {
         Map<String,String> data = new HashMap<String,String>();
         Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().urlFormEncoded();
         for(String key: urlFormEncoded.keySet()) {

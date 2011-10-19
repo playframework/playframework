@@ -64,7 +64,7 @@ public class Application extends Controller {
      * @param id Id of the computer to edit
      */
     public static Result update(Long id) {
-        Form<Computer> computerForm = form(Computer.class).bind();
+        Form<Computer> computerForm = form(Computer.class).bindFromRequest();
         if(computerForm.hasErrors()) {
             return badRequest(editForm.render(id, computerForm));
         }
@@ -87,7 +87,7 @@ public class Application extends Controller {
      * Handle the 'new computer form' submission 
      */
     public static Result save() {
-        Form<Computer> computerForm = form(Computer.class).bind();
+        Form<Computer> computerForm = form(Computer.class).bindFromRequest();
         if(computerForm.hasErrors()) {
             return badRequest(createForm.render(computerForm));
         }

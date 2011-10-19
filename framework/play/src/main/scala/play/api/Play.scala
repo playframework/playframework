@@ -24,25 +24,32 @@ object Play {
   def start(app: Application) {
 
     // First stop previous app if exists
+    stop()
+
+    _currentApp = app
+
+    if (app.mode == Mode.Dev) {
+      println()
+      println(new jline.ANSIBuffer().magenta("--- (RELOAD) ---"))
+      println()
+    }
+
+    app.plugins.values.foreach(_.onStart)
+
+    Logger("play").info("Application is started")
+
+  }
+
+  def stop() {
     Option(_currentApp).map {
       _.plugins.values.foreach { p =>
         try { p.onStop } catch { case _ => }
       }
     }
-
-    _currentApp = app
-
-    println("Application has restarted")
-
-    app.plugins.values.foreach(_.onStart)
-
   }
 
   def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
-    Option(app.classloader.getResourceAsStream(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    app.resourceAsStream(name)
   }
 
   def getFile(subPath: String)(implicit app: Application) = app.getFile(subPath)

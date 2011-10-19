@@ -21,8 +21,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         return (String)get().getData().get(key);
     }
     
-    public DynamicForm bind() {
-        Form<Dynamic> form = super.bind();
+    public DynamicForm bindFromRequest() {
+        Form<Dynamic> form = super.bindFromRequest();
         return new DynamicForm(form.data, form.errors, form.value);
     }
     

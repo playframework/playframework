@@ -1,9 +1,20 @@
 package play.core.server
+
 import play.api._
 import play.core._
 import play.api.mvc._
 
 trait Server {
+
+  // First delete the default log file for a fresh start
+  scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
+
+  // Configure the logger for the first time
+  Logger.configure(
+    Option(new java.io.File(applicationProvider.path, "conf/logger.xml")).filter(_.exists).map(_.toURI.toURL).getOrElse {
+      this.getClass.getClassLoader.getResource("conf/logger.xml")
+    },
+    Map("application.home" -> applicationProvider.path.getAbsolutePath))
 
   import akka.actor._
   import akka.actor.Actor._
@@ -28,11 +39,10 @@ trait Server {
       Exception.allCatch[Either[Throwable, (Action[Any], Application)]]
         .either(sendAction)
         .joinRight
-        .left.map(e => DefaultGlobal.onError(e))
+        .left.map(e => DefaultGlobal.onError(rqHeader, e))
     }.joinRight
 
   }
-  def errorResult(e: Throwable): Result = DefaultGlobal.onError(e)
 
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = invoker ! HandleAction(request, response, action, app)
 

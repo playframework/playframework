@@ -405,10 +405,11 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
 
   allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(9000)))
 
-  Logger.log("Listening for HTTP on port 9000...")
+  Logger("play").info("Listening for HTTP on port 9000...")
 
   def stop() {
-    Logger.log("Stopping Play server...")
+    Play.stop()
+    Logger("play").warn("Stopping server...")
     allChannels.close().awaitUninterruptibly()
     bootstrap.releaseExternalResources()
   }
@@ -429,11 +430,11 @@ object NettyServer {
           val pidFile = new File(applicationPath, "RUNNING_PID")
 
           if (pidFile.exists) {
-            Logger.log("This application is already running (Or delete the RUNNING_PID file).")
+            println("This application is already running (Or delete the RUNNING_PID file).")
             System.exit(-1)
           }
 
-          Logger.log("Process ID is " + pid)
+          println("Process ID is " + pid)
 
           new FileOutputStream(pidFile).write(pid.getBytes)
           Runtime.getRuntime.addShutdownHook(new Thread {
@@ -448,7 +449,8 @@ object NettyServer {
             new StaticApplication(applicationPath))
         } catch {
           case e => {
-            Logger.log("Oops, cannot start the server -> " + e.getMessage)
+            println("Oops, cannot start the server.")
+            e.printStackTrace()
             System.exit(-1)
           }
         }

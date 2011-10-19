@@ -16,7 +16,7 @@ public class Tasks extends Controller {
     }
     
     public static Result edit(Long id) {
-        return ok(form.render(id, form(Task.find.byId(id))));
+        return ok(form.render(id, form(Task.class).fill(Task.find.byId(id))));
     }
     
     public static Result create() {
@@ -24,7 +24,7 @@ public class Tasks extends Controller {
     }
     
     public static Result save() {
-        Form<Task> taskForm = form(Task.class).bind();
+        Form<Task> taskForm = form(Task.class).bindFromRequest();
         if(taskForm.hasErrors()) {
             return badRequest(form.render(null, taskForm));
         } else {
@@ -34,7 +34,7 @@ public class Tasks extends Controller {
     }
     
     public static Result update(Long id) {
-        Form<Task> taskForm = form(Task.class).bind();
+        Form<Task> taskForm = form(Task.class).bindFromRequest();
         if(taskForm.hasErrors()) {
             return badRequest(form.render(id, taskForm));
         } else {

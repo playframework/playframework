@@ -53,7 +53,8 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
 
 abstract class ReloadableApplication(applicationPath: File) extends ApplicationProvider {
 
-  Logger.log("Running the application from SBT, auto-reloading is enabled")
+  println()
+  println("Running the application from SBT, auto-reloading is enabled")
 
   var lastState: Either[PlayException, Application] = Left(PlayException("Not initialized", "?"))
 

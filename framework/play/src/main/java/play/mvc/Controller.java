@@ -58,10 +58,6 @@ public abstract class Controller {
         return new Form(clazz);
     }
     
-    public static <T> Form<T> form(T t) {
-        return new Form(t);
-    }
-    
     // -- Results
     
     public static Result TODO = new Todo();

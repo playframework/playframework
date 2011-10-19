@@ -39,7 +39,7 @@ public class Authentication extends Controller {
     }
     
     public static Result authenticate() {
-        Form<Login> loginForm = form(Login.class).bind();
+        Form<Login> loginForm = form(Login.class).bindFromRequest();
         if(loginForm.hasErrors()) {
             return badRequest(login.render(loginForm));
         } else {

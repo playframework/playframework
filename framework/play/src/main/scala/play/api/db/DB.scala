@@ -120,7 +120,7 @@ class DBPlugin(app: Application) extends Plugin {
       case (name, (ds, config)) => {
         try {
           ds.getConnection.close()
-          println("database:" + name + " connected at " + ds.getJdbcUrl)
+          Logger("play").info("database [" + name + "] connected at " + ds.getJdbcUrl)
         } catch {
           case e => {
             throw app.configuration.reportError(config, "Cannot connect to database at [" + ds.getJdbcUrl + "]", Some(e.getCause))
