@@ -64,6 +64,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     // lookup java application Global
     Option(classloader.loadClassParentLast("Global").newInstance().asInstanceOf[play.GlobalSettings])
   } catch {
+    case e: InstantiationException => None
     case e: ClassNotFoundException => None
     case e => throw e
   }
