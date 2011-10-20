@@ -2,14 +2,14 @@ import sbt._
 import Keys._
 
 object PlayBuild extends Build {
-    
+
     import Resolvers._
     import Dependencies._
     import BuildSettings._
     import Generators._
     import LocalSBT._
     import Tasks._
-    
+
     val TemplatesProject = Project(
         "Templates",
         file("templates"),
@@ -22,7 +22,7 @@ object PlayBuild extends Build {
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
-    
+
     val AnormProject = Project(
         "Anorm",
         file("anorm"),
@@ -51,7 +51,7 @@ object PlayBuild extends Build {
             compile in (Compile) <<= PostCompile
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject)
-    
+
     val Root = Project(
         "Root",
         file("."),
@@ -62,9 +62,9 @@ object PlayBuild extends Build {
             distTask,
             generateAPIDocsTask,
             publish <<= (publish in PlayProject, publish in TemplatesProject) map { (_,_) => }
-        ) 
+        )
     ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject)
-    
+
     object BuildSettings {
 
         val buildOrganization = "play"
@@ -94,12 +94,10 @@ object PlayBuild extends Build {
 
     }
 
-    object Resolvers {  
-
+    object Resolvers {
         val playRepository = Resolver.file("Play Local Repository", file("../repository"))(Resolver.ivyStylePatterns)    
         val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
         val akkaRepo = "Akka Repo" at "http://akka.io/repository"
-        
     }
 
     object Dependencies {
@@ -127,17 +125,18 @@ object PlayBuild extends Build {
             "javassist"                         %    "javassist"            %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"         %   "2.6",
             "rhino"                             %    "js"                   %   "1.7R2",
+            "com.google.javascript"             %    "closure-compiler"     %   "r1459",
             "org.reflections"                   %    "reflections"          %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"    %   "3.0.1",
             "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test" 
-        )                                            
-                                                     
-        val templatesDependencies = Seq(                         
+        )
+
+        val templatesDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"        %   "0.2.0",
             "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"       %   buildScalaVersion
         )
-        
+
         val anormDependencies = Seq(
             "org.scala-lang"                    %    "scalap"               %   buildScalaVersion 
         )
@@ -152,7 +151,7 @@ object PlayBuild extends Build {
                 """|package play.core
                    |
                    |object PlayVersion {
-                   |    val current = "%s"       
+                   |    val current = "%s"
                    |}
                 """.stripMargin.format(BuildSettings.buildVersion)
             )
@@ -160,28 +159,28 @@ object PlayBuild extends Build {
         }
 
     }
-    
+
     // ----- Post compile
-    
+
     lazy val PostCompile = (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map { (deps,analysis,classes) =>
-        
+
         // Ebean (really hacky sorry)
-        
+
         import java.net._
-        
+
         val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
         val cl = new URLClassLoader(cp)
-        
+
         val t = cl.loadClass("com.avaje.ebean.enhance.agent.Transformer").getConstructor(classOf[Array[URL]], classOf[String]).newInstance(cp, "debug=0").asInstanceOf[AnyRef]
         val ft = cl.loadClass("com.avaje.ebean.enhance.ant.OfflineFileTransform").getConstructor(
             t.getClass, classOf[ClassLoader], classOf[String], classOf[String]
         ).newInstance(t, ClassLoader.getSystemClassLoader, classes.getAbsolutePath, classes.getAbsolutePath).asInstanceOf[AnyRef]
-        
+
         ft.getClass.getDeclaredMethod("process", classOf[String]).invoke(ft,"play/db/ebean/**")
-            
+
         analysis
     }
-    
+
 
     object Tasks {
 
@@ -196,14 +195,14 @@ object PlayBuild extends Build {
             IO.createDirectory(repository)
             repository
         }
-        
+
         // ----- Generate API docs
-        
+
         val generateAPIDocs = TaskKey[Unit]("api-docs")
         val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Compile, compilers, streams) map { (classpath, cs, s) => 
-          
+
           IO.delete(file("../documentation/api"))
-          
+
           // Scaladoc
           val sourceFiles = (file("play/src/main/scala/play/api") ** "*.scala").get ++ (file("play/src/main/scala/views") ** "*.scala").get ++ (file("play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
@@ -211,7 +210,7 @@ object PlayBuild extends Build {
           // Javadoc
           val javaSources = file("play/src/main/java")
           val javaApiTarget = file("../documentation/api/java")
-          <x>javadoc -sourcepath {javaSources} -d {javaApiTarget} -subpackages play -exclude play.api:play.core -classpath {classpath.map(_.data).mkString(":")}</x> ! s.log       
+          <x>javadoc -sourcepath {javaSources} -d {javaApiTarget} -subpackages play -exclude play.api:play.core -classpath {classpath.map(_.data).mkString(":")}</x> ! s.log
 
         }
 
@@ -315,7 +314,7 @@ object PlayBuild extends Build {
                 (root ** "cleanIvyCache") ---
                 (root ** "*.lock")
             }
-            
+
             val zipFile = root / "dist" / (packageName + ".zip")
 
             IO.delete(root / "dist")
@@ -324,14 +323,14 @@ object PlayBuild extends Build {
 
             zipFile
         }
-        
+
         // ----- Compile templates
-        
+
         val ScalaTemplates = { (classpath:Seq[Attributed[File]], templateEngine:File, sourceDirectory:File, generatedDir:File) =>
             val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, this.getClass.getClassLoader)
             val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
             val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
-            
+
             (generatedDir ** "*.template.scala").get.foreach { source =>
                 val constructor = generatedSource.getDeclaredConstructor(classOf[java.io.File])
                 val sync = generatedSource.getDeclaredMethod("sync")
@@ -346,7 +345,7 @@ object PlayBuild extends Build {
                     }
                 }
             }
-            
+
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
@@ -359,11 +358,10 @@ object PlayBuild extends Build {
                     }
                 }
             }
-            
+
             (generatedDir ** "*.scala").get.map(_.getAbsoluteFile)
         }
-        
 
     }
-    
+
 }

@@ -122,7 +122,7 @@ object PlayProject extends Plugin {
 
     val run = target / "run"
     IO.write(run,
-      """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /**/ )
+      """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /* */ )
     val scripts = Seq(run -> (packageName + "/run"))
 
     val conf = Seq((root / "conf" / "application.conf") -> (packageName + "/conf/application.conf"))
@@ -175,6 +175,39 @@ object PlayProject extends Plugin {
       // Return previously generated CSS
       previousRelation._2s.toSeq
 
+    }
+
+  }
+
+  val JavascriptCompiler = (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory) map { (src, resources, cache) =>
+
+    import java.io._
+
+    val cacheFile = cache / "javascripts"
+    val jsFiles = (src / "assets") ** "*.js"
+    val minify = false // TODO: Get that from the config
+
+    val currentInfos = jsFiles.get.map(f => f -> FileInfo.lastModified(f)).toMap
+    val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
+
+    if (previousInfo != currentInfos) {
+      previousRelation._2s.foreach(IO.delete)
+
+      val generated = ((jsFiles --- ((src / "assets") ** "_*")) x relativeTo(Seq(src / "assets"))).flatMap {
+        case (jsFile, name) => {
+          val ((min, dependencies), out) = play.core.jscompile.JavascriptCompiler.compile(jsFile, minify) -> new File(resources, name)
+          IO.write(out, min)
+          dependencies.map(_ -> out)
+        }
+      }
+
+      Sync.writeInfo(cacheFile, Relation.empty[File, File] ++ generated, currentInfos)(FileInfo.lastModified.format)
+
+      // Return new compiled JS
+      generated.toMap.values.toSeq
+
+    } else {
+      previousRelation._2s.toSeq
     }
 
   }
@@ -783,6 +816,8 @@ object PlayProject extends Plugin {
     resourceGenerators in Compile <+= LessCompiler,
 
     resourceGenerators in Compile <+= CoffeescriptCompiler,
+
+    resourceGenerators in Compile <+= JavascriptCompiler,
 
     playResourceDirectories := Seq.empty[File],
 

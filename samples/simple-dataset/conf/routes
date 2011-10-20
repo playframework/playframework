@@ -17,9 +17,8 @@ GET     /computers/:id              controllers.Application.edit(id:Long)
 POST    /computers/:id              controllers.Application.update(id:Long)
 
 # Delete a computer
-POST    /computers/:id/delete       controllers.Application.delete(id:Long)                         
+POST    /computers/:id/delete       controllers.Application.delete(id:Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
-            

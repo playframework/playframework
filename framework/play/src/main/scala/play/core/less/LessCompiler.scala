@@ -46,7 +46,7 @@ object LessCompiler {
                     document = window.document,
                     location = window.location,
                     setInterval = window.setInterval;
-                        
+
             """,
       "browser.js",
       1, null)
@@ -55,12 +55,12 @@ object LessCompiler {
       "less-1.1.4.js",
       1, null)
     ctx.evaluateString(scope,
-      """            
+      """
                 var compile = function(source) {
-                    
+
                     var compiled;
                     var dependencies = [source]
-                    
+
                     window.less.Parser.importer = function(path, paths, fn) {
                         var imported = LessCompiler.resolve(source, path)
                         dependencies.push(imported)
@@ -71,14 +71,14 @@ object LessCompiler {
                             }
                         })
                     }
-                    
+
                     new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
                         compiled = root.toCSS()
                         if(e instanceof Object) {
                             throw e
                         }
                     })
-                    
+
                     return {css:compiled, dependencies:dependencies}
                 }
             """,
@@ -130,3 +130,4 @@ case class CompilationException(message: String, lessFile: File, atLine: Int, at
   def input = Some(scalax.file.Path(lessFile))
   def sourceName = Some(lessFile.getAbsolutePath)
 }
+
