@@ -34,16 +34,28 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     },
     Map("application.home" -> path.getAbsolutePath))
 
-  /**
-   * The global settings used by this application.
-   * @see play.api.GlobalSettings
-   */
-  val global: GlobalSettings = try {
+  private val javaGlobal: Option[play.GlobalSettings] = try {
+    // lookup java application Global
+    Option(classloader.loadClassParentLast("Global").newInstance().asInstanceOf[play.GlobalSettings])
+  } catch {
+    case e: InstantiationException => None // cause a global.scala will generate an instantiable Global.class and a Global$.class
+    case e: ClassNotFoundException => None
+    case e => throw e
+  }
+
+  private val scalaGlobal: GlobalSettings = try {
+    // lookup application's global.scala
     classloader.loadClassParentLast("Global$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
   } catch {
     case e: ClassNotFoundException => DefaultGlobal
     case e => throw e
   }
+
+  /**
+   * The global settings used by this application.
+   * @see play.api.GlobalSettings
+   */
+  val global: GlobalSettings = javaGlobal.map(new JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
 
   global.beforeStart(this)
 
