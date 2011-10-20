@@ -7,7 +7,7 @@ object ApplicationBuild extends Build {
     val appName         = "todolist-java-ebean"
     val appVersion      = "0.1"
 
-    val appDependencies = Nil
+    val appDependencies = Seq("joda-time" % "joda-time" % "2.0")
     
     val main = PlayProject(appName, appVersion, appDependencies).settings(
         templatesImport += "java.lang.Long"

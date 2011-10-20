@@ -2,28 +2,31 @@
 
 @main {
 
-    @Option(maybeId).map { id => <h1>Edit task @id</h1> }.getOrElse { <h1>New task</h1> }
+    @Option(maybeId).map { id => <h1>Edit task @id</h1> }.getOrElse { <h2>New task</h2> }
 
-    @helper.form(Option(maybeId).map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())) { 
-        
+    @helper.form(Option(maybeId).map(routes.Tasks.update(_)).getOrElse(routes.Tasks.save())) {
+        <div class="fieldContainer">
+            <fieldset>
+                <legend>Edit entry</legend>
         @helper.inputText(taskForm("name"))(helper.defaultInput)
         
         @helper.inputText(taskForm("dueDate"))(helper.defaultInput)
         
         @helper.checkbox(taskForm("done"))(helper.defaultInput)
-    
-        <p>
-            <a href="@routes.Tasks.list()">Cancel</a> <input type="submit">
-        </p>
+         <a href="@routes.Tasks.list()"  class="submitLink">Cancel</a>
+                @Option(maybeId).map{id=><input type="submit" value="Update entry @id">}.getOrElse{<input type="submit" value="Create" >}
+        </fieldset>
+        </div>
         
     }
     
     @Option(maybeId).map { id =>
         
         <hr>
-        
         <form action="@routes.Tasks.delete(id)" method="POST">
-            <input type="submit" value="Delete this task">
+            <div class="fieldContainer centered">
+                <input type="submit" value="Delete this task">
+            </div>
         </form>
         
     }
