@@ -3,8 +3,6 @@ package play.core
 import play.api._
 import play.api.mvc._
 
-import play.core.logger._
-
 import java.io._
 import java.net._
 
