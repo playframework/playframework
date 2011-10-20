@@ -21,7 +21,7 @@ public class Application extends Controller {
     }
     
     public static Result add() {
-        Form<User> form = form(User.class).bind();
+        Form<User> form = form(User.class).bindFromRequest();
         if(form.hasErrors()) {
             return badRequest();
         }

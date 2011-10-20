@@ -38,8 +38,4 @@ package views.html.helper {
 
   }
 
-  object `package` {
-    val defaultInput = defaultInputHandler.f
-  }
-
 }

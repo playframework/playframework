@@ -1,10 +1,11 @@
 package play.api.data
 
-import play.core.Iteratee._
-import play.core.Iteratee
+import play.api.libs.iteratee._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
 import play.api.mvc.{ BodyParser, AnyContent }
+
+// to be moved
 
 object RequestData {
   def urlEncoded(encoding: String): BodyParser[AnyContent] = {

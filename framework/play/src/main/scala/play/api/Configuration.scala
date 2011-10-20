@@ -69,14 +69,14 @@ object Configuration {
     def configKey = namedError("""[a-zA-Z0-9_.]+""".r, "Configuration key expected")
     def configValue = namedError(""".+""".r, "Configuration value expected")
     def config = ignoreWhiteSpace ~ configKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ configValue ^^ {
-      case (_ ~ k ~ _ ~ v) => Config(k, v.trim, configurationFile)
+      case (_ ~ k ~ _ ~ v) => Configuration.Config(k, v.trim, configurationFile)
     }
 
     def sentence = (comment | positioned(config)) <~ newLine
 
     def parser = phrase((sentence | blankLine *) <~ end) ^^ {
       case configs => configs.collect {
-        case c @ Config(_, _, _) => c
+        case c @ Configuration.Config(_, _, _) => c
       }
     }
 
@@ -84,7 +84,7 @@ object Configuration {
       parser(new CharSequenceReader(scalax.file.Path(configurationFile).slurpString)) match {
         case Success(configs, _) => configs
         case NoSuccess(message, in) => {
-          throw new PlayException("Configuration error", message) with ExceptionSource {
+          throw new PlayException("Configuration error", message) with PlayException.ExceptionSource {
             def line = Some(in.pos.line)
             def position = Some(in.pos.column - 1)
             def input = Some(scalax.file.Path(configurationFile))
@@ -96,16 +96,16 @@ object Configuration {
 
   }
 
-}
+  /**
+   * A configuration item.
+   *
+   * @param key The configuration key
+   * @param value The configuration value as plain String
+   * @param file The file from which this configuration was read
+   */
+  case class Config(key: String, value: String, file: File) extends Positional
 
-/**
- * A configuration item.
- *
- * @param key The configuration key
- * @param value The configuration value as plain String
- * @param file The file from which this configuration was read
- */
-case class Config(key: String, value: String, file: File) extends Positional
+}
 
 /**
  * A full configuration set.
@@ -118,7 +118,7 @@ case class Config(key: String, value: String, file: File) extends Positional
  * @param data The configuration data.
  * @param root The root key of this configuration if it represents a sub configuration.
  */
-case class Configuration(data: Map[String, Config], root: String = "") {
+case class Configuration(data: Map[String, Configuration.Config], root: String = "") {
 
   /**
    * Retrieve a configuration item by key
@@ -126,7 +126,7 @@ case class Configuration(data: Map[String, Config], root: String = "") {
    * @param key Configuration key (relative to configuration root key).
    * @return Maybe a configuration item.
    */
-  def get(key: String): Option[Config] = data.get(key)
+  def get(key: String): Option[Configuration.Config] = data.get(key)
 
   /**
    * Retrieve a configuration value as String
@@ -285,7 +285,7 @@ case class Configuration(data: Map[String, Config], root: String = "") {
    */
   def globalError(message: String, e: Option[Throwable] = None) = {
     data.headOption.map { c =>
-      new PlayException("Configuration error", message, e) with ExceptionSource {
+      new PlayException("Configuration error", message, e) with PlayException.ExceptionSource {
         def line = Some(c._2.pos.line)
         def position = None
         def input = Some(scalax.file.Path(c._2.file))
@@ -296,8 +296,8 @@ case class Configuration(data: Map[String, Config], root: String = "") {
     }
   }
 
-  private def error(message: String, config: Config, e: Option[Throwable] = None) = {
-    new PlayException("Configuration error", message, e) with ExceptionSource {
+  private def error(message: String, config: Configuration.Config, e: Option[Throwable] = None) = {
+    new PlayException("Configuration error", message, e) with PlayException.ExceptionSource {
       def line = Some(config.pos.line)
       def position = Some(config.pos.column + config.key.size)
       def input = Some(scalax.file.Path(config.file))

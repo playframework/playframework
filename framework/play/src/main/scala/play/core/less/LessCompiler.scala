@@ -124,7 +124,7 @@ object LessCompiler {
 }
 
 case class CompilationException(message: String, lessFile: File, atLine: Int, atColumn: Int) extends PlayException(
-  "Compilation error", message) with ExceptionSource {
+  "Compilation error", message) with PlayException.ExceptionSource {
   def line = Some(atLine)
   def position = Some(atColumn)
   def input = Some(scalax.file.Path(lessFile))

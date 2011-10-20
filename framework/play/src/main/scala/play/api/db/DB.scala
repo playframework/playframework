@@ -9,20 +9,47 @@ import javax.sql._
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
+/**
+ * The Play Database Api manages several connection pools.
+ *
+ * @param datasources The managed datasources.
+ */
 case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
+  /**
+   * Retrieve a JDBC connection.
+   *
+   * @param name The datasource name.
+   * @param autocommit Set this connection to autocommit.
+   * @return An JDBC connection.
+   * @throws An error is the required datasource is not registred.
+   */
   def getConnection(name: String, autocommit: Boolean = true): Connection = {
     val connection = getDataSource(name).getConnection
     connection.setAutoCommit(autocommit)
     connection
   }
 
+  /**
+   * Retrieve a JDBC connection (autocommit is set to true).
+   *
+   * @param name The datasource name.
+   * @return An JDBC connection.
+   * @throws An error is the required datasource is not registred.
+   */
   def getDataSource(name: String): DataSource = {
     datasources.get(name).map { _._1 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
     }
   }
 
+  /**
+   * Retrieve the JDBC connection URL for a particular datasource.
+   *
+   * @param name The datasource name.
+   * @return The JDBC url connection String (ie. jdbc:...)
+   * @throws An error is the required datasource is not registred.
+   */
   def getDataSourceURL(name: String): String = {
     datasources.get(name).map { _._2 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
@@ -31,8 +58,17 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
 }
 
+/**
+ * This object contains helper to create datasource managed by the DBApi.
+ */
 object DBApi {
 
+  /**
+   * Create a new datasource from configuration.
+   *
+   * @param conf The configuration part related to this datasource.
+   * @param classloader The classloader used to load the JDBC driver.
+   */
   def createDataSource(conf: Configuration, classloader: ClassLoader = ClassLoader.getSystemClassLoader) = {
 
     val datasource = new BoneCPDataSource
@@ -96,16 +132,45 @@ object DBApi {
 
 }
 
+/**
+ * This object provides high level API to get JDBC connections.
+ *
+ * Example:
+ * {{{
+ * val conn = DB.getConnection("customers")
+ * }}}
+ */
 object DB {
 
+  /**
+   * Retrieve a JDBC connection.
+   *
+   * @param name Datasource name.
+   * @param autocommit Set this connection to autocommit.
+   * @return An JDBC connection.
+   * @throws An error is the required datasource is not registred.
+   */
   def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].api.getConnection(name, autocommit)
+
+  /**
+   * Retrieve a JDBC connection (autocommit is set to true).
+   *
+   * @param name Datasource name.
+   * @return An JDBC connection.
+   * @throws An error is the required datasource is not registred.
+   */
   def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].api.getDataSource(name)
 
 }
 
+/**
+ * Play Plugin to manage datasources.
+ *
+ * @param app The application in which registering the plugin.
+ */
 class DBPlugin(app: Application) extends Plugin {
 
-  lazy val db = {
+  private lazy val db = {
     DBApi(app.configuration.getSub("db").map { dbConf =>
       dbConf.subKeys.map { db =>
         db -> DBApi.createDataSource(dbConf.getSub(db).get, app.classloader)
@@ -113,8 +178,14 @@ class DBPlugin(app: Application) extends Plugin {
     }.getOrElse(Map.empty))
   }
 
+  /**
+   * Retrieve the underlying DB Api managing the datasources.
+   */
   def api = db
 
+  /**
+   * Read the configuration and connect to every datasources.
+   */
   override def onStart {
     db.datasources.map {
       case (name, (ds, config)) => {
@@ -130,6 +201,9 @@ class DBPlugin(app: Application) extends Plugin {
     }
   }
 
+  /**
+   * Close all datasources.
+   */
   override def onStop {
     db.datasources.values.foreach {
       case (ds, _) => try { ds.close() } catch { case _ => }

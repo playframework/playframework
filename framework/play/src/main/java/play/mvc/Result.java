@@ -15,7 +15,6 @@ public interface Result {
         public Todo() {
             wrappedResult = play.api.mvc.JResults.NotImplemented().apply(
                 views.html.defaultpages.todo.render(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );
@@ -34,7 +33,6 @@ public interface Result {
         public Ok() {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeEmpty(),
                 play.api.mvc.JResults.contentTypeOfEmpty()
             );
@@ -43,7 +41,6 @@ public interface Result {
         public Ok(String content) {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeString(),
                 play.api.mvc.JResults.contentTypeOfString()
             );
@@ -52,7 +49,6 @@ public interface Result {
         public Ok(Content content) {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );
@@ -71,7 +67,6 @@ public interface Result {
         public NotFound() {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeEmpty(),
                 play.api.mvc.JResults.contentTypeOfEmpty()
             );
@@ -80,7 +75,6 @@ public interface Result {
         public NotFound(String content) {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeString(),
                 play.api.mvc.JResults.contentTypeOfString()
             );
@@ -89,7 +83,6 @@ public interface Result {
         public NotFound(Content content) {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );        
@@ -108,7 +101,6 @@ public interface Result {
         public InternalServerError() {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeEmpty(),
                 play.api.mvc.JResults.contentTypeOfEmpty()
             );
@@ -117,7 +109,6 @@ public interface Result {
         public InternalServerError(String content) {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeString(),
                 play.api.mvc.JResults.contentTypeOfString()
             );
@@ -126,7 +117,6 @@ public interface Result {
         public InternalServerError(Content content) {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );        
@@ -145,7 +135,6 @@ public interface Result {
         public Forbidden() {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeEmpty(),
                 play.api.mvc.JResults.contentTypeOfEmpty()
             );
@@ -154,7 +143,6 @@ public interface Result {
         public Forbidden(String content) {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeString(),
                 play.api.mvc.JResults.contentTypeOfString()
             );
@@ -163,7 +151,6 @@ public interface Result {
         public Forbidden(Content content) {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );        
@@ -182,7 +169,6 @@ public interface Result {
         public Unauthorized() {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeEmpty(),
                 play.api.mvc.JResults.contentTypeOfEmpty()
             );
@@ -191,7 +177,6 @@ public interface Result {
         public Unauthorized(String content) {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeString(),
                 play.api.mvc.JResults.contentTypeOfString()
             );
@@ -200,7 +185,6 @@ public interface Result {
         public Unauthorized(Content content) {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );        
@@ -219,7 +203,6 @@ public interface Result {
         public BadRequest() {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeEmpty(),
                 play.api.mvc.JResults.contentTypeOfEmpty()
             );
@@ -228,7 +211,6 @@ public interface Result {
         public BadRequest(String content) {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeString(),
                 play.api.mvc.JResults.contentTypeOfString()
             );
@@ -237,7 +219,6 @@ public interface Result {
         public BadRequest(Content content) {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 content,
-                play.api.mvc.JResults.emptyHeaders(), 
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOfContent()
             );        

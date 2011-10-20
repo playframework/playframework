@@ -1,6 +1,9 @@
 package play.api.libs
 
-object F {
+/**
+ * Utilities functions for Collections
+ */
+object Collections {
 
   def unfoldLeft[A, B](seed: B)(f: B => Option[(B, A)]) = {
     def loop(seed: B)(ls: List[A]): List[A] = f(seed) match {

@@ -1,8 +1,27 @@
 package play.api.libs
 
+/**
+ * Mime types utilities
+ */
 object MimeTypes {
 
-  val types =
+  /**
+   * Retrieve the usual mime type for a given extension.
+   *
+   * @param ext The file extension (ex: txt)
+   * @return Maybe the mime-type
+   */
+  def forExtension(ext: String): Option[String] = types.get(ext)
+
+  /**
+   * Retrieve the usual mime type for a given filename.
+   *
+   * @param ext The file name (ex: hello.txt)
+   * @return Maybe the mime-type
+   */
+  def forFileName(name: String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
+
+  lazy val types =
 
     """
         3dm=x-world/x-3dmf
@@ -551,9 +570,5 @@ object MimeTypes {
         
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
       parts(0) -> parts.drop(1).mkString).toMap
-
-  def forExtension(ext: String) = types.get(ext)
-
-  def forFileName(name: String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
 
 }

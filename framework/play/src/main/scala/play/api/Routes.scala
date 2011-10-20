@@ -1,9 +1,33 @@
 package play.api
 
+/**
+ * Helper utilities related to Router.
+ */
 object Routes {
 
   import play.core.Router._
 
+  /**
+   * Generate a Javascript router.
+   *
+   * Example:
+   * {{{
+   * Routes.javascriptRouter("MyRouter")(
+   *   controllers.routes.javascript.Application.index,
+   *   controllers.routes.javascript.Application.list,
+   *   controllers.routes.javascript.Application.create
+   * )
+   * }}}
+   *
+   * And then you can use the Javascript router as:
+   * {{{
+   * var routeToHome = MyRouter.controllers.Application.index()
+   * }}}
+   *
+   * @param name The Javascript object name.
+   * @param routes The routes to include in this javascript router.
+   * @return The javascript code.
+   */
   def javascriptRouter(name: String = "Router")(routes: JavascriptReverseRoute*) = {
     """|var %s = {}; (function(_root){
            |var _nS = function(c,f,b){var e=c.split(f||"."),g=b||_root,d,a;for(d=0,a=e.length;d<a;d++){g=g[e[d]]=g[e[d]]||{}}return g}

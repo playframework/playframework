@@ -149,7 +149,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    *
    * For example to retrieve a configuration file:
    * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
+   * val myConf = application.getExistingFile("conf/myConf.yml")
    * }}}
    *
    * @param relativePath Relative path of the file to fetch
@@ -181,6 +181,17 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
         .setScanners(new scanners.TypeAnnotationsScanner())).getStore.getTypesAnnotatedWith(annotation.getName).asScala.toSet
   }
 
+  /**
+   * Scan the application classloader to retrieve a resource.
+   *
+   * For example, retrieving a configuration file:
+   * {{{
+   * val maybeConf = application.resource("conf/logger.xml")
+   * }}}
+   *
+   * @param name Absolute name of the resource (from the classpath root).
+   * @return Maybe the resource URL if found.
+   */
   def resource(name: String): Option[java.net.URL] = {
     Option(classloader.getResource(Option(name).map {
       case s if s.startsWith("/") => s.drop(1)
@@ -188,6 +199,17 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     }.get))
   }
 
+  /**
+   * Scan the application classloader to retrieve a resource content as stream.
+   *
+   * For example, retrieving a configuration file:
+   * {{{
+   * val maybeConf = application.resourceAsStream("conf/logger.xml")
+   * }}}
+   *
+   * @param name Absolute name of the resource (from the classpath root).
+   * @return Maybe a stream if found.
+   */
   def resourceAsStream(name: String): Option[InputStream] = {
     Option(classloader.getResourceAsStream(Option(name).map {
       case s if s.startsWith("/") => s.drop(1)

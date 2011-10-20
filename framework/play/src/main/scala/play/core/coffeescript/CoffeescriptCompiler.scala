@@ -64,7 +64,7 @@ object CoffeescriptCompiler {
 }
 
 case class CompilationException(message: String, coffeeFile: File, atLine: Option[Int]) extends PlayException(
-  "Compilation error", message) with ExceptionSource {
+  "Compilation error", message) with PlayException.ExceptionSource {
   def line = atLine
   def position = None
   def input = Some(scalax.file.Path(coffeeFile))

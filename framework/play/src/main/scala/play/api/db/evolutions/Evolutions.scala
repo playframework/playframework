@@ -9,19 +9,64 @@ import play.core._
 
 import play.api._
 import play.api.db._
-import play.api.libs.F._
+import play.api.libs._
 import play.api.libs.Codec._
 
+/**
+ * An SQL evolution.
+ *
+ * @param revision Revision number
+ * @param sql_up The SQL statements for UP application.
+ * @param sql_down The SQL statements for DOWN application.
+ */
 case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
+
+  /**
+   * Revision hash, automatically computed from the SQL content.
+   */
   val hash = sha1(sql_down + sql_up)
 }
 
-trait Script { val evolution: Evolution; val sql: String }
+/**
+ * A Script to run on the database.
+ */
+trait Script {
+
+  /**
+   * Original evolution.
+   */
+  val evolution: Evolution
+
+  /**
+   * SQL to be run.
+   */
+  val sql: String
+}
+
+/**
+ * An UP Script to run on the database.
+ *
+ * @param evolution Original evolution.
+ * @param sql SQL to be run.
+ */
 case class UpScript(evolution: Evolution, sql: String) extends Script
+
+/**
+ * An DOWN Script to run on the database.
+ *
+ * @param evolution Original evolution.
+ * @param sql SQL to be run.
+ */
 case class DownScript(evolution: Evolution, sql: String) extends Script
 
+/**
+ * This object defines Evolutions utilities functions.
+ */
 object Evolutions {
 
+  /**
+   * Update a local (file based) evolution script.
+   */
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
     import play.api.libs._
 
@@ -59,6 +104,13 @@ object Evolutions {
 
   // --
 
+  /**
+   * Resolve evolutions conflicts.
+   *
+   * @param api The DBApi to use.
+   * @param db The database name.
+   * @param revision Revision to mark as resolved.
+   */
   def resolve(api: DBApi, db: String, revision: Int) {
     implicit val connection = api.getConnection(db, autocommit = true)
 
@@ -70,6 +122,13 @@ object Evolutions {
     }
   }
 
+  /**
+   * Check the evolutions state.
+   *
+   * @param api The DBApi to use.
+   * @param db The database name.
+   * @throws An error if the database is in an inconsistent state.
+   */
   def checkEvolutionsState(api: DBApi, db: String) {
     implicit val connection = api.getConnection(db, autocommit = true)
 
@@ -111,6 +170,13 @@ object Evolutions {
 
   }
 
+  /**
+   * Apply a script to the databse.
+   *
+   * @param api The DBApi to use.
+   * @param db The database name.
+   * @param script The script to run.
+   */
   def applyScript(api: DBApi, db: String, script: Seq[Script]) {
     implicit val connection = api.getConnection(db, autocommit = true)
 
@@ -182,6 +248,12 @@ object Evolutions {
 
   }
 
+  /**
+   * Translate an evolution script to something useful for humans.
+   *
+   * @param scripts The script.
+   * @return A formatted script as String.
+   */
   def toHumanReadableScript(script: Seq[Script]) = {
     val txt = script.map {
       case UpScript(ev, sql) => "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + sql + "\n"
@@ -194,6 +266,13 @@ object Evolutions {
     }.map(_ => "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n").getOrElse("") + txt
   }
 
+  /**
+   * Compute the evolution script.
+   *
+   * @param api The DBApi to use.
+   * @param applicationPath The applicationPath path.
+   * @param The db name.
+   */
   def evolutionScript(api: DBApi, applicationPath: File, db: String) = {
     val application = applicationEvolutions(applicationPath, db)
     val database = databaseEvolutions(api, db)
@@ -211,6 +290,12 @@ object Evolutions {
     downs ++ ups
   }
 
+  /**
+   * Read evolutions from the database.
+   *
+   * @param api The DBApi to use.
+   * @param The db name.
+   */
   def databaseEvolutions(api: DBApi, db: String) = {
     implicit val connection = api.getConnection(db, autocommit = true)
 
@@ -218,7 +303,7 @@ object Evolutions {
 
     try {
 
-      unfoldLeft(executeQuery(
+      Collections.unfoldLeft(executeQuery(
         """
                     select id, hash, apply_script, revert_script from play_evolutions order by id
                 """)) { rs =>
@@ -238,6 +323,12 @@ object Evolutions {
     }
   }
 
+  /**
+   * Read the evolutions from the application.
+   *
+   * @param applicationPath The applicationPath path.
+   * @param The db name.
+   */
   def applicationEvolutions(applicationPath: File, db: String) = {
     evolutionsDirectory(applicationPath, db).map { dir =>
 
@@ -266,7 +357,7 @@ object Evolutions {
       }.toList.sortBy(_._1).map {
         case (revision, script) => {
 
-          val parsed = unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
+          val parsed = Collections.unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
             case (_, Nil) => None
             case (context, lines) => {
               val (some, next) = lines.span(l => !isMarker(l))
@@ -287,10 +378,16 @@ object Evolutions {
 
 }
 
+/**
+ * Play Evolutions plugin
+ */
 class EvolutionsPlugin(app: Application) extends Plugin {
 
   import Evolutions._
 
+  /**
+   * Check the evolutions state.
+   */
   override def onStart {
     val api = app.plugin[DBPlugin].api
 
@@ -310,8 +407,18 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 
 }
 
+/**
+ * This object can be used to run offline evolutions (outside of a running application)
+ */
 object OfflineEvolutions {
 
+  /**
+   * Compute and apply evolutions script.
+   *
+   * @param applicationPath The application path.
+   * @param classloader Classloader used to load the driver.
+   * @param dbName Database name.
+   */
   def applyScript(applicationPath: File, classloader: ClassLoader, dbName: String) = {
 
     import play.api._
@@ -329,10 +436,16 @@ object OfflineEvolutions {
 
 }
 
+/**
+ * Exception thrown when the database is not up to date.
+ *
+ * @param db Database name
+ * @param script Script to be run to resolve the conflict.
+ */
 case class InvalidDatabaseRevision(db: String, script: String) extends PlayException(
   "Database '" + db + "' needs evolution!",
   "An SQL script need to be run on your database.",
-  None) with ExceptionAttachment with RichDescription {
+  None) with PlayException.ExceptionAttachment with PlayException.RichDescription {
 
   def subTitle = "This SQL script must be run:"
   def content = script
@@ -350,6 +463,11 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
 
 }
 
+/**
+ * Exception thrown when the databse is in inconsistent state.
+ *
+ * @param db Database name
+ */
 case class InconsistentDatabase(db: String) extends PlayException(
   "Database '" + db + "' is in inconsistent state!",
   "An evolution has not been applied properly. Please check the problem and resolve it manually before making it as resolved.",

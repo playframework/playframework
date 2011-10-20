@@ -1,7 +1,7 @@
 package play.core
 
 import play.core.server._
-import play.core.Iteratee._
+import play.api.libs.iteratee._
 
 import play.api._
 import play.api.mvc._
@@ -32,6 +32,7 @@ object DispatchStrategy {
     .build
 
 }
+
 case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 class Invoker extends Actor {
   self.dispatcher = DispatchStrategy.d
@@ -46,7 +47,22 @@ class Invoker extends Actor {
         try {
           action(request)
         } catch {
-          case e: Exception => throw ExecutionException(e, app.sources.flatMap(_.sourceFor(e)))
+          case e: Exception => {
+
+            val source = app.sources.flatMap(_.sourceFor(e))
+
+            throw new PlayException(
+              "Execution exception",
+              "[%s: %s]".format(e.getClass.getSimpleName, e.getMessage),
+              Some(e)) with PlayException.ExceptionSource {
+              def line = source.map(_._2)
+              def position = None
+              def input = source.map(_._1).map(scalax.file.Path(_))
+              def sourceName = source.map(_._1.getAbsolutePath)
+            }
+
+          }
+
         }
       } catch {
         case e => try {
@@ -60,10 +76,10 @@ class Invoker extends Actor {
 
         // Handle Flash Scope (probably not the good place to do it)
         result match {
-          case r @ SimpleResult(response, _) => {
+          case r @ SimpleResult(header, _) => {
 
             val flashCookie = {
-              response.headers.get(SET_COOKIE)
+              header.headers.get(SET_COOKIE)
                 .map(Cookies.decode(_))
                 .flatMap(_.find(_.name == Flash.FLASH_COOKIE_NAME)).orElse {
                   Option(request.flash).filterNot(_.isEmpty).map { _ =>
@@ -73,7 +89,7 @@ class Invoker extends Actor {
             }
 
             flashCookie.map { newCookie =>
-              r.copy(response = response.copy(headers = response.headers + (SET_COOKIE -> Cookies.merge(response.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))))
+              r.copy(header = header.copy(headers = header.headers + (SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))))
             }.getOrElse(r)
 
           }

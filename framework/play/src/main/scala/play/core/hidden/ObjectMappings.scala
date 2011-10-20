@@ -3,35 +3,6 @@ package play.api.data
 import format._
 import validation._
 
-case class ObjectMapping1[T <: Product, A](apply: Function1[A, T], fa: (String, Mapping[A]), val key: String = "", val constraints: Seq[Constraint[T]] = Nil) extends Mapping[T] with ObjectMapping {
-
-  val fieldA = fa._2.withPrefix(fa._1).withPrefix(key)
-
-  def bind(data: Map[String, String]) = {
-    merge(fieldA.bind(data)) match {
-      case Left(errors) => Left(errors)
-      case Right(values) => {
-        applyConstraints(apply(
-          values(0).asInstanceOf[A]))
-      }
-    }
-  }
-
-  def unbind(value: T) = {
-    val a = fieldA.unbind(value.productElement(0).asInstanceOf[A])
-    (a._1) -> (a._2)
-  }
-
-  def withPrefix(prefix: String) = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
-
-  def verifying(addConstraints: Constraint[T]*) = {
-    this.copy(constraints = constraints ++ addConstraints.toSeq)
-  }
-
-  val mappings = Seq(this) ++ fieldA.mappings
-
-}
-
 case class ObjectMapping2[T <: Product, A, B](apply: Function2[A, B, T], fa: (String, Mapping[A]), fb: (String, Mapping[B]), val key: String = "", val constraints: Seq[Constraint[T]] = Nil) extends Mapping[T] with ObjectMapping {
 
   val fieldA = fa._2.withPrefix(fa._1).withPrefix(key)

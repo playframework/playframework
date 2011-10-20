@@ -2,44 +2,113 @@ package play.api
 
 import java.io.File
 
-case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s [%s]".format(title, description), cause.orNull) {
-  val id = "x"
-}
+/**
+ * Helper for PlayException
+ */
+object PlayException {
 
-trait ExceptionSource {
-  self: PlayException =>
+  private val generator = new java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis)
 
-  def line: Option[Int]
-  def position: Option[Int]
-  def input: Option[scalax.io.Input]
-  def sourceName: Option[String]
+  /**
+   * Generate a new unique exception id.
+   */
+  def nextId = java.lang.Long.toString(generator.incrementAndGet, 26)
 
-  def interestingLines(border: Int = 4): Option[(Int, Seq[String], Int)] = {
-    for (f <- input; l <- line; val (first, last) = f.slurpString.split('\n').splitAt(l - 1); focus <- last.headOption) yield {
-      val before = first.takeRight(border)
-      val after = last.drop(1).take(border)
-      val firstLine = l - before.size
-      val errorLine = before.size
-      (firstLine, (before :+ focus) ++ after, errorLine)
+  /**
+   * Add source attachment to a Play exception
+   */
+  trait ExceptionSource {
+    self: PlayException =>
+
+    /**
+     * Error line if defined.
+     */
+    def line: Option[Int]
+
+    /**
+     * Column position if defined.
+     */
+    def position: Option[Int]
+
+    /**
+     * Input stream used to read the source coutent.
+     */
+    def input: Option[scalax.io.Input]
+
+    /**
+     * Source name.
+     */
+    def sourceName: Option[String]
+
+    /**
+     * Extract interesting lines to be displayed to the user.
+     *
+     * @param border Number of lines to use a border.
+     */
+    def interestingLines(border: Int = 4): Option[(Int, Seq[String], Int)] = {
+      for (f <- input; l <- line; val (first, last) = f.slurpString.split('\n').splitAt(l - 1); focus <- last.headOption) yield {
+        val before = first.takeRight(border)
+        val after = last.drop(1).take(border)
+        val firstLine = l - before.size
+        val errorLine = before.size
+        (firstLine, (before :+ focus) ++ after, errorLine)
+      }
     }
+
+  }
+
+  /**
+   * Add any attachment to a Play exception
+   */
+  trait ExceptionAttachment {
+    self: PlayException =>
+
+    /**
+     * Content title.
+     */
+    def subTitle: String
+
+    /**
+     * Content to be displayed.
+     */
+    def content: String
+
+  }
+
+  /**
+   * Add a rich description to a Play exception
+   */
+  trait RichDescription {
+    self: PlayException =>
+
+    /**
+     * The new description formatted as HTML.
+     */
+    def htmlDescription: String
+
   }
 
 }
 
-trait ExceptionAttachment {
-  self: PlayException =>
+/**
+ * Root exception for all Play problems.
+ *
+ * @param title The problem title.
+ * @param description The problem description.
+ * @param cause The cause exception if exists.
+ */
+case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s [%s]".format(title, description), cause.orNull) {
 
-  def subTitle: String
-  def content: String
+  /**
+   * The exception id, useful to retrieve problems in log file.
+   */
+  val id = PlayException.nextId
 
 }
 
-trait RichDescription {
-  self: PlayException =>
-
-  def htmlDescription: String
-}
-
+/**
+ * Generic exception for unexpected cases.
+ */
 case class UnexpectedException(message: Option[String] = None, unexpected: Option[Throwable] = None) extends PlayException(
   "Unexpected exception",
   message.getOrElse {
@@ -47,14 +116,3 @@ case class UnexpectedException(message: Option[String] = None, unexpected: Optio
   },
   unexpected)
 
-case class RequestParsingException(error: Throwable) extends RuntimeException(error)
-
-case class ExecutionException(target: Throwable, source: Option[(File, Int)]) extends PlayException(
-  "Execution exception",
-  "%s: %s".format(target.getClass.getSimpleName, target.getMessage),
-  Some(target)) with ExceptionSource {
-  def line = source.map(_._2)
-  def position = None
-  def input = source.map(_._1).map(scalax.file.Path(_))
-  def sourceName = source.map(_._1.getAbsolutePath)
-}

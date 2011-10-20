@@ -4,12 +4,12 @@ import play.api._
 import play.api.mvc._
 import play.api.libs._
 
-import Play.currentApplication
+import Play.current
 
 import scalax.io._
 
 /**
- * Controller for serving static resources.
+ * Controller serving static resources.
  *
  * You can use this controller in any application, just be declaring the appropriate route:
  * {{{

@@ -16,11 +16,12 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
 
-import play.api._
 import play.core._
-import play.core.logger._
-import play.core.Iteratee._
+
+import play.api._
 import play.api.mvc._
+import play.api.libs.iteratee._
+import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
 
@@ -170,7 +171,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
 
         def frameReceived(ctx: ChannelHandlerContext, input: Input[String]) {
           iterateeAgent.send(iteratee =>
-            iteratee.map(it => flatten(it.fold(
+            iteratee.map(it => Iteratee.flatten(it.fold(
               (a, e) => { error("Getting messages on a supposedly closed socket? frame: " + input) },
               k => {
                 val next = k(input)
@@ -289,7 +290,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
 
               case _ if (isWebSocket(nettyHttpRequest)) => handle(Results.BadRequest)
 
-              case r @ SimpleResult(SimpleHttpResponse(status, headers), body) =>
+              case r @ SimpleResult(ResponseHeader(status, headers), body) =>
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                 headers.foreach {
 
@@ -308,12 +309,12 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                   case (name, value) => nettyResponse.setHeader(name, value)
                 }
                 val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-                val writer: Function2[ChannelBuffer, r.E, Unit] =
+                val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] =
                   r.writeable match {
                     case AsString(f) => (c, x) => c.writeBytes(f(x).getBytes())
                     case AsBytes(f) => (c, x) => c.writeBytes(f(x))
                   }
-                val stringIteratee = fold(channelBuffer)((c, e: r.E) => { writer(c, e); c })
+                val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
                 val p = stringIteratee <<: body
                 p.flatMap(i => i.run)
                   .onRedeem { buffer =>
@@ -323,7 +324,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                     if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
                   }
 
-              case r @ ChunkedResult(SimpleHttpResponse(status, headers), chunks) =>
+              case r @ ChunkedResult(ResponseHeader(status, headers), chunks) =>
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                 headers.foreach {
 
@@ -344,12 +345,12 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
                 nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
                 nettyResponse.setChunked(true)
 
-                val writer: Function1[r.E, ChannelFuture] =
+                val writer: Function1[r.BODY_CONTENT, ChannelFuture] =
                   r.writeable match {
                     case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
                     case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x))))
                   }
-                val chunksIteratee = fold(e.getChannel.write(nettyResponse))((_, e: r.E) => writer(e))
+                val chunksIteratee = Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e))
                 val p = chunksIteratee <<: chunks
                 p.flatMap(i => i.run)
                   .onRedeem { _ =>
@@ -375,7 +376,7 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
 
                 val body = (bodyParser(requestHeader) <<: bodyEnumerator).flatMap(_.run).value match {
                   case Redeemed(a) => a
-                  case Thrown(e) => throw RequestParsingException(e)
+                  case Thrown(e) => throw new RuntimeException(e)
                 }
 
               }
