@@ -165,7 +165,7 @@ object Logger extends LoggerLike {
    * @param properties These properties will be added to the logger context (for example application.home)
    * @see http://logback.qos.ch/
    */
-  def configure(configFile: java.net.URL, properties: Map[String, String] = Map.empty) {
+  def configure(configFile: java.net.URL, properties: Map[String, String] = Map.empty, levels: Map[String, ch.qos.logback.classic.Level] = Map.empty) {
 
     // Redirect JUL -> SL4FJ
     {
@@ -193,10 +193,13 @@ object Logger extends LoggerLike {
         val configurator = new JoranConfigurator
         configurator.setContext(ctx)
         ctx.reset
-        properties.map {
+        properties.foreach {
           case (name, value) => ctx.putProperty(name, value)
         }
         configurator.doConfigure(configFile)
+        levels.foreach {
+          case (logger, level) => ctx.getLogger(logger).setLevel(level)
+        }
       } catch {
         case _ =>
       }

@@ -27,13 +27,6 @@ import scala.collection.JavaConverters._
  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
-  // Reconfigure logger
-  Logger.configure(
-    getExistingFile("conf/logger.xml").map(_.toURI.toURL).getOrElse {
-      resource("conf/logger.xml").getOrElse(null)
-    },
-    Map("application.home" -> path.getAbsolutePath))
-
   /**
    * The global settings used by this application.
    * @see play.api.GlobalSettings
@@ -62,6 +55,30 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * @see play.api.Configuration
    */
   val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
+
+  // Reconfigure logger
+  {
+
+    val validValues = Some(Set("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "OFF", "INHERITED"))
+    val setLevel = (level: String) => level match {
+      case "INHERITED" => null
+      case level => ch.qos.logback.classic.Level.toLevel(level)
+    }
+
+    Logger.configure(
+      getExistingFile("conf/logger.xml").map(_.toURI.toURL).getOrElse {
+        resource("conf/logger.xml").getOrElse(null)
+      },
+      Map("application.home" -> path.getAbsolutePath),
+      configuration.getSub("logger").map { loggerConfig =>
+        loggerConfig.keys.map { key =>
+          key -> loggerConfig.getString(key, validValues).map(setLevel).get
+        }.toMap
+      }.getOrElse(Map.empty) ++ {
+        configuration.getString("logger", validValues).map(setLevel).map(rootLevel => Map("ROOT" -> rootLevel)).getOrElse(Map.empty)
+      })
+
+  }
 
   /**
    * The plugins list used by this application.
