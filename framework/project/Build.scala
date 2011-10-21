@@ -110,7 +110,7 @@ object PlayBuild extends Build {
             "org.slf4j"                         %    "jul-to-slf4j"         %   "1.6.2",
             "org.slf4j"                         %    "jcl-over-slf4j"       %   "1.6.2",
             "com.github.scala-incubator.io"     %%   "scala-io-file"        %   "0.2.0",
-            "se.scalablesolutions.akka"         %    "akka-actor"           %   "1.1.3",
+            "se.scalablesolutions.akka"         %    "akka-actor"           %   "1.2",
             "org.avaje"                         %    "ebean"                %   "2.7.1",
             "com.h2database"                    %    "h2"                   %   "1.3.158",
             "org.scala-tools"                   %%   "scala-stm"            %   "0.3",

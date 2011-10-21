@@ -7,6 +7,9 @@ import static play.libs.F.*;
 
 import play.data.validation.*;
 
+/**
+ * A dynamic form. This form is backed by a simple HashMap&lt;String,String>
+ */
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
     
     public DynamicForm() {

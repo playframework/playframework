@@ -19,7 +19,7 @@ import validation._
  *
  * @tparam T Type managed by this form.
  * @param mapping The form mapping (describe all form fields)
- * @param date The current form data (used to display the form)
+ * @param data The current form data (used to display the form)
  * @param errors The collection of errors associated with this form.
  * @param value Maybe a concrete value of type T if the form submission was successful.
  */
@@ -139,6 +139,21 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param handler Field handler (transform the field to R).
    */
   def forField[R](key: String)(handler: Field => R): R = handler(this(key))
+
+  /**
+   * Is there any error related to this form?
+   */
+  def hasErrors = !errors.isEmpty
+
+  /**
+   * Is there any global error related to this form?
+   */
+  def hasGlobalErrors = !globalErrors.isEmpty
+
+  /**
+   * Get the concrete value if the submission was a success.
+   */
+  def get = value.get
 
 }
 

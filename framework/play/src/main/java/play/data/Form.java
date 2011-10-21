@@ -1,30 +1,35 @@
 package play.data;
 
-import org.springframework.beans.*;
-import org.springframework.validation.*;
-import org.springframework.validation.beanvalidation.*;
-
 import javax.validation.*;
 import javax.validation.metadata.*;
 
-import org.hibernate.validator.engine.*;
-
 import java.util.*;
+import java.lang.annotation.*;
+
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
 
 import play.libs.F;
 import static play.libs.F.*;
 
 import play.data.validation.*;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.*;
+import org.springframework.beans.*;
+import org.springframework.validation.*;
+import org.springframework.validation.beanvalidation.*;
 
-import java.lang.annotation.*;
+import org.hibernate.validator.engine.*;
 
+/**
+ * Helper to manage HTML form description, submission and validation.
+ */
 public class Form<T> {
     
-    @Target({ANNOTATION_TYPE})
+    /**
+     * Define the display name of a form element.
+     */
     @Retention(RUNTIME)
+    @Target({ANNOTATION_TYPE})
     public static @interface Display {
         String name();
         String[] attributes() default {};
@@ -38,10 +43,19 @@ public class Form<T> {
     protected final Option<T> value;
     protected final T blankInstance;
     
+    /**
+     * @param clazz Wrapped class.
+     */
     public Form(Class<T> clazz) {
         this(clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None());
     }
     
+    /**
+     * @param clazz Wrapped class.
+     * @param data The current form data (used to display the form).
+     * @param errors The collection of errors associated with this form.
+     * @param value Maybe a concrete value of type T if the form submission was successful.
+     */
     public Form(Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
         this.backedType = clazz;
         this.data = data;
@@ -54,6 +68,11 @@ public class Form<T> {
         }
     }
     
+    /**
+     * Bind data coming from request to this form (ie. handle form submission).
+     *
+     * @return A copy of this form filled with the new data.
+     */
     public Form<T> bindFromRequest() {
         Map<String,String> data = new HashMap<String,String>();
         Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().urlFormEncoded();
@@ -66,6 +85,12 @@ public class Form<T> {
         return bind(data);
     }
     
+    /**
+     * Bind data to this form (ie. handle form submission).
+     *
+     * @param data Data to submit
+     * @return A copy of this form filled with the new data.
+     */
     public Form<T> bind(Map<String,String> data) {
         DataBinder dataBinder = new DataBinder(blankInstance);
         dataBinder.setValidator(new SpringValidatorAdapter(play.data.validation.Validation.getValidator()));
@@ -112,6 +137,12 @@ public class Form<T> {
         }
     }
     
+    /**
+     * Fill this form with an existing value (used for edition form).
+     *
+     * @param value Existing value of type T used to fill this form.
+     * @return A copy of this form filled with the new data.
+     */
     public Form<T> fill(T value) {
         if(value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
@@ -119,14 +150,25 @@ public class Form<T> {
         return new Form(backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
     }
     
+    /**
+     * Is there any error related to this form?
+     */
     public boolean hasErrors() {
         return !errors.isEmpty();
     }
     
+    /**
+     * Is there any global error related to this form?
+     */
     public boolean hasGlobalErrors() {
         return errors.containsKey("") && !errors.get("").isEmpty();
     }
     
+    /**
+     * Retrieve all global errors (ie. errors without any key)
+     *
+     * @return All global errors.
+     */
     public List<ValidationError> globalErrors() {
         List<ValidationError> e = errors.get("");
         if(e == null) {
@@ -135,6 +177,11 @@ public class Form<T> {
         return e;
     }
     
+    /**
+     * Retrieve the first global error if exists (ie. an error without any key)
+     *
+     * @return Maybe an error.
+     */
     public ValidationError globalError() {
         List<ValidationError> errors = globalErrors();
         if(errors.isEmpty()) {
@@ -144,18 +191,27 @@ public class Form<T> {
         }
     }
     
+    /**
+     * All errors.
+     *
+     * @return All errors associated to this form.
+     */
     public Map<String,List<ValidationError>> errors() {
         return errors;
     }
     
+    /**
+     * Get the concrete value if the submission was a success.
+     */
     public T get() {
         return value.get();
     }
     
-    public Field apply(String key) {
-        return field(key);
-    }
-    
+    /**
+     * Add an error to this form.
+     *
+     * @param error The ValidationError to add.
+     */
     public void reject(ValidationError error) {
         if(!errors.containsKey(error.key())) {
            errors.put(error.key(), new ArrayList<ValidationError>()); 
@@ -163,22 +219,62 @@ public class Form<T> {
         errors.get(error.key()).add(error);
     }
     
+    /**
+     * Add an error to this form.
+     *
+     * @param key The error key.
+     * @param error The error message.
+     * @param args The errot arguments.
+     */
     public void reject(String key, String error, List<Object> args) {
         reject(new ValidationError(key, error, args));
     }
-    
+
+    /**
+     * Add an error to this form.
+     *
+     * @param key The error key.
+     * @param error The error message.
+     */    
     public void reject(String key, String error) {
         reject(key, error, new ArrayList());
     }
     
+    /**
+     * Add a global error to this form.
+     *
+     * @param error The error message.
+     * @param args The errot arguments.
+     */
     public void reject(String error, List<Object> args) {
         reject(new ValidationError("", error, args));
     }
-    
+
+    /**
+     * Add a global error to this form.
+     *
+     * @param error The error message.
+     */    
     public void reject(String error) {
         reject("", error, new ArrayList());
     }
     
+    /**
+     * Retrieve a field.
+     *
+     * @param key Field name.
+     * @return The field (even of the field does not exist you get a field).
+     */
+    public Field apply(String key) {
+        return field(key);
+    }
+    
+    /**
+     * Retrieve a field.
+     *
+     * @param key Field name.
+     * @return The field (even of the field does not exist you get a field).
+     */
     public Field field(String key) {
         
         // Value
@@ -241,6 +337,9 @@ public class Form<T> {
         return "Form";
     }
     
+    /**
+     * A form field.
+     */
     public static class Field {
         
         private final String name;
@@ -249,6 +348,15 @@ public class Form<T> {
         private final List<ValidationError> errors;
         private final String value;
         
+        /**
+         * Create a form field.
+         *
+         * @param name The field name.
+         * @param constraints The constraints associated with the field.
+         * @param format The format expected for this field.
+         * @param errors The errors associated to this field.
+         * @param value The field value if any.
+         */
         public Field(String name, List<T2<String,List<Object>>> constraints, T2<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.name = name;
             this.constraints = constraints;
@@ -257,22 +365,37 @@ public class Form<T> {
             this.value = value;
         }
         
+        /**
+         * @return The field name.
+         */
         public String name() {
             return name;
         }
         
+        /**
+         * @return The field value if defined.
+         */
         public String value() {
             return value;
         }
         
+        /**
+         * @return The errors associated to this field.
+         */
         public List<ValidationError> errors() {
             return errors;
         }
         
+        /**
+         * @return The constraints associated to this field.
+         */
         public List<T2<String,List<Object>>> constraints() {
             return constraints;
         }
         
+        /**
+         * @return The format expected for this field.
+         */
         public T2<String,List<Object>> format() {
             return format;
         }

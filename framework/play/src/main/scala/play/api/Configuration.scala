@@ -207,7 +207,7 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
    * The the root key of this new configuration will be 'engine', and you can access any sub keys relatively.
    *
    * @param key The root prefix for this sub configuration.
-   * @return Maybe a new configuration
+   * @return Maybe a new configuration.
    */
   def getSub(key: String): Option[Configuration] = Option(data.filterKeys(_.startsWith(key + ".")).map {
     case (k, c) => k.drop(key.size + 1) -> c

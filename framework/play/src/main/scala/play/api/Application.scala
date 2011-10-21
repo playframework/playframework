@@ -166,7 +166,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * val myConf = application.getFile("conf/myConf.yml")
    * }}}
    *
-   * @param relativePath Relative path of the file to fetch
+   * @param relativePath Relative path of the file to fetch.
    * @return A file instance, but it is not guaranteed that the file exist.
    */
   def getFile(relativePath: String): File = new File(path, relativePath)
