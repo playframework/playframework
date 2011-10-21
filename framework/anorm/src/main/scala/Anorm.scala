@@ -690,6 +690,7 @@ package anorm {
       }).toMap
     }
 
+    lazy val columnCount = ms.size
     lazy val availableColumns: List[String] = ms.map(i => i.column)
 
   }
@@ -926,14 +927,11 @@ package anorm {
           clazz = meta.getColumnClassName(i))))
     }
 
-    def data(rs: java.sql.ResultSet): List[Any] = {
-      val meta = rs.getMetaData()
-      val nbColumns = meta.getColumnCount()
-      List.range(1, nbColumns + 1).map(nb => rs.getObject(nb))
-    }
-
     def resultSetToStream(rs: java.sql.ResultSet): Stream[SqlRow] = {
-      Useful.unfold(rs)(rs => if (!rs.next()) { rs.close(); None } else Some((new SqlRow(metaData(rs), data(rs)), rs)))
+      val rsMetaData = metaData(rs)
+      val columns = List.range(1, rsMetaData.columnCount + 1)
+      def data(rs: java.sql.ResultSet) = columns.map(nb => rs.getObject(nb))
+      Useful.unfold(rs)(rs => if (!rs.next()) { rs.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
     }
 
     import SqlParser._

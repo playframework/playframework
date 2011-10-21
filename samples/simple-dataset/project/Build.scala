@@ -16,7 +16,9 @@ object ApplicationBuild extends Build {
             "models._",
             "com.avaje.ebean._",
             "play.mvc.Http.Context.Implicit._",
-            "play.api.i18n.Messages"
+            "play.api.i18n.Messages",
+            "java.util._",
+            "java.lang._"
         )
         
     )

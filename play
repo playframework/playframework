@@ -1,5 +1,9 @@
-if [ -f conf/application.conf ]
-then
+#!/bin/sh
+
+if [ -f conf/application.conf ]; then
+    if [ "$1" == "clean" ]; then
+        `dirname $0`/framework/cleanIvyCache
+    fi
 	`dirname $0`/framework/build play "$@"
 else
 	java -cp `dirname $0`/framework/sbt/boot/scala-2.9.1/lib/*:`dirname $0`/framework/sbt/boot/scala-2.9.1/org.scala-tools.sbt/sbt/0.11.0/*:`dirname $0`/repository/play/play_2.9.1/2.0/jars/* play.console.Console "$@"
