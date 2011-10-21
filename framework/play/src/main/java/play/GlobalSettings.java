@@ -5,11 +5,11 @@ import play.mvc.Result;
 /**
  * GlobalSettings is instanciated by the framework when an application starts, to let you perform specific tasks
  * at startup or shutdown.
- * How to use it : create a Global.java class file in your java application and override the methods you need
- * to use.
- * @author N.Martignole
+ *
+ * How to use it : create a Global.java class file in your java application and override the methods you want.
  */
 public abstract class GlobalSettings {
+    
     /**
      * Executed before any plugin, you can setup your database schema here for instance
      */
@@ -32,6 +32,7 @@ public abstract class GlobalSettings {
     /**
      * Returns a Result that could be a custom error page.
      * The default implementation returns null, so that the scala engine handles the excepetion and show an error page.
+     *
      * @param t is any throwable
      * @return null as the default impl
      */
@@ -42,10 +43,22 @@ public abstract class GlobalSettings {
     /**
      * Triggered when a resource was request but not found, the default implementation returns null, so that
      * the scala engine handles the onActionNotFound.
+     *
      * @param uri
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
     public Result onActionNotFound(String uri) {
+        return null;
+    }
+    
+    /**
+     * Triggered when a resource was request but not found, the default implementation returns null, so that
+     * the scala engine handles the onActionNotFound.
+     *
+     * @param uri
+     * @return null in the default implementation, you can return your own custom Result in your Global class.
+     */
+    public Result onBadRequest(String uri, String error) {
         return null;
     }
 }

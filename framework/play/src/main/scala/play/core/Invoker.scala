@@ -66,6 +66,17 @@ class Invoker extends Actor {
         }
       } catch {
         case e => try {
+
+          Logger.error(
+            """
+            |
+            |! %sInternal server error, for request [%s] ->
+            |""".stripMargin.format(e match {
+              case p: PlayException => "@" + p.id + " - "
+              case _ => ""
+            }, request),
+            e)
+
           app.global.onError(request, e)
         } catch {
           case e => DefaultGlobal.onError(request, e)

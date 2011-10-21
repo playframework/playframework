@@ -1,7 +1,7 @@
 package play.api.data
 
 /**
- * Contains the format API used by Form.
+ * Contains the validation API used by Form.
  *
  * Example, defining a custom constraint:
  * {{{

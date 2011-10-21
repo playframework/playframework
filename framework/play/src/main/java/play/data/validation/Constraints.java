@@ -13,15 +13,35 @@ import javax.validation.metadata.*;
 
 import java.util.*;
 
+/**
+ * Defines a set of built-in constraints.
+ */
 public class Constraints {
     
+    /**
+     * Super type for Play validators.
+     */
     public static abstract class Validator<T> {
+        
+        /**
+         * Is this value valid?
+         */
         public abstract boolean isValid(T object);
+        
+        /**
+         * Is this value valid?
+         *
+         * @param constraintContext The JSR-303 validation context.
+         */
         public boolean isValid(T object, ConstraintValidatorContext constraintContext) {
             return isValid(object);
         }
+        
     }
     
+    /**
+     * Transform a set of constraints to something displayable in the user interface.
+     */
     public static List<T2<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
         List<T2<String,List<Object>>> displayable = new ArrayList<T2<String,List<Object>>>();
         for(ConstraintDescriptor<?> c: constraints) {
@@ -42,6 +62,9 @@ public class Constraints {
     
     // --- Required
     
+    /**
+     * Defines a field as required.
+     */
     @Target({FIELD})
     @Retention(RUNTIME)
     @Constraint(validatedBy = RequiredValidator.class)
@@ -52,6 +75,9 @@ public class Constraints {
         Class<? extends Payload>[] payload() default {};
     }
     
+    /**
+     * Validator for @required fields.
+     */
     public static class RequiredValidator extends Validator<Object> implements ConstraintValidator<Required, Object> {
         
         final static public String message = "validation.required";
@@ -76,12 +102,18 @@ public class Constraints {
         
     }
     
+    /**
+     * Construct a 'required' validator.
+     */
     public static Validator<Object> required() {
         return new RequiredValidator();
     }
     
     // --- Min
     
+    /**
+     * Defines a minumum value for a numeric field.
+     */
     @Target({FIELD})
     @Retention(RUNTIME)
     @Constraint(validatedBy = MinValidator.class)
@@ -93,6 +125,9 @@ public class Constraints {
         long value();
     }
     
+    /**
+     * Validator for @min fields.
+     */
     public static class MinValidator extends Validator<Number> implements ConstraintValidator<Min, Number> {
         
         final static public String message = "validation.min";
@@ -118,6 +153,9 @@ public class Constraints {
         
     }
     
+    /**
+     * Construct a 'min' validator.
+     */
     public static Validator<Number> min(long value) {
         return new MinValidator(value);
     }

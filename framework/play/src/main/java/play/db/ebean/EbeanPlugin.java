@@ -13,9 +13,12 @@ import com.avaje.ebean.config.*;
 import com.avaje.ebeaninternal.server.ddl.*;
 import com.avaje.ebeaninternal.api.*;
 
+/**
+ * A Play plugin that manages automatically the Ebean configuration.
+ */
 public class EbeanPlugin extends Plugin {
     
-    final Application application;
+    private final Application application;
     
     public EbeanPlugin(Application application) {
         this.application = application;
@@ -23,8 +26,11 @@ public class EbeanPlugin extends Plugin {
     
     // --
     
-    final Map<String,EbeanServer> servers = new HashMap<String,EbeanServer>();
+    private final Map<String,EbeanServer> servers = new HashMap<String,EbeanServer>();
     
+    /**
+     * Read the configuration file and init required Ebean servers.
+     */
     public void onStart() {
 
         Configuration ebeanConf = Configuration.root().getSub("ebean");
@@ -83,10 +89,9 @@ public class EbeanPlugin extends Plugin {
         
     }
     
-    public void onStop() {
-        //com.avaje.ebeaninternal.server.lib.ShutdownManager.shutdown();
-    }
-    
+    /**
+     * Helper method that generate the required evolution to properly run Ebean.
+     */
     public static String generateEvolutionScript(EbeanServer server, ServerConfig config) {
         DdlGenerator ddl = new DdlGenerator((SpiEbeanServer)server, config.getDatabasePlatform(), config);
         String ups = ddl.generateCreateDdl();

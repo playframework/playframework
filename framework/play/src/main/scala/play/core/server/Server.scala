@@ -27,19 +27,32 @@ trait Server {
 
   val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
 
-  def getActionFor(rqHeader: RequestHeader): Either[Result, (Action[_], Application)] = {
+  def getActionFor(request: RequestHeader): Either[Result, (Action[_], Application)] = {
     def sendAction: Either[Throwable, (Action[_], Application)] =
       applicationProvider.get.right.map { application =>
-        val maybeAction = application.global.onRouteRequest(rqHeader)
-        (maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(rqHeader))), application)
+        val maybeAction = application.global.onRouteRequest(request)
+        (maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(request))), application)
       }
 
     import scala.util.control.Exception
-    applicationProvider.handleWebCommand(rqHeader).toLeft {
+    applicationProvider.handleWebCommand(request).toLeft {
       Exception.allCatch[Either[Throwable, (Action[Any], Application)]]
         .either(sendAction)
         .joinRight
-        .left.map(e => DefaultGlobal.onError(rqHeader, e))
+        .left.map { e =>
+
+          Logger.error(
+            """
+            |
+            |! %sInternal server error, for request [%s] ->
+            |""".stripMargin.format(e match {
+              case p: PlayException => "@" + p.id + " - "
+              case _ => ""
+            }, request),
+            e)
+
+          DefaultGlobal.onError(request, e)
+        }
     }.joinRight
 
   }

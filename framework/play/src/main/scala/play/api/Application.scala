@@ -27,15 +27,15 @@ import scala.collection.JavaConverters._
  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
-  private val javaGlobal: Option[play.GlobalSettings] = try {
+  lazy private val javaGlobal: Option[play.GlobalSettings] = try {
     Option(classloader.loadClassParentLast("Global").newInstance().asInstanceOf[play.GlobalSettings])
   } catch {
-    case e: InstantiationException => None 
+    case e: InstantiationException => None
     case e: ClassNotFoundException => None
     case e => throw e
   }
 
-  private val scalaGlobal: GlobalSettings = try {
+  lazy private val scalaGlobal: GlobalSettings = try {
     classloader.loadClassParentLast("Global$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
   } catch {
     case e: ClassNotFoundException => DefaultGlobal
@@ -46,9 +46,14 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * The global settings used by this application.
    * @see play.api.GlobalSettings
    */
-  val global: GlobalSettings = javaGlobal.map(new JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
-
-  global.beforeStart(this)
+  val global: GlobalSettings = try {
+    javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
+  } catch {
+    case e => throw PlayException(
+      "Cannot init the Global object",
+      e.getMessage,
+      Some(e))
+  }
 
   /**
    * The router used by this application.

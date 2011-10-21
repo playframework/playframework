@@ -68,17 +68,6 @@ trait GlobalSettings {
    * @return The result to send to the client.
    */
   def onError(request: RequestHeader, ex: Throwable): Result = {
-
-    Logger.error(
-      """
-      |
-      |! %sInternal server error, for request [%s] ->
-      |""".stripMargin.format(ex match {
-        case p: PlayException => "@" + p.id + " - "
-        case _ => ""
-      }, request),
-      ex)
-
     InternalServerError(Option(Play._currentApp).map {
       case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devError.f
       case app => views.html.defaultpages.error.f
@@ -105,6 +94,18 @@ trait GlobalSettings {
     }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
   }
 
+  /**
+   * Called when an action has been found, but the request parsing has failed.
+   *
+   * The default is to send the framework default 400 page.
+   *
+   * @param request The HTTP request header.
+   * @return The result to send to the client.
+   */
+  def onBadRequest(request: RequestHeader, error: String): Result = {
+    BadRequest(views.html.defaultpages.badRequest(request, error))
+  }
+
 }
 
 /**
@@ -113,32 +114,24 @@ trait GlobalSettings {
 object DefaultGlobal extends GlobalSettings
 
 /**
- * Adapter that holds the java GlobalSettings and acts as a scala GlobalSettings for the framework.
+ * Global plugin executes application's globalSettings onStart and onStop.
  */
-class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends GlobalSettings {
-  require(javaGlobalSettings != null, "javaGlobalSettings cannot be null")
+class GlobalPlugin(app: Application) extends Plugin {
 
-  override def beforeStart(app: Application) {
-    javaGlobalSettings.beforeStart(new play.Application(app))
+  app.global.beforeStart(app)
+
+  /**
+   * Called when the application starts.
+   */
+  override def onStart {
+    app.global.onStart(app)
   }
 
-  override def onStart(app: Application) {
-    javaGlobalSettings.onStart(new play.Application(app))
+  /**
+   * Called when the application stops.
+   */
+  override def onStop {
+    app.global.onStop(app)
   }
 
-  override def onStop(app: Application) {
-    javaGlobalSettings.onStop(new play.Application(app))
-  }
-
-  override def onRouteRequest(request: RequestHeader): Option[Action[_]] = {
-    super.onRouteRequest(request)
-  }
-
-  override def onError(request: RequestHeader, ex: Throwable): Result = {
-    Option(javaGlobalSettings.onError(ex)).map(_.getWrappedResult).getOrElse(super.onError(request, ex))
-  }
-
-  override def onActionNotFound(request: RequestHeader): Result = {
-    Option(javaGlobalSettings.onActionNotFound(request.path)).map(_.getWrappedResult).getOrElse(super.onActionNotFound(request))
-  }
 }

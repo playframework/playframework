@@ -5,19 +5,22 @@ import javax.validation.metadata.*;
 
 import play.data.validation.*;
 
+/**
+ * Validation helpers.
+ */
 public class Validation {
     
+    /**
+     * The underlying JSR-303 validator.
+     */
     private final static ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     
+    /**
+     * Get a JSR-303 Validator.
+     */
     public static Validator getValidator() {
         return factory.getValidator();
     }
     
-    public static <T> Error validate(T value, String name, Constraints.Validator<T> validator) {
-        if(!validator.isValid(value)) {
-            
-        }
-        return null;
-    }
     
 }

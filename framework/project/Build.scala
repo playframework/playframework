@@ -210,7 +210,8 @@ object PlayBuild extends Build {
           // Javadoc
           val javaSources = file("play/src/main/java")
           val javaApiTarget = file("../documentation/api/java")
-          <x>javadoc -sourcepath {javaSources} -d {javaApiTarget} -subpackages play -exclude play.api:play.core -classpath {classpath.map(_.data).mkString(":")}</x> ! s.log
+          val javaClasspath = classpath.map(_.data).mkString(":")
+          """javadoc -windowtitle playframework -doctitle Play&nbsp;2.0&nbsp;Java&nbsp;API  -sourcepath %s -d %s -subpackages play -exclude play.api:play.core -classpath %s""".format(javaSources, javaApiTarget, javaClasspath) ! s.log
 
         }
 

@@ -37,13 +37,15 @@ public class Form<T> {
     
     // --
     
-    protected final Class<T> backedType;
-    protected final Map<String,String> data;
-    protected final Map<String,List<ValidationError>> errors;
-    protected final Option<T> value;
-    protected final T blankInstance;
+    private final Class<T> backedType;
+    private final Map<String,String> data;
+    private final Map<String,List<ValidationError>> errors;
+    private final Option<T> value;
+    private final T blankInstance;
     
     /**
+     * Create a new Form.
+     *
      * @param clazz Wrapped class.
      */
     public Form(Class<T> clazz) {
@@ -51,6 +53,8 @@ public class Form<T> {
     }
     
     /**
+     * Create a new Form.
+     *
      * @param clazz Wrapped class.
      * @param data The current form data (used to display the form).
      * @param errors The collection of errors associated with this form.
@@ -135,6 +139,20 @@ public class Form<T> {
             }
             return new Form(backedType, data, errors, Some((T)result.getTarget()));
         }
+    }
+    
+    /**
+     * Retrieve the actual form data.
+     */
+    public Map<String,String> data() {
+        return data;
+    }
+    
+    /**
+     * Retrieve the actual form value.
+     */
+    public Option<T> value() {
+        return value;
     }
     
     /**

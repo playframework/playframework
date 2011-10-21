@@ -885,8 +885,9 @@ object Router {
 
     //
 
-    def badRequest(error: String) = Action(
-      ctx => BadRequest(error))
+    def badRequest(error: String) = Action { request =>
+      play.api.Play.maybeApplication.map(_.global.onBadRequest(request, error)).getOrElse(play.api.DefaultGlobal.onBadRequest(request, error))
+    }
 
     def call(generator: => Action[_]) = {
       generator
