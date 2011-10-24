@@ -40,7 +40,7 @@ class Invoker extends Actor {
   def receive = {
 
     case HandleAction(request, response: Response, action, app: Application) =>
-    
+
       val result = try {
         // Be sure to use the Play classloader in this Thread
         Thread.currentThread.setContextClassLoader(app.classloader)

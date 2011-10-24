@@ -1,3 +1,5 @@
 #!/bin/sh
 
+echo "[info] Clean Ivy cache."
+
 rm -rf ~/.ivy2/cache/*.xml ~/.ivy2/cache/*.properties ~/.ivy2/cache/play*

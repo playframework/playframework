@@ -137,6 +137,31 @@ object PlayProject extends Plugin {
     zip
   }
 
+  val playStage = TaskKey[Unit]("stage")
+  val playStageTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target) map { (root, packaged, dependencies, target) =>
+
+    import sbt.NameFilter._
+
+    val staged = target / "staged"
+
+    IO.delete(staged)
+    IO.createDirectory(staged)
+
+    val libs = dependencies.filter(_.data.ext == "jar").map(_.data) ++ packaged
+
+    libs.foreach { jar =>
+      IO.copyFile(jar, new File(staged, jar.getName))
+    }
+
+    val start = target / "start"
+    IO.write(start,
+      """java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..""" /* */ )
+
+    "chmod a+x %s".format(start.getAbsolutePath) !
+
+    ()
+  }
+
   // ----- Assets
 
   def AssetsCompiler(name: String, files: (File) => PathFinder, naming: (String) => String, compile: (File) => (String, Seq[File])) =
@@ -720,6 +745,120 @@ object PlayProject extends Plugin {
 
   }
 
+  // -- Dependencies
+
+  val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
+  val computeDependenciesTask = (ivySbt, streams, organizationName, moduleName, version, scalaVersion) map { (ivySbt, s, org, id, version, scalaVersion) =>
+
+    import scala.xml._
+
+    ivySbt.withIvy(s.log) { ivy =>
+      val report = XML.loadFile(
+        ivy.getResolutionCacheManager.getConfigurationResolveReportInCache(org + "-" + id + "_" + scalaVersion, "runtime"))
+
+      val deps: Seq[Map[Symbol, Any]] = (report \ "dependencies" \ "module").flatMap { module =>
+
+        (module \ "revision").map { rev =>
+          Map(
+            'module -> (module \ "@organisation" text, module \ "@name" text, rev \ "@name"),
+            'evictedBy -> (rev \ "evicted-by").headOption.map(_ \ "@rev" text),
+            'requiredBy -> (rev \ "caller").map { caller =>
+              (caller \ "@organisation" text, caller \ "@name" text, caller \ "@callerrev" text)
+            },
+            'artifacts -> (rev \ "artifacts" \ "artifact").flatMap { artifact =>
+              (artifact \ "@location").headOption.map(node => new java.io.File(node.text).getName)
+            })
+        }
+
+      }
+
+      deps
+
+    }
+
+  }
+
+  val computeDependenciesCommand = Command.command("dependencies") { state: State =>
+
+    val extracted = Project.extract(state)
+
+    Project.evaluateTask(computeDependencies, state).get.toEither match {
+      case Left(_) => {
+        println()
+        println("Cannot compute dependencies")
+        println()
+        state.fail
+      }
+      case Right(dependencies) => {
+        println()
+        println("Here are the resolved dependencies of your application:")
+        println()
+
+        import scala.Console._
+
+        def asTableRow(module: Map[Symbol, Any]): Seq[(String, String, String, Boolean)] = {
+          val formatted = (Seq(module.get('module).map {
+            case (org, name, rev) => org + ":" + name + ":" + rev
+          }).flatten,
+
+            module.get('requiredBy).map {
+              case callers @ Seq(_*) => callers.map {
+                case (org, name, rev) => org + ":" + name + ":" + rev
+              }
+            }.flatten.toSeq,
+
+            module.get('evictedBy).map {
+              case Some(rev) => Seq("Evicted by " + rev)
+              case None => module.get('artifacts).map {
+                case artifacts: Seq[String] => artifacts.map("As " + _)
+              }.flatten
+            }.flatten.toSeq)
+          val maxLines = Seq(formatted._1.size, formatted._2.size, formatted._3.size).max
+
+          formatted._1.padTo(maxLines, "").zip(
+            formatted._2.padTo(maxLines, "")).zip(
+              formatted._3.padTo(maxLines, "")).map {
+                case ((name, callers), notes) => (name, callers, notes, module.get('evictedBy).map { case Some(_) => true; case _ => false }.get)
+              }
+        }
+
+        def display(modules: Seq[Seq[(String, String, String, Boolean)]]) {
+          val c1Size = modules.flatten.map(_._1.size).max
+          val c2Size = modules.flatten.map(_._2.size).max
+          val c3Size = modules.flatten.map(_._3.size).max
+
+          def bar(length: Int) = (1 to length).map(_ => "-").mkString
+
+          val lineFormat = "| %-" + (c1Size + 9) + "s | %-" + (c2Size + 9) + "s | %-" + (c3Size + 9) + "s |"
+          val separator = "+-%s-+-%s-+-%s-+".format(
+            bar(c1Size), bar(c2Size), bar(c3Size))
+
+          println(separator)
+          println(lineFormat.format(CYAN + "Module" + RESET, CYAN + "Required by" + RESET, CYAN + "Note" + RESET))
+          println(separator)
+
+          modules.foreach { lines =>
+            lines.foreach {
+              case (module, caller, note, evicted) => {
+                println(lineFormat.format(
+                  if (evicted) (RED + module + RESET) else (GREEN + module + RESET),
+                  (WHITE + caller + RESET),
+                  if (evicted) (RED + note + RESET) else (WHITE + note + RESET)))
+              }
+            }
+            println(separator)
+          }
+        }
+
+        display(dependencies.map(asTableRow))
+
+        println()
+        state
+      }
+    }
+
+  }
+
   // ----- Default settings
 
   lazy val defaultSettings = Seq[Setting[_]](
@@ -742,7 +881,7 @@ object PlayProject extends Plugin {
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
-    commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand),
+    commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     shellPrompt := playPrompt,
 
@@ -754,6 +893,8 @@ object PlayProject extends Plugin {
 
     dist <<= distTask,
 
+    computeDependencies <<= computeDependenciesTask,
+
     playCopyResources <<= playCopyResourcesTask,
 
     playCompileEverything <<= playCompileEverythingTask,
@@ -761,6 +902,8 @@ object PlayProject extends Plugin {
     playPackageEverything <<= playPackageEverythingTask,
 
     playReload <<= playReloadTask,
+
+    playStage <<= playStageTask,
 
     cleanFiles <+= distDirectory.identity,
 

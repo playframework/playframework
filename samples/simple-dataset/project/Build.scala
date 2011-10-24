@@ -19,8 +19,7 @@ object ApplicationBuild extends Build {
             "play.api.i18n.Messages",
             "java.util._",
             "java.lang._"
-        )
-        
+        )        
     )
 
 }

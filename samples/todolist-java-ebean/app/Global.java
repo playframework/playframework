@@ -1,10 +1,10 @@
-import models.Task;
-import org.joda.time.DateTime;
-import play.Application;
-import play.GlobalSettings;
-import play.api.Logger;
-import play.mvc.Result;
 
+import play.*;
+import play.mvc.*;
+
+import org.joda.time.DateTime;
+
+import models.Task;
 
 /**
  * Executes some database setup when the application starts.
@@ -18,7 +18,7 @@ public final class Global extends GlobalSettings {
      */
     @Override
     public void beforeStart(Application app) {
-        System.out.println("beforeStart called " + app.toString());
+        Logger.info("beforeStart called " + app.toString());
     }
 
     /**
@@ -29,7 +29,7 @@ public final class Global extends GlobalSettings {
      */
     @Override
     public void onStart(Application app) {
-        System.out.println("todolistjava onStart called");
+        Logger.info("todolistjava onStart called");
         // Create some test entries
         if (Task.count() == 0) {
             Task task1 = new Task();
@@ -48,7 +48,7 @@ public final class Global extends GlobalSettings {
             task3.done = Boolean.TRUE;
             task3.save();
 
-            System.out.println("Created 3 Todos in Database");
+            Logger.info("Created 3 Todos in Database");
         }
     }
 
@@ -59,7 +59,7 @@ public final class Global extends GlobalSettings {
      */
     @Override
     public void onStop(Application app) {
-        System.out.println("todolistjava onStop");
+        Logger.info("todolistjava onStop");
     }
 
     /**
@@ -71,7 +71,7 @@ public final class Global extends GlobalSettings {
      */
     @Override
     public Result onError(Throwable t) {
-        System.err.println("todolistjava error" + t);
+        Logger.error("todolistjava error" + t);
         return null; // if you return null, Play will delegate to the default error handler.
     }
 
@@ -84,7 +84,7 @@ public final class Global extends GlobalSettings {
     @Override
     public Result onActionNotFound(String uri) {
         if (uri != null) {
-            return new Result.NotFound("Resource not found: " + uri);
+            return new Results.NotFound("Resource not found: " + uri);
         } else {
             return super.onActionNotFound(uri);
         }

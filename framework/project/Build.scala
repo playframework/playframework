@@ -283,11 +283,13 @@ object PlayBuild extends Build {
 
             IO.write(file("../play"),
                 """
-                    |if [ -f conf/application.conf ]
-                    |then
-                    |	`dirname $0`/framework/build play "$@"
+                    |if [ -f conf/application.conf ]; then
+                    |  if [ "$1" == "clean" ]; then
+                    |    `dirname $0`/framework/cleanIvyCache
+                    |  fi
+                    |	 `dirname $0`/framework/build play "$@"
                     |else
-                    |	java -cp `dirname $0`/framework/sbt/boot/scala-%1$s/lib/*:`dirname $0`/framework/sbt/boot/scala-%1$s/org.scala-tools.sbt/sbt/%3$s/*:`dirname $0`/repository/play/play_%1$s/%2$s/jars/* play.console.Console "$@"
+                    |  java -cp `dirname $0`/framework/sbt/boot/scala-%1$s/lib/*:`dirname $0`/framework/sbt/boot/scala-%1$s/org.scala-tools.sbt/sbt/%3$s/*:`dirname $0`/repository/play/play_%1$s/%2$s/jars/* play.console.Console "$@"
                     |fi
                 """.stripMargin.trim.format(buildScalaVersion, buildVersion, sbtVersion)
             )

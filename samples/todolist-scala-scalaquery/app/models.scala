@@ -3,7 +3,7 @@ package models
 import java.sql.Date
 
 import play.api.db._
-import play.api.Play.currentApplication
+import play.api.Play.current
 
 import org.scalaquery.ql._
 import org.scalaquery.ql.TypeMapper._

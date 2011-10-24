@@ -31,7 +31,7 @@ object Actions {
 
 object Blocking extends Controller {
 
-    val waited = play.core.Iteratee.Promise[Int]()
+    val waited = play.api.libs.concurrent.Promise[Int]()
 
     def unblockEveryone(status:Int) = Action { ctx =>
         waited.redeem(status) 
@@ -63,7 +63,7 @@ object Application extends Controller {
         NotFound("oops")
     }
     
-    import play.core.Iteratee._
+    import play.api.libs.iteratee._
     
     def index = Action {
         Ok(views.html.index("World " + TOTO.a)).flashing("success" -> "DONE!")

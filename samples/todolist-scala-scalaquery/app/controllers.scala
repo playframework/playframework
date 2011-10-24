@@ -28,7 +28,7 @@ object Authentication extends Controller {
     }
     
     def authenticate = Action { implicit request =>
-        loginForm.bind().fold(
+        loginForm.bindFromRequest().fold(
             errors => BadRequest(views.html.login(errors)),
             {case (user,_) => Redirect(routes.Tasks.list).withSession(session + (Security.USERNAME -> user))}
         )
@@ -57,7 +57,7 @@ object Tasks extends Controller with Security.AllAuthenticated {
     }
     
     def save(id:Option[Long]) = Action { implicit request =>
-        taskForm.bind().fold(
+        taskForm.bindFromRequest().fold(
             f => {
                 BadRequest(views.html.form(id, f))
             },

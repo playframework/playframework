@@ -6,7 +6,7 @@ object Global extends GlobalSettings {
     override def beforeStart(application:Application) {
         
         import models._
-        import play.api.db.Evolutions._
+        import play.api.db.evolutions.Evolutions._
         
         val ddl = Task.evolution
         
