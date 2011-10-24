@@ -17,7 +17,7 @@ trait Promise[A] {
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B]
 
-  private[play] def value: NotWaiting[A]
+  def value: NotWaiting[A]
 
   def filter(p: A => Boolean): Promise[A]
 
@@ -71,7 +71,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     }
   }
 
-  private[play] def value: NotWaiting[A] = atomic { implicit txn =>
+  def value: NotWaiting[A] = atomic { implicit txn =>
     if (redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
     else retry
   }
@@ -120,7 +120,7 @@ object PurePromise {
 
       def extend[B](k: Function1[Promise[A], B]): Promise[B] = neverRedeemed[B]
 
-      private[play] def value: NotWaiting[A] = scala.sys.error("not redeemed")
+      def value: NotWaiting[A] = scala.sys.error("not redeemed")
 
       def filter(p: A => Boolean): Promise[A] = this
 
@@ -132,7 +132,7 @@ object PurePromise {
 
     def onRedeem(k: A => Unit): Unit = k(a)
 
-    private[play] def value = Redeemed(a)
+    def value = Redeemed(a)
 
     def redeem(a: A) = error("Already redeemed")
 

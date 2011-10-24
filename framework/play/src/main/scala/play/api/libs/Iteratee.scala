@@ -50,6 +50,10 @@ trait Iteratee[E, +A] {
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B]
 
+  def flatFold[B, C](done: (A, Input[E]) => Promise[Iteratee[B, C]],
+    cont: (Input[E] => Iteratee[E, A]) => Promise[Iteratee[B, C]],
+    error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold(done, cont, error))
+
   def mapDone[B](f: A => B): Iteratee[E, B] =
     Iteratee.flatten(this.fold((a, e) => Promise.pure(Done(f(a), e)),
       k => Promise.pure(Cont((in: Input[E]) => k(in).mapDone(f))),
@@ -145,6 +149,10 @@ trait Enumerator[+E] {
 
 }
 
+trait Enumeratee[In, Out] {
+  def apply[A](inner: Iteratee[In, A]): Iteratee[Out, Iteratee[In, A]]
+}
+
 object Enumerator {
 
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
@@ -167,5 +175,89 @@ object Enumerator {
       i.flatMap(_.fold((_, _) => i,
         k => Promise.pure(k(El(e))),
         (_, _) => i)))
+  }
+}
+
+object Parsing {
+
+  trait MatchInfo[A] { def content: A }
+  case class Matched[A](val content: A) extends MatchInfo[A]
+  case class Unmatched[A](val content: A) extends MatchInfo[A]
+
+  def search(needle: Array[Byte]): Enumeratee[MatchInfo[Array[Byte]], Array[Byte]] = new Enumeratee[MatchInfo[Array[Byte]], Array[Byte]] {
+    val needleSize = needle.size
+    val fullJump = needleSize
+    val jumpBadCharecter: (Byte => Int) = {
+      val map = Map(needle.dropRight(1).reverse.zipWithIndex: _*) //remove the last
+      byte => map.get(byte).map(_ + 1).getOrElse(fullJump)
+    }
+
+    def apply[A](inner: Iteratee[MatchInfo[Array[Byte]], A]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
+
+      Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), Empty: Input[Array[Byte]])),
+        k => Promise.pure(Cont(step(Array[Byte](), Cont(k)))),
+        (err, r) => throw new Exception()))
+
+    }
+    def scan(previousMatches: List[MatchInfo[Array[Byte]]], piece: Array[Byte], startScan: Int): (List[MatchInfo[Array[Byte]]], Array[Byte]) = {
+      println(startScan)
+      val fullMatch = Range(needleSize - 1, -1, -1).forall(scan => needle(scan) == piece(scan + startScan))
+      if (fullMatch) {
+        val (prefix, then) = piece.splitAt(startScan)
+        println("first prefix is " + prefix)
+        val (matched, left) = then.splitAt(needleSize)
+        val newResults = previousMatches ++ List(Unmatched(prefix), Matched(matched)) filter (!_.content.isEmpty)
+        if (left.length < needleSize)
+          (newResults, left)
+        else scan(newResults, left, 0)
+      } else {
+        val jump = jumpBadCharecter(piece(startScan + needleSize - 1))
+        val isFullJump = jump == fullJump
+        val newScan = startScan + jump;
+        println("new scan is " + newScan)
+        if (newScan + needleSize - 1 > piece.length - 1) {
+          if (isFullJump) (previousMatches ++ List(Unmatched(piece)), Array[Byte]())
+          else {
+            val (prefix, suffix) = (piece.splitAt(startScan))
+            println("prefix here is: " + prefix)
+            (previousMatches ++ List(Unmatched(prefix)), suffix)
+          }
+        } else scan(previousMatches, piece, newScan)
+      }
+    }
+
+    def step[A](rest: Array[Byte], inner: Iteratee[MatchInfo[Array[Byte]], A])(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
+
+      in match {
+        case Empty => Cont(step(rest, inner)) //here should rather pass Empty along
+
+        case EOF => Done(inner, El(rest))
+
+        case El(chunk) =>
+
+          val all = rest ++ chunk
+          def inputOrEmpty(a: Array[Byte]) = if (a.isEmpty) Empty else El(a)
+
+          Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(rest))),
+            k => {
+              val (result, suffix) = scan(Nil, all, 0)
+              println("pipi= " + result.map(m => new String(m.content)) + new String(suffix))
+              val fed = result.filter(!_.content.isEmpty).foldLeft(Promise.pure(Array[Byte](), Cont(k))) { (p, m) =>
+                p.flatMap(i => i._2.fold((a, e) => Promise.pure((i._1 ++ m.content, Done(a, e))),
+                  k => Promise.pure((i._1, k(El(m)))),
+                  (err, e) => throw new Exception()))
+              }
+              fed.flatMap {
+                case (ss, i) => i.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
+                  k => Promise.pure(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
+                    case EOF => Done(k(El(Unmatched(suffix))), EOF) //suffix maybe empty
+                    case other => step(ss ++ suffix, Cont(k))(other)
+                  })),
+                  (err, e) => throw new Exception())
+              }
+            },
+            (err, e) => throw new Exception()))
+      }
+    }
   }
 }

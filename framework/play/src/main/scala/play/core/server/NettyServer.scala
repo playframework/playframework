@@ -266,17 +266,6 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
             def username = None
           }
 
-          val body = { //explodes memory, need to do a smart strategy of putting into memory
-            val cBuffer = nettyHttpRequest.getContent()
-            val bytes = new Array[Byte](cBuffer.readableBytes())
-            cBuffer.readBytes(bytes)
-            bytes
-          }
-
-          val bodyEnumerator = Enumerator(body).andThen(Enumerator.enumInput(EOF))
-
-          val action = getActionFor(requestHeader)
-
           val response = new Response {
             def handle(result: Result) = result match {
 
@@ -360,28 +349,46 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
             }
           }
 
+          val bodyEnumerator = {
+
+            val body = { //explodes memory, need to do a smart strategy of putting into memory
+              val cBuffer = nettyHttpRequest.getContent()
+              val bytes = new Array[Byte](cBuffer.readableBytes())
+              cBuffer.readBytes(bytes)
+              bytes
+            }
+
+            Enumerator(body).andThen(Enumerator.enumInput(EOF))
+          }
+
+          val action = getActionFor(requestHeader)
+
           action match {
             case Right((action, app)) =>
 
               val bodyParser = action.parser
 
-              val request = new Request[action.BODY_CONTENT] {
-                def uri = nettyHttpRequest.getUri
-                def path = nettyUri.getPath
-                def method = nettyHttpRequest.getMethod.getName
-                def queryString = parameters
-                def headers = rHeaders
-                def cookies = rCookies
-                def username = None
+              val eventuallyBody = (bodyParser(requestHeader) <<: bodyEnumerator).flatMap(_.run)
 
-                val body = (bodyParser(requestHeader) <<: bodyEnumerator).flatMap(_.run).value match {
-                  case Redeemed(a) => a
-                  case Thrown(e) => throw new RuntimeException(e)
+              val eventuallyRequest = eventuallyBody.map { b =>
+
+                new Request[action.BODY_CONTENT] {
+                  def uri = nettyHttpRequest.getUri
+                  def path = nettyUri.getPath
+                  def method = nettyHttpRequest.getMethod.getName
+                  def queryString = parameters
+                  def headers = rHeaders
+                  def cookies = rCookies
+                  def username = None
+
+                  val body = b
                 }
 
               }
 
-              invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+              eventuallyRequest.extend(_.value match {
+                case Redeemed(rq) => invoke(rq, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+              })
 
             case Left(e) => response.handle(e)
 
