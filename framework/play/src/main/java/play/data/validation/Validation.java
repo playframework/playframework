@@ -16,7 +16,7 @@ public class Validation {
     private final static ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     
     /**
-     * Get a JSR-303 Validator.
+     * Returns a JSR-303 Validator.
      */
     public static Validator getValidator() {
         return factory.getValidator();

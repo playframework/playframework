@@ -3,7 +3,7 @@ package play.mvc;
 import java.util.*;
 
 /**
- * Define HTTP standard objects.
+ * Defines HTTP standard objects.
  */
 public class Http {
     
@@ -15,7 +15,7 @@ public class Http {
         public static ThreadLocal<Context> current = new ThreadLocal<Context>();
         
         /**
-         * Retrieve the current HTTP context, for the current thread.
+         * Retrieves the current HTTP context, for the current thread.
          */
         public static Context current() {
             return current.get();
@@ -29,11 +29,11 @@ public class Http {
         private final Flash flash;
         
         /**
-         * Create a new HTTP context.
+         * Creates a new HTTP context.
          *
-         * @param request The HTTP request
-         * @param sessionData The session data extracted from the session coookie.
-         * @param flashData The flash data extracted from the flash coookie.
+         * @param request the HTTP request
+         * @param sessionData the session data extracted from the session cookie
+         * @param flashData the flash data extracted from the flash cookie
          */
         public Context(Request request, Map<String,String> sessionData, Map<String,String> flashData) {
             this.request = request;
@@ -43,28 +43,28 @@ public class Http {
         }
         
         /**
-         * Retrieve the current request.
+         * Returns the current request.
          */
         public Request request() {
             return request;
         }
         
         /**
-         * Retrieve the current response.
+         * Returns the current response.
          */
         public Response response() {
             return response;
         }
         
         /**
-         * Retrieve the current session.
+         * Returns the current session.
          */
         public Session session() {
             return session;
         }
         
         /**
-         * Retrieve the current flash scope.
+         * Returns the current flash scope.
          */
         public Flash flash() {
             return flash;
@@ -76,28 +76,28 @@ public class Http {
         public static class Implicit {
             
             /**
-             * Retrieve the current response.
+             * Returns the current response.
              */
             public static Response response() {
                 return Context.current().response();
             }
             
             /**
-             * Retrieve the current request.
+             * Returns the current request.
              */
             public static Request request() {
                 return Context.current().request();
             }
             
             /**
-             * Retrieve the current flash scope.
+             * Returns the current flash scope.
              */
             public static Flash flash() {
                 return Context.current().flash();
             }
             
             /**
-             * Retrieve the current session.
+             * Returns the current session.
              */
             public static Session session() {
                 return Context.current().session();
@@ -113,7 +113,7 @@ public class Http {
     public abstract static class Request {
         
         /**
-         * The complete request URI (contains both path and query string).
+         * The complete request URI, containing both path and query string.
          */
         public abstract String uri();
         
@@ -128,7 +128,7 @@ public class Http {
         public abstract String path();
         
         /**
-         * The request content parsed as url form encoded.
+         * The request content parsed as URL form-encoded.
          */
         public abstract Map<String,String[]> urlFormEncoded();
         
@@ -136,15 +136,15 @@ public class Http {
         private String username = null;
         
         /**
-         * The username if defined for this request.
-         * It is usually set by annotation your Action with @Authenticated.
+         * The user name for this request, if defined.
+         * This is usually set by annotating your Action with <code>@Authenticated</code>.
          */
         public String username() {
             return username;
         }
         
         /**
-         * Defines the username for this request.
+         * Defines the user name for this request.
          */
         public void setUsername(String username) {
             this.username = username;
@@ -160,21 +160,21 @@ public class Http {
         private final Map<String,String> headers = new HashMap<String,String>();
         
         /**
-         * Add a new header to the response.
+         * Adds a new header to the response.
          */ 
         public void setHeader(String name, String Stringue) {
             this.headers.put(name, Stringue);
         }
         
         /**
-         * Get the current response headers.
+         * Gets the current response headers.
          */
         public Map<String,String> getHeaders() {
             return headers;
         }
         
         /**
-         * Set the content-type of the response.
+         * Sets the content-type of the response.
          */
         public void setContentType(String contentType) {
             setHeader(CONTENT_TYPE, contentType);
@@ -184,8 +184,8 @@ public class Http {
     
     /**
      * HTTP Session.
-     *
-     * Session data are encoded into an HTTP cookie, and can only contain simple String values.
+     * <p>
+     * Session data are encoded into an HTTP cookie, and can only contain simple <code>String</code> values.
      */
     public static class Session extends HashMap<String,String>{
         
@@ -196,7 +196,7 @@ public class Http {
         }
         
         /**
-         * Remove any value from the session.
+         * Removes the specified value from the session.
          */
         @Override
         public String remove(Object key) {
@@ -205,7 +205,7 @@ public class Http {
         }
         
         /**
-         * Add value to the session.
+         * Adds the given value to the session.
          */
         @Override
         public String put(String key, String value) {
@@ -214,7 +214,7 @@ public class Http {
         }
         
         /**
-         * Add values to the session.
+         * Adds the given values to the session.
          */
         @Override
         public void putAll(Map<? extends String,? extends String> values) {
@@ -223,7 +223,7 @@ public class Http {
         }
         
         /**
-         * Clear the session.
+         * Clears the session.
          */
         @Override
         public void clear() {
@@ -235,7 +235,7 @@ public class Http {
     
     /**
      * HTTP Flash.
-     *
+     * <p>
      * Flash data are encoded into an HTTP cookie, and can only contain simple String values.
      */
     public static class Flash extends HashMap<String,String>{
@@ -247,7 +247,7 @@ public class Http {
         }
         
         /**
-         * Remove any value from the flash scope.
+         * Removes the specified value from the flash scope.
          */
         @Override
         public String remove(Object key) {
@@ -256,7 +256,7 @@ public class Http {
         }
         
         /**
-         * Add value to the flash scope.
+         * Adds the given value to the flash scope.
          */
         @Override
         public String put(String key, String value) {
@@ -265,7 +265,7 @@ public class Http {
         }
         
         /**
-         * Add values to the flash scope.
+         * Adds the given values to the flash scope.
          */
         @Override
         public void putAll(Map<? extends String,? extends String> values) {
@@ -274,7 +274,7 @@ public class Http {
         }
         
         /**
-         * Clear the flash scope.
+         * Clears the flash scope.
          */
         @Override
         public void clear() {
@@ -343,7 +343,7 @@ public class Http {
     }
     
     /**
-     * Defines all standard HTTP Status.
+     * Defines all standard HTTP status codes.
      */
     public static class Status {
 

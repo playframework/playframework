@@ -10,8 +10,8 @@ public class Configuration {
     
     /**
      * The root configuration.
-     *
-     * @return A Configuration instance.
+     * <p>
+     * @return a Configuration instance
      */
     public static Configuration root() {
         return new Configuration(
@@ -24,7 +24,7 @@ public class Configuration {
     private final play.api.Configuration conf;
 
     /**
-     * Create a new configuration from a Scala based configuration.
+     * Creates a new configuration from a Scala-based configuration.
      */
     public Configuration(play.api.Configuration conf) {
         this.conf = conf;
@@ -33,7 +33,7 @@ public class Configuration {
     // --
     
     /**
-     * Retrieve a sub configuration, ie. a configuration instance containing all key starting with a prefix.
+     * Retrieves a sub-configuration, which is a configuration instance containing all keys that start with the given prefix.
      *
      * @param key The root prefix for this sub configuration.
      * @return Maybe a new configuration
@@ -47,51 +47,51 @@ public class Configuration {
     }
     
     /**
-     * Retrieve a configuration value as String.
+     * Retrieves a configuration value as a <code>String</code>.
      *
-     * @param key Configuration key (relative to configuration root key).
-     * @return Maybe a configuration value or null.
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
      */
     public String getString(String key) {
         return orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
     }
     
     /**
-     * Retrieve a configuration value as Int.
+     * Retrieves a configuration value as an <code>Int</code>.
      *
-     * @param key Configuration key (relative to configuration root key).
-     * @return Maybe a configuration value or null.
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
      */
     public Integer getInt(String key) {
         return (Integer)orNull(conf.getInt(key));
     }
     
     /**
-     * Retrieve a configuration value as Boolean.
+     * Retrieves a configuration value as a <code>Boolean</code>.
      *
-     * @param key Configuration key (relative to configuration root key).
-     * @return Maybe a configuration value or null.
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
      */
     public Boolean getBoolean(String key) {
         return (Boolean)orNull(conf.getBoolean(key));
     }
     
     /**
-     * Retrieve the set of keys available in this configuration.
+     * Retrieves the set of keys available in this configuration.
      *
-     * @return The set of keys available in this configuration.
+     * @return the set of keys available in this configuration
      */
     public Set<String> keys() {
         return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
     }
     
     /**
-     * Create a configuration error for a specific congiguration key.
+     * Creates a configuration error for a specific congiguration key.
      *
-     * @param key The configuration key, related to this error.
-     * @param message The error message.
-     * @param e Maybe the related exception.
-     * @return A configuration exception.
+     * @param key the configuration key, related to this error
+     * @param message the error message
+     * @param e the optional related exception
+     * @return a configuration exception
      */
     public RuntimeException reportError(String key, String message, Throwable e) {
         return conf.reportError(key, message, scala.Option.apply(e));
