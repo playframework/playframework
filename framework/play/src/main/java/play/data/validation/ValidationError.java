@@ -3,7 +3,7 @@ package play.data.validation;
 import java.util.*;
 
 /**
- * A validation error.
+ * A form validation error.
  */
 public class ValidationError {
     
@@ -12,11 +12,11 @@ public class ValidationError {
     private List<Object> arguments;
     
     /**
-     * Construct a new ValidationError.
+     * Constructs a new <code>ValidationError</code>.
      *
-     * @param key The error key.
-     * @param message The error message.
-     * @param arguments The error message arguments.
+     * @param key the error key
+     * @param message the error message
+     * @param arguments the error message arguments
      */
     public ValidationError(String key, String message, List<Object> arguments) {
         this.key = key;
@@ -25,21 +25,21 @@ public class ValidationError {
     }
     
     /**
-     * Retrieve the error key.
+     * Returns the error key.
      */
     public String key() {
         return key;
     }
     
     /**
-     * Retrieve the error message.
+     * Returns the error message.
      */
     public String message() {
         return message;
     }
-    
+
     /**
-     * Retrieve the error arguments.
+     * Returns the error arguments.
      */
     public List<Object> arguments() {
         return arguments;
