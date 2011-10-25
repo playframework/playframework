@@ -9,17 +9,17 @@ object ResultsSpec extends Specification {
   "SimpleResult" should {
 
     "have status" in {
-      val SimpleResult(SimpleHttpResponse(status, _), _) = Ok("hello")
+      val SimpleResult(ResponseHeader(status, _), _) = Ok("hello")
       status must be_==(200)
     }
 
     "support Content-Type overriding" in {
-      val SimpleResult(SimpleHttpResponse(_, headers), _) = Ok("hello").as("text/html")
+      val SimpleResult(ResponseHeader(_, headers), _) = Ok("hello").as("text/html")
       headers must havePair("Content-Type" -> "text/html")
     }
 
     "support headers manipulaton" in {
-      val SimpleResult(SimpleHttpResponse(_, headers), _) =
+      val SimpleResult(ResponseHeader(_, headers), _) =
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-YOP" -> "2")
 
       headers.size must be_==(3)
@@ -44,7 +44,7 @@ object ResultsSpec extends Specification {
       newDecodedCookies("preferences").value must be_==("blue")
       newDecodedCookies("lang").value must be_==("fr")
 
-      val SimpleResult(SimpleHttpResponse(_, headers), _) =
+      val SimpleResult(ResponseHeader(_, headers), _) =
         Ok("hello").as("text/html")
           .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
           .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
@@ -70,7 +70,7 @@ object ResultsSpec extends Specification {
       decodedSession.data must havePair("user" -> "kiki")
       decodedSession.data must havePair("langs" -> "fr:en:de")
 
-      val SimpleResult(SimpleHttpResponse(_, headers), _) =
+      val SimpleResult(ResponseHeader(_, headers), _) =
         Ok("hello").as("text/html")
           .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
           .discardingCookies("logged")
