@@ -149,25 +149,10 @@ case class NewApplication(path: File, name: String) {
                |}
             """.stripMargin.format(name))
 
-    IO.write(new File(path, "project/plugins/project/Play.scala"),
-      """|import sbt._
-               |import Keys._
-               |
-               |object Play extends Build {
-               |
-               |    val version = "2.0"
-               |
-               |    val playRepository = Option(System.getProperty("play.home")).map { home =>
-               |        Resolver.file("play-repository", file(home) / "../repository")(Resolver.ivyStylePatterns)
-               |    }.toSeq
-               |
-               |    val play = Project("Play " + version, file(".")).settings(
-               |        libraryDependencies += "play" %% "play" % version,
-               |        resolvers ++= playRepository
-               |    )
-               |
-               |}
-            """.stripMargin)
+    IO.write(new File(path, "project/plugins.sbt"),
+      """|//-------------PLAY CORE ---------------------
+      |libraryDependencies += "play" %% "play" % "2.0"
+      |//---------------------------------------------""".stripMargin)
 
     """|OK, application %s is created.
            |Type `play` to enter the development console.

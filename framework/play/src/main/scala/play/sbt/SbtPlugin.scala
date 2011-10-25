@@ -935,12 +935,7 @@ object PlayProject extends Plugin {
 
         version := applicationVersion,
 
-        libraryDependencies ++= dependencies,
-
-        resolvers ++= Option(System.getProperty("play.home")).map { home =>
-          Resolver.file("play-repository", file(home) / "../repository")
-        }.toSeq)
+        libraryDependencies ++= dependencies)
 
   }
-
 }

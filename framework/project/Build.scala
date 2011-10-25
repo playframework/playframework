@@ -56,7 +56,7 @@ object PlayBuild extends Build {
         "Root",
         file("."),
         settings = buildSettings ++ Seq(
-            cleanFiles ++= Seq(file("../dist"), file("../repository")),
+            cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
             resetRepositoryTask,
             buildRepositoryTask,
             distTask,
@@ -95,7 +95,7 @@ object PlayBuild extends Build {
     }
 
     object Resolvers {
-        val playRepository = Resolver.file("Play Local Repository", file("../repository"))(Resolver.ivyStylePatterns)    
+        val playRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)    
         val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
         val akkaRepo = "Akka Repo" at "http://akka.io/repository"
     }
@@ -191,7 +191,7 @@ object PlayBuild extends Build {
 
         val resetRepository = TaskKey[File]("reset-repository")
         val resetRepositoryTask = resetRepository := {
-            val repository = file("../repository")
+            val repository = file("../repository/local")
             IO.delete(repository)
             IO.createDirectory(repository)
             repository
@@ -289,7 +289,7 @@ object PlayBuild extends Build {
                     |  fi
                     |	 `dirname $0`/framework/build play "$@"
                     |else
-                    |  java -cp `dirname $0`/framework/sbt/boot/scala-%1$s/lib/*:`dirname $0`/framework/sbt/boot/scala-%1$s/org.scala-tools.sbt/sbt/%3$s/*:`dirname $0`/repository/play/play_%1$s/%2$s/jars/* play.console.Console "$@"
+                    |  java -cp `dirname $0`/framework/sbt/boot/scala-%1$s/lib/*:`dirname $0`/framework/sbt/boot/scala-%1$s/org.scala-tools.sbt/sbt/%3$s/*:`dirname $0`/repository/local/play/play_%1$s/%2$s/jars/* -Dsbt.ivy.home=`dirname $0`/repository play.console.Console "$@"
                     |fi
                 """.stripMargin.trim.format(buildScalaVersion, buildVersion, sbtVersion)
             )

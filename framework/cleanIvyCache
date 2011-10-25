@@ -2,4 +2,4 @@
 
 echo "[info] Clean Ivy cache."
 
-rm -rf ~/.ivy2/cache/*.xml ~/.ivy2/cache/*.properties ~/.ivy2/cache/play*
+rm -rf ./../repository/cache/*.xml ./../repository/cache/*.properties ./../repository/cache/play*
