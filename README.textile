@@ -1,6 +1,6 @@
 h1. Play 2.0 preview
 
-bq. If something goes wrong with the dependency management, fisrt try to run ./framework/cleanIvyCache script from within the root folder!
+bq. If something goes wrong with the dependency management, fisrt try to run @./framework/cleanIvyCache@ script from within the root folder!
 
 h2. Installing
 
