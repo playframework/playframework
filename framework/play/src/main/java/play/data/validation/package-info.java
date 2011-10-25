@@ -1,4 +1,4 @@
 /**
- * Contains the validation API used by Form.
+ * Provides the validation API used by <code>Form</code> classes.
  */
 package play.data.validation;

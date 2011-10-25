@@ -10,7 +10,7 @@ import play.mvc.Http.*;
 public abstract class Action<T> extends Results {
     
     /**
-     * The action configuration (typically the annotation used to decorate the action method).
+     * The action configuration - typically the annotation used to decorate the action method.
      */
     public T configuration;
     
@@ -20,7 +20,7 @@ public abstract class Action<T> extends Results {
     public Action<?> deleguate;
     
     /**
-     * Execute this action with the give HTTP context and return the result.
+     * Executes this action with the give HTTP context and returns the result.
      */
     public abstract Result call(Context ctx);
     

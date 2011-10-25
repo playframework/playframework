@@ -1,4 +1,4 @@
 /**
- * Contains various API useful while developing web applications.
+ * Provides various APIs that are useful for developing web applications.
  */
 package play.libs;

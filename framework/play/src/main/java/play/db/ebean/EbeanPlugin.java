@@ -14,7 +14,7 @@ import com.avaje.ebeaninternal.server.ddl.*;
 import com.avaje.ebeaninternal.api.*;
 
 /**
- * A Play plugin that manages automatically the Ebean configuration.
+ * A Play plugin that automatically manages Ebean configuration.
  */
 public class EbeanPlugin extends Plugin {
     
@@ -29,7 +29,7 @@ public class EbeanPlugin extends Plugin {
     private final Map<String,EbeanServer> servers = new HashMap<String,EbeanServer>();
     
     /**
-     * Read the configuration file and init required Ebean servers.
+     * Reads the configuration file and initialises required Ebean servers.
      */
     public void onStart() {
 
@@ -90,7 +90,7 @@ public class EbeanPlugin extends Plugin {
     }
     
     /**
-     * Helper method that generate the required evolution to properly run Ebean.
+     * Helper method that generates the required evolution to properly run Ebean.
      */
     public static String generateEvolutionScript(EbeanServer server, ServerConfig config) {
         DdlGenerator ddl = new DdlGenerator((SpiEbeanServer)server, config.getDatabasePlatform(), config);
@@ -112,7 +112,7 @@ public class EbeanPlugin extends Plugin {
     }
     
     /**
-     * DataSource wrapper to ensure that every retrieved connection is set automatically to autoCommit=false
+     * <code>DataSource</code> wrapper to ensure that every retrieved connection has auto-commit disabled.
      */
     static class WrappingDatasource implements javax.sql.DataSource {
         

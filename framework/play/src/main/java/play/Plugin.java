@@ -12,7 +12,7 @@ public class Plugin implements play.api.Plugin {
     }
     
     /**
-     * Called when the application stop.
+     * Called when the application stops.
      */
     public void onStop() {
     }

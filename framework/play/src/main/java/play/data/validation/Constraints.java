@@ -14,22 +14,22 @@ import javax.validation.metadata.*;
 import java.util.*;
 
 /**
- * Defines a set of built-in constraints.
+ * Defines a set of built-in validation constraints.
  */
 public class Constraints {
     
     /**
-     * Super type for Play validators.
+     * Super-type for validators.
      */
     public static abstract class Validator<T> {
         
         /**
-         * Is this value valid?
+         * Returns <code>true</code> if this value is valid.
          */
         public abstract boolean isValid(T object);
         
         /**
-         * Is this value valid?
+         * Returns <code>true</code> if this value is valid for the given constraint.
          *
          * @param constraintContext The JSR-303 validation context.
          */
@@ -40,7 +40,7 @@ public class Constraints {
     }
     
     /**
-     * Transform a set of constraints to something displayable in the user interface.
+     * Converts a set of constraints to human-readable values.
      */
     public static List<T2<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
         List<T2<String,List<Object>>> displayable = new ArrayList<T2<String,List<Object>>>();
@@ -76,7 +76,7 @@ public class Constraints {
     }
     
     /**
-     * Validator for @required fields.
+     * Validator for <code>@required</code> fields.
      */
     public static class RequiredValidator extends Validator<Object> implements ConstraintValidator<Required, Object> {
         
@@ -103,7 +103,7 @@ public class Constraints {
     }
     
     /**
-     * Construct a 'required' validator.
+     * Constructs a 'required' validator.
      */
     public static Validator<Object> required() {
         return new RequiredValidator();
@@ -126,7 +126,7 @@ public class Constraints {
     }
     
     /**
-     * Validator for @min fields.
+     * Validator for <code>@min</code> fields.
      */
     public static class MinValidator extends Validator<Number> implements ConstraintValidator<Min, Number> {
         
@@ -154,7 +154,7 @@ public class Constraints {
     }
     
     /**
-     * Construct a 'min' validator.
+     * Constructs a 'min' validator.
      */
     public static Validator<Number> min(long value) {
         return new MinValidator(value);

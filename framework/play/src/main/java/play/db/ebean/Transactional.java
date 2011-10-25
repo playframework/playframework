@@ -7,7 +7,7 @@ import java.util.*;
 import java.lang.annotation.*;
 
 /**
- * Wrap the annotated action into an Ebean transaction.
+ * Wraps the annotated action in an Ebean transaction.
  */
 @With(TransactionalAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
