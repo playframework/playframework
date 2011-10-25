@@ -18,34 +18,34 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Defines a set of functional helpers.
+ * Defines a set of functional programming style helpers.
  */
 public class F {
 
     /**
-     * Represents optional values. Instances of Option are either an instance of Some or the object None.
+     * Represents optional values. Instances of <code>Option</code> are either an instance of <code>Some</code> or the object <code>None</code>.
      */
     public static abstract class Option<T> implements Iterable<T> {
 
         /**
-         * is this value defined?
+         * Returns <code>true</code> if this value is defined.
          */
         public abstract boolean isDefined();
 
         /**
-         * Retrieve the value if defined.
+         * Returns the value if defined.
          */
         public abstract T get();
 
         /**
-         * Construct a None value.
+         * Constructs a <code>None</code> value.
          */
         public static None None() {
             return (None) new None();
         }
 
         /**
-         * Construct a Some value.
+         * Construct a <code>Some</code> value.
          */
         public static <T> Some<T> Some(T value) {
             return new Some<T>(value);
@@ -53,14 +53,14 @@ public class F {
     }
 
     /**
-     * Construct a None value.
+     * Construct a <code>Some</code> value.
      */
     public static <A> Some<A> Some(A a) {
         return new Some(a);
     }
     
     /**
-     * Construct a None value.
+     * Constructs a <code>None</code> value.
      */
     public static None None() {
         return new None();
@@ -92,7 +92,7 @@ public class F {
     }
 
     /**
-     * Represents existing values of type T.
+     * Represents existing values of type <code>T</code>.
      */
     public static class Some<T> extends Option<T> {
 
@@ -143,14 +143,14 @@ public class F {
         }
 
         /**
-         * Construct a left side of the disjoint union, as opposed to the Right side.
+         * Constructs a left side of the disjoint union, as opposed to the Right side.
          */
         public static <A, B> Either<A, B> Left(A value) {
             return new Either(Some(value), None());
         }
 
         /**
-         * Construct a right side of the disjoint union, as opposed to the Left side.
+         * Constructs a right side of the disjoint union, as opposed to the Left side.
          */
         public static <A, B> Either<A, B> Right(B value) {
             return new Either(None(), Some(value));
@@ -163,7 +163,7 @@ public class F {
     }
 
     /**
-     * A tuple of A,B
+     * A pair - a tuple of the types <code>A</code> and <code>B</code>.
      */
     public static class Tuple<A, B> {
 
@@ -182,7 +182,7 @@ public class F {
     }
 
     /**
-     * Construct a tuple of A,B
+     * Constructs a tuple of A,B
      */
     public static <A, B> Tuple<A, B> Tuple(A a, B b) {
         return new Tuple(a, b);
@@ -199,7 +199,7 @@ public class F {
     }
 
     /**
-     * Construct a tuple of A,B
+     * Constructs a tuple of A,B
      */
     public static <A, B> T2<A, B> T2(A a, B b) {
         return new T2(a, b);
@@ -227,7 +227,7 @@ public class F {
     }
 
     /**
-     * Construct a tuple of A,B,C
+     * Constructs a tuple of A,B,C
      */
     public static <A, B, C> T3<A, B, C> T3(A a, B b, C c) {
         return new T3(a, b, c);
@@ -257,7 +257,7 @@ public class F {
     }
 
     /**
-     * Construct a tuple of A,B,C,D
+     * Constructs a tuple of A,B,C,D
      */
     public static <A, B, C, D> T4<A, B, C, D> T4(A a, B b, C c, D d) {
         return new T4<A, B, C, D>(a, b, c, d);
@@ -289,7 +289,7 @@ public class F {
     }
 
     /**
-     * Construct a tuple of A,B,C,D,E
+     * Constructs a tuple of A,B,C,D,E
      */
     public static <A, B, C, D, E> T5<A, B, C, D, E> T5(A a, B b, C c, D d, E e) {
         return new T5<A, B, C, D, E>(a, b, c, d, e);

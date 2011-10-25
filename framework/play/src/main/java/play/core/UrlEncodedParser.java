@@ -14,7 +14,7 @@ import play.mvc.Http;
 //import play.utils.Utils;
 
 /**
- * Parse url-encoded requests.
+ * Parses URL-encoded requests.
  */
 public class UrlEncodedParser  {
     

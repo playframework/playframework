@@ -16,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Time utils
+ * Time utilities.
  */
 public class Time {
 
@@ -26,9 +26,10 @@ public class Time {
     static Pattern seconds = Pattern.compile("^([0-9]+)s$");
 
     /**
-     * Parse a duration
-     * @param duration 3h, 2mn, 7s
-     * @return The number of seconds
+     * Parses a duration.
+     * 
+     * @param duration a quantity of time, such as 3h, 2mn, 7s
+     * @return the length of the duration in seconds
      */
     public static int parseDuration(String duration) {
         if (duration == null) {
@@ -59,9 +60,10 @@ public class Time {
     }
 
     /**
-     * Parse a CRON expression
-     * @param cron The CRON String
-     * @return The next Date that satisfy the expression
+     * Parses a CRON expression.
+     *
+     * @param cron the CRON String
+     * @return the next <code>Date</code> that satisfies the expression
      */
     public static Date parseCRONExpression(String cron) {
         try {
@@ -72,8 +74,9 @@ public class Time {
     }
 
     /**
-     * Compute the number of milliseconds between the next valid date and the one after
-     * @param cron The CRON String
+     * Computes the number of milliseconds between the next valid date and the one after.
+     * 
+     * @param cron the CRON String
      * @return the number of milliseconds between the next valid date and the one after,
      * with an invalid interval between
      */
@@ -82,9 +85,10 @@ public class Time {
     }
 
     /**
-     * Compute the number of milliseconds between the next valid date and the one after
-     * @param cron The CRON String
-     * @param date The date to start search
+     * Compute the number of milliseconds between the next valid date and the one after.
+     * 
+     * @param cron the CRON String
+     * @param date the date to start search
      * @return the number of milliseconds between the next valid date and the one after,
      * with an invalid interval between
      */

@@ -6,7 +6,7 @@ package play.mvc;
 public interface Result {
     
     /**
-     * Retrieve the real (scala based) result.
+     * Retrieves the real (Scala-based) result.
      */
     play.api.mvc.Result getWrappedResult();
     

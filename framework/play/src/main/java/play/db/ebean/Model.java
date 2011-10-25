@@ -12,7 +12,7 @@ import static play.libs.F.*;
 import org.springframework.beans.*;
 
 /**
- * Convenient super-class for Ebean mapped models.
+ * Base-class for Ebean-mapped models that provides convenience methods.
  */
 @javax.persistence.MappedSuperclass
 public class Model {
@@ -70,39 +70,39 @@ public class Model {
     // --
     
     /**
-     * Save (insert) this entity.
+     * Saves (inserts) this entity.
      */
     public void save() {
         Ebean.save(this);
     }
     
     /**
-     * Save (insert) this entity.
+     * Saves (inserts) this entity.
      *
-     * @param server The Ebean server to use.
+     * @param server the Ebean server to use
      */
     public void save(String server) {
         Ebean.getServer(server).save(this);
     }
     
     /**
-     * Update this entity.
+     * Updates this entity.
      */
     public void update() {
         Ebean.update(this);
     }
     
     /**
-     * Update this entity.
+     * Updates this entity, using a specific Ebean server.
      *
-     * @param server The Ebean server to use.
+     * @param server the Ebean server to use
      */
     public void update(String server) {
         Ebean.getServer(server).update(this);
     }
     
     /**
-     * Update this entity, by specifying the entity id.
+     * Updates this entity, by specifying the entity ID.
      */
     public void update(Object id) {
         _setId(id);
@@ -110,9 +110,9 @@ public class Model {
     }
     
     /**
-     * Update this entity, by specifying the entity id.
+     * Updates this entity, by specifying the entity ID, using a specific Ebean server.
      *
-     * @param server The Ebean server to use.
+     * @param server the Ebean server to use
      */
     public void update(Object id, String server) {
         _setId(id);
@@ -120,32 +120,32 @@ public class Model {
     }
     
     /**
-     * Delete this entity.
+     * Deletes this entity.
      */
     public void delete() {
         Ebean.delete(this);
     }
     
     /**
-     * Delete this entity.
+     * Deletes this entity, using a specific Ebean server.
      *
-     * @param server The Ebean server to use.
+     * @param server the Ebean server to use
      */
     public void delete(String server) {
         Ebean.getServer(server).delete(this);
     }
     
     /**
-     * Refresh this entity from the db.
+     * Refreshes this entity from the database.
      */
     public void refresh() {
         Ebean.refresh(this);
     }
     
     /**
-     * Refresh this entity from the db.
+     * Refreshes this entity from the database, using a specific Ebean server.
      *
-     * @param server The Ebean server to use.
+     * @param server the Ebean server to use
      */
     public void refresh(String server) {
         Ebean.getServer(server).refresh(this);
@@ -154,7 +154,7 @@ public class Model {
     /**
      * Helper for Ebean queries.
      *
-     * For detailled documentation, check the Ebean Javadoc.
+     * @see <a href="http://www.avaje.org/static/javadoc/pub/">Ebean API documentation</a>
      */
     public static class Finder<I,T> implements Query<T> {
         
@@ -164,14 +164,14 @@ public class Model {
         private Query<T> query;
         
         /**
-         * Create a finder for entity of type T with id of type I.
+         * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>.
          */
         public Finder(Class<I> idType, Class<T> type) {
             this("default", idType, type);
         }
         
         /**
-          * Create a finder for entity of type T with id of type I using a specific Ebean server.
+          * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>, using a specific Ebean server.
           */
         public Finder(String serverName, Class<I> idType, Class<T> type) {
             this.type = type;
@@ -184,175 +184,175 @@ public class Model {
         }
         
         /**
-         * Change the Ebean server.
+         * Changes the Ebean server.
          */
         public Finder<I,T> on(String server) {
             return new Finder(server, idType, type);
         }
         
         /**
-         * Retrieve all entities of the given type.
+         * Retrieves all entities of the given type.
          */
         public List<T> all() {
             return server().find(type).findList();
         }
 
         /**
-         * Retrieve an entity by Id.
+         * Retrieves an entity by ID.
          */
         public T byId(I id) {
             return server().find(type, id);
         }
 
         /**
-         * Retrieve an entity reference for this Id.
+         * Retrieves an entity reference for this ID.
          */
         public T ref(I id) {
              return server().getReference(type, id);
         }
         
         /**
-         *  Create a filter for sorting and filtering lists of entities locally without going back to the database.
+         *  Creates a filter for sorting and filtering lists of entities locally without going back to the database.
          */
         public Filter<T> filter() {
             return server().filter(type);
         }
         
         /**
-         * Create a query.
+         * Creates a query.
          */
         public Query<T> query() {
             return server().find(type);
         }
         
         /**
-         * Return the next identity value.
+         * Returns the next identity value.
          */
         public I nextId() {
             return (I)server().nextId(type);
         }
         
         /**
-         * Cancel the query execution if supported by the underlying database and driver.
+         * Cancels query execution, if supported by the underlying database and driver.
          */
         public void cancel() {
             query().cancel();
         }
         
         /**
-         * Copy this query.
+         * Copies this query.
          */
         public Query<T> copy() {
             return query().copy();
         }
         
         /**
-         * Specify a path to load including all its properties.
+         * Specifies a path to load including all its properties.
          */
         public Query<T> fetch(String path) {
             return query().fetch(path);
         }
         
         /**
-         * Additionally specify a JoinConfig to specify a "query join" and or define the lazy loading query.
+         * Additionally specifies a <code>JoinConfig</code> to specify a 'query join' and/or define the lazy loading query.
          */
         public Query<T> fetch(String path, FetchConfig joinConfig) {
             return query().fetch(path, joinConfig);
         }
         
         /**
-         * Specify a path to fetch with its specific properties to include (aka partial object).
+         * Specifies a path to fetch with a specific list properties to include, to load a partial object.
          */
         public Query<T> fetch(String path, String fetchProperties) {
             return query().fetch(path, fetchProperties);
         }
         
         /**
-         * Additionally specify a FetchConfig to use a separate query or lazy loading to load this path.
+         * Additionally specifies a <code>FetchConfig</code> to use a separate query or lazy loading to load this path.
          */
         public Query<T> fetch(String assocProperty, String fetchProperties, FetchConfig fetchConfig) {
             return query().fetch(assocProperty, fetchProperties, fetchConfig);
         }
         
         /**
-         * This applies a filter on the 'many' property list rather than the root level objects.
+         * Applies a filter on the 'many' property list rather than the root level objects.
          */
         public ExpressionList<T> filterMany(String propertyName) {
             return query().filterMany(propertyName);
         }
 
         /**
-         * Execute find Id's query in a background thread.
+         * Executes a find IDs query in a background thread.
          */
         public FutureIds<T> findFutureIds() {
             return query().findFutureIds();
         }
 
         /**
-         * Execute find list query in a background thread.
+         * Executes a find list query in a background thread.
          */
         public FutureList<T> findFutureList() {
             return query().findFutureList();
         }
 
         /**
-         * Execute find row count query in a background thread.
+         * Executes a find row count query in a background thread.
          */
         public FutureRowCount<T> findFutureRowCount() {
             return query().findFutureRowCount();
         }
 
         /**
-         * Execute the query returning the list of Id's.
+         * Executes a query and returns the results as a list of IDs.
          */
         public List<Object> findIds() {
             return query().findIds();
         }
 
         /**
-         * Execute the query returning the list of objects.
+         * Executes the query and returns the results as a list of objects.
          */
         public List<T> findList() {
             return query().findList();
         }
 
         /**
-         * Execute the query returning a map of the objects.
+         * Executes the query and returns the results as a map of objects.
          */
         public Map<?,T> findMap() {
             return query().findMap();
         }
         
         /**
-         * Execute the query returning a map of the objects.
+         * Executes the query and returns the results as a map of the objects.
          */
         public <K> Map<K,T> findMap(String a, Class<K> b) {
             return query().findMap(a,b);
         }
 
         /**
-         * Return a PagingList for this query.
+         * Returns a <code>PagingList</code> for this query.
          */
         public PagingList<T> findPagingList(int pageSize) {
             return query().findPagingList(pageSize);
         }
 
         /**
-         * Return the count of entities this query should return.
+         * Returns the number of entities this query should return.
          */
         public int findRowCount() {
             return query().findRowCount();
         }
 
         /**
-         * Execute the query returning the set of objects.
+         * Executes the query and returns the results as a set of objects.
          */
         public Set<T> findSet() {
             return query().findSet();
         }
 
         /**
-         * Execute the query returning either a single bean or null (if no matching bean is found).
+         * Executes the query and returns the results as either a single bean or <code>null</code>, if no matching bean is found.
          */
         public T findUnique() {
             return query().findUnique();
@@ -367,42 +367,42 @@ public class Model {
         }
 
         /**
-         * Return the ExpressionFactory used by this query.
+         * Returns the <code>ExpressionFactory</code> used by this query.
          */
         public ExpressionFactory getExpressionFactory() {
             return query().getExpressionFactory();
         }
 
         /**
-         * Return the first row value.
+         * Returns the first row value.
          */
         public int getFirstRow() {
             return query().getFirstRow();
         }
 
         /**
-         * Return the sql that was generated for executing this query.
+         * Returns the SQL that was generated for executing this query.
          */
         public String getGeneratedSql() {
             return query().getGeneratedSql();
         }
 
         /**
-         * Return the max rows for this query.
+         * Returns the maximum of rows for this query.
          */
         public int getMaxRows() {
             return query().getMaxRows();
         }
 
         /**
-         * Return the RawSql that was set to use for this query.
+         * Returns the <code>RawSql</code> that was set to use for this query.
          */
         public RawSql getRawSql() {
             return query().getRawSql();
         }
 
         /**
-         * Return the type of query (List, Set, Map, Bean, rowCount etc).
+         * Returns the type of query (List, Set, Map, Bean, rowCount etc).
          */
         public Query.Type getType() {
             return query().getType();
@@ -413,231 +413,243 @@ public class Model {
         }
 
         /**
-         * Add Expressions to the Having clause return the ExpressionList.
+         * Returns the query's <code>having</code> clause.
          */
         public ExpressionList<T> having() {
             return query().having();
         }
 
         /**
-         * Add an expression to the having clause returning the query.
+         * Adds an expression to the <code>having</code> clause and returns the query.
          */
         public Query<T> having(com.avaje.ebean.Expression addExpressionToHaving) {
             return query().having(addExpressionToHaving);
         }
 
         /**
-         * 
+         * Adds clauses to the <code>having</code> clause and returns the query.
          */
         public Query<T> having(String addToHavingClause) {
             return query().having(addToHavingClause);
         }
 
         /**
-         * Add additional clause(s) to the having clause.
+         * Returns <code>true</code> if this query was tuned by <code>autoFetch</code>.
          */
         public boolean isAutofetchTuned() {
             return query().isAutofetchTuned();
         }
 
         /**
-         * Same as fetch(String)
+         * Same as {@link #fetch(String)}
          */
         public Query<T> join(String path) {
             return query().join(path);
         }
 
         /**
-         * Same as fetch(String, FetchConfig)
+         * Same as {@link #fetch(String, FetchConfig)}
          */
         public Query<T> join(String path, JoinConfig joinConfig) {
             return query().join(path, joinConfig);
         }
 
         /**
-         * Same as fetch(String, String).
+         * Same as {@link #fetch(String, String)}.
          */
         public Query<T> join(String assocProperty, String fetchProperties) {
             return query().join(assocProperty, fetchProperties);
         }
 
         /**
-         * Additionally specify a JoinConfig to specify a "query join" and or define the lazy loading query.
+         * Additionally specifies a <code>JoinConfig</code> to specify a 'query join' and or define the lazy loading query.
          */
         public Query<T> join(String assocProperty, String fetchProperties, JoinConfig joinConfig) {
             return query().join(assocProperty, fetchProperties, joinConfig);
         }
 
         /**
-         * Return the OrderBy so that you can append an ascending or descending property to the order by clause.
+         * Returns the <code>order by</code> clause so that you can append an ascending or descending property to the <code>order by</code> clause.
+         * <p>
+         * This is exactly the same as {@link #orderBy}.
          */
         public OrderBy<T> order() {
             return query().order();
         }
 
         /**
-         * Set the order by clause replacing the existing order by clause if there is one.
+         * Sets the <code>order by</code> clause, replacing the existing <code>order by</code> clause if there is one.
+         * <p>
+         * This is exactly the same as {@link #orderBy(String)}.
          */
         public Query<T> order(String orderByClause) {
             return query().order(orderByClause);
         }
 
         /**
-         * Return the OrderBy so that you can append an ascending or descending property to the order by clause.
+         * Returns the <code>order by</code> clause so that you can append an ascending or descending property to the <code>order by</code> clause.
+         * <p>
+         * This is exactly the same as {@link #order}.
          */
         public OrderBy<T> orderBy() {
             return query().orderBy();
         }
 
         /**
-         * Set the order by clause replacing the existing order by clause if there is one.
+         * Set the <code>order by</code> clause replacing the existing <code>order by</code> clause if there is one.
+         * <p>
+         * This is exactly the same as {@link #order(String)}.
          */
         public Query<T> orderBy(String orderByClause) {
             return query().orderBy(orderByClause);
         }
 
         /**
-         * Explicitly set a comma delimited list of the properties to fetch on the 'main' entity bean (aka partial object).
+         * Explicitly sets a comma delimited list of the properties to fetch on the 'main' entity bean, to load a partial object.
          */
         public Query<T> select(String fetchProperties) {
             return query().select(fetchProperties);
         }
 
         /**
-         * Explicitly specify whether to use Autofetch for this query.
+         * Explicitly specifies whether to use 'Autofetch' for this query.
          */
         public Query<T> setAutofetch(boolean autofetch) {
             return query().setAutofetch(autofetch);
         }
 
         /**
-         * Set the rows after which fetching should continue in a background thread.
+         * Sets the rows after which fetching should continue in a background thread.
          */
         public Query<T> setBackgroundFetchAfter(int backgroundFetchAfter) {
             return query().setBackgroundFetchAfter(backgroundFetchAfter);
         }
 
         /**
-         * A hint which for JDBC translates to the Statement.fetchSize().
+         * Sets a hint, which for JDBC translates to <code>Statement.fetchSize()</code>.
          */
         public Query<T> setBufferFetchSizeHint(int fetchSize) {
             return query().setBufferFetchSizeHint(fetchSize);
         }
 
         /**
-         * 
+         * Sets whether this query uses <code>DISTINCT</code>.
          */
         public Query<T> setDistinct(boolean isDistinct) {
             return query().setDistinct(isDistinct);
         }
 
         /**
-         * Set whether this query uses DISTINCT.
+         * Sets the first row to return for this query.
          */
         public Query<T> setFirstRow(int firstRow) {
             return query().setFirstRow(firstRow);
         }
 
         /**
-         * Set the Id value to query.
+         * Sets the ID value to query.
          */
         public Query<T> setId(Object id) {
             return query().setId(id);
         }
 
         /**
-         * Set a listener to process the query on a row by row basis.
+         * Sets a listener to process the query on a row-by-row basis.
          */
         public Query<T> setListener(QueryListener<T> queryListener) {
             return query().setListener(queryListener);
         }
         
         /**
-         * When set to true all the beans from this query are loaded into the bean cache.
+         * When set to <code>true</code>, all the beans from this query are loaded into the bean cache.
          */
         public Query<T> setLoadBeanCache(boolean loadBeanCache) {
             return query().setLoadBeanCache(loadBeanCache);
         }
 
         /**
-         * Set the property to use as keys for a map.
+         * Sets the property to use as keys for a map.
          */
         public Query<T> setMapKey(String mapKey) {
             return query().setMapKey(mapKey);
         }
 
         /**
-         * Set the maximum number of rows to return in the query.
+         * Sets the maximum number of rows to return in the query.
          */
         public Query<T> setMaxRows(int maxRows) {
             return query().setMaxRows(maxRows);
         }
 
         /**
-         * Set an OrderBy object to replace any existing OrderBy clause.
+         * Replaces any existing <code>order by</code> clause using an <code>OrderBy</code> object.
+         * <p>
+         * This is exactly the same as {@link #setOrderBy(com.avaje.ebean.OrderBy)}.
          */
         public Query<T> setOrder(OrderBy<T> orderBy) {
             return query().setOrder(orderBy);
         }
 
         /**
-         * Set an OrderBy object to replace any existing OrderBy clause.
+         * Set an OrderBy object to replace any existing <code>order by</code> clause.
+         * <p>
+         * This is exactly the same as {@link #setOrder(com.avaje.ebean.OrderBy)}.
          */
         public Query<T> setOrderBy(OrderBy<T> orderBy) {
             return query().setOrderBy(orderBy);
         }
 
         /**
-         * Set an ordered bind parameter according to its position.
+         * Sets an ordered bind parameter according to its position.
          */
         public Query<T> setParameter(int position, Object value) {
             return query().setParameter(position, value);
         }
 
         /**
-         * Set a named bind parameter.
+         * Sets a named bind parameter.
          */
         public Query<T> setParameter(String name, Object value) {
             return query().setParameter(name, value);
         }
 
         /**
-         * Deprecated.  
+         * Deprecated.
          */
         public Query<T> setQuery(String oql) {
             return query().setQuery(oql);
         }
 
         /**
-         * Set RawSql to use for this query.
+         * Sets <code>RawSql</code> to use for this query.
          */
         public Query<T> setRawSql(RawSql rawSql) {
             return query().setRawSql(rawSql);
         }
 
         /**
-         *  When set to true when you want the returned beans to be read only.
+         * Sets whether the returned beans will be read-only.
          */
         public Query<T> setReadOnly(boolean readOnly) {
             return query().setReadOnly(readOnly);
         }
 
         /**
-         * Set a timeout on this query.
+         * Sets a timeout on this query.
          */
         public Query<T> setTimeout(int secs) {
             return query().setTimeout(secs);
         }
 
         /**
-         * Set this to true to use the bean cache.
+         * Sets whether to use the bean cache.
          */
         public Query<T> setUseCache(boolean useBeanCache) {
             return query().setUseCache(useBeanCache);
         }
 
         /**
-         * Set this to true to use the query cache.
+         * Sets whether to use the query cache.
          */
         public Query<T> setUseQueryCache(boolean useQueryCache) {
             return query().setUseQueryCache(useQueryCache);
@@ -648,28 +660,28 @@ public class Model {
         }
 
         /**
-         * Set this to true and the beans and collections returned will be plain classes rather than Ebean generated dynamic subclasses etc.
+         * Sets whether to use 'vanilla mode', in which the returned beans and collections will be plain classes rather than Ebean-generated dynamic subclasses etc.
          */
         public Query<T> setVanillaMode(boolean vanillaMode) {
             return query().setVanillaMode(vanillaMode);
         }
 
         /**
-         * Add Expressions to the where clause with the ability to chain on the ExpressionList.
+         * Adds expressions to the <code>where</code> clause with the ability to chain on the <code>ExpressionList</code>.
          */
         public ExpressionList<T> where() {
             return query().where();
         }
 
         /**
-         * Add a single Expression to the where clause returning the query.
+         * Adds a single <code>Expression</code> to the <code>where</code> clause and returns the query.
          */
         public Query<T> where(com.avaje.ebean.Expression expression) {
             return query().where(expression);
         }
 
         /**
-         * Add additional clause(s) to the where clause.
+         * Adds additional clauses to the <code>where</code> clause.
          */
         public Query<T> where(String addToWhereClause) {
             return query().where(addToWhereClause);

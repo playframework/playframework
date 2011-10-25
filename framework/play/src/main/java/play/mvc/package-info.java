@@ -1,4 +1,4 @@
 /**
- * Contains all the Controller/Action/Result API to handle HTTP requests.
+ * Provides the Controller/Action/Result API for handling HTTP requests.
  */
 package play.mvc;

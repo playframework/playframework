@@ -18,33 +18,33 @@ import java.lang.reflect.*;
 public class Formatters {
     
     /**
-     * Parse this string as instance of clazz.
+     * Parses this string as instance of the given class.
      *
-     * @param text The text to parse.
-     * @parse clazz Class representing the required type.
-     * @return The parsed value.
+     * @param text the text to parse
+     * @parse clazz class representing the required type
+     * @return the parsed value
      */
     public static <T> T parse(String text, Class<T> clazz) {
         return conversion.convert(text, clazz);
     }
     
     /**
-     * Parse this string as instance of clazz.
+     * Parses this string as instance of a specific field in the given class
      *
-     * @param field The related field (custom formatters are extracted from this field annotation).
-     * @param text The text to parse.
-     * @parse clazz Class representing the required type.
-     * @return The parsed value.
+     * @param field the related field (custom formatters are extracted from this field annotation)
+     * @param text the text to parse
+     * @parse clazz class representing the required type
+     * @return the parsed value
      */
     public static <T> T parse(Field field, String text, Class<T> clazz) {
         return (T)conversion.convert(text, new TypeDescriptor(field), TypeDescriptor.valueOf(clazz));
     }
     
     /**
-     * Compute the display strign for any value.
+     * Computes the display string for any value.
      *
-     * @param t The value to print.
-     * @return The formatted string.
+     * @param t the value to print
+     * @return the formatted string
      */
     public static <T> String print(T t) {
         if(t == null) {
@@ -58,22 +58,22 @@ public class Formatters {
     }
     
     /**
-     * Compute the display strign for any value.
+     * Computes the display string for any value, for a specific field.
      *
-     * @param field The related field (custom formatters are extracted from this field annotation).
-     * @param t The value to print.
-     * @return The formatted string.
+     * @param field the related field - custom formatters are extracted from this field annotation
+     * @param t the value to print
+     * @return the formatted string
      */
     public static <T> String print(Field field, T t) {
         return print(new TypeDescriptor(field), t);
     }
 
     /**
-     * Compute the display strign for any value.
+     * Computes the display string for any value, for a specific type.
      *
-     * @param desc The field descriptor (custom formatters are extracted from this descriptor).
-     * @param t The value to print.
-     * @return The formatted string.
+     * @param desc the field descriptor - custom formatters are extracted from this descriptor.
+     * @param t the value to print
+     * @return the formatted string
      */    
     public static <T> String print(TypeDescriptor desc, T t) {
         if(t == null) {
@@ -101,61 +101,61 @@ public class Formatters {
     }
     
     /**
-     * Super type for custom simple formatters.
+     * Super-type for custom simple formatters.
      */
     public static abstract class SimpleFormatter<T> {
         
         /**
-         * Bind the field (ie. construct a concrete value from submitted data).
+         * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param text The field text.
-         * @param locale The current Locale.
-         * @return A new value.
+         * @param text the field text
+         * @param locale the current Locale
+         * @return a new value
          */
         public abstract T parse(String text, Locale locale) throws java.text.ParseException;
         
         /**
-         * Unbind this field (ie. transform a concrete value to plain string)
+         * Unbinds this field - transforms a concrete value to plain string.
          *
-         * @param value The value to unbind.
-         * @param locale The current Locale.
-         * @return Printable version of the value.
+         * @param value the value to unbind
+         * @param locale the current <code>Locale</code>
+         * @return printable version of the value
          */
         public abstract String print(T t, Locale locale);
         
     }
     
     /**
-     * Super type for annotation based formatters.
+     * Super-type for annotation-based formatters.
      */
     public static abstract class AnnotationFormatter<A extends Annotation,T> {
         
         /**
-         * Bind the field (ie. construct a concrete value from submitted data).
+         * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param annotation The annotation which has trigerred this formatter.
-         * @param text The field text.
-         * @param locale The current Locale.
-         * @return A new value.
+         * @param annotation the annotation that trigerred this formatter
+         * @param text the field text
+         * @param locale the current <code>Locale</code>
+         * @return a new value
          */
         public abstract T parse(A annotation, String text, Locale locale) throws java.text.ParseException;
         
         /**
          * Unbind this field (ie. transform a concrete value to plain string)
          *
-         * @param annotation The annotation which has trigerred this formatter.
-         * @param value The value to unbind.
-         * @param locale The current Locale.
-         * @return Printable version of the value.
+         * @param annotation the annotation that trigerred this formatter.
+         * @param value the value to unbind
+         * @param locale the current <code>Locale</code>
+         * @return printable version of the value
          */
         public abstract String print(A annotation, T value, Locale locale);
     }
     
     /**
-     * Register a simple formatter.
+     * Registers a simple formatter.
      *
-     * @param clazz Class handled by this formatter.
-     * @param formatter The formatter to register.
+     * @param clazz class handled by this formatter
+     * @param formatter the formatter to register
      */
     public static <T> void register(final Class<T> clazz, final SimpleFormatter<T> formatter) {
         conversion.addFormatterForFieldType(clazz, new org.springframework.format.Formatter<T>() {
@@ -176,10 +176,10 @@ public class Formatters {
     }
     
     /**
-     * Register an annotation based formatter.
+     * Registers an annotation-based formatter.
      *
-     * @param clazz Class handled by this formatter.
-     * @param formatter The formatter to register.
+     * @param clazz class handled by this formatter
+     * @param formatter the formatter to register
      */
     public static <A extends Annotation,T> void register(final Class<T> clazz, final AnnotationFormatter<A,T> formatter) {
         final Class<? extends Annotation> annotationType = (Class<? extends Annotation>)GenericTypeResolver.resolveTypeArguments(

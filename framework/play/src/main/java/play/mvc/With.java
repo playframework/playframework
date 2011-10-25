@@ -3,7 +3,7 @@ package play.mvc;
 import java.lang.annotation.*;
 
 /**
- * Decorate an Action or a Controller with another Action.
+ * Decorates an <code>Action</code> or a <code>Controller</code> with another <code>Action</code>.
  */ 
 @Target({ElementType.TYPE,ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME )

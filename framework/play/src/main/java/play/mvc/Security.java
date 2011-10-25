@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 public class Security {
     
     /**
-     * Wrap the annotated action into an Authenticated Action
+     * Wraps the annotated action in an <code>AuthenticatedAction</code>.
      */
     @With(AuthenticatedAction.class)
     @Target({ElementType.TYPE, ElementType.METHOD})
@@ -20,10 +20,10 @@ public class Security {
     }
     
     /**
-     * Wrap another action, allowing only authenticated HTTP requests.
-     *
-     * The username is retrieved from the session cookie, and added to the HTTP request
-     * username attribute.
+     * Wraps another action, allowing only authenticated HTTP requests.
+     * <p>
+     * The user name is retrieved from the session cookie, and added to the HTTP request's
+     * <code>username</code> attribute.
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
         
@@ -51,12 +51,12 @@ public class Security {
     }
     
     /**
-     * Handle authentication.
+     * Handles authentication.
      */
     public static class Authenticator extends Results {
         
         /**
-         * Retrieve the username from the HTTP context (default is to read from session cookie)..
+         * Retrieves the username from the HTTP context; the default is to read from the session cookie.
          *
          * @return null if the user is not authenticated.
          */
@@ -65,7 +65,7 @@ public class Security {
         }
         
         /**
-         * Generate alternative result if the user is not authenticated (default to simple 401 page)
+         * Generates an alternative result if the user is not authenticated; the default a simple '401 Not Authorized' page.
          */
         public Result onUnauthorized(Context ctx) {
             return unauthorized(views.html.defaultpages.unauthorized.render());

@@ -1,4 +1,4 @@
 /**
- * Contains the format API used by Form.
+ * Provides the formatting API used by <code>Form</code> classes.
  */
 package play.data.format;

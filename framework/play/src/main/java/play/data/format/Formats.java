@@ -16,27 +16,27 @@ public class Formats {
     // -- DATE
     
     /**
-     * Formatter for java.util.Date type.
+     * Formatter for <code>java.util.Date</code> values.
      */
     public static class DateFormatter extends Formatters.SimpleFormatter<Date> {
         
         private final String pattern;
         
         /**
-         * Create a date formatter.
+         * Creates a date formatter.
          *
-         * @param pattern Date pattern as specified in Java SimpleDateFormat.
+         * @param pattern date pattern, as specified for {@link SimpleDateFormat}.
          */
         public DateFormatter(String pattern) {
             this.pattern = pattern;
         }
         
         /**
-         * Bind the field (ie. construct a concrete value from submitted data).
+         * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param text The field text.
-         * @param locale The current Locale.
-         * @return A new value.
+         * @param text the field text
+         * @param locale the current <code>Locale</code>
+         * @return a new value
          */
         public Date parse(String text, Locale locale) throws java.text.ParseException {
             if(text == null || text.trim().isEmpty()) {
@@ -48,11 +48,11 @@ public class Formats {
         }
         
         /**
-         * Unbind this field (ie. transform a concrete value to plain string)
+         * Unbinds this fields - converts a concrete value to a plain string.
          *
-         * @param value The value to unbind.
-         * @param locale The current Locale.
-         * @return Printable version of the value.
+         * @param value the value to unbind
+         * @param locale the current <code>Locale</code>
+         * @return printable version of the value
          */
         public String print(Date value, Locale locale) {
             if(value == null) {
@@ -64,7 +64,7 @@ public class Formats {
     }
     
     /**
-     * Defines the format for a Date field.
+     * Defines the format for a <code>Date</code> field.
      */
     @Target({FIELD})
     @Retention(RUNTIME)
@@ -72,23 +72,23 @@ public class Formats {
     public static @interface DateTime {
         
         /**
-         * Date pattern as specified in Java SimpleDateFormat.
+         * Date pattern, as specified for {@link SimpleDateFormat}.
          */
         String pattern();
     }
     
     /**
-     * Annotation formatter, triggered by the @DateTime annotation.
+     * Annotation formatter, triggered by the <code>@DateTime</code> annotation.
      */
     public static class AnnotationDateFormatter extends Formatters.AnnotationFormatter<DateTime,Date> {
         
         /**
-         * Bind the field (ie. construct a concrete value from submitted data).
+         * Binds the field - constructs a concrete value from submitted data.
          *
-         * @param annotation The annotation which has trigerred this formatter.
-         * @param text The field text.
-         * @param locale The current Locale.
-         * @return A new value.
+         * @param annotation the annotation that trigerred this formatter
+         * @param text the field text
+         * @param locale the current <code>Locale</code>
+         * @return a new value
          */
         public Date parse(DateTime annotation, String text, Locale locale) throws java.text.ParseException {
             if(text == null || text.trim().isEmpty()) {
@@ -100,12 +100,12 @@ public class Formats {
         }
         
         /**
-         * Unbind this field (ie. transform a concrete value to plain string)
+         * Unbinds this field - converts a concrete value to plain string
          *
-         * @param annotation The annotation which has trigerred this formatter.
-         * @param value The value to unbind.
-         * @param locale The current Locale.
-         * @return Printable version of the value.
+         * @param annotation the annotation that trigerred this formatter
+         * @param value the value to unbind
+         * @param locale the current <code>Locale</code>
+         * @return printable version of the value
          */
         public String print(DateTime annotation, Date value, Locale locale) {
             if(value == null) {
