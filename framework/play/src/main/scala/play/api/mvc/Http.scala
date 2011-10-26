@@ -2,6 +2,7 @@ package play.api.mvc {
 
   import play.api._
   import play.api.libs.iteratee._
+  import play.api.libs.Crypto
 
   import scala.annotation._
 
@@ -61,12 +62,12 @@ package play.api.mvc {
     /**
      * Parse the Session cookie and returns the Session data.
      */
-    lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.SESSION_COOKIE_NAME))
+    lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
 
     /**
      * Parse the Flash cookie and returns the Flash data.
      */
-    lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.FLASH_COOKIE_NAME))
+    lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
 
     /**
      * Return the raw query string.
@@ -144,6 +145,82 @@ package play.api.mvc {
   }
 
   /**
+   * Trait that should be extended by the Cookie helpers.
+   */
+  trait CookieBaker[T <: AnyRef] {
+    /**
+     * The cookie name.
+     */
+    val COOKIE_NAME: String
+    /**
+     * Default cookie, returned in case of error or if missing in the HTTP headers.
+     */
+    val emptyCookie: T
+    /**
+     * States if the Cookie is signed. Defaults to false.
+     */
+    val isSigned: Boolean = false
+
+    /**
+     * Encode the data as String.
+     */
+    def encode(data: Map[String, String]): String = {
+      java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
+    }
+
+    /**
+     * Decode a from an encoded String.
+     */
+    def decode(data: String): Map[String, String] = {
+      try {
+        Option(data.trim).filterNot(_.isEmpty).flatMap(data =>
+          if (isSigned) {
+            val splitted = data.split("-")
+            if (splitted(0) == Crypto.sign(splitted(1)))
+              Some(splitted(1))
+            else None
+          } else Some(data)).map { data =>
+          java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+        }.getOrElse(Map.empty[String, String])
+      } catch {
+        // fail gracefully is the session cookie is corrupted
+        case _ => Map.empty[String, String]
+      }
+    }
+
+    /**
+     * Encode the data as a Cookie.
+     */
+    def encodeAsCookie(data: T): Cookie = {
+      val cookie = encode(serialize(data))
+      Cookie(COOKIE_NAME, if (isSigned) {
+        Crypto.sign(cookie) + "-" + cookie
+      } else cookie)
+    }
+
+    /**
+     * Decode the data from a Cookie.
+     */
+    def decodeFromCookie(cookie: Option[Cookie]): T = {
+      cookie.filter(_.name == COOKIE_NAME).map(c => deserialize(decode(c.value))).getOrElse(emptyCookie)
+    }
+
+    /**
+     * Build the cookie object from the given data map.
+     * @param data The data map to build the cookie object
+     * @return A new cookie object
+     */
+    protected def deserialize(data: Map[String, String]): T
+
+    /**
+     * Convert the given cookie object into a data map.
+     * @param cookie The cookie object to serialize into a map.
+     * @return A new Map storing the key/value pairs of the given cookie.
+     */
+    protected def serialize(cookie: T): Map[String, String]
+  }
+
+  /**
    * HTTP Session.
    *
    * Session data are encoded into an HTTP cookie, and can only contain simple String values.
@@ -196,53 +273,14 @@ package play.api.mvc {
   /**
    * Helper utilities to manage the Session cookie.
    */
-  object Session {
+  object Session extends CookieBaker[Session] {
+    val COOKIE_NAME = "PLAY_SESSION"
+    val emptyCookie = new Session
+    override val isSigned = true
 
-    /**
-     * The session cookie name.
-     */
-    val SESSION_COOKIE_NAME = "PLAY_SESSION"
+    def deserialize(data: Map[String, String]) = new Session(data)
 
-    /**
-     * A blank (empty) session.
-     */
-    val blankSession = new Session
-
-    /**
-     * Encode the session data as String.
-     */
-    def encode(session: Session): String = {
-      java.net.URLEncoder.encode(session.data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
-    }
-
-    /**
-     * Decode a session from an encoded String.
-     */
-    def decode(data: String): Session = {
-      try {
-        Option(data.trim).filterNot(_.isEmpty).map { data =>
-          Session(java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap)
-        }.getOrElse(blankSession)
-      } catch {
-        // fail gracefully is the session cookie is corrupted
-        case _ => blankSession
-      }
-    }
-
-    /**
-     * Encode the session data as a Cookie.
-     */
-    def encodeAsCookie(data: Session): Cookie = {
-      Cookie(SESSION_COOKIE_NAME, encode(data))
-    }
-
-    /**
-     * Decode the session data from a Cookie.
-     */
-    def decodeFromCookie(sessionCookie: Option[Cookie]): Session = {
-      sessionCookie.filter(_.name == SESSION_COOKIE_NAME).map(c => decode(c.value)).getOrElse(blankSession)
-    }
-
+    def serialize(session: Session) = session.data
   }
 
   /**
@@ -298,52 +336,13 @@ package play.api.mvc {
   /**
    * Helper utilities to manage the Flash cookie.
    */
-  object Flash {
+  object Flash extends CookieBaker[Flash] {
+    val COOKIE_NAME = "PLAY_FLASH"
+    val emptyCookie = new Flash
 
-    /**
-     * The flash cookie name.
-     */
-    val FLASH_COOKIE_NAME = "PLAY_FLASH"
+    def deserialize(data: Map[String, String]) = new Flash(data)
 
-    /**
-     * A blank (empty) flash scope.
-     */
-    val blankFlash = new Flash
-
-    /**
-     * Encode the flash data as String.
-     */
-    def encode(flash: Flash): String = {
-      java.net.URLEncoder.encode(flash.data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
-    }
-
-    /**
-     * Decode a flash scope from an encoded String.
-     */
-    def decode(data: String): Flash = {
-      try {
-        Option(data.trim).filterNot(_.isEmpty).map { data =>
-          Flash(java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap)
-        }.getOrElse(blankFlash)
-      } catch {
-        // fail gracefully is the flash cookie is corrupted
-        case _ => blankFlash
-      }
-    }
-
-    /**
-     * Encode the flash data as a Cookie.
-     */
-    def encodeAsCookie(data: Flash): Cookie = {
-      Cookie(FLASH_COOKIE_NAME, encode(data))
-    }
-
-    /**
-     * Decode the flash data from a Cookie.
-     */
-    def decodeFromCookie(flashCookie: Option[Cookie]): Flash = {
-      flashCookie.filter(_.name == FLASH_COOKIE_NAME).map(c => decode(c.value)).getOrElse(blankFlash)
-    }
+    def serialize(flash: Flash) = flash.data
 
   }
 
