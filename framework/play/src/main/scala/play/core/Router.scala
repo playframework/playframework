@@ -700,6 +700,8 @@ object Router {
         }
       }
 
+      def EOF = "\\z".r
+
       def namedError[A](p: Parser[A], msg: String) = Parser[A] { i =>
         p(i) match {
           case Failure(_, in) => Failure(msg, in)
@@ -817,7 +819,7 @@ object Router {
         case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
       }
 
-      def sentence = (comment | positioned(route)) <~ newLine
+      def sentence = (comment | positioned(route)) <~ (newLine | EOF)
 
       def parser: Parser[List[Route]] = phrase((blankLine | sentence *) <~ end) ^^ {
         case routes => routes.collect {
