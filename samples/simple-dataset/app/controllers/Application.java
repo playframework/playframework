@@ -20,7 +20,7 @@ public class Application extends Controller {
      * application home.
      */
     public static Result GO_HOME = redirect(
-        routes.Application.list(0, "name", "asc", "")
+        routes.Application.list(0, "name", "asc", "") 
     );
     
     /**

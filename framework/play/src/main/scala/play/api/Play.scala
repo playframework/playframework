@@ -59,12 +59,6 @@ object Play {
 
     _currentApp = app
 
-    if (app.mode == Mode.Dev) {
-      println()
-      println(new jline.ANSIBuffer().magenta("--- (RELOAD) ---"))
-      println()
-    }
-
     app.plugins.foreach(_.onStart)
 
     Logger("play").info("Application is started")

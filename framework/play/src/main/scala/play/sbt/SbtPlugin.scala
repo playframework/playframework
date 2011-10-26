@@ -6,6 +6,8 @@ import jline._
 import play.api._
 import play.core._
 
+import play.console.Colors
+
 object PlayProject extends Plugin {
 
   // ----- We need this later
@@ -328,7 +330,7 @@ object PlayProject extends Plugin {
     import extracted._
 
     (name in currentRef get structure.data).map { name =>
-      new ANSIBuffer().append("[").cyan(name).append("] $ ").toString
+      "[" + Colors.cyan(name) + "] $ "
     }.getOrElse("> ")
 
   }
@@ -552,7 +554,7 @@ object PlayProject extends Plugin {
     val server = new play.core.server.NettyServer(reloader)
 
     println()
-    println(new ANSIBuffer().green("(Server started, use Ctrl+D to stop and go back to the console...)").toString)
+    println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
     println()
 
     waitForKey()
@@ -591,10 +593,10 @@ object PlayProject extends Plugin {
             }
           }.start()
 
-          println(new ANSIBuffer().green(
+          println(Colors.green(
             """|
-                           |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
-                           |""".stripMargin).toString)
+               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
+               |""".stripMargin))
 
           waitForKey()
 
@@ -667,8 +669,8 @@ object PlayProject extends Plugin {
                 |last-grep <pattern> <key>  Shows lines from the last output for 'key' that match 'pattern'.
                 |session ...                Manipulates session settings.  For details, run 'help session'..
                 |
-                |Browse the complete documentation at """.stripMargin +
-        new ANSIBuffer().underscore("http://www.playframework.org").append(".\n"))
+                |Browse the complete documentation at http://www.playframework.org.
+                |""".stripMargin)
 
     state
   }

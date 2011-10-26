@@ -8,16 +8,14 @@ object Console {
 
   val consoleReader = new jline.ConsoleReader
 
-  val logo = new ANSIBuffer().yellow(
+  val logo = Colors.yellow(
     """|       _            _ 
            | _ __ | | __ _ _  _| |
            || '_ \| |/ _' | || |_|
            ||  __/|_|\____|\__ (_)
            ||_|            |__/ 
            |             
-           |""".stripMargin).append(
-      "play! " + play.core.PlayVersion.current + ", ").underscore(
-        new ANSIBuffer().append("""http://www.playframework.org""").toString)
+           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + ", http://www.playframework.org")
 
   def newCommand(args: Array[String]) = {
 
@@ -50,8 +48,7 @@ object Console {
             |(default)      Enter the development console.
             |new            Create a new Play application in the current directory.
             |
-            |You can also browse the complete documentation at """.stripMargin +
-      new ANSIBuffer().underscore("http://www.playframework.org").append(".")
+            |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin
   }
 
   def main(args: Array[String]) {
@@ -63,13 +60,11 @@ object Console {
       }.map { command =>
         command(args.drop(1))
       }.getOrElse {
-        new ANSIBuffer().red("\nThis is not a play application!\n").append(
-          """|
-                       |Use `play new` to create a new Play application in the current directory, 
-                       |or go to an existing application and launch the development console using `play`.
-                       |
-                       |You can also browse the complete documentation at """.stripMargin +
-            new ANSIBuffer().underscore("http://www.playframework.org").append(".")).toString
+        Colors.red("\nThis is not a play application!\n") + ("""|
+             |Use `play new` to create a new Play application in the current directory, 
+             |or go to an existing application and launch the development console using `play`.
+             |
+             |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin)
       })
     println()
   }
