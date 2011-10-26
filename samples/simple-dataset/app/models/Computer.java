@@ -48,7 +48,7 @@ public class Computer extends Model {
             find.where()
                 .ilike("name", "%" + filter + "%")
                 .orderBy(sortBy + " " + order)
-                .fetch("company")
+                .join("company")
                 .findPagingList(pageSize)
                 .getPage(page);
     }

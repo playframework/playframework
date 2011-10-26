@@ -626,6 +626,7 @@ object PlayProject extends Plugin {
                 |clean                      Clean all generated files.
                 |compile                    Compile the current application.
                 |console                    Launch the interactive Scala console (use :quit to exit).
+                |dependencies               Display the dependencies summary.
                 |dist                       Construct standalone application package.
                 |exit                       Exit the console.
                 |h2-browser                 Launch the H2 Web browser.
