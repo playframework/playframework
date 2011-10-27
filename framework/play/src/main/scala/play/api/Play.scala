@@ -59,13 +59,7 @@ object Play {
 
     _currentApp = app
 
-    if (app.mode == Mode.Dev) {
-      println()
-      println(new jline.ANSIBuffer().magenta("--- (RELOAD) ---"))
-      println()
-    }
-
-    app.plugins.values.foreach(_.onStart)
+    app.plugins.foreach(_.onStart)
 
     Logger("play").info("Application is started")
 
@@ -76,7 +70,7 @@ object Play {
    */
   def stop() {
     Option(_currentApp).map {
-      _.plugins.values.foreach { p =>
+      _.plugins.foreach { p =>
         try { p.onStop } catch { case _ => }
       }
     }

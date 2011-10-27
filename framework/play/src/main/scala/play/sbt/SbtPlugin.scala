@@ -6,6 +6,8 @@ import jline._
 import play.api._
 import play.core._
 
+import play.console.Colors
+
 object PlayProject extends Plugin {
 
   // ----- We need this later
@@ -155,7 +157,10 @@ object PlayProject extends Plugin {
 
     val start = target / "start"
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..""" /* */ )
+      """|#! /usr/bin/env sh
+         |
+         |java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
 
@@ -229,7 +234,7 @@ object PlayProject extends Plugin {
 
     // Properties
 
-    val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(":")
+    val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
     val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
       analysis.relations.products(sourceFile)
@@ -308,7 +313,7 @@ object PlayProject extends Plugin {
           generatedDir,
           templateTypes("html")._1,
           templateTypes("html")._2,
-          additionalImports.map("import " + _).mkString("\n"))
+          additionalImports.map("import " + _.replace("%format%", "html")).mkString("\n"))
       }
     } catch {
       case TemplateCompilationError(source, message, line, column) => {
@@ -328,7 +333,7 @@ object PlayProject extends Plugin {
     import extracted._
 
     (name in currentRef get structure.data).map { name =>
-      new ANSIBuffer().append("[").cyan(name).append("] $ ").toString
+      "[" + Colors.cyan(name) + "] $ "
     }.getOrElse("> ")
 
   }
@@ -549,10 +554,10 @@ object PlayProject extends Plugin {
 
     println()
 
-    val server = new play.core.server.NettyServer(reloader)
+    val server = new play.core.server.NettyServer(reloader, 9000)
 
     println()
-    println(new ANSIBuffer().green("(Server started, use Ctrl+D to stop and go back to the console...)").toString)
+    println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
     println()
 
     waitForKey()
@@ -591,10 +596,10 @@ object PlayProject extends Plugin {
             }
           }.start()
 
-          println(new ANSIBuffer().green(
+          println(Colors.green(
             """|
-                           |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
-                           |""".stripMargin).toString)
+               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
+               |""".stripMargin))
 
           waitForKey()
 
@@ -626,6 +631,7 @@ object PlayProject extends Plugin {
                 |clean                      Clean all generated files.
                 |compile                    Compile the current application.
                 |console                    Launch the interactive Scala console (use :quit to exit).
+                |dependencies               Display the dependencies summary.
                 |dist                       Construct standalone application package.
                 |exit                       Exit the console.
                 |h2-browser                 Launch the H2 Web browser.
@@ -666,8 +672,8 @@ object PlayProject extends Plugin {
                 |last-grep <pattern> <key>  Shows lines from the last output for 'key' that match 'pattern'.
                 |session ...                Manipulates session settings.  For details, run 'help session'..
                 |
-                |Browse the complete documentation at """.stripMargin +
-        new ANSIBuffer().underscore("http://www.playframework.org").append(".\n"))
+                |Browse the complete documentation at http://www.playframework.org.
+                |""".stripMargin)
 
     state
   }
@@ -861,7 +867,41 @@ object PlayProject extends Plugin {
 
   // ----- Default settings
 
+  lazy val defaultJavaSettings = Seq[Setting[_]](
+
+    templatesImport ++= Seq(
+      "models._",
+      "controllers._",
+
+      "java.lang._",
+      "java.util._",
+
+      "play.api.i18n.Messages",
+
+      "play.data._",
+      "com.avaje.ebean._",
+      "play.mvc.Http.Context.Implicit._",
+
+      "views.%format%._"))
+
+  lazy val defaultScalaSettings = Seq[Setting[_]](
+
+    templatesImport ++= Seq(
+      "models._",
+      "controllers._",
+
+      "play.api.i18n.Messages",
+
+      "play.api.data._",
+
+      "views.%format%._"))
+
   lazy val defaultSettings = Seq[Setting[_]](
+
+    resolvers ++= Seq(
+      Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),
+      Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns),
+      "Akka Repo" at "http://akka.io/repository"),
 
     target <<= baseDirectory / "target",
 
@@ -919,7 +959,7 @@ object PlayProject extends Plugin {
 
     playResourceDirectories <+= baseDirectory / "public",
 
-    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._"),
+    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 
     templatesTypes := ((extension) => extension match {
       case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")

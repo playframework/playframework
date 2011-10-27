@@ -80,7 +80,7 @@ object Messages {
     }
 
     def end = """\s*""".r
-    def newLine = namedError("\n", "End of line expected")
+    def newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
     def blankLine = ignoreWhiteSpace <~ newLine ^^ { case _ => Comment("") }
     def ignoreWhiteSpace = opt(whiteSpace)
 

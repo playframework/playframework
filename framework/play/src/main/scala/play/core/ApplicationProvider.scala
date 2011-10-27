@@ -52,7 +52,7 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
 abstract class ReloadableApplication(applicationPath: File) extends ApplicationProvider {
 
   println()
-  println("Running the application from SBT, auto-reloading is enabled")
+  println(play.console.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
 
   var lastState: Either[PlayException, Application] = Left(PlayException("Not initialized", "?"))
 
@@ -64,6 +64,12 @@ abstract class ReloadableApplication(applicationPath: File) extends ApplicationP
 
         val maybeApplication: Option[Either[PlayException, Application]] = maybeClassloader.map { classloader =>
           try {
+
+            if (lastState.isRight) {
+              println()
+              println(play.console.Colors.magenta("--- (RELOAD) ---"))
+              println()
+            }
 
             val newApplication = Application(applicationPath, classloader, Some(new SourceMapper {
               def sourceOf(className: String) = findSource(className)

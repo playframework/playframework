@@ -223,13 +223,15 @@ object Logger extends LoggerLike {
    */
   class ColoredLevel extends ClassicConverter {
 
+    import play.console.Colors
+
     def convert(event: ILoggingEvent) = {
       event.getLevel match {
-        case Level.TRACE => "[\u001b[0;35mtrace\u001b[m]"
-        case Level.DEBUG => "[\u001b[0;36mdebug\u001b[m]"
-        case Level.INFO => "[\u001b[0;37minfo\u001b[m]"
-        case Level.WARN => "[\u001b[0;33mwarn\u001b[m]"
-        case Level.ERROR => "[\u001b[0;31merror\u001b[m]"
+        case Level.TRACE => "[" + Colors.blue("trace") + "]"
+        case Level.DEBUG => "[" + Colors.cyan("debug") + "]"
+        case Level.INFO => "[" + Colors.white("info") + "]"
+        case Level.WARN => "[" + Colors.yellow("warn") + "]"
+        case Level.ERROR => "[" + Colors.red("error") + "]"
       }
     }
 

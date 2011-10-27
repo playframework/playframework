@@ -95,7 +95,8 @@ object PlayBuild extends Build {
     }
 
     object Resolvers {
-        val playRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)    
+        val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
+        val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
         val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
         val akkaRepo = "Akka Repo" at "http://akka.io/repository"
         val memcache = "memcache" at "http://files.couchbase.com/maven2"
@@ -281,19 +282,6 @@ object PlayBuild extends Build {
                    |	/>
                    |</ivy-module>
                 """.stripMargin.trim.format(buildScalaVersion)
-            )
-
-            IO.write(file("../play"),
-                """
-                    |if [ -f conf/application.conf ]; then
-                    |  if [ "$1" == "clean" ]; then
-                    |    `dirname $0`/framework/cleanIvyCache
-                    |  fi
-                    |	 `dirname $0`/framework/build play "$@"
-                    |else
-                    |  java -cp `dirname $0`/framework/sbt/boot/scala-%1$s/lib/*:`dirname $0`/framework/sbt/boot/scala-%1$s/org.scala-tools.sbt/sbt/%3$s/*:`dirname $0`/repository/local/play/play_%1$s/%2$s/jars/* -Dsbt.ivy.home=`dirname $0`/repository play.console.Console "$@"
-                    |fi
-                """.stripMargin.trim.format(buildScalaVersion, buildVersion, sbtVersion)
             )
 
         }

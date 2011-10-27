@@ -160,6 +160,10 @@ public class EbeanPlugin extends Plugin {
         public <T> T unwrap(Class<T> iface) throws java.sql.SQLException {
             return wrapped.unwrap(iface);
         }
+
+        public java.util.logging.Logger getParentLogger() {
+            return null;
+        }
         
     }
     

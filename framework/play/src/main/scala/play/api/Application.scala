@@ -99,7 +99,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * The plugins list used by this application.
    * @see play.api.Plugin
    */
-  val plugins: Map[Class[_], Plugin] = {
+  val plugins: Seq[Plugin] = {
 
     import scalax.file._
     import scalax.io.JavaConverters._
@@ -107,7 +107,9 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
 
     val PluginDeclaration = """([0-9_]+):(.*)""".r
 
-    classloader.getResources("play.plugins").asScala.toList.distinct.map { plugins =>
+    val pluginFiles = classloader.getResources("play.plugins").asScala.toList ++ classloader.getResources("conf/play.plugins").asScala.toList
+
+    pluginFiles.distinct.map { plugins =>
       plugins.asInput.slurpString.split("\n").map(_.trim).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => {
           try {
@@ -130,7 +132,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
           }
         }
       }
-    }.flatten.toList.sortBy(_._1).map(_._2).map(p => p.getClass -> p).toMap
+    }.flatten.toList.sortBy(_._1).map(_._2)
 
   }
 
@@ -161,7 +163,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * @return The plugin instance used by this application.
    * @throws Error if no plugins of type T are loaded by this application.
    */
-  def plugin[T](pluginClass: Class[T]): T = plugins.get(pluginClass).get.asInstanceOf[T]
+  def plugin[T](pluginClass: Class[T]): T = plugins.find(_.getClass == pluginClass).get.asInstanceOf[T]
 
   /**
    * Retrieve a file relatively to the application root path.
