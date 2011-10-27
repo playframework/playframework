@@ -143,6 +143,13 @@ object DBApi {
 object DB {
 
   /**
+   * based on http://blog.crazybob.org/2006/07/hard-core-java-threadlocal.html
+   */
+  private val mockLocal = new ThreadLocal[scala.Array[DataSource]] {
+    override protected def initialValue: scala.Array[DataSource] = new scala.Array[DataSource](1)
+  }
+  def mock(m: DataSource) { (mockLocal.get).update(0, m) }
+  /**
    * Retrieve a JDBC connection.
    *
    * @param name Datasource name.
@@ -150,7 +157,7 @@ object DB {
    * @return An JDBC connection.
    * @throws An error is the required datasource is not registred.
    */
-  def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].api.getConnection(name, autocommit)
+  def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = mockLocal.get.headOption.map(_.getConnection).getOrElse(app.plugin[DBPlugin].api.getConnection(name, autocommit))
 
   /**
    * Retrieve a JDBC connection (autocommit is set to true).
@@ -159,7 +166,7 @@ object DB {
    * @return An JDBC connection.
    * @throws An error is the required datasource is not registred.
    */
-  def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].api.getDataSource(name)
+  def getDataSource(name: String = "default")(implicit app: Application): DataSource = mockLocal.get.headOption.getOrElse(app.plugin[DBPlugin].api.getDataSource(name))
 
 }
 
