@@ -7,7 +7,11 @@ import play.api.mvc._
 trait Server {
 
   // First delete the default log file for a fresh start
-  scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
+  try {
+    scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
+  } catch {
+    case _ =>
+  }
 
   // Configure the logger for the first time
   Logger.configure(

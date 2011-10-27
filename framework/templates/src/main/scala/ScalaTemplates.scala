@@ -374,7 +374,7 @@ package play.templates {
 
       def importExpression: Parser[Simple] = {
         positioned(
-          at ~> """import .*\n""".r ^^ {
+          at ~> """import .*(\r)?\n""".r ^^ {
             case stmt => Simple(stmt)
           })
       }
@@ -589,8 +589,8 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
           // is null in Eclipse/OSGI but luckily we don't need it there
           if (scalaObjectSource != null) {
-            val compilerPath = Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource.getLocation
-            val libPath = scalaObjectSource.getLocation
+            val compilerPath = Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource.getLocation.getFile
+            val libPath = scalaObjectSource.getLocation.getFile
             val pathList = List(compilerPath, libPath)
             val origBootclasspath = settings.bootclasspath.value
             settings.bootclasspath.value = ((origBootclasspath :: pathList) ::: additionalClassPathEntry.toList) mkString File.pathSeparator
@@ -670,7 +670,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                 /*
                     -- GENERATED --
                     DATE: """ + new java.util.Date + """
-                    SOURCE: """ + template.getAbsolutePath + """
+                    SOURCE: """ + template.getAbsolutePath.replace(File.separator, "/") + """
                     HASH: """ + Hash(Path(template).byteArray) + """
                     MATRIX: """ + positions.map { pos =>
         pos._1 + "->" + pos._2

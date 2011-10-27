@@ -78,14 +78,16 @@ object Router {
     case class GeneratedSource(file: File) {
 
       val lines = if (file.exists) Path(file).slurpString.split('\n').toList else Nil
-      val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path(m.drop(11)))
+      val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path(m.trim.drop(11)))
 
       def isGenerated = source.isDefined
 
-      def sync() = if (!source.get.exists) file.delete() else false
+      def sync() = {
+        if (!source.get.exists) file.delete() else false
+      }
 
       def needsRecompilation = {
-        val hash = lines.find(_.startsWith("// @HASH:")).map(m => m.drop(9)).getOrElse("")
+        val hash = lines.find(_.startsWith("// @HASH:")).map(m => m.trim.drop(9)).getOrElse("")
         source.filter(_.exists).map { p =>
           Hash(p.byteArray) != hash
         }.getOrElse(true)
@@ -93,7 +95,7 @@ object Router {
 
       def mapLine(generatedLine: Int) = {
         lines.take(generatedLine).reverse.collect {
-          case l if l.startsWith("// @LINE:") => Integer.parseInt(l.drop(9))
+          case l if l.startsWith("// @LINE:") => Integer.parseInt(l.trim.drop(9))
         }.headOption
       }
 
@@ -194,7 +196,7 @@ object Router {
 
       check(new File(file.path), routes);
 
-      val (path, hash, date) = (file.path, Hash(file.byteArray), new java.util.Date().toString)
+      val (path, hash, date) = (file.path.replace(File.separator, "/"), Hash(file.byteArray), new java.util.Date().toString)
 
       Seq(("routes_reverseRouting.scala",
         """ |// @SOURCE:%s
@@ -735,7 +737,7 @@ object Router {
         case c => Comment(c)
       }
 
-      def newLine = namedError("\n", "End of line expected")
+      def newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
 
       def blankLine = ignoreWhiteSpace ~> newLine ^^ { case _ => Comment("") }
 

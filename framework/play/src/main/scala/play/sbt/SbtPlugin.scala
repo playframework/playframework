@@ -231,7 +231,7 @@ object PlayProject extends Plugin {
 
     // Properties
 
-    val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(":")
+    val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
     val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
       analysis.relations.products(sourceFile)
