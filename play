@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env sh
 
 if [ -f conf/application.conf ]; then
   if [ "$1" == "clean" ]; then

@@ -25,7 +25,7 @@ import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
 
-class NettyServer(appProvider: ApplicationProvider) extends Server {
+class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
   def applicationProvider = appProvider
 
@@ -411,9 +411,9 @@ class NettyServer(appProvider: ApplicationProvider) extends Server {
   }
   bootstrap.setPipelineFactory(new DefaultPipelineFactory)
 
-  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(9000)))
+  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(port)))
 
-  Logger("play").info("Listening for HTTP on port 9000...")
+  Logger("play").info("Listening for HTTP on port %s...".format(port))
 
   def stop() {
     Play.stop()
@@ -454,7 +454,9 @@ object NettyServer {
 
         try {
           new NettyServer(
-            new StaticApplication(applicationPath))
+            new StaticApplication(applicationPath),
+            Option(System.getenv("PORT")).map(Integer.parseInt(_)).getOrElse(9000) // Temporary hack
+            )
         } catch {
           case e => {
             println("Oops, cannot start the server.")

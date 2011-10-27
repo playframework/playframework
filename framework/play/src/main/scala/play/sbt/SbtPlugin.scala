@@ -157,7 +157,10 @@ object PlayProject extends Plugin {
 
     val start = target / "start"
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..""" /* */ )
+      """|#! /usr/bin/env sh
+         |
+         |java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
 
@@ -551,7 +554,7 @@ object PlayProject extends Plugin {
 
     println()
 
-    val server = new play.core.server.NettyServer(reloader)
+    val server = new play.core.server.NettyServer(reloader, 9000)
 
     println()
     println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
