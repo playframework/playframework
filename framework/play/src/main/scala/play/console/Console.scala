@@ -28,9 +28,9 @@ object Console {
     println("The new application will be created in %s".format(path.getAbsolutePath))
 
     if (path.listFiles.size > 0) {
-      new ANSIBuffer().red("The directory is not empty, cannot create a new application here.")
+      Colors.red("The directory is not empty, cannot create a new application here.")
     } else {
-      consoleReader.printString(new ANSIBuffer().cyan("What is the application name? ").toString)
+      consoleReader.printString(Colors.cyan("What is the application name? "))
       consoleReader.putString(defaultName)
       val name = Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(defaultName)
       println()

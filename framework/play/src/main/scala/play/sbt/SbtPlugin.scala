@@ -310,7 +310,7 @@ object PlayProject extends Plugin {
           generatedDir,
           templateTypes("html")._1,
           templateTypes("html")._2,
-          additionalImports.map("import " + _).mkString("\n"))
+          additionalImports.map("import " + _.replace("%format%", "html")).mkString("\n"))
       }
     } catch {
       case TemplateCompilationError(source, message, line, column) => {
@@ -864,7 +864,41 @@ object PlayProject extends Plugin {
 
   // ----- Default settings
 
+  lazy val defaultJavaSettings = Seq[Setting[_]](
+
+    templatesImport ++= Seq(
+      "models._",
+      "controllers._",
+
+      "java.lang._",
+      "java.util._",
+
+      "play.api.i18n.Messages",
+
+      "play.data._",
+      "com.avaje.ebean._",
+      "play.mvc.Http.Context.Implicit._",
+
+      "views.%format%._"))
+
+  lazy val defaultScalaSettings = Seq[Setting[_]](
+
+    templatesImport ++= Seq(
+      "models._",
+      "controllers._",
+
+      "play.api.i18n.Messages",
+
+      "play.api.data._",
+
+      "views.%format%._"))
+
   lazy val defaultSettings = Seq[Setting[_]](
+
+    resolvers ++= Seq(
+      Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),
+      Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns),
+      "Akka Repo" at "http://akka.io/repository"),
 
     target <<= baseDirectory / "target",
 
@@ -922,7 +956,7 @@ object PlayProject extends Plugin {
 
     playResourceDirectories <+= baseDirectory / "public",
 
-    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._", "controllers._"),
+    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 
     templatesTypes := ((extension) => extension match {
       case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")

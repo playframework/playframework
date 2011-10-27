@@ -95,7 +95,8 @@ object PlayBuild extends Build {
     }
 
     object Resolvers {
-        val playRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)    
+        val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
+        val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
         val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
         val akkaRepo = "Akka Repo" at "http://akka.io/repository"
     }
