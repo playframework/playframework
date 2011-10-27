@@ -35,6 +35,8 @@ object Configuration {
 
     case class Comment(msg: String)
 
+    def EOF = "\\z".r
+
     override def skipWhitespace = false
     override val whiteSpace = """[ \t]+""".r
 
@@ -72,7 +74,7 @@ object Configuration {
       case (_ ~ k ~ _ ~ v) => Configuration.Config(k, v.trim, configurationFile)
     }
 
-    def sentence = (comment | positioned(config)) <~ newLine
+    def sentence = (comment | positioned(config)) <~ (newLine | EOF)
 
     def parser = phrase((sentence | blankLine *) <~ end) ^^ {
       case configs => configs.collect {
