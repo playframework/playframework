@@ -46,7 +46,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            resolvers ++= Seq(typesafe, akkaRepo),
+            resolvers ++= Seq(typesafe, akkaRepo, memcache),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
         )
@@ -98,6 +98,7 @@ object PlayBuild extends Build {
         val playRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)    
         val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
         val akkaRepo = "Akka Repo" at "http://akka.io/repository"
+        val memcache = "memcache" at "http://files.couchbase.com/maven2"
     }
 
     object Dependencies {
@@ -117,6 +118,7 @@ object PlayBuild extends Build {
             "org.scala-tools"                   %%   "scala-stm"            %   "0.3",
             "com.jolbox"                        %    "bonecp"               %   "0.7.1.RELEASE",
             "org.yaml"                          %    "snakeyaml"            %   "1.9",
+            "spy"                               %    "spymemcached"         %   "2.7.3",
             "org.hibernate"                     %    "hibernate-validator"  %   "4.2.0.Final",
             "org.springframework"               %    "spring-context"       %   "3.0.6.RELEASE"   notTransitive(),
             "org.springframework"               %    "spring-core"          %   "3.0.6.RELEASE"   notTransitive(),
