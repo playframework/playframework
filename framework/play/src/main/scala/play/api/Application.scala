@@ -107,7 +107,9 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
 
     val PluginDeclaration = """([0-9_]+):(.*)""".r
 
-    classloader.getResources("play.plugins").asScala.toList.distinct.map { plugins =>
+    val pluginFiles = classloader.getResources("play.plugins").asScala.toList ++ classloader.getResources("conf/play.plugins").asScala.toList
+
+    pluginFiles.distinct.map { plugins =>
       plugins.asInput.slurpString.split("\n").map(_.trim).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => {
           try {

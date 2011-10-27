@@ -91,7 +91,7 @@ case class SimpleResult[A](header: ResponseHeader, body: Enumerator[A])(implicit
    * @return The new result.
    */
   def withSession(session: Session): SimpleResult[A] = {
-    if (session.isEmpty) discardingCookies(Session.SESSION_COOKIE_NAME) else withCookies(Session.encodeAsCookie(session))
+    if (session.isEmpty) discardingCookies(Session.COOKIE_NAME) else withCookies(Session.encodeAsCookie(session))
   }
 
   /**

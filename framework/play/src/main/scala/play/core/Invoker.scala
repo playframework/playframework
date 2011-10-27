@@ -92,9 +92,9 @@ class Invoker extends Actor {
             val flashCookie = {
               header.headers.get(SET_COOKIE)
                 .map(Cookies.decode(_))
-                .flatMap(_.find(_.name == Flash.FLASH_COOKIE_NAME)).orElse {
+                .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
                   Option(request.flash).filterNot(_.isEmpty).map { _ =>
-                    Cookie(Flash.FLASH_COOKIE_NAME, "", 0)
+                    Cookie(Flash.COOKIE_NAME, "", 0)
                   }
                 }
             }
