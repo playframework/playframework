@@ -10,7 +10,7 @@ h2. Building
 
 $ cd framework
 $ ./build
-> build-repository
+> publish-local
 
 h2. Creating an application
 
