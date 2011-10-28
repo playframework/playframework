@@ -119,6 +119,7 @@ object PlayBuild extends Build {
             "org.scala-tools"                   %%   "scala-stm"            %   "0.3",
             "com.jolbox"                        %    "bonecp"               %   "0.7.1.RELEASE",
             "org.yaml"                          %    "snakeyaml"            %   "1.9",
+            "net.sf.ehcache"                    %    "ehcache-core"         %   "2.4.6",
             "spy"                               %    "spymemcached"         %   "2.7.3",
             "org.hibernate"                     %    "hibernate-validator"  %   "4.2.0.Final",
             "org.springframework"               %    "spring-context"       %   "3.0.6.RELEASE"   notTransitive(),
