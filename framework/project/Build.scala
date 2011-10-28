@@ -61,7 +61,8 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            publish <<= (publish in PlayProject, publish in TemplatesProject) map { (_,_) => }
+            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject) map { (_,_,_) => },
+            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject) map { (_,_,_) => }
         )
     ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject)
 
@@ -223,7 +224,7 @@ object PlayBuild extends Build {
         // ----- Build repo
 
         val buildRepository = TaskKey[Unit]("build-repository")
-        val buildRepositoryTask = TaskKey[Unit]("build-repository") <<= (resetRepository, publish, dependencyClasspath in Runtime, sbtVersion) map { (repository, published, classpath, sbtVersion) =>
+        val buildRepositoryTask = TaskKey[Unit]("build-repository") <<= (resetRepository, publishLocal, dependencyClasspath in Runtime, sbtVersion) map { (repository, published, classpath, sbtVersion) =>
 
             def checksum(algo:String)(bytes:Array[Byte]) = {
                 import java.security.MessageDigest
@@ -257,7 +258,7 @@ object PlayBuild extends Build {
                     (jarFile, artifactType, organization, name, version, xmlFile)
                 }
             }
-
+            
             dependencies.foreach { dep =>
 
                 val depDirectory = repository / dep._3 / dep._4 / dep._5 
