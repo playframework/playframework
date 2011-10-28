@@ -216,7 +216,7 @@ object Cache {
     expiration: String,
     window: String,
     waitForEvaluation: String = "10s")(getter: => T)(implicit app: Application, m: Manifest[T], isDesirable: T => Boolean): T = {
-    Logger.warn("use `def get[T](clazz: Class[T], key: String,expiration: String, window: String, waitForEvaluation: String)(implicit app: Application): Future[T]` instead")
+    Logger.warn("use `def getAsync(key: String, waitForEvaluation: String)(implicit m: Manifest[T], app: Application): Future[T]` instead")
     getOrSet[T](key)(getter)(m, app).getOrElse(getter)
   }
 
