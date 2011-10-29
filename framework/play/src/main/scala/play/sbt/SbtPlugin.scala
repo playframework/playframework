@@ -900,8 +900,7 @@ object PlayProject extends Plugin {
 
     resolvers ++= Seq(
       Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),
-      Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns),
-      "Akka Repo" at "http://akka.io/repository"),
+      "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"),
 
     target <<= baseDirectory / "target",
 
