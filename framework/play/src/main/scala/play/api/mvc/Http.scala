@@ -165,23 +165,28 @@ package play.api.mvc {
      * Encode the data as String.
      */
     def encode(data: Map[String, String]): String = {
-      java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
+      val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
+      if (isSigned)
+        Crypto.sign(encoded) + "-" + encoded
+      else
+        encoded
     }
 
     /**
-     * Decode a from an encoded String.
+     * Decode from an encoded String.
      */
     def decode(data: String): Map[String, String] = {
+
+      def urldecode(data: String) = java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+
       try {
-        Option(data.trim).filterNot(_.isEmpty).flatMap(data =>
-          if (isSigned) {
-            val splitted = data.split("-")
-            if (splitted(0) == Crypto.sign(splitted(1)))
-              Some(splitted(1))
-            else None
-          } else Some(data)).map { data =>
-          java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
-        }.getOrElse(Map.empty[String, String])
+        if (isSigned) {
+          val splitted = data.split("-")
+          if (splitted(0) == Crypto.sign(splitted(1)))
+            return urldecode(splitted(1))
+          else
+            return Map.empty[String, String]
+        } else urldecode(data)
       } catch {
         // fail gracefully is the session cookie is corrupted
         case _ => Map.empty[String, String]
@@ -193,9 +198,7 @@ package play.api.mvc {
      */
     def encodeAsCookie(data: T): Cookie = {
       val cookie = encode(serialize(data))
-      Cookie(COOKIE_NAME, if (isSigned) {
-        Crypto.sign(cookie) + "-" + cookie
-      } else cookie)
+      Cookie(COOKIE_NAME, cookie)
     }
 
     /**

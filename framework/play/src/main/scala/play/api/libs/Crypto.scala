@@ -16,9 +16,9 @@ object Crypto {
   }
 
   def sign(message: String): String = {
-    Play.maybeApplication.get.configuration.get("application.secret") match {
+    Play.maybeApplication.map(_.configuration.get("application.secret") match {
       case Some(Config(key, value, file)) => sign(message, value.getBytes)
       case _ => throw PlayException("Configuration error", "Missing application.secret")
-    }
+    }).getOrElse(throw PlayException("Configuration error", "Application does not exist"))
   }
 }
