@@ -28,5 +28,9 @@ trait Plugin {
    */
   def onStop {}
 
+  /**
+   * Is the plugin enabled?
+   */
+  def enabled: Boolean = true
 }
 

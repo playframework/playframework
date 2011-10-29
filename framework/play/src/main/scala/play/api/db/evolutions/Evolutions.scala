@@ -385,6 +385,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 
   import Evolutions._
 
+  override def enabled = app.configuration.getSub("db").isDefined
   /**
    * Check the evolutions state.
    */

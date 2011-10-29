@@ -178,9 +178,12 @@ class DBPlugin(app: Application) extends Plugin {
     }.getOrElse(Map.empty))
   }
 
+  override def enabled = if (db.datasources.size > 0) true else false
+
   /**
    * Retrieve the underlying DB Api managing the datasources.
    */
+
   def api = db
 
   /**

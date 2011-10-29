@@ -16,5 +16,6 @@ public class Plugin implements play.api.Plugin {
      */
     public void onStop() {
     }
-
+    
+    public boolean enabled() { return true;}
 }

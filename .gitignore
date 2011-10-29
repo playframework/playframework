@@ -1,6 +1,7 @@
 target/
 logs/
 repository/
+resources/
 dist/
 *.lock
 *.komodoproject

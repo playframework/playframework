@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
  * for example in case of unit testing, you can easily achieve it using:
  *
  * {{{
- * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.DEV)
+ * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
  * }}}
  *
  * It will create an application using the current classloader.
@@ -69,7 +69,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * The configuration used by this application.
    * @see play.api.Configuration
    */
-  val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
+  lazy val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
 
   // Reconfigure logger
   {
@@ -113,11 +113,13 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
       plugins.asInput.slurpString.split("\n").map(_.trim).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => {
           try {
-            Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
+            val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
+            if (plugin._2.enabled) Some(plugin) else { Logger.warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: java.lang.NoSuchMethodException => {
               try {
-                Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
+                val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
+                if (plugin._2.enabled) Some(plugin) else { Logger.warn("Plugin [" + className + "] is disabled"); None }
               } catch {
                 case e => throw PlayException(
                   "Cannot load plugin",
@@ -132,7 +134,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
           }
         }
       }
-    }.flatten.toList.sortBy(_._1).map(_._2)
+    }.flatten.toList.flatten.sortBy(_._1).map(_._2)
 
   }
 
@@ -163,7 +165,12 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * @return The plugin instance used by this application.
    * @throws Error if no plugins of type T are loaded by this application.
    */
-  def plugin[T](pluginClass: Class[T]): T = plugins.find(_.getClass == pluginClass).get.asInstanceOf[T]
+  def plugin[T](pluginClass: Class[T]): T = plugins.find(_.getClass == pluginClass).getOrElse {
+    throw PlayException(
+      "you are trying to access Plugin[" + pluginClass.toString + "] which is likely disabled",
+      "",
+      None)
+  }.asInstanceOf[T]
 
   /**
    * Retrieve a file relatively to the application root path.
