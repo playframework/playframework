@@ -19,7 +19,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            resolvers += typesafe
+            resolvers ++= Seq(DefaultMavenRepository, typesafe)
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
@@ -46,7 +46,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            resolvers ++= Seq(typesafe, akkaRepo, memcache),
+            resolvers ++= Seq(DefaultMavenRepository, typesafe, memcache),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
         )
@@ -98,8 +98,7 @@ object PlayBuild extends Build {
     object Resolvers {
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
         val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
-        val typesafe = Resolver.url("Typesafe Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-        val akkaRepo = "Akka Repo" at "http://akka.io/repository"
+        val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
         val memcache = "memcache" at "http://files.couchbase.com/maven2"
     }
 
