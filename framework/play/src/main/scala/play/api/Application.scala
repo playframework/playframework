@@ -165,12 +165,14 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * @return The plugin instance used by this application.
    * @throws Error if no plugins of type T are loaded by this application.
    */
-  def plugin[T](pluginClass: Class[T]): T = plugins.find(_.getClass == pluginClass).getOrElse {
-    throw PlayException(
-      "you are trying to access Plugin[" + pluginClass.toString + "] which is likely disabled",
-      "",
-      None)
-  }.asInstanceOf[T]
+  def plugin[T](pluginClass: Class[T]): T = {
+    plugins.find(p => pluginClass.isAssignableFrom(p.getClass)).getOrElse {
+      throw PlayException(
+        "You are trying to access Plugin[" + pluginClass.toString + "] which is eiher not loaded or disabled.",
+        "",
+        None)
+    }.asInstanceOf[T]
+  }
 
   /**
    * Retrieve a file relatively to the application root path.
