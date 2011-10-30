@@ -114,12 +114,12 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
         case PluginDeclaration(priority, className) => {
           try {
             val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
-            if (plugin._2.enabled) Some(plugin) else { Logger.warn("Plugin [" + className + "] is disabled"); None }
+            if (plugin._2.enabled) Some(plugin) else { Logger("play").debug("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: java.lang.NoSuchMethodException => {
               try {
                 val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
-                if (plugin._2.enabled) Some(plugin) else { Logger.warn("Plugin [" + className + "] is disabled"); None }
+                if (plugin._2.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
               } catch {
                 case e => throw PlayException(
                   "Cannot load plugin",
