@@ -1,4 +1,4 @@
-@(id:Long, computerForm:Form[Computer])
+@(id: Long, computerForm: Form[Computer])
 
 @import helper._
 
@@ -10,15 +10,15 @@
         
         <fieldset>
         
-            @inputText(computerForm("name"), 'label -> "Computer name")(utils.twitterBootstrapInput.f)
-            @inputText(computerForm("introduced"), 'label -> "Introduced date")(utils.twitterBootstrapInput.f)
-            @inputText(computerForm("discontinued"), 'label -> "Discontinued date")(utils.twitterBootstrapInput.f)
+            @inputText(computerForm("name"), 'label -> "Computer name")(twitterBootstrapInput)
+            @inputText(computerForm("introduced"), 'label -> "Introduced date")(twitterBootstrapInput)
+            @inputText(computerForm("discontinued"), 'label -> "Discontinued date")(twitterBootstrapInput)
             
             @select(
                 computerForm("company.id"), 
                 Company.options, 
                 'label -> "Company", 'default -> "-- Choose a company --"
-            )(utils.twitterBootstrapInput.f)
+            )(twitterBootstrapInput)
         
         </fieldset>
         
