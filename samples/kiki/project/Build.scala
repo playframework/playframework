@@ -11,4 +11,4 @@ object ApplicationBuild extends Build {
     val main = PlayProject(appName, appVersion, appDependencies)
 
 }
-            
+
