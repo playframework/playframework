@@ -143,6 +143,10 @@ object DBApi {
 object DB {
 
   /**
+   * the exception we are throwing
+   */
+  private def error = throw new Exception("seems like db plugin is not registered properly, so we can not make calls to it.")
+  /**
    * Retrieve a JDBC connection.
    *
    * @param name Datasource name.
@@ -150,7 +154,7 @@ object DB {
    * @return An JDBC connection.
    * @throws An error is the required datasource is not registred.
    */
-  def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].api.getConnection(name, autocommit)
+  def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].map(_.api.getConnection(name, autocommit)).getOrElse(error)
 
   /**
    * Retrieve a JDBC connection (autocommit is set to true).
@@ -159,7 +163,7 @@ object DB {
    * @return An JDBC connection.
    * @throws An error is the required datasource is not registred.
    */
-  def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].api.getDataSource(name)
+  def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].map(_.api.getDataSource(name)).getOrElse(error)
 
 }
 

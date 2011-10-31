@@ -75,12 +75,16 @@ class BasicCache extends CacheAPI {
 object Cache {
 
   /**
+   * the exception we are throwing in case of plugin issues
+   */
+  private def error = throw new Exception("looks like the cache plugin was not properly registered. Make sure at least one CachePlugin implementation is enabled, otherwise these calls won't work")
+  /**
    * set a value with expiration
    * @key
    * @value
    * @expiration it's in seconds
    */
-  def set(key: String, value: AnyRef, expiration: Int)(implicit app: Application) = app.plugin[CachePlugin].api.set(key, value, expiration)
+  def set(key: String, value: AnyRef, expiration: Int)(implicit app: Application) = app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
 
   /**
    * set a value with default expiration of 1800 sec or 30 min
@@ -88,21 +92,21 @@ object Cache {
    * @value
    * @value
    */
-  def set(key: String, value: AnyRef)(implicit app: Application) = app.plugin[CachePlugin].api.set(key, value)
+  def set(key: String, value: AnyRef)(implicit app: Application) = app.plugin[CachePlugin].map(_.api.set(key, value)).getOrElse(error)
 
   /**
    * retrieves key in a typesafe way
    * @key
    * @return
    */
-  def get[T](key: String)(implicit m: Manifest[T], app: Application): Option[T] = app.plugin[CachePlugin].api.get[T](key).asInstanceOf[Option[T]]
+  def get[T](key: String)(implicit m: Manifest[T], app: Application): Option[T] = app.plugin[CachePlugin].map(_.api.get[T](key).asInstanceOf[Option[T]]).getOrElse(error)
 
   /**
    * retrieves multiple keys from the same type
    * @keys varargs
    * @return cache key value pairs from homogeneous type
    */
-  def get[T](keys: String*)(implicit m: Manifest[T], app: Application): Map[String, Option[T]] = app.plugin[CachePlugin].api.get[T](keys: _*).asInstanceOf[Map[String, Option[T]]]
+  def get[T](keys: String*)(implicit m: Manifest[T], app: Application): Map[String, Option[T]] = app.plugin[CachePlugin].map(_.api.get[T](keys: _*).asInstanceOf[Map[String, Option[T]]]).getOrElse(error)
 
   /**
    * retrieves multiple values in an unsafe way for java interop
@@ -110,12 +114,12 @@ object Cache {
    * @keys takes an java array of string of keys
    * @return java.util.Map[String,java.langObject]
    */
-  def getAsJava(keys: Array[String])(implicit app: Application): java.util.Map[String, AnyRef] = app.plugin[CachePlugin].api.getAsJava(keys: _*)
+  def getAsJava(keys: Array[String])(implicit app: Application): java.util.Map[String, AnyRef] = app.plugin[CachePlugin].map(_.api.getAsJava(keys: _*)).getOrElse(error)
 
   /**
    * retrieves a value in an unsafe way for java interop
    * @key
    * @return java object
    */
-  def getAsJava(key: String)(implicit app: Application): AnyRef = app.plugin[CachePlugin].api.getAsJava(key)
+  def getAsJava(key: String)(implicit app: Application): AnyRef = app.plugin[CachePlugin].map(_.api.getAsJava(key)).getOrElse(error)
 }

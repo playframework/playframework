@@ -30,7 +30,7 @@ object Messages {
    */
   def apply(key: String, args: Any*) = {
     Play.maybeApplication.flatMap { app =>
-      app.plugin[MessagesPlugin].api.translate(key, args)
+      app.plugin[MessagesPlugin].map(_.api.translate(key, args)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
     }.getOrElse(noMatch(key, args))
   }
 
