@@ -10,11 +10,7 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Nil
 
-    val main = PlayProject(appName, appVersion, appDependencies).settings(
-        templatesImport += "java.lang._",
-        templatesImport += "java.util._",
-        templatesImport += "models._"
-    )
+    val main = PlayProject(appName, appVersion, appDependencies).settings(defaultJavaSettings:_*)
 
 }
             

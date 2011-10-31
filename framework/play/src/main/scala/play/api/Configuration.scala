@@ -192,8 +192,10 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
     c.value match {
       case "true" => true
       case "yes" => true
+      case "enabled" => true
       case "false" => false
       case "no" => false
+      case "disabled" => false
       case o => throw error("Boolean value required", c)
     }
   }
