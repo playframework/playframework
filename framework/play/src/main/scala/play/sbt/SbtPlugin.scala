@@ -219,8 +219,9 @@ object PlayProject extends Plugin {
     { assets => (assets ** "*.js") },
     identity,
     { jsFile =>
-      val minify = false // TODO: Get that from the config
-      play.core.jscompile.JavascriptCompiler.compile(jsFile, minify)
+      val minify = true // TODO: Get that from the config
+      val (fullSource, minified, dependencies) = play.core.jscompile.JavascriptCompiler.compile(jsFile, minify)
+      (fullSource, dependencies)
     })
 
   val CoffeescriptCompiler = AssetsCompiler("coffeescript",
