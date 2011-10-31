@@ -754,7 +754,7 @@ object PlayProject extends Plugin {
   // -- Dependencies
 
   val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
-  val computeDependenciesTask = (ivySbt, streams, organizationName, moduleName, version, scalaVersion) map { (ivySbt, s, org, id, version, scalaVersion) =>
+  val computeDependenciesTask = (deliverLocal, ivySbt, streams, organizationName, moduleName, version, scalaVersion) map { (_, ivySbt, s, org, id, version, scalaVersion) =>
 
     import scala.xml._
 

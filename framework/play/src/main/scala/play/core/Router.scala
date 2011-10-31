@@ -620,7 +620,7 @@ object Router {
      * Generate the routing stuff
      */
     def routing(routes: List[Route]) = {
-      routes.zipWithIndex.map {
+      Option(routes.zipWithIndex.map {
         case (r, i) =>
           """
                         |%s
@@ -664,7 +664,11 @@ object Router {
             """ActionDef(this, """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
               params.map("classOf[" + _.typeName + "]").mkString(", ")
             }.map("Seq(" + _ + ")").getOrElse("Nil") + """)""")
-      }.mkString("\n")
+      }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
+
+        """Map.empty""" // Empty partial function
+
+      }
     }
 
     // --- Parser
