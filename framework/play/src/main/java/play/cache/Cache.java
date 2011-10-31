@@ -1,7 +1,7 @@
 package play.cache;
 
 /**
- * provides an accept point to Play's cache service
+ * provides an access point for Play's cache service
  */
 public class Cache {
 
