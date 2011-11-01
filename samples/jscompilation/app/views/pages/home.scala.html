@@ -1,0 +1,15 @@
+@(title:String, content:String)
+
+@main {
+    
+    <h1>HOME</h1>
+    
+    <p>@content</p>
+    
+    <ul>
+        <li><a href="@controllers.routes.JavaApplication.page("products")">Products</a></li>
+        <li><a href="@controllers.routes.JavaApplication.page("company")">Company</a></li>
+        <li><a href="@controllers.routes.JavaApplication.page("about")">About</a></li>
+    </ul>
+    
+}

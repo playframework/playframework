@@ -62,6 +62,7 @@ object PlayProject extends Plugin {
   val confDirectory = SettingKey[File]("play-conf")
   val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
   val templatesTypes = SettingKey[(String => (String, String))]("play-templates-formats")
+  val minify = SettingKey[Boolean]("minify", "Whether assets (Javascript and CSS) should be minified or not")
 
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: ScopedSetting[T], data: Settings[Scope]): Seq[T] =
@@ -169,8 +170,8 @@ object PlayProject extends Plugin {
 
   // ----- Assets
 
-  def AssetsCompiler(name: String, files: (File) => PathFinder, naming: (String) => String, compile: (File) => (String, Seq[File])) =
-    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory) map { (src, resources, cache) =>
+  def AssetsCompiler(name: String, files: (File) => PathFinder, naming: (String) => String, compile: (File, Boolean) => (String, Seq[File])) =
+    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, minify) map { (src, resources, cache, min) =>
 
       import java.io._
 
@@ -188,7 +189,7 @@ object PlayProject extends Plugin {
           case (sourceFile, name) => sourceFile -> ("public/" + naming(name))
         }.flatMap {
           case (sourceFile, name) => {
-            val ((css, dependencies), out) = compile(sourceFile) -> new File(resources, name)
+            val ((css, dependencies), out) = compile(sourceFile, min) -> new File(resources, name)
             IO.write(out, css)
             dependencies.map(_ -> out)
           }
@@ -213,21 +214,21 @@ object PlayProject extends Plugin {
   val LessCompiler = AssetsCompiler("less",
     { assets => (assets ** "*.less") },
     { name => name.replace(".less", ".css") },
-    { lessFile => play.core.less.LessCompiler.compile(lessFile) })
+    { (lessFile, minify) => play.core.less.LessCompiler.compile(lessFile, minify) })
 
   val JavascriptCompiler = AssetsCompiler("javascripts",
     { assets => (assets ** "*.js") },
     identity,
-    { jsFile =>
-      val minify = true // TODO: Get that from the config
-      val (fullSource, minified, dependencies) = play.core.jscompile.JavascriptCompiler.compile(jsFile, minify)
-      (fullSource, dependencies)
+    { (jsFile, minify) =>
+      val (fullSource, minified, dependencies) = play.core.jscompile.JavascriptCompiler.compile(jsFile)
+      println("-- js compile with minify = ", minify)
+      (if (minify) minified else fullSource, dependencies)
     })
 
   val CoffeescriptCompiler = AssetsCompiler("coffeescript",
     { assets => (assets ** "*.coffee") },
     { name => name.replace(".coffee", ".js") },
-    { coffeeFile => (play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile), Seq(coffeeFile)) })
+    { (coffeeFile, minify) => (play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile), Seq(coffeeFile)) })
 
   // ----- Post compile (need to be refactored and fully configurable)
 
@@ -952,6 +953,8 @@ object PlayProject extends Plugin {
     resourceGenerators in Compile <+= CoffeescriptCompiler,
 
     resourceGenerators in Compile <+= JavascriptCompiler,
+
+    minify := false,
 
     playResourceDirectories := Seq.empty[File],
 

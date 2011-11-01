@@ -1,0 +1,34 @@
+
+# -----------
+# Routes file
+# ----------- 
+
+GET     /                               controllers.Application.index()
+GET     /items                          controllers.Application.list(page:Int=1, sort?= "ASC")
+GET     /itemsAtPage10                  controllers.Application.list(page:Int=10, sort)
+GET     /itemsAtPage20                  controllers.Application.list(page:Int=20, sort?= "DESC")
+GET     /items/$page<\d+>               controllers.Application.list(page:Int, sort?= "ASC")
+
+GET     /sockets/reversed-echo          controllers.Application.socketEchoReversed
+GET     /sockets/test                   controllers.Application.websocketTest
+GET     /sockets/more-sockets           controllers.Application.moreSockets
+
+GET     /options                        controllers.Application.bindOptions(p1: Option[Int] ?= None, p2: Option[Int] ?= None)
+
+GET     /blocking/wait                  controllers.Blocking.waitForUnblock
+GET     /blocking/unblockAll/:status    controllers.Blocking.unblockEveryone(status:Int)
+
+# Java call here
+GET     /java/:name/yop                 controllers.JavaApplication.hello(repeat:Integer?= 10, name)
+GET     /java                           controllers.JavaApplication.index()
+GET     /toJava                         controllers.Application.goToJava
+GET     /back                           controllers.JavaApplication.back()
+
+GET     /pages                          controllers.JavaApplication.page(name="home")
+GET     /pages/:name                    controllers.JavaApplication.page(name)
+
+GET     /scala-pages/:name              controllers.Application.page(name)
+
+# Static assets
+GET     /assets/*file                   controllers.Assets.at(path="/public", file)
+
