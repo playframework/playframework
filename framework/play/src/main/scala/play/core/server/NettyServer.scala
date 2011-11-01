@@ -4,9 +4,9 @@ import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
 import org.jboss.netty.bootstrap._
 import org.jboss.netty.channel.Channels._
-import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.channel.socket.nio._
 import org.jboss.netty.handler.stream._
+import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame
@@ -14,6 +14,8 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
 import org.jboss.netty.channel.group._
+import org.jboss.netty.util.{ HashedWheelTimer, Timeout, TimerTask }
+
 import java.util.concurrent._
 
 import play.core._
@@ -23,7 +25,8 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
-import scala.collection.JavaConverters._
+import collection.JavaConverters._
+import concurrent.stm.Ref
 
 class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
@@ -35,6 +38,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
       Executors.newCachedThreadPool()))
 
   val allChannels = new DefaultChannelGroup
+
+  lazy val processingTimer = new HashedWheelTimer(10L, TimeUnit.SECONDS)
 
   class PlayDefaultUpstreamHandler extends SimpleChannelUpstreamHandler {
 
@@ -129,7 +134,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
             val P:Promise[Any] = _
             val bodyEnumerator = new Enumerator[Array[Byte]]{
                 def apply[R,EE >: Array[Byte]](i:Iteratee[EE,R]) = {
-                    iteratee = i  
+                    iteratee = i
                     val promise = Promise[EE]()
                     p = promise
                     p
@@ -268,6 +273,28 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
           val response = new Response {
             def handle(result: Result) = result match {
+
+              case AsyncResult(p) if (applicationProvider.get.fold(ex => false, _.configuration.getBoolean("use102processing").getOrElse(false))) => {
+                import scala.concurrent.stm._
+                val timeoutRef = Ref.make[Timeout]
+                val task = new TimerTask {
+                  def run(timeout: Timeout) {
+                    atomic { implicit tx =>
+                      if (!timeoutRef().isCancelled) {
+                        e.getChannel.write(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PROCESSING))
+                        timeoutRef.set(processingTimer.newTimeout(timeout.getTask, 30, TimeUnit.SECONDS))
+                      }
+                    }
+                  }
+                }
+
+                timeoutRef.single.set(processingTimer.newTimeout(task, 10, TimeUnit.SECONDS))
+
+                p.onRedeem { result =>
+                  timeoutRef.single.get.cancel()
+                  handle(result)
+                }
+              }
 
               case AsyncResult(p) => p.onRedeem(handle)
 

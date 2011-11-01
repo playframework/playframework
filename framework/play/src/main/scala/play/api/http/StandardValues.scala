@@ -12,6 +12,7 @@ trait Status {
 
   val CONTINUE = 100
   val SWITCHING_PROTOCOLS = 101
+  val PROCESSING = 102
 
   val OK = 200
   val CREATED = 201
