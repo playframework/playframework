@@ -10,4 +10,6 @@ framework/project/boot/
 documentation/api
 workspace/
 framework/sbt/boot
+framework/.idea
+framework/.idea_modules
 
