@@ -123,15 +123,15 @@ object PlayProject extends Plugin {
       } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
     }
 
-    val run = target / "run"
-    IO.write(run,
+    val start = target / "start"
+    IO.write(start,
       """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /* */ )
-    val scripts = Seq(run -> (packageName + "/run"))
+    val scripts = Seq(start -> (packageName + "/start"))
 
     val conf = Seq((root / "conf" / "application.conf") -> (packageName + "/conf/application.conf"))
 
     IO.zip(libs ++ scripts ++ conf, zip)
-    IO.delete(run)
+    IO.delete(start)
 
     println()
     println("Your application is ready in " + zip.getCanonicalPath)
@@ -969,7 +969,7 @@ object PlayProject extends Plugin {
 
   // ----- Create a Play project with default settings
 
-  def apply(name: String, applicationVersion: String = "0.1", dependencies: Seq[ModuleID] = Nil, path: File = file(".")) = {
+  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file(".")) = {
 
     Project(name, path)
       .settings(PlayProject.defaultSettings: _*)
