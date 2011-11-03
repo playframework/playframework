@@ -61,7 +61,8 @@ object PlayProject extends Plugin {
   val playResourceDirectories = SettingKey[Seq[File]]("play-resource-directories")
   val confDirectory = SettingKey[File]("play-conf")
   val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
-  val templatesTypes = SettingKey[(String => (String, String))]("play-templates-formats")
+
+  val templatesTypes = SettingKey[PartialFunction[String, (String, String)]]("play-templates-formats")
   val minify = SettingKey[Boolean]("minify", "Whether assets (Javascript and CSS) should be minified or not")
 
   // -- Utility methods for 0.10-> 0.11 migration
@@ -302,19 +303,27 @@ object PlayProject extends Plugin {
 
   }
 
-  val ScalaTemplates = (sourceDirectory: File, generatedDir: File, templateTypes: Function1[String, (String, String)], additionalImports: Seq[String]) => {
+  val ScalaTemplates = (sourceDirectory: File, generatedDir: File, templateTypes: PartialFunction[String, (String, String)], additionalImports: Seq[String]) => {
     import play.templates._
 
+    val templateExt: PartialFunction[File, (File,String, String, String)] = {
+      case p if templateTypes.isDefinedAt(p.name.split('.').last) =>
+        val extension = p.name.split('.').last
+        val exts = templateTypes(extension)
+        (p, extension, exts._1, exts._2)
+    }
     (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
     try {
-      (sourceDirectory ** "*.scala.html").get.foreach { template =>
-        ScalaTemplateCompiler.compile(
-          template,
-          sourceDirectory,
-          generatedDir,
-          templateTypes("html")._1,
-          templateTypes("html")._2,
-          additionalImports.map("import " + _.replace("%format%", "html")).mkString("\n"))
+
+      (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
+        case (template, extension, t, format) =>
+          ScalaTemplateCompiler.compile(
+            template,
+            sourceDirectory,
+            generatedDir,
+            t,
+            format,
+            additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
       }
     } catch {
       case TemplateCompilationError(source, message, line, column) => {
@@ -963,9 +972,10 @@ object PlayProject extends Plugin {
 
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 
-    templatesTypes := ((extension) => extension match {
+    templatesTypes := {
       case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
-    }))
+      case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
+    })
 
   // ----- Create a Play project with default settings
 

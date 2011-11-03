@@ -337,7 +337,7 @@ object PlayBuild extends Build {
                     }
                 }
             }
-
+            
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {

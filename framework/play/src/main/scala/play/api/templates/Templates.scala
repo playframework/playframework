@@ -59,6 +59,61 @@ object HtmlFormat extends Format[Html] {
 }
 
 /**
+ * Content type used in default text templates.
+ *
+ * @param text The plain text.
+ */
+case class Txt(text: String) extends Appendable[Txt] with Content {
+  val buffer = new StringBuilder(text)
+
+  /**
+   * Append this Txt fragment with another.
+   */
+  def +(other: Txt) = {
+    buffer.append(other.buffer)
+    this
+  }
+  override def toString = buffer.toString
+
+  /**
+   * Content type of Txt (text/plain)
+   */
+  def contentType = "text/plain"
+
+  def body = toString
+
+}
+
+/**
+ * Helper for utilities Txt methods.
+ */
+object Txt {
+
+  /**
+   * Create an empty Txt fragment.
+   */
+  def empty = Txt("")
+
+}
+
+/**
+ * Formatter for Txt content.
+ */
+object TxtFormat extends Format[Txt] {
+
+  /**
+   * Create a Txt fragment.
+   */
+  def raw(text: String) = Txt(text)
+
+  /**
+   * No need for a safe (escaped) Txt fragment.
+   */
+  def escape(text: String) = Txt(text)
+
+}
+
+/**
  * Defines magic helper in Play templates.
  */
 object PlayMagic {

@@ -200,26 +200,22 @@ object Parsing {
 
     }
     def scan(previousMatches: List[MatchInfo[Array[Byte]]], piece: Array[Byte], startScan: Int): (List[MatchInfo[Array[Byte]]], Array[Byte]) = {
-      println(startScan)
       val fullMatch = Range(needleSize - 1, -1, -1).forall(scan => needle(scan) == piece(scan + startScan))
       if (fullMatch) {
         val (prefix, then) = piece.splitAt(startScan)
-        println("first prefix is " + prefix)
         val (matched, left) = then.splitAt(needleSize)
         val newResults = previousMatches ++ List(Unmatched(prefix), Matched(matched)) filter (!_.content.isEmpty)
-        if (left.length < needleSize)
-          (newResults, left)
-        else scan(newResults, left, 0)
+
+        if (left.length < needleSize) (newResults, left) else scan(newResults, left, 0)
+
       } else {
         val jump = jumpBadCharecter(piece(startScan + needleSize - 1))
         val isFullJump = jump == fullJump
         val newScan = startScan + jump;
-        println("new scan is " + newScan)
         if (newScan + needleSize - 1 > piece.length - 1) {
           if (isFullJump) (previousMatches ++ List(Unmatched(piece)), Array[Byte]())
           else {
             val (prefix, suffix) = (piece.splitAt(startScan))
-            println("prefix here is: " + prefix)
             (previousMatches ++ List(Unmatched(prefix)), suffix)
           }
         } else scan(previousMatches, piece, newScan)
@@ -241,7 +237,6 @@ object Parsing {
           Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(rest))),
             k => {
               val (result, suffix) = scan(Nil, all, 0)
-              println("pipi= " + result.map(m => new String(m.content)) + new String(suffix))
               val fed = result.filter(!_.content.isEmpty).foldLeft(Promise.pure(Array[Byte](), Cont(k))) { (p, m) =>
                 p.flatMap(i => i._2.fold((a, e) => Promise.pure((i._1 ++ m.content, Done(a, e))),
                   k => Promise.pure((i._1, k(El(m)))),
