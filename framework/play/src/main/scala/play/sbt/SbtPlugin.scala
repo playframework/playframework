@@ -221,7 +221,6 @@ object PlayProject extends Plugin {
     identity,
     { (jsFile, minify) =>
       val (fullSource, minified, dependencies) = play.core.jscompile.JavascriptCompiler.compile(jsFile)
-      println("-- js compile with minify = ", minify)
       (if (minify) minified else fullSource, dependencies)
     })
 
