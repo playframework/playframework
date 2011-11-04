@@ -32,7 +32,7 @@ abstract class IntegrationTestRunner {
     val actor = actorOf[RunnerActor].start()
     val netty = Option(System.getProperty("user.dir")).map(new File(_)).filter(p => p.exists && p.isDirectory).map(applicationPath => NettyServer.createServer(applicationPath)).getOrElse(throw new Exception("there is no valid play app in the directory"))
     actor ! Start(netty)
-    actor ! ExecuteTest(netty, () => execute)
+    actor ! ExecuteTest(netty, () => run)
   }
 }
 
