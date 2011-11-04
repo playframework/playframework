@@ -1,5 +1,7 @@
 # Play 2.0 beta
 
+Play 2.0 is a Java and Scala Web application framework (http://www.playframework.org/2.0).
+
 ## Installing
 
 Just make sure that the `play` script has the correct permissions. If not, run:
