@@ -287,7 +287,7 @@ object PlayBuild extends Build {
         // ----- Dist package
 
         val dist = TaskKey[File]("dist")
-        val distTask = dist <<= (buildRepository) map { _ =>
+        val distTask = dist <<= (buildRepository, publish, generateAPIDocs) map { (_,_,_) =>
 
             import sbt.NameFilter._
 
@@ -298,12 +298,16 @@ object PlayBuild extends Build {
                 (root ** "*") --- 
                 (root ** "dist") --- 
                 (root ** "dist" ** "*") --- 
+                (root ** "*.log") --- 
+                (root ** "logs") --- 
+                (root / "repository/cache") --- 
+                (root / "repository/cache" ** "*") --- 
+                (root ** "project/project") --- 
                 (root ** "target") --- 
                 (root ** "target" ** "*") --- 
                 (root ** ".*") ---
+                (root ** ".*") ---
                 (root ** ".git" ** "*") ---
-                (root ** "dropbox" ** "*") ---
-                (root ** "cleanIvyCache") ---
                 (root ** "*.lock")
             }
 
