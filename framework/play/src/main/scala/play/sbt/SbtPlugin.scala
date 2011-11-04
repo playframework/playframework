@@ -306,7 +306,7 @@ object PlayProject extends Plugin {
   val ScalaTemplates = (sourceDirectory: File, generatedDir: File, templateTypes: PartialFunction[String, (String, String)], additionalImports: Seq[String]) => {
     import play.templates._
 
-    val templateExt: PartialFunction[File, (File,String, String, String)] = {
+    val templateExt: PartialFunction[File, (File, String, String, String)] = {
       case p if templateTypes.isDefinedAt(p.name.split('.').last) =>
         val extension = p.name.split('.').last
         val exts = templateTypes(extension)
@@ -975,6 +975,7 @@ object PlayProject extends Plugin {
     templatesTypes := {
       case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
       case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
+      case "xml" => ("play.api.templates.Xml", "play.api.templates.XmlFormat")
     })
 
   // ----- Create a Play project with default settings

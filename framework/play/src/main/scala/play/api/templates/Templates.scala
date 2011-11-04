@@ -114,6 +114,61 @@ object TxtFormat extends Format[Txt] {
 }
 
 /**
+ * Content type used in default xml templates.
+ *
+ * @param text The plain xml text.
+ */
+case class Xml(text: String) extends Appendable[Xml] with Content {
+  val buffer = new StringBuilder(text)
+
+  /**
+   * Append this Xml fragment with another.
+   */
+  def +(other: Xml) = {
+    buffer.append(other.buffer)
+    this
+  }
+  override def toString = buffer.toString
+
+  /**
+   * Content type of Xml (text/xml)
+   */
+  def contentType = "text/xml"
+
+  def body = toString
+
+}
+
+/**
+ * Helper for utilities Xml methods.
+ */
+object Xml {
+
+  /**
+   * Create an empty Txt fragment.
+   */
+  def empty = Xml("")
+
+}
+
+/**
+ * Formatter for Xml content.
+ */
+object XmlFormat extends Format[Xml] {
+
+  /**
+   * Create a Xml fragment.
+   */
+  def raw(text: String) = Xml(text)
+
+  /**
+   * No need for a safe (escaped) Txt fragment.
+   */
+  def escape(text: String) = Xml(org.apache.commons.lang.StringEscapeUtils.escapeXml(text))
+
+}
+
+/**
  * Defines magic helper in Play templates.
  */
 object PlayMagic {
