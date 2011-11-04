@@ -426,45 +426,49 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
 object NettyServer {
 
-  def main(args: Array[String]) {
+  import java.io._
 
-    import java.io._
+  def createServer(applicationPath: File): Option[NettyServer] = {
+
+    // Manage RUNNING_PID file
+    java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
+      val pidFile = new File(applicationPath, "RUNNING_PID")
+
+      if (pidFile.exists) {
+        println("This application is already running (Or delete the RUNNING_PID file).")
+        System.exit(-1)
+      }
+
+      println("Process ID is " + pid)
+
+      new FileOutputStream(pidFile).write(pid.getBytes)
+      Runtime.getRuntime.addShutdownHook(new Thread {
+        override def run {
+          pidFile.delete()
+        }
+      })
+    }
+
+    try {
+      Some(new NettyServer(
+        new StaticApplication(applicationPath),
+        Option(System.getenv("PORT")).map(Integer.parseInt(_)).getOrElse(9000) // Temporary hack
+        ))
+    } catch {
+      case e => {
+        println("Oops, cannot start the server.")
+        e.printStackTrace()
+        None
+      }
+    }
+
+  }
+
+  def main(args: Array[String]) {
 
     args.headOption.orElse(
       Option(System.getProperty("user.dir"))).map(new File(_)).filter(p => p.exists && p.isDirectory).map { applicationPath =>
-
-        // Manage RUNNING_PID file
-        java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
-          val pidFile = new File(applicationPath, "RUNNING_PID")
-
-          if (pidFile.exists) {
-            println("This application is already running (Or delete the RUNNING_PID file).")
-            System.exit(-1)
-          }
-
-          println("Process ID is " + pid)
-
-          new FileOutputStream(pidFile).write(pid.getBytes)
-          Runtime.getRuntime.addShutdownHook(new Thread {
-            override def run {
-              pidFile.delete()
-            }
-          })
-        }
-
-        try {
-          new NettyServer(
-            new StaticApplication(applicationPath),
-            Option(System.getenv("PORT")).map(Integer.parseInt(_)).getOrElse(9000) // Temporary hack
-            )
-        } catch {
-          case e => {
-            println("Oops, cannot start the server.")
-            e.printStackTrace()
-            System.exit(-1)
-          }
-        }
-
+        createServer(applicationPath).getOrElse(System.exit(-1))
       }.getOrElse {
         println("Not a valid Play application")
       }

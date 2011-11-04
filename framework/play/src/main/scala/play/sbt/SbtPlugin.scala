@@ -642,6 +642,7 @@ object PlayProject extends Plugin {
                 |publish-local              Publish your application in the local repository.
                 |reload                     Reload the current application build file.
                 |run                        Run the current application in DEV mode.
+                |test                       Run Junit tests and/or Specs 
                 |start                      Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
@@ -906,16 +907,26 @@ object PlayProject extends Plugin {
     target <<= baseDirectory / "target",
 
     sourceDirectory in Compile <<= baseDirectory / "app",
+    sourceDirectory in Test <<= baseDirectory / "test",
+    sourceDirectory in IntegrationTest <<= baseDirectory / "integrationtest",
 
     confDirectory <<= baseDirectory / "conf",
 
     scalaSource in Compile <<= baseDirectory / "app",
+    scalaSource in Test <<= baseDirectory / "test",
+    scalaSource in IntegrationTest <<= baseDirectory / "integrationtest",
 
     javaSource in Compile <<= baseDirectory / "app",
+    javaSource in Test <<= baseDirectory / "test",
+    javaSource in IntegrationTest <<= baseDirectory / "integrationtest",
 
     distDirectory <<= baseDirectory / "dist",
 
     libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
+
+    libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.6.1" % "test",
+      "com.novocode" % "junit-interface" % "0.7" % "test",
+      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.9.0" % "it"),
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
 
@@ -928,6 +939,8 @@ object PlayProject extends Plugin {
     copyResources in Compile <<= (copyResources in Compile, playCopyResources) map { (r, pr) => r ++ pr },
 
     mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
+
+    mainClass in (IntegrationTest, run) := Some("test.IntegrationTest"),
 
     compile in (Compile) <<= PostCompile,
 
@@ -970,12 +983,13 @@ object PlayProject extends Plugin {
   def apply(name: String, applicationVersion: String = "0.1", dependencies: Seq[ModuleID] = Nil, path: File = file(".")) = {
 
     Project(name, path)
+      .settings(Defaults.itSettings: _*)
       .settings(PlayProject.defaultSettings: _*)
+      .configs(IntegrationTest)
       .settings(
 
         version := applicationVersion,
 
         libraryDependencies ++= dependencies)
-
   }
 }

@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
  * @param path The absolute path hosting this application. Mainly used by the getFile(path) helper method.
  * @param classloader Application's classloader.
  * @param sources SourceMapper used to retrieve source code displayed in error pages.
- * @param mode DEV or PROD, passed as information for the user code.
+ * @param mode Dev or Prod, passed as information for the user code.
  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
