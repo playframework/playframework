@@ -9,6 +9,7 @@ import org.jboss.netty.channel.socket.nio._
 import org.jboss.netty.handler.stream._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
+import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder
@@ -248,6 +249,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
       e.getMessage match {
         case nettyHttpRequest: HttpRequest =>
           val keepAlive = nettyHttpRequest.isKeepAlive
+          var version = nettyHttpRequest.getProtocolVersion
           val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
@@ -308,7 +310,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
                 p.flatMap(i => i.run)
                   .onRedeem { buffer =>
                     nettyResponse.setContent(buffer)
-                    if (keepAlive) { nettyResponse.setHeader(CONTENT_LENGTH, nettyResponse.getContent.readableBytes) }
+                    if (keepAlive) {
+                      nettyResponse.setHeader(CONTENT_LENGTH, nettyResponse.getContent.readableBytes)
+                      if (version == HttpVersion.HTTP_1_0) {
+                        // Response header Connection: Keep-Alive is needed for HTTP 1.0
+                        nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+                      }
+                    }
                     val f = e.getChannel.write(nettyResponse)
                     if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
                   }

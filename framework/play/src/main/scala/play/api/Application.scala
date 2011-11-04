@@ -121,12 +121,14 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
                 val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
                 if (plugin._2.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
               } catch {
+                case e: PlayException => throw e
                 case e => throw PlayException(
                   "Cannot load plugin",
                   "Plugin [" + className + "] cannot been instantiated.",
                   Some(e))
               }
             }
+            case e: PlayException => throw e
             case e => throw PlayException(
               "Cannot load plugin",
               "Plugin [" + className + "] cannot been instantiated.",

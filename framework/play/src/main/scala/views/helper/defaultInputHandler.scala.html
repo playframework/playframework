@@ -1,12 +1,12 @@
-@(label:Html,input:Html,errors:Seq[String],infos:Seq[String])
+@(el: InputElements)
 
 <dl>
-    <dt>@label</dt>
-    <dd>@input</dd>
-    @errors.map { error =>
+    <dt>@el.label</dt>
+    <dd>@el.input</dd>
+    @el.errors.map { error =>
         <dd class="error">@error</dd>
     }
-    @infos.map { info =>
+    @el.infos.map { info =>
         <dd class="info">@info</dd>
     }
 </dl>

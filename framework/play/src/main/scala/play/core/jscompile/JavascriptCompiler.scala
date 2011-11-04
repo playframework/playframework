@@ -14,13 +14,12 @@ object JavascriptCompiler {
 
   import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
 
-  def compile(source: File, minify: Boolean): (String, String, Seq[File]) = {
+  def compile(source: File): (String, String, Seq[File]) = {
 
     val compiler = new Compiler()
     val options = new CompilerOptions()
 
     val tree = SourceTree.build(source)
-    println("Dependencies (" + source.getName() + "): ")
 
     val file = Path(source)
     val jsCode = file.slurpString.replace("\r", "")

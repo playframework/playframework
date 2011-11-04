@@ -75,7 +75,7 @@ object Console {
       }.mkString
 
       IO.copyDirectory(
-        new File(System.getProperty("play.home") + "/../resources/" + template),
+        new File(System.getProperty("play.home") + "/resources/" + template),
         path)
 
       replace(new File(path, "project/Build.scala"),

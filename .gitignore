@@ -10,4 +10,5 @@ framework/project/boot/
 documentation/api
 workspace/
 framework/sbt/boot
+.history
 

@@ -59,6 +59,116 @@ object HtmlFormat extends Format[Html] {
 }
 
 /**
+ * Content type used in default text templates.
+ *
+ * @param text The plain text.
+ */
+case class Txt(text: String) extends Appendable[Txt] with Content {
+  val buffer = new StringBuilder(text)
+
+  /**
+   * Append this Txt fragment with another.
+   */
+  def +(other: Txt) = {
+    buffer.append(other.buffer)
+    this
+  }
+  override def toString = buffer.toString
+
+  /**
+   * Content type of Txt (text/plain)
+   */
+  def contentType = "text/plain"
+
+  def body = toString
+
+}
+
+/**
+ * Helper for utilities Txt methods.
+ */
+object Txt {
+
+  /**
+   * Create an empty Txt fragment.
+   */
+  def empty = Txt("")
+
+}
+
+/**
+ * Formatter for Txt content.
+ */
+object TxtFormat extends Format[Txt] {
+
+  /**
+   * Create a Txt fragment.
+   */
+  def raw(text: String) = Txt(text)
+
+  /**
+   * No need for a safe (escaped) Txt fragment.
+   */
+  def escape(text: String) = Txt(text)
+
+}
+
+/**
+ * Content type used in default xml templates.
+ *
+ * @param text The plain xml text.
+ */
+case class Xml(text: String) extends Appendable[Xml] with Content {
+  val buffer = new StringBuilder(text)
+
+  /**
+   * Append this Xml fragment with another.
+   */
+  def +(other: Xml) = {
+    buffer.append(other.buffer)
+    this
+  }
+  override def toString = buffer.toString
+
+  /**
+   * Content type of Xml (text/xml)
+   */
+  def contentType = "text/xml"
+
+  def body = toString
+
+}
+
+/**
+ * Helper for utilities Xml methods.
+ */
+object Xml {
+
+  /**
+   * Create an empty Txt fragment.
+   */
+  def empty = Xml("")
+
+}
+
+/**
+ * Formatter for Xml content.
+ */
+object XmlFormat extends Format[Xml] {
+
+  /**
+   * Create a Xml fragment.
+   */
+  def raw(text: String) = Xml(text)
+
+  /**
+   * No need for a safe (escaped) Txt fragment.
+   */
+  def escape(text: String) = Xml(org.apache.commons.lang.StringEscapeUtils.escapeXml(text))
+
+}
+
+/**
  * Defines magic helper in Play templates.
  */
 object PlayMagic {

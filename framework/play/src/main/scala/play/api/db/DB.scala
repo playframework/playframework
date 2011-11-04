@@ -113,6 +113,7 @@ object DBApi {
 
     conf.getString("user").map(datasource.setUsername(_))
     conf.getString("pass").map(datasource.setPassword(_))
+    conf.getString("password").map(datasource.setPassword(_))
 
     // Pool configuration
     conf.getInt("partitionCount").map(datasource.setPartitionCount(_))

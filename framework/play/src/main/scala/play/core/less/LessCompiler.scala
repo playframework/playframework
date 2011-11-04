@@ -12,7 +12,7 @@ object LessCompiler {
 
   import scalax.file._
 
-  private lazy val compiler = {
+  private def compiler(minify: Boolean) = {
     val ctx = Context.enter
     val global = new Global; global.init(ctx)
     val scope = ctx.initStandardObjects(global)
@@ -73,7 +73,7 @@ object LessCompiler {
                     }
 
                     new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
-                        compiled = root.toCSS()
+                        compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
                         if(e instanceof Object) {
                             throw e
                         }
@@ -100,9 +100,13 @@ object LessCompiler {
     }
   }
 
-  def compile(source: File): (String, Seq[File]) = {
+  private lazy val debugCompiler = compiler(false)
+
+  private lazy val minCompiler = compiler(true)
+
+  def compile(source: File, minify: Boolean): (String, Seq[File]) = {
     try {
-      compiler(source)
+      if (minify) minCompiler(source) else debugCompiler(source)
     } catch {
       case e: JavaScriptException => {
 

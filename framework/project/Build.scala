@@ -104,7 +104,7 @@ object PlayBuild extends Build {
     object Dependencies {
 
         val runtime = Seq(
-            "org.jboss.netty"                   %    "netty"                %   "3.2.4.Final",
+            "org.jboss.netty"                   %    "netty"                %   "3.2.6.Final",
             "org.slf4j"                         %    "slf4j-api"            %   "1.6.2",
             "org.slf4j"                         %    "jul-to-slf4j"         %   "1.6.2",
             "org.slf4j"                         %    "jcl-over-slf4j"       %   "1.6.2",
@@ -288,7 +288,7 @@ object PlayBuild extends Build {
         // ----- Dist package
 
         val dist = TaskKey[File]("dist")
-        val distTask = dist <<= (buildRepository) map { _ =>
+        val distTask = dist <<= (buildRepository, publish, generateAPIDocs) map { (_,_,_) =>
 
             import sbt.NameFilter._
 
@@ -299,12 +299,16 @@ object PlayBuild extends Build {
                 (root ** "*") --- 
                 (root ** "dist") --- 
                 (root ** "dist" ** "*") --- 
+                (root ** "*.log") --- 
+                (root ** "logs") --- 
+                (root / "repository/cache") --- 
+                (root / "repository/cache" ** "*") --- 
+                (root ** "project/project") --- 
                 (root ** "target") --- 
                 (root ** "target" ** "*") --- 
                 (root ** ".*") ---
+                (root ** ".*") ---
                 (root ** ".git" ** "*") ---
-                (root ** "dropbox" ** "*") ---
-                (root ** "cleanIvyCache") ---
                 (root ** "*.lock")
             }
 
@@ -338,7 +342,7 @@ object PlayBuild extends Build {
                     }
                 }
             }
-
+            
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {

@@ -1,10 +1,10 @@
-@(field:play.api.data.Field, id:String, label:Option[String], showInfo:Boolean = true)(inputDef: (String,String,Option[String]) => Html)(handler: (Html,Html,Seq[String],Seq[String]) => Html)
+@(field:play.api.data.Field, id:String, label:Option[String], showInfo:Boolean = true)(inputDef: (String,String,Option[String]) => Html)(implicit handler: InputConstructor)
 
 @labelRendering = {
     <label for="@id">@label</label> 
 }
 
-@handler(
+@handler(InputElements(
     labelRendering, 
     inputDef(id,field.name,field.value),
     field.errors.map(e => play.api.i18n.Messages(e.message, e.args:_*)),
@@ -12,4 +12,4 @@
         field.constraints.map(c => play.api.i18n.Messages(c._1, c._2:_*)) ++ 
         field.format.map(f => play.api.i18n.Messages(f._1, f._2:_*))
     } else Nil
-)
+))

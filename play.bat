@@ -9,12 +9,19 @@ java -cp "%~dp0framework/sbt/boot/scala-2.9.1/lib/*;%~dp0framework/sbt/boot/scal
 goto end
 
 :existingApplication
-if not "%1" == "clean" goto enterConsole
+if not "%1" == "clean" goto runCommand
 
 :cleanCache
 call %~dp0framework\cleanIvyCache.bat
 
+:runCommand
+if "%1" == "" goto enterConsole
+
+call %~dp0framework\build.bat %*
+goto end
+
 :enterConsole
-call %~dp0framework\build.bat play %*
+
+call %~dp0framework\build.bat play 
 
 :end
