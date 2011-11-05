@@ -1,15 +1,28 @@
 package play.test;
 
-abstract class IntegrationTestRunner {
+/**
+ * provides a way to execute an integration test
+ * example:
+ * {{{
+ * package test;
+ * class IntegrationTest extends IntegrationTest {
+ *    test = new Runnable {
+ *              public void run() {
+ *              //your test comes hre
+ *              }}
+ * }
+ * }}}
+ **/
+public abstract class IntegrationTestRunner {
 
-  static Runnable executable = null;
+  public static Runnable test = null;
 
   public static void main(String[] args) {
 
-    if (executable != null) throw new RuntimeException("you should call executable first");
+    if (test != null) throw new RuntimeException("you should populate `test` first");
 
-    play.test.api.IntegrationTestRunner runner = new play.test.api.IntegrationTestRunner() {
-    public void run() {executable.run();} 
+    play.api.test.IntegrationTestRunner runner = new play.api.test.IntegrationTestRunner() {
+    public void test() {test.run();} 
   };
     runner.main(new String[]{});
   }

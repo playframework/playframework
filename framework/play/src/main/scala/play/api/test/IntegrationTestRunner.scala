@@ -1,4 +1,4 @@
-package play.test.api
+package play.api.test
 
 import play.api.mvc._
 import akka.actor.Actor
@@ -25,14 +25,33 @@ class RunnerActor extends Actor {
   }
 }
 
+/**
+ * provides an integration test runner.
+ * It first fires up the application, then executes test, after the test is executed it kills Netty and the process ends
+ * usage:
+ * {{{
+ * //in integrationtest folder
+ * package test
+ * object IntegrationTest extends IntegrationTestRunner {
+ *  def test = {//here is my integration test}
+ * }
+ * }}}
+ */
 abstract class IntegrationTestRunner {
-  def run: Unit
 
+  /**
+   * test to execute
+   */
+  def test: Unit
+
+  /**
+   * main entry point for the integration test
+   */
   def main(args: Array[String]) {
     val actor = actorOf[RunnerActor].start()
     val netty = Option(System.getProperty("user.dir")).map(new File(_)).filter(p => p.exists && p.isDirectory).map(applicationPath => NettyServer.createServer(applicationPath)).getOrElse(throw new Exception("there is no valid play app in the directory"))
     actor ! Start(netty)
-    actor ! ExecuteTest(netty, () => run)
+    actor ! ExecuteTest(netty, () => test)
   }
 }
 
