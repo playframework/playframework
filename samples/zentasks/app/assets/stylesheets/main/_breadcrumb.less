@@ -7,7 +7,7 @@
 #main > header {
     height: 39px;
     background: url(/assets/images/breadcrumb.png);
-    border-bottom: 1px solid #606d78;
+    border-bottom: 1px solid @layoutBorderColor;
     hgroup {
         height: inherit;
         overflow: hidden;
@@ -25,7 +25,7 @@
             -moz-border-image: url(/assets/images/breadcrumb-2.png) 0 30 0 20 stretch stretch;
             border-image: url(/assets/images/breadcrumb-2.png) 0 30 0 20 stretch stretch;
             border-width: 0 30px 0 25px;
-            color: #556b7b;
+            color: @titleColor;
             -webkit-user-select: text;
             &:nth-child(2) {
                 -webkit-border-image: url(/assets/images/breadcrumb-1.png) 0 30 0 1 stretch stretch;
@@ -42,13 +42,12 @@
     }
     .users {
         position: relative;
-        margin: 9px 10px;
+        margin: 8px 10px;
         float: right;
         .pannel();
         > dt {
             &:before {
                 content: url(/assets/images/icons/user.png);
-                color: #5DAAD5;
                 padding-right: 4px;
                 vertical-align: middle;
             }
@@ -57,7 +56,7 @@
         > dd {
             padding: 5px 10px;
             width: 300px;
-            color: #999;
+            color: @panText;
             z-index: 99;
         }
         .wrap {
@@ -69,14 +68,14 @@
             margin: 10px 0 0;
             padding: 5px 0;
             font-size: 16px;
-            color: #fff;
+            color: @panTitle;
             &:first-of-type {
                 margin: 0;
             }
         }
         dl {
             position: relative;
-            border-top: 1px solid rgba(255,255,255,.1);
+            border-top: 1px solid @panBorder;
             padding: 5px 17px 5px 0;
             dt {
                 .ellipsis();
@@ -108,3 +107,4 @@
         }
     }
 }
+

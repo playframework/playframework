@@ -18,10 +18,10 @@ body {
 }
 
 a {
-    color: #4794c4;
+    color: @links;
     text-decoration: none;
     &:hover {
-        color: #2a5e88;
+        color: @linksHover;
     }
 }
 
@@ -30,7 +30,6 @@ a {
 @import 'main/_widgets.less';        // Some shared elements
 @import 'main/_drawer.less';        // Project drawer
 @import 'main/_header.less';         // Top header + User bar
-@import 'main/_navigation.less';     // Big buttons
 @import 'main/_breadcrumb.less';     // Breadcrumb + App menu
 @import 'apps/_tasks.less';          // 
 

@@ -20,25 +20,25 @@
         margin: 7px 0px 0 0;
         padding: 5px;
         z-index: 99;
-        background: rgba(0,0,0,.85);
+        background: @panBackground;
         border-radius: 5px;
-        box-shadow: 0 2px 7px rgba(0,0,0,.8);
+        box-shadow: 0 2px 7px @panShadow;
         a, button {
             display: block;
             width: 100%;
             padding: 3px 10px;
-            color: #ccc;
+            color: @panText;
             border-radius: 2px;
             background: none;
             &:hover {
-                background: #444;
-                color: #fff;
+                background: @panButtonBackground;
+                color: @panButtonColor;
             }
         }
         &:before {
             content: " ";
             display: block;
-            border-bottom: 6px solid rgba(0,0,0,.8);
+            border-bottom: 6px solid @panBackground;
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
             border-top: none;
@@ -59,36 +59,36 @@
     padding: 2px 5px;
     border-radius: 3px;
     border: 1px solid @headerDark - #111;
-        .gradient(fadeout(#bff, 80%), fadeout(#bff, 100%));
+    .gradient(fadeout(#bff, 80%), fadeout(#bff, 100%));
     background-color: @headerDark;
     box-shadow: 0 1px 4px rgba(0,0,0,.3),
                 inset 0 1px 0 rgba(255,255,255,.2),
                 inset 0 -1px 0 rgba(0,0,0,.2);
     text-shadow: -1px -1px 0 rgba(0,0,0,.3);
-    color: #C7D1D8;
+    color: @buttonColor;
     cursor: pointer;
     &:hover {
         .gradient(fadeout(#bff, 70%), fadeout(#bff, 100%));
         background-color: @headerDark;
-        color: #fff;
+        color: @buttonHover;
     }
 }
 
 .box() {
-    border: 1px solid #9ba5ad;
-    background: #dbe1e5;
+    border: 1px solid @folderBorder;
+    background: @folderBackground;
     border-radius: 5px;
     margin: 0 0 20px;
     > header {
         border-radius: 5px 5px 0 0;
-        .gradient(#f2f5f8, #dfe2e6);
+        .gradient(@folderHeaderLight, @folderHeaderDark);
         border-bottom: inherit;
         padding: 4px 7px;
         h3 {
             display: inline-block;
             font-size: 15px;
             font-weight: bold;
-            color: #7a8a99;
+            color: @folderTitle;
             text-shadow: 1px 1px 0 #fff;
         }
     }
@@ -119,7 +119,7 @@
         font-size: 15px;
         line-height: 15px;
         font-weight: bold;
-        color: #5DAAD5;
+        color: @activeColor;
         padding-right: 4px;
     }
 }

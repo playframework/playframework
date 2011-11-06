@@ -16,7 +16,7 @@ log = (args...) ->
     console.log.apply console, args if console.log?
 
 # ------------------------------- DROP DOWN MENUS
-$(".options dt, #user dt, .users dt").live "click", (e) ->
+$(".options dt, .users dt").live "click", (e) ->
     e.preventDefault()
     if $(e.target).parent().hasClass("opened")
         $(e.target).parent().removeClass("opened")
