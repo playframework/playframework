@@ -113,5 +113,10 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
    */
   implicit def session(implicit request: RequestHeader) = request.session
 
+  /**
+   * Retrieve the flash scope implicitly from the request.
+   */
+  implicit def flash(implicit request: RequestHeader) = request.flash
+
 }
 

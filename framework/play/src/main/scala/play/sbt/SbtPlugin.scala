@@ -890,8 +890,10 @@ object PlayProject extends Plugin {
 
       "play.api.i18n.Messages",
 
+      "play.mvc._",
       "play.data._",
       "com.avaje.ebean._",
+
       "play.mvc.Http.Context.Implicit._",
 
       "views.%format%._"))
@@ -904,6 +906,7 @@ object PlayProject extends Plugin {
 
       "play.api.i18n.Messages",
 
+      "play.api.mvc._",
       "play.api.data._",
 
       "views.%format%._"))

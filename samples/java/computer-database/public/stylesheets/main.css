@@ -1,7 +1,5 @@
-@background-color: #eee;
-
 html {
-    background: @background-color;
+    background: #eee;
 }
 
 header h1 {
@@ -65,4 +63,3 @@ table.computers .header a {
 }
 
 
-            

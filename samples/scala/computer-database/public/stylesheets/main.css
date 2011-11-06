@@ -1,0 +1,65 @@
+html {
+    background: #eee;
+}
+
+header h1 {
+    padding: 0.4em 1.1em;
+    color: white;
+    font-weight: normal;
+    font-size: 24px;
+}
+
+section#main {
+    position: relative;
+    padding: 5em 2em;
+    border-bottom: 1px solid #ccc;
+    min-height: 600px;
+} 
+
+section#main .topRight {
+    position: absolute;
+    right: 20px;
+    top: 70px;
+}
+
+table.computers em {
+    color: #aaa;
+}
+
+table.computers .col3, table.computers .col4 {
+    width: 10%;
+    min-width: 100px;
+}
+
+table.computers .col5 {
+    width: 30%;
+    min-width: 300px;
+}
+
+table.computers .header a {
+}
+
+#actions {
+    position: relative;
+}
+
+#actions #add {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+#pagination {
+    position: relative;
+}
+
+#pagination ul {
+    position: absolute;
+    right: 0;
+}
+
+#pagination ul .current a {
+    color: #666;
+}
+
+

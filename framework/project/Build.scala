@@ -50,7 +50,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject)
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject, AnormProject)
 
     val Root = Project(
         "Root",

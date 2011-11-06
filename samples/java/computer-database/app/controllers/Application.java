@@ -16,23 +16,22 @@ import models.*;
 public class Application extends Controller { 
     
     /**
-     * This result directly redirect to
-     * application home.
+     * This result directly redirect to application home.
      */
     public static Result GO_HOME = redirect(
         routes.Application.list(0, "name", "asc", "") 
     );
     
     /**
-     * Handle default path requests, 
-     * redirect to computers list
+     * Handle default path requests, redirect to computers list
      */
     public static Result index() {
         return GO_HOME;
     }
 
     /**
-     * Display the paginated list of computers
+     * Display the paginated list of computers.
+     *
      * @param page Current page number (starts from 0)
      * @param sortBy Column to be sorted
      * @param order Sort order (either asc or desc)
@@ -49,6 +48,7 @@ public class Application extends Controller {
     
     /**
      * Display the 'edit form' of a existing Computer.
+     *
      * @param id Id of the computer to edit
      */
     public static Result edit(Long id) {
@@ -62,6 +62,7 @@ public class Application extends Controller {
     
     /**
      * Handle the 'edit form' submission 
+     *
      * @param id Id of the computer to edit
      */
     public static Result update(Long id) {

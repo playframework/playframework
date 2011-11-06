@@ -348,6 +348,70 @@ trait Mapping[T] {
 }
 
 /**
+ * A mapping for optional elements
+ *
+ * @param wrapped The wrapped mapping
+ */
+case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constraint[Option[T]]] = Nil) extends Mapping[Option[T]] {
+
+  override val format: Option[(String, Seq[Any])] = wrapped.format
+
+  val key = wrapped.key
+
+  /**
+   * Construct a new Mapping based on this one, by adding new constraints.
+   *
+   * Example:
+   * {{{
+   *   Form("phonenumber" -> text verifying required)
+   * }}}
+   *
+   * @param constraints The constraints to add.
+   * @return The new mapping.
+   */
+  def verifying(addConstraints: Constraint[Option[T]]*): Mapping[Option[T]] = {
+    this.copy(constraints = constraints ++ addConstraints.toSeq)
+  }
+
+  /**
+   * Bind this field (ie. construct a concrete value from submitted data).
+   *
+   * @param data The submitted data.
+   * @return Either a concrete value of type T or a set of error if the binding failed.
+   */
+  def bind(data: Map[String, String]): Either[Seq[FormError], Option[T]] = {
+    data.get(key).filterNot(_.isEmpty).map(_ => wrapped.bind(data).right.map(Some(_))).getOrElse(Right(None)).right.flatMap(applyConstraints)
+  }
+
+  /**
+   * Unbind this field (ie. transform a concrete value to plain data)
+   *
+   * @param value The value to unbind.
+   * @return Either the plain data or a set of error if the unbinding failed.
+   */
+  def unbind(value: Option[T]): (Map[String, String], Seq[FormError]) = {
+    val errors = collectErrors(value)
+    value.map(wrapped.unbind(_)).map(r => r._1 -> (r._2 ++ errors)).getOrElse(Map.empty -> errors)
+  }
+
+  /**
+   * Construct a new Mapping based on this one, adding a prefix to the key.
+   *
+   * @param prefix The prefix to add to the key.
+   * @return The same mapping, only the key changed.
+   */
+  def withPrefix(prefix: String): Mapping[Option[T]] = {
+    copy(wrapped = wrapped.withPrefix(prefix))
+  }
+
+  /**
+   * Sub mappings (can be seen as sub keys)
+   */
+  val mappings: Seq[Mapping[_]] = wrapped.mappings
+
+}
+
+/**
  * A mapping for a single field.
  *
  * @param key The field key

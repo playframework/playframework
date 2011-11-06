@@ -1,0 +1,12 @@
+@(elements: helper.InputElements)
+
+@**************************************************
+* Generate input according twitter bootsrap rules *
+**************************************************@
+<div class="clearfix @if(!elements.errors.isEmpty) {error}">
+    @elements.label
+    <div class="input">
+        @elements.input
+        <span class="help-inline">@elements.infos</span> 
+    </div>
+</div>

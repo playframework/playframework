@@ -4,7 +4,7 @@ import PlayProject._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "simple-dataset"
+    val appName         = "computer-database"
     val appVersion      = "1.0"
 
     val appDependencies = Seq(

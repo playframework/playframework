@@ -43,11 +43,9 @@ package anorm {
       case NotAssigned => false
     }
 
-    def apply() = get.get
-
     def get = this match {
-      case Id(id) => Some(id)
-      case NotAssigned => None
+      case Id(id) => id
+      case NotAssigned => error("Id not assigned")
     }
 
   }
@@ -810,7 +808,10 @@ package anorm {
 
   case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])], defaultParser: SqlParser.Parser[T]) extends Sql {
 
-    def on(args: (String, ParameterValue[_])*): SimpleSql[T] = this.copy(params = (this.params) ++ args)
+    def on(args: (Any, ParameterValue[_])*): SimpleSql[T] = this.copy(params = (this.params) ++ args.map {
+      case (s: Symbol, v) => (s.name, v)
+      case (k, v) => (k.toString, v)
+    })
 
     def onParams(args: ParameterValue[_]*): SimpleSql[T] = this.copy(params = (this.params) ++ sql.argsInitialOrder.zip(args))
 

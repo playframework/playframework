@@ -17,7 +17,8 @@ import com.jolbox.bonecp.hooks._
 case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
   /**
-   * Retrieve a JDBC connection.
+   * Retrieve a JDBC connection. Don't forget to release the connection
+   * at some point by calling close().
    *
    * @param name The datasource name.
    * @param autocommit Set this connection to autocommit.
@@ -32,6 +33,7 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
   /**
    * Retrieve a JDBC connection (autocommit is set to true).
+   * Don't forget to release the connection at some point by calling close().
    *
    * @param name The datasource name.
    * @return An JDBC connection.
@@ -53,6 +55,44 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
   def getDataSourceURL(name: String): String = {
     datasources.get(name).map { _._2 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
+    }
+  }
+
+  /**
+   * Execute a block of code, providing a JDBC connection. The connection is
+   * automatically released.
+   *
+   * @param name The datasource name.
+   * @param block Code block to execute.
+   */
+  def withConnection[A](name: String)(block: Connection => A): A = {
+    val connection = getConnection(name)
+    try {
+      block(connection)
+    } finally {
+      connection.close()
+    }
+  }
+
+  /**
+   * Execute a block of code, in the scope of a JDBC transaction.
+   * The connection is automatically released.
+   * The transaction is automatically committed, unless an exception occurs.
+   *
+   * @param name The datasource name.
+   * @param block Code block to execute.
+   */
+  def withTransaction[A](name: String)(block: Connection => A): A = {
+    val connection = getConnection(name)
+    try {
+      connection.setAutoCommit(false)
+      val r = block(connection)
+      connection.commit()
+      r
+    } catch {
+      case e => connection.rollback(); throw e
+    } finally {
+      connection.close()
     }
   }
 
@@ -96,14 +136,27 @@ object DBApi {
 
     datasource.setClassLoader(classloader)
 
+    val logger = Logger("com.jolbox.bonecp")
+
     // Re-apply per connection config @ checkout
     datasource.setConnectionHook(new AbstractConnectionHook {
+
+      override def onCheckIn(connection: ConnectionHandle) {
+        if (logger.isTraceEnabled) {
+          logger.trace("Check in connection [%s leased]".format(datasource.getTotalLeased))
+        }
+      }
+
       override def onCheckOut(connection: ConnectionHandle) {
         connection.setAutoCommit(autocommit)
         connection.setTransactionIsolation(isolation)
         connection.setReadOnly(readOnly)
         catalog.map(connection.setCatalog(_))
+        if (logger.isTraceEnabled) {
+          logger.trace("Check out connection [%s leased]".format(datasource.getTotalLeased))
+        }
       }
+
     })
 
     // url is required
@@ -165,6 +218,50 @@ object DB {
    * @throws An error is the required datasource is not registred.
    */
   def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].map(_.api.getDataSource(name)).getOrElse(error)
+
+  /**
+   * Execute a block of code, providing a JDBC connection. The connection is
+   * automatically released.
+   *
+   * @param name The datasource name.
+   * @param block Code block to execute.
+   */
+  def withConnection[A](name: String)(block: Connection => A)(implicit app: Application): A = {
+    app.plugin[DBPlugin].map(_.api.withConnection(name)(block)).getOrElse(error)
+  }
+
+  /**
+   * Execute a block of code, providing a JDBC connection. The connection is
+   * automatically released.
+   *
+   * @param block Code block to execute.
+   */
+  def withConnection[A](block: Connection => A)(implicit app: Application): A = {
+    app.plugin[DBPlugin].map(_.api.withConnection("default")(block)).getOrElse(error)
+  }
+
+  /**
+   * Execute a block of code, in the scope of a JDBC transaction.
+   * The connection is automatically released.
+   * The transaction is automatically committed, unless an exception occurs.
+   *
+   * @param name The datasource name.
+   * @param block Code block to execute.
+   */
+  def withTransaction[A](name: String = "default")(block: Connection => A)(implicit app: Application): A = {
+    app.plugin[DBPlugin].map(_.api.withTransaction(name)(block)).getOrElse(error)
+  }
+
+  /**
+   * Execute a block of code, in the scope of a JDBC transaction.
+   * The connection is automatically released.
+   * The transaction is automatically committed, unless an exception occurs.
+   *
+   * @param block Code block to execute.
+   */
+  def withTransaction[A](block: Connection => A)(implicit app: Application): A = {
+    app.plugin[DBPlugin].map(_.api.withTransaction("default")(block)).getOrElse(error)
+  }
 
 }
 
