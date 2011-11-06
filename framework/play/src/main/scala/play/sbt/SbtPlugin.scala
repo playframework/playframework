@@ -652,6 +652,7 @@ object PlayProject extends Plugin {
                 |reload                     Reload the current application build file.
                 |run                        Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs 
+                |it:run                     Run Webdriver based integration tests 
                 |start                      Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |

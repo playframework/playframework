@@ -8,7 +8,7 @@ package play.test;
  * class IntegrationTest extends IntegrationTest {
  *    test = new Runnable {
  *              public void run() {
- *              //your test comes hre
+ *              //your test comes here
  *              }}
  * }
  * }}}
