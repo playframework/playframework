@@ -130,8 +130,7 @@ object PlayBuild extends Build {
             "com.google.javascript"             %    "closure-compiler"     %   "r1459"           notTransitive(),
             "org.reflections"                   %    "reflections"          %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"    %   "3.0.1",
-            "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test", 
-            "org.seleniumhq.selenium"           %   "selenium-chrome-driver" %   "2.11.0"    %   "compile"
+            "org.specs2"                        %%   "specs2"               %   "1.6.1"    %   "test" 
         )
 
         val templatesDependencies = Seq(
