@@ -188,8 +188,8 @@ object Logger extends LoggerLike {
       import ch.qos.logback.core.util._
       import ch.qos.logback.classic._
 
-      val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
       try {
+        val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
         val configurator = new JoranConfigurator
         configurator.setContext(ctx)
         ctx.reset
@@ -200,11 +200,11 @@ object Logger extends LoggerLike {
         levels.foreach {
           case (logger, level) => ctx.getLogger(logger).setLevel(level)
         }
+        StatusPrinter.printInCaseOfErrorsOrWarnings(ctx)
       } catch {
         case _ =>
       }
 
-      StatusPrinter.printInCaseOfErrorsOrWarnings(ctx)
     }
 
   }
