@@ -1,0 +1,28 @@
+@( projects: Seq[models.Project], overdueTasks: Seq[models.Task], user: models.User, team: Seq[models.User])
+
+@main(projects, user){
+    <header>
+        <hgroup>
+            <h1>Dashboard</h1>
+            <h2>Overdue tasks</h2>
+        </hgroup>
+    </header>
+    <article  class="tasks">
+        @overdueTasks.groupBy( _.project ).map {
+            case (project, tasks) => {
+                <div class="folder" data-folder-id="@project.id">
+                    <header>
+                        <h3><a href="#@routes.Tasks.index(project.id)">@project.name</a></h3>
+                        <span class="loader">Loading</span>
+                    </header>
+                    <ul class="list">
+                        @tasks.map { task =>
+                            @views.html.tasks.item( task )
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </article>
+}
+

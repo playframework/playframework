@@ -1,0 +1,68 @@
+// -----------------------------------
+// NAVIGATION
+// -----------------------------------
+// author: mda@zenexity.com - 2011
+// -----------------------------------
+
+.background-position(@top) {
+    &:before {
+        background-position: 0 2px - @top;
+    }
+    &.active:before {
+        background-position: 0 2px - @top;
+    }
+}
+
+#main > nav {
+    background: url(/assets/images/pattern.png);
+    box-shadow: inset 0 0 10px rgba(0,0,0,.5);
+    > a {
+        display: block;
+        width: 54px;
+        height: 56px;
+        margin: 10px auto;
+        text-indent: -999em;
+        border-radius: 10px;
+        .transition(all, 200ms, ease-in-out);
+        &:before {
+            content: " ";
+            display: block;
+            width: inherit;
+            height: inherit;
+            background: url(/assets/images/icons/navigation.apps.png) 0 2px no-repeat;
+        }
+        &:hover {
+            background: fadeout(#5daad5, 70%);
+            box-shadow: 0 0 7px rgba(0,0,0,.8),
+                        inset 0 1px 0 rgba(255,255,255,.2),
+                        inset 0 -1px 0 rgba(0,0,0,.2);
+        }
+        &.active {
+            .gradient(#5daad5,#3d88bb);
+            box-shadow: 0 0 7px rgba(0,0,0,.8),
+                        inset 0 1px 0 rgba(255,255,255,.2),
+                        inset 0 -1px 0 rgba(0,0,0,.4);
+        }
+        position: relative;
+        &:after {
+            content: attr(data-stamp);
+            text-indent: 0;
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            line-height: 16px;
+            padding: 0 4px 0 5px;
+            .gradient(#f00,#a00);
+            box-shadow: 0 0 7px rgba(0,0,0,.8),
+                        inset 0 1px 0 rgba(255,255,255,.2),
+                        inset 0 -1px 0 rgba(0,0,0,.4);
+            border-radius: 15px;
+            color: #fff;
+            text-shadow: 1px 1px 0 rgba(0,0,0,.3);
+        }
+    }
+    a.tasks          { .background-position(0px)  }
+    a.notes          { .background-position(70px) }
+    a.documents      { .background-position(140px) }
+    a.discussions    { .background-position(210px) }
+}

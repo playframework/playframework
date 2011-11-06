@@ -1,0 +1,17 @@
+@(body: => Html)
+
+<html>
+    <head>
+        <title>Zentasks</title>
+        <link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
+        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/login.css")">
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.6.4.js")"></script>
+    </head>
+    <body>
+        <header>
+            <a href="@routes.Application.login()" id="logo"><span>Zen</span>tasks</a>
+        </header>
+        @body
+    </body>
+</html>
+

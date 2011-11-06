@@ -1,0 +1,63 @@
+@(allProjects: Seq[models.Project], user: models.User)(body: => Html)
+
+<html>
+    <head>
+        <title>Zentasks</title>
+        <link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
+        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.6.4.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-play-1.6.4.js")"></script>
+        <script type="text/javascript" src="/assets/vendor/underscore-min.js"></script>
+        <script type="text/javascript" src="/assets/vendor/backbone-min.js"></script>
+        <script type="text/javascript" src="@routes.Assets.at("scripts/main.js")"></script>
+        @import routes.javascript._
+        @helper.javascriptRouter("jsRoutes")(
+            Projects.add,
+            Projects.get,
+            Projects.delete,
+            Projects.rename,
+            Projects.addGroup,
+            Projects.deleteGroup,
+            Projects.renameGroup,
+            Projects.addUser,
+            Projects.removeUser,
+            Tasks.addFolder,
+            Tasks.renameFolder,
+            Tasks.deleteFolder,
+            Tasks.index,
+            Tasks.add,
+            Tasks.update,
+            Tasks.delete
+        )
+    </head>
+    <body>
+        <header>
+            <a href="@routes.Projects.index()" id="logo"><span>Zen</span>tasks</a>
+            <dl id="user">
+                <dt>@user.name <span>(@user.mail)</span></dt>
+                <dd>
+                    <a href="@routes.Application.doLogout()">Logout</a>
+                </dd>
+            </dl>
+        </header>
+        <nav>
+            <h4 class="dashboard"><a href="#/">Dashboard</a></h4>
+            <ul id="projects">
+                @allProjects.groupBy( _.group ).map {
+                    case (group, projects) => {
+                        @views.html.projects.group(group){
+                            @projects.map { project =>
+                                @views.html.projects.item( project )
+                            }
+                        }
+                    }
+                }
+            </ul>
+            <button id="newGroup">New group</button>
+        </nav>
+        <section id="main">
+            @body
+        </section>
+    </body>
+</html>
+

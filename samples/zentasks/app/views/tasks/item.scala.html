@@ -1,0 +1,15 @@
+@(task: models.Task)
+
+<li data-task-id="@task.id">
+    <input class="done" type="checkbox" @(if(task.done) "checked") />
+    <h4>@task.title</h4>
+    @if(task.dueDate){
+        <time datetime="@task.dueDate">@task.dueDate.get.format("dd/MM/yy")</time>
+    }
+    @if(task.assignedTo){
+        <span class="assignedTo">@task.assignedTo.get.name</span>
+    }
+    <a class="deleteTask" href="@routes.Tasks.delete(task.id)">Delete task</a>
+    <span class="loader">Loading</span>
+</li>
+
