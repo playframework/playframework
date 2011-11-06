@@ -8,10 +8,10 @@ import org.specs2.matcher.MustThrownMatchers._
 */
 object IntegrationTest extends IntegrationTestRunner {
 
-    def test = {
+    def test {
       val driver = new HtmlUnitDriver()
       driver.get("http://localhost:9000")
-      driver.getPageSource.toString must contain ("Hello world")
+      driver.getPageSource must contain ("Hello world")
       //should not work
       //driver.getPageSource.toString must contain ("1Hello")
     }
