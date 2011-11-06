@@ -6,8 +6,8 @@ echo "RUNNING FRAMEWORK SPECS"
 `dirname $0`/build test
 cd `dirname $0`/../integrationtest
 echo "RUNNING INTEGRATION TEST"
-play it:run
+`dirname $0`/../play it:run
 echo "RUNNING APP SPECS"
-play test
+`dirname $0`/../play test
 cd `dirname $0`
 
