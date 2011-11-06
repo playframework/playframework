@@ -1,13 +1,27 @@
 echo "PLAYFRAMEWORK CORE TEST RUNNER"
 set -e
-`dirname $0`/cleanIvyCache
-`dirname $0`/build publish-local
+export CURRENT=`pwd`
+export SCRIPT=`dirname $0`
+$SCRIPT/cleanIvyCache
+$SCRIPT/build publish-local
+
 echo "RUNNING FRAMEWORK SPECS"
 `dirname $0`/build test
 cd `dirname $0`/../integrationtest
+
 echo "RUNNING INTEGRATION TEST"
-`dirname $0`/../play it:run
+if [ $SCRIPT = "." ]; then
+  $SCRIPT/../play it:run
+else
+  ../$SCRIPT/../play it:run
+fi
+
 echo "RUNNING APP SPECS"
-`dirname $0`/../play test
-cd `dirname $0`
+if [ $SCRIPT = "." ]; then
+  $SCRIPT/../play test
+else
+  ../$SCRIPT/../play test
+fi
+
+cd $CURRENT
 
