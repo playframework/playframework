@@ -9,25 +9,23 @@ import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
 
-/**
- * High level API for i18n.
- *
- * Example:
- * {{{
- * val msgString = Messages("items.found", items.size)
- * }}}
- */
+/** High-level internationalisation API.
+  *
+  * For example:
+  * {{{
+  * val msgString = Messages("items.found", items.size)
+  * }}}
+  */
 object Messages {
 
-  /**
-   * Translate a message.
-   *
-   * Use the Java MessageFormat to internally format the message.
-   *
-   * @param key The message key.
-   * @param args The message arguments
-   * @return The formatted message or a default rendering if the key wasn't defined.
-   */
+  /** Translates a message.
+    *
+    * Uses `java.text.MessageFormat` internally to format the message.
+    *
+    * @param key the message key
+    * @param args the message arguments
+    * @return the formatted message or a default rendering if the key wasn’t defined
+    */
   def apply(key: String, args: Any*) = {
     Play.maybeApplication.flatMap { app =>
       app.plugin[MessagesPlugin].map(_.api.translate(key, args)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
@@ -38,19 +36,16 @@ object Messages {
     key + Option(args.map(_.toString).mkString(",")).filterNot(_.isEmpty).map("(" + _ + ")").getOrElse("")
   }
 
-  /**
-   * An i18n message.
-   *
-   * @param key The message key
-   * @param pattern The message pattern
-   * @param input The source from which this message was read.
-   * @param sourceName The source name from which this message was read.
-   */
+  /** An internationalised message.
+    *
+    * @param key the message key
+    * @param pattern the message pattern
+    * @param input the source from which this message was read
+    * @param sourceName the source name from which this message was read
+    */
   case class Message(key: String, pattern: String, input: scalax.io.Input, sourceName: String) extends Positional
 
-  /**
-   * Message files parser.
-   */
+  /** Message file parser. */
   class MessagesParser(messageInput: scalax.io.Input, messageSourceName: String) extends RegexParsers {
 
     case class Comment(msg: String)
@@ -118,22 +113,19 @@ object Messages {
 
 }
 
-/**
- * The i18n APO
- */
+/** The internationalisation API. */
 case class MessagesApi(messages: Map[String, String]) {
 
   import java.text._
 
-  /**
-   * Translate a message.
-   *
-   * Use the Java MessageFormat to internally format the message.
-   *
-   * @param key The message key.
-   * @param args The message arguments
-   * @return Maybe the formatted message if this key was defined.
-   */
+  /** Translates a message.
+    *
+    * Uses `java.text.MessageFormat` internally to format the message.
+    *
+    * @param key the message key
+    * @param args the message arguments
+    * @return the formatted message, if this key was defined
+    */
   def translate(key: String, args: Seq[Any]): Option[String] = {
     messages.get(key).map { pattern =>
       MessageFormat.format(pattern, args.map(_.asInstanceOf[java.lang.Object]): _*)
@@ -142,9 +134,7 @@ case class MessagesApi(messages: Map[String, String]) {
 
 }
 
-/**
- * Play Plugin for i18n
- */
+/** Play Plugin for internationalisation. */
 class MessagesPlugin(app: Application) extends Plugin {
 
   import scala.collection.JavaConverters._
@@ -162,14 +152,10 @@ class MessagesPlugin(app: Application) extends Plugin {
     }
   }
 
-  /**
-   * The underlying i18n API
-   */
+  /** The underlying internationalisation API. */
   def api = messages
 
-  /**
-   * Load all conf/messages files defined in the classpath.
-   */
+  /** Loads all configuration and message files defined in the classpath. */
   override def onStart {
     messages
   }

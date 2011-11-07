@@ -53,8 +53,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
       Some(e))
   }
 
-  /** The router used by this application.
-    */
+  /** The router used by this application. */
   val routes: Option[Router.Routes] = try {
     Some(classloader.loadClassParentLast("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes])
   } catch {
