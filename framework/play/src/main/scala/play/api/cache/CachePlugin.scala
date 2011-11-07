@@ -3,17 +3,14 @@ package play.api.cache
 import play.core._
 import play.api._
 
-/**
- * because caching shoudl be swapable, we reference against an abstract class, so users can change implementation by
- * implementing this abstract class
- */
+/** Because caching should be swappable, we reference an abstract class, so users can change the implementation by
+  * sub-classing this class.
+  */
 abstract class CachePlugin extends Plugin {
   def api: CacheAPI
 }
 
-/**
- * plugin manages BasicCache life cycle
- */
+/** Plugin that manages the `BasicCache` life-cycle. */
 class BasicCachePlugin(app: Application) extends CachePlugin {
 
   val pluginDisabled = app.configuration.getString("cache.default").filter(_ == "disabled").headOption
