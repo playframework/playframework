@@ -3,7 +3,7 @@ import Keys._
 
 object Play extends Build {
 
-    val version = "2.0"
+    val version = "2.0-beta"
 
     val playRepository = Option(System.getProperty("play.home")).map { home =>
         Resolver.file("play-repository", file(home) / "../repository")(Resolver.ivyStylePatterns)

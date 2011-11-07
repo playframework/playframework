@@ -36,7 +36,7 @@ object Projects extends Controller {
     }
 
     def add = Action { implicit request =>
-        Form("group" -> text).bind.fold(
+        Form("group" -> text).bindFromRequest.fold(
             f => BadRequest,
             v => Ok( views.html.projects.item( Project.add(v) ) )
         )
@@ -47,7 +47,7 @@ object Projects extends Controller {
     }
     def delete(id: Long) = Action { Ok }
     def rename(id: Long) = Action { implicit request =>
-        Form("name" -> text).bind.fold(
+        Form("name" -> text).bindFromRequest.fold(
             f => BadRequest,
             v => {
                 Ok( v )
@@ -62,7 +62,7 @@ object Projects extends Controller {
     }
     def deleteGroup(id: String) = Action { Ok }
     def renameGroup(id: String) = Action { implicit request =>
-        Form("name" -> text).bind.fold(
+        Form("name" -> text).bindFromRequest.fold(
             f => BadRequest,
             v => {
                 Ok( v )
@@ -81,7 +81,7 @@ object Tasks extends Controller {
         Ok(views.html.tasks.index( Project.findById(project).get, Task.findByProject(project), fakeUsers ))
     }
     def add(project: Long) = Action { implicit request =>
-        Form("title" -> text).bind.fold(
+        Form("title" -> text).bindFromRequest.fold(
             // Other params are:
             // dueDate, assignedTo, folder
             f => BadRequest,
@@ -102,7 +102,7 @@ object Tasks extends Controller {
     }
     def deleteFolder(id: Long, folder: String) = Action { Ok }
     def renameFolder(id: Long, folder: String) = Action { implicit request =>
-        Form("name" -> text).bind.fold(
+        Form("name" -> text).bindFromRequest.fold(
             f => BadRequest,
             v => {
                 Ok( v )

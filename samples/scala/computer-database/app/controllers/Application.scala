@@ -71,7 +71,7 @@ object Application extends Controller {
    * @param id Id of the computer to edit
    */
   def update(id: Long) = Action { implicit request =>
-    computerForm.bindFromRequest().fold(
+    computerForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.editForm(id, formWithErrors)),
       computer => {
         Computer.update(id, computer)
@@ -91,7 +91,7 @@ object Application extends Controller {
    * Handle the 'new computer form' submission.
    */
   def save = Action { implicit request =>
-    computerForm.bindFromRequest().fold(
+    computerForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.createForm(formWithErrors)),
       computer => {
         Computer.insert(computer)
