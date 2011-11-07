@@ -57,7 +57,7 @@ object SourceTree {
     }).toList)
   }
 
-  val requireRe = """require\("([^"]+)"\)""".r
+  val requireRe = """require\(["']([\w\-\.]+)["']\)""".r
 
   def depsFor(input: File): Iterator[(File, Int)] =
     requireRe.findAllIn(Path(input).slurpString).matchData
