@@ -64,6 +64,8 @@ object Computer {
    */
   def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = ""): Page[(Computer, Option[Company])] = {
     
+    val offest = pageSize * page
+    
     DB.withConnection { implicit connection =>
       
       val computers = SQL(
@@ -76,7 +78,7 @@ object Computer {
         """
       ).on(
         'pageSize -> pageSize, 
-        'offset -> (pageSize * page),
+        'offset -> offest,
         'filter -> filter,
         'orderBy -> orderBy
       ).as(Computer.withCompany *)
@@ -91,7 +93,7 @@ object Computer {
         'filter -> filter
       ).as(scalar[Long])
 
-      Page(computers, page, pageSize * page, totalRows)
+      Page(computers, page, offest, totalRows)
       
     }
     
