@@ -1,0 +1,14 @@
+@()
+
+@views.html.auth.main {
+    @views.html.helper.form(routes.Application.login()) {
+        <h1>Lost password?</h1>
+        <p>Fill in the form, then follow instruction in the email that will be sent.</p>
+        <p><input type="email" name="login" placeholder="Email" /></p>
+        <p><button type="submit">Recover</button></p>
+        <nav>
+           <a href="@routes.Application.login()">Back to login</a>
+           <a href="@routes.Application.register()">Register</a>
+       </nav>
+    }
+}

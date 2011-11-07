@@ -37,14 +37,14 @@ package views.html.helper {
 
     type HtmlArgs = (Symbol, Any)
 
-    def apply(field: play.api.data.Field, options: Map[Any, Any], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {
-      genericSelect(field, options.map { o =>
-        Option(o._1).map(_.toString).getOrElse("") -> Option(o._2).map(_.toString).getOrElse("")
-      }.toSeq, args: _*)(handler)
+    def apply(field: play.api.data.Field, options: Map[String, String], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {
+      genericSelect(field, options.map { o => o._1 -> o._2 }.toSeq, args: _*)(handler)
     }
 
     def apply(field: play.api.data.Field, options: java.util.Map[_, _], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {
-      apply(field, options.asScala, args: _*)(handler)
+      apply(field, options.asScala.map { o =>
+        Option(o._1).map(_.toString).getOrElse("") -> Option(o._2).map(_.toString).getOrElse("")
+      }, args: _*)(handler)
     }
 
     def apply(field: play.api.data.Field, options: Iterable[Any], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {

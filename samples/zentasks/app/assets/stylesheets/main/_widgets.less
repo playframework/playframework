@@ -1,0 +1,167 @@
+// -----------------------------------
+// WIDGETS
+// -----------------------------------
+// author: mda@zenexity.com - 2011
+// -----------------------------------
+
+// --------------------------- OPTIONS
+.pannel(){
+    > dd {
+        //display: none;
+        .transform(scale(.001));
+        .transition(-webkit-transform, 200ms, ease-out);
+        -webkit-transform-origin: right top;
+        -moz-transform-origin: right top;
+        transform-origin: right top;
+        position: absolute;
+        top: 100%;
+        right: -2px;
+        width: 150px;
+        margin: 7px 0px 0 0;
+        padding: 5px;
+        z-index: 99;
+        background: @panBackground;
+        border-radius: 5px;
+        box-shadow: 0 2px 7px @panShadow;
+        a, button {
+            display: block;
+            width: 100%;
+            padding: 3px 10px;
+            color: @panText;
+            border-radius: 2px;
+            background: none;
+            &:hover {
+                background: @panButtonBackground;
+                color: @panButtonColor;
+            }
+        }
+        &:before {
+            content: " ";
+            display: block;
+            border-bottom: 6px solid @panBackground;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: none;
+            margin-right: 0;
+            margin-top: -12px;
+            position: absolute;
+            right: 5px;
+            width: 1px;
+            height: 1px;
+        }
+    }
+    &.opened > dd {
+        .transform(scale(1));
+    }
+}
+
+.button() {
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid @headerDark - #111;
+    .gradient(fadeout(#bff, 80%), fadeout(#bff, 100%));
+    background-color: @headerDark;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3),
+                inset 0 1px 0 rgba(255,255,255,.2),
+                inset 0 -1px 0 rgba(0,0,0,.2);
+    text-shadow: -1px -1px 0 rgba(0,0,0,.3);
+    color: @buttonColor;
+    cursor: pointer;
+    &:hover {
+        .gradient(fadeout(#bff, 70%), fadeout(#bff, 100%));
+        background-color: @headerDark;
+        color: @buttonHover;
+    }
+}
+
+.box() {
+    border: 1px solid @folderBorder;
+    background: @folderBackground;
+    border-radius: 5px;
+    margin: 0 0 20px;
+    > header {
+        border-radius: 5px 5px 0 0;
+        .gradient(@folderHeaderLight, @folderHeaderDark);
+        border-bottom: inherit;
+        padding: 4px 7px;
+        h3 {
+            display: inline-block;
+            font-size: 15px;
+            font-weight: bold;
+            color: @folderTitle;
+            text-shadow: 1px 1px 0 #fff;
+        }
+    }
+}
+.options {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    font-size: 11px;
+    dt {
+        width: inherit;
+        cursor: pointer;
+        height: inherit;
+        text-indent: -9999em;
+        background: url(/assets/images/icons/options.png) 0 0 no-repeat;
+    }
+    &:hover dt, &.opened dt, {
+        background: url(/assets/images/icons/options.png) 0 -20px no-repeat;
+    }
+    .pannel();
+}
+
+.new {
+    display: inline-block;
+    .button();
+    &:before {
+        content: "+";
+        font-size: 15px;
+        line-height: 15px;
+        font-weight: bold;
+        color: @activeColor;
+        padding-right: 4px;
+    }
+}
+
+.delete {
+    position: absolute;
+    top: 0px;
+    right: 0;
+    border: none;
+    padding: 0;
+    width: 18px;
+    height: 20px;
+    overflow: hidden;
+    text-indent: -99em;
+    background: url(/assets/images/icons/delete.png) 0 1px no-repeat;
+    .transition(opacity, 300ms, ease-in-out);
+    -webkit-transition-delay: 100ms;
+    z-index: 7;
+    cursor: pointer;
+    &:hover {
+        background: url(/assets/images/icons/delete.png) 0 -19px no-repeat;
+    }
+}
+
+.counter {
+    color: #888;
+    font-size: 11px;
+    text-shadow: 1px 1px 0 rgba(255,255,255,.7);
+    margin: 2px 5px;
+    padding: 0px 3px;
+    background: rgba(0,0,0,.05);
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,.15);
+}
+
+.loader {
+    display: none;
+    overflow: hidden;
+    text-indent: -99em;
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    background: url(/assets/images/loading.gif);
+}
+

@@ -36,6 +36,8 @@ package anorm {
     case class ExtendedParser[A](p: Parser[A]) {
       // a combinator that keeps first parser from consuming input
       def ~<[B](b: Parser[B]): Parser[A ~ B] = guard(p) ~ b
+      def ~/[B](b: Parser[B]): Parser[A ~ B] = guard(p) ~ b
+      def ?! : Parser[Option[A]] = (p ^^ { case o => Some(o) } | newLine ^^^ None)
     }
 
     def sequence[A](ps: Traversable[Parser[A]])(implicit bf: CanBuildFrom[Traversable[_], A, Traversable[A]]) = {
@@ -62,7 +64,11 @@ package anorm {
           b.f(r).map(c =>
             new ~(a, c))))
       def ~<[B](b: Parser[B]): Parser[A ~ B] = extendParser(this) ~< b
+      def ~/[B](b: Parser[B]): Parser[A ~ B] = extendParser(this) ~< b
+      def ?! : Parser[Option[A]] = extendParser(this) ?!
     }
+
+    def maybe[A](p: Parser[A]): Parser[Option[A]] = extendParser(p) ?!
 
     def str(columnName: String): RowParser[String] = get[String](columnName)(implicitly[ColumnTo[String]])
 

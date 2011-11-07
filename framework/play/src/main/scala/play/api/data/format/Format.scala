@@ -37,6 +37,14 @@ trait Formatter[T] {
 object Formats {
 
   /**
+   * Formatter for fixed values.
+   */
+  def fixedFormat[A](value: A): Formatter[A] = new Formatter[A] {
+    def bind(key: String, data: Map[String, String]) = Right(value)
+    def unbind(key: String, value: A) = Map.empty
+  }
+
+  /**
    * Default formatter for String type.
    */
   implicit def stringFormat = new Formatter[String] {

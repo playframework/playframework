@@ -1,0 +1,130 @@
+// -----------------------------------
+// PROJECTS DRAWER
+// -----------------------------------
+// author: mda@zenexity.com - 2011
+// -----------------------------------
+body {
+    & > nav {
+        padding: 10px 0 0;
+        background: @drawerBackground;
+        border-right: 1px solid @layoutBorderColor;
+    }
+    .dashboard {
+        display: block;
+        position: relative;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 10px 5px 5px 25px;
+        background: url(/assets/images/icons/home.png) 6px 7px no-repeat;
+        a {
+            color: @folderColor;
+            cursor: default;
+        }
+    }
+    h4 {
+        cursor: default;
+    }
+}
+
+#projects {
+    input {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font: inherit;
+    }
+    > li {
+        position: relative;
+        padding: 10px 5px 5px 25px;
+        .options {
+            position: absolute;
+            top: 7px;
+            right: 5px;
+            button {
+                border: none;
+            }
+        }
+        .loader {
+            top: 8px;
+            right: 6px;
+        }
+        li {
+            position: relative;
+            padding: 0 0 0 25px;
+            background: url(/assets/images/icons/folder.png) 1px 1px no-repeat;
+            a {
+                display: block;
+                color: @projectColor;
+                padding: 2px;
+            }
+            input[type=text] {
+                padding: 2px 1px;
+            }
+            .delete {
+                opacity: 0.1;
+            }
+            .loader {
+                top: 2px;
+                right: 2px;
+            }
+             &:hover {
+               a {
+                    color: #000;
+               }
+                .delete {
+                    opacity: 1;
+                    //-webkit-transition-delay: 0;
+                }
+            }
+        }
+        .toggle {
+            content: " ";
+            position: absolute;
+            left: 8px;
+            top: 12px;
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            vertical-align: middle;
+            background: url(/assets/images/icons/drawer.folder.png) 0 0 no-repeat;
+        }
+        > h4 {
+            display: block;
+            margin: 0 0 5px;
+            padding: 0 1px;
+            position: relative;
+            color: @folderColor;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        > input {
+            margin: 0 0 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        &.closed {
+            >ul {
+                display: none;
+            }
+            .toggle {
+                background-position: 0 -20px;
+            }
+        }
+    }
+}
+
+#activity {
+    position: absolute;
+    bottom: 0;
+    font-size: 11px;
+    padding: 10px;
+}
+
+#newGroup {
+    font-size: 13px;
+    .new();
+    margin: 15px 25px;
+}

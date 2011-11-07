@@ -61,6 +61,10 @@ package object data {
     ObjectMapping4(apply, a, b, c, d)
   }
 
+  def of[T <: Product, A, B, C, D, E](apply: Function5[A, B, C, D, E, T])(a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]), d: (String, Mapping[D]), e: (String, Mapping[E])): Mapping[T] = {
+    ObjectMapping5(apply, a, b, c, d, e)
+  }
+
   /**
    * Create a Mapping of tuple (A,B).
    *
@@ -132,6 +136,17 @@ package object data {
    * }}}
    */
   val date: Mapping[java.util.Date] = of[java.util.Date]
+
+  /**
+   * Define a fixed value in a mapping.
+   * This mapping will not participate to the binding.
+   */
+  def fixed[A](value: A): Mapping[A] = of(fixedFormat(value))
+
+  /**
+   * Define a optional mapping.
+   */
+  def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
 
   /**
    * Construct a simple mapping for date field.
