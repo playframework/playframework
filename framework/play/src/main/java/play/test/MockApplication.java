@@ -51,7 +51,15 @@ public abstract class MockApplication extends Mock{
   public List<Plugin> mockPlugins() {
     return new ArrayList<Plugin>();
   }
-  
+
+  /*
+   *clearing the mock from current scope
+   *
+   */
+  public void clearMock() {
+   setCurrentApp(null);
+  }
+
   public MockApplication() {
     setCurrentApp(makeApp(mockPlugins(), mockConfig()));
   }
