@@ -192,6 +192,9 @@ class Project extends Backbone.View
 
 # ---------------------------------------- ROUTER
 class AppRouter extends Backbone.Router
+    initialize: ->
+        @currentApp = new Tasks
+            el: $("#main")
     routes:
         "/"                     : "index"
         "/tasks/:project"       : "tasks"
@@ -202,9 +205,7 @@ class AppRouter extends Backbone.Router
         # load project || display app
         currentApp = @currentApp
         $("#main").load "/tasks/"+project, (tpl) ->
-            currentApp = new Tasks
-                el: $(this)
-                project: project
+            currentApp.render(project)
 
 # ----------------------------------------- TASKS
 class Tasks extends Backbone.View
@@ -212,8 +213,8 @@ class Tasks extends Backbone.View
         "click .newFolder"              : "newFolder"
         "click .list .action"           : "removeUser"
         "click .addUserList .action"    : "addUser"
-    initialize: (options) ->
-        @project = options.project
+    render: (project) ->
+        @project = project
         # HTML is our model
         @folders = $.map $(".folder", @el), (folder) =>
             new TaskFolder
