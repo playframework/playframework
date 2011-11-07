@@ -69,7 +69,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    * The configuration used by this application.
    * @see play.api.Configuration
    */
-  lazy val configuration = Configuration.fromFile(new File(path, "conf/application.conf"))
+  lazy val configuration = getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty)
 
   // Reconfigure logger
   {

@@ -31,6 +31,8 @@ object Configuration {
     Configuration(new ConfigurationParser(file).parse.map(c => c.key -> c).toMap)
   }
 
+  def empty = Configuration(Map.empty)
+
   class ConfigurationParser(configurationFile: File) extends RegexParsers {
 
     case class Comment(msg: String)
