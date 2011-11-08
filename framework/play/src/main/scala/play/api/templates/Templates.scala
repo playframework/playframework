@@ -3,199 +3,148 @@ package play.api.templates
 import play.api.mvc._
 import play.templates._
 
-/**
- * Content type used in default html templates.
- *
- * @param text The html text.
- */
+/** Content type used in default HTML templates.
+  *
+  * @param text the HTML text
+  */
 case class Html(text: String) extends Appendable[Html] with Content {
   val buffer = new StringBuilder(text)
 
-  /**
-   * Append this Html fragment with another.
-   */
+  /** Appends this HTML fragment to another. */
   def +(other: Html) = {
     buffer.append(other.buffer)
     this
   }
   override def toString = buffer.toString
 
-  /**
-   * Content type of Html (text/html)
-   */
+  /** Content type of HTML (`text/html`). */
   def contentType = "text/html"
 
   def body = toString
 
 }
 
-/**
- * Helper for utilities HTML methods.
+/** Helper for HTML utility methods.
  */
 object Html {
 
-  /**
-   * Create an empty HTML fragment.
-   */
+  /** Creates an empty HTML fragment. */
   def empty = Html("")
 
 }
 
-/**
- * Formatter for Html content.
- */
+/** Formatter for HTML content. */
 object HtmlFormat extends Format[Html] {
 
-  /**
-   * Create a raw (unescaped) Html fragment.
-   */
+  /** Creates a raw (unescaped) HTML fragment. */
   def raw(text: String) = Html(text)
 
-  /**
-   * Create a safe (escaped) Html fragment.
-   */
+  /** Creates a safe (escaped) HTML fragment. */
   def escape(text: String) = Html(org.apache.commons.lang.StringEscapeUtils.escapeHtml(text))
 
 }
 
-/**
- * Content type used in default text templates.
- *
- * @param text The plain text.
- */
+/** Content type used in default text templates.
+  *
+  * @param text The plain text.
+  */
 case class Txt(text: String) extends Appendable[Txt] with Content {
   val buffer = new StringBuilder(text)
 
-  /**
-   * Append this Txt fragment with another.
-   */
+  /** Appends this text fragment to another. */
   def +(other: Txt) = {
     buffer.append(other.buffer)
     this
   }
   override def toString = buffer.toString
 
-  /**
-   * Content type of Txt (text/plain)
-   */
+  /** Content type of text (`text/plain`). */
   def contentType = "text/plain"
 
   def body = toString
 
 }
 
-/**
- * Helper for utilities Txt methods.
- */
+/** Helper for utilities Txt methods. */
 object Txt {
 
-  /**
-   * Create an empty Txt fragment.
-   */
+  /** Creates an empty text fragment. */
   def empty = Txt("")
 
 }
 
-/**
- * Formatter for Txt content.
- */
+/** Formatter for text content. */
 object TxtFormat extends Format[Txt] {
 
-  /**
-   * Create a Txt fragment.
-   */
+  /** Create a text fragment. */
   def raw(text: String) = Txt(text)
 
-  /**
-   * No need for a safe (escaped) Txt fragment.
-   */
+  /** No need for a safe (escaped) text fragment. */
   def escape(text: String) = Txt(text)
 
 }
 
-/**
- * Content type used in default xml templates.
- *
- * @param text The plain xml text.
- */
+/** Content type used in default XML templates.
+  *
+  * @param text the plain xml text
+  */
 case class Xml(text: String) extends Appendable[Xml] with Content {
   val buffer = new StringBuilder(text)
 
-  /**
-   * Append this Xml fragment with another.
-   */
+  /** Append this XML fragment to another. */
   def +(other: Xml) = {
     buffer.append(other.buffer)
     this
   }
   override def toString = buffer.toString
 
-  /**
-   * Content type of Xml (text/xml)
-   */
+  /** Content type of XML (`text/xml`). */
   def contentType = "text/xml"
 
   def body = toString
 
 }
 
-/**
- * Helper for utilities Xml methods.
- */
+/** Helper for XML utility methods. */
 object Xml {
 
-  /**
-   * Create an empty Txt fragment.
-   */
+  /** Create an empty XML fragment. */
   def empty = Xml("")
 
 }
 
-/**
- * Formatter for Xml content.
- */
+/** Formatter for XML content. */
 object XmlFormat extends Format[Xml] {
 
-  /**
-   * Create a Xml fragment.
-   */
+  /** Creates an XML fragment. */
   def raw(text: String) = Xml(text)
 
-  /**
-   * No need for a safe (escaped) Txt fragment.
-   */
+  /** Creates an escaped XML fragment. */
   def escape(text: String) = Xml(org.apache.commons.lang.StringEscapeUtils.escapeXml(text))
 
 }
 
-/**
- * Defines magic helper in Play templates.
- */
+/** Defines a magic helper for Play templates. */
 object PlayMagic {
 
   import scala.collection.JavaConverters._
 
-  /**
-   * Transform a Play java option to a proper scala option.
-   */
+  /** Transforms a Play Java `Option` to a proper Scala `Option`. */
   implicit def javaOptionToScala[T](x: play.libs.F.Option[T]): Option[T] = x match {
     case x: play.libs.F.Some[T] => Some(x.get)
     case x: play.libs.F.None[T] => None
   }
 
-  /**
-   * Generate a set of valid HTML attributes.
-   *
-   * Example:
-   * {{{
-   * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
-   * }}}
-   */
+  /** Generates a set of valid HTML attributes.
+    *
+    * For example:
+    * {{{
+    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
+    * }}}
+    */
   def toHtmlArgs(args: Seq[(Symbol, Any)]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
 
-  /**
-   * Transform a Play java Form fiel to a proper Scala Form field.
-   */
+  /** Transforms a Play Java form `Field` to a proper Scala form `Field`. */
   implicit def javaFieldtoScalaField(field: play.data.Form.Field) = {
     play.api.data.Field(
       field.name,

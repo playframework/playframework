@@ -8,23 +8,21 @@ import java.io._
 
 import scala.collection.JavaConverters._
 
-/**
- * A Play application.
- *
- * Application creation is handled by the framework engine. If you need to create an adhoc application
- * for example in case of unit testing, you can easily achieve it using:
- *
- * {{{
- * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
- * }}}
- *
- * It will create an application using the current classloader.
- *
- * @param path The absolute path hosting this application. Mainly used by the getFile(path) helper method.
- * @param classloader Application's classloader.
- * @param sources SourceMapper used to retrieve source code displayed in error pages.
- * @param mode Dev or Prod, passed as information for the user code.
- */
+/** A Play application.
+  *
+  * Application creation is handled by the framework engine. If you need to create an ad-hoc application,
+  * for example in case of unit testing, you can easily achieve this using:
+  * {{{
+  * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
+  * }}}
+  *
+  * This will create an application using the current classloader.
+  *
+  * @param path the absolute path hosting this application, mainly used by the `getFile(path)` helper method
+  * @param classloader the application's classloader
+  * @param sources the `SourceMapper` used to retrieve source code displayed in error pages
+  * @param mode `DEV` or `PROD`, passed as information for the user code
+  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
@@ -42,10 +40,10 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     case e => throw e
   }
 
-  /**
-   * The global settings used by this application.
-   * @see play.api.GlobalSettings
-   */
+  /** The global settings used by this application.
+    *
+    * @see play.api.GlobalSettings
+    */
   val global: GlobalSettings = try {
     javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
   } catch {
@@ -55,9 +53,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
       Some(e))
   }
 
-  /**
-   * The router used by this application.
-   */
+  /** The router used by this application. */
   val routes: Option[Router.Routes] = try {
     Some(classloader.loadClassParentLast("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes])
   } catch {
@@ -65,10 +61,10 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     case e => throw e
   }
 
-  /**
-   * The configuration used by this application.
-   * @see play.api.Configuration
-   */
+  /** The configuration used by this application.
+    *
+    * @see play.api.Configuration
+    */
   lazy val configuration = getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty)
 
   // Reconfigure logger
@@ -95,10 +91,10 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
 
   }
 
-  /**
-   * The plugins list used by this application.
-   * @see play.api.Plugin
-   */
+  /** The plugins list used by this application.
+    *
+    * @see play.api.Plugin
+    */
   val plugins: Seq[Plugin] = {
 
     import scalax.file._
@@ -140,78 +136,73 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
 
   }
 
-  /**
-   * Retrieve a plugin of type T.
-   *
-   * For example, retrieving the DBPlugin instance:
-   * {{{
-   * val dbPlugin = application.plugin[DBPlugin].map(_.api).getOrElse(throw new exception("problem with the plugin"))
-   * }}}
-   *
-   * @tparam T Plugin type.
-   * @return The plugin instance used by this application.
-   * @throws Error if no plugins of type T are loaded by this application.
-   */
+  /** Retrieves a plugin of type `T`.
+    *
+    * For example, to retrieve the DBPlugin instance:
+    * {{{
+    * val dbPlugin = application.plugin[DBPlugin].map(_.api).getOrElse(throw new exception("problem with the plugin"))
+    * }}}
+    *
+    * @tparam T the plugin type
+    * @return The plugin instance used by this application.
+    * @throws Error if no plugins of type T are loaded by this application.
+    */
   def plugin[T](implicit m: Manifest[T]): Option[T] = plugin(m.erasure).asInstanceOf[Option[T]]
 
-  /**
-   * Retrieve a plugin of type T.
-   *
-   * For example, retrieving the DBPlugin instance:
-   * {{{
-   * val dbPlugin = application.plugin(classOf[DBPlugin])
-   * }}}
-   *
-   * @tparam T Plugin type.
-   * @param  pluginClass Plugin's class
-   * @return The plugin instance, wrapped in an option, used by this application.
-   * @throws Error if no plugins of type T are loaded by this application.
-   */
+  /** Retrieves a plugin of type `T`.
+    *
+    * For example, retrieving the DBPlugin instance:
+    * {{{
+    * val dbPlugin = application.plugin(classOf[DBPlugin])
+    * }}}
+    *
+    * @tparam T the plugin type
+    * @param  pluginClass the plugin’s class
+    * @return the plugin instance, wrapped in an option, used by this application
+    * @throws Error if no plugins of type `T` are loaded by this application
+    */
   def plugin[T](pluginClass: Class[T]): Option[T] =
     plugins.find(p => pluginClass.isAssignableFrom(p.getClass)).map(_.asInstanceOf[T])
 
-  /**
-   * Retrieve a file relatively to the application root path.
-   *
-   * For example to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath Relative path of the file to fetch.
-   * @return A file instance, but it is not guaranteed that the file exist.
-   */
+  /** Retrieves a file relative to the application root path.
+    *
+    * For example, to retrieve a configuration file:
+    * {{{
+    * val myConf = application.getFile("conf/myConf.yml")
+    * }}}
+    *
+    * @param relativePath relative path of the file to fetch
+    * @return a file instance; it is not guaranteed that the file exists
+    */
   def getFile(relativePath: String): File = new File(path, relativePath)
 
-  /**
-   * Retrieve a file relatively to the application root path.
-   *
-   * For example to retrieve a configuration file:
-   * {{{
-   * val myConf = application.getExistingFile("conf/myConf.yml")
-   * }}}
-   *
-   * @param relativePath Relative path of the file to fetch
-   * @return Maybe an existing file.
-   */
+  /** Retrieves a file relative to the application root path.
+    *
+    * For example, to retrieve a configuration file:
+    * {{{
+    * val myConf = application.getExistingFile("conf/myConf.yml")
+    * }}}
+    *
+    * @param relativePath the relative path of the file to fetch
+    * @return an existing file
+    */
   def getExistingFile(relativePath: String): Option[File] = Option(getFile(relativePath)).filter(_.exists)
 
-  /**
-   * Scan the application classloader to retrieve all types annotated with a specific annotation.
-   *
-   * This method is useful for some plugins, for example the EBean plugin will automatically detect all types
-   * annotated with @javax.persistance.Entity, using:
-   * {{{
-   * val entities = application.getTypesAnnotatedWith("models", classOf[javax.persistance.Entity])
-   * }}}
-   *
-   * Note that it is better to specify a very specific package to avoid too expensive searchs.
-   *
-   * @tparam T The annotation type
-   * @param packageName The root package to scan,
-   * @param annotation Annotation class.
-   * @return A set of types names statifying the condition.
-   */
+  /** Scans the application classloader to retrieve all types annotated with a specific annotation.
+    *
+    * This method is useful for some plugins, for example the EBean plugin will automatically detect all types
+    * annotated with `@javax.persistance.Entity`, using:
+    * {{{
+    * val entities = application.getTypesAnnotatedWith("models", classOf[javax.persistance.Entity])
+    * }}}
+    *
+    * Note that it is better to specify a very specific package to avoid expensive searches.
+    *
+    * @tparam T the annotation type
+    * @param packageName the root package to scan
+    * @param annotation the annotation class
+    * @return a set of types names specifying the condition
+    */
   def getTypesAnnotatedWith[T <: java.lang.annotation.Annotation](packageName: String, annotation: Class[T]): Set[String] = {
     import org.reflections._
     new Reflections(
@@ -220,17 +211,16 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
         .setScanners(new scanners.TypeAnnotationsScanner())).getStore.getTypesAnnotatedWith(annotation.getName).asScala.toSet
   }
 
-  /**
-   * Scan the application classloader to retrieve a resource.
-   *
-   * For example, retrieving a configuration file:
-   * {{{
-   * val maybeConf = application.resource("conf/logger.xml")
-   * }}}
-   *
-   * @param name Absolute name of the resource (from the classpath root).
-   * @return Maybe the resource URL if found.
-   */
+  /** Scans the application classloader to retrieve a resource.
+    *
+    * For example, to retrieve a configuration file:
+    * {{{
+    * val maybeConf = application.resource("conf/logger.xml")
+    * }}}
+    *
+    * @param name the absolute name of the resource (from the classpath root)
+    * @return the resource URL, if found
+    */
   def resource(name: String): Option[java.net.URL] = {
     Option(classloader.getResource(Option(name).map {
       case s if s.startsWith("/") => s.drop(1)
@@ -238,17 +228,16 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     }.get))
   }
 
-  /**
-   * Scan the application classloader to retrieve a resource content as stream.
-   *
-   * For example, retrieving a configuration file:
-   * {{{
-   * val maybeConf = application.resourceAsStream("conf/logger.xml")
-   * }}}
-   *
-   * @param name Absolute name of the resource (from the classpath root).
-   * @return Maybe a stream if found.
-   */
+  /** Scans the application classloader to retrieve a resource’s contents as a stream.
+    *
+    * For example, to retrieve a configuration file:
+    * {{{
+    * val maybeConf = application.resourceAsStream("conf/logger.xml")
+    * }}}
+    *
+    * @param name the absolute name of the resource (from the classpath root)
+    * @return a stream, if found
+    */
   def resourceAsStream(name: String): Option[InputStream] = {
     Option(classloader.getResourceAsStream(Option(name).map {
       case s if s.startsWith("/") => s.drop(1)

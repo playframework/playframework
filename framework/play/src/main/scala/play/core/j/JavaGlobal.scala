@@ -3,9 +3,7 @@ package play.core.j
 import play.api._
 import play.api.mvc._
 
-/**
- * Adapter that holds the java GlobalSettings and acts as a scala GlobalSettings for the framework.
- */
+/** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
 class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends GlobalSettings {
   require(javaGlobalSettings != null, "javaGlobalSettings cannot be null")
 

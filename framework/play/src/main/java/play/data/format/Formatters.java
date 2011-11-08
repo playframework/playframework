@@ -21,7 +21,7 @@ public class Formatters {
      * Parses this string as instance of the given class.
      *
      * @param text the text to parse
-     * @parse clazz class representing the required type
+     * @param clazz class representing the required type
      * @return the parsed value
      */
     public static <T> T parse(String text, Class<T> clazz) {
@@ -33,7 +33,7 @@ public class Formatters {
      *
      * @param field the related field (custom formatters are extracted from this field annotation)
      * @param text the text to parse
-     * @parse clazz class representing the required type
+     * @param clazz class representing the required type
      * @return the parsed value
      */
     public static <T> T parse(Field field, String text, Class<T> clazz) {
@@ -117,7 +117,7 @@ public class Formatters {
         /**
          * Unbinds this field - transforms a concrete value to plain string.
          *
-         * @param value the value to unbind
+         * @param t the value to unbind
          * @param locale the current <code>Locale</code>
          * @return printable version of the value
          */
