@@ -12,3 +12,4 @@ workspace/
 framework/sbt/boot
 .history
 
+.idea
