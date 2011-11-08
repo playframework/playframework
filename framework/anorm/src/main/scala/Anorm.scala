@@ -38,15 +38,18 @@ package anorm {
   case class IntegrityConstraintViolation(message: String) extends SqlRequestError
 
   abstract class Pk[+ID] {
-    def isAssigned: Boolean = this match {
-      case Id(_) => true
-      case NotAssigned => false
+
+    def toOption: Option[ID] = this match {
+      case Id(x) => Some(x)
+      case NotAssigned => None
     }
 
-    def get = this match {
-      case Id(id) => id
-      case NotAssigned => error("Id not assigned")
-    }
+    def isDefined: Boolean = toOption.isDefined
+    def get: ID = toOption.get
+    def getOrElse[V >: ID](id: V): V = toOption.getOrElse(id)
+    def map[B](f: ID => B) = toOption.map(f)
+    def flatMap[B](f: ID => Option[B]) = toOption.flatMap(f)
+    def foreach(f: ID => Unit) = toOption.foreach(f)
 
   }
 

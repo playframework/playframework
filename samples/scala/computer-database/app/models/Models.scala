@@ -70,11 +70,11 @@ object Computer {
       
       val computers = SQL(
         """
-        select * from computer 
-        left join company on computer.company_id = company.id
-        where computer.name like {filter}
-        order by {orderBy} nulls last
-        limit {pageSize} offset {offset}
+          select * from computer 
+          left join company on computer.company_id = company.id
+          where computer.name like {filter}
+          order by {orderBy} nulls last
+          limit {pageSize} offset {offset}
         """
       ).on(
         'pageSize -> pageSize, 
@@ -85,9 +85,9 @@ object Computer {
 
       val totalRows = SQL(
         """
-        select count(*) from computer 
-        left join company on computer.company_id = company.id
-        where computer.name like {filter}
+          select count(*) from computer 
+          left join company on computer.company_id = company.id
+          where computer.name like {filter}
         """
       ).on(
         'filter -> filter
@@ -109,9 +109,9 @@ object Computer {
     DB.withConnection { implicit connection =>
       SQL(
         """
-        update computer set
-        name = {name}, introduced = {introduced}, discontinued = {discontinued}, company_id = {company_id}
-        where id = {id}
+          update computer
+          set name = {name}, introduced = {introduced}, discontinued = {discontinued}, company_id = {company_id}
+          where id = {id}
         """
       ).on(
         'id -> id,
@@ -132,10 +132,10 @@ object Computer {
     DB.withConnection { implicit connection =>
       SQL(
         """
-        insert into computer values (
-          (select next value for computer_seq), 
-          {name}, {introduced}, {discontinued}, {company_id}
-        )
+          insert into computer values (
+            (select next value for computer_seq), 
+            {name}, {introduced}, {discontinued}, {company_id}
+          )
         """
       ).on(
         'name -> computer.name,

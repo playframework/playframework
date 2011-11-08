@@ -100,6 +100,20 @@ package object data {
   val text: Mapping[String] = of[String]
 
   /**
+   * Construct a simple mapping for required text field.
+   *
+   * Note that all field are always required to be present in the form unless
+   * there are marked as optional explicitely. But a requiredText defines text
+   * field that must not be empty, even if present in the form.
+   *
+   * Example:
+   * {{{
+   *   Form("username" -> requiredText)
+   * }}}
+   */
+  val requiredText: Mapping[String] = text verifying Constraints.required
+
+  /**
    * Construct a simple mapping for text field.
    *
    * Example:
@@ -116,6 +130,19 @@ package object data {
     case (0, max) => text verifying Constraints.maxLength(max)
     case (min, max) => text verifying (Constraints.minLength(min), Constraints.maxLength(max))
   }
+
+  /**
+   * Construct a simple mapping for required text field.
+   *
+   * Example:
+   * {{{
+   *   Form("username" -> requiredText(minLength=3))
+   * }}}
+   *
+   * @param minLength Text min length.
+   * @param maxLength Text max length.
+   */
+  def requiredText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = text(minLength, maxLength) verifying Constraints.required
 
   /**
    * Construct a simple mapping for numeric field.
@@ -140,8 +167,10 @@ package object data {
   /**
    * Define a fixed value in a mapping.
    * This mapping will not participate to the binding.
+   *
+   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
    */
-  def fixed[A](value: A): Mapping[A] = of(fixedFormat(value))
+  def ignored[A](value: A): Mapping[A] = of(ignoredFormat(value))
 
   /**
    * Define a optional mapping.

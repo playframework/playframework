@@ -1,0 +1,137 @@
+// -----------------------------------
+// TASKS
+// -----------------------------------
+// author: mda@zenexity.com - 2011
+// -----------------------------------
+
+.tasks {
+    .folder {
+        .box();
+        > header {
+            position: relative;
+            padding: 4px 25px 4px 7px;
+            input {
+                display: inline-block;
+            }
+            input[type=text] {
+                margin: 1px 0 0;
+            }
+            .options, .loader {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+            }
+        }
+        > ul {
+            > li {
+                position: relative;
+                padding: 4px 20px 4px 7px;
+                border-bottom: 1px solid rgba(0,0,0,.05);
+                -webkit-user-select: text;
+                time {
+                    float: right;
+                    display: inline-block;
+                    margin: 0 10px;
+                    border-radius: 15px;
+                    background: url(/assets/images/icons/clock.png) 1px 1px no-repeat;
+                    background-color: @dueDateBackground;
+                    border: 1px solid @dueDateBorder;
+                    color: @dueDateColor;
+                    font-size: 11px;
+                    padding: 0 4px 1px 15px;
+                }
+                h4 {
+                    display: inline-block;
+                    font-weight: bold;
+                }
+                .deleteTask {
+                    .delete();
+                    top: 4px;
+                    right: 4px;
+                }
+                &:hover .deleteTask {
+                    opacity: 1;
+                    -webkit-transition-delay: 0;
+                }
+                .assignedTo {
+                    float: right;
+                    display: inline-block;
+                    margin: 0 10px;
+                    padding-left: 17px;
+                    color: @assignedToColor;
+                    background: url(/assets/images/icons/user2.png) 0 1px no-repeat;
+                }
+            }
+        }
+        .addTask {
+            position: relative;
+            border-radius: 0 0 4px 4px;
+            padding: 5px 250px 5px 5px;
+            background: white;
+            &:after {
+                content: " ";
+                display: block;
+                clear: both;
+            }
+            input {
+                outline: none;
+            }
+            [name=taskBody] {
+                width: 100%;
+                border: 0;
+            }
+            .dueDate {
+                position: absolute;
+                right: 210px;
+                top: 4px;
+                width: 140px;
+                border-radius: 15px;
+                background: url(/assets/images/icons/clock.png) 2px 2px no-repeat;
+                background-color: @dueDateBackground;
+                border: 1px solid @dueDateBorder;
+                color: @dueDateColor;
+                font-size: 11px;
+                padding: 1px 4px 1px 15px;
+                &::-webkit-input-placeholder {
+                    color: inherit;
+                }
+                &:-moz-placeholder {
+                    color: inherit;
+                }
+            }
+            .assignedTo {
+                position: absolute;
+                right: 5px;
+                top: 5px;
+                width: 195px;
+                input {
+                    width: 180px;
+                    margin: 2px;
+                    border: 0;
+                }
+            }
+            .assignToList {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                min-width: 100%;
+                background: rgba(0,0,0,.8);
+                color: #eee;
+            }
+            [type=submit] {
+                position: absolute;
+                left: -3000px;
+                visibility: hidden;
+            }
+            ul, div {
+                display: inline-block;
+            }
+        }
+        .loader {
+            position: absolute;
+            top: 5px;
+            right: 6px;
+        }
+    }
+}

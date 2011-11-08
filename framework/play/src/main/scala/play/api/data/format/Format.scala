@@ -37,9 +37,11 @@ trait Formatter[T] {
 object Formats {
 
   /**
-   * Formatter for fixed values.
+   * Formatter for ignored values.
+   *
+   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
    */
-  def fixedFormat[A](value: A): Formatter[A] = new Formatter[A] {
+  def ignoredFormat[A](value: A): Formatter[A] = new Formatter[A] {
     def bind(key: String, data: Map[String, String]) = Right(value)
     def unbind(key: String, value: A) = Map.empty
   }

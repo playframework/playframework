@@ -25,8 +25,8 @@ object Application extends Controller {
    */ 
   val computerForm = Form(
     of(Computer.apply _)(
-      "id" -> fixed(NotAssigned),
-      "name" -> (text verifying required),
+      "id" -> ignored(NotAssigned),
+      "name" -> requiredText,
       "introduced" -> optional(date("yyyy-MM-dd")),
       "discontinued" -> optional(date("yyyy-MM-dd")),
       "company" -> optional(number)

@@ -92,7 +92,6 @@ object Security {
    * }}}
    */
   trait AllAuthenticated extends ControllerLike {
-    self: Controller =>
 
     /**
      * Override the default Action method.
