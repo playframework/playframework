@@ -5,9 +5,7 @@ package play.api.http
  */
 object Status extends Status
 
-/**
- * Defines all standard HTTP Status.
- */
+/** Defines all standard HTTP status codes. */
 trait Status {
 
   val CONTINUE = 100
@@ -57,14 +55,10 @@ trait Status {
 
 }
 
-/**
- * Defines all standard HTTP headers.
- */
+/** Defines all standard HTTP headers. */
 object HeaderNames extends HeaderNames
 
-/**
- * Defines all standard HTTP headers.
- */
+/** Defines all standard HTTP headers. */
 trait HeaderNames {
 
   val ACCEPT = "Accept"

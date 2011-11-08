@@ -9,49 +9,47 @@ import javax.sql._
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
-/**
- * The Play Database Api manages several connection pools.
- *
- * @param datasources The managed datasources.
- */
+/** The Play Database API manages several connection pools.
+  *
+  * @param datasources the managed data sources
+  */
 case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
-  /**
-   * Retrieve a JDBC connection. Don't forget to release the connection
-   * at some point by calling close().
-   *
-   * @param name The datasource name.
-   * @param autocommit Set this connection to autocommit.
-   * @return An JDBC connection.
-   * @throws An error is the required datasource is not registred.
-   */
+  /** Retrieves a JDBC connection.
+    *
+    * Don’t forget to release the connection at some point by calling close().
+    *
+    * @param name the data source name
+    * @param autocommit when `true`, sets this connection to auto-commit
+    * @return a JDBC connection
+    * @throws an error if the required data source is not registered
+    */
   def getConnection(name: String, autocommit: Boolean = true): Connection = {
     val connection = getDataSource(name).getConnection
     connection.setAutoCommit(autocommit)
     connection
   }
 
-  /**
-   * Retrieve a JDBC connection (autocommit is set to true).
-   * Don't forget to release the connection at some point by calling close().
-   *
-   * @param name The datasource name.
-   * @return An JDBC connection.
-   * @throws An error is the required datasource is not registred.
-   */
+  /** Retrieves a JDBC connection, with auto-commit set to `true`.
+    *
+    * Don’t forget to release the connection at some point by calling close().
+    *
+    * @param name the data source name
+    * @return a JDBC connection
+    * @throws an error if the required data source is not registered
+    */
   def getDataSource(name: String): DataSource = {
     datasources.get(name).map { _._1 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
     }
   }
 
-  /**
-   * Retrieve the JDBC connection URL for a particular datasource.
-   *
-   * @param name The datasource name.
-   * @return The JDBC url connection String (ie. jdbc:...)
-   * @throws An error is the required datasource is not registred.
-   */
+  /** Retrieves the JDBC connection URL for a particular data source.
+    *
+    * @param name the data source name
+    * @return The JDBC URL connection string, i.e. `jdbc:…`
+    * @throws an error if the required data source is not registered
+    */
   def getDataSourceURL(name: String): String = {
     datasources.get(name).map { _._2 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
@@ -98,17 +96,14 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
 }
 
-/**
- * This object contains helper to create datasource managed by the DBApi.
- */
+/** Helper methods for creating data sources managed by `DBApi`. */
 object DBApi {
 
-  /**
-   * Create a new datasource from configuration.
-   *
-   * @param conf The configuration part related to this datasource.
-   * @param classloader The classloader used to load the JDBC driver.
-   */
+  /** Creates a new data source from a configuration.
+    *
+    * @param conf the configuration part related to this data source
+    * @param classloader the classloader used to load the JDBC driver
+    */
   def createDataSource(conf: Configuration, classloader: ClassLoader = ClassLoader.getSystemClassLoader) = {
 
     val datasource = new BoneCPDataSource
@@ -186,37 +181,33 @@ object DBApi {
 
 }
 
-/**
- * This object provides high level API to get JDBC connections.
- *
- * Example:
- * {{{
- * val conn = DB.getConnection("customers")
- * }}}
- */
+/** Provides a high-level API for getting JDBC connections.
+  *
+  * For example:
+  * {{{
+  * val conn = DB.getConnection("customers")
+  * }}}
+  */
 object DB {
 
-  /**
-   * the exception we are throwing
-   */
+  /** The exception we are throwing. */
   private def error = throw new Exception("seems like db plugin is not registered properly, so we can not make calls to it.")
-  /**
-   * Retrieve a JDBC connection.
-   *
-   * @param name Datasource name.
-   * @param autocommit Set this connection to autocommit.
-   * @return An JDBC connection.
-   * @throws An error is the required datasource is not registred.
-   */
+  
+  /** Retrieves a JDBC connection.
+    *
+    * @param name data source name
+    * @param autocommit when `true`, sets this connection to auto-commit
+    * @return a JDBC connection
+    * @throws an error if the required data source is not registered
+    */
   def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].map(_.api.getConnection(name, autocommit)).getOrElse(error)
 
-  /**
-   * Retrieve a JDBC connection (autocommit is set to true).
-   *
-   * @param name Datasource name.
-   * @return An JDBC connection.
-   * @throws An error is the required datasource is not registred.
-   */
+  /** Retrieves a JDBC connection (autocommit is set to true).
+    *
+    * @param name data source name
+    * @return a JDBC connection
+    * @throws an error if the required data source is not registered
+    */
   def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].map(_.api.getDataSource(name)).getOrElse(error)
 
   /**
@@ -265,11 +256,10 @@ object DB {
 
 }
 
-/**
- * Play Plugin to manage datasources.
- *
- * @param app The application in which registering the plugin.
- */
+/** Play Plugin to manage data sources.
+  *
+  * @param app the application that is registering the plugin
+  */
 class DBPlugin(app: Application) extends Plugin {
 
   private lazy val db = {
@@ -282,15 +272,10 @@ class DBPlugin(app: Application) extends Plugin {
 
   override def enabled = if (db.datasources.size > 0) true else false
 
-  /**
-   * Retrieve the underlying DB Api managing the datasources.
-   */
-
+  /** Retrieves the underlying `DBApi` managing the data sources. */
   def api = db
 
-  /**
-   * Read the configuration and connect to every datasources.
-   */
+  /** Reads the configuration and connects to every data source. */
   override def onStart {
     db.datasources.map {
       case (name, (ds, config)) => {
@@ -306,9 +291,7 @@ class DBPlugin(app: Application) extends Plugin {
     }
   }
 
-  /**
-   * Close all datasources.
-   */
+  /** Closes all data sources. */
   override def onStop {
     db.datasources.values.foreach {
       case (ds, _) => try { ds.close() } catch { case _ => }

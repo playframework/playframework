@@ -5,9 +5,8 @@ import collection.JavaConverters._
 import java.util.Calendar
 import play.api.Application
 import util.control.Exception.handling
-/**
- * internal cache interface
- */
+
+/** Internal cache interface. */
 trait CacheAPI {
   def set(key: String, value: Any, expiration: Int)
   def set(key: String, value: Any)
@@ -17,13 +16,10 @@ trait CacheAPI {
   def getAsJava(key: String): AnyRef
 }
 
-/**
- * basic internal implementation of Cache API
- */
+/** Basic internal implementation of the Cache API. */
 class BasicCache extends CacheAPI {
-  /**
-   * http://www.scala-lang.org/docu/files/collections-api/collections_11.html
-   */
+
+  /** http://www.scala-lang.org/docu/files/collections-api/collections_11.html */
   private def makeMap: MMap[String, Tuple2[java.util.Date, Any]] =
     new HashMap[String, Tuple2[java.util.Date, Any]] with SynchronizedMap[String, Tuple2[java.util.Date, Any]]
 
@@ -69,57 +65,43 @@ class BasicCache extends CacheAPI {
   }
 }
 
-/**
- * developer facing Cache API, implementation is recieved from plugin
- */
+/** Developer-facing Cache API, implementation is received from plugin. */
 object Cache {
 
-  /**
-   * the exception we are throwing in case of plugin issues
-   */
+  /** The exception we are throwing in case of plugin issues. */
   private def error = throw new Exception("looks like the cache plugin was not properly registered. Make sure at least one CachePlugin implementation is enabled, otherwise these calls won't work")
-  /**
-   * set a value with expiration
-   * @key
-   * @value
-   * @expiration it's in seconds
+
+  /** Sets a value with expiration.
+   *
+   * @param expiration expiration period in seconds
    */
   def set(key: String, value: AnyRef, expiration: Int)(implicit app: Application) = app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
 
-  /**
-   * set a value with default expiration of 1800 sec or 30 min
-   * @key
-   * @value
-   * @value
-   */
+  /** Sets a value with a default expiration of 1800 seconds, i.e. 30 minutes. */
   def set(key: String, value: AnyRef)(implicit app: Application) = app.plugin[CachePlugin].map(_.api.set(key, value)).getOrElse(error)
 
-  /**
-   * retrieves key in a typesafe way
-   * @key
-   * @return
-   */
+  /** Retrieves a key in a type-safe way. */
   def get[T](key: String)(implicit m: Manifest[T], app: Application): Option[T] = app.plugin[CachePlugin].map(_.api.get[T](key).asInstanceOf[Option[T]]).getOrElse(error)
 
-  /**
-   * retrieves multiple keys from the same type
+  /** Retrieves multiple keys from the same type.
+   *
    * @keys varargs
-   * @return cache key value pairs from homogeneous type
+   * @return cache key-value pairs from homogeneous type
    */
   def get[T](keys: String*)(implicit m: Manifest[T], app: Application): Map[String, Option[T]] = app.plugin[CachePlugin].map(_.api.get[T](keys: _*).asInstanceOf[Map[String, Option[T]]]).getOrElse(error)
 
-  /**
-   * retrieves multiple values in an unsafe way for java interop
-   * it's taking an array instead of a varargs to avoid ambiguous method calls in case of varargs+ implicit app extra param
-   * @keys takes an java array of string of keys
+  /** Retrieves multiple values in an unsafe way for Java interoperability.
+   *
+   * This method takes an array instead of varargs to avoid ambiguous method calls in the case of varargs plus an implicit `app` parameter.
+   *
+   * @keys a Java array of string of keys
    * @return java.util.Map[String,java.langObject]
    */
   def getAsJava(keys: Array[String])(implicit app: Application): java.util.Map[String, AnyRef] = app.plugin[CachePlugin].map(_.api.getAsJava(keys: _*)).getOrElse(error)
 
-  /**
-   * retrieves a value in an unsafe way for java interop
-   * @key
-   * @return java object
+  /** Retrieves a value in an unsafe way for Java interoperability.
+   *
+   * @return a Java object
    */
   def getAsJava(key: String)(implicit app: Application): AnyRef = app.plugin[CachePlugin].map(_.api.getAsJava(key)).getOrElse(error)
 }

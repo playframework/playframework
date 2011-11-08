@@ -1,9 +1,8 @@
 package play.api
 
-/**
- * Contains all the Controller/Action/Result API to handle HTTP requests.
+/** Contains the Controller/Action/Result API to handle HTTP requests.
  *
- * Example, a typical controller:
+ * For example, a typical controller:
  * {{{
  * object Application extends Controller {
  *
