@@ -1,6 +1,6 @@
 @(field:play.api.data.Field, args:(Symbol,Any)*)(implicit handler: InputConstructor)
 
-@using(Utils.filter(args, 'id -> field.id, 'label -> field.name)) { args =>
+@defining(Utils.filter(args, 'id -> field.id, 'label -> field.name)) { args =>
     @input(field, args._1('id), Some(args._1('label)), showInfo = false) { (id,name,value) =>
         <input type="date" id="@id" name="@name" value="@value" @toHtmlArgs(args._2)>
     }(handler)

@@ -25,6 +25,10 @@ trait JavaAction extends Action[AnyContent] {
         def method = req.method
         def path = req.method
 
+        def queryString = {
+          req.queryString.mapValues(_.toArray).asJava
+        }
+
         def urlFormEncoded = {
           req.body.urlFormEncoded.mapValues(_.toArray).asJava
         }

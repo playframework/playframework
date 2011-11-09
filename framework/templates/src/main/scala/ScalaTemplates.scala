@@ -734,9 +734,11 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     // --- UTILS
 
-    def using[T](t: T)(handler: T => Any) = {
+    def defining[T](t: T)(handler: T => Any) = {
       handler(t)
     }
+
+    def using[T](t: T) = t
 
     // --- IF
 

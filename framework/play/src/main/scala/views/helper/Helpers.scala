@@ -33,6 +33,12 @@ package views.html.helper {
 
   }
 
+  object options {
+
+    def apply(options: (String, String)*) = options.toMap
+
+  }
+
   object select {
 
     type HtmlArgs = (Symbol, Any)

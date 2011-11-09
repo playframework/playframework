@@ -80,8 +80,15 @@ public class Form<T> {
     public Form<T> bindFromRequest() {
         Map<String,String> data = new HashMap<String,String>();
         Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().urlFormEncoded();
+        Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
         for(String key: urlFormEncoded.keySet()) {
             String[] value = urlFormEncoded.get(key);
+            if(value.length > 0) {
+                data.put(key, value[0]);
+            }
+        }
+        for(String key: queryString.keySet()) {
+            String[] value = queryString.get(key);
             if(value.length > 0) {
                 data.put(key, value[0]);
             }

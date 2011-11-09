@@ -100,7 +100,7 @@ package object data {
   val text: Mapping[String] = of[String]
 
   /**
-   * Construct a simple mapping for required text field.
+   * Constructs a simple mapping for required text field.
    *
    * Note that all field are always required to be present in the form unless
    * there are marked as optional explicitely. But a requiredText defines text
@@ -132,7 +132,7 @@ package object data {
   }
 
   /**
-   * Construct a simple mapping for required text field.
+   * Constructs a simple mapping for required text field.
    *
    * Example:
    * {{{
@@ -153,6 +153,24 @@ package object data {
    * }}}
    */
   val number: Mapping[Long] = of[Long]
+
+  /**
+   * Constructs a simple mapping for a numeric field.
+   *
+   * For example:
+   * {{{
+   *   Form("size" -> number(min=0, max=100))
+   * }}}
+   *
+   * @param min minimum value
+   * @param max maximum value
+   */
+  def number(min: Long = Long.MinValue, max: Long = Long.MaxValue): Mapping[Long] = (min, max) match {
+    case (Long.MinValue, Long.MaxValue) => number
+    case (min, Long.MaxValue) => number verifying Constraints.min(min)
+    case (Long.MinValue, max) => number verifying Constraints.max(max)
+    case (min, max) => number verifying (Constraints.min(min), Constraints.max(max))
+  }
 
   /**
    * Constructs a simple mapping for a date field.

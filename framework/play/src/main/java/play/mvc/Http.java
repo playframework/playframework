@@ -128,6 +128,11 @@ public class Http {
         public abstract String path();
         
         /**
+         * The query string content.
+         */
+        public abstract Map<String,String[]> queryString();
+        
+        /**
          * The request content parsed as URL form-encoded.
          */
         public abstract Map<String,String[]> urlFormEncoded();

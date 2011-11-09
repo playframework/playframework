@@ -1,0 +1,15 @@
+@(name: String, repeat: Int, color: String)
+
+@main("Here is the result:") {
+    
+    <ul style="color: @if(color != null) { @color } else { "inherited" }">
+        @for(_ <- 1 to repeat) {
+            <li>Hello @name!</li>
+        }
+    </ul>
+    
+    <p class="buttons">
+        <a href="@routes.Application.index">Back to the form</a>
+    </p>
+    
+}
