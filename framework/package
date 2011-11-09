@@ -1,0 +1,18 @@
+#! /usr/bin/env sh
+
+`dirname $0`/cleanEverything
+`dirname $0`/build build-repository
+
+rm -rf /tmp/play-2.0-beta*
+
+echo "[info] Copying to /tmp/play-2.0-beta..."
+cp -rf `dirname $0`/.. /tmp/play-2.0-beta
+
+cd /tmp
+
+echo "[info] zipping..."
+zip -9 -r play-2.0-beta.zip play-2.0-beta -x '*.git/*' '*.DS_Store' 'play-2.0-beta/dist/*' '*/target/*' 'play-2.0-beta/framework/sbt/boot/*' 'play-2.0-beta/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
+
+rm -rf /tmp/play-2.0-beta
+
+echo "[info] Package is available at /tmp/play-2.0-beta.zip"

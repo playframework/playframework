@@ -1,0 +1,15 @@
+#! /usr/bin/env sh
+
+echo "[info] Cleaning everything..."
+
+rm -rf `dirname $0`/../repository/*
+rm -rf `dirname $0`/sbt/boot
+rm -rf `dirname $0`/target
+rm -rf `dirname $0`/project/project
+rm -rf `dirname $0`/project/target
+rm -rf `dirname $0`/logs
+rm -rf `dirname $0`/anorm/target
+rm -rf `dirname $0`/play/target
+rm -rf `dirname $0`/templates/target
+
+echo "[info] Done!"

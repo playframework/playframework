@@ -1,10 +1,13 @@
 :begin
 @echo off
 
+set p=%~dp0
+set p=%p:\=/%
+
 if exist "conf\application.conf" goto existingApplication
 
 :noApplication
-java -cp "%~dp0framework/sbt/boot/scala-2.9.1/lib/*;%~dp0framework/sbt/boot/scala-2.9.1/org.scala-tools.sbt/sbt/0.11.0/*;%~dp0repository/local/play/play_2.9.1/2.0-beta/jars/*" -Dplay.home="%~dp0framework" -Dsbt.ivy.home="%~dp0repository" play.console.Console %*
+java -Dsbt.ivy.home=%~dp0repository -Dplay.home=%~dp0framework -Dsbt.boot.properties="file:///%p%sbt/play.boot.properties" -jar %~dp0framework\sbt\sbt-launch-0.11.0.jar %*
 
 goto end
 

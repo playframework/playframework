@@ -10,5 +10,5 @@ if [ -f conf/application.conf ]; then
     `dirname $0`/framework/build play
   fi
 else
-  java -cp `dirname $0`/framework/sbt/boot/scala-2.9.1/lib/*:`dirname $0`/framework/sbt/boot/scala-2.9.1/org.scala-tools.sbt/sbt/0.11.0/*:`dirname $0`/repository/local/play/play_2.9.1/2.0-beta/jars/* -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework play.console.Console "$@"
+  java -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework -Dsbt.boot.properties=`dirname $0`/framework/sbt/play.boot.properties -jar `dirname $0`/framework/sbt/sbt-launch-0.11.0.jar "$@"
 fi

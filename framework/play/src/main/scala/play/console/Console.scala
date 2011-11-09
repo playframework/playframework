@@ -2,7 +2,7 @@ package play.console
 
 import jline._
 import java.io._
-import sbt.IO
+import scalax.file._
 
 object Console {
 
@@ -24,14 +24,12 @@ object Console {
     val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
     val defaultName = path.getName
 
-    Option(path).filterNot(_.exists).foreach(IO.createDirectory(_))
-
     println()
     println(Colors.green("The new application will be created in %s".format(path.getAbsolutePath)))
     println()
 
-    if (path.listFiles.size > 0) {
-      Colors.red("The directory is not empty, cannot create a new application here.")
+    if (path.exists) {
+      Colors.red("The directory already exists, cannot create a new application here.")
     } else {
       consoleReader.printString("What is the application name? ")
       consoleReader.printNewline
@@ -63,7 +61,7 @@ object Console {
 
       def replace(file: File, tokens: (String, String)*) {
         if (file.exists) {
-          IO.write(file, tokens.foldLeft(IO.read(file)) { (state, token) =>
+          Path(file).write(tokens.foldLeft(Path(file).slurpString) { (state, token) =>
             state.replace("%" + token._1 + "%", token._2)
           })
         }
@@ -74,9 +72,16 @@ object Console {
         (random.nextInt(74) + 48).toChar
       }.mkString
 
-      IO.copyDirectory(
-        new File(System.getProperty("play.home") + "/resources/" + template),
-        path)
+      def copyRecursively(from: Path, target: Path) {
+        from.copyTo(target)
+        from.children().foreach { child =>
+          copyRecursively(child, target / child.name)
+        }
+      }
+
+      copyRecursively(
+        from = Path(new File(System.getProperty("play.home") + "/resources/" + template)),
+        target = Path(path))
 
       replace(new File(path, "project/Build.scala"),
         "APPLICATION_NAME" -> name)
@@ -120,6 +125,17 @@ object Console {
       })
     println()
   }
+
+}
+
+class Console extends xsbti.AppMain {
+
+  def run(app: xsbti.AppConfiguration) = {
+    Console.main(app.arguments)
+    Exit(0)
+  }
+
+  case class Exit(val code: Int) extends xsbti.Exit
 
 }
 

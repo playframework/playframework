@@ -934,11 +934,6 @@ object PlayProject extends Plugin {
 
     libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
 
-    libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.6.1" % "test",
-      "com.novocode" % "junit-interface" % "0.7" % "test",
-      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.11.0" % "test",
-      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.11.0" % "test"),
-
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
