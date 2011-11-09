@@ -29,7 +29,6 @@ object ApplicationSpec extends Specification {
   "execute index" in {
       withApplication(Nil, MockData.dataSource) {
         val action = controllers.Application.index()
-        val bodyParser = action.parser
         val result = action.apply(new FakeRequest)
         result match {
           case simp @ SimpleResult(ResponseHeader(status, headers), body) => 
