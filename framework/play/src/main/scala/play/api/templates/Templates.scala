@@ -3,10 +3,11 @@ package play.api.templates
 import play.api.mvc._
 import play.templates._
 
-/** Content type used in default HTML templates.
-  *
-  * @param text the HTML text
-  */
+/**
+ * Content type used in default HTML templates.
+ *
+ * @param text the HTML text
+ */
 case class Html(text: String) extends Appendable[Html] with Content {
   val buffer = new StringBuilder(text)
 
@@ -24,7 +25,8 @@ case class Html(text: String) extends Appendable[Html] with Content {
 
 }
 
-/** Helper for HTML utility methods.
+/**
+ * Helper for HTML utility methods.
  */
 object Html {
 
@@ -44,10 +46,11 @@ object HtmlFormat extends Format[Html] {
 
 }
 
-/** Content type used in default text templates.
-  *
-  * @param text The plain text.
-  */
+/**
+ * Content type used in default text templates.
+ *
+ * @param text The plain text.
+ */
 case class Txt(text: String) extends Appendable[Txt] with Content {
   val buffer = new StringBuilder(text)
 
@@ -84,10 +87,11 @@ object TxtFormat extends Format[Txt] {
 
 }
 
-/** Content type used in default XML templates.
-  *
-  * @param text the plain xml text
-  */
+/**
+ * Content type used in default XML templates.
+ *
+ * @param text the plain xml text
+ */
 case class Xml(text: String) extends Appendable[Xml] with Content {
   val buffer = new StringBuilder(text)
 
@@ -135,13 +139,14 @@ object PlayMagic {
     case x: play.libs.F.None[T] => None
   }
 
-  /** Generates a set of valid HTML attributes.
-    *
-    * For example:
-    * {{{
-    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
-    * }}}
-    */
+  /**
+   * Generates a set of valid HTML attributes.
+   *
+   * For example:
+   * {{{
+   * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
+   * }}}
+   */
   def toHtmlArgs(args: Seq[(Symbol, Any)]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
 
   /** Transforms a Play Java form `Field` to a proper Scala form `Field`. */

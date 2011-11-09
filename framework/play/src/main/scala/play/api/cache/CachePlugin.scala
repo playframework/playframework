@@ -3,9 +3,10 @@ package play.api.cache
 import play.core._
 import play.api._
 
-/** Because caching should be swappable, we reference an abstract class, so users can change the implementation by
-  * sub-classing this class.
-  */
+/**
+ * Because caching should be swappable, we reference an abstract class, so users can change the implementation by
+ * sub-classing this class.
+ */
 abstract class CachePlugin extends Plugin {
   def api: CacheAPI
 }

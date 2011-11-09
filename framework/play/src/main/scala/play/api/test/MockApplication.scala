@@ -6,33 +6,22 @@ import play.core._
 import collection.JavaConverters._
 
 /**
- * provides a mock implementation of an application
- * example:
- * {{{
- * object  MyMock extends MockApplication {
- *  val mockConfig = withMockDataSources
- *  val mockPlugins = Nil
- * }
- * }}}
- * and then before accessing any play.api._
- * {{{
- * implicit val currentApp = MyMock.mockApp
- * }}}
+ * provides standard mock data
  */
-abstract class Mock {
-  private[test] lazy val cl = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader())
-
-  private[test] val loadDefaultPlugins = new Application(new File("."), cl, None, Play.Mode.Dev).plugins
-
-  private[test] val mockData = Map("application.name" -> "mock app",
+object MockData {
+  val dataSource = Map("application.name" -> "mock app",
     "db.default.driver" -> "org.h2.Driver",
     "db.default.url" -> "jdbc:h2:mem:play",
     "ebean.default" -> "models.*")
+  def dataSourceAsJava = dataSource.asJava
 
-  /**
-   * provides mockdata for java API
-   */
-  def mockDataAsJava: java.util.Map[String, String] = mockData.asJava
+}
+
+/*
+ * provides underlying mock implementation
+ */
+abstract class Mock {
+  private[test] lazy val cl = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader())
 
   /**
    * creates an app with defined mock config and mock plugins
@@ -40,39 +29,73 @@ abstract class Mock {
    * @param mockConfig
    * @return mocked application
    */
-  def makeApp(mockPlugins: java.util.List[Plugin], mockConfig: java.util.Map[String, String]): Application = new Application(new File("."), cl, None, Play.Mode.Dev) {
-    override lazy val configuration = new Configuration(mockConfig.asScala.toMap.map(item => item._1 -> Configuration.Config(item._1, item._2, new File("."))))
-    override val plugins: Seq[Plugin] = mockPlugins.asScala.toSeq ++ loadDefaultPlugins
+  def createMock(mockPlugins: java.util.List[String], mockConfig: java.util.Map[String, String]): Application = {
+    new Application(new File("."), cl, None, Play.Mode.Dev) {
+      override lazy val configuration = new Configuration(mockConfig.asScala.toMap.map(item => item._1 -> Configuration.Config(item._1, item._2, new File("."))))
+      override val dynamicPlugins: List[String] = mockPlugins.asScala.toList
+    }
   }
-  /*
-   * provides a way to set the current application, useful only from java apps
+  /**
+   * clears mock from context
+   */
+  def clearMock() {
+    Play.stop()
+  }
+
+  /**
+   * set passed application into global context
    */
   def setCurrentApp(app: Application) {
-    Play._currentApp = app
+    if (Play.maybeApplication.isDefined == false) Play.start(app)
   }
-}
 
+}
+/**
+ * provides a mock runner.
+ * there are two ways to use it
+ * 1) inject a global mock into the context
+ * 2) use provied control structure to manage app life cycle during testing
+ * example:
+ * {{{
+ *    withApplication(Nil, MockData.dataSource) {
+ *      myvariable must contain ("hello")
+ *    }
+ * }}}
+ */
 trait MockApplication extends Mock {
+  /**
+   * executes given specs block in a mock, play app context
+   * @param mockPlugins
+   * @param mockconfig
+   * @param block
+   */
+  def withApplication(mockPlugins: List[String], mockConfig: Map[String, String])(f: => Unit): Boolean = {
+    val mockApp = injectGlobalMock(Nil, MockData.dataSource)
+    try {
+      f
+      clearMock()
+    } catch {
+      case ex: Exception =>
+        clearMock()
+        throw ex
+    }
+    true
+  }
 
   /**
-   * provides predefined in memory db config
+   * creates a global application mock and sets into global context.
+   * @param mockPlugins
+   * @param mockConfig
+   * @return mock app
    */
-  def withMockDataSources = mockData
+  def injectGlobalMock(mockPlugins: List[String], mockConfig: Map[String, String]) = {
+    val mockApp = createMock(mockPlugins.asJava, mockConfig.asJava)
+    setCurrentApp(mockApp)
+    mockApp
+  }
 
-  /**
-   * placeholder for user supplied mock configuration
-   */
-  val mockConfig: Map[String, String]
-
-  /**
-   * placeholder for user supplied mock plugins
-   */
-  val mockPlugins: Seq[Plugin]
-
-  /*
-   * provides a way to set the current application, useful only from java apps
-   */
-  lazy val mockApp: Application = makeApp(mockPlugins.toList.asJava, mockConfig.asJava)
-
-  Play.start(mockApp)
 }
+/**
+ * object representation of MockApplication trait
+ */
+object MockApplication extends MockApplication

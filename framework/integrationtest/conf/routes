@@ -3,6 +3,7 @@
 # ~~~~
 
 GET     /                       controllers.Application.index()
+GET     /index_java_cache       controllers.Application.index_java_cache()
 
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)

@@ -10,7 +10,7 @@ import play.api.Configuration.Config
 
 /** Cryptographic utilities. */
 object Crypto {
-  
+
   /** Signs a string using the given key. */
   def sign(message: String, key: Array[Byte]): String = {
     val mac = Mac.getInstance("HmacSHA1")

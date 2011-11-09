@@ -9,23 +9,25 @@ import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
 
-/** High-level internationalisation API.
-  *
-  * For example:
-  * {{{
-  * val msgString = Messages("items.found", items.size)
-  * }}}
-  */
+/**
+ * High-level internationalisation API.
+ *
+ * For example:
+ * {{{
+ * val msgString = Messages("items.found", items.size)
+ * }}}
+ */
 object Messages {
 
-  /** Translates a message.
-    *
-    * Uses `java.text.MessageFormat` internally to format the message.
-    *
-    * @param key the message key
-    * @param args the message arguments
-    * @return the formatted message or a default rendering if the key wasn’t defined
-    */
+  /**
+   * Translates a message.
+   *
+   * Uses `java.text.MessageFormat` internally to format the message.
+   *
+   * @param key the message key
+   * @param args the message arguments
+   * @return the formatted message or a default rendering if the key wasn’t defined
+   */
   def apply(key: String, args: Any*) = {
     Play.maybeApplication.flatMap { app =>
       app.plugin[MessagesPlugin].map(_.api.translate(key, args)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
@@ -36,13 +38,14 @@ object Messages {
     key + Option(args.map(_.toString).mkString(",")).filterNot(_.isEmpty).map("(" + _ + ")").getOrElse("")
   }
 
-  /** An internationalised message.
-    *
-    * @param key the message key
-    * @param pattern the message pattern
-    * @param input the source from which this message was read
-    * @param sourceName the source name from which this message was read
-    */
+  /**
+   * An internationalised message.
+   *
+   * @param key the message key
+   * @param pattern the message pattern
+   * @param input the source from which this message was read
+   * @param sourceName the source name from which this message was read
+   */
   case class Message(key: String, pattern: String, input: scalax.io.Input, sourceName: String) extends Positional
 
   /** Message file parser. */
@@ -118,14 +121,15 @@ case class MessagesApi(messages: Map[String, String]) {
 
   import java.text._
 
-  /** Translates a message.
-    *
-    * Uses `java.text.MessageFormat` internally to format the message.
-    *
-    * @param key the message key
-    * @param args the message arguments
-    * @return the formatted message, if this key was defined
-    */
+  /**
+   * Translates a message.
+   *
+   * Uses `java.text.MessageFormat` internally to format the message.
+   *
+   * @param key the message key
+   * @param args the message arguments
+   * @return the formatted message, if this key was defined
+   */
   def translate(key: String, args: Seq[Any]): Option[String] = {
     messages.get(key).map { pattern =>
       MessageFormat.format(pattern, args.map(_.asInstanceOf[java.lang.Object]): _*)

@@ -3,11 +3,12 @@ package play.api.libs
 /** Utilities for Codec operations. */
 object Codec {
 
-  /** Computes the SHA-1 digest for a byte array.
-    *
-    * @param bytes the data to hash
-    * @return the SHA-1 digest, encoded as a hex string
-    */
+  /**
+   * Computes the SHA-1 digest for a byte array.
+   *
+   * @param bytes the data to hash
+   * @return the SHA-1 digest, encoded as a hex string
+   */
   def sha1(bytes: Array[Byte]): String = {
     import java.security.MessageDigest
     val digest = MessageDigest.getInstance("SHA-1")
@@ -16,11 +17,12 @@ object Codec {
     digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft("") { _ + _ }
   }
 
-  /** Compute the SHA-1 digest for a `String`.
-    *
-    * @param text the text to hash
-    * @return the SHA-1 digest, encoded as a hex string
-    */
+  /**
+   * Compute the SHA-1 digest for a `String`.
+   *
+   * @param text the text to hash
+   * @return the SHA-1 digest, encoded as a hex string
+   */
   def sha1(text: String): String = sha1(text.getBytes)
 
   private val hexChars = Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')

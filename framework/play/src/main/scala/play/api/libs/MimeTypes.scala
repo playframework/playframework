@@ -3,18 +3,20 @@ package play.api.libs
 /** MIME type utilities. */
 object MimeTypes {
 
-  /** Retrieves the usual MIME type for a given extension.
-    *
-    * @param ext the file extension, e.g. `txt`
-    * @return the MIME type, if defined
-    */
+  /**
+   * Retrieves the usual MIME type for a given extension.
+   *
+   * @param ext the file extension, e.g. `txt`
+   * @return the MIME type, if defined
+   */
   def forExtension(ext: String): Option[String] = types.get(ext)
 
-  /** Retrieves the usual MIME type for a given file name
-    *
-    * @param name the file name, e.g. `hello.txt`
-    * @return the MIME type, if defined
-    */
+  /**
+   * Retrieves the usual MIME type for a given file name
+   *
+   * @param name the file name, e.g. `hello.txt`
+   * @return the MIME type, if defined
+   */
   def forFileName(name: String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
 
   lazy val types =

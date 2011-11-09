@@ -25,10 +25,11 @@ object PlayException {
 
     def sourceName: Option[String]
 
-    /** Extracts interesting lines to be displayed to the user.
-      *
-      * @param border number of lines to use as a border
-      */
+    /**
+     * Extracts interesting lines to be displayed to the user.
+     *
+     * @param border number of lines to use as a border
+     */
     def interestingLines(border: Int = 4): Option[(Int, Seq[String], Int)] = {
       for (f <- input; l <- line; val (first, last) = f.slurpString.split('\n').splitAt(l - 1); focus <- last.headOption) yield {
         val before = first.takeRight(border)
@@ -64,12 +65,13 @@ object PlayException {
 
 }
 
-/** Root exception for all Play problems.
-  *
-  * @param title the problem title
-  * @param description the problem description
-  * @param cause the underlying cause, if it exists
-  */
+/**
+ * Root exception for all Play problems.
+ *
+ * @param title the problem title
+ * @param description the problem description
+ * @param cause the underlying cause, if it exists
+ */
 case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s [%s]".format(title, description), cause.orNull) {
 
   /** The exception ID, useful for retrieving problems in log files. */

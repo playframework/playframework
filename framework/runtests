@@ -3,36 +3,21 @@ set -e
 export CURRENT=`pwd`
 export SCRIPT=`dirname $0`
 
-
 cd $SCRIPT
+export PLAY=`pwd`/../play
+
 ./cleanIvyCache
 ./build publish-local
 
 echo "RUNNING FRAMEWORK SPECS"
 ./build test
 
-cd ../integrationtest
+rm -rf ./logs
+
+cd ./integrationtest
 
 echo "RUNNING INTEGRATION TEST"
-if which play >/dev/null; then
-  play it:run
-else
-  if [ $SCRIPT = "." ]; then
-    $SCRIPT/../play it:run
-  else
-    ../$SCRIPT/../play it:run
-  fi
-fi 
-echo "RUNNING APP SPECS"
 
-if which play >/dev/null; then
-  play test
-else  
-  if [ $SCRIPT = "." ]; then
-    $SCRIPT/../play test
-  else
-    ../$SCRIPT/../play test
-  fi
-fi
+$PLAY test
 cd $CURRENT
 

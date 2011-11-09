@@ -8,20 +8,22 @@ trait Formatter[T] {
   /** The expected format of `Any`. */
   val format: Option[(String, Seq[Any])] = None
 
-  /** Binds this field, i.e. constructs a concrete value from submitted data.
-    *
-    * @param key the field key
-    * @param data the submitted data
-    * @return Either a concrete value of type T or a set of error if the binding failed.
-    */
+  /**
+   * Binds this field, i.e. constructs a concrete value from submitted data.
+   *
+   * @param key the field key
+   * @param data the submitted data
+   * @return Either a concrete value of type T or a set of error if the binding failed.
+   */
   def bind(key: String, data: Map[String, String]): Either[Seq[FormError], T]
 
-  /** Unbinds this field, i.e. transforms a concrete value to plain data.
-    *
-    * @param key the field ke
-    * @param value the value to unbind
-    * @return either the plain data or a set of errors if unbinding failed
-    */
+  /**
+   * Unbinds this field, i.e. transforms a concrete value to plain data.
+   *
+   * @param key the field ke
+   * @param value the value to unbind
+   * @return either the plain data or a set of errors if unbinding failed
+   */
   def unbind(key: String, value: T): Map[String, String]
 }
 
@@ -29,10 +31,10 @@ trait Formatter[T] {
 object Formats {
 
   /**
-    * Formatter for ignored values.
-    *
-    * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
-    */
+   * Formatter for ignored values.
+   *
+   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
+   */
   def ignoredFormat[A](value: A): Formatter[A] = new Formatter[A] {
     def bind(key: String, data: Map[String, String]) = Right(value)
     def unbind(key: String, value: A) = Map.empty
@@ -79,10 +81,11 @@ object Formats {
   import java.util.Date
   import java.text.SimpleDateFormat
 
-  /** Formatter for the `java.util.Date` type.
-    *
-    * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
-    */
+  /**
+   * Formatter for the `java.util.Date` type.
+   *
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   */
   def dateFormat(pattern: String): Formatter[Date] = new Formatter[Date] {
 
     override val format = Some("format.date", Seq(pattern))
@@ -98,16 +101,18 @@ object Formats {
     def unbind(key: String, value: Date) = Map(key -> new SimpleDateFormat(pattern).format(value))
   }
 
-  /** Default formatter for the `java.util.Date` type with pattern `yyyy-MM-dd`.
-    *
-    * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
-    */
+  /**
+   * Default formatter for the `java.util.Date` type with pattern `yyyy-MM-dd`.
+   *
+   * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
+   */
   implicit val dateFormat: Formatter[Date] = dateFormat("yyyy-MM-dd")
 
-  /** Formatter for the `java.sql.Date` type.
-    *
-    * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
-    */
+  /**
+   * Formatter for the `java.sql.Date` type.
+   *
+   * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
+   */
   def sqlDateFormat(pattern: String): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
 
     override val format = Some("format.date", Seq(pattern))
@@ -120,10 +125,11 @@ object Formats {
 
   }
 
-  /** Default formatter for `java.sql.Date` type with pattern `yyyy-MM-dd`.
-    *
-    * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
-    */
+  /**
+   * Default formatter for `java.sql.Date` type with pattern `yyyy-MM-dd`.
+   *
+   * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
+   */
   implicit val sqlDateFormat: Formatter[java.sql.Date] = sqlDateFormat("yyyy-MM-dd")
 
 }

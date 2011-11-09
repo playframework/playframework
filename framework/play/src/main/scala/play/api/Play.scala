@@ -8,7 +8,8 @@ import java.io._
 
 import scala.collection.JavaConverters._
 
-/** High-level API to access Play global features.
+/**
+ * High-level API to access Play global features.
  *
  * Note that this API depends on a running application.
  * You can import the currently running application in a scope using:
@@ -18,18 +19,20 @@ import scala.collection.JavaConverters._
  */
 object Play {
 
-  /** Returns the currently running application, or `null` if not defined.
-    */
+  /**
+   * Returns the currently running application, or `null` if not defined.
+   */
   def unsafeApplication = _currentApp
 
   /** Optionally returns the current running application. */
   def maybeApplication = Option(_currentApp)
 
-  /** Implicitly import the current running application in the context.
-    *
-    * Note that by relying on this, your code will only work properly in
-    * the context of a running application.
-    */
+  /**
+   * Implicitly import the current running application in the context.
+   *
+   * Note that by relying on this, your code will only work properly in
+   * the context of a running application.
+   */
   implicit def current = maybeApplication.get
 
   /** Application mode, either `DEV` or `PROD`. */
@@ -40,10 +43,11 @@ object Play {
 
   private[play] var _currentApp: Application = _
 
-  /** Starts this application.
-    *
-    * @param the application to start
-    */
+  /**
+   * Starts this application.
+   *
+   * @param the application to start
+   */
   def start(app: Application) {
 
     // First stop previous app if exists
@@ -66,58 +70,62 @@ object Play {
     }
   }
 
-  /** Scans the current application classloader to retrieve a resources contents as a stream.
-    *
-    * For example, to retrieve a configuration file:
-    * {{{
-    * val maybeConf = application.resourceAsStream("conf/logger.xml")
-    * }}}
-    *
-    * @param name Absolute name of the resource (from the classpath root).
-    * @return Maybe a stream if found.
-    */
+  /**
+   * Scans the current application classloader to retrieve a resources contents as a stream.
+   *
+   * For example, to retrieve a configuration file:
+   * {{{
+   * val maybeConf = application.resourceAsStream("conf/logger.xml")
+   * }}}
+   *
+   * @param name Absolute name of the resource (from the classpath root).
+   * @return Maybe a stream if found.
+   */
   def resourceAsStream(name: String)(implicit app: Application): Option[InputStream] = {
     app.resourceAsStream(name)
   }
 
-  /** Scans the current application classloader to retrieve a resource.
-    *
-    * For example, to retrieve a configuration file:
-    * {{{
-    * val maybeConf = application.resource("conf/logger.xml")
-    * }}}
-    *
-    * @param name absolute name of the resource (from the classpath root)
-    * @return the resource URL, if found
-    */
+  /**
+   * Scans the current application classloader to retrieve a resource.
+   *
+   * For example, to retrieve a configuration file:
+   * {{{
+   * val maybeConf = application.resource("conf/logger.xml")
+   * }}}
+   *
+   * @param name absolute name of the resource (from the classpath root)
+   * @return the resource URL, if found
+   */
   def resource(name: String)(implicit app: Application): Option[java.net.URL] = {
     app.resource(name)
   }
 
-  /** Retrieves a file relative to the current application root path.
-    *
-    * For example, to retrieve a configuration file:
-    * {{{
-    * val myConf = application.getFile("conf/myConf.yml")
-    * }}}
-    *
-    * @param relativePath the relative path of the file to fetch
-    * @return a file instance; it is not guaranteed that the file exists
-    */
+  /**
+   * Retrieves a file relative to the current application root path.
+   *
+   * For example, to retrieve a configuration file:
+   * {{{
+   * val myConf = application.getFile("conf/myConf.yml")
+   * }}}
+   *
+   * @param relativePath the relative path of the file to fetch
+   * @return a file instance; it is not guaranteed that the file exists
+   */
   def getFile(relativePath: String)(implicit app: Application) = {
     app.getFile(relativePath)
   }
 
-  /** Retrieves a file relative to the current application root path.
-    *
-    * For example, to retrieve a configuration file:
-    * {{{
-    * val myConf = application.getExistingFile("conf/myConf.yml")
-    * }}}
-    *
-    * @param relativePath relative path of the file to fetch
-    * @return an existing file
-    */
+  /**
+   * Retrieves a file relative to the current application root path.
+   *
+   * For example, to retrieve a configuration file:
+   * {{{
+   * val myConf = application.getExistingFile("conf/myConf.yml")
+   * }}}
+   *
+   * @param relativePath relative path of the file to fetch
+   * @return an existing file
+   */
   def getExistingFile(relativePath: String)(implicit app: Application): Option[File] = {
     app.getExistingFile(relativePath)
   }

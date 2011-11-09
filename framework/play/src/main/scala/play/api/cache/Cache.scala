@@ -71,7 +71,8 @@ object Cache {
   /** The exception we are throwing in case of plugin issues. */
   private def error = throw new Exception("looks like the cache plugin was not properly registered. Make sure at least one CachePlugin implementation is enabled, otherwise these calls won't work")
 
-  /** Sets a value with expiration.
+  /**
+   * Sets a value with expiration.
    *
    * @param expiration expiration period in seconds
    */
@@ -83,14 +84,16 @@ object Cache {
   /** Retrieves a key in a type-safe way. */
   def get[T](key: String)(implicit m: Manifest[T], app: Application): Option[T] = app.plugin[CachePlugin].map(_.api.get[T](key).asInstanceOf[Option[T]]).getOrElse(error)
 
-  /** Retrieves multiple keys from the same type.
+  /**
+   * Retrieves multiple keys from the same type.
    *
    * @keys varargs
    * @return cache key-value pairs from homogeneous type
    */
   def get[T](keys: String*)(implicit m: Manifest[T], app: Application): Map[String, Option[T]] = app.plugin[CachePlugin].map(_.api.get[T](keys: _*).asInstanceOf[Map[String, Option[T]]]).getOrElse(error)
 
-  /** Retrieves multiple values in an unsafe way for Java interoperability.
+  /**
+   * Retrieves multiple values in an unsafe way for Java interoperability.
    *
    * This method takes an array instead of varargs to avoid ambiguous method calls in the case of varargs plus an implicit `app` parameter.
    *
@@ -99,7 +102,8 @@ object Cache {
    */
   def getAsJava(keys: Array[String])(implicit app: Application): java.util.Map[String, AnyRef] = app.plugin[CachePlugin].map(_.api.getAsJava(keys: _*)).getOrElse(error)
 
-  /** Retrieves a value in an unsafe way for Java interoperability.
+  /**
+   * Retrieves a value in an unsafe way for Java interoperability.
    *
    * @return a Java object
    */

@@ -9,47 +9,51 @@ import javax.sql._
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
-/** The Play Database API manages several connection pools.
-  *
-  * @param datasources the managed data sources
-  */
+/**
+ * The Play Database API manages several connection pools.
+ *
+ * @param datasources the managed data sources
+ */
 case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 
-  /** Retrieves a JDBC connection.
-    *
-    * Don’t forget to release the connection at some point by calling close().
-    *
-    * @param name the data source name
-    * @param autocommit when `true`, sets this connection to auto-commit
-    * @return a JDBC connection
-    * @throws an error if the required data source is not registered
-    */
+  /**
+   * Retrieves a JDBC connection.
+   *
+   * Don’t forget to release the connection at some point by calling close().
+   *
+   * @param name the data source name
+   * @param autocommit when `true`, sets this connection to auto-commit
+   * @return a JDBC connection
+   * @throws an error if the required data source is not registered
+   */
   def getConnection(name: String, autocommit: Boolean = true): Connection = {
     val connection = getDataSource(name).getConnection
     connection.setAutoCommit(autocommit)
     connection
   }
 
-  /** Retrieves a JDBC connection, with auto-commit set to `true`.
-    *
-    * Don’t forget to release the connection at some point by calling close().
-    *
-    * @param name the data source name
-    * @return a JDBC connection
-    * @throws an error if the required data source is not registered
-    */
+  /**
+   * Retrieves a JDBC connection, with auto-commit set to `true`.
+   *
+   * Don’t forget to release the connection at some point by calling close().
+   *
+   * @param name the data source name
+   * @return a JDBC connection
+   * @throws an error if the required data source is not registered
+   */
   def getDataSource(name: String): DataSource = {
     datasources.get(name).map { _._1 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
     }
   }
 
-  /** Retrieves the JDBC connection URL for a particular data source.
-    *
-    * @param name the data source name
-    * @return The JDBC URL connection string, i.e. `jdbc:…`
-    * @throws an error if the required data source is not registered
-    */
+  /**
+   * Retrieves the JDBC connection URL for a particular data source.
+   *
+   * @param name the data source name
+   * @return The JDBC URL connection string, i.e. `jdbc:…`
+   * @throws an error if the required data source is not registered
+   */
   def getDataSourceURL(name: String): String = {
     datasources.get(name).map { _._2 }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
@@ -99,11 +103,12 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
 /** Helper methods for creating data sources managed by `DBApi`. */
 object DBApi {
 
-  /** Creates a new data source from a configuration.
-    *
-    * @param conf the configuration part related to this data source
-    * @param classloader the classloader used to load the JDBC driver
-    */
+  /**
+   * Creates a new data source from a configuration.
+   *
+   * @param conf the configuration part related to this data source
+   * @param classloader the classloader used to load the JDBC driver
+   */
   def createDataSource(conf: Configuration, classloader: ClassLoader = ClassLoader.getSystemClassLoader) = {
 
     val datasource = new BoneCPDataSource
@@ -181,33 +186,36 @@ object DBApi {
 
 }
 
-/** Provides a high-level API for getting JDBC connections.
-  *
-  * For example:
-  * {{{
-  * val conn = DB.getConnection("customers")
-  * }}}
-  */
+/**
+ * Provides a high-level API for getting JDBC connections.
+ *
+ * For example:
+ * {{{
+ * val conn = DB.getConnection("customers")
+ * }}}
+ */
 object DB {
 
   /** The exception we are throwing. */
   private def error = throw new Exception("seems like db plugin is not registered properly, so we can not make calls to it.")
-  
-  /** Retrieves a JDBC connection.
-    *
-    * @param name data source name
-    * @param autocommit when `true`, sets this connection to auto-commit
-    * @return a JDBC connection
-    * @throws an error if the required data source is not registered
-    */
+
+  /**
+   * Retrieves a JDBC connection.
+   *
+   * @param name data source name
+   * @param autocommit when `true`, sets this connection to auto-commit
+   * @return a JDBC connection
+   * @throws an error if the required data source is not registered
+   */
   def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].map(_.api.getConnection(name, autocommit)).getOrElse(error)
 
-  /** Retrieves a JDBC connection (autocommit is set to true).
-    *
-    * @param name data source name
-    * @return a JDBC connection
-    * @throws an error if the required data source is not registered
-    */
+  /**
+   * Retrieves a JDBC connection (autocommit is set to true).
+   *
+   * @param name data source name
+   * @return a JDBC connection
+   * @throws an error if the required data source is not registered
+   */
   def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].map(_.api.getDataSource(name)).getOrElse(error)
 
   /**
@@ -256,10 +264,11 @@ object DB {
 
 }
 
-/** Play Plugin to manage data sources.
-  *
-  * @param app the application that is registering the plugin
-  */
+/**
+ * Play Plugin to manage data sources.
+ *
+ * @param app the application that is registering the plugin
+ */
 class DBPlugin(app: Application) extends Plugin {
 
   private lazy val db = {

@@ -6,25 +6,27 @@ import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
 
-/** This object provides a set of operations to create `Configuration` values.
-  *
-  * For example, to load a `Configuration` from a file:
-  * {{{
-  * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
-  * }}}
-  */
+/**
+ * This object provides a set of operations to create `Configuration` values.
+ *
+ * For example, to load a `Configuration` from a file:
+ * {{{
+ * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
+ * }}}
+ */
 object Configuration {
 
-  /** Loads a new configuration from a file.
-    *
-    * For example:
-    * {{{
-    * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
-    * }}}
-    *
-    * @param the file configuration file to read
-    * @return a `Configuration` instance
-    */
+  /**
+   * Loads a new configuration from a file.
+   *
+   * For example:
+   * {{{
+   * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
+   * }}}
+   *
+   * @param the file configuration file to read
+   * @return a `Configuration` instance
+   */
   def fromFile(file: File) = {
     Configuration(new ConfigurationParser(file).parse.map(c => c.key -> c).toMap)
   }
@@ -98,48 +100,52 @@ object Configuration {
 
   }
 
-  /** A configuration item.
-    *
-    * @param key The configuration key
-    * @param value The configuration value as plain String
-    * @param file The file from which this configuration was read
-    */
+  /**
+   * A configuration item.
+   *
+   * @param key The configuration key
+   * @param value The configuration value as plain String
+   * @param file The file from which this configuration was read
+   */
   case class Config(key: String, value: String, file: File) extends Positional
 
 }
 
-/** A full configuration set.
-  *
-  * The best way to obtain this configuration is to read it from a file using:
-  * {{{
-  * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
-  * }}}
-  *
-  * @param data the configuration data
-  * @param root the root key of this configuration if it represents a sub-configuration
-  */
+/**
+ * A full configuration set.
+ *
+ * The best way to obtain this configuration is to read it from a file using:
+ * {{{
+ * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
+ * }}}
+ *
+ * @param data the configuration data
+ * @param root the root key of this configuration if it represents a sub-configuration
+ */
 case class Configuration(data: Map[String, Configuration.Config], root: String = "") {
 
-  /** Retrieves a configuration item by key
-    *
-    * @param key configuration key, relative to the configuration root key
-    * @return a configuration item
-    */
+  /**
+   * Retrieves a configuration item by key
+   *
+   * @param key configuration key, relative to the configuration root key
+   * @return a configuration item
+   */
   def get(key: String): Option[Configuration.Config] = data.get(key)
 
-  /** Retrieves a configuration value as a `String`.
-    *
-    * This method supports an optional set of valid values:
-    * {{{
-    * val mode = configuration.getString("engine.mode", Some(Set("dev","prod")))
-    * }}}
-    *
-    * A configuration error will be thrown if the configuration value does not match any of the required values.
-    *
-    * @param key the configuration key, relative to configuration root key
-    * @param validValues valid values for this configuration
-    * @return a configuration value
-    */
+  /**
+   * Retrieves a configuration value as a `String`.
+   *
+   * This method supports an optional set of valid values:
+   * {{{
+   * val mode = configuration.getString("engine.mode", Some(Set("dev","prod")))
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value does not match any of the required values.
+   *
+   * @param key the configuration key, relative to configuration root key
+   * @param validValues valid values for this configuration
+   * @return a configuration value
+   */
   def getString(key: String, validValues: Option[Set[String]] = None): Option[String] = data.get(key).map { c =>
     validValues match {
       case Some(values) if values.contains(c.value) => c.value
@@ -149,18 +155,19 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
     }
   }
 
-  /** Retrieves a configuration value as an `Int`.
-    *
-    * For example:
-    * {{{
-    * val poolSize = configuration.getInt("engine.pool.size")
-    * }}}
-    *
-    * A configuration error will be thrown if the configuration value is not a valid `Int`.
-    *
-    * @param key the configuration key, relative to the configuration root key
-    * @return a configuration value
-    */
+  /**
+   * Retrieves a configuration value as an `Int`.
+   *
+   * For example:
+   * {{{
+   * val poolSize = configuration.getInt("engine.pool.size")
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Int`.
+   *
+   * @param key the configuration key, relative to the configuration root key
+   * @return a configuration value
+   */
   def getInt(key: String): Option[Int] = data.get(key).map { c =>
     try {
       Integer.parseInt(c.value)
@@ -169,19 +176,20 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
     }
   }
 
-  /** Retrieves a configuration value as a `Boolean`.
-    *
-    * For example:
-    * {{{
-    * val isEnabled = configuration.getString("engine.isEnabled")
-    * }}}
-    *
-    * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
-    * Authorized vales are `yes/no or true/false.
-    *
-    * @param key the configuration key, relative to the configuration root key
-    * @return a configuration value
-    */
+  /**
+   * Retrieves a configuration value as a `Boolean`.
+   *
+   * For example:
+   * {{{
+   * val isEnabled = configuration.getString("engine.isEnabled")
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
+   * Authorized vales are `yes/no or true/false.
+   *
+   * @param key the configuration key, relative to the configuration root key
+   * @return a configuration value
+   */
   def getBoolean(key: String): Option[Boolean] = data.get(key).map { c =>
     c.value match {
       case "true" => true
@@ -194,64 +202,69 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
     }
   }
 
-  /** Retrieves a sub-configuration, i.e. a configuration instance containing all keys starting with a given prefix.
-    *
-    * For example:
-    * {{{
-    * val engineConfig = configuration.getSub("engine")
-    * }}}
-    *
-    * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
-    *
-    * @param key the root prefix for this sub-configuration
-    * @return a new configuration
-    */
+  /**
+   * Retrieves a sub-configuration, i.e. a configuration instance containing all keys starting with a given prefix.
+   *
+   * For example:
+   * {{{
+   * val engineConfig = configuration.getSub("engine")
+   * }}}
+   *
+   * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
+   *
+   * @param key the root prefix for this sub-configuration
+   * @return a new configuration
+   */
   def getSub(key: String): Option[Configuration] = Option(data.filterKeys(_.startsWith(key + ".")).map {
     case (k, c) => k.drop(key.size + 1) -> c
   }.toMap).filterNot(_.isEmpty).map(Configuration(_, full(key) + "."))
 
-  /** Retrieves a sub-configuration, i.e. a configuration instance containing all key starting with a prefix.
-    *
-    * For example:
-    * {{{
-    * val engineConfig = configuration.sub("engine")
-    * }}}
-    *
-    * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
-    *
-    * This method throw an error if the sub-configuration cannot be found.
-    *
-    * @param key The root prefix for this sub configuration.
-    * @return A new configuration or throw an error.
-    */
+  /**
+   * Retrieves a sub-configuration, i.e. a configuration instance containing all key starting with a prefix.
+   *
+   * For example:
+   * {{{
+   * val engineConfig = configuration.sub("engine")
+   * }}}
+   *
+   * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
+   *
+   * This method throw an error if the sub-configuration cannot be found.
+   *
+   * @param key The root prefix for this sub configuration.
+   * @return A new configuration or throw an error.
+   */
   def sub(key: String): Configuration = getSub(key).getOrElse {
     throw globalError("No configuration found '" + key + "'")
   }
 
-  /** Returns available keys.
-    *
-    * @return the set of keys available in this configuration
-    */
+  /**
+   * Returns available keys.
+   *
+   * @return the set of keys available in this configuration
+   */
   def keys: Set[String] = data.keySet
 
-  /** Returns sub-keys.
-    *
-    * @return the set of direct sub-keys available in this configuration
-    */
+  /**
+   * Returns sub-keys.
+   *
+   * @return the set of direct sub-keys available in this configuration
+   */
   def subKeys: Set[String] = keys.map(_.split('.').head)
 
-  /** Creates a configuration error for a specific configuration key.
-    *
-    * For example:
-    * {{{
-    * throw configuration.reportError("engine.connectionUrl", "Cannot connect!")
-    * }}}
-    *
-    * @param key the configuration key, related to this error
-    * @param message the error message
-    * @param e the related exception
-    * @return a configuration exception
-    */
+  /**
+   * Creates a configuration error for a specific configuration key.
+   *
+   * For example:
+   * {{{
+   * throw configuration.reportError("engine.connectionUrl", "Cannot connect!")
+   * }}}
+   *
+   * @param key the configuration key, related to this error
+   * @param message the error message
+   * @param e the related exception
+   * @return a configuration exception
+   */
   def reportError(key: String, message: String, e: Option[Throwable] = None) = {
     data.get(key).map { config =>
       error(message, config, e)
@@ -260,24 +273,26 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
     }
   }
 
-  /** Translates a relative key to an absolute key.
-    *
-    * @param key the configuration key, relative to configuration root key
-    * @return the complete key
-    */
+  /**
+   * Translates a relative key to an absolute key.
+   *
+   * @param key the configuration key, relative to configuration root key
+   * @return the complete key
+   */
   def full(key: String) = root + key
 
-  /** Creates a configuration error for this configuration.
-    *
-    * For example:
-    * {{{
-    * throw configuration.globalError("Missing configuration key: [yop.url]")
-    * }}}
-    *
-    * @param message the error message
-    * @param e the related exception
-    * @return a configuration exception
-    */
+  /**
+   * Creates a configuration error for this configuration.
+   *
+   * For example:
+   * {{{
+   * throw configuration.globalError("Missing configuration key: [yop.url]")
+   * }}}
+   *
+   * @param message the error message
+   * @param e the related exception
+   * @return a configuration exception
+   */
   def globalError(message: String, e: Option[Throwable] = None) = {
     data.headOption.map { c =>
       new PlayException("Configuration error", message, e) with PlayException.ExceptionSource {
