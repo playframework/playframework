@@ -317,7 +317,7 @@ package play.templates {
           })
       }
 
-      def blockArgs: Parser[String] = """.*=>""".r
+      def blockArgs: Parser[String] = (not(literal("=>")) ~> any *) ~ "=>" ^^ { case args ~ arrow => args.mkString + arrow }
 
       def methodCall: Parser[String] = identifier ~ (squareBrackets?) ~ (parentheses?) ^^ {
         case methodName ~ types ~ args => methodName + types.getOrElse("") + args.getOrElse("")
