@@ -103,10 +103,6 @@ package object data {
     ObjectMapping19(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
-  def of[T <: Product, A, B, C, D, E](apply: Function5[A, B, C, D, E, T])(a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]), d: (String, Mapping[D]), e: (String, Mapping[E])): Mapping[T] = {
-    ObjectMapping5(apply, a, b, c, d, e)
-  }
-
   /**
    * Creates a Mapping of tuple `(A,B)`.
    *

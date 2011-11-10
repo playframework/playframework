@@ -15,8 +15,8 @@ case class ObjectMapping2[R <: Product, A1, A2](apply: Function2[A1, A2, R], f1:
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2]))
       }
     }
   }
@@ -53,9 +53,9 @@ case class ObjectMapping3[R <: Product, A1, A2, A3](apply: Function3[A1, A2, A3,
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3]))
       }
     }
   }
@@ -95,10 +95,10 @@ case class ObjectMapping4[R <: Product, A1, A2, A3, A4](apply: Function4[A1, A2,
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4]))
       }
     }
   }
@@ -141,11 +141,11 @@ case class ObjectMapping5[R <: Product, A1, A2, A3, A4, A5](apply: Function5[A1,
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5]))
       }
     }
   }
@@ -191,12 +191,12 @@ case class ObjectMapping6[R <: Product, A1, A2, A3, A4, A5, A6](apply: Function6
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6]))
       }
     }
   }
@@ -245,13 +245,13 @@ case class ObjectMapping7[R <: Product, A1, A2, A3, A4, A5, A6, A7](apply: Funct
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7]))
       }
     }
   }
@@ -303,14 +303,14 @@ case class ObjectMapping8[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8](apply: F
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8]))
       }
     }
   }
@@ -365,15 +365,15 @@ case class ObjectMapping9[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9](appl
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9]))
       }
     }
   }
@@ -431,16 +431,16 @@ case class ObjectMapping10[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10]))
       }
     }
   }
@@ -501,17 +501,17 @@ case class ObjectMapping11[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11]))
       }
     }
   }
@@ -575,18 +575,18 @@ case class ObjectMapping12[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12]))
       }
     }
   }
@@ -653,19 +653,19 @@ case class ObjectMapping13[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13]))
       }
     }
   }
@@ -735,20 +735,20 @@ case class ObjectMapping14[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13],
-          values(14).asInstanceOf[A14]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13],
+          values(13).asInstanceOf[A14]))
       }
     }
   }
@@ -821,21 +821,21 @@ case class ObjectMapping15[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13],
-          values(14).asInstanceOf[A14],
-          values(15).asInstanceOf[A15]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13],
+          values(13).asInstanceOf[A14],
+          values(14).asInstanceOf[A15]))
       }
     }
   }
@@ -911,22 +911,22 @@ case class ObjectMapping16[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13],
-          values(14).asInstanceOf[A14],
-          values(15).asInstanceOf[A15],
-          values(16).asInstanceOf[A16]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13],
+          values(13).asInstanceOf[A14],
+          values(14).asInstanceOf[A15],
+          values(15).asInstanceOf[A16]))
       }
     }
   }
@@ -1005,23 +1005,23 @@ case class ObjectMapping17[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13],
-          values(14).asInstanceOf[A14],
-          values(15).asInstanceOf[A15],
-          values(16).asInstanceOf[A16],
-          values(17).asInstanceOf[A17]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13],
+          values(13).asInstanceOf[A14],
+          values(14).asInstanceOf[A15],
+          values(15).asInstanceOf[A16],
+          values(16).asInstanceOf[A17]))
       }
     }
   }
@@ -1103,24 +1103,24 @@ case class ObjectMapping18[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13],
-          values(14).asInstanceOf[A14],
-          values(15).asInstanceOf[A15],
-          values(16).asInstanceOf[A16],
-          values(17).asInstanceOf[A17],
-          values(18).asInstanceOf[A18]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13],
+          values(13).asInstanceOf[A14],
+          values(14).asInstanceOf[A15],
+          values(15).asInstanceOf[A16],
+          values(16).asInstanceOf[A17],
+          values(17).asInstanceOf[A18]))
       }
     }
   }
@@ -1147,7 +1147,6 @@ case class ObjectMapping18[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
 
     (a1._1 ++ a2._1 ++ a3._1 ++ a4._1 ++ a5._1 ++ a6._1 ++ a7._1 ++ a8._1 ++ a9._1 ++ a10._1 ++ a11._1 ++ a12._1 ++ a13._1 ++ a14._1 ++ a15._1 ++ a16._1 ++ a17._1 ++ a18._1) ->
       (a1._2 ++ a2._2 ++ a3._2 ++ a4._2 ++ a5._2 ++ a6._2 ++ a7._2 ++ a8._2 ++ a9._2 ++ a10._2 ++ a11._2 ++ a12._2 ++ a13._2 ++ a14._2 ++ a15._2 ++ a16._2 ++ a17._2 ++ a18._2)
-
   }
 
   def withPrefix(prefix: String) = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
@@ -1206,25 +1205,25 @@ case class ObjectMapping19[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10
       case Right(values) => {
         applyConstraints(apply(
 
-          values(1).asInstanceOf[A1],
-          values(2).asInstanceOf[A2],
-          values(3).asInstanceOf[A3],
-          values(4).asInstanceOf[A4],
-          values(5).asInstanceOf[A5],
-          values(6).asInstanceOf[A6],
-          values(7).asInstanceOf[A7],
-          values(8).asInstanceOf[A8],
-          values(9).asInstanceOf[A9],
-          values(10).asInstanceOf[A10],
-          values(11).asInstanceOf[A11],
-          values(12).asInstanceOf[A12],
-          values(13).asInstanceOf[A13],
-          values(14).asInstanceOf[A14],
-          values(15).asInstanceOf[A15],
-          values(16).asInstanceOf[A16],
-          values(17).asInstanceOf[A17],
-          values(18).asInstanceOf[A18],
-          values(19).asInstanceOf[A19]))
+          values(0).asInstanceOf[A1],
+          values(1).asInstanceOf[A2],
+          values(2).asInstanceOf[A3],
+          values(3).asInstanceOf[A4],
+          values(4).asInstanceOf[A5],
+          values(5).asInstanceOf[A6],
+          values(6).asInstanceOf[A7],
+          values(7).asInstanceOf[A8],
+          values(8).asInstanceOf[A9],
+          values(9).asInstanceOf[A10],
+          values(10).asInstanceOf[A11],
+          values(11).asInstanceOf[A12],
+          values(12).asInstanceOf[A13],
+          values(13).asInstanceOf[A14],
+          values(14).asInstanceOf[A15],
+          values(15).asInstanceOf[A16],
+          values(16).asInstanceOf[A17],
+          values(17).asInstanceOf[A18],
+          values(18).asInstanceOf[A19]))
       }
     }
   }
