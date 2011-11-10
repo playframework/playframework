@@ -652,7 +652,6 @@ object PlayProject extends Plugin {
                 |reload                     Reload the current application build file.
                 |run                        Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs 
-                |it:run                     Run Webdriver based integration tests 
                 |start                      Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
@@ -933,6 +932,11 @@ object PlayProject extends Plugin {
     distDirectory <<= baseDirectory / "dist",
 
     libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
+
+    libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.6.1" % "test",
+      "com.novocode" % "junit-interface" % "0.7" % "test",
+      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.11.0" % "test",
+      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.11.0" % "test"),
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
 

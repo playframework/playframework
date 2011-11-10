@@ -9,6 +9,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def method() = "GET"
   def path() = "test"
   def urlFormEncoded() = data.asJava
+  def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
 }
 
