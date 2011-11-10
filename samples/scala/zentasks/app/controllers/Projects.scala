@@ -13,7 +13,7 @@ import views._
  * Manage projects related operations.
  */
 object Projects extends Controller with Secured {
-  
+
   /**
    * Display the dashboard.
    */
@@ -45,7 +45,7 @@ object Projects extends Controller with Secured {
       )
     )
   }
-    
+
   /**
    * Delete a project.
    */
@@ -55,7 +55,7 @@ object Projects extends Controller with Secured {
       Ok
     }
   }
-    
+
   /**
    * Rename a project.
    */
@@ -76,15 +76,15 @@ object Projects extends Controller with Secured {
   def addGroup = Action {
     Ok(html.projects.group("New group"))
   }
-  
+
   /**
    * Delete a project group.
    */
   def deleteGroup(folder: String) = Action { 
     Project.deleteInFolder(folder)
-    Ok 
+    Ok
   }
-  
+
   /**
    * Rename a project group.
    */
@@ -94,9 +94,9 @@ object Projects extends Controller with Secured {
       newName => { Project.renameFolder(folder, newName); Ok(newName) }
     )
   }
-  
+
   // -- Members
-  
+
   /**
    * Add a project member.
    */
@@ -108,7 +108,7 @@ object Projects extends Controller with Secured {
       )
     }
   }
-  
+
   /**
    * Remove a project member.
    */
@@ -120,6 +120,6 @@ object Projects extends Controller with Secured {
       )
     }
   }
-  
+
 }
 

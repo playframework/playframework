@@ -28,7 +28,7 @@ object Tasks extends Controller with Secured {
       }
     }.getOrElse(NotFound)
   }
-  
+
   val taskForm = Form(
     of(
       "title" -> requiredText,
@@ -36,9 +36,9 @@ object Tasks extends Controller with Secured {
       "assignedTo" -> optional(text)
     )
   )
-  
+
   // -- Tasks
-  
+
   /**
    * Create a task in this project.
    */  
@@ -56,10 +56,10 @@ object Tasks extends Controller with Secured {
       )
     }
   }
-  
+
   /**
    * Update a task
-   */  
+   */
   def update(task: Long) = Action { implicit request =>
     IsOwnerOf(task) {
       Form("done" -> boolean).bindFromRequest.fold(
@@ -68,7 +68,7 @@ object Tasks extends Controller with Secured {
       )
     }
   }
-  
+
   /**
    * Delete a task
    */
@@ -78,7 +78,7 @@ object Tasks extends Controller with Secured {
       Ok
     }
   }
-  
+
   // -- Task folders
 
   /**
@@ -87,7 +87,7 @@ object Tasks extends Controller with Secured {
   def addFolder = Action {
     Ok(html.tasks.folder("New folder"))
   }
-  
+
   /**
    * Delete a full tasks folder.
    */
@@ -97,7 +97,7 @@ object Tasks extends Controller with Secured {
       Ok
     }
   }
-  
+
   /**
    * Rename a tasks folder.
    */

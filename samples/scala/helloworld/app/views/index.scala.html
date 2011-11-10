@@ -3,21 +3,21 @@
 @import helper._
 
 @main(title = "The 'helloword' application") {
-    
+
     <h1>Configure your 'Hello world':</h1>
-    
+
     @form(action = routes.Application.sayHello, args = 'id -> "helloform") {
-        
+
         @inputText(
             field = helloForm("name"),
             args = 'label -> "What's your name?", 'placeholder -> "World"
         )
-        
+
         @inputText(
             field = helloForm("repeat"),
             args = 'label -> "How many times?", 'size -> 3, 'placeholder -> 10
         )
-        
+
         @select(
             field = helloForm("color"), 
             options = options(
@@ -28,11 +28,11 @@
             ),
             args = 'label -> "Choose a color"
         )
-        
+
         <p class="buttons">
             <input type="submit">
         <p>
-        
+
     }
-    
+
 }

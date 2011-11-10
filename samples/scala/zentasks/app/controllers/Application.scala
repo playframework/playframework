@@ -8,9 +8,9 @@ import models._
 import views._
 
 object Application extends Controller {
-  
+
   // -- Authentication
-  
+
   val loginForm = Form(
     of(
       "email" -> text,
@@ -26,7 +26,7 @@ object Application extends Controller {
   def login = Action { implicit request =>
     Ok(html.login(loginForm))
   }
-    
+
   /**
    * Handle login form submission.
    */
@@ -45,9 +45,9 @@ object Application extends Controller {
       "success" -> "You've been logged out"
     )
   }
-  
+
   // -- Javascript routing
-  
+
   def javascriptRoutes = Action {
     import routes.javascript._
     Ok(
@@ -67,30 +67,30 @@ object Application extends Controller {
  * Provide security features
  */
 trait Secured extends Security.AllAuthenticated {
-  
+
   /**
    * Retrieve the connected user email.
    */
   override def username(request: RequestHeader) = request.session.get("email")
-  
+
   /**
    * Redirect to login if the use in not authorized.
    */
   override def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
-  
+
   /**
    * Check if the connected user is a member of this project.
    */
   def IsMemberOf(project: Long)(f: => Result)(implicit request: RequestHeader) = {
     request.username.filter(Project.isMember(project, _)).map(_ => f).getOrElse(Results.Forbidden)
   }
-  
+
   /**
    * Check if the connected user is a owner of this task.
    */
   def IsOwnerOf(task: Long)(f: => Result)(implicit request: RequestHeader) = {
     request.username.filter(Task.isOwner(task, _)).map(_ => f).getOrElse(Results.Forbidden)
   }
-  
+
 }
 
