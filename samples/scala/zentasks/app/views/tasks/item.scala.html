@@ -13,7 +13,7 @@
     }
     
     @task.assignedTo.map { user =>
-        <span class="assignedTo">@task.assignedTo</span>
+        <span class="assignedTo">@user</span>
     }
     
     @if(isEditable) {

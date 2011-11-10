@@ -3,6 +3,8 @@ package play;
 import java.util.*;
 import scala.collection.JavaConverters;
 
+import play.libs.Scala;
+
 /**
  * The current application configuration.
  */
@@ -53,7 +55,7 @@ public class Configuration {
      * @return a configuration value or <code>null</code>
      */
     public String getString(String key) {
-        return orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
+        return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
     }
     
     /**
@@ -63,7 +65,7 @@ public class Configuration {
      * @return a configuration value or <code>null</code>
      */
     public Integer getInt(String key) {
-        return (Integer)orNull(conf.getInt(key));
+        return (Integer)Scala.orNull(conf.getInt(key));
     }
     
     /**
@@ -73,7 +75,7 @@ public class Configuration {
      * @return a configuration value or <code>null</code>
      */
     public Boolean getBoolean(String key) {
-        return (Boolean)orNull(conf.getBoolean(key));
+        return (Boolean)Scala.orNull(conf.getBoolean(key));
     }
     
     /**
@@ -95,15 +97,6 @@ public class Configuration {
      */
     public RuntimeException reportError(String key, String message, Throwable e) {
         return conf.reportError(key, message, scala.Option.apply(e));
-    }
-    
-    // -- Utils
-    
-    private static <T> T orNull(scala.Option<T> opt) {
-        if(opt.isDefined()) {
-            return opt.get();
-        }
-        return null;
     }
     
 }

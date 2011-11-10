@@ -86,6 +86,22 @@ public class Model {
     }
     
     /**
+     * Persist a many-to-many association.
+     */
+    public void saveManyToManyAssociations(String path) {
+        Ebean.saveManyToManyAssociations(this, path);
+    }
+    
+    /**
+     * Persist a many-to-many association.
+     *
+     * @param server the Ebean server to use
+     */
+    public void saveManyToManyAssociations(String server, String path) {
+        Ebean.getServer(server).saveManyToManyAssociations(this, path);
+    }    
+    
+    /**
      * Updates this entity.
      */
     public void update() {
@@ -149,6 +165,23 @@ public class Model {
      */
     public void refresh(String server) {
         Ebean.getServer(server).refresh(this);
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        if(this == other) return true;
+        if(other == null || other.getClass() != this.getClass()) return false;
+        Object id = _getId();
+        Object otherId = ((Model) other)._getId();
+        if(id == null) return false;
+        if(otherId == null) return false;
+        return id.equals(otherId);
+    }
+    
+    @Override
+    public int hashCode() {
+        Object id = _getId();
+        return id == null ? super.hashCode() : id.hashCode();
     }
     
     /**

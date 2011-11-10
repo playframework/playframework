@@ -43,8 +43,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @return a copy of this form filled with the new data
      */
     public DynamicForm bindFromRequest() {
-        Form<Dynamic> form = super.bindFromRequest();
-        return new DynamicForm(form.data(), form.errors(), form.value());
+        return bind(requestData());
     }
     
     /**
@@ -54,6 +53,15 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @return a copy of this form filled with the new data
      */
     public DynamicForm bind(Map<String,String> data) {
+        
+        {
+            Map<String,String> newData = new HashMap<String,String>();
+            for(String key: data.keySet()) {
+                newData.put("data[" + key + "]", data.get(key));
+            }
+            data = newData;
+        }
+        
         Form<Dynamic> form = super.bind(data);
         return new DynamicForm(form.data(), form.errors(), form.value());
     }

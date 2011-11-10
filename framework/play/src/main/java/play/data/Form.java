@@ -72,12 +72,7 @@ public class Form<T> {
         }
     }
     
-    /**
-     * Binds request data to this form - that is, handles form submission.
-     *
-     * @return a copy of this form filled with the new data
-     */
-    public Form<T> bindFromRequest() {
+    protected Map<String,String> requestData() {
         Map<String,String> data = new HashMap<String,String>();
         Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().urlFormEncoded();
         Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
@@ -93,7 +88,16 @@ public class Form<T> {
                 data.put(key, value[0]);
             }
         }
-        return bind(data);
+        return data;
+    }
+    
+    /**
+     * Binds request data to this form - that is, handles form submission.
+     *
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bindFromRequest() {
+        return bind(requestData());
     }
     
     /**
@@ -103,6 +107,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bind(Map<String,String> data) {
+        
         DataBinder dataBinder = new DataBinder(blankInstance);
         dataBinder.setValidator(new SpringValidatorAdapter(play.data.validation.Validation.getValidator()));
         dataBinder.setConversionService(play.data.format.Formatters.conversion);

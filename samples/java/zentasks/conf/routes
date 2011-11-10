@@ -1,0 +1,41 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# The home page
+GET     /                                   controllers.Projects.index
+
+# Authentication
+GET     /login                              controllers.Application.login
+POST    /login                              controllers.Application.authenticate
+GET     /logout                             controllers.Application.logout
+                                            
+# Projects                                  
+POST    /projects                           controllers.Projects.add
+
+POST    /projects/groups                    controllers.Projects.addGroup()
+DELETE  /projects/groups                    controllers.Projects.deleteGroup(group: String)
+PUT     /projects/groups                    controllers.Projects.renameGroup(group: String)
+
+DELETE  /projects/:project                  controllers.Projects.delete(project: Long)
+PUT     /projects/:project                  controllers.Projects.rename(project: Long)                      
+
+POST    /projects/:project/team             controllers.Projects.addUser(project: Long)
+DELETE  /projects/:project/team             controllers.Projects.removeUser(project: Long)
+             
+# Tasks                      
+GET     /projects/:project/tasks            controllers.Tasks.index(project: Long)
+POST    /projects/:project/tasks            controllers.Tasks.add(project: Long, folder: String)
+PUT     /tasks/:task                        controllers.Tasks.update(task: Long)
+DELETE  /tasks/:task                        controllers.Tasks.delete(task: Long)
+
+POST    /tasks/folder                       controllers.Tasks.addFolder
+DELETE  /projects/:project/tasks/folder     controllers.Tasks.deleteFolder(project: Long, folder: String)
+PUT     /project/:project/tasks/folder      controllers.Tasks.renameFolder(project: Long, folder: String)
+
+# Javascript routing
+GET     /assets/javascripts/routes          controllers.Application.javascriptRoutes
+
+# Map static resources from the /public folder to the /public path
+GET     /assets/*file                       controllers.Assets.at(path="/public", file)
+

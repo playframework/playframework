@@ -26,7 +26,7 @@ object User {
   // -- Queries
   
   /**
-   * Retrieve a User from the id.
+   * Retrieve a User from email.
    */
   def findByEmail(email: String): Option[User] = {
     DB.withConnection { implicit connection =>
@@ -48,40 +48,40 @@ object User {
   /**
    * Authenticate a User.
    */
-   def authenticate(email: String, password: String): Option[User] = {
-     DB.withConnection { implicit connection =>
-       SQL(
-         """
-          select * from user where 
-          email = {email} and password = {password}
-         """
-       ).on(
-         'email -> email,
-         'password -> password
-       ).as(User.simple ?)
-     }
-   }
+  def authenticate(email: String, password: String): Option[User] = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+         select * from user where 
+         email = {email} and password = {password}
+        """
+      ).on(
+        'email -> email,
+        'password -> password
+      ).as(User.simple ?)
+    }
+  }
    
-   /**
-    * Create a User.
-    */
-   def create(user: User): User = {
-     DB.withConnection { implicit connection =>
-       SQL(
-         """
-           insert into user values (
-             {email}, {name}, {password}
-           )
-         """
-       ).on(
-         'email -> user.email,
-         'name -> user.name,
-         'password -> user.password
-       ).executeUpdate()
-       
-       user
-       
-     }
-   }
+  /**
+   * Create a User.
+   */
+  def create(user: User): User = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          insert into user values (
+            {email}, {name}, {password}
+          )
+        """
+      ).on(
+        'email -> user.email,
+        'name -> user.name,
+        'password -> user.password
+      ).executeUpdate()
+      
+      user
+      
+    }
+  }
   
 }

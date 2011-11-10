@@ -1,0 +1,31 @@
+@(projects: List[Project], todoTasks: List[Task], user: User)
+
+@main(projects, user){
+    
+    <header>
+        <hgroup>
+            <h1>Dashboard</h1>
+            <h2>Tasks over all projects</h2>
+        </hgroup>
+    </header>
+    
+    <article  class="tasks">
+        @todoTasks.groupBy(_.project).map {
+            case (project, tasks) => {
+                <div class="folder" data-folder-id="@project.id">
+                    <header>
+                        <h3><a href="#@routes.Tasks.index(project.id)">@project.name</a></h3>
+                        <span class="loader">Loading</span>
+                    </header>
+                    <ul class="list">
+                        @tasks.map { task =>
+                            @views.html.tasks.item(task, isEditable = false)
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </article>
+    
+}
+

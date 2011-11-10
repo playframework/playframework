@@ -887,6 +887,9 @@ object PlayProject extends Plugin {
       "java.lang._",
       "java.util._",
 
+      "scala.collection.JavaConversions._",
+      "scala.collection.JavaConverters._",
+
       "play.api.i18n.Messages",
 
       "play.mvc._",

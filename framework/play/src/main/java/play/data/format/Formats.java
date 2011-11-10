@@ -116,4 +116,51 @@ public class Formats {
         
     }
     
+    // -- STRING
+    
+    /**
+     * Defines the format for a <code>String</code> field that cannot be empty.
+     */
+    @Target({FIELD})
+    @Retention(RUNTIME)
+    public static @interface NonEmpty {}
+    
+    /**
+     * Annotation formatter, triggered by the <code>@NonEmpty</code> annotation.
+     */
+    public static class AnnotationNonEmptyFormatter extends Formatters.AnnotationFormatter<NonEmpty,String> {
+        
+        /**
+         * Binds the field - constructs a concrete value from submitted data.
+         *
+         * @param annotation the annotation that trigerred this formatter
+         * @param text the field text
+         * @param locale the current <code>Locale</code>
+         * @return a new value
+         */
+        public String parse(NonEmpty annotation, String text, Locale locale) throws java.text.ParseException {
+            if(text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            return text;
+        }
+        
+        /**
+         * Unbinds this field - converts a concrete value to plain string
+         *
+         * @param annotation the annotation that trigerred this formatter
+         * @param value the value to unbind
+         * @param locale the current <code>Locale</code>
+         * @return printable version of the value
+         */
+        public String print(NonEmpty annotation, String value, Locale locale) {
+            if(value == null) {
+                return "";
+            }
+            return value;
+        }
+        
+    }
+    
+    
 }

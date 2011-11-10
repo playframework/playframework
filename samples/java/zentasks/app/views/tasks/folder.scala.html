@@ -1,0 +1,33 @@
+@(folder: String, tasks: List[Task])
+
+<div class="folder" data-folder-id="@folder">
+    <header>
+        <input type="checkbox" />
+        <h3>@folder</h3>
+        <span class="counter"></span>
+        <dl class="options">
+            <dt>Options</dt>
+            <dd>
+                <a class="deleteCompleteTasks" href="#">Remove complete tasks</a>
+                <a class="deleteAllTasks" href="#">Remove all tasks</a>
+                <a class="deleteFolder" href="#">Delete folder</a>
+            </dd>
+        </dl>
+        <span class="loader">Loading</span>
+    </header>
+    <ul class="list">
+        @tasks.map { task =>
+            @views.html.tasks.item( task )
+        }
+    </ul>
+    <form class="addTask">
+        <input type="hidden" name="folder" value="@folder" />
+        <input type="text" name="taskBody" placeholder="New task..." />
+        <input type="text" name="dueDate" class="dueDate" placeholder="Due date: mm/dd/yy" />
+        <div class="assignedTo">
+            <input type="text" name="assignedTo" placeholder="Assign to..." />
+        </div>
+        <input type="submit" />
+    </form>
+</div>
+

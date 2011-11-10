@@ -14,7 +14,7 @@ create table project (
   folder                    varchar(255) not null
 );
 
-create sequence project_seq start with 1000;;
+create sequence project_seq start with 1000;
 
 create table project_member (
   project_id                bigint not null,
@@ -35,7 +35,7 @@ create table task (
   foreign key(project)      references project(id) on delete cascade
 );
 
-create sequence task_seq start with 1000;;
+create sequence task_seq start with 1000;
 
 # --- !Downs
 

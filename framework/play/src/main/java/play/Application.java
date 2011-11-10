@@ -2,6 +2,9 @@ package play;
 
 import java.io.*;
 import java.util.*;
+import java.net.*;
+
+import play.libs.Scala;
 
 /**
  * A Play application.
@@ -45,6 +48,26 @@ public class Application {
      */
     public File getFile(String relativePath) {
         return application.getFile(relativePath);
+    }
+    
+    /**
+     * Retrieves a resource from the classpath.
+     *
+     * @param relativePath relative path of the resource to fetch
+     * @return URL to the resource (may be null)
+     */
+    public URL resource(String name) {
+        return Scala.orNull(application.resource(name));
+    }
+    
+    /**
+     * Retrieves a resource stream from the classpath.
+     *
+     * @param relativePath relative path of the resource to fetch
+     * @return InputStream to the resource (may be null)
+     */
+    public InputStream resourceAsStream(String name) {
+        return Scala.orNull(application.resourceAsStream(name));
     }
     
     /**

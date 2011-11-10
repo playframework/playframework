@@ -384,11 +384,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
       case (db, (ds, _)) => {
         val script = evolutionScript(api, app.path, db)
         if (!script.isEmpty) {
-          if (ds.getJdbcUrl.startsWith("jdbc:h2:mem:") && script.headOption.filter { case UpScript(ev, _) => ev.revision == 1 }.isDefined) {
-            Evolutions.applyScript(api, db, script)
-          } else {
-            throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
-          }
+          throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
         }
       }
     }

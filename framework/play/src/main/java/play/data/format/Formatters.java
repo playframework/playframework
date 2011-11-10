@@ -98,6 +98,7 @@ public class Formatters {
     static {
         register(Date.class, new Formats.DateFormatter("yyyy-MM-dd"));
         register(Date.class, new Formats.AnnotationDateFormatter());
+        register(String.class, new Formats.AnnotationNonEmptyFormatter());
     }
     
     /**

@@ -1,0 +1,110 @@
+// -----------------------------------
+// BREADCRUMB
+// -----------------------------------
+// author: mda@zenexity.com - 2011
+// -----------------------------------
+
+#main > header {
+    height: 39px;
+    background: url(/assets/images/breadcrumb.png);
+    border-bottom: 1px solid @layoutBorderColor;
+    hgroup {
+        height: inherit;
+        overflow: hidden;
+        float: left;
+        > * {
+            float: inherit;
+            position: relative;
+            height: inherit;
+            line-height: 40px;
+            margin-left: -25px;
+            padding: 0 6px 0 13px;
+            font-size: 18px;
+            text-shadow: 1px 1px 0 rgba(255,255,255,.5);
+            -webkit-border-image: url(/assets/images/breadcrumb-2.png) 0 30 0 20 stretch stretch;
+            -moz-border-image: url(/assets/images/breadcrumb-2.png) 0 30 0 20 stretch stretch;
+            border-image: url(/assets/images/breadcrumb-2.png) 0 30 0 20 stretch stretch;
+            border-width: 0 30px 0 25px;
+            color: @titleColor;
+            -webkit-user-select: text;
+            &:nth-child(2) {
+                -webkit-border-image: url(/assets/images/breadcrumb-1.png) 0 30 0 1 stretch stretch;
+                -moz-border-image: url(/assets/images/breadcrumb-1.png) 0 30 0 1 stretch stretch;
+                border-image: url(/assets/images/breadcrumb-1.png) 0 30 0 2 stretch stretch;
+            }
+            &:first-child {
+                padding-left: 20px;
+            }
+            &:nth-child(1) { z-index: 3; }
+            &:nth-child(2) { z-index: 2; }
+            &:nth-child(3) { z-index: 1; }
+        }
+    }
+    .users {
+        position: relative;
+        margin: 8px 10px;
+        float: right;
+        .pannel();
+        > dt {
+            &:before {
+                content: url(/assets/images/icons/user.png);
+                padding-right: 4px;
+                vertical-align: middle;
+            }
+            .button();
+        }
+        > dd {
+            padding: 5px 10px;
+            width: 300px;
+            color: @panText;
+            z-index: 99;
+        }
+        .wrap {
+            overflow: auto;
+            max-height: 350px;
+            width: inherit;
+        }
+        h3 {
+            margin: 10px 0 0;
+            padding: 5px 0;
+            font-size: 16px;
+            color: @panTitle;
+            &:first-of-type {
+                margin: 0;
+            }
+        }
+        dl {
+            position: relative;
+            border-top: 1px solid @panBorder;
+            padding: 5px 17px 5px 0;
+            dt {
+                .ellipsis();
+                span {
+                    opacity: .5;
+                    font-size: 11px;
+                }
+            }
+        }
+        .action {
+            position: absolute;
+            top: 5px;
+            right: 0px;
+            width: 16px;
+            height: 16px;
+            overflow: hidden;
+            text-indent: -99em;
+            background: #444 url(/assets/images/icons/addRemove.png) 0 1 no-repeat;
+            border-radius: 10px;
+            &:hover {
+                background-color: green;
+            }
+        }
+        .list .action {
+            background-position: 0 -19px;
+            &:hover {
+                background-color: red;
+            }
+        }
+    }
+}
+

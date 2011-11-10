@@ -61,7 +61,7 @@ section {
 .buttons input, .buttons a {
     border: 1px solid #2F3A3A;
     background: #fff;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     display: inline-block;
     padding: 5px 10px;
