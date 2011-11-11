@@ -11,7 +11,7 @@ cp -rf `dirname $0`/.. /tmp/play-2.0-beta
 cd /tmp
 
 echo "[info] zipping..."
-zip -9 -r play-2.0-beta.zip play-2.0-beta -x '*.git/*' 'play-2.0-beta/.gitmodule' '*.DS_Store' 'play-2.0-beta/dist/*' '*/target/*' 'play-2.0-beta/framework/sbt/boot/*' 'play-2.0-beta/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
+zip -9 -r play-2.0-beta.zip play-2.0-beta -x '*.git/*' 'play-2.0-beta/.gitmodules' 'play-2.0-beta/.gitignore' '*.DS_Store' 'play-2.0-beta/dist/*' '*/target/*' 'play-2.0-beta/framework/sbt/boot/*' 'play-2.0-beta/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
 
 rm -rf /tmp/play-2.0-beta
 
