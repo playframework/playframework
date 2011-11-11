@@ -78,10 +78,13 @@ public class EbeanPlugin extends Plugin {
                 servers.put(key, EbeanServerFactory.create(config));
                 
                 // DDL
-                File evolutions = application.getFile("db/evolutions/" + key + "/1.sql");
-                if(!evolutions.exists() || Files.readFile(evolutions).startsWith("# --- Created by Ebean DDL")) {
-                    Files.createDirectory(application.getFile("db/evolutions/" + key));
-                    Files.writeFileIfChanged(evolutions, generateEvolutionScript(servers.get(key), config));
+                String evolutionScript = generateEvolutionScript(servers.get(key), config);
+                if(evolutionScript != null) {
+                    File evolutions = application.getFile("db/evolutions/" + key + "/1.sql");
+                    if(!evolutions.exists() || Files.readFile(evolutions).startsWith("# --- Created by Ebean DDL")) {
+                        Files.createDirectory(application.getFile("db/evolutions/" + key));
+                        Files.writeFileIfChanged(evolutions, evolutionScript);
+                    }
                 }
 
             }
@@ -96,6 +99,10 @@ public class EbeanPlugin extends Plugin {
         DdlGenerator ddl = new DdlGenerator((SpiEbeanServer)server, config.getDatabasePlatform(), config);
         String ups = ddl.generateCreateDdl();
         String downs = ddl.generateDropDdl();
+        
+        if(ups == null || ups.trim().isEmpty()) {
+            return null;
+        }
         
         return (
             "# --- Created by Ebean DDL\n" +

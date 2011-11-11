@@ -20,7 +20,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
-            ivyLoggingLevel := UpdateLogging.Full
+            ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
@@ -33,7 +33,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            ivyLoggingLevel := UpdateLogging.Full
+            ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
@@ -51,7 +51,7 @@ object PlayBuild extends Build {
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
             compile in (Compile) <<= PostCompile,
-            ivyLoggingLevel := UpdateLogging.Full
+            ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject, AnormProject)
 
@@ -64,7 +64,7 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            ivyLoggingLevel := UpdateLogging.Full,
+            ivyLoggingLevel := UpdateLogging.DownloadOnly,
             publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject) map { (_,_,_) => },
             publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject) map { (_,_,_) => }
         )
@@ -335,7 +335,6 @@ object PlayBuild extends Build {
             val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
 
             (generatedDir ** "*.template.scala").get.foreach { source =>
-                streams.log.info("Synchronizing %s".format(source))
                 val constructor = generatedSource.getDeclaredConstructor(classOf[java.io.File])
                 val sync = generatedSource.getDeclaredMethod("sync")
                 val generated = constructor.newInstance(source)
