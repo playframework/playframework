@@ -4,15 +4,21 @@ Play 2.0 is a Java and Scala Web application framework (http://www.playframework
 
 ## Installing
 
-Just make sure that the `play` script has the correct permissions. If not, run:
+For convenience, you should add the framework installation directory to your system PATH. On UNIX system you should add something like that somewhere:
 
 ```bash
-$ chmod a+x play
+export PATH=$PATH:/path/to/play20
 ```
+
+> If you’re on UNIX, make sure that the play script is runnable (otherwise do a chmod a+x play).
 
 ## Documentation
 
 The temporary documentation is available at https://github.com/playframework/Play20/wiki.
+
+## Contributors
+
+Check for all contributors at https://github.com/playframework/Play20/contributors.
 
 ## Licence
 
