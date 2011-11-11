@@ -57,7 +57,7 @@ object Play {
 
     app.plugins.foreach(_.onStart)
 
-    Logger("play").info("Application is started")
+    Logger("play").info("Application started")
 
   }
 
