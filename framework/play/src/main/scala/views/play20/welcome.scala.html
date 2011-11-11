@@ -1,0 +1,50 @@
+@(message: String)
+
+<section>
+    
+    <style>
+        html, body, pre {
+            margin: 0;
+            padding: 0;
+            font-family: Monaco, 'Lucida Console';
+            background: #ECECEC;
+        }
+        h1 {
+            margin: 0;
+            background: url("assets/images/play20header.png") top center no-repeat, linear-gradient(left, #B2EB5A 0%, #87DCB4 100%);
+            background: url("assets/images/play20header.png") top center no-repeat, -webkit-gradient(linear, left top, right top, color-stop(0, #B2EB5A), color-stop(1, #87DCB4));
+            background: url("assets/images/play20header.png") top center no-repeat, -moz-linear-gradient(left, #B2EB5A 0%, #87DCB4 100%);
+            background: url("assets/images/play20header.png") top center no-repeat, -webkit-linear-gradient(left, #B2EB5A 0%, #87DCB4 100%);
+            background: url("assets/images/play20header.png") top center no-repeat, -o-linear-gradient(left, #B2EB5A 0%, #87DCB4 100%);
+            background: url("assets/images/play20header.png") top center no-repeat, -ms-linear-gradient(left, #B2EB5A 0%, #87DCB4 100%);
+            background: url("assets/images/play20header.png") top center no-repeat, linear-gradient(left, #B2EB5A 0%, #87DCB4 100%);
+            padding: 20px 45px;
+            color: #0F361F;
+            text-shadow: 1px 1px 1px rgba(255,255,255,.5);
+            border-bottom: 1px solid #0F361F;
+            font-size: 28px;
+        }
+        p#detail {
+            margin: 0;
+            padding: 15px 45px;
+            background: linear-gradient(top, #555 0%, #333 100%);
+            background: -moz-linear-gradient(top, #555 0%, #333 100%);
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #555), color-stop(100%, #333));
+            background: -webkit-linear-gradient(top, #555 0%, #333 100%);
+            background: -o-linear-gradient(top, #555 0%, #333 100%);
+            background: -ms-linear-gradient(top, #555 0%, #333 100%);
+            border-top: 4px solid #444;
+            color: #fff;
+            text-shadow: 1px 1px 1px rgba(0,0,0,.3);
+            font-size: 14px;
+            border-bottom: 1px solid #000;
+        }
+    </style>
+
+    <h1>Welcome to Play 2.0 beta!</h1>
+
+    <p id="detail">
+    	@message
+    </p>
+
+</section>
