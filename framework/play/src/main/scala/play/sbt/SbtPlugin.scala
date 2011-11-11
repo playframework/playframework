@@ -415,7 +415,7 @@ object PlayProject extends Plugin {
                 def offset = xsbti.Maybe.nothing[java.lang.Integer]
                 def pointer = {
                   problem.position.offset.map { offset =>
-                    generatedSource.mapPosition(offset.asInstanceOf[Int]) - IO.readLines(generatedSource.source.get).take(problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).get - 1).mkString("\n").size - 1
+                    generatedSource.mapPosition(offset.asInstanceOf[Int]) - IO.read(generatedSource.source.get).split('\n').take(problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).get - 1).mkString("\n").size - 1
                   }.map { p =>
                     xsbti.Maybe.just(p.asInstanceOf[java.lang.Integer])
                   }.getOrElse(xsbti.Maybe.nothing[java.lang.Integer])

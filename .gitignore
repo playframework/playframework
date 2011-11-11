@@ -11,5 +11,5 @@ documentation/api
 workspace/
 framework/sbt/boot
 .history
-
 .idea
+RUNNING_PID
