@@ -35,30 +35,10 @@ package views.html.helper {
 
   object options {
 
-    def apply(options: (String, String)*) = options.toMap
-
-  }
-
-  object select {
-
-    type HtmlArgs = (Symbol, Any)
-
-    def apply(field: play.api.data.Field, options: Map[String, String], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {
-      genericSelect(field, options.map { o => o._1 -> o._2 }.toSeq, args: _*)(handler)
-    }
-
-    def apply(field: play.api.data.Field, options: java.util.Map[_, _], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {
-      apply(field, options.asScala.map { o =>
-        Option(o._1).map(_.toString).getOrElse("") -> Option(o._2).map(_.toString).getOrElse("")
-      }, args: _*)(handler)
-    }
-
-    def apply(field: play.api.data.Field, options: Iterable[Any], args: HtmlArgs*)(implicit handler: InputConstructor): Html = {
-      genericSelect(field, options.map {
-        case (k, v) => Option(k).map(_.toString).getOrElse("") -> Option(v).map(_.toString).getOrElse("")
-        case o => Option(o).map(_.toString).getOrElse("") -> Option(o).map(_.toString).getOrElse("")
-      }.toSeq, args: _*)(handler)
-    }
+    def apply(options: (String, String)*) = options.toSeq
+    def apply(options: Map[String, String]) = options.toSeq
+    def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
+    def apply(options: Iterable[Any]) = options.map(v => v -> v)
 
   }
 

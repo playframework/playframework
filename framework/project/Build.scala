@@ -49,7 +49,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
-            sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile) map ScalaTemplates,
+            sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
             compile in (Compile) <<= PostCompile,
             ivyLoggingLevel := UpdateLogging.Full
         )
@@ -329,12 +329,13 @@ object PlayBuild extends Build {
 
         // ----- Compile templates
 
-        val ScalaTemplates = { (classpath:Seq[Attributed[File]], templateEngine:File, sourceDirectory:File, generatedDir:File) =>
+        val ScalaTemplates = { (classpath:Seq[Attributed[File]], templateEngine:File, sourceDirectory:File, generatedDir:File, streams:sbt.std.TaskStreams[sbt.Project.ScopedKey[_]]) =>
             val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, this.getClass.getClassLoader)
             val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
             val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
 
             (generatedDir ** "*.template.scala").get.foreach { source =>
+                streams.log.info("Synchronizing %s".format(source))
                 val constructor = generatedSource.getDeclaredConstructor(classOf[java.io.File])
                 val sync = generatedSource.getDeclaredMethod("sync")
                 val generated = constructor.newInstance(source)
@@ -350,6 +351,7 @@ object PlayBuild extends Build {
             }
             
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
+                streams.log.info("Compiling %s".format(template))
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
                     compile.invoke(null, template, sourceDirectory, generatedDir, "play.api.templates.Html", "play.api.templates.HtmlFormat", "import play.api.templates._\nimport play.api.templates.PlayMagic._")

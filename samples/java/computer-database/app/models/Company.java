@@ -26,10 +26,10 @@ public class Company extends Model {
      */
     public static Model.Finder<Long,Company> find = new Model.Finder(Long.class, Company.class);
 
-    public static Map<Long,String> options() {
-        LinkedHashMap<Long,String> options = new LinkedHashMap<Long,String>();
+    public static Map<String,String> options() {
+        LinkedHashMap<String,String> options = new LinkedHashMap<String,String>();
         for(Company c: Company.find.orderBy("name").findList()) {
-            options.put(c.id, c.name);
+            options.put(c.id.toString(), c.name);
         }
         return options;
     }

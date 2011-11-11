@@ -16,7 +16,7 @@
 
             @select(
                 computerForm("company.id"), 
-                Company.options, 
+                options(Company.options), 
                 'label -> "Company", 'default -> "-- Choose a company --"
             )(twitterBootstrapInput)
             

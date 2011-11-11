@@ -257,6 +257,8 @@ package play.templates {
 
       def eof = """\Z""".r
 
+      def newLine = (("\r"?) ~> "\n")
+
       def identifier = as(ident, "identifier")
 
       def whiteSpaceNoBreak = """[ \t]+""".r
@@ -317,7 +319,7 @@ package play.templates {
           })
       }
 
-      def blockArgs: Parser[String] = (not(literal("=>")) ~> any *) ~ "=>" ^^ { case args ~ arrow => args.mkString + arrow }
+      def blockArgs: Parser[String] = (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => args.mkString + arrow }
 
       def methodCall: Parser[String] = identifier ~ (squareBrackets?) ~ (parentheses?) ^^ {
         case methodName ~ types ~ args => methodName + types.getOrElse("") + args.getOrElse("")
