@@ -56,8 +56,8 @@ public class Application {
      * @param relativePath relative path of the resource to fetch
      * @return URL to the resource (may be null)
      */
-    public URL resource(String name) {
-        return Scala.orNull(application.resource(name));
+    public URL resource(String relativePath) {
+        return Scala.orNull(application.resource(relativePath));
     }
     
     /**
@@ -66,8 +66,8 @@ public class Application {
      * @param relativePath relative path of the resource to fetch
      * @return InputStream to the resource (may be null)
      */
-    public InputStream resourceAsStream(String name) {
-        return Scala.orNull(application.resourceAsStream(name));
+    public InputStream resourceAsStream(String relativePath) {
+        return Scala.orNull(application.resourceAsStream(relativePath));
     }
     
     /**

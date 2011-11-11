@@ -87,7 +87,7 @@ object Cache {
   /**
    * Retrieves multiple keys from the same type.
    *
-   * @keys varargs
+   * @param keys varargs
    * @return cache key-value pairs from homogeneous type
    */
   def get[T](keys: String*)(implicit m: Manifest[T], app: Application): Map[String, Option[T]] = app.plugin[CachePlugin].map(_.api.get[T](keys: _*).asInstanceOf[Map[String, Option[T]]]).getOrElse(error)
@@ -97,7 +97,7 @@ object Cache {
    *
    * This method takes an array instead of varargs to avoid ambiguous method calls in the case of varargs plus an implicit `app` parameter.
    *
-   * @keys a Java array of string of keys
+   * @param keys a Java array of string of keys
    * @return java.util.Map[String,java.langObject]
    */
   def getAsJava(keys: Array[String])(implicit app: Application): java.util.Map[String, AnyRef] = app.plugin[CachePlugin].map(_.api.getAsJava(keys: _*)).getOrElse(error)
