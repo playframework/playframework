@@ -4,7 +4,7 @@ Play 2.0 is a Java and Scala Web application framework (http://www.playframework
 
 ## Installing
 
-For convenience, you should add the framework installation directory to your system PATH. On UNIX system you should add something like that somewhere:
+For convenience, you should add the framework installation directory to your system PATH. On UNIX systems you should add something like:
 
 ```bash
 export PATH=$PATH:/path/to/play20
