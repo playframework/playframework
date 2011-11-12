@@ -12,6 +12,16 @@ export PATH=$PATH:/path/to/play20
 
 > If you’re on UNIX, make sure that the play script is runnable (otherwise do a chmod a+x play).
 
+## Running the sample app
+
+To run the included ZenTask sample application:
+
+```bash
+cd samples/scala/zentasks/
+play run
+```
+> The application will be available on port 9000. On first run, it will notify you that database evolutions are required. Click "Apply this script now" and you're away! 
+
 ## Documentation
 
 The temporary documentation is available at https://github.com/playframework/Play20/wiki.
