@@ -2,6 +2,7 @@
 
 `dirname $0`/cleanEverything
 `dirname $0`/build build-repository
+`dirname $0`/build api-docs
 
 rm -rf /tmp/play-2.0-beta*
 

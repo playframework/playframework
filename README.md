@@ -30,7 +30,7 @@ $ cd /dev/myApplication
 $ play run
 ```
 
-Use `play new yourNewApplicationFolder` to create a new application:
+Use `play new yourNewApplication` to create a new application:
 
 ```bash
 $ cd /dev
