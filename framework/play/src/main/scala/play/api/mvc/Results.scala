@@ -331,6 +331,9 @@ trait Results {
   /** Generates a ‘501 NOT_IMPLEMENTED’ simple result. */
   val NotImplemented = new Status(NOT_IMPLEMENTED)
 
+  /** Generates a ‘304 NOT_MODIFIED’ simple result. */
+  val NotModified = new Status(NOT_MODIFIED)
+
   /**
    * Generates a simple result.
    *
@@ -353,9 +356,9 @@ trait Results {
   def Redirect(call: Call): SimpleResult[Results.Empty] = Redirect(call.url)
 
   /** To be deleted... */
-  def Binary(stream: java.io.InputStream, length: Option[Long] = None, contentType: String = "application/octet-stream") = {
-    import scalax.io.Resource
-    val e = Enumerator(Resource.fromInputStream(stream).byteArray)
+  def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
+
+    val e = Enumerator(data)
 
     SimpleResult[Array[Byte]](header = ResponseHeader(
       OK,

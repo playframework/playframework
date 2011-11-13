@@ -70,7 +70,7 @@ object Configuration {
 
     def comment = """#.*""".r ^^ { case s => Comment(s) }
 
-    def configKey = namedError("""[a-zA-Z0-9_.]+""".r, "Configuration key expected")
+    def configKey = namedError("""[^\s=]+""".r, "Configuration key expected")
     def configValue = namedError(""".+""".r, "Configuration value expected")
     def config = ignoreWhiteSpace ~ configKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ configValue ^^ {
       case (_ ~ k ~ _ ~ v) => Configuration.Config(k, v.trim, configurationFile)
