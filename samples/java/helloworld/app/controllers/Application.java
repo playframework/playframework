@@ -11,6 +11,9 @@ import views.html.*;
 
 public class Application extends Controller {
     
+    /**
+     * Describes the hello form.
+     */
     public static class Hello {
         @Required public String name;
         @Required @Min(1) @Max(100) public Integer repeat;
@@ -19,12 +22,18 @@ public class Application extends Controller {
     
     // -- Actions
   
+    /**
+     * Home page
+     */
     public static Result index() {
         return ok(
             index.render(form(Hello.class))
         );
     }
   
+    /**
+     * Handles the form submission.
+     */
     public static Result sayHello() {
         Form<Hello> form = form(Hello.class).bindFromRequest();
         if(form.hasErrors()) {
