@@ -16,17 +16,41 @@ On windows systems it should be set somewhere in the global environment variable
 
 ## Getting started
 
-Enter any existing Play 2.0 application directory and use the `play` command to launch the development console. You can also directly use `play run` to run the application.
+Enter any existing Play 2.0 application directory and use the `play` command to launch the development console:
 
-Use `play new yourNewApplicationFolder` to create a new application.
+```bash
+$ cd /dev/myApplication
+$ play
+```
+
+You can also directly use `play run` to run the application:
+
+```bash
+$ cd /dev/myApplication
+$ play run
+```
+
+Use `play new yourNewApplicationFolder` to create a new application:
+
+```bash
+$ cd /dev
+$ play new myNewApplication
+```
+
+Once the application is created, use it as any existing application:
+
+```bash
+$ cd myNewApplication
+$ play
+```
 
 ## Running the sample applications
 
 There is several samples applications included in the `samples/` directory. For example, to run the included ZenTask sample application:
 
 ```bash
-cd samples/scala/zentasks/
-play run
+$ cd samples/scala/zentasks/
+$ play run
 ```
 > The application will be available on port 9000. On first run, it will notify you that database evolutions are required. Click "Apply this script now" and you're away! 
 
