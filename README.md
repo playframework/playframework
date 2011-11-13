@@ -4,13 +4,13 @@ Play 2.0 is a Java and Scala Web application framework (http://www.playframework
 
 ## Installing
 
-For convenience, you should add the framework installation directory to your system PATH. On UNIX systems you should add something like:
+For convenience, you should add the framework installation directory to your system PATH. On UNIX systems will be something like:
 
 ```bash
 export PATH=$PATH:/path/to/play20
 ```
 
-On windows systems it should be set somewhere in the global environment variables.
+On windows systems you'll need to set it in the global environment variables.
 
 > If you’re on UNIX, make sure that the play script is executable (otherwise do a chmod a+x play).
 
@@ -46,7 +46,7 @@ $ play
 
 ## Running the sample applications
 
-There is several samples applications included in the `samples/` directory. For example, to run the included ZenTask sample application:
+There are several samples applications included in the `samples/` directory. For example, to run the included ZenTask sample application:
 
 ```bash
 $ cd samples/scala/zentasks/
