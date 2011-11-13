@@ -10,11 +10,19 @@ For convenience, you should add the framework installation directory to your sys
 export PATH=$PATH:/path/to/play20
 ```
 
+On windows systems it should be set somewhere in the global environment variables.
+
 > If you’re on UNIX, make sure that the play script is executable (otherwise do a chmod a+x play).
 
-## Running the sample app
+## Getting started
 
-To run the included ZenTask sample application:
+Enter any existing Play 2.0 application directory and use the `play` command to launch the development console. You can also directly use `play run` to run the application.
+
+Use `play new yourNewApplicationFolder` to create a new application.
+
+## Running the sample applications
+
+There is several samples applications included in the `samples/` directory. For example, to run the included ZenTask sample application:
 
 ```bash
 cd samples/scala/zentasks/

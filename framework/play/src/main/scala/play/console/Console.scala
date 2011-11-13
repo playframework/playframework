@@ -89,7 +89,7 @@ object Console {
         "APPLICATION_SECRET" -> newSecret)
 
       """|OK, application %s is created.
-         |Type `play` to enter the development console.
+         |
          |Have fun!
          |""".stripMargin.format(name).trim
     }
