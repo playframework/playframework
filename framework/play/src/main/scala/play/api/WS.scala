@@ -57,7 +57,7 @@ object WS {
      */
     def options(): HttpPromise[Response] = execute("OPTION")
 
-    private def execute(method: String) = new HttpPromise[Response](WS.client.executeRequest(this.setMethod("HEAD").build()))
+    private def execute(method: String) = new HttpPromise[Response](WS.client.executeRequest(this.setMethod(method).build()))
   }
 
   class HttpPromise[A](listenable: ListenableFuture[A]) extends Promise[A] {
