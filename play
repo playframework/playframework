@@ -1,14 +1,21 @@
 #! /usr/bin/env sh
 
+PRG="$0"
+# need this for relative symlinks
+while [ -h "$PRG" ] ; do
+   PRG=`readlink "$PRG"`
+done
+dir=`dirname $PRG`
+
 if [ -f conf/application.conf ]; then
   if test "$1" = "clean"; then
-    `dirname $0`/framework/cleanIvyCache
+    $dir/framework/cleanIvyCache
   fi
   if [ -n "$1" ]; then
-    `dirname $0`/framework/build "$@"
+    $dir/framework/build "$@"
   else
-    `dirname $0`/framework/build play
+    $dir/framework/build play
   fi
 else
-  java -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework -Dsbt.boot.properties=`dirname $0`/framework/sbt/play.boot.properties -jar `dirname $0`/framework/sbt/sbt-launch-0.11.0.jar "$@"
+  java -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch-0.11.0.jar "$@"
 fi
