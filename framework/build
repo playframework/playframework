@@ -1,3 +1,3 @@
 #! /usr/bin/env sh
 
-java -Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M -Dfile.encoding=UTF8 -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties -jar `dirname $0`/sbt/sbt-launch-0.11.0.jar "$@"
+java -Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=384M -Dfile.encoding=UTF8 -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties -jar `dirname $0`/sbt/sbt-launch-0.11.0.jar "$@"

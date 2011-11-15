@@ -2,7 +2,7 @@ package test
 import org.specs2.mutable._
 import play.api.mvc._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent._
 import play.api.test.MockData
 import play.api.test.MockApplication._
 
@@ -36,9 +36,8 @@ object ApplicationSpec extends Specification {
             headers.toString must equalTo("Map(Content-Type -> text/html)")
             body.toString must contain ("Enumerator")
             val later:Promise[String] = (Iteratee.fold[simp.BODY_CONTENT,String](""){ case (s,e) => s+e } <<: body).flatMap(_.run)
-            later.onRedeem{body=>
-              body must contain ("Hello world")
-            }
+            val r = {later.value match {case r:Redeemed[_] => r.a}}
+            r.toString must contain ("Hello world")
           case _  => throw new Exception("it should have matched a valid response")
        }
     }

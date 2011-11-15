@@ -17,8 +17,7 @@ private[test] class RunnerActor extends Actor {
     case Start(netty) =>
       netty.getOrElse(throw new Exception("at this point we should have netty running"))
     case Stop(netty) =>
-      Thread.sleep(1000)
-      println("shutting down")
+      play.api.Play.stop()
       netty.getOrElse(throw new Exception("at this point we should have netty running")).stop()
       Actor.registry.shutdownAll()
   }
@@ -49,6 +48,8 @@ object IntegrationTest {
       new NettyServer(new StaticApplication(applicationPath), 9000))
 
     actor ! Start(netty)
+
+    Thread.sleep(100)
 
     val cleanRun = try {
       test

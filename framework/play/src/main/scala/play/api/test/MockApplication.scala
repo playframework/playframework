@@ -12,7 +12,8 @@ object MockData {
   val dataSource = Map("application.name" -> "mock app",
     "db.default.driver" -> "org.h2.Driver",
     "db.default.url" -> "jdbc:h2:mem:play",
-    "ebean.default" -> "models.*")
+    "ebean.default" -> "models.*",
+    "mock" -> "true")
   def dataSourceAsJava = dataSource.asJava
 
 }

@@ -117,7 +117,7 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "se.scalablesolutions.akka"         %    "akka-actor"               %   "1.2",
             "se.scalablesolutions.akka"         %    "akka-slf4j"               %   "1.2",
-            "org.avaje"                         %    "ebean"                    %   "2.7.1",
+            "org.avaje"                         %    "ebean"                    %   "2.7.3",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             "org.scala-tools"                   %%   "scala-stm"                %   "0.3",
             "com.jolbox"                        %    "bonecp"                   %   "0.7.1.RELEASE",
