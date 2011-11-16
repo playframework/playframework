@@ -33,7 +33,7 @@ class Setup[T <: Application](implicit m: Manifest[T]) extends GlobalSettings {
       try {
         val clazz = m.erasure
         clazz.getMethod("dispatcher").invoke(clazz.newInstance()).asInstanceOf[Map[String, Action[_]]]
-      } catch { case (ex: Exception) => throw new Exception("could not find a MiniApplication object that extends Mini:" + ex.toString) }
+      } catch { case (ex: Exception) => throw new Exception("could not find Application:" + ex.toString) }
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Action[_]] = request match {
