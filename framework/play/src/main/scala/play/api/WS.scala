@@ -58,7 +58,6 @@ object WS {
     def options(): Promise[Response] = execute("OPTION")
 
     private def execute(method: String): Promise[Response] = {
-      play.Logger.error("Oh promises...")
       var result = Promise[Response]()
       WS.client.executeRequest(this.setMethod(method).build(), new AsyncCompletionHandler[Response]() {
         override def onCompleted(response: Response) = {
