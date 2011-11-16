@@ -3,7 +3,7 @@ import org.specs2.mutable._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-import play.api.test.MockData
+import play.api.test._
 import play.api.test.MockApplication._
 
 class FakeRequest[AnyContent] extends Request[AnyContent] {
@@ -30,16 +30,10 @@ object ApplicationSpec extends Specification {
       withApplication(Nil, MockData.dataSource) {
         val action = controllers.Application.index()
         val result = action.apply(new FakeRequest)
-        result match {
-          case simp @ SimpleResult(ResponseHeader(status, headers), body) => 
-            status.toString must equalTo("200")
-            headers.toString must equalTo("Map(Content-Type -> text/html)")
-            body.toString must contain ("Enumerator")
-            val later:Promise[String] = (Iteratee.fold[simp.BODY_CONTENT,String](""){ case (s,e) => s+e } <<: body).flatMap(_.run)
-            val r = {later.value match {case r:Redeemed[_] => r.a}}
-            r.toString must contain ("Hello world")
-          case _  => throw new Exception("it should have matched a valid response")
-       }
+        val extracted = Extract.from(result)
+        extracted._1.toString must equalTo("200")
+        extracted._2.toString must equalTo("Map(Content-Type -> text/html)")
+        extracted._3 must contain ("Hello world")
     }
   }
  }

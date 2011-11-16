@@ -3,6 +3,7 @@ package test;
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
 import play.test.*;
+import play.api.test.ResultData;
 import java.util.*;
 import play.api.mvc.*;
 import play.Logger;
@@ -18,8 +19,8 @@ public class ApplicationTest extends MockApplication{
 
   @Test public void Test() {
     Action action = controllers.Application.index_java_cache();
-    Result result = action.apply(new FakeRequest());
-    assertEquals(result.toString().contains("200,Map(Content-Type -> text/html"),true);
+    ResultData result = Extract.from(action.apply(new FakeRequest()));
+    assertEquals(result.body().toString().contains("Hello world"),true);
   }
   @After public void after() {
    clearMock();
