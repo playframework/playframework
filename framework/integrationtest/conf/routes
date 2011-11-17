@@ -2,6 +2,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+POST     /post                  controllers.Application.post()
 GET     /                       controllers.Application.index()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 

@@ -12,6 +12,10 @@ object Application extends Controller {
     if (v2("peter") == "world" && v2("hello") == "world") throw new RuntimeException("scala cache API is not working")
     Ok(views.html.index(Cache.get[String]("hello").getOrElse("oh noooz")))
   }
+
+  def post = Action {
+    Ok(views.html.index("POST!"))
+  }
   def index_java_cache = Action {
     import play.api.Play.current
     JCache.set("hello","world")
