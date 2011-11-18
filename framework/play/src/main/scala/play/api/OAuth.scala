@@ -9,7 +9,6 @@ import oauth._
  * Library to access ressources protected by OAuth 1.0a.
  *
  */
-
 case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
   private val provider = new DefaultOAuthProvider(info.requestTokenURL, info.accessTokenURL, info.authorizationURL)
@@ -17,8 +16,8 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
   /**
    * Request the request token and secret.
-   * @param callbackURL the URL where the provider should redirect to
-   * @return a Response object holding either the result in case of a success or the error
+   * @param callbackURL the URL where the provider should redirect to (usually a URL on the current app)
+   * @return A Left(RequestToken) in case of success, Right(OAuthException) otherwise
    */
   def retrieveRequestToken(callbackURL: String): Either[RequestToken, OAuthException] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
@@ -34,7 +33,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
    * Exchange a request token for an access token.
    * @param the token/secret pair obtained from a previous call
    * @param verifier a string you got through your user, with redirection
-   * @return a Response object holding either the result in case of a success or the error
+   * @return A Left(RequestToken) in case of success, Right(OAuthException) otherwise
    */
   def retrieveAccessToken(token: RequestToken, verifier: String): Either[RequestToken, OAuthException] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
@@ -49,6 +48,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
   /**
    * The URL where the user needs to be redirected to grant authorization to your application
+   * @param token request token
    */
   def redirectUrl(token: String): String =
     _root_.oauth.signpost.OAuth.addQueryParameters(provider.getAuthorizationWebsiteUrl(),
@@ -57,8 +57,19 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
 package oauth {
 
+  /**
+   * A consumer key / consumer secret pair that the OAuth provider gave you, to identify your application
+   */
   case class ConsumerKey(key: String, secret: String)
+
+  /**
+   * A request token / token secret pair, to be used for a specific user
+   */
   case class RequestToken(token: String, secret: String)
+
+  /**
+   * The information identifying a oauth provider: URLs and the consumer key / consumer secret pair
+   */
   case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authorizationURL: String, key: ConsumerKey)
 
 }
