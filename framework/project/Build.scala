@@ -133,6 +133,7 @@ object PlayBuild extends Build {
             "rhino"                             %    "js"                       %   "1.7R2",
             "com.google.javascript"             %    "closure-compiler"         %   "r1459"           notTransitive(),
             "com.ning"                          %    "async-http-client"        %   "1.6.5",
+            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "org.reflections"                   %    "reflections"              %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"    %   "test",
@@ -145,7 +146,7 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"           %   buildScalaVersion
-        )                                                                       
+        )
 
         val anormDependencies = Seq(
             "org.scala-lang"                    %    "scalap"                   %   buildScalaVersion 
