@@ -92,3 +92,9 @@ trait JavaAction extends Action[AnyContent] {
   }
 
 }
+/**
+ * wrap a java result into an Action
+ */
+object Wrap {
+  def toAction(r: play.mvc.Result) = Action { r.getWrappedResult }
+}

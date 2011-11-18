@@ -1,0 +1,20 @@
+-----------------------
+PLAY AS AN HTTP LIBRARY
+-----------------------
+this project demonstrates how play scales down by allowing users to utilize play as HTTP layer in existing, vanilla sbt project (or maven).
+
+(Notice: there is nothing play specific about this project, no app, conf folder.)
+
+------------------
+HOW TO RUN THE APP 
+------------------
+
+this app requires the latest version of play (not available in a repo yet),
+the easiest way to setup this demo is by installing play 2.0 https://github.com/playframework/Play20
+
+and then
+
+$ sbt -Dsbt.ivy.home=/myplay2installation/repository
+
+> run 
+

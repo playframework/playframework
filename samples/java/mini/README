@@ -1,0 +1,19 @@
+-----------------------
+PLAY AS AN HTTP LIBRARY
+-----------------------
+this project demonstrates how play scales down by allowing users to utilize play as HTTP layer in existing, vanilla sbt project (or maven).
+
+(Notice: there is nothing play specific about this project, no app, conf folder.)
+
+-----------------
+HOW TO RUN THE APP
+------------------
+
+1) build play locally
+
+2) assuming you have sbt installed you can run it like
+sbt -Dsbt.ivy.home=<myplayroot/repository> run
+
+(Note: once a mini app aware play version will be uploaded into an ivy repository the -D parameter won't be necessary)
+
+3) hit http://localhost:9000/hello
