@@ -1,6 +1,7 @@
 package play.api.libs.concurrent
 
 import play.core._
+import akka.dispatch.Future
 
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
@@ -28,6 +29,32 @@ trait Promise[A] {
 
 trait Redeemable[A] {
   def redeem(a: => A): Unit
+}
+
+/**
+ * a promise impelemantation based on Akka's Future
+ */
+class AkkaPromise[A](future: Future[A]) extends Promise[A] {
+
+  def onRedeem(k: A => Unit) {
+    future.onComplete { _.value.get.fold(Thrown(_), k) }
+  }
+
+  def extend[B](k: Function1[Promise[A], B]): Promise[B] = 
+    new AkkaPromise[B](future.map(p => k(this)))
+
+  def value: NotWaiting[A] = try {
+    Redeemed(future.get)
+  } catch { case e => Thrown(e) }
+
+  def filter(p: A => Boolean): Promise[A] =
+    new AkkaPromise[A](future.filter(p.asInstanceOf[(Any => Boolean)]).asInstanceOf[Future[A]])
+
+  def map[B](f: A => B): Promise[B] = new AkkaPromise[B](future.map(f))
+
+  def flatMap[B](f: A => Promise[B]): Promise[B] = 
+    new AkkaPromise[B](future.map(f).map(_.value match { case r: Redeemed[_] => r.a }))
+  
 }
 
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
