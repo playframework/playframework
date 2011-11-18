@@ -1,7 +1,7 @@
 -----------------------
 PLAY AS AN HTTP LIBRARY
 -----------------------
-this project demonstrates how play scales down by allowing users to utilize play as HTTP layer in existing, vanilla sbt project (or maven).
+this project demonstrates how play scales down by allowing users to utilize play as an HTTP layer in existing, vanilla sbt project (or maven).
 
 (Notice: there is nothing play specific about this project, no app, conf folder.)
 
