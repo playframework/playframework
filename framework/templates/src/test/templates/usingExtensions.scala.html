@@ -1,0 +1,19 @@
+@(aString: String, aList: List[String], aMap: Map[String, Int], aNumber: Int)
+
+@aString.capitalizeWords
+
+<script>
+  var a = '@aString.escapeJavaScript';
+</script>
+
+journ@aList.pluralize("al", "aux")
+
+@aNumber.format("000.00")
+
+@aNumber.formatSize
+
+@if(aNumber divisibleBy 42) {
+  <div>Win!</div>
+}
+
+<span @aMap.asAttr></span>
