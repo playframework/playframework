@@ -121,6 +121,10 @@ object DBApi {
         case e => throw conf.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
       }
     }
+    
+    if (conf.getString("db.driver") contains "mysql") {
+      datasource.setConnectionTestStatement("/* ping */ SELECT 1")
+    }
 
     val autocommit = conf.getBoolean("autocommit").getOrElse(true)
     val isolation = conf.getString("isolation").getOrElse("READ_COMMITTED") match {
