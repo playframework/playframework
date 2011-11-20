@@ -17,15 +17,15 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
   /**
    * Request the request token and secret.
    * @param callbackURL the URL where the provider should redirect to (usually a URL on the current app)
-   * @return A Left(RequestToken) in case of success, Right(OAuthException) otherwise
+   * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
    */
-  def retrieveRequestToken(callbackURL: String): Either[RequestToken, OAuthException] = {
+  def retrieveRequestToken(callbackURL: String): Either[OAuthException, RequestToken] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
     try {
       provider.retrieveRequestToken(consumer, callbackURL)
-      Left(RequestToken(consumer.getToken(), consumer.getTokenSecret()))
+      Right(RequestToken(consumer.getToken(), consumer.getTokenSecret()))
     } catch {
-      case e: OAuthException => Right(e)
+      case e: OAuthException => Left(e)
     }
   }
 
@@ -33,16 +33,16 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
    * Exchange a request token for an access token.
    * @param the token/secret pair obtained from a previous call
    * @param verifier a string you got through your user, with redirection
-   * @return A Left(RequestToken) in case of success, Right(OAuthException) otherwise
+   * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
    */
-  def retrieveAccessToken(token: RequestToken, verifier: String): Either[RequestToken, OAuthException] = {
+  def retrieveAccessToken(token: RequestToken, verifier: String): Either[OAuthException, RequestToken] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
     consumer.setTokenWithSecret(token.token, token.secret)
     try {
       provider.retrieveAccessToken(consumer, verifier)
-      Left(RequestToken(consumer.getToken(), consumer.getTokenSecret()))
+      Right(RequestToken(consumer.getToken(), consumer.getTokenSecret()))
     } catch {
-      case e: OAuthException => Right(e)
+      case e: OAuthException => Left(e)
     }
   }
 

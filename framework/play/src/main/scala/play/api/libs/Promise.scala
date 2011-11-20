@@ -46,7 +46,7 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
   /*
    * extend @param k 
    */
-  def extend[B](k: Function1[Promise[A], B]): Promise[B] = 
+  def extend[B](k: Function1[Promise[A], B]): Promise[B] =
     new AkkaPromise[B](future.map(p => k(this)))
 
   /*
@@ -65,15 +65,15 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
   /*
    * mapping @param f function to AkkaPromise 
    *
-   */ 
+   */
   def map[B](f: A => B): Promise[B] = new AkkaPromise[B](future.map(f))
-  
+
   /**
    * provides a means to flatten Akka based promises
    */
-  def flatMap[B](f: A => Promise[B]): Promise[B] = 
+  def flatMap[B](f: A => Promise[B]): Promise[B] =
     new AkkaPromise[B](future.map(f).map(_.value match { case r: Redeemed[_] => r.a }))
-  
+
 }
 
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
