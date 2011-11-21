@@ -73,7 +73,7 @@ object PlayBuild extends Build {
     object BuildSettings {
 
         val buildOrganization = "play"
-        val buildVersion      = "2.0-beta"
+        val buildVersion      = "2.0-RC1-SNAPSHOT"
         val buildScalaVersion = "2.9.1"
         val buildSbtVersion   = "0.11.0"
 
