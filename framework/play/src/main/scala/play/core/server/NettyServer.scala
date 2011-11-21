@@ -395,10 +395,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
             }
 
             case Right((ws @ WebSocket(f), app)) if (isWebSocket(nettyHttpRequest)) => {
-              println("Found WebSocket")
               try {
                 val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
-                println("Handshake done")
                 f(requestHeader)(enumerator, socketOut(ctx)(ws.writeable))
               } catch {
                 case e => e.printStackTrace

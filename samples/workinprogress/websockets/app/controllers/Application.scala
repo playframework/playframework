@@ -8,18 +8,21 @@ import play.api.libs.iteratee._
 object Application extends Controller {
   
   def index = Action {
-    Ok(views.html.index("Your new application is ready."))
+    Ok(views.html.index())
   }
   
-  def echo = WebSocket[String] { request => (in,out) =>
+  def echo(name: String) = WebSocket[String] { request => (in,out) =>
+    
+    Logger.info(name + " is connected!")
+    
     out <<: in.map {
       case EOF => {
-        Logger.info("Cleaning resources")
+        Logger.info(name + " is disconnected. Cleaning resources")
         EOF
       }
       case el => {
         Logger.info("Got message: " + el)
-        el.map(_.reverse)
+        el.map("[" + name + "] " + _.reverse)
       }
     }    
   }
