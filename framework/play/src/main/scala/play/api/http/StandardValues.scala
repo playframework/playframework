@@ -1,6 +1,22 @@
 package play.api.http
 
 /**
+ * Defines common HTTP Content-Type.
+ */
+object ContentTypes extends ContentTypes
+
+/** Defines common HTTP Content-Type. */
+trait ContentTypes {
+  
+  val TEXT = "text/plain"
+  val HTML = "text/html"
+  val JSON = "application/json"
+  val XML = "text/xml"
+  val BINARY = "application/octet-stream"
+  
+}
+
+/**
  * Defines all standard HTTP Status.
  */
 object Status extends Status

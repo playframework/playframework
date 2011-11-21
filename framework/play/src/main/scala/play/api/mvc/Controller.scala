@@ -40,7 +40,7 @@ trait ControllerLike {
  * }
  * }}}
  */
-trait Controller extends ControllerLike with Results with play.api.http.HeaderNames {
+trait Controller extends ControllerLike with Results with play.api.http.HeaderNames with play.api.http.ContentTypes {
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
