@@ -1,0 +1,10 @@
+@(id:String, value:String, label:Option[String])(inputDef: (String,String) => Html)(implicit handler: RadioConstructor)
+
+@labelRendering = {
+    <label for="@value">@label</label> 
+}
+
+@handler(RadioElements(
+    inputDef(id,value),
+    labelRendering
+))

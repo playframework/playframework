@@ -5,10 +5,14 @@ import scala.collection.JavaConverters._
 package views.html.helper {
 
   case class InputElements(label: Html, input: Html, errors: Seq[String], infos: Seq[String])
+  case class RadioElements(input: Html, label: Html)
 
-  trait InputConstructor extends NotNull {
-    def apply(elts: InputElements): Html
+  trait ElementsConstructor[A] extends NotNull {
+    def apply(elts: A): Html
   }
+
+  trait InputConstructor extends ElementsConstructor[InputElements]
+  trait RadioConstructor extends ElementsConstructor[RadioElements]
 
   object InputConstructor {
 
@@ -20,6 +24,19 @@ package views.html.helper {
 
     implicit def inlineInputConstructor(f: (InputElements) => Html) = InputConstructor(f)
     implicit def templateAsInputConstructor(t: Template1[InputElements, Html]) = InputConstructor(t.render)
+
+  }
+
+  object RadioConstructor {
+
+    implicit val defaultRadio = RadioConstructor(views.html.helper.defaultRadioHandler.f)
+
+    def apply(f: (RadioElements) => Html): RadioConstructor = new RadioConstructor {
+      def apply(elts: RadioElements) = f(elts)
+    }
+
+    implicit def inlineRadioConstructor(f: (RadioElements) => Html) = RadioConstructor(f)
+    implicit def templateAsRadioConstructor(t: Template1[RadioElements, Html]) = RadioConstructor(t.render)
 
   }
 
