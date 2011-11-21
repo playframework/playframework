@@ -26,7 +26,7 @@ import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
 
-class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
+class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: Boolean = true) extends Server {
 
   def applicationProvider = appProvider
 
@@ -248,7 +248,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
       e.getMessage match {
         case nettyHttpRequest: HttpRequest =>
-          val keepAlive = nettyHttpRequest.isKeepAlive
+          val keepAlive = allowKeepAlive && nettyHttpRequest.isKeepAlive
           var version = nettyHttpRequest.getProtocolVersion
           val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
@@ -435,6 +435,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
   def stop() {
     Play.stop()
     Logger("play").warn("Stopping server...")
+    allChannels.disconnect().awaitUninterruptibly()
     allChannels.close().awaitUninterruptibly()
     bootstrap.releaseExternalResources()
   }

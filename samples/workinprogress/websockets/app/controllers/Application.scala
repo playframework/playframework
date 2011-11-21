@@ -7,11 +7,7 @@ import play.api.libs.iteratee._
 
 object Application extends Controller {
   
-  def index = Action {
-    Ok(views.html.index())
-  }
-  
-  def echo(name: String) = WebSocket[String] { request => (in,out) =>
+  def echo(name: String) = WebSocket[String] { request => (in, out) =>
     
     Logger.info(name + " is connected!")
     
