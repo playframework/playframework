@@ -1,9 +1,13 @@
-package play.api
+package play.api.oauth
 
 import _root_.oauth.signpost.{ OAuthConsumer, OAuthProvider }
 import _root_.oauth.signpost.exception.OAuthException
 import _root_.oauth.signpost.basic.{ DefaultOAuthConsumer, DefaultOAuthProvider }
+import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
+
+import play.api.ws._
+import play.api.WS.WSRequest
 
 /**
  * Library to access ressources protected by OAuth 1.0a.
@@ -53,24 +57,71 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
   def redirectUrl(token: String): String =
     _root_.oauth.signpost.OAuth.addQueryParameters(provider.getAuthorizationWebsiteUrl(),
       _root_.oauth.signpost.OAuth.OAUTH_TOKEN, token);
+
 }
 
-package oauth {
+/**
+ * A consumer key / consumer secret pair that the OAuth provider gave you, to identify your application
+ */
+case class ConsumerKey(key: String, secret: String)
 
-  /**
-   * A consumer key / consumer secret pair that the OAuth provider gave you, to identify your application
-   */
-  case class ConsumerKey(key: String, secret: String)
+/**
+ * A request token / token secret pair, to be used for a specific user
+ */
+case class RequestToken(token: String, secret: String)
 
-  /**
-   * A request token / token secret pair, to be used for a specific user
-   */
-  case class RequestToken(token: String, secret: String)
+/**
+ * The information identifying a oauth provider: URLs and the consumer key / consumer secret pair
+ */
+case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authorizationURL: String, key: ConsumerKey)
 
-  /**
-   * The information identifying a oauth provider: URLs and the consumer key / consumer secret pair
-   */
-  case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authorizationURL: String, key: ConsumerKey)
+/**
+ * A signature calculator for the Play WS API. Example:
+ * WS.url("http://example.com/protected").sign(OAuthCalculator(service, tokens)).get()
+ */
+case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extends AbstractOAuthConsumer(consumerKey.key, consumerKey.secret) with SignatureCalculator {
+
+  import _root_.oauth.signpost.http.HttpRequest
+
+  this.setTokenWithSecret(token.token, token.secret)
+
+  override protected def wrap(request: Any) = request match {
+    case r: WSRequest => new WSRequestAdapter(r)
+    case _ => throw new IllegalArgumentException("OAuthCalculator expects requests of type play.api.WS.WSRequest")
+  }
+
+  override def sign(request: WSRequest): Unit = sign(wrap(request))
+
+  class WSRequestAdapter(request: WSRequest) extends HttpRequest {
+
+    import scala.collection.JavaConversions._
+
+    override def unwrap() = request
+
+    override def getAllHeaders(): java.util.Map[String, String] =
+      request.headers.map { entry => (entry._1, entry._2.headOption) }
+        .filter { entry => entry._2.isDefined }
+        .map { entry => (entry._1, entry._2.get) }
+
+    override def getHeader(name: String): String = request.header(name).getOrElse("")
+
+    override def getContentType(): String = getHeader("Content-Type")
+
+    override def getMessagePayload() = null
+
+    override def getMethod(): String = this.request.method
+
+    override def setHeader(name: String, value: String) {
+      request.setHeader(name, value)
+    }
+
+    override def getRequestUrl() = request.url
+
+    override def setRequestUrl(url: String) {
+      request.setUrl(url)
+    }
+
+  }
 
 }
 
