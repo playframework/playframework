@@ -19,7 +19,7 @@ class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends
     javaGlobalSettings.onStop(new play.Application(app))
   }
 
-  override def onRouteRequest(request: RequestHeader): Option[Action[_]] = {
+  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     super.onRouteRequest(request)
   }
 
@@ -27,8 +27,8 @@ class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends
     Option(javaGlobalSettings.onError(ex)).map(_.getWrappedResult).getOrElse(super.onError(request, ex))
   }
 
-  override def onActionNotFound(request: RequestHeader): Result = {
-    Option(javaGlobalSettings.onActionNotFound(request.path)).map(_.getWrappedResult).getOrElse(super.onActionNotFound(request))
+  override def onHandlerNotFound(request: RequestHeader): Result = {
+    Option(javaGlobalSettings.onHandlerNotFound(request.path)).map(_.getWrappedResult).getOrElse(super.onHandlerNotFound(request))
   }
 
   override def onBadRequest(request: RequestHeader, error: String): Result = {

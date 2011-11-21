@@ -47,7 +47,7 @@ public abstract class GlobalSettings {
      * @param uri the request URI
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public Result onActionNotFound(String uri) {
+    public Result onHandlerNotFound(String uri) {
         return null;
     }
     

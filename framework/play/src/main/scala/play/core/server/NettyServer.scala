@@ -273,12 +273,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
               case AsyncResult(p) => p.onRedeem(handle)
 
-              case r @ SocketResult(f) if (isWebSocket(nettyHttpRequest)) =>
-                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
-                f(enumerator, socketOut(ctx)(r.writeable))
-
-              case r @ SocketResult(_) => handle(Results.BadRequest)
-
               case _ if (isWebSocket(nettyHttpRequest)) => handle(Results.BadRequest)
 
               case r @ SimpleResult(ResponseHeader(status, headers), body) =>
@@ -357,7 +351,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
             }
           }
 
-          val bodyEnumerator = {
+          lazy val bodyEnumerator = {
 
             val body = { //explodes memory, need to do a smart strategy of putting into memory
               val cBuffer = nettyHttpRequest.getContent()
@@ -369,10 +363,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
             Enumerator(body).andThen(Enumerator.enumInput(EOF))
           }
 
-          val action = getActionFor(requestHeader)
+          val handler = getHandlerFor(requestHeader)
 
-          action match {
-            case Right((action, app)) =>
+          handler match {
+            case Right((action: Action[_], app)) => {
 
               val bodyParser = action.parser
 
@@ -395,8 +389,25 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
               }
 
               eventuallyRequest.extend(_.value match {
-                case Redeemed(rq) => invoke(rq, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+                case Redeemed(request) => invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
               })
+
+            }
+
+            case Right((ws @ WebSocket(f), app)) if (isWebSocket(nettyHttpRequest)) => {
+              println("Found WebSocket")
+              try {
+                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
+                println("Handshake done")
+                f(requestHeader)(enumerator, socketOut(ctx)(ws.writeable))
+              } catch {
+                case e => e.printStackTrace
+              }
+            }
+
+            case Right((WebSocket(_), _)) => {
+              response.handle(Results.BadRequest)
+            }
 
             case Left(e) => response.handle(e)
 

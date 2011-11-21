@@ -2,6 +2,8 @@ package play.api.mvc
 
 import play.api.libs.iteratee._
 
+trait Handler
+
 /**
  * An action is essentially a (Request[A] => Result) function that
  * handles a request and generates a result to be sent to the client.
@@ -15,7 +17,7 @@ import play.api.libs.iteratee._
  *
  * @tparam A the type of the request body
  */
-trait Action[A] extends (Request[A] => Result) {
+trait Action[A] extends (Request[A] => Result) with Handler {
 
   /** Type of the request body. */
   type BODY_CONTENT = A

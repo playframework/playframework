@@ -31,17 +31,17 @@ trait Server {
 
   val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(3)(newInvoker))).start()
 
-  def getActionFor(request: RequestHeader): Either[Result, (Action[_], Application)] = {
-    def sendAction: Either[Throwable, (Action[_], Application)] =
+  def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
+    def sendHandler: Either[Throwable, (Handler, Application)] =
       applicationProvider.get.right.map { application =>
         val maybeAction = application.global.onRouteRequest(request)
-        (maybeAction.getOrElse(Action(_ => application.global.onActionNotFound(request))), application)
+        (maybeAction.getOrElse(Action(_ => application.global.onHandlerNotFound(request))), application)
       }
 
     import scala.util.control.Exception
     applicationProvider.handleWebCommand(request).toLeft {
-      Exception.allCatch[Either[Throwable, (Action[Any], Application)]]
-        .either(sendAction)
+      Exception.allCatch[Either[Throwable, (Handler, Application)]]
+        .either(sendHandler)
         .joinRight
         .left.map { e =>
 

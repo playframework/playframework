@@ -55,8 +55,8 @@ trait GlobalSettings {
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
    * @see onActionNotFound
    */
-  def onRouteRequest(request: RequestHeader): Option[Action[_]] = Play._currentApp.routes.flatMap { router =>
-    router.actionFor(request)
+  def onRouteRequest(request: RequestHeader): Option[Handler] = Play._currentApp.routes.flatMap { router =>
+    router.handlerFor(request)
   }
 
   /**
@@ -88,7 +88,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onActionNotFound(request: RequestHeader): Result = {
+  def onHandlerNotFound(request: RequestHeader): Result = {
     NotFound(Option(Play._currentApp).map {
       case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f

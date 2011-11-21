@@ -116,6 +116,14 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
 
   /**
    * Retrieve the flash scope implicitly from the request.
+   *
+   * For example:
+   * {{{
+   * def index(name:String) = Action { implicit request =>
+   *   val message = flash("message")
+   *   Ok("Got " + message)
+   * }
+   * }}}
    */
   implicit def flash(implicit request: RequestHeader) = request.flash
 

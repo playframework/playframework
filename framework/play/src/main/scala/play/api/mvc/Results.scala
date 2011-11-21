@@ -173,28 +173,6 @@ case class ChunkedResult[A](header: ResponseHeader, chunks: Enumerator[A])(impli
 }
 
 /**
- * A WebSocket result.
- *
- * @tparam A the socket messages type
- * @param f the socket messages generator
- */
-case class SocketResult[A](f: (Enumerator[String], Iteratee[A, Unit]) => Unit)(implicit val writeable: AsString[A]) extends Result
-
-/** Helper utilities to generate WebSocket results. */
-object SocketResult {
-
-  /**
-   * Creates a WebSocket result from inbound and outbound channels.
-   *
-   * @param readIn the inboud channel
-   * @param writeOut the outbound channel
-   * @return a `SocketResult`
-   */
-  def using[A](readIn: Iteratee[String, Unit], writeOut: Enumerator[A])(implicit writeable: AsString[A]) = new SocketResult[A]((e, i) => { readIn <<: e; i <<: writeOut })
-
-}
-
-/**
  * An `AsyncResult` handles a `Promise` of result for cases where the result is not ready yet.
  *
  * @param result the promise of result, which can be any other result type
