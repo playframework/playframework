@@ -152,7 +152,26 @@ trait Enumerator[+E] {
 trait Enumeratee[In, Out] {
   def apply[A](inner: Iteratee[In, A]): Iteratee[Out, Iteratee[In, A]]
 }
+object Enumeratee {
 
+  def breakE[E](p: E => Boolean) = new Enumeratee[E, E] {
+    def apply[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+        in match {
+          case El(e) if (p(e)) => Done(inner, in)
+          case _ =>
+            inner.flatFold((_, _) => Promise.pure(Done(inner, in)),
+              k => Promise.pure(Cont(step(k(in)))),
+              (_, _) => Promise.pure(Done(inner, in)))
+        }
+
+      }
+      Cont(step(inner))
+
+    }
+
+  }
+}
 object Enumerator {
 
   def enumInput[E](e: Input[E]) = new Enumerator[E] {

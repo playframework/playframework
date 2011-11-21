@@ -196,6 +196,6 @@ object PurePromise {
 
 object Promise {
   def pure[A](a: A) = PurePromise(a)
-  def apply[A]() = new STMPromise[A]()
+  def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
 }
 

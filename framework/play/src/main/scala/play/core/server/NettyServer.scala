@@ -341,7 +341,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                     case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
                     case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x))))
                   }
-                val chunksIteratee = Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e))
+                val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())
+                  .apply(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e)))
                 val p = chunksIteratee <<: chunks
                 p.flatMap(i => i.run)
                   .onRedeem { _ =>
@@ -390,6 +391,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
               eventuallyRequest.extend(_.value match {
                 case Redeemed(request) => invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+
               })
 
             }
