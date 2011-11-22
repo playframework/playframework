@@ -4,6 +4,10 @@ if [ -f conf/application.conf ]; then
   if test "$1" = "clean"; then
     `dirname $0`/framework/cleanIvyCache
   fi
+  if test "$1" = "stop"; then
+    kill `cat RUNNING_PID`
+    exit $?
+  fi
   if [ -n "$1" ]; then
     `dirname $0`/framework/build "$@"
   else
