@@ -116,7 +116,6 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
       }
       case DecodingState.PAYLOAD => {
         val frame = unmask(buffer.readBytes(currentFrameLength))
-        println("frame length " + frame.readableBytes)
         // TODO: Continuation
         // if (this.opcode.get == OPCODE_CONT) {
         // 		 	this.opcode = fragmentOpcode;

@@ -30,7 +30,6 @@ class WebSocket00FrameDecoder extends ReplayingDecoder[VoidEnum] {
 
     // Decode a frame otherwise.
     val t = buffer.readByte()
-    println("T is " + t)
     if ((t & 0x80) == 0x80) {
       // If the MSB on type is set, decode the frame length
       return decodeBinaryFrame(t, buffer)
