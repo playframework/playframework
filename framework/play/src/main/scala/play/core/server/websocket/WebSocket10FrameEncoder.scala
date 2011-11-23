@@ -15,7 +15,6 @@ import play.api._
 import org.jboss.netty.handler.codec.http.websocket._
 import java.nio._
 
-
 /**
  * This code is largely inspired from the Netty project but adapted to the Netty 3.6 version
  */

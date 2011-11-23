@@ -6,7 +6,6 @@ import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.ChannelHandler.Sharable
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder
 
-
 /**
  * This code is largely inspired from the Netty project but adapted to the Netty 3.6 version
  */

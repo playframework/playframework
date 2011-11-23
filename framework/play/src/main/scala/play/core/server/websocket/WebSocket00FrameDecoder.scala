@@ -12,7 +12,6 @@ import org.jboss.netty.channel._
 import java.util._
 import play.api._
 
-
 /**
  * This code is largely inspired from the Netty project but adapted to the Netty 3.6 version
  */
