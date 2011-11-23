@@ -14,11 +14,12 @@ import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
+
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
 
 import play.core._
-
+import play.core.server.websocket._
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
@@ -48,64 +49,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
         HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.UPGRADE))
 
     private def websocketHandshake(ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent): Enumerator[String] = {
-      //** copy paste from Netty example
-      // Create the WebSocket handshake response.
-      val res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(101, "Web Socket Protocol Handshake"))
-      res.addHeader(HttpHeaders.Names.UPGRADE, HttpHeaders.Values.WEBSOCKET)
-      res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE)
 
-      // Fill in the headers and contents depending on handshake method.
-      if (req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2)) {
-        // New handshake method with a challenge:
-        res.addHeader(SEC_WEBSOCKET_ORIGIN, req.getHeader(ORIGIN))
-        res.addHeader(SEC_WEBSOCKET_LOCATION, "ws://" + req.getHeader(HttpHeaders.Names.HOST) + req.getUri())
-        val protocol = req.getHeader(SEC_WEBSOCKET_PROTOCOL);
-        if (protocol != null) {
-          res.addHeader(SEC_WEBSOCKET_PROTOCOL, protocol);
-        }
-
-        // Calculate the answer of the challenge.
-        val key1 = req.getHeader(SEC_WEBSOCKET_KEY1);
-        val key2 = req.getHeader(SEC_WEBSOCKET_KEY2);
-        val a = (key1.replaceAll("[^0-9]", "").toLong / key1.replaceAll("[^ ]", "").length()).toInt
-        val b = (key2.replaceAll("[^0-9]", "").toLong / key2.replaceAll("[^ ]", "").length()).toInt
-        val c = req.getContent().readLong()
-        val input = ChannelBuffers.buffer(16)
-        input.writeInt(a)
-        input.writeInt(b)
-        input.writeLong(c)
-        import java.security.NoSuchAlgorithmException
-
-        try {
-          import java.security.MessageDigest
-          val output: ChannelBuffer = ChannelBuffers.wrappedBuffer(MessageDigest.getInstance("MD5").digest(input.array()))
-          res.setContent(output)
-        } catch { case ex: NoSuchAlgorithmException => throw new UnexpectedException(unexpected = Some(ex)) }
-
-      } else {
-        // Old handshake method with no challenge:
-        res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
-        res.addHeader(WEBSOCKET_LOCATION, "ws://" + req.getHeader(HttpHeaders.Names.HOST) + req.getUri());
-        val protocol = req.getHeader(WEBSOCKET_PROTOCOL);
-        if (protocol != null) {
-          res.addHeader(WEBSOCKET_PROTOCOL, protocol);
-        }
-      }
-      //***
-
-      // Upgrade the connection and send the handshake response.
-      val p: ChannelPipeline = ctx.getChannel().getPipeline();
-      p.remove("aggregator");
-      p.replace("decoder", "wsdecoder", new WebSocketFrameDecoder());
-
-      // Connect
-      ctx.getChannel().write(res);
-
-      p.replace("encoder", "wsencoder", new WebSocketFrameEncoder());
-      req.setMethod(new HttpMethod("WEBSOCKET"));
+      WebSocketHandshake.shake(ctx, req)
 
       val (enumerator, handler) = newWebSocketInHandler()
-
+      val p: ChannelPipeline = ctx.getChannel().getPipeline();
       p.replace("handler", "handler", handler);
 
       enumerator
@@ -116,7 +64,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
       def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
         input match {
-          case El(e) => Cont(step(Some(channel.write(new DefaultWebSocketFrame(writeable.transform(e))))))
+          // TODO: what is we want something else than text?
+          case El(e) => Cont(step(Some(channel.write(new TextFrame(true, 0, writeable.transform(e))))))
           case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
           case Empty => Cont(step(future))
         }
@@ -196,7 +145,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
           override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
             e.getMessage match {
-              case frame: WebSocketFrame => enumerator.frameReceived(ctx, El(frame.getTextData()))
+              case frame: Frame => enumerator.frameReceived(ctx, El(frame.getTextData()))
             }
           }
 
