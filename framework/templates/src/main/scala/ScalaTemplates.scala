@@ -168,7 +168,7 @@ package play.templates {
     abstract class ScalaExpPart
 
     case class Params(code: String) extends Positional
-    case class Template(name: PosString, params: PosString, imports: Seq[Simple], defs: Seq[Def], sub: Seq[Template], content: Seq[TemplateTree]) extends Positional
+    case class Template(name: PosString, comment: Option[Comment], params: PosString, imports: Seq[Simple], defs: Seq[Def], sub: Seq[Template], content: Seq[TemplateTree]) extends Positional
     case class PosString(str: String) extends Positional {
       override def toString = str
     }
@@ -406,7 +406,7 @@ package play.templates {
       def template: Parser[Template] = {
         templateDeclaration ~ """[ \t]*=[ \t]*[{]""".r ~ templateContent <~ "}" ^^ {
           case declaration ~ assign ~ content => {
-            Template(declaration._1, declaration._2, content._1, content._2, content._3, content._4)
+            Template(declaration._1, None, declaration._2, content._1, content._2, content._3, content._4)
           }
         }
       }
@@ -441,9 +441,9 @@ package play.templates {
       }
 
       def parser: Parser[Template] = {
-        opt(opt(whiteSpaceNoBreak) ~> at ~> positioned((parentheses+) ^^ { case s => PosString(s.mkString) })) ~ templateContent ^^ {
-          case args ~ content => {
-            Template(PosString(""), args.getOrElse(PosString("()")), content._1, content._2, content._3, content._4)
+        opt(comment) ~ opt(whiteSpace) ~ opt(at ~> positioned((parentheses+) ^^ { case s => PosString(s.mkString) })) ~ templateContent ^^ {
+          case comment ~ _ ~ args ~ content => {
+            Template(PosString(""), comment, args.getOrElse(PosString("()")), content._1, content._2, content._3, content._4)
           }
         }
       }
@@ -458,7 +458,7 @@ package play.templates {
           val tripleQuote = "\"\"\""
           visit(tail, head match {
             case p @ Plain(text) => (if (previous.isEmpty) Nil else previous :+ ",") :+ "format.raw" :+ Source("(", p.pos) :+ tripleQuote :+ text :+ tripleQuote :+ ")"
-            case Comment(msg) => Nil
+            case Comment(msg) => previous
             case Display(exp) => (if (previous.isEmpty) Nil else previous :+ ",") :+ "_display_(Seq(" :+ visit(Seq(exp), Nil) :+ "))"
             case ScalaExp(parts) => previous :+ parts.map {
               case s @ Simple(code) => Source(code, s.pos)
@@ -503,7 +503,7 @@ import play.templates._
 import play.templates.TemplateMagic._
 
 """ :+ additionalImports :+ """
-
+/*""" :+ root.comment.map(_.msg).getOrElse("") :+ """*/
 object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,Format[""" :+ resultType :+ """]](""" :+ formatterType :+ """) with """ :+ extra._3 :+ """ {
 
     def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {

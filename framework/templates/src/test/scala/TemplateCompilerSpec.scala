@@ -27,13 +27,14 @@ object TemplateCompilerSpec extends Specification {
               html.contains("EA") &&
               html.contains("EB")) ok else ko
           }
-
-          helper.compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must be_==(
-            "<h1>It works</h1>")
-
-          helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
-            "<h1>Hello World!</h1>")
       }
+
+      helper.compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must be_==(
+        "<h1>It works</h1>")
+
+      helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
+        "<h1>Hello World!</h1>")
+
     }
     "fail compilation for error.scala.html" in {
       val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
