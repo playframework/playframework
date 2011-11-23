@@ -18,13 +18,17 @@ object Projects extends Controller with Secured {
    * Display the dashboard.
    */
   def index = Action { request =>
-    Ok(
-      html.dashboard(
-        Project.findInvolving(request.username.get), 
-        Task.findTodoInvolving(request.username.get), 
-        User.findByEmail(request.username.get).get
+    val response = for {
+      username <- request.username
+      user <- User.findByEmail(username)
+    } yield Ok(
+        html.dashboard(
+          Project.findInvolving(username),
+          Task.findTodoInvolving(username),
+          user
+        )
       )
-    )
+    response getOrElse Unauthorized
   }
 
   // -- Projects
