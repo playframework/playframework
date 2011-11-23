@@ -7,7 +7,15 @@ sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
 }
 
-trait NotWaiting[+A] extends PromiseValue[A]
+trait NotWaiting[+A] extends PromiseValue[A] {
+  /**
+   * Return the value or the promise, throw it if it held an exception
+   */
+  def get: A = this match {
+    case Thrown(e) => throw e
+    case Redeemed(a) => a
+  }
+}
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
@@ -196,6 +204,6 @@ object PurePromise {
 
 object Promise {
   def pure[A](a: A) = PurePromise(a)
-  def apply[A]() = new STMPromise[A]()
+  def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
 }
 

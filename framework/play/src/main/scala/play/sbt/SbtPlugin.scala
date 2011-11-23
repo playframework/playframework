@@ -564,7 +564,7 @@ object PlayProject extends Plugin {
 
     println()
 
-    val server = new play.core.server.NettyServer(reloader, 9000)
+    val server = new play.core.server.NettyServer(reloader, 9000, allowKeepAlive = false)
 
     println()
     println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))

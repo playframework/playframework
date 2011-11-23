@@ -27,7 +27,7 @@ import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
 
-class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
+class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: Boolean = true) extends Server {
 
   def applicationProvider = appProvider
 
@@ -197,7 +197,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
       e.getMessage match {
         case nettyHttpRequest: HttpRequest =>
-          val keepAlive = nettyHttpRequest.isKeepAlive
+          val keepAlive = allowKeepAlive && nettyHttpRequest.isKeepAlive
           var version = nettyHttpRequest.getProtocolVersion
           val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
@@ -290,7 +290,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
                     case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
                     case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x))))
                   }
-                val chunksIteratee = Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e))
+                val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())
+                  .apply(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e)))
                 val p = chunksIteratee <<: chunks
                 p.flatMap(i => i.run)
                   .onRedeem { _ =>
@@ -339,6 +340,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
 
               eventuallyRequest.extend(_.value match {
                 case Redeemed(request) => invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+
               })
 
             }
@@ -384,6 +386,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server {
   def stop() {
     Play.stop()
     Logger("play").warn("Stopping server...")
+    allChannels.disconnect().awaitUninterruptibly()
     allChannels.close().awaitUninterruptibly()
     bootstrap.releaseExternalResources()
   }

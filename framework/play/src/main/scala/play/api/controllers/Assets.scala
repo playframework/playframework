@@ -32,14 +32,14 @@ object Assets extends Controller {
 
     resourceStream.map { is =>
 
+      // TODO replace by an Enumerator
       lazy val resourceData = Resource.fromInputStream(is).byteArray
 
       request.headers.get(IF_NONE_MATCH).filter(_ == etagFor(resourceName, resourceData)).map(_ => NotModified).getOrElse {
 
-        val response = Binary(
-          resourceData,
-          length = Some(resourceData.length),
-          contentType = MimeTypes.forFileName(file).getOrElse("application/octet-stream")).withHeaders(ETAG -> etagFor(resourceName, resourceData))
+        val response = Ok(resourceData)
+          .as(MimeTypes.forFileName(file).getOrElse(BINARY))
+          .withHeaders(ETAG -> etagFor(resourceName, resourceData))
 
         Play.configuration.getString("assets.cache." + resourceName).map { cacheControl =>
           response.withHeaders(CACHE_CONTROL -> cacheControl)
