@@ -142,10 +142,11 @@ package play.api.mvc {
       try {
         if (isSigned) {
           val splitted = data.split("-")
-          if (splitted(0) == Crypto.sign(splitted(1)))
-            return urldecode(splitted(1))
+          val message = splitted.tail.mkString("-")
+          if (splitted(0) == Crypto.sign(message))
+            urldecode(message)
           else
-            return Map.empty[String, String]
+            Map.empty[String, String]
         } else urldecode(data)
       } catch {
         // fail gracefully is the session cookie is corrupted
