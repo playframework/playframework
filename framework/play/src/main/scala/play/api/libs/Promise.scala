@@ -42,7 +42,7 @@ trait Redeemable[A] {
 /**
  * a promise impelemantation based on Akka's Future
  */
-class AkkaPromise[A](future: Future[A]) extends Promise[A] {
+case class AkkaPromise[A](future: Future[A]) extends Promise[A] {
 
   /**
    * call back hook
