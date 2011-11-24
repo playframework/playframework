@@ -33,6 +33,9 @@ object WS {
     import scala.collection.JavaConversions._
 
     private var calculator: Option[SignatureCalculator] = None
+    private var headers: Map[String, Seq[String]] = Map()
+    private var _url: String = null
+    private var _method = "GET"
 
     /**
      * Perform a GET on the request asynchronously.
@@ -92,17 +95,50 @@ object WS {
       this
     }
 
+    override def setHeader(name: String, value: String) = {
+      headers = headers + (name -> List(value))
+      super.setHeader(name, value)
+    }
+
+    override def addHeader(name: String, value: String) = {
+      headers = headers + (name -> (headers.get(name).getOrElse(List()) :+ value))
+      super.addHeader(name, value)
+    }
+
+    override def setHeaders(hdrs: FluentCaseInsensitiveStringsMap) = {
+      headers = ningHeadersToMap(hdrs)
+      super.setHeaders(hdrs)
+    }
+
+    override def setHeaders(hdrs: java.util.Map[String, java.util.Collection[String]]) = {
+      headers = ningHeadersToMap(hdrs)
+      super.setHeaders(hdrs)
+    }
+
+    override def setUrl(url: String) = {
+      _url = url
+      super.setUrl(url)
+    }
+
+    override def setMethod(method: String) = {
+      _method = method
+      super.setMethod(method)
+    }
+
     /**
      * Return the current headers of the request being constructed
      */
-    def headers: Map[String, Seq[String]] =
+    def allHeaders: Map[String, Seq[String]] =
       JavaConversions.mapAsScalaMap(request.getHeaders()).map { entry => (entry._1, entry._2.toSeq) }.toMap
 
     def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
 
-    def method: String = request.getMethod()
+    def method: String = _method
 
-    def url: String = request.getUrl()
+    def url: String = _url
+
+    private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
+      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
 
     private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
       JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap

@@ -99,7 +99,7 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
     override def unwrap() = request
 
     override def getAllHeaders(): java.util.Map[String, String] =
-      request.headers.map { entry => (entry._1, entry._2.headOption) }
+      request.allHeaders.map { entry => (entry._1, entry._2.headOption) }
         .filter { entry => entry._2.isDefined }
         .map { entry => (entry._1, entry._2.get) }
 
