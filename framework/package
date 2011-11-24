@@ -4,16 +4,16 @@
 `dirname $0`/build build-repository
 `dirname $0`/build api-docs
 
-rm -rf /tmp/play-2.0-beta*
+rm -rf /tmp/play-2.0-RC1-SNAPSHOT*
 
-echo "[info] Copying to /tmp/play-2.0-beta..."
-cp -rf `dirname $0`/.. /tmp/play-2.0-beta
+echo "[info] Copying to /tmp/play-2.0-RC1-SNAPSHOT..."
+cp -rf `dirname $0`/.. /tmp/play-2.0-RC1-SNAPSHOT
 
 cd /tmp
 
 echo "[info] zipping..."
-zip -9 -r play-2.0-beta.zip play-2.0-beta -x '*.git/*' '*.lock' '*.history' 'play-2.0-beta/.gitmodules' 'play-2.0-beta/.gitignore' '*.DS_Store' 'play-2.0-beta/dist/*' '*/target/*' 'play-2.0-beta/framework/sbt/boot/*' 'play-2.0-beta/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
+zip -9 -r play-2.0-RC1-SNAPSHOT.zip play-2.0-RC1-SNAPSHOT -x '*.git/*' '*.lock' '*.history' 'play-2.0-RC1-SNAPSHOT/.gitmodules' 'play-2.0-RC1-SNAPSHOT/.gitignore' '*.DS_Store' 'play-2.0-RC1-SNAPSHOT/dist/*' '*/target/*' 'play-2.0-RC1-SNAPSHOT/framework/sbt/boot/*' 'play-2.0-RC1-SNAPSHOT/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
 
-rm -rf /tmp/play-2.0-beta
+rm -rf /tmp/play-2.0-RC1-SNAPSHOT
 
-echo "[info] Package is available at /tmp/play-2.0-beta.zip"
+echo "[info] Package is available at /tmp/play-2.0-RC1-SNAPSHOT.zip"
