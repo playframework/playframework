@@ -1,3 +1,17 @@
+@**
+ * Generate a Javascript router.
+ *
+ * Example:
+ * {{{
+ * @javascriptRouter("jsRoutes")(
+ *   routes.javascripts.Users.list,
+ *   routes.javascripts.Application.index
+ * )
+ * }}}
+ *
+ * @param name The javascript object name.
+ * @param routes Set of routes to include in this javascript router.
+ *@
 @(name:String = "Router")(routes:play.core.Router.JavascriptReverseRoute*) 
 
 <script type="text/javascript">

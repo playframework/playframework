@@ -506,6 +506,7 @@ import play.templates.TemplateMagic._
 /*""" :+ root.comment.map(_.msg).getOrElse("") :+ """*/
 object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,Format[""" :+ resultType :+ """]](""" :+ formatterType :+ """) with """ :+ extra._3 :+ """ {
 
+    /*""" :+ root.comment.map(_.msg).getOrElse("") :+ """*/
     def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {
         _display_ {""" :+ templateCode(root) :+ """}
     }
