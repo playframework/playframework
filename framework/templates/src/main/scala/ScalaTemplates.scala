@@ -31,6 +31,7 @@ package play.templates {
   import scalax.file._
   import java.io.File
   import scala.annotation.tailrec
+  import java.util.Locale
 
   object Hash {
 
@@ -713,7 +714,12 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
     def escape(text: String): T
   }
 
-  case class BaseScalaTemplate[T <: Appendable[T], F <: Format[T]](format: F) {
+  // TODO Create magics using the current application locale
+  class BaseScalaTemplate[T <: Appendable[T], F <: Format[T]](val format: F, magic: TemplateMagic = TemplateMagic()) {
+
+    // Auto import magic’s implicit conversions
+    import magic._
+    implicit def _format_ = format // Make this template’s format available to magic’s methods
 
     def _display_(o: Any): T = {
       o match {
@@ -733,15 +739,10 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
   /* ------ */
 
-  object TemplateMagic {
+  trait TemplateMagic {
+    this: TemplateMagicSettings =>
 
-    // --- UTILS
-
-    def defining[T](t: T)(handler: T => Any) = {
-      handler(t)
-    }
-
-    def using[T](t: T) = t
+    import java.util.Date
 
     // --- IF
 
@@ -773,30 +774,345 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     // --- DATE
 
-    class RichDate(date: java.util.Date) {
+    class RichDate(date: Date) {
 
-      def format(pattern: String) = {
-        new java.text.SimpleDateFormat(pattern).format(date)
-      }
+      /**
+       * Example:
+       * {{{
+       *   @using(new Date(1275910970000L)) { date =>
+       *     @date.format("dd MMMM yyyy hh:mm:ss")
+       *     -> 07 June 2010 01:42:50
+       *   }
+       * }}}
+       * @return The date formatted using the given date format pattern
+       */
+      def format(pattern: String): String = format(pattern, defaultLocale)
 
+      /**
+       * Example:
+       * {{{
+       *   @using(new Date(1275910970000L)) { date =>
+       *     @date.format("dd MMMM yyyy hh:mm:ss", "fr")
+       *     -> 07 juin 2010 01:42:50
+       *   }
+       * }}}
+       * @return The date formatted using the given date format pattern, in the given language
+       */
+      def format(pattern: String, lang: String): String = format(pattern, new Locale(lang))
+
+      /**
+       * @return The date formatted using the given date format pattern, using the given locale
+       */
+      def format(pattern: String, locale: Locale) = new java.text.SimpleDateFormat(pattern, locale).format(date)
     }
 
-    implicit def richDate(date: java.util.Date) = new RichDate(date)
+    implicit def richDate(date: Date) = new RichDate(date)
 
     // --- STRING
 
     class RichString(string: String) {
 
-      def when(predicate: => Boolean) = {
+      def when(predicate: Boolean) = {
         predicate match {
           case true => string
           case false => ""
         }
       }
 
+      /**
+       * Example:
+       * {{{
+       *   @"lorum ipsum dolor".capitalizeWords
+       *   -> Lorum Ipsum Dolor
+       * }}}
+       * @return The string with every word capitalized
+       */
+      def capitalizeWords = {
+        (for ((c, i) <- string.zipWithIndex) yield {
+          val prev = if (i == 0) ' ' else string(i - 1)
+          if (prev.isSpaceChar) {
+            c.toUpper
+          } else {
+            c
+          }
+        }).mkString
+      }
+
+      /**
+       * Escapes reserved JavaScrit characters
+       * Example:
+       * {{{
+       *   @"""single quote (') double quote (")""".escapeJavaScript
+       *   -> single quote (\') double quote (\")
+       * }}}
+       */
+      def escapeJavaScript = string replace ("\\", "\\\\") replace ("\"", "\\\"") replace ("'", "\\'")
+
     }
 
     implicit def richString(string: String) = new RichString(string)
+
+    // --- ITERABLE
+
+    class RichIterable[A](col: Iterable[A]) {
+
+      /**
+       * Example:
+       * {{{
+       *   colour@List("red", "green", "blue").pluralize
+       *   -> colours
+       * }}}
+       * @return “s” when the collection’s size is not 1
+       */
+      def pluralize: String = pluralize("s")
+
+      /**
+       * Example:
+       * {{{
+       *   box@List("red", "green", "blue").pluralize("es")
+       *   -> boxes
+       * }}}
+       * @return The given plural when the collection’s size is not 1
+       */
+      def pluralize(plural: String): String = pluralize("", plural)
+
+      /**
+       * Example:
+       * {{{
+       *   journ@List("red").pluralize("al", "aux")
+       *   -> journal
+       *
+       *   journ@List("red", "green", "blue").pluralize("al", "aux")
+       *   -> journaux
+       * }}}
+       * @return The given plural when the collection’s size is not 1, otherwise return the given singular
+       */
+      def pluralize(singular: String, plural: String): String = new RichNumeric(col.size).pluralize(singular, plural)
+    }
+
+    implicit def richIterable[A](col: Iterable[A]) = new RichIterable(col)
+
+    // --- NUMERIC
+
+    class RichNumeric[A](num: A)(implicit ops: Numeric[A]) {
+
+      /**
+       * Example:
+       * {{{
+       *   @1275910970000L.asDate("dd MMMM yyyy hh:mm:ss")
+       *   -> 07 June 2010 01:42:50
+       * }}}
+       * @return The timestamp formatted as a date
+       */
+      def asDate(format: String): String = asDate(format, defaultLocale)
+
+      /**
+       * Example:
+       * {{{
+       *   @1275910970000L.asDate("dd MMMM yyyy hh:mm:ss", "fr")
+       *   -> 07 juin 2010 01:42:50
+       * }}}
+       * @return The timestamp formatted as a date in the given language
+       */
+      def asDate(format: String, lang: String): String = asDate(format, new Locale(lang))
+
+      /**
+       * @return The timestamp formatted as a date using the given locale
+       */
+      def asDate(format: String, locale: Locale) = new java.text.SimpleDateFormat(format, locale).format(new Date(ops.toLong(num)))
+
+      /**
+       * Example:
+       * {{{
+       *   @726016L.formatSize
+       *   -> 709KB
+       * }}}
+       * @return The number of bytes formatted as a file size, with units
+       */
+      def formatSize = {
+        if (ops.lt(num, ops.fromInt(1024))) {
+          num + "B"
+        } else if (ops.lt(num, ops.fromInt(1048576))) {
+          ops.toInt(num) / 1024 + "KB"
+        } else if (ops.lt(num, ops.fromInt(1073741824))) {
+          ops.toInt(num) / 1048576 + "MB"
+        } else {
+          ops.toLong(num) / 1073741824 + "GB"
+        }
+      }
+
+      /**
+       * Example:
+       * {{{
+       *   @42.divisibleBy(7)
+       *   -> true
+       * }}}
+       * @return true if num is divisible by the given number, otherwise false
+       */
+      def divisibleBy(by: Int) = ops.toLong(num) % by == 0
+
+      /**
+       * Example:
+       * {{{
+       *   @42.format("000.00")
+       *   -> 042.00
+       * }}}
+       * @return The number formatted according to the given pattern
+       */
+      def format(pattern: String) = {
+        new java.text.DecimalFormat(pattern, new java.text.DecimalFormatSymbols(defaultLocale)).format(ops.toDouble(num))
+      }
+
+      /**
+       * Example:
+       * {{{
+       *   @42.pageSize(10)
+       *   -> 5
+       * }}}
+       * @return The page number for the given page size
+       */
+      def page(pageSize: Int) = {
+        val n = ops.toInt(num)
+        n / pageSize + (if (n % pageSize > 0) 1 else 0)
+      }
+
+      /**
+       * Example:
+       * {{{
+       *   colour@3.pluralize
+       *   -> colours
+       * }}}
+       * @return An “s” if the number is not 1
+       */
+      def pluralize: String = pluralize("s")
+
+      /**
+       * Example:
+       * {{{
+       *   box@3.pluralize("es")
+       *   -> boxes
+       * }}}
+       * @return The given plural if the number is not 1
+       */
+      def pluralize(plural: String): String = pluralize("", plural)
+
+      /**
+       * Example:
+       * {{{
+       *   journ@3.pluralize("al", "aux")
+       *   -> journaux
+       *
+       *   journ@1.pluralize("al", "aux")
+       *   -> journal
+       * }}}
+       * @return The given plural if the number is not 1, otherwise return the singular
+       */
+      def pluralize(singular: String, plural: String) = if (ops.toInt(num) != 1) plural else singular
+    }
+
+    implicit def richNumeric[A: Numeric](num: A) = new RichNumeric(num)
+
+    // --- MAP
+
+    class RichMap[A, B](map: Map[A, B]) {
+
+      /**
+       * Example:
+       * {{{
+       *   @Map("id"->42, "color"->"red").asAttr
+       *   -> id="42" color="red"
+       * }}}
+       * @return The Map keys and values formatted as XML attributes
+       */
+      def asAttr[A <: Appendable[A]](implicit format: Format[A]): A = {
+        format.raw((map foldRight (""))((entry, acc) => acc + (entry._1 + "=\"" + entry._2 + "\" ")))
+      }
+
+      /**
+       * Example:
+       * {{{
+       *   @Map("id"->42, "color"->"red").asAttr(true)
+       *   -> id="42" color="red"
+       * }}}
+       * @return the Map keys and values formatted as XML attributes, if the condition is true
+       */
+      def asAttr[A <: Appendable[A]](condition: Boolean)(implicit format: Format[A]): A = {
+        if (condition) asAttr else format.raw("")
+      }
+    }
+
+    implicit def richMap[A, B](map: Map[A, B]) = new RichMap(map)
+
+    // --- ANY
+
+    class RichAny(any: Any) {
+
+      /**
+       * Backslash escapes single and double quotes in the object’s toString representation
+       * Example:
+       * {{{
+       *   @"single quote (')".addSlashes.raw @"double quote (\")".addSlashes.raw
+       *   -> single quote (\') double quote (\")
+       * }}}
+       */
+      def addSlashes = any.toString replace ("\"", "\\\"") replace ("'", "\\'")
+
+      /**
+       * Capitalises every word of the object toString result
+       * Example:
+       * {{{
+       *   @"lorum ipsum dolor".capAll
+       *   -> Lorum Ipsum Dolor
+       * }}}
+       */
+      def capAll = new RichString(any.toString).capitalizeWords
+
+      /**
+       * Capitalises the first word of the object toString result
+       * Example:
+       * {{{
+       *   @"lorum ipsum dolor".capFirst
+       *   -> Lorum ipsum dolor
+       * }}}
+       */
+      def capFirst = any.toString.capitalize
+
+      /**
+       * Replaces new-line characters with HTML br tags
+       * Example:
+       * {{{
+       *   @"one\ntwo".nl2br
+       *   -> one<br/>two
+       * }}}
+       * Note: The result will not be HTML escaped, so you probably want to explicitly escape the content:
+       * {{{
+       *   @userInput.escape.nl2br
+       * }}}
+       */
+      def nl2br[A <: Appendable[A]](implicit format: Format[A]) = format.raw(any.toString replace ("\n", "<br/>"))
+    }
+
+    implicit def richAny(any: Any) = new RichAny(any)
+
+  }
+
+  trait TemplateMagicSettings {
+    def defaultLocale: Locale
+  }
+
+  object TemplateMagic {
+    // Factory method allowing to inject a default locale in the settings
+    def apply(locale: Locale = Locale.getDefault) = new TemplateMagic with TemplateMagicSettings {
+      override val defaultLocale = locale
+    }
+
+    // --- UTILS
+
+    def defining[T](t: T)(handler: T => Any) = {
+      handler(t)
+    }
+
+    def using[T](t: T) = t
 
   }
 
