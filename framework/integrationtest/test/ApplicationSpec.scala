@@ -32,7 +32,7 @@ object ApplicationSpec extends Specification {
         val result = action.apply(new FakeRequest)
         val extracted = Extract.from(result)
         extracted._1.toString must equalTo("200")
-        extracted._2.toString must equalTo("Map(Content-Type -> text/html)")
+        extracted._2.toString must equalTo("Map(Content-Type -> text/html; charset=utf-8)")
         extracted._3 must contain ("Hello world")
     }
   }
