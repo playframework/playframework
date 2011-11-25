@@ -70,7 +70,7 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
    *
    * @see play.api.Configuration
    */
-  val configuration = global.configuration ++ initialConfiguration
+  lazy val configuration = global.configuration ++ initialConfiguration
 
   /** The router used by this application. */
   val routes: Option[Router.Routes] = try {

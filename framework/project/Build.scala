@@ -351,15 +351,13 @@ object PlayBuild extends Build {
             }
             
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
-                streams.log.info("Compiling %s".format(template))
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
                     compile.invoke(null, template, sourceDirectory, generatedDir, "play.api.templates.Html", "play.api.templates.HtmlFormat", "import play.api.templates._\nimport play.api.templates.PlayMagic._")
                 } catch {
-                    case e:java.lang.reflect.InvocationTargetException =>{
-                        val t = e.getTargetException
-                        t.printStackTrace()
-                        throw t
+                    case e:java.lang.reflect.InvocationTargetException => {
+                        streams.log.error("Compilation failed for %s".format(template))
+                        throw e.getTargetException
                     }
                 }
             }
