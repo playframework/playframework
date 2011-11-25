@@ -26,8 +26,14 @@ import scala.collection.JavaConverters._
  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
+  private val initialConfiguration = getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty)
+
+  // -- Global stuff
+
+  private val globalClass = initialConfiguration.getString("global").getOrElse("Global")
+
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
-    Option(classloader.loadClassParentLast("Global").newInstance().asInstanceOf[play.GlobalSettings])
+    Option(classloader.loadClassParentLast(globalClass).newInstance().asInstanceOf[play.GlobalSettings])
   } catch {
     case e: InstantiationException => None
     case e: ClassNotFoundException => None
@@ -35,9 +41,12 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
   }
 
   lazy private val scalaGlobal: GlobalSettings = try {
-    classloader.loadClassParentLast("Global$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
+    classloader.loadClassParentLast(globalClass + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
   } catch {
-    case e: ClassNotFoundException => DefaultGlobal
+    case e: ClassNotFoundException if !initialConfiguration.getString("global").isDefined => DefaultGlobal
+    case e if initialConfiguration.getString("global").isDefined => {
+      throw initialConfiguration.reportError("global", "Cannot init the Global object (%s)".format(e.getMessage))
+    }
     case e => throw e
   }
 
@@ -49,11 +58,19 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
   val global: GlobalSettings = try {
     javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
   } catch {
+    case e: PlayException => throw e
     case e => throw PlayException(
       "Cannot init the Global object",
       e.getMessage,
       Some(e))
   }
+
+  /**
+   * The configuration used by this application.
+   *
+   * @see play.api.Configuration
+   */
+  val configuration = global.configuration ++ initialConfiguration
 
   /** The router used by this application. */
   val routes: Option[Router.Routes] = try {
@@ -62,13 +79,6 @@ case class Application(path: File, classloader: ApplicationClassLoader, sources:
     case e: ClassNotFoundException => None
     case e => throw e
   }
-
-  /**
-   * The configuration used by this application.
-   *
-   * @see play.api.Configuration
-   */
-  lazy val configuration = getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty)
 
   // Reconfigure logger
   {

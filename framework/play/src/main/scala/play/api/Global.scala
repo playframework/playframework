@@ -47,6 +47,11 @@ trait GlobalSettings {
   }
 
   /**
+   * Additional configuration provided by the application.
+   */
+  def configuration: Configuration = Configuration.empty
+
+  /**
    * Called when an HTTP request has been received.
    *
    * The default is to use the application router to find the appropriate action.

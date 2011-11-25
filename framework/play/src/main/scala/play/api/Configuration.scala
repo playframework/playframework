@@ -125,6 +125,26 @@ object Configuration {
 case class Configuration(data: Map[String, Configuration.Config], root: String = "") {
 
   /**
+   * Merge 2 configurations.
+   */
+  def ++(configuration: Configuration): Configuration = {
+    Configuration(
+      data = this.absolute.data ++ configuration.absolute.data,
+      root = "")
+  }
+
+  /**
+   * Make this configuration as asbolute (empty root key)
+   */
+  def absolute: Configuration = {
+    Configuration(
+      data = this.data.map {
+        case (key, config) => (config.key, config)
+      },
+      root = "")
+  }
+
+  /**
    * Retrieves a configuration item by key
    *
    * @param key configuration key, relative to the configuration root key
@@ -217,7 +237,7 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
    */
   def getSub(key: String): Option[Configuration] = Option(data.filterKeys(_.startsWith(key + ".")).map {
     case (k, c) => k.drop(key.size + 1) -> c
-  }.toMap).filterNot(_.isEmpty).map(Configuration(_, full(key) + "."))
+  }.toMap).filterNot(_.isEmpty).map(Configuration(_, absolute(key) + "."))
 
   /**
    * Retrieves a sub-configuration, i.e. a configuration instance containing all key starting with a prefix.
@@ -269,7 +289,7 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
     data.get(key).map { config =>
       error(message, config, e)
     }.getOrElse {
-      new PlayException("Configuration error", full(key) + ": " + message, e)
+      new PlayException("Configuration error", absolute(key) + ": " + message, e)
     }
   }
 
@@ -279,7 +299,7 @@ case class Configuration(data: Map[String, Configuration.Config], root: String =
    * @param key the configuration key, relative to configuration root key
    * @return the complete key
    */
-  def full(key: String) = root + key
+  def absolute(key: String) = root + key
 
   /**
    * Creates a configuration error for this configuration.

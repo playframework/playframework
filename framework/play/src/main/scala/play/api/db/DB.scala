@@ -181,7 +181,7 @@ object DBApi {
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
     conf.getInt("maxConnectionAge").map(datasource.setMaxConnectionAgeInSeconds(_))
 
-    datasource -> conf.full("url")
+    datasource -> conf.absolute("url")
   }
 
 }
