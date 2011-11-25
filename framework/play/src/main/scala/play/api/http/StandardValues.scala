@@ -13,6 +13,8 @@ trait ContentTypes {
   val JSON = "application/json"
   val XML = "text/xml"
   val BINARY = "application/octet-stream"
+  val JAVASCRIPT = "text/javascript"
+  val CSS = "text/css"
 
 }
 

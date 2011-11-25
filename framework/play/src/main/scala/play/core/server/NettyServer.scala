@@ -421,8 +421,7 @@ object NettyServer {
     try {
       Some(new NettyServer(
         new StaticApplication(applicationPath),
-        Option(System.getenv("PORT")).map(Integer.parseInt(_)).getOrElse(9000) // Temporary hack
-        ))
+        Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000)))
     } catch {
       case e => {
         println("Oops, cannot start the server.")

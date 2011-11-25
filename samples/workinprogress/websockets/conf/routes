@@ -4,6 +4,8 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET     /live                       controllers.Application.stream
+GET     /say                        controllers.Application.say(message)
 
 # Echo WebSocket
 GET     /echo/:name                 controllers.Application.echo(name)

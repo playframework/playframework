@@ -46,6 +46,10 @@ trait Iteratee[E, +A] {
       (msg, e) => error(msg)),
     (msg, e) => error(msg))
 
+  def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
+    this <<: Enumerator.enumInput(in)
+  }
+
   def fold[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B]

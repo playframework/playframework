@@ -142,7 +142,7 @@ object PlayProject extends Plugin {
   }
 
   val playStage = TaskKey[Unit]("stage")
-  val playStageTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target) map { (root, packaged, dependencies, target) =>
+  val playStageTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, streams) map { (root, packaged, dependencies, target, s) =>
 
     import sbt.NameFilter._
 
@@ -165,6 +165,10 @@ object PlayProject extends Plugin {
          |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
+
+    s.log.info("")
+    s.log.info("Your application is ready to be run in place: target/start")
+    s.log.info("")
 
     ()
   }
@@ -558,13 +562,22 @@ object PlayProject extends Plugin {
 
   // ----- Play commands
 
-  val playRunCommand = Command.command("run") { state: State =>
+  val playRunCommand = Command.args("run", "<port>") { (state: State, args: Seq[String]) =>
+
+    // Parse HTTP port argument
+    val port = args.headOption.map { portString =>
+      try {
+        Integer.parseInt(portString)
+      } catch {
+        case e => sys.error("Invalid port argument: " + portString)
+      }
+    }.getOrElse(9000)
 
     val reloader = newReloader(state)
 
     println()
 
-    val server = new play.core.server.NettyServer(reloader, 9000, allowKeepAlive = false)
+    val server = new play.core.server.NettyServer(reloader, port, allowKeepAlive = false)
 
     println()
     println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -579,7 +592,16 @@ object PlayProject extends Plugin {
     state
   }
 
-  val playStartCommand = Command.command("start") { state: State =>
+  val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
+
+    // Parse HTTP port argument
+    val port = args.headOption.map { portString =>
+      try {
+        Integer.parseInt(portString)
+      } catch {
+        case e => sys.error("Invalid port argument: " + portString)
+      }
+    }.getOrElse(9000)
 
     val extracted = Project.extract(state)
 
@@ -598,7 +620,7 @@ object PlayProject extends Plugin {
 
           import java.lang.{ ProcessBuilder => JProcessBuilder }
           val builder = new JProcessBuilder(Array(
-            "java", "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
+            "java", "-Dhttp.port=" + port, "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
 
           new Thread {
             override def run {
@@ -650,9 +672,9 @@ object PlayProject extends Plugin {
                 |publish                    Publish your application in a remote repository.
                 |publish-local              Publish your application in the local repository.
                 |reload                     Reload the current application build file.
-                |run                        Run the current application in DEV mode.
+                |run <port>                 Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs 
-                |start                      Start the current application in another JVM in PROD mode.
+                |start <port>               Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
                 |You can also use any sbt feature:
