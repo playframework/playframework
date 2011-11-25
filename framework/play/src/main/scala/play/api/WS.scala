@@ -191,26 +191,31 @@ object WS {
         }
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
-          iteratee.fold(
-            // DONE
-            (a, e) => {
-              iterateeP.redeem(iteratee)
-              iteratee = null
-              Promise.pure(STATE.ABORT)
-            },
+          if (iteratee != null) {
+            iteratee.fold(
+              // DONE
+              (a, e) => {
+                iterateeP.redeem(iteratee)
+                iteratee = null
+                Promise.pure(STATE.ABORT)
+              },
 
-            // CONTINUE
-            k => {
-              k(El(bodyPart.getBodyPartBytes()))
-              Promise.pure(STATE.CONTINUE)
-            },
+              // CONTINUE
+              k => {
+                k(El(bodyPart.getBodyPartBytes()))
+                Promise.pure(STATE.CONTINUE)
+              },
 
-            // ERROR
-            (e, input) => {
-              iterateeP.redeem(iteratee)
-              iteratee = null
-              Promise.pure(STATE.ABORT)
-            }).value.get
+              // ERROR
+              (e, input) => {
+                iterateeP.redeem(iteratee)
+                iteratee = null
+                Promise.pure(STATE.ABORT)
+              }).value.get
+          } else {
+            // The Iteratee has not been plugged yet - ignore the chunk and wait for the Iteratee
+            STATE.PAUSE
+          }
         }
 
         override def onCompleted() = {
@@ -230,7 +235,7 @@ object WS {
 
 package ws {
 
-  case class StreamedResponse(status: Integer, headers: Map[String, Seq[String]], chunks: Enumerator[Array[Byte]])
+  case class StreamedResponse(status: Int, headers: Map[String, Seq[String]], chunks: Enumerator[Array[Byte]])
 
   trait SignatureCalculator {
     def sign(request: WS.WSRequest)
