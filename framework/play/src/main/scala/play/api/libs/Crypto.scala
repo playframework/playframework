@@ -15,7 +15,7 @@ object Crypto {
   def sign(message: String, key: Array[Byte]): String = {
     val mac = Mac.getInstance("HmacSHA1")
     mac.init(new SecretKeySpec(key, "HmacSHA1"))
-    Codec.toHexString(mac.doFinal(message.getBytes("utf-8")))
+    Codecs.toHexString(mac.doFinal(message.getBytes("utf-8")))
   }
 
   /** Signs the given string using the application’s secret key. */

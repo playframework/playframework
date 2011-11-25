@@ -10,7 +10,7 @@ import play.core._
 import play.api._
 import play.api.db._
 import play.api.libs._
-import play.api.libs.Codec._
+import play.api.libs.Codecs._
 
 /**
  * An SQL evolution - database changes associated with a software version.

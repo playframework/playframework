@@ -9,7 +9,7 @@ import play.api.libs.concurrent._
  * @tparam A the socket messages type
  * @param f the socket messages generator
  */
-case class WebSocket[A](f: RequestHeader => (Enumerator[String], Iteratee[A, Unit]) => Unit)(implicit val writeable: AsString[A]) extends Handler
+case class WebSocket[A](f: RequestHeader => (Enumerator[String], Iteratee[A, Unit]) => Unit)(implicit val writeable: Writeable[A]) extends Handler
 
 /** Helper utilities to generate WebSocket results. */
 object WebSocket {
@@ -21,7 +21,7 @@ object WebSocket {
    * @param writeOut the outbound channel
    * @return a `WebSocket`
    */
-  def using[A](f: RequestHeader => (Iteratee[String, Unit], Enumerator[A]))(implicit writeable: AsString[A]) = {
+  def using[A](f: RequestHeader => (Iteratee[String, Unit], Enumerator[A]))(implicit writeable: Writeable[A]) = {
     new WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); readIn <<: e; i <<: writeOut })
   }
 

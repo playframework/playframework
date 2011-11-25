@@ -59,13 +59,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
       enumerator
     }
 
-    private def socketOut[A](ctx: ChannelHandlerContext)(writeable: AsString[A]): Iteratee[A, Unit] = {
+    private def socketOut[A](ctx: ChannelHandlerContext)(writeable: Writeable[A]): Iteratee[A, Unit] = {
       val channel = ctx.getChannel()
 
       def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
         input match {
           // TODO: what is we want something else than text?
-          case El(e) => Cont(step(Some(channel.write(new TextFrame(true, 0, writeable.transform(e))))))
+          case El(e) => Cont(step(Some(channel.write(new TextFrame(true, 0, new String(writeable.transform(e)))))))
           case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
           case Empty => Cont(step(future))
         }
@@ -243,11 +243,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                   case (name, value) => nettyResponse.setHeader(name, value)
                 }
                 val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-                val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] =
-                  r.writeable match {
-                    case AsString(f) => (c, x) => c.writeBytes(f(x).getBytes())
-                    case AsBytes(f) => (c, x) => c.writeBytes(f(x))
-                  }
+                val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
                 val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
                 val p = stringIteratee <<: body
                 p.flatMap(i => i.run)
@@ -285,11 +281,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                 nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
                 nettyResponse.setChunked(true)
 
-                val writer: Function1[r.BODY_CONTENT, ChannelFuture] =
-                  r.writeable match {
-                    case AsString(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x).getBytes())))
-                    case AsBytes(f) => x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(f(x))))
-                  }
+                val writer: Function1[r.BODY_CONTENT, ChannelFuture] = x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
+
                 val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())
                   .apply(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e)))
                 val p = chunksIteratee <<: chunks

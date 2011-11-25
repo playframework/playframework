@@ -8,13 +8,16 @@ object ContentTypes extends ContentTypes
 /** Defines common HTTP Content-Type. */
 trait ContentTypes {
 
-  val TEXT = "text/plain"
-  val HTML = "text/html"
-  val JSON = "application/json"
-  val XML = "text/xml"
+  import play.api.mvc.Codec
+
+  def TEXT(implicit codec: Codec) = ("text/plain; charset=" + codec.charset)
+  def HTML(implicit codec: Codec) = ("text/html; charset=" + codec.charset)
+  def JSON(implicit codec: Codec) = ("application/json; charset=" + codec.charset)
+  def XML(implicit codec: Codec) = ("text/xml; charset=" + codec.charset)
+  def CSS(implicit codec: Codec) = ("text/css; charset=" + codec.charset)
+  def JAVASCRIPT(implicit codec: Codec) = ("text/javascript; charset=" + codec.charset)
+
   val BINARY = "application/octet-stream"
-  val JAVASCRIPT = "text/javascript"
-  val CSS = "text/css"
 
 }
 

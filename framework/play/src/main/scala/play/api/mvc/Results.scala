@@ -217,25 +217,41 @@ case class ChunkedResult[A](header: ResponseHeader, chunks: Enumerator[A])(impli
 case class AsyncResult(result: Promise[Result]) extends Result
 
 /**
+ * A Codec handle the conversion of String to Byte arrays.
+ *
+ * @param charset The charset to be sent to the client.
+ * @param transform The transformation function.
+ */
+case class Codec(val charset: String)(val transform: String => Array[Byte])
+
+/**
+ * Default Codec support.
+ */
+object Codec {
+
+  /**
+   * Create a Codec from an encoding already supported by the JVM.
+   */
+  def javaSupported(charset: String) = Codec(charset)(str => str.getBytes(charset))
+
+  /**
+   * Codec for UTF-8
+   */
+  implicit val utf_8 = javaSupported("utf-8")
+
+  /**
+   * Codec for ISO-8859-1
+   */
+  val iso_8859_1 = javaSupported("iso-8859-1")
+
+}
+
+/**
  * Content writeable to the HTTP response.
  *
  * @tparam A the content type
  */
-sealed trait Writeable[A]
-
-/**
- * Defines a `Writeable` for text content types.
- *
- * @tparam A the content type
- */
-case class AsString[A](transform: (A => String)) extends Writeable[A]
-
-/**
- * Defines a `Writeable` for binary content types.
- *
- * @tparam A the content type
- */
-case class AsBytes[A](transform: (A => Array[Byte])) extends Writeable[A]
+case class Writeable[A](transform: (A => Array[Byte]))
 
 /**
  * Helper utilities for `Writeable`.
@@ -243,10 +259,10 @@ case class AsBytes[A](transform: (A => Array[Byte])) extends Writeable[A]
 object Writeable {
 
   /** Straightforward `Writeable` for String values. */
-  implicit val wString: Writeable[String] = AsString[String](identity)
+  implicit def wString(implicit codec: Codec): Writeable[String] = Writeable[String](str => codec.transform(str))
 
   /** Straightforward `Writeable` for Array[Byte] values. */
-  implicit val wBytes: Writeable[Array[Byte]] = AsBytes[Array[Byte]](identity)
+  implicit val wBytes: Writeable[Array[Byte]] = Writeable[Array[Byte]](identity)
 
 }
 
@@ -277,34 +293,41 @@ trait Results {
   import play.api.http.HeaderNames._
   import play.api.http.ContentTypes._
 
-  /** `Writeable` for `String` values. */
-  implicit val writeableStringOf_String: AsString[String] = AsString[String](identity)
-
   /**
    * `Writeable` for any values of type `play.api.mvc.Content`.
    *
    * @see play.api.mvc.Content
    */
-  implicit def writeableStringOf_Content[C <: Content]: Writeable[C] = AsString[C](c => c.body)
+  implicit def writeableOf_Content[C <: Content](implicit codec: Codec): Writeable[C] = {
+    Writeable[C](content => codec.transform(content.body))
+  }
 
   /** `Writeable` for `NodeSeq` values - literal Scala XML. */
-  implicit def writeableStringOf_NodeSeq[C <: scala.xml.NodeSeq] = AsString[C](x => x.toString)
+  implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec) = {
+    Writeable[C](xml => codec.transform(xml.toString))
+  }
 
   /** `Writeable` for empty responses. */
-  implicit val writeableStringOf_Empty = AsString[Results.Empty](_ => "")
+  implicit val writeableOf_Empty = Writeable[Results.Empty](_ => Array.empty)
 
   /**
    * Default content type for any values of type `play.api.mvc.Content`, read from the content trait.
    *
    * @see play.api.mvc.Content
    */
-  implicit def contentTypeOf_Content[C <: Content] = ValueBasedContentTypeOf[C](c => Some(c.contentType))
+  implicit def contentTypeOf_Content[C <: Content](implicit codec: Codec) = {
+    ValueBasedContentTypeOf[C](c => Some(c.contentType + "; charset=" + codec.charset))
+  }
 
   /** Default content type for `String` values (`text/plain`). */
-  implicit val contentTypeOf_String = TypeBasedContentTypeOf[String](Some(TEXT))
+  implicit def contentTypeOf_String(implicit codec: Codec) = {
+    TypeBasedContentTypeOf[String](Some(TEXT))
+  }
 
   /** Default content type for `NodeSeq` values (`text/xml`). */
-  implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq] = TypeBasedContentTypeOf[C](Some(XML))
+  implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec) = {
+    TypeBasedContentTypeOf[C](Some(XML))
+  }
 
   /** Default content type for byte array (application/application/octet-stream). */
   implicit def contentTypeOf_ByteArray = TypeBasedContentTypeOf[Array[Byte]](Some(BINARY))

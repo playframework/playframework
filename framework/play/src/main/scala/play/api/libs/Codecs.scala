@@ -1,7 +1,7 @@
 package play.api.libs
 
-/** Utilities for Codec operations. */
-object Codec {
+/** Utilities for Codecs operations. */
+object Codecs {
 
   /**
    * Computes the SHA-1 digest for a byte array.

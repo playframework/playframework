@@ -62,7 +62,7 @@ object Assets extends Controller {
     }
   }
 
-  private def computeETag(data: Array[Byte]) = Codec.sha1(data)
+  private def computeETag(data: Array[Byte]) = Codecs.sha1(data)
 
 }
 
