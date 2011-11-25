@@ -1,18 +1,28 @@
 #! /usr/bin/env sh
+if [ -z "$PLAY2_HOME" ] ; then
+  #Let's find our home
+  currpath="$0"
+  while [ -h "$currpath" ] ; do
+    dir=`dirname $currpath`
+    link=`readlink $currpath`
+    if [[ $link == \.* ]]; then
+    	CURR=$dir/`readlink $CURR`
+    else
+    	CURR=`readlink $CURR`
+    fi
+  done
+  PLAY2_HOME=`dirname "$CURR"`
+fi
 
 if [ -f conf/application.conf ]; then
   if test "$1" = "clean"; then
-    `dirname $0`/framework/cleanIvyCache
-  fi
-  if test "$1" = "stop"; then
-    kill `cat RUNNING_PID`
-    exit $?
+    $PLAY2_HOME/framework/cleanIvyCache
   fi
   if [ -n "$1" ]; then
-    `dirname $0`/framework/build "$@"
+    $PLAY2_HOME/framework/build "$@"
   else
-    `dirname $0`/framework/build play
+    $PLAY2_HOME/framework/build play
   fi
 else
-  java -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework -Dsbt.boot.properties=`dirname $0`/framework/sbt/play.boot.properties -jar `dirname $0`/framework/sbt/sbt-launch-0.11.0.jar "$@"
+  java -Dsbt.ivy.home=$PLAY2_HOME/repository -Dplay.home=$PLAY2_HOME/framework -Dsbt.boot.properties=$PLAY2_HOME/framework/sbt/play.boot.properties -jar $PLAY2_HOME/framework/sbt/sbt-launch-0.11.0.jar "$@"
 fi
