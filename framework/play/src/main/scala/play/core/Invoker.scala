@@ -39,6 +39,8 @@ class Invoker extends Actor {
 
   def receive = {
 
+    case (requestHeader: RequestHeader, bodyFunction: BodyParser[_]) => self.reply(bodyFunction(requestHeader))
+
     case HandleAction(request, response: Response, action, app: Application) =>
 
       val result = try {

@@ -72,41 +72,50 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
       Cont(step(None))
     }
-    /*
-        private def newRequestBodyHandler = {
 
-            var iteratee: Iteratee[EE,Any] = _
-            val P:Promise[Any] = _
-            val bodyEnumerator = new Enumerator[Array[Byte]]{
-                def apply[R,EE >: Array[Byte]](i:Iteratee[EE,R]) = {
-                    iteratee = i  
-                    val promise = Promise[EE]()
-                    p = promise
-                    p
-                }
-            }
+    private def newRequestBodyHandler[R](it: Iteratee[Array[Byte], R]): (Promise[Either[String, Iteratee[Array[Byte], R]]], SimpleChannelUpstreamHandler) = {
+      var redeemed = false
+      var iteratee: Iteratee[Array[Byte], R] = it
+      var p = Promise[Either[String, Iteratee[Array[Byte], R]]]()
+      def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
+        if (!redeemed) {
+          val next = iteratee.pureFlatFold[Array[Byte], R](
+            (_, _) => iteratee,
+            k => k(chunk),
+            (_, _) => iteratee)
+          iteratee = next
 
-            new SimpleChannelUpstreamHandler {
-                override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
-                  e.getMessage match {
-                    case chunk: WebSocketFrame => enumerator.frameReceived(ctx,El(frame.getTextData()))
-                  }
-                }
-
-                override def exceptionCaught(ctx: ChannelHandlerContext, e:ExceptionEvent){
-                  e.getCause().printStackTrace();
-                  e.getChannel().close();
-                }
-                override def channelDisconnected(ctx:ChannelHandlerContext, e: ChannelStateEvent)  {
-                  enumerator.frameReceived(ctx,EOF)
-                  println("disconnecting socket")
-                  println("disconnected socket")
-                }
-
-            }
-
+          next.pureFold(
+            (a, e) => if (!redeemed) { p.redeem(Right(next)); iteratee = null; p = null; redeemed = true },
+            k => (),
+            (msg, e) => if (!redeemed) { p.redeem(Left(msg)); iteratee = null; p = null; redeemed = true })
         }
-        */
+      }
+
+      (p, new SimpleChannelUpstreamHandler {
+        override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
+          e.getMessage match {
+            case chunk: HttpChunk if !chunk.isLast() =>
+              val cBuffer = chunk.getContent()
+              val bytes = new Array[Byte](cBuffer.readableBytes())
+              cBuffer.readBytes(bytes)
+              pushChunk(ctx, El(bytes))
+            case chunk: HttpChunk if chunk.isLast() => pushChunk(ctx, EOF)
+
+          }
+        }
+
+        override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+          e.getCause().printStackTrace();
+          e.getChannel().close(); /*really? */
+        }
+        override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+          pushChunk(ctx, EOF)
+        }
+
+      })
+
+    }
 
     private def newWebSocketInHandler() = {
 
@@ -121,7 +130,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
         def frameReceived(ctx: ChannelHandlerContext, input: Input[String]) {
           iterateeAgent.send(iteratee =>
-            iteratee.map(it => Iteratee.flatten(it.fold(
+            iteratee.map(it => it.flatFold(
               (a, e) => { error("Getting messages on a supposedly closed socket? frame: " + input) },
               k => {
                 val next = k(input)
@@ -136,7 +145,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                   _ => Promise.pure(next),
                   (msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) })
               },
-              (err, e) => /* handle error, maybe close the socket */ Promise.pure(it)))))
+              (err, e) => /* handle error, maybe close the socket */ Promise.pure(it))))
         }
       }
 
@@ -283,8 +292,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
                 val writer: Function1[r.BODY_CONTENT, ChannelFuture] = x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
 
-                val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())
-                  .apply(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e)))
+                val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e)))
+
                 val p = chunksIteratee <<: chunks
                 p.flatMap(i => i.run)
                   .onRedeem { _ =>
@@ -294,18 +303,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
             }
           }
 
-          lazy val bodyEnumerator = {
-
-            val body = { //explodes memory, need to do a smart strategy of putting into memory
-              val cBuffer = nettyHttpRequest.getContent()
-              val bytes = new Array[Byte](cBuffer.readableBytes())
-              cBuffer.readBytes(bytes)
-              bytes
-            }
-
-            Enumerator(body).andThen(Enumerator.enumInput(EOF))
-          }
-
           val handler = getHandlerFor(requestHeader)
 
           handler match {
@@ -313,29 +310,63 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
               val bodyParser = action.parser
 
-              val eventuallyBody = (bodyParser(requestHeader) <<: bodyEnumerator).flatMap(_.run)
+              e.getChannel.setReadable(false)
 
-              val eventuallyRequest = eventuallyBody.map { b =>
+              val eventuallyBodyParser = getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
 
-                new Request[action.BODY_CONTENT] {
-                  def uri = nettyHttpRequest.getUri
-                  def path = nettyUri.getPath
-                  def method = nettyHttpRequest.getMethod.getName
-                  def queryString = parameters
-                  def headers = rHeaders
-                  def cookies = rCookies
-                  def username = None
+              val eventuallyBody =
+                eventuallyBodyParser.flatMap { bodyParser =>
+                  if (nettyHttpRequest.isChunked) {
+                    val (result, handler) = newRequestBodyHandler(bodyParser)
+                    val p: ChannelPipeline = ctx.getChannel().getPipeline();
+                    p.replace("handler", "handler", handler)
+                    e.getChannel.setReadable(true)
+                    result
+                  } else {
+                    val bodyEnumerator = {
 
-                  val body = b
+                      val body = { //explodes memory, need to do a smart strategy of putting into memory
+                        val cBuffer = nettyHttpRequest.getContent()
+                        val bytes = new Array[Byte](cBuffer.readableBytes())
+                        cBuffer.readBytes(bytes)
+                        bytes
+                      }
+
+                      Enumerator(body).andThen(Enumerator.enumInput(EOF))
+                    }
+
+                    (bodyParser <<: bodyEnumerator).map(p => Right(p)): Promise[Either[String, Iteratee[Array[Byte], action.BODY_CONTENT]]]
+                  }
                 }
 
+              val eventuallyRequest =
+                eventuallyBody.map { errOrBody =>
+                  errOrBody.right.map(it => it.run.map { b: action.BODY_CONTENT =>
+                    new Request[action.BODY_CONTENT] {
+                      def uri = nettyHttpRequest.getUri
+                      def path = nettyUri.getPath
+                      def method = nettyHttpRequest.getMethod.getName
+                      def queryString = parameters
+                      def headers = rHeaders
+                      def cookies = rCookies
+                      def username = None
+                      val body = b
+                    }
+                  })
+                }
+
+              eventuallyRequest.map {
+                case Left(errMsg) =>
+                  response.handle(Results.InternalServerError)
+                  Promise.pure(None: Option[Request[action.BODY_CONTENT]])
+                case Right(eventuallyReq) =>
+                  eventuallyReq.extend(_.value match {
+                    case Redeemed(request) =>
+                      invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+
+                  })
+
               }
-
-              eventuallyRequest.extend(_.value match {
-                case Redeemed(request) => invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
-
-              })
-
             }
 
             case Right((ws @ WebSocket(f), app)) if (isWebSocket(nettyHttpRequest)) => {
@@ -363,7 +394,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
     def getPipeline = {
       val newPipeline = pipeline()
       newPipeline.addLast("decoder", new HttpRequestDecoder())
-      newPipeline.addLast("aggregator", new HttpChunkAggregator(1048576))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
       newPipeline.addLast("handler", new PlayDefaultUpstreamHandler())

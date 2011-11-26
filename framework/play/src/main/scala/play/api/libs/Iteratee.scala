@@ -54,6 +54,19 @@ trait Iteratee[E, +A] {
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B]
 
+  def pureFold[B](done: (A, Input[E]) => B,
+    cont: (Input[E] => Iteratee[E, A]) => B,
+    error: (String, Input[E]) => B): Promise[B] =
+    fold[B](
+      (a, e) => Promise.pure(done(a, e)),
+      k => Promise.pure(cont(k)),
+      (msg, e) => Promise.pure(error(msg, e)))
+
+  def pureFlatFold[B, C](done: (A, Input[E]) => Iteratee[B, C],
+    cont: (Input[E] => Iteratee[E, A]) => Iteratee[B, C],
+    error: (String, Input[E]) => Iteratee[B, C]): Iteratee[B, C] =
+    Iteratee.flatten(pureFold(done, cont, error))
+
   def flatFold[B, C](done: (A, Input[E]) => Promise[Iteratee[B, C]],
     cont: (Input[E] => Iteratee[E, A]) => Promise[Iteratee[B, C]],
     error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold(done, cont, error))
@@ -118,6 +131,8 @@ trait Enumerator[+E] {
   def andThen[F >: E](e: Enumerator[F]): Enumerator[F] = new Enumerator[F] {
     def apply[A, FF >: F](i: Iteratee[FF, A]): Promise[Iteratee[FF, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove EOF in the end of first
   }
+
+  def >>>[F >: E](e: Enumerator[F]): Enumerator[F] = andThen(e)
 
   def map[U](f: Input[E] => Input[U]) = new Enumerator[U] {
     def apply[A, UU >: U](it: Iteratee[UU, A]) = {

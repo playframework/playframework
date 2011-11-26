@@ -3,6 +3,10 @@ package play.api.libs.concurrent
 import play.core._
 import akka.dispatch.Future
 
+object `package` {
+  type RedeemablePromise[A] = Promise[A] with Redeemable[A]
+}
+
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
 }

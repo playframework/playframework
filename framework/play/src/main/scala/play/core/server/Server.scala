@@ -3,6 +3,7 @@ package play.core.server
 import play.api._
 import play.core._
 import play.api.mvc._
+import play.api.libs.iteratee._
 
 trait Server {
 
@@ -62,6 +63,12 @@ trait Server {
   }
 
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = invoker ! HandleAction(request, response, action, app)
+
+  import play.api.libs.concurrent._
+  def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], A]] = {
+    new AkkaPromise((invoker ? ((requestHeaders, bodyFunction))).map(_.asInstanceOf[Iteratee[Array[Byte], A]]))
+
+  }
 
   def applicationProvider: ApplicationProvider
 
