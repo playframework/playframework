@@ -83,9 +83,11 @@ case class AkkaPromise[A](future: Future[A]) extends Promise[A] {
   /**
    * provides a means to flatten Akka based promises
    */
-  def flatMap[B](f: A => Promise[B]): Promise[B] =
-    new AkkaPromise[B](future.map(f).map(_.value match { case r: Redeemed[_] => r.a }))
-
+  def flatMap[B](f: A => Promise[B]): Promise[B] = {
+    val result = Promise[B]()
+    future.map(f(_).map(result.redeem(_)))
+    result
+  }
 }
 
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
