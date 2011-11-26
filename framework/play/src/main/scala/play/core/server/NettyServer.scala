@@ -321,17 +321,17 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                     val p: ChannelPipeline = ctx.getChannel().getPipeline();
                     p.replace("handler", "handler", handler)
                     e.getChannel.setReadable(true)
+
                     result
                   } else {
-                    val bodyEnumerator = {
-
+                    e.getChannel.setReadable(true)
+                    lazy val bodyEnumerator = {
                       val body = { //explodes memory, need to do a smart strategy of putting into memory
                         val cBuffer = nettyHttpRequest.getContent()
                         val bytes = new Array[Byte](cBuffer.readableBytes())
                         cBuffer.readBytes(bytes)
                         bytes
                       }
-
                       Enumerator(body).andThen(Enumerator.enumInput(EOF))
                     }
 
