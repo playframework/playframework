@@ -22,11 +22,13 @@ import scala.collection.JavaConverters._
  * @param path the absolute path hosting this application, mainly used by the `getFile(path)` helper method
  * @param classloader the application's classloader
  * @param sources the `SourceMapper` used to retrieve source code displayed in error pages
- * @param mode `DEV` or `PROD`, passed as information for the user code
+ * @param mode `Dev` or `Prod`, passed as information for the user code
  */
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
-  private val initialConfiguration = getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty)
+  private val userDefinedConfig = Option(System.getProperty("conf")).map(path => Configuration.fromFile(new File(path)))
+
+  private val initialConfiguration = userDefinedConfig.getOrElse(getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty))
 
   // -- Global stuff
 
