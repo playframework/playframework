@@ -222,7 +222,7 @@ case class AsyncResult(result: Promise[Result]) extends Result
  * @param charset The charset to be sent to the client.
  * @param transform The transformation function.
  */
-case class Codec(val charset: String)(val transform: String => Array[Byte])
+case class Codec(val charset: String)(val encode: String => Array[Byte], val decode: Array[Byte] => String)
 
 /**
  * Default Codec support.
@@ -232,7 +232,7 @@ object Codec {
   /**
    * Create a Codec from an encoding already supported by the JVM.
    */
-  def javaSupported(charset: String) = Codec(charset)(str => str.getBytes(charset))
+  def javaSupported(charset: String) = Codec(charset)(str => str.getBytes(charset), bytes => new String(bytes, charset))
 
   /**
    * Codec for UTF-8
@@ -259,7 +259,7 @@ case class Writeable[A](transform: (A => Array[Byte]))
 object Writeable {
 
   /** Straightforward `Writeable` for String values. */
-  implicit def wString(implicit codec: Codec): Writeable[String] = Writeable[String](str => codec.transform(str))
+  implicit def wString(implicit codec: Codec): Writeable[String] = Writeable[String](str => codec.encode(str))
 
   /** Straightforward `Writeable` for Array[Byte] values. */
   implicit val wBytes: Writeable[Array[Byte]] = Writeable[Array[Byte]](identity)
@@ -272,10 +272,7 @@ object Writeable {
  * @tparam A the content type
  * @param the default content type for `A`, if any
  */
-trait ContentTypeOf[A]
-
-case class TypeBasedContentTypeOf[A](resolve: Option[String]) extends ContentTypeOf[A]
-case class ValueBasedContentTypeOf[A](resolve: (A => Option[String])) extends ContentTypeOf[A]
+case class ContentTypeOf[A](mimeType: Option[String])
 
 /** Helper utilities to generate results. */
 object Results extends Results {
@@ -292,48 +289,51 @@ trait Results {
   import play.api.http.Status._
   import play.api.http.HeaderNames._
   import play.api.http.ContentTypes._
+  import play.api.templates._
 
-  /**
-   * `Writeable` for any values of type `play.api.mvc.Content`.
-   *
-   * @see play.api.mvc.Content
-   */
+  /** `Writeable` for `Content` values. */
   implicit def writeableOf_Content[C <: Content](implicit codec: Codec): Writeable[C] = {
-    Writeable[C](content => codec.transform(content.body))
+    Writeable[C](content => codec.encode(content.body))
   }
 
   /** `Writeable` for `NodeSeq` values - literal Scala XML. */
   implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec) = {
-    Writeable[C](xml => codec.transform(xml.toString))
+    Writeable[C](xml => codec.encode(xml.toString))
   }
 
   /** `Writeable` for empty responses. */
   implicit val writeableOf_Empty = Writeable[Results.Empty](_ => Array.empty)
 
-  /**
-   * Default content type for any values of type `play.api.mvc.Content`, read from the content trait.
-   *
-   * @see play.api.mvc.Content
-   */
-  implicit def contentTypeOf_Content[C <: Content](implicit codec: Codec) = {
-    ValueBasedContentTypeOf[C](c => Some(c.contentType + "; charset=" + codec.charset))
+  /** Default content type for `Html` values (`text/html`). */
+  implicit def contentTypeOf_Html(implicit codec: Codec): ContentTypeOf[Html] = {
+    ContentTypeOf[Html](Some(HTML))
+  }
+
+  /** Default content type for `Xml` values (`text/xml`). */
+  implicit def contentTypeOf_Xml(implicit codec: Codec): ContentTypeOf[Xml] = {
+    ContentTypeOf[Xml](Some(XML))
+  }
+
+  /** Default content type for `Txt` values (`text/plain`). */
+  implicit def contentTypeOf_Txt(implicit codec: Codec): ContentTypeOf[Txt] = {
+    ContentTypeOf[Txt](Some(TEXT))
   }
 
   /** Default content type for `String` values (`text/plain`). */
-  implicit def contentTypeOf_String(implicit codec: Codec) = {
-    TypeBasedContentTypeOf[String](Some(TEXT))
+  implicit def contentTypeOf_String(implicit codec: Codec): ContentTypeOf[String] = {
+    ContentTypeOf[String](Some(TEXT))
   }
 
   /** Default content type for `NodeSeq` values (`text/xml`). */
-  implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec) = {
-    TypeBasedContentTypeOf[C](Some(XML))
+  implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): ContentTypeOf[C] = {
+    ContentTypeOf[C](Some(XML))
   }
 
   /** Default content type for byte array (application/application/octet-stream). */
-  implicit def contentTypeOf_ByteArray = TypeBasedContentTypeOf[Array[Byte]](Some(BINARY))
+  implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] = ContentTypeOf[Array[Byte]](Some(BINARY))
 
   /** Default content type for empty responses (no content type). */
-  implicit def contentTypeOf_Empty = TypeBasedContentTypeOf[Results.Empty](None)
+  implicit def contentTypeOf_Empty: ContentTypeOf[Results.Empty] = ContentTypeOf[Results.Empty](None)
 
   /**
    * Generates default `SimpleResult` from a content type, headers and content.
@@ -351,11 +351,7 @@ trait Results {
      */
     def apply[C](content: C)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): SimpleResult[C] = {
       SimpleResult(
-        header = ResponseHeader(status,
-          (contentTypeOf match {
-            case TypeBasedContentTypeOf(contentType) => contentType
-            case ValueBasedContentTypeOf(f) => f(content)
-          }).map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         Enumerator(content))
     }
 
@@ -366,9 +362,9 @@ trait Results {
      * @param content Enumerator providing the chunked content.
      * @param a `ChunkedResult`
      */
-    def apply[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: TypeBasedContentTypeOf[C]): ChunkedResult[C] = {
+    def apply[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
       ChunkedResult(
-        header = ResponseHeader(status, contentTypeOf.resolve.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         content)
     }
 

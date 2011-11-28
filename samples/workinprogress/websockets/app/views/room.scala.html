@@ -1,0 +1,31 @@
+@main("Comet") {
+    
+    @helper.javascriptRouter("jsRoutes")(
+        routes.javascript.Application.say
+    )
+    
+    <h1>Chat room</h1>
+    
+    <p>
+        <input type="text" id="msg"> <input type="button" value="Say" id="say">
+    </p>
+    
+    <div id="messages"></div>
+    
+    <script type="text/javascript" charset="utf-8">
+        var message = function(msg) {
+            $('#messages').append('<p>' + msg + '</p>')
+        }
+        
+        $("#say").click(function() {
+            jsRoutes.controllers.Application.say($('#msg').val()).ajax({
+                sucess: function() {
+                    
+                }
+            })
+        })
+    </script>
+    
+    <iframe src="@routes.Application.stream" style="display:none"></iframe>
+    
+}

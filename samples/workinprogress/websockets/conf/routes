@@ -6,6 +6,7 @@
 GET     /                           controllers.Application.index
 GET     /live                       controllers.Application.stream
 GET     /say                        controllers.Application.say(message)
+GET     /room                       controllers.Application.chatRoom
 
 # Echo WebSocket
 GET     /echo/:name                 controllers.Application.echo(name)

@@ -5,7 +5,7 @@ object JResults extends Results {
   def writeString: Writeable[String] = Writeable.wString
   def writeEmpty: Writeable[Results.Empty] = writeableOf_Empty
   def contentTypeOfString: ContentTypeOf[String] = contentTypeOf_String
-  def contentTypeOfContent: ContentTypeOf[Content] = contentTypeOf_Content[Content]
+  def contentTypeOf(mimeType: String): ContentTypeOf[Content] = ContentTypeOf(Option(mimeType))
   def contentTypeOfEmpty: ContentTypeOf[Results.Empty] = contentTypeOf_Empty
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.Empty()

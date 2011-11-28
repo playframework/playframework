@@ -7,16 +7,13 @@ import java.util.concurrent._
 object MyGlobal extends GlobalSettings {
   
   override def onStart(app: Application) {
-    Logger.info("Start HelloActor")
-    HelloActor.ref.start()
-    /*Scheduler.schedule(HelloActor.ref, 
-      """Hello""".stripMargin
-      , 0, 1, TimeUnit.SECONDS)*/
+    Logger.info("Start ChatRoomActor")
+    ChatRoomActor.ref.start()
   }
   
   override def onStop(app: Application) {
-    Logger.info("Stop HelloActor")
-    HelloActor.ref.stop()
+    Logger.info("Stop ChatRoomActor")
+    ChatRoomActor.ref.stop()
   }
   
 }

@@ -1,7 +1,6 @@
 package play.api.libs.concurrent
 
 import play.core._
-import akka.dispatch.Future
 import java.util.concurrent.TimeUnit
 
 object `package` {
@@ -48,53 +47,6 @@ trait Promise[A] {
 
 trait Redeemable[A] {
   def redeem(a: => A): Unit
-}
-
-/**
- * a promise impelemantation based on Akka's Future
- */
-case class AkkaPromise[A](future: Future[A]) extends Promise[A] {
-
-  /**
-   * call back hook
-   */
-  def onRedeem(k: A => Unit) {
-    future.onComplete { _.value.get.fold(Thrown(_), k) }
-  }
-
-  /*
-   * extend @param k 
-   */
-  def extend[B](k: Function1[Promise[A], B]): Promise[B] =
-    new AkkaPromise[B](future.map(p => k(this)))
-
-  /*
-   * it's time to retrieve the future value
-   */
-  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] =
-    future.await(akka.util.Duration(timeout, unit))
-      .value.get.fold(Thrown(_), Redeemed(_))
-
-  /*
-   * filtering akka based future and rewrapping the result in an AkkaPromise
-   */
-  def filter(p: A => Boolean): Promise[A] =
-    new AkkaPromise[A](future.filter(p.asInstanceOf[(Any => Boolean)]).asInstanceOf[Future[A]])
-
-  /*
-   * mapping @param f function to AkkaPromise 
-   *
-   */
-  def map[B](f: A => B): Promise[B] = new AkkaPromise[B](future.map(f))
-
-  /**
-   * provides a means to flatten Akka based promises
-   */
-  def flatMap[B](f: A => Promise[B]): Promise[B] = {
-    val result = Promise[B]()
-    future.map(f(_).map(result.redeem(_)))
-    result
-  }
 }
 
 class STMPromise[A] extends Promise[A] with Redeemable[A] {

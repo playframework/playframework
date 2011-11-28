@@ -1,5 +1,6 @@
 package play.core
 
+import java.net.{ URLEncoder, URLDecoder }
 import scala.annotation._
 
 @implicitNotFound("No queryString binder found for type ${A}. Try to implement an implicit QueryStringBindable for this type.")
@@ -52,8 +53,8 @@ object JavascriptLitteral {
 object QueryStringBindable {
 
   implicit def bindableString = new QueryStringBindable[String] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(Right(_))
-    def unbind(key: String, value: String) = key + "=" + value
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(v => Right(URLDecoder.decode(v, "utf-8")))
+    def unbind(key: String, value: String) = key + "=" + (URLEncoder.encode(value, "utf-8"))
   }
 
   implicit def bindableInt = new QueryStringBindable[Int] {
@@ -104,8 +105,8 @@ object QueryStringBindable {
 object PathBindable {
 
   implicit def bindableString = new PathBindable[String] {
-    def bind(key: String, value: String) = Right(value)
-    def unbind(key: String, value: String) = value
+    def bind(key: String, value: String) = Right(URLDecoder.decode(value, "utf-8"))
+    def unbind(key: String, value: String) = URLEncoder.encode(value, "utf-8")
   }
 
   implicit def bindableInt = new PathBindable[Int] {

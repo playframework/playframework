@@ -216,6 +216,58 @@ object Enumerator {
   }
 }
 
+class CallbackEnumerator[E](
+  onComplete: => Unit = () => (),
+  onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] {
+
+  var iteratee: Iteratee[E, _] = _
+  var promise: Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
+
+  def apply[A, EE >: E](it: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = {
+    iteratee = it.asInstanceOf[Iteratee[E, _]]
+    val newPromise = new STMPromise[Iteratee[EE, A]]()
+    promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
+    newPromise
+  }
+
+  def close() {
+    if (iteratee == null) {
+      iteratee.feed(EOF).map { result =>
+        promise.redeem(result)
+      }
+      iteratee = null
+      promise = null
+    }
+  }
+
+  def push(item: E): Boolean = {
+    if (iteratee != null) {
+      iteratee = iteratee.flatFold[E, Any](
+
+        // DONE
+        (a, in) => {
+          onComplete
+          Promise.pure(Done(a, in))
+        },
+
+        // CONTINUE
+        k => {
+          Promise.pure(k(El(item)))
+        },
+
+        // ERROR
+        (e, in) => {
+          onError(e, in)
+          Promise.pure(Error(e, in))
+        })
+      true
+    } else {
+      false
+    }
+  }
+
+}
+
 object Parsing {
 
   trait MatchInfo[A] { def content: A }

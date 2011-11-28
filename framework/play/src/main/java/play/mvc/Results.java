@@ -9,6 +9,8 @@ import play.api.mvc.Results.* ;
  */
 public class Results {
     
+    static Codec utf8 = Codec.javaSupported("utf-8");
+    
     // -- Constructor methods
     
     /**
@@ -173,7 +175,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.NotImplemented().apply(
                 views.html.defaultpages.todo.render(),
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf("text/html; charset=utf-8")
             );
         }
         
@@ -210,7 +212,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 content,
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
             );
         }
         
@@ -247,7 +249,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 content,
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
             );        
         }
                 
@@ -284,7 +286,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 content,
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
             );        
         }
                 
@@ -321,7 +323,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 content,
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
             );        
         }
                 
@@ -358,7 +360,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 content,
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
             );        
         }
                 
@@ -395,7 +397,7 @@ public class Results {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 content,
                 play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOfContent()
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
             );        
         }
                 

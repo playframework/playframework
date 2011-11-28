@@ -2,15 +2,22 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import play.api.libs._
 
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
+import play.api.libs.akka._
+
+import actors._
+import actors.ChatRoomActor._
 
 object Application extends Controller {
   
   def index = Action {
     Ok(views.html.index()) 
   }
+  
+  // -- Echo websocket
   
   def echo(name: String) = WebSocket[String] { request => (in, out) =>
     
@@ -28,23 +35,23 @@ object Application extends Controller {
     }    
   }
   
+  // -- Comet chat room
+  
+  def chatRoom = Action {
+    Ok(views.html.room())
+  }
+  
   def stream = Action {
     AsyncResult {
-      new AkkaPromise(actors.HelloActor.ref ? "join" map {_.asInstanceOf[Enumerator[String]]}).map { chunks =>
-        Ok(Enumerator(Array.fill[Char](5000)(' ').mkString + """<html><body>""").andThen(chunks.map { in =>
-          in.map { msg =>
-            """
-              <script type="text/javascript">console.log('""" + msg + """')</script>
-            """
-          }
-        })).as(HTML)
+      (ChatRoomActor.ref ? Join() map {_.asInstanceOf[Enumerator[String]]}).asPromise.map { chunks =>
+        Ok(Comet(chunks, callback = "parent.message"))
       }
     }
   }
   
   def say(message: String) = Action {
-    actors.HelloActor.ref ! message
-    Ok
+    ChatRoomActor.ref ! Message(message)
+    Ok("Said " + message)
   }
-  
+
 }

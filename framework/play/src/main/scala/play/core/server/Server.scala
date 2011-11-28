@@ -4,6 +4,7 @@ import play.api._
 import play.core._
 import play.api.mvc._
 import play.api.libs.iteratee._
+import play.api.libs.akka._
 
 trait Server {
 
@@ -66,8 +67,7 @@ trait Server {
 
   import play.api.libs.concurrent._
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], A]] = {
-    new AkkaPromise((invoker ? ((requestHeaders, bodyFunction))).map(_.asInstanceOf[Iteratee[Array[Byte], A]]))
-
+    (invoker ? (requestHeaders, bodyFunction)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], A]])
   }
 
   def applicationProvider: ApplicationProvider

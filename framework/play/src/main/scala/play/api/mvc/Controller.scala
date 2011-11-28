@@ -98,7 +98,7 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
    * }}}
    */
   val TODO = Action {
-    NotImplemented(views.html.defaultpages.todo())
+    NotImplemented[play.api.templates.Html](views.html.defaultpages.todo())
   }
 
   /**
