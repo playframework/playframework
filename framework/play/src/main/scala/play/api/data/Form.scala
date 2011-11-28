@@ -55,7 +55,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form filled with the new data
    */
   def bindFromRequest()(implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]): Form[T] = {
-    val data = request.body.urlFormEncoded ++ request.queryString
+    val data = request.body.asUrlFormEncoded ++ request.queryString
     bind(data.mapValues(_.headOption.getOrElse("")))
   }
 

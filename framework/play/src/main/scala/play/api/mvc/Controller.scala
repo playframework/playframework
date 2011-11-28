@@ -70,7 +70,7 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
    * @param block the action code
    * @return an action
    */
-  final def Action(block: Request[AnyContent] => Result): Action[AnyContent] = this.Action[AnyContent](play.api.data.RequestData.urlEncoded("UTF-8" /* should get charset from content type */ ), block)
+  final def Action(block: Request[AnyContent] => Result): Action[AnyContent] = this.Action[AnyContent](AnyContent.parser, block)
 
   /**
    * Constructs an `Action`.

@@ -10,7 +10,7 @@ class FakeRequest[AnyContent] extends Request[AnyContent] {
   def uri = "foo"
   def method = "GET"
   def queryString = Map.empty()
-  def body:AnyContent = AnyContent(Map("foo"->Seq("value"))).asInstanceOf[AnyContent]
+  def body:AnyContent = AnyContentAsUrlFormEncoded(Map("foo"->Seq("value"))).asInstanceOf[AnyContent]
 
   def username = Some("peter")
   def path ="/"
