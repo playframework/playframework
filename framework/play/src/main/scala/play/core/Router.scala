@@ -577,7 +577,7 @@ object Router {
                                   localNames.contains(p.name) && p.fixed.isDefined
                                 }.map { p =>
                                   p.name + " == " + p.fixed.get
-                                }).filterNot(_.isEmpty).map("if " + _.mkString(" && ")).getOrElse(""),
+                                }).filterNot(_.isEmpty).map("if " + _.mkString(" && ")).getOrElse("if true"),
 
                                 genCall(route, localNames))
 
