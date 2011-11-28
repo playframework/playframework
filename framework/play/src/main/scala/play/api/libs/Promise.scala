@@ -2,6 +2,7 @@ package play.api.libs.concurrent
 
 import play.core._
 import akka.dispatch.Future
+import java.util.concurrent.TimeUnit
 
 object `package` {
   type RedeemablePromise[A] = Promise[A] with Redeemable[A]
@@ -30,7 +31,13 @@ trait Promise[A] {
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B]
 
-  def value: NotWaiting[A]
+  def extend1[B](k: Function1[NotWaiting[A], B]): Promise[B] = extend[B](p => k(p.value))
+
+  def value = await
+
+  def await: NotWaiting[A] = await(4000)
+
+  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A]
 
   def filter(p: A => Boolean): Promise[A]
 
@@ -64,9 +71,9 @@ case class AkkaPromise[A](future: Future[A]) extends Promise[A] {
   /*
    * it's time to retrieve the future value
    */
-  def value: NotWaiting[A] = try {
-    Redeemed(future.get)
-  } catch { case e => Thrown(e) }
+  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] =
+    future.await(akka.util.Duration(timeout, unit))
+      .value.get.fold(Thrown(_), Redeemed(_))
 
   /*
    * filtering akka based future and rewrapping the result in an AkkaPromise
@@ -131,9 +138,14 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     }
   }
 
-  def value: NotWaiting[A] = atomic { implicit txn =>
-    if (redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
-    else retry
+  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
+    atomic { implicit txn =>
+      if (redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
+      else {
+        retryFor(unit.toNanos(timeout), scala.actors.threadpool.TimeUnit.NANOSECONDS)
+        throw new java.util.concurrent.TimeoutException("Promise timed out after " + timeout + " : " + unit)
+      }
+    }
   }
 
   private def invoke[T](a: T, k: T => Unit) = PromiseInvoker.invoker ! Invoke(a, k)
@@ -180,7 +192,7 @@ object PurePromise {
 
       def extend[B](k: Function1[Promise[A], B]): Promise[B] = neverRedeemed[B]
 
-      def value: NotWaiting[A] = scala.sys.error("not redeemed")
+      def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = throw new java.util.concurrent.TimeoutException("will never get redeemed")
 
       def filter(p: A => Boolean): Promise[A] = this
 
@@ -192,7 +204,7 @@ object PurePromise {
 
     def onRedeem(k: A => Unit): Unit = k(a)
 
-    def value = Redeemed(a)
+    def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = Redeemed(a)
 
     def redeem(a: A) = error("Already redeemed")
 

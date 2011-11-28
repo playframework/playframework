@@ -119,7 +119,7 @@ object PlayBuild extends Build {
             "se.scalablesolutions.akka"         %    "akka-slf4j"               %   "1.2",
             "org.avaje"                         %    "ebean"                    %   "2.7.3",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
-            "org.scala-tools"                   %%   "scala-stm"                %   "0.3",
+            "org.scala-tools"                   %%   "scala-stm"                %   "0.4",
             "com.jolbox"                        %    "bonecp"                   %   "0.7.1.RELEASE",
             "org.yaml"                          %    "snakeyaml"                %   "1.9",
             "org.hibernate"                     %    "hibernate-validator"      %   "4.2.0.Final",
