@@ -22,13 +22,13 @@ class AkkaFuture[A](future: Future[A]) {
 /**
  * a promise impelemantation based on Akka's Future
  */
-case class AkkaPromise[A](future: Future[A]) extends Promise[A] {
+class AkkaPromise[A](future: Future[A]) extends Promise[A] {
 
   /**
    * call back hook
    */
   def onRedeem(k: A => Unit) {
-    future.onComplete { _.value.get.fold(Thrown(_), k) }
+    this.await(future.timeoutInNanos) match { case Redeemed(a) => k(a); case Thrown(e) => throw e }
   }
 
   /*

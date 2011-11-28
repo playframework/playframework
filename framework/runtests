@@ -80,3 +80,11 @@ echo "[info]"
 cd ../samples/scala/zentasks
 $PLAY clean test
 cd $CURRENT
+
+echo "[info]"
+echo "[info] ---- TESTING SCALA/AKKA-PROMISE"
+echo "[info]"
+
+cd ../samples/scala/akka-promise
+$PLAY clean test
+cd $CURRENT
