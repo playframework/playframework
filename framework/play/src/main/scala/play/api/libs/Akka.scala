@@ -28,7 +28,14 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    * call back hook
    */
   def onRedeem(k: A => Unit) {
-    this.await(future.timeoutInNanos) match { case Redeemed(a) => k(a); case Thrown(e) => throw e }
+    future.onTimeout {
+      throw new java.util.concurrent.TimeoutException("Promise timed out after " + future.timeoutInNanos / 1000000 + " milliseconds")
+    }.onComplete {
+      _.value.get match {
+        case Left(problem) => throw problem
+        case Right(result) => k(result)
+      }
+    }
   }
 
   /*
