@@ -242,23 +242,30 @@ class CallbackEnumerator[E](
 
   def push(item: E): Boolean = {
     if (iteratee != null) {
-      iteratee = iteratee.flatFold[E, Any](
+      iteratee = iteratee.pureFlatFold[E, Any](
 
         // DONE
         (a, in) => {
           onComplete
-          Promise.pure(Done(a, in))
+          Done(a, in)
         },
 
         // CONTINUE
         k => {
-          Promise.pure(k(El(item)))
+          val next = k(El(item))
+          next.pureFlatFold(
+            (a, in) => {
+              onComplete
+              next
+            },
+            _ => next,
+            (_, _) => next)
         },
 
         // ERROR
         (e, in) => {
           onError(e, in)
-          Promise.pure(Error(e, in))
+          Error(e, in)
         })
       true
     } else {

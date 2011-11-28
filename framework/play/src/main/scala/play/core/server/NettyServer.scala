@@ -292,14 +292,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
                 val writer: Function1[r.BODY_CONTENT, ChannelFuture] = x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
 
-                val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e)))
+                val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e))).mapDone { _ =>
+                  val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
+                  if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                }
 
-                val p = chunksIteratee <<: chunks
-                p.flatMap(i => i.run)
-                  .onRedeem { _ =>
-                    val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
-                    if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
-                  }
+                chunks(chunksIteratee)
+
             }
           }
 
@@ -318,7 +317,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                 eventuallyBodyParser.flatMap { bodyParser =>
                   if (nettyHttpRequest.isChunked) {
                     val (result, handler) = newRequestBodyHandler(bodyParser)
-                    val p: ChannelPipeline = ctx.getChannel().getPipeline();
+                    val p: ChannelPipeline = ctx.getChannel().getPipeline()
                     p.replace("handler", "handler", handler)
                     e.getChannel.setReadable(true)
 
@@ -326,7 +325,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                   } else {
                     e.getChannel.setReadable(true)
                     lazy val bodyEnumerator = {
-                      val body = { //explodes memory, need to do a smart strategy of putting into memory
+                      val body = {
                         val cBuffer = nettyHttpRequest.getContent()
                         val bytes = new Array[Byte](cBuffer.readableBytes())
                         cBuffer.readBytes(bytes)
@@ -385,6 +384,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
             case Left(e) => response.handle(e)
 
           }
+
+        case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
+
       }
     }
 
@@ -393,13 +395,14 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
   class DefaultPipelineFactory extends ChannelPipelineFactory {
     def getPipeline = {
       val newPipeline = pipeline()
-      newPipeline.addLast("decoder", new HttpRequestDecoder())
+      newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
       newPipeline.addLast("handler", new PlayDefaultUpstreamHandler())
       newPipeline
     }
   }
+
   bootstrap.setPipelineFactory(new DefaultPipelineFactory)
 
   allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(port)))
