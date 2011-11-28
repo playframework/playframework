@@ -24,7 +24,7 @@ case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
 
-trait Promise[A] {
+trait Promise[+A] {
 
   def onRedeem(k: A => Unit): Unit
 
