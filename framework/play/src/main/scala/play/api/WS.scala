@@ -214,7 +214,7 @@ object WS {
               }).value.get
           } else {
             // The Iteratee has not been plugged yet - ignore the chunk and wait for the Iteratee
-            STATE.PAUSE
+            STATE.CONTINUE
           }
         }
 
