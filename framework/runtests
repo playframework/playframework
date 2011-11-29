@@ -82,9 +82,9 @@ $PLAY clean test
 cd $CURRENT
 
 echo "[info]"
-echo "[info] ---- TESTING SCALA/AKKA-PROMISE"
+echo "[info] ---- TESTING SCALA/PI-CALCULATOR"
 echo "[info]"
 
-cd ../samples/scala/akka-promise
+cd ../samples/workinprogress/pi-calculator
 $PLAY clean test
 cd $CURRENT
