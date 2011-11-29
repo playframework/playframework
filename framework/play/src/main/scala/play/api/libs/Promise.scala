@@ -19,6 +19,12 @@ trait NotWaiting[+A] extends PromiseValue[A] {
     case Thrown(e) => throw e
     case Redeemed(a) => a
   }
+
+  def fold[B](onError: Throwable => B, onSuccess: A => B): B = this match {
+    case Thrown(e) => onError(e)
+    case Redeemed(r) => onSuccess(r)
+  }
+
 }
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
@@ -34,7 +40,7 @@ trait Promise[+A] {
 
   def value = await
 
-  def await: NotWaiting[A] = await(4000)
+  def await: NotWaiting[A] = await(5000)
 
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A]
 
@@ -43,6 +49,43 @@ trait Promise[+A] {
   def map[B](f: A => B): Promise[B]
 
   def flatMap[B](f: A => Promise[B]): Promise[B]
+
+  def or[B](other: Promise[B]): Promise[Either[A, B]] = {
+    import scala.concurrent.stm._
+
+    val p = Promise[Either[A, B]]()
+    val ref = Ref(false)
+    this.onRedeem { v =>
+      if (!ref.single()) {
+        val iRedeemed = atomic { implicit txn =>
+          val before = ref()
+          ref() = true
+          !before
+        }
+        if (iRedeemed) {
+          p.redeem(Left(v))
+        }
+      }
+    }
+    other.onRedeem { v =>
+      if (!ref.single()) {
+        val iRedeemed = atomic { implicit txn =>
+          val before = ref()
+          ref() = true
+          !before
+        }
+        if (iRedeemed) {
+          p.redeem(Right(v))
+        }
+      }
+    }
+    p
+  }
+
+  def orTimeout[B](message: B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
+    or(Promise.timeout(message, duration, unit))
+  }
+
 }
 
 trait Redeemable[A] {
@@ -57,7 +100,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
     val result = new STMPromise[B]()
-    onRedeem(_ => result.redeem(k(this)))
+    addAction(p => result.redeem(k(p)))
     result
   }
 
@@ -75,7 +118,6 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   def onRedeem(k: A => Unit): Unit = {
     addAction(p => p.value match { case Redeemed(a) => k(a); case _ => })
-
   }
 
   private def addAction(k: Promise[A] => Unit): Unit = {
@@ -173,7 +215,21 @@ object PurePromise {
 }
 
 object Promise {
+
   def pure[A](a: A) = PurePromise(a)
+
   def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
+
+  def timeout[A](message: A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
+    import java.util.{ Timer, TimerTask }
+    val p = Promise[A]()
+    new Timer("Promise.Timeout", true).schedule(new TimerTask {
+      def run {
+        p.redeem(message)
+      }
+    }, unit.toMillis(duration))
+    p
+  }
+
 }
 

@@ -229,7 +229,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
           val response = new Response {
             def handle(result: Result) = result match {
 
-              case AsyncResult(p) => p.onRedeem(handle)
+              case AsyncResult(p) => p.extend1 {
+                case Redeemed(v) => handle(v)
+                case Thrown(e) => {
+                  Logger("play").error("Waiting for a promise, but got an error: " + e.getMessage, e)
+                  handle(Results.InternalServerError)
+                }
+              }
 
               case _ if (isWebSocket(nettyHttpRequest)) => handle(Results.BadRequest)
 

@@ -1,7 +1,10 @@
-@(message: String)
 
-@main("Welcome to Play 2.0 beta") {
+@main("Home") {
     
-    @play20.welcome(message)
+    <h1>Home</h1>
+    
+    <p>
+        <a href="@routes.Application.compute(0, 40000)">Compute Pi</a>
+    </p>
     
 }

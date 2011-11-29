@@ -297,8 +297,13 @@ trait Results {
   }
 
   /** `Writeable` for `NodeSeq` values - literal Scala XML. */
-  implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec) = {
+  implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): Writeable[C] = {
     Writeable[C](xml => codec.encode(xml.toString))
+  }
+
+  /** `Writeable` for `NodeBuffer` values - literal Scala XML. */
+  implicit def writeableOf_NodeBuffer(implicit codec: Codec): Writeable[scala.xml.NodeBuffer] = {
+    Writeable[scala.xml.NodeBuffer](xml => codec.encode(xml.toString))
   }
 
   /** `Writeable` for empty responses. */
@@ -327,6 +332,11 @@ trait Results {
   /** Default content type for `NodeSeq` values (`text/xml`). */
   implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): ContentTypeOf[C] = {
     ContentTypeOf[C](Some(XML))
+  }
+
+  /** Default content type for `NodeBuffer` values (`text/xml`). */
+  implicit def contentTypeOf_NodeBuffer(implicit codec: Codec): ContentTypeOf[scala.xml.NodeBuffer] = {
+    ContentTypeOf[scala.xml.NodeBuffer](Some(XML))
   }
 
   /** Default content type for byte array (application/application/octet-stream). */

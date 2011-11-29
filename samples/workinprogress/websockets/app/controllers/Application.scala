@@ -33,6 +33,7 @@ object Application extends Controller {
         el.map("[" + name + "] " + _.reverse)
       }
     }    
+    
   }
   
   // -- Comet chat room

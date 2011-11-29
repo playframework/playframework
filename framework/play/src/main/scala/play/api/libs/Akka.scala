@@ -28,26 +28,30 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    * call back hook
    */
   def onRedeem(k: A => Unit) {
-    future.onComplete {
-      _.value.get match {
-        case Left(problem) => throw problem
-        case Right(result) => k(result)
-      }
-    }.onTimeout { _ => play.api.Logger.error("Promise timed out after " + future.timeoutInNanos / 1000000) }
+    future.onComplete { _.value.get.fold(Thrown(_), k) }
   }
 
   /*
    * extend @param k 
    */
-  def extend[B](k: Function1[Promise[A], B]): Promise[B] =
-    new AkkaPromise[B](future.map(p => k(this)))
+  def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
+    val p = Promise[B]()
+    future.onResult { case a => p.redeem(k(this)) }
+    future.onException { case e => p.redeem(k(this)) }
+    future.onTimeout { _ => p.redeem(k(this)) }
+    p
+  }
 
   /*
    * it's time to retrieve the future value
    */
-  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] =
-    future.await(akka.util.Duration(timeout, unit))
-      .value.get.fold(Thrown(_), Redeemed(_))
+  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
+    try {
+      future.await(akka.util.Duration(timeout, unit)).value.get.fold(Thrown(_), Redeemed(_))
+    } catch {
+      case e => Thrown(e)
+    }
+  }
 
   /*
    * filtering akka based future and rewrapping the result in an AkkaPromise

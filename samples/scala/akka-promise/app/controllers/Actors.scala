@@ -4,7 +4,6 @@ import akka.actor.Actor
 import Actor._
 import play.api.mvc.Results._
 
-
 case class Work(start: Int, nrOfElements: Int)
 
 class Calculator extends Actor {
@@ -17,6 +16,6 @@ class Calculator extends Actor {
   }
 
   def receive = {
-       case Work(start,nrOfElements) => self.reply("<h1>Pi</h1>starting from "+start+" <br /> number of elements "+ nrOfElements+" <br /> result: "+calculatePiFor(start,nrOfElements).toString)
+    case Work(start, nrOfElements) => self.reply(calculatePiFor(start, nrOfElements))
   }
 }
