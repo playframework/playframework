@@ -18,14 +18,16 @@ class ChatRoomActor extends Actor {
     
     case Join() => {
       lazy val channel:CallbackEnumerator[String] = new CallbackEnumerator[String](
-        onComplete = {
-          Logger.info("Member has disconnected: " + channel)
-          members = members.filterNot(_ == channel)
-        }
+        onComplete = self ! Quit(channel)
       )
       members = members :+ channel
       Logger.info("New member joined")
       self.reply(channel)
+    }
+    
+    case Quit(channel) => {
+      Logger.info("Member has disconnected: " + channel)
+      members = members.filterNot(_ == channel)
     }
     
     case Message(msg) => {
@@ -41,6 +43,7 @@ object ChatRoomActor {
   
   trait Event
   case class Join() extends Event
+  case class Quit(channel: CallbackEnumerator[String]) extends Event
   case class Message(msg: String) extends Event
   
   lazy val ref = actorOf[ChatRoomActor]
