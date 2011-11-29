@@ -44,14 +44,12 @@ trait Handshake {
 
   protected def adjustPipelineToHixie(ctx: ChannelHandlerContext) {
     val p = ctx.getChannel().getPipeline();
-    p.remove("aggregator");
     p.replace("decoder", "wsdecoder", new WebSocket00FrameDecoder());
     p.replace("encoder", "wsencoder", new WebSocket00FrameEncoder());
   }
 
   protected def adjustPipelineToHybi(ctx: ChannelHandlerContext) {
     val p = ctx.getChannel().getPipeline();
-    p.remove("aggregator");
     p.replace("decoder", "wsdecoder", new WebSocket10FrameDecoder());
     p.replace("encoder", "wsencoder", new WebSocket10FrameEncoder());
   }

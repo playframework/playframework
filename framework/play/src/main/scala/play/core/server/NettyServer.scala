@@ -154,7 +154,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
           override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
             e.getMessage match {
-              case frame: Frame => enumerator.frameReceived(ctx, El(frame.getTextData()))
+              // TODO: This should not be a string in the future
+              case frame: BinaryFrame => enumerator.frameReceived(ctx, El(new String(frame.binaryData.array)))
+              case frame: CloseFrame => enumerator.frameReceived(ctx, EOF)
+              case frame: TextFrame => enumerator.frameReceived(ctx, El(frame.getTextData))
             }
           }
 

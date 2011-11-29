@@ -32,12 +32,26 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
   var maskingKey: Option[ChannelBuffer] = None
   var reserved: Option[Int] = None
   var finale = true
+  var closing = false
 
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buffer: ChannelBuffer, state: DecodingState): Object = {
+
+    if (closing) {
+      buffer.skipBytes(actualReadableBytes());
+      return null;
+    }
 
     state match {
 
       case DecodingState.FRAME_START => {
+        maskingKey = None
+        fragmentOpcode = None
+        currentFrameLength = -1
+        opcode = None
+        finale = true
+        closing = false
+        reserved = None
+
         val b = buffer.readByte
         val fin = (b & 0x80).toByte
         finale = (fin == 0)
@@ -78,6 +92,11 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
           }
         }
 
+        if (opcode.get == OPCODE_CLOSE) {
+          checkpoint(DecodingState.PAYLOAD)
+          return null
+        }
+
         checkpoint(DecodingState.PARSING_LENGTH)
         return null
       }
@@ -115,7 +134,7 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
         return null
       }
       case DecodingState.PAYLOAD => {
-        val frame = unmask(buffer.readBytes(currentFrameLength))
+        val frame = if (maskingKey.isEmpty) ChannelBuffers.buffer(1) else unmask(buffer.readBytes(currentFrameLength))
         // TODO: Continuation
         // if (this.opcode.get == OPCODE_CONT) {
         // 		 	this.opcode = fragmentOpcode;
@@ -137,7 +156,7 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
             case OPCODE_BINARY => return new BinaryFrame(finale, reserved.get, frame)
             case OPCODE_PING => return new PongFrame(reserved.get)
             case OPCODE_PONG => return null
-            case OPCODE_CLOSE => return new CloseFrame(reserved.get)
+            case OPCODE_CLOSE => closing = true; return new CloseFrame(reserved.get)
           }
           return null
         } finally {
