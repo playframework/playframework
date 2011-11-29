@@ -12,7 +12,7 @@ object Application extends Controller {
   val actor = actorOf[Calculator].start
 
   def index = Action{ 
-    val future = (actor ? Work(4,4)).mapTo[Result] 
+    val future = (actor ? Work(4,4)).mapTo[String].map(result => Ok(result).as("text/html") )
     AsyncResult(future.asPromise)
   }
 }

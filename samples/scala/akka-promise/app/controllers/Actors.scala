@@ -17,6 +17,6 @@ class Calculator extends Actor {
   }
 
   def receive = {
-       case Work(start,nrOfElements) => self.reply(Ok("<h1>Pi</h1>starting from "+start+" <br /> number of elements "+ nrOfElements+" <br /> result: "+calculatePiFor(start,nrOfElements).toString).as("text/html"))
+       case Work(start,nrOfElements) => self.reply("<h1>Pi</h1>starting from "+start+" <br /> number of elements "+ nrOfElements+" <br /> result: "+calculatePiFor(start,nrOfElements).toString)
   }
 }
