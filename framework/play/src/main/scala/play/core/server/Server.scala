@@ -66,8 +66,8 @@ trait Server {
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = invoker ! HandleAction(request, response, action, app)
 
   import play.api.libs.concurrent._
-  def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], A]] = {
-    (invoker ? (requestHeaders, bodyFunction)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], A]])
+  def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
+    (invoker ? (requestHeaders, bodyFunction)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
   }
 
   def applicationProvider: ApplicationProvider

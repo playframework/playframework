@@ -1,5 +1,7 @@
 package play.api.mvc
 
+import play.api.http._
+
 /**
  * Defines an `Action` method that generate default action values.
  *
@@ -22,7 +24,7 @@ trait ControllerLike {
    * @param block the action code
    * @return an action
    */
-  def Action[A](bodyParser: BodyParser[A], block: Request[A] => Result): Action[A]
+  def Action[A](bodyParser: BodyParser[A])(block: Request[A] => Result): Action[A]
 
 }
 
@@ -40,7 +42,7 @@ trait ControllerLike {
  * }
  * }}}
  */
-trait Controller extends ControllerLike with Results with play.api.http.HeaderNames with play.api.http.ContentTypes {
+trait Controller extends ControllerLike with Results with Parsers with HeaderNames with ContentTypes {
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
@@ -70,7 +72,7 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
    * @param block the action code
    * @return an action
    */
-  final def Action(block: Request[AnyContent] => Result): Action[AnyContent] = this.Action[AnyContent](AnyContent.parser, block)
+  final def Action(block: Request[AnyContent] => Result): Action[AnyContent] = this.Action[AnyContent](Parsers.anyContent)(block)
 
   /**
    * Constructs an `Action`.
@@ -87,7 +89,7 @@ trait Controller extends ControllerLike with Results with play.api.http.HeaderNa
    * @param block the action code
    * @return an action
    */
-  def Action[A](bodyParser: BodyParser[A], block: Request[A] => Result): Action[A] = play.api.mvc.Action[A](bodyParser, block)
+  def Action[A](bodyParser: BodyParser[A])(block: Request[A] => Result): Action[A] = play.api.mvc.Action[A](bodyParser)(block)
 
   /**
    * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.

@@ -53,7 +53,13 @@ package play.api.mvc {
     lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
 
     /** Returns the raw query string. */
-    lazy val rawQueryString = uri.split('?').drop(1).mkString("?")
+    lazy val rawQueryString: String = uri.split('?').drop(1).mkString("?")
+
+    /** Returns the value of the Content-Type header (without the ;charset= part if exists) **/
+    lazy val contentType: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').headOption).map(_.toLowerCase)
+
+    /** Returns the charset of the request for text-based body **/
+    lazy val charset: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').tail.headOption).map(_.toLowerCase.trim).filter(_.startsWith("charset=")).flatMap(_.split('=').tail.headOption)
 
     override def toString = {
       method + " " + uri

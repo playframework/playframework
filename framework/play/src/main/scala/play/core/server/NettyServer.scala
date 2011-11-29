@@ -73,13 +73,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
       Cont(step(None))
     }
 
-    private def newRequestBodyHandler[R](it: Iteratee[Array[Byte], R]): (Promise[Either[String, Iteratee[Array[Byte], R]]], SimpleChannelUpstreamHandler) = {
+    private def newRequestBodyHandler[R](it: Iteratee[Array[Byte], Either[Result, R]]): (Promise[Either[String, Iteratee[Array[Byte], Either[Result, R]]]], SimpleChannelUpstreamHandler) = {
       var redeemed = false
-      var iteratee: Iteratee[Array[Byte], R] = it
-      var p = Promise[Either[String, Iteratee[Array[Byte], R]]]()
+      var iteratee: Iteratee[Array[Byte], Either[Result, R]] = it
+      var p = Promise[Either[String, Iteratee[Array[Byte], Either[Result, R]]]]()
       def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
         if (!redeemed) {
-          val next = iteratee.pureFlatFold[Array[Byte], R](
+          val next = iteratee.pureFlatFold[Array[Byte], Either[Result, R]](
             (_, _) => iteratee,
             k => k(chunk),
             (_, _) => iteratee)
@@ -343,23 +343,34 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                       Enumerator(body).andThen(Enumerator.enumInput(EOF))
                     }
 
-                    (bodyParser <<: bodyEnumerator).map(p => Right(p)): Promise[Either[String, Iteratee[Array[Byte], action.BODY_CONTENT]]]
+                    (bodyParser <<: bodyEnumerator).map(p => Right(p)): Promise[Either[String, Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]]
                   }
                 }
 
               val eventuallyRequest =
                 eventuallyBody.map { errOrBody =>
-                  errOrBody.right.map(it => it.run.map { b: action.BODY_CONTENT =>
-                    new Request[action.BODY_CONTENT] {
-                      def uri = nettyHttpRequest.getUri
-                      def path = nettyUri.getPath
-                      def method = nettyHttpRequest.getMethod.getName
-                      def queryString = parameters
-                      def headers = rHeaders
-                      def cookies = rCookies
-                      def username = None
-                      val body = b
+                  errOrBody.right.map((it: Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]) => it.run.map { (something: Either[Result, action.BODY_CONTENT]) =>
+
+                    something match {
+
+                      case Left(result) => Left(result)
+
+                      case Right(b: action.BODY_CONTENT) => {
+                        Right(
+                          new Request[action.BODY_CONTENT] {
+                            def uri = nettyHttpRequest.getUri
+                            def path = nettyUri.getPath
+                            def method = nettyHttpRequest.getMethod.getName
+                            def queryString = parameters
+                            def headers = rHeaders
+                            def cookies = rCookies
+                            def username = None
+                            val body = b
+                          })
+                      }
+
                     }
+
                   })
                 }
 
@@ -369,9 +380,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                   Promise.pure(None: Option[Request[action.BODY_CONTENT]])
                 case Right(eventuallyReq) =>
                   eventuallyReq.extend(_.value match {
-                    case Redeemed(request) =>
+                    case Redeemed(Left(result)) => response.handle(result)
+                    case Redeemed(Right(request)) =>
                       invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
-
                   })
 
               }
