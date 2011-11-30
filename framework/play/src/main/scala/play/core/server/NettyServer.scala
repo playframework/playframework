@@ -64,7 +64,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
       def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
         input match {
-          // TODO: what is we want something else than text?
+          // FIXME: what is we want something else than text?
           case El(e) => Cont(step(Some(channel.write(new TextFrame(true, 0, new String(writeable.transform(e)))))))
           case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
           case Empty => Cont(step(future))
@@ -154,8 +154,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
           override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
             e.getMessage match {
-              // TODO: This should not be a string in the future
-              case frame: BinaryFrame => enumerator.frameReceived(ctx, El(new String(frame.binaryData.array)))
+              // FIXME: This should not be a string in the future
+              case frame: BinaryFrame => enumerator.frameReceived(ctx, El(new String(frame.binaryData.array, "UTF-8")))
               case frame: CloseFrame => enumerator.frameReceived(ctx, EOF)
               case frame: TextFrame => enumerator.frameReceived(ctx, El(frame.getTextData))
             }

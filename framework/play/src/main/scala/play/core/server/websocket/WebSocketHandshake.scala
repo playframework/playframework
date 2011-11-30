@@ -44,14 +44,14 @@ trait Handshake {
 
   protected def adjustPipelineToHixie(ctx: ChannelHandlerContext) {
     val p = ctx.getChannel().getPipeline();
-    p.replace("decoder", "wsdecoder", new WebSocket00FrameDecoder());
-    p.replace("encoder", "wsencoder", new WebSocket00FrameEncoder());
+    p.replace("decoder", "wsdecoder", new WebSocket00FrameDecoder())
+    p.replace("encoder", "wsencoder", new WebSocket00FrameEncoder())
   }
 
   protected def adjustPipelineToHybi(ctx: ChannelHandlerContext) {
     val p = ctx.getChannel().getPipeline();
-    p.replace("decoder", "wsdecoder", new WebSocket10FrameDecoder());
-    p.replace("encoder", "wsencoder", new WebSocket10FrameEncoder());
+    p.replace("decoder", "wsdecoder", new WebSocket10FrameDecoder())
+    p.replace("encoder", "wsencoder", new WebSocket10FrameEncoder())
   }
 
   protected def sha1(s: String) = {
@@ -90,14 +90,14 @@ object Hixie75 extends Handshake {
   }
 
   def upgrade(req: HttpRequest, res: HttpResponse, ctx: ChannelHandlerContext) {
-    res.setStatus(new HttpResponseStatus(101, "Web Socket Protocol Handshake"));
-    res.addHeader(HttpHeaders.Values.UPGRADE, "websocket");
-    res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE);
-    res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
-    res.addHeader(WEBSOCKET_LOCATION, getWebSocketLocation(req));
-    val protocol = req.getHeader(WEBSOCKET_PROTOCOL);
+    res.setStatus(new HttpResponseStatus(101, "Web Socket Protocol Handshake"))
+    res.addHeader(HttpHeaders.Values.UPGRADE, "websocket")
+    res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE)
+    res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN))
+    res.addHeader(WEBSOCKET_LOCATION, getWebSocketLocation(req))
+    val protocol = req.getHeader(WEBSOCKET_PROTOCOL)
     if (protocol != null) {
-      res.addHeader(WEBSOCKET_PROTOCOL, protocol);
+      res.addHeader(WEBSOCKET_PROTOCOL, protocol)
     }
     ctx.getChannel().write(res)
     adjustPipelineToHixie(ctx)
@@ -111,11 +111,11 @@ object Hixie76 extends Handshake {
   }
 
   def upgrade(req: HttpRequest, res: HttpResponse, ctx: ChannelHandlerContext) {
-    res.setStatus(new HttpResponseStatus(101, "Web Socket Protocol Handshake"));
-    res.addHeader(HttpHeaders.Values.UPGRADE, "websocket");
-    res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE);
-    res.addHeader(SEC_WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
-    res.addHeader(SEC_WEBSOCKET_LOCATION, getWebSocketLocation(req));
+    res.setStatus(new HttpResponseStatus(101, "Web Socket Protocol Handshake"))
+    res.addHeader(HttpHeaders.Values.UPGRADE, "websocket")
+    res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE)
+    res.addHeader(SEC_WEBSOCKET_ORIGIN, req.getHeader(ORIGIN))
+    res.addHeader(SEC_WEBSOCKET_LOCATION, getWebSocketLocation(req))
     val protocol = req.getHeader(SEC_WEBSOCKET_PROTOCOL);
     if (protocol != null) {
       res.addHeader(SEC_WEBSOCKET_PROTOCOL, protocol);
@@ -150,7 +150,7 @@ object Hybi06 extends Handshake {
   }
 
   def upgrade(req: HttpRequest, res: HttpResponse, ctx: ChannelHandlerContext) {
-    // TODO: should work the same as hybi10, need to verify that
+    // FIXME: should work the same as hybi10, need to verify that
   }
 }
 
@@ -161,7 +161,7 @@ object Hybi07 extends Handshake {
   }
 
   def upgrade(req: HttpRequest, res: HttpResponse, ctx: ChannelHandlerContext) {
-    // TODO: should work the same as hybi10, need to verify that
+    // FIXME: should work the same as hybi10, need to verify that
   }
 }
 

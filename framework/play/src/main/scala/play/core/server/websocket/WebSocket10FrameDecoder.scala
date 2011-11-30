@@ -37,134 +37,134 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buffer: ChannelBuffer, state: DecodingState): Object = {
 
     if (closing) {
-      buffer.skipBytes(actualReadableBytes());
-      return null;
-    }
+      buffer.skipBytes(actualReadableBytes())
+    } else {
 
-    state match {
+      state match {
 
-      case DecodingState.FRAME_START => {
-        maskingKey = None
-        fragmentOpcode = None
-        currentFrameLength = -1
-        opcode = None
-        finale = true
-        closing = false
-        reserved = None
+        case DecodingState.FRAME_START => {
+          maskingKey = None
+          fragmentOpcode = None
+          currentFrameLength = -1
+          opcode = None
+          finale = true
+          closing = false
+          reserved = None
 
-        val b = buffer.readByte
-        val fin = (b & 0x80).toByte
-        finale = (fin == 0)
-        reserved = Some(b & 0x70)
-        opcode = Some(b & 0x0F)
+          val b = buffer.readByte
+          val fin = (b & 0x80).toByte
+          finale = (fin == 0)
+          reserved = Some(b & 0x70)
+          opcode = Some(b & 0x0F)
 
-        if (reserved.get != 0) {
-          throw new Exception("Reserved bits set: " + bits(reserved.get))
-        }
-        if (!isOpcode(opcode.get)) {
-          throw new Exception("Invalid opcode " + hex(opcode.get))
-        }
-        if (fin == 0) {
-          fragmentOpcode match {
-            case None => {
-              if (!isDataOpcode(opcode.get)) {
-                throw new Exception("Fragmented frame with invalid opcode " + hex(opcode.get))
+          if (reserved.get != 0) {
+            throw new Exception("Reserved bits set: " + bits(reserved.get))
+          }
+          if (!isOpcode(opcode.get)) {
+            throw new Exception("Invalid opcode " + hex(opcode.get))
+          }
+          if (fin == 0) {
+            fragmentOpcode match {
+              case None => {
+                if (!isDataOpcode(opcode.get)) {
+                  throw new Exception("Fragmented frame with invalid opcode " + hex(opcode.get))
+                }
+                fragmentOpcode = opcode
               }
-              fragmentOpcode = opcode
+              case Some(a) => {
+                throw new Exception("Continuation frame with invalid opcode " + hex(opcode.get))
+              }
             }
-            case Some(a) => {
-              throw new Exception("Continuation frame with invalid opcode " + hex(opcode.get))
+          } else {
+            fragmentOpcode match {
+              case Some(a) => {
+                if (!isControlOpcode(opcode.get) && opcode.get != OPCODE_CONT) {
+                  throw new Exception("Final frame with invalid opcode " + hex(opcode.get))
+                }
+              }
+              case None => {
+                if (opcode.get == OPCODE_CONT) {
+                  throw new Exception("Final frame with invalid opcode " + hex(opcode.get))
+                }
+                this.opcode = opcode
+              }
             }
           }
-        } else {
-          fragmentOpcode match {
-            case Some(a) => {
-              if (!isControlOpcode(opcode.get) && opcode.get != OPCODE_CONT) {
-                throw new Exception("Final frame with invalid opcode " + hex(opcode.get))
-              }
-            }
-            case None => {
-              if (opcode.get == OPCODE_CONT) {
-                throw new Exception("Final frame with invalid opcode " + hex(opcode.get))
-              }
-              this.opcode = opcode
-            }
-          }
-        }
 
-        if (opcode.get == OPCODE_CLOSE) {
+          if (opcode.get == OPCODE_CLOSE) {
+            checkpoint(DecodingState.PAYLOAD)
+            return null
+          }
+
+          checkpoint(DecodingState.PARSING_LENGTH)
+          return null
+        }
+        case DecodingState.PARSING_LENGTH => {
+          val b = buffer.readByte
+          val masked = b & 0x80
+          if (masked == 0) {
+            throw new Exception("Unmasked frame received")
+          }
+          val length = b & 0x7F
+          if (length < 126) {
+            currentFrameLength = length
+            checkpoint(DecodingState.MASKING_KEY)
+          } else if (length == 126) {
+            checkpoint(DecodingState.PARSING_LENGTH_2)
+          } else if (length == 127) {
+            checkpoint(DecodingState.PARSING_LENGTH_3)
+          }
+          return null
+        }
+        case DecodingState.PARSING_LENGTH_2 => {
+          val s = buffer.readUnsignedShort
+          currentFrameLength = s;
+          checkpoint(DecodingState.MASKING_KEY)
+          return null
+        }
+        case DecodingState.PARSING_LENGTH_3 => {
+          currentFrameLength = buffer.readLong.toInt
+          checkpoint(DecodingState.MASKING_KEY)
+          return null
+        }
+        case DecodingState.MASKING_KEY => {
+          maskingKey = Some(buffer.readBytes(4))
           checkpoint(DecodingState.PAYLOAD)
           return null
         }
-
-        checkpoint(DecodingState.PARSING_LENGTH)
-        return null
-      }
-      case DecodingState.PARSING_LENGTH => {
-        val b = buffer.readByte
-        val masked = b & 0x80
-        if (masked == 0) {
-          throw new Exception("Unmasked frame received")
-        }
-        val length = b & 0x7F
-        if (length < 126) {
-          currentFrameLength = length
-          checkpoint(DecodingState.MASKING_KEY)
-        } else if (length == 126) {
-          checkpoint(DecodingState.PARSING_LENGTH_2)
-        } else if (length == 127) {
-          checkpoint(DecodingState.PARSING_LENGTH_3)
-        }
-        return null
-      }
-      case DecodingState.PARSING_LENGTH_2 => {
-        val s = buffer.readUnsignedShort
-        currentFrameLength = s;
-        checkpoint(DecodingState.MASKING_KEY)
-        return null
-      }
-      case DecodingState.PARSING_LENGTH_3 => {
-        currentFrameLength = buffer.readLong.toInt
-        checkpoint(DecodingState.MASKING_KEY)
-        return null
-      }
-      case DecodingState.MASKING_KEY => {
-        maskingKey = Some(buffer.readBytes(4))
-        checkpoint(DecodingState.PAYLOAD)
-        return null
-      }
-      case DecodingState.PAYLOAD => {
-        val frame = if (maskingKey.isEmpty) ChannelBuffers.buffer(1) else unmask(buffer.readBytes(currentFrameLength))
-        // TODO: Continuation
-        // if (this.opcode.get == OPCODE_CONT) {
-        // 		 	this.opcode = fragmentOpcode;
-        // 			frames.add(frame);
-        // 			frame = channel.getConfig().getBufferFactory().getBuffer(0);
-        // 			for (ChannelBuffer channelBuffer : frames) {
-        // 				                          frame.ensureWritableBytes(channelBuffer.readableBytes());
-        // 				                          frame.writeBytes(channelBuffer);
-        //  			}
-        // 				  
-        // 			this.fragmentOpcode = null;
-        //           	frames.clear();
-        //             checkpoint(DecodingState.FRAME_START);
-        //             return null;
-        //         }
-        try {
-          opcode.get match {
-            case OPCODE_TEXT => return new TextFrame(finale, reserved.get, frame)
-            case OPCODE_BINARY => return new BinaryFrame(finale, reserved.get, frame)
-            case OPCODE_PING => return new PongFrame(reserved.get)
-            case OPCODE_PONG => return null
-            case OPCODE_CLOSE => closing = true; return new CloseFrame(reserved.get)
+        case DecodingState.PAYLOAD => {
+          val frame = if (maskingKey.isEmpty) ChannelBuffers.buffer(1) else unmask(buffer.readBytes(currentFrameLength))
+          // TODO: Continuation
+          // if (this.opcode.get == OPCODE_CONT) {
+          // 		 	this.opcode = fragmentOpcode;
+          // 			frames.add(frame);
+          // 			frame = channel.getConfig().getBufferFactory().getBuffer(0);
+          // 			for (ChannelBuffer channelBuffer : frames) {
+          // 				                          frame.ensureWritableBytes(channelBuffer.readableBytes());
+          // 				                          frame.writeBytes(channelBuffer);
+          //  			}
+          // 				  
+          // 			this.fragmentOpcode = null;
+          //           	frames.clear();
+          //             checkpoint(DecodingState.FRAME_START);
+          //             return null;
+          //         }
+          try {
+            opcode.get match {
+              case OPCODE_TEXT => return new TextFrame(finale, reserved.get, frame)
+              case OPCODE_BINARY => return new BinaryFrame(finale, reserved.get, frame)
+              case OPCODE_PING => return new PongFrame(reserved.get)
+              case OPCODE_PONG => return null
+              case OPCODE_CLOSE => closing = true; return new CloseFrame(reserved.get)
+            }
+            return null
+          } finally {
+            checkpoint(DecodingState.FRAME_START);
           }
-          return null
-        } finally {
-          checkpoint(DecodingState.FRAME_START);
         }
       }
     }
-
+    null
   }
 
   def isOpcode(opcode: Int) = {
