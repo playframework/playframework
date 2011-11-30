@@ -106,13 +106,13 @@ object PathBindable {
 
   implicit def bindableString = new PathBindable[String] {
     def bind(key: String, value: String) = Right(URLDecoder.decode(value, "utf-8"))
-    def unbind(key: String, value: String) = URLEncoder.encode(value, "utf-8")
+    def unbind(key: String, value: String) = value
   }
 
   implicit def bindableInt = new PathBindable[Int] {
     def bind(key: String, value: String) = {
       try {
-        Right(Integer.parseInt(value))
+        Right(Integer.parseInt(URLDecoder.decode(value, "utf-8")))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Int: " + e.getMessage)
       }
@@ -123,7 +123,7 @@ object PathBindable {
   implicit def bindableLong = new PathBindable[Long] {
     def bind(key: String, value: String) = {
       try {
-        Right(java.lang.Long.parseLong(value))
+        Right(java.lang.Long.parseLong(URLDecoder.decode(value, "utf-8")))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Long: " + e.getMessage)
       }
@@ -134,7 +134,7 @@ object PathBindable {
   implicit def bindableInteger = new PathBindable[Integer] {
     def bind(key: String, value: String) = {
       try {
-        Right(Integer.parseInt(value))
+        Right(Integer.parseInt(URLDecoder.decode(value, "utf-8")))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Integer: " + e.getMessage)
       }
