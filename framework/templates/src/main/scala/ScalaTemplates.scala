@@ -721,7 +721,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
         case () => format.raw("")
         case None => format.raw("")
         case Some(v) => _display_(v)
-        case escapeds: Iterable[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
+        case escapeds: Traversable[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
         case escapeds: Array[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
         case string: String => format.escape(string)
         case v if v != null => _display_(v.toString)
