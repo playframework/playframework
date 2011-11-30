@@ -119,8 +119,94 @@ package object data {
    * @return a mapping for a tuple `(A,B)`
    */
   def of[A, B](a: (String, Mapping[A]), b: (String, Mapping[B])): Mapping[(A, B)] = of((a: A, b: B) => (a, b))(a, b)
+
   def of[A, B, C](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C])): Mapping[(A, B, C)] = of((a: A, b: B, c: C) => (a, b, c))(a, b, c)
+
   def of[A, B, C, D](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]), d: (String, Mapping[D])): Mapping[(A, B, C, D)] = of((a: A, b: B, c: C, d: D) => (a, b, c, d))(a, b, c, d)
+
+  def of[A, B, C, D, E](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]), d: (String, Mapping[D]), e: (String, Mapping[E])): Mapping[(A, B, C, D, E)] = of((a: A, b: B, c: C, d: D, e: E) => (a, b, c, d, e))(a, b, c, d, e)
+
+  def of[A, B, C, D, E, F](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F])): Mapping[(A, B, C, D, E, F)] = of((a: A, b: B, c: C, d: D, e: E, f: F) => (a, b, c, d, e, f))(a, b, c, d, e, f)
+
+  def of[A, B, C, D, E, F, G](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G])): Mapping[(A, B, C, D, E, F, G)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G) => (a, b, c, d, e, f, g))(a, b, c, d, e, f, g)
+
+  def of[A, B, C, D, E, F, G, H](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G]), h: (String, Mapping[H])): Mapping[(A, B, C, D, E, F, G, H)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H) => (a, b, c, d, e, f, g, h))(a, b, c, d, e, f, g, h)
+
+  def of[A, B, C, D, E, F, G, H, I](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G]), h: (String, Mapping[H]), i: (String, Mapping[I])): Mapping[(A, B, C, D, E, F, G, H, I)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I) => (a, b, c, d, e, f, g, h, i))(a, b, c, d, e, f, g, h, i)
+
+  def of[A, B, C, D, E, F, G, H, I, J](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G]), h: (String, Mapping[H]), i: (String, Mapping[I]), j: (String, Mapping[J])): Mapping[(A, B, C, D, E, F, G, H, I, J)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J) => (a, b, c, d, e, f, g, h, i, j))(a, b, c, d, e, f, g, h, i, j)
+  //10th
+  def of[A, B, C, D, E, F, G, H, I, J, K](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]), i: (String, Mapping[I]), j: (String, Mapping[J]), k: (String, Mapping[K])): Mapping[(A, B, C, D, E, F, G, H, I, J, K)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K) => (a, b, c, d, e, f, g, h, i, j, k))(a, b, c, d, e, f, g, h, i, j, k)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L) => (a, b, c, d, e, f, g, h, i, j, k, l))(a, b, c, d, e, f, g, h, i, j, k, l)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]), n: (String, Mapping[N])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N) => (a, b, c, d, e, f, g, h, i, j, k, l, n))(a, b, c, d, e, f, g, h, i, j, k, l, n)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]), n: (String, Mapping[N]), m: (String, Mapping[M])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m))(a, b, c, d, e, f, g, h, i, j, k, l, n, m)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]),
+    n: (String, Mapping[N]), m: (String, Mapping[M]),
+    o: (String, Mapping[O])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O)] =
+    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]),
+    n: (String, Mapping[N]), m: (String, Mapping[M]),
+    o: (String, Mapping[O]), p: (String, Mapping[P])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P)] =
+    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]),
+    n: (String, Mapping[N]), m: (String, Mapping[M]),
+    o: (String, Mapping[O]), p: (String, Mapping[P]), r: (String, Mapping[R])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R)] =
+    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P, r: R) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]),
+    n: (String, Mapping[N]), m: (String, Mapping[M]),
+    o: (String, Mapping[O]), p: (String, Mapping[P]), r: (String, Mapping[R]), s: (String, Mapping[S])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S)] =
+    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P, r: R, s: S) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s)
+
+  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S, T](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
+    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
+    g: (String, Mapping[G]), h: (String, Mapping[H]),
+    i: (String, Mapping[I]), j: (String, Mapping[J]),
+    k: (String, Mapping[K]), l: (String, Mapping[L]),
+    n: (String, Mapping[N]), m: (String, Mapping[M]),
+    o: (String, Mapping[O]), p: (String, Mapping[P]), r: (String, Mapping[R]), s: (String, Mapping[S]), t: (String, Mapping[T])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S, T)] =
+    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P, r: R, s: S, t: T) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s, t))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s, t)
 
   // --
 
