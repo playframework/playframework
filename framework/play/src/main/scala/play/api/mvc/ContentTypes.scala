@@ -60,14 +60,12 @@ trait Parsers {
 
   def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = BodyParser { request =>
 
-    import play.core.UrlEncodedParser
+    import play.core.parsers._
     import scala.collection.JavaConverters._
-
-    val charset = request.charset.getOrElse("utf-8")
 
     Iteratee.consume.mapDone { c =>
       scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
-        UrlEncodedParser.parse(new String(c, charset), charset).asScala.toMap.mapValues(_.toSeq)
+        UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
       }.left.map { e =>
         Results.BadRequest
       }
