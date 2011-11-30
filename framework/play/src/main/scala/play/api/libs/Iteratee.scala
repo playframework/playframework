@@ -11,16 +11,20 @@ object Iteratee {
       error: (String, Input[E]) => Promise[B]): Promise[B] = i.flatMap(_.fold(done, cont, error))
   }
 
-  def fold[E, A](state: A)(f: (A, E) => A): Iteratee[E, A] =
-    {
-      def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
+  def fold[E, A](state: A)(f: (A, E) => A): Iteratee[E, A] = {
+    def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
-        case EOF => Done(s, EOF)
-        case Empty => Cont[E, A](i => step(s)(i))
-        case El(e) => { val s1 = f(s, e); Cont[E, A](i => step(s1)(i)) }
-      }
-      (Cont[E, A](i => step(state)(i)))
+      case EOF => Done(s, EOF)
+      case Empty => Cont[E, A](i => step(s)(i))
+      case El(e) => { val s1 = f(s, e); Cont[E, A](i => step(s1)(i)) }
     }
+    (Cont[E, A](i => step(state)(i)))
+  }
+
+  def consume: Iteratee[Array[Byte], Array[Byte]] = {
+    import scala.collection.mutable._
+    fold[Array[Byte], ArrayBuffer[Byte]](ArrayBuffer[Byte]())(_ ++= _).mapDone(_.toArray)
+  }
 
   def mapChunk_[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))
 

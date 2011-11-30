@@ -25,7 +25,7 @@ object Application extends Controller {
   
   def stream = Action {
     AsyncResult {
-      (ChatRoomActor.ref ? Join() map {_.asInstanceOf[Enumerator[String]]}).asPromise.map { chunks =>
+      (ChatRoomActor.ref ? Join()).mapTo[Enumerator[String]].asPromise.map { chunks =>
         Ok(Comet(chunks, callback = "parent.message"))
       }
     }

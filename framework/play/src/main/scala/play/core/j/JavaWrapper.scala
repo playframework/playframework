@@ -9,7 +9,7 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest }
 
 trait JavaAction extends Action[AnyContent] {
 
-  def parser = AnyContent.parser
+  def parser = Parsers.anyContent
 
   def invocation: JResult
   def controller: Class[_]
@@ -30,7 +30,7 @@ trait JavaAction extends Action[AnyContent] {
         }
 
         def urlFormEncoded = {
-          req.body.asUrlFormEncoded.mapValues(_.toArray).asJava
+          req.body.asUrlFormEncoded.getOrElse(Map.empty).mapValues(_.toArray).asJava
         }
 
         override def toString = req.toString

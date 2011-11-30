@@ -96,10 +96,10 @@ object Security {
      *
      * @see Authenticated
      */
-    override abstract def Action[A](bodyParser: BodyParser[A], block: Request[A] => Result): Action[A] = {
+    override abstract def Action[A](bodyParser: BodyParser[A])(block: Request[A] => Result): Action[A] = {
       Authenticated(
         onUnauthorized = (req => onUnauthorized(req)),
-        username = (req => username(req)))(super.Action(bodyParser, block))
+        username = (req => username(req)))(super.Action(bodyParser)(block))
     }
 
     /**

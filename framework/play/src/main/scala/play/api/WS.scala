@@ -2,8 +2,16 @@ package play.api
 
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
-import com.ning.http.client._
-import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
+
+import com.ning.http.client.{
+  AsyncHttpClient,
+  RequestBuilderBase,
+  FluentCaseInsensitiveStringsMap,
+  HttpResponseBodyPart,
+  HttpResponseHeaders,
+  HttpResponseStatus,
+  Response => AHCResponse
+}
 
 /**
  * Asynchronous API to to query web services, as an http client
@@ -18,8 +26,9 @@ import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 object WS {
 
   import ws._
+  import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 
-  private lazy val client = new AsyncHttpClient()
+  lazy val client = new AsyncHttpClient()
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
@@ -27,51 +36,55 @@ object WS {
    */
   def url(url: String) = new WSRequest().setUrl(url)
 
-  class WSRequest extends RequestBuilderBase[WSRequest](classOf[WSRequest], "GET") {
+  /**
+   * A generic class for Request builders.
+   * T is the type of request, R is the type of response.
+   */
+  abstract class WSRequestBase[T <: WSRequestBase[T, R], R](clazz: Class[T]) extends RequestBuilderBase[T](clazz, "GET") {
 
     import scala.collection.JavaConversions
     import scala.collection.JavaConversions._
 
-    private var calculator: Option[SignatureCalculator] = None
-    private var headers: Map[String, Seq[String]] = Map()
-    private var _url: String = null
-    private var _method = "GET"
+    protected var calculator: Option[SignatureCalculator] = None
+    protected var headers: Map[String, Seq[String]] = Map()
+    protected var _url: String = null
+    protected var _method = "GET"
 
     /**
      * Perform a GET on the request asynchronously.
      */
-    def get(): Promise[Response] = execute("GET")
+    def get(): Promise[R] = execute("GET")
 
     def getStream(): Promise[StreamedResponse] = executeStream("GET")
 
     /**
      * Perform a POST on the request asynchronously.
      */
-    def post(): Promise[Response] = execute("POST")
+    def post(): Promise[R] = execute("POST")
 
     def postStream(): Promise[StreamedResponse] = executeStream("POST")
 
     /**
      * Perform a PUT on the request asynchronously.
      */
-    def put(): Promise[Response] = execute("PUT")
+    def put(): Promise[R] = execute("PUT")
 
     def putStream(): Promise[StreamedResponse] = executeStream("PUT")
 
     /**
      * Perform a DELETE on the request asynchronously.
      */
-    def delete(): Promise[Response] = execute("DELETE")
+    def delete(): Promise[R] = execute("DELETE")
 
     /**
      * Perform a HEAD on the request asynchronously.
      */
-    def head(): Promise[Response] = execute("HEAD")
+    def head(): Promise[R] = execute("HEAD")
 
     /**
      * Perform a OPTIONS on the request asynchronously.
      */
-    def options(): Promise[Response] = execute("OPTION")
+    def options(): Promise[R] = execute("OPTION")
 
     /**
      * Add http auth headers
@@ -143,13 +156,14 @@ object WS {
     private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
       JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
 
-    private def execute(method: String): Promise[Response] = {
-      var result = Promise[Response]()
+    protected def execute(method: String): Promise[R] = {
+      import com.ning.http.client.AsyncCompletionHandler
+      var result = Promise[R]()
       var request = this.setMethod(method).build()
       calculator.map(_.sign(this))
-      WS.client.executeRequest(request, new AsyncCompletionHandler[Response]() {
-        override def onCompleted(response: Response) = {
-          result.redeem(response)
+      WS.client.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
+        override def onCompleted(response: AHCResponse) = {
+          result.redeem(wrapResponse(response))
           response
         }
         override def onThrowable(t: Throwable) = {
@@ -159,7 +173,10 @@ object WS {
       result
     }
 
+    protected def wrapResponse(ahcResponse: AHCResponse): R
+
     private def executeStream(method: String): Promise[StreamedResponse] = {
+      import com.ning.http.client.AsyncHandler
       var result = Promise[StreamedResponse]()
       var request = this.setMethod(method).build()
       calculator.map(_.sign(this))
@@ -231,14 +248,39 @@ object WS {
 
   }
 
+  class WSRequest extends WS.WSRequestBase[WSRequest, ws.Response](classOf[WSRequest]) {
+
+    override def wrapResponse(ahcResponse: AHCResponse) = new ws.Response(ahcResponse)
+
+  }
+
 }
 
 package ws {
 
+  class WSResponse(ahcResponse: AHCResponse) {
+
+    def getAHCResponse = ahcResponse
+
+    def status = ahcResponse.getStatusCode();
+
+    def header(key: String) = ahcResponse.getHeader(key)
+
+    lazy val body: String = ahcResponse.getResponseBody()
+
+  }
+
+  class Response(ahcResponse: AHCResponse) extends WSResponse(ahcResponse) {
+    import scala.xml._
+
+    lazy val xml = XML.loadString(body)
+
+  }
+
   case class StreamedResponse(status: Int, headers: Map[String, Seq[String]], chunks: Enumerator[Array[Byte]])
 
   trait SignatureCalculator {
-    def sign(request: WS.WSRequest)
+    def sign(request: WS.WSRequestBase[_, _])
   }
 
 }
