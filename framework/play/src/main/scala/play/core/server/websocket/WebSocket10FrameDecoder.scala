@@ -157,7 +157,6 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
               case OPCODE_PONG => return null
               case OPCODE_CLOSE => closing = true; return new CloseFrame(reserved.get)
             }
-            return null
           } finally {
             checkpoint(DecodingState.FRAME_START);
           }
