@@ -132,6 +132,7 @@ object PlayBuild extends Build {
             "commons-lang"                      %    "commons-lang"             %   "2.6",
             "rhino"                             %    "js"                       %   "1.7R2",
             "com.google.javascript"             %    "closure-compiler"         %   "r1459"           notTransitive(),
+            "com.google.code.gson"              %    "gson"                     %   "2.0",
             "com.ning"                          %    "async-http-client"        %   "1.6.5",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "org.reflections"                   %    "reflections"              %   "0.9.5",

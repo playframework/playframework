@@ -12,9 +12,9 @@ package play;
  * Logger.of("my.logger").info("Hello!")</pre>
  */
 public class Logger {
-    
+
     private static final ALogger logger = of("application");
-    
+
     /**
      * Obtain a logger instance.
      *
@@ -24,7 +24,7 @@ public class Logger {
     public static ALogger of(String name) {
         return new ALogger(play.api.Logger.apply(name));
     }
-    
+
     /**
      * Obtain a logger instance.
      *
@@ -34,13 +34,13 @@ public class Logger {
     public static ALogger of(Class<?> clazz) {
         return new ALogger(play.api.Logger.apply(clazz));
     }
-    
+
     /**
      * Returns <code>true</code> if the logger instance enabled for the TRACE level?
      */
     public static boolean isTraceEnabled() {
         return logger.isTraceEnabled();
-    } 
+    }
 
     /**
      * Returns <code>true</code> if the logger instance enabled for the DEBUG level?
@@ -164,24 +164,24 @@ public class Logger {
     public static void error(String message, Throwable error) { 
         logger.error(message, error);
     }
-    
+
     /**
      * Typical logger interface
      */
     public static class ALogger {
-        
+
         private final play.api.Logger logger;
-        
+
         public ALogger(play.api.Logger logger) {
             this.logger = logger;
         }
-        
+
         /**
          * Returns <code>true</code> if the logger instance has TRACE level logging enabled.
          */
         public boolean isTraceEnabled() {
             return logger.isTraceEnabled();
-        } 
+        }
 
         /**
          * Returns <code>true</code> if the logger instance has DEBUG level logging enabled.
@@ -305,7 +305,7 @@ public class Logger {
         public void error(String message, Throwable error) { 
             logger.error(message, error);
         }
-        
+
     }
-    
+
 }
