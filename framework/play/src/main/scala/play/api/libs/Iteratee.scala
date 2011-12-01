@@ -88,8 +88,9 @@ trait Iteratee[E, +A] {
 
       self.fold({
         case (a, Empty) => f(a).fold(done, cont, error)
-        case (a, e) => f(a).fold((a, _) => done(a, e),
-          k => cont(k),
+        case (a, e) => f(a).fold(
+          (a, e) => done(a, e),
+          k => k(e).fold(done, cont, error),
           error)
       },
         ((k) => cont(e => (k(e).flatMap(f)))),
