@@ -3,7 +3,7 @@ package play.api
 import dispatch.json.{ JsValue, JsObject, JsArray, JsString, JsNumber, JsNull }
 import sjson.json.{ Reads, Writes, Format }
 
-object JSON {
+object Json {
 
   // Extend the JsValue and JsObject API for easier parsing
 
