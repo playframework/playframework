@@ -272,8 +272,15 @@ package ws {
 
   class Response(ahcResponse: AHCResponse) extends WSResponse(ahcResponse) {
     import scala.xml._
+    import dispatch.json.Js
 
     lazy val xml = XML.loadString(body)
+
+    /**
+     * Return the body as a JsValue.
+     * Import play.libs.JSON._ and use asOpt[T] or as[T] to parse it to any object.
+     */
+    lazy val json = Js(body)
 
   }
 

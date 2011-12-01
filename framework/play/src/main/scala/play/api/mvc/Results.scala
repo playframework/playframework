@@ -290,6 +290,7 @@ trait Results {
   import play.api.http.HeaderNames._
   import play.api.http.ContentTypes._
   import play.api.templates._
+  import dispatch.json.JsValue
 
   /** `Writeable` for `Content` values. */
   implicit def writeableOf_Content[C <: Content](implicit codec: Codec): Writeable[C] = {
@@ -306,6 +307,11 @@ trait Results {
     Writeable[scala.xml.NodeBuffer](xml => codec.encode(xml.toString))
   }
 
+  /** `Writeable` for `JsValue` values - Json */
+  implicit def writeableOf_JsValue(implicit codec: Codec): Writeable[dispatch.json.JsValue] = {
+    Writeable[dispatch.json.JsValue](jsval => codec.encode(jsval.toString))
+  }
+
   /** `Writeable` for empty responses. */
   implicit val writeableOf_Empty = Writeable[Results.Empty](_ => Array.empty)
 
@@ -317,6 +323,11 @@ trait Results {
   /** Default content type for `Xml` values (`text/xml`). */
   implicit def contentTypeOf_Xml(implicit codec: Codec): ContentTypeOf[Xml] = {
     ContentTypeOf[Xml](Some(XML))
+  }
+
+  /** Default content type for `JsValue` values (`application/json`). */
+  implicit def contentTypeOf_JsValue(implicit codec: Codec): ContentTypeOf[JsValue] = {
+    ContentTypeOf[JsValue](Some(JSON))
   }
 
   /** Default content type for `Txt` values (`text/plain`). */

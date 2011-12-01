@@ -4,7 +4,12 @@ import play.api.mvc._
 import play.api.cache.Cache
 import play.cache.{Cache=>JCache}
 
+import sjson.json.JsonSerialization._
+import models._
+import models.Protocol._
+
 object Application extends Controller {
+
   def index = Action {
     import play.api.Play.current
     Cache.set("hello","world")
@@ -16,6 +21,11 @@ object Application extends Controller {
   def post = Action {
     Ok(views.html.index("POST!"))
   }
+
+  def json = Action {
+    Ok(tojson(User(1, "Sadek", List("tea"))))
+  }
+
   def index_java_cache = Action {
     import play.api.Play.current
     JCache.set("hello","world")
@@ -28,4 +38,4 @@ object Application extends Controller {
   }
 
 }
-            
+

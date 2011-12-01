@@ -136,6 +136,7 @@ object PlayBuild extends Build {
             "com.ning"                          %    "async-http-client"        %   "1.6.5",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "org.reflections"                   %    "reflections"              %   "0.9.5",
+            "net.debasishg"                     %%   "sjson"                    %   "0.15",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"    %   "test",
             "com.novocode"                      %    "junit-interface"          %   "0.7"      %   "test",
