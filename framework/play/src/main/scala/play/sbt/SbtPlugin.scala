@@ -560,24 +560,36 @@ object PlayProject extends Plugin {
 
   }
 
+  def parseRunArgs(args: Seq[String], defaultPort: Int = 9000, defaultHost: String = "0.0.0.0") = {
+
+    def parsePort(portString: String): Option[Int] = {
+      try {
+        Some(Integer.parseInt(portString))
+      } catch {
+        case e => {
+          sys.error("Invalid port argument: " + portString)
+          None
+        }
+      }
+    }
+
+    args match {
+      case Seq(port) => (parsePort(port).getOrElse(defaultPort), defaultHost)
+      case Seq(port, host) => (parsePort(port).getOrElse(defaultPort), host)
+      case _ => (defaultPort, defaultHost)
+    }
+  }
   // ----- Play commands
 
-  val playRunCommand = Command.args("run", "<port>") { (state: State, args: Seq[String]) =>
+  val playRunCommand = Command.args("run", "<port> <host>") { (state: State, args: Seq[String]) =>
 
-    // Parse HTTP port argument
-    val port = args.headOption.map { portString =>
-      try {
-        Integer.parseInt(portString)
-      } catch {
-        case e => sys.error("Invalid port argument: " + portString)
-      }
-    }.getOrElse(9000)
+    val (port, host) = parseRunArgs(args)
 
     val reloader = newReloader(state)
 
     println()
 
-    val server = new play.core.server.NettyServer(reloader, port, allowKeepAlive = false)
+    val server = new play.core.server.NettyServer(reloader, host, port, allowKeepAlive = false)
 
     println()
     println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -592,16 +604,9 @@ object PlayProject extends Plugin {
     state
   }
 
-  val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
+  val playStartCommand = Command.args("start", "<port> <host>") { (state: State, args: Seq[String]) =>
 
-    // Parse HTTP port argument
-    val port = args.headOption.map { portString =>
-      try {
-        Integer.parseInt(portString)
-      } catch {
-        case e => sys.error("Invalid port argument: " + portString)
-      }
-    }.getOrElse(9000)
+    val (port, host) = parseRunArgs(args)
 
     val extracted = Project.extract(state)
 
@@ -620,7 +625,7 @@ object PlayProject extends Plugin {
 
           import java.lang.{ ProcessBuilder => JProcessBuilder }
           val builder = new JProcessBuilder(Array(
-            "java", "-Dhttp.port=" + port, "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
+            "java", "-Dhttp.port=" + port, "-Dhttp.host=" + host, "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
 
           new Thread {
             override def run {
@@ -672,9 +677,9 @@ object PlayProject extends Plugin {
                 |publish                    Publish your application in a remote repository.
                 |publish-local              Publish your application in the local repository.
                 |reload                     Reload the current application build file.
-                |run <port>                 Run the current application in DEV mode.
-                |test                       Run Junit tests and/or Specs 
-                |start <port>               Start the current application in another JVM in PROD mode.
+                |run <port> <host>          Run the current application in DEV mode.
+                |start <port> <host>        Start the current application in another JVM in PROD mode.
+                |test                       Run Junit tests and/or Specs
                 |update                     Update application dependencies.
                 |
                 |You can also use any sbt feature:
