@@ -32,7 +32,7 @@ object Json {
 
     def asValue: JsValue = this match {
       case PlayJsValue(v) => v
-      case u @ PlayJsUndefined(msg) => throw new Exception("msg")
+      case u @ PlayJsUndefined(msg) => throw new Exception(msg)
     }
 
   }
@@ -60,7 +60,7 @@ object Json {
      * Throws if the JsValue is not an object.
      */
     def \(key: String): PlayJson = value match {
-      case JsObject(m) => m.get(JsString(key)).map(PlayJsValue(_)).getOrElse(PlayJsUndefined(key + " is undefined on object: " + value))
+      case JsObject(m) => m.get(JsString(key)).map(PlayJsValue(_)).getOrElse(PlayJsUndefined("'"+key+"'" + " is undefined on object: " + value))
       case other => PlayJsUndefined(key + " is undefined on value: " + value)
     }
 
