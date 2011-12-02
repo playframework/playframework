@@ -574,9 +574,9 @@ object PlayProject extends Plugin {
     }
 
     args match {
-      case Seq(port) => (parsePort(port).getOrElse(defaultPort), defaultHost)
+      case Seq(port)       => (parsePort(port).getOrElse(defaultPort), defaultHost)
       case Seq(port, host) => (parsePort(port).getOrElse(defaultPort), host)
-      case _ => (defaultPort, defaultHost)
+      case _               => (defaultPort, defaultHost)
     }
   }
   // ----- Play commands
