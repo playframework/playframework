@@ -4,7 +4,7 @@ import play.api.mvc._
 import play.api.cache.Cache
 import play.cache.{Cache=>JCache}
 
-import sjson.json.JsonSerialization._
+import play.api.Json._
 import models._
 import models.Protocol._
 

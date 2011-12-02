@@ -2,12 +2,6 @@ package play;
 
 import com.ning.http.client.AsyncHttpClient;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -16,6 +10,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class WS {
 
@@ -68,38 +65,17 @@ public class WS {
         }
 
         /**
-         * Get the response body as a {@link com.google.gson.JsonElement}
+         * Get the response body as a {@link org.codehaus.jackson.JsonNode}
          * @return the json response
          */
-        public JsonElement asJson() {
+        public JsonNode asJson() {
             String json = getBody();
+            ObjectMapper mapper = new ObjectMapper();
             try {
-                return new JsonParser().parse(json);
+                return mapper.readValue(json, JsonNode.class);
             } catch (Exception e) {
-                Logger.error("Bad JSON: " + json, e);
-                throw new RuntimeException("Cannot parse JSON (check logs)", e);
+                throw new RuntimeException(e);
             }
-        }
-
-        /**
-         * Get the response body as a Json, and to convert it in a business class object
-         * @param classOfT the target class to deserialize the Json
-         */
-        public <T> T fromJson(Class<T> classOfT) {
-            return (new Gson()).fromJson(getBody(), classOfT);
-        }
-
-        /**
-         * Get the response body as a Json, and to convert it in a business class object
-         * @param adapters custom deserializers to be used
-         */
-        public <T> T fromJson(Class<T> classOfT, JsonDeserializer<?>... adapters) {
-            GsonBuilder gson = new GsonBuilder();
-            for (Object adapter: adapters) {
-                Type t = getMethod(adapter.getClass(), "deserialize").getParameterTypes()[0];
-                gson.registerTypeAdapter(t, adapter);
-            }
-            return gson.create().fromJson(getBody(), classOfT);
         }
 
         private static Method getMethod(Class<?> clazz, String name) {

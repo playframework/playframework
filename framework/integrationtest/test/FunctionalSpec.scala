@@ -26,7 +26,7 @@ object FunctionalSpec extends Specification {
       val resultPost: String = WS.url("http://localhost:9000/post").post().value match { case r: Redeemed[Response] => r.a.body }
       resultPost must contain ("POST!")
       val resultJson: User = WS.url("http://localhost:9000/json").get().value match {
-          case r: Redeemed[Response] => { r.a.json.as[User] }
+          case r: Redeemed[Response] => fromjson[User](r.a.json)
       }
       resultJson must be equalTo(User(1, "Sadek", List("tea")))
    }
