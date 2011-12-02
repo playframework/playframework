@@ -50,13 +50,21 @@ object FormSpec extends Specification {
   }
 
   "render form using field[Type] syntax" in {
+    import play.api.data.validation.Constraints._
     import play.api.data._
     import format.Formats._
-    import play.api.data.validation.Constraints._
+    case class User(name: String, age: Int)
+
+    val userForm = Form(
+      of(User)(
+          "name" -> of[String]}.verifying(required),
+        "age" -> of[Int].verifying(min(0), max(100))
+      )
+    )
     val loginForm = Form(
       of(
         "email" -> of[String],
-        "password" -> of[Int]))
+        "password" -> of[Int])) 
     val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
     loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
   }
