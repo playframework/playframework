@@ -123,7 +123,7 @@ object Action {
    * @return an action
    */
   def apply(block: Request[AnyContent] => Result): Action[AnyContent] = {
-    Action(Parsers.anyContent)(block)
+    Action(BodyParsers.parse.anyContent)(block)
   }
 
   /**

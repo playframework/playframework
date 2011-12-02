@@ -9,7 +9,7 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest }
 
 trait JavaAction extends Action[AnyContent] {
 
-  def parser = Parsers.anyContent
+  def parser = BodyParsers.parse.anyContent
 
   def invocation: JResult
   def controller: Class[_]

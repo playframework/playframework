@@ -42,7 +42,7 @@ trait ControllerLike {
  * }
  * }}}
  */
-trait Controller extends ControllerLike with Results with Parsers with HeaderNames with ContentTypes {
+trait Controller extends ControllerLike with Results with BodyParsers with HeaderNames with ContentTypes {
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
@@ -72,7 +72,7 @@ trait Controller extends ControllerLike with Results with Parsers with HeaderNam
    * @param block the action code
    * @return an action
    */
-  final def Action(block: Request[AnyContent] => Result): Action[AnyContent] = this.Action[AnyContent](Parsers.anyContent)(block)
+  final def Action(block: Request[AnyContent] => Result): Action[AnyContent] = this.Action[AnyContent](BodyParsers.parse.anyContent)(block)
 
   /**
    * Constructs an `Action`.

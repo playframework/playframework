@@ -5,8 +5,50 @@ import scalax.file._
 
 import java.io._
 
-/** File utilities. */
+/** Files utilities. */
 object Files {
+
+  /**
+   * A temporary file hold a reference to a real file, and will delete
+   * it when the reference is garbaged.
+   */
+  case class TemporaryFile(file: File) {
+
+    /**
+     * Clean this temporary file now.
+     */
+    def clean() = {
+      file.delete()
+    }
+
+    override def finalize {
+      clean()
+    }
+
+  }
+
+  /**
+   * Utilities to manage temporary files.
+   */
+  object TemporaryFile {
+
+    /**
+     * Create a new temporary file.
+     *
+     * Example:
+     * {{{
+     * val tempFile = TemporaryFile(prefix = "uploaded")
+     * }}}
+     *
+     * @param prefix The prefix used for the temporary file name.
+     * @param suffix The suffix used for the temporary file name.
+     * @return A temporary file instance.
+     */
+    def apply(prefix: String = "", suffix: String = "") = {
+      new TemporaryFile(File.createTempFile(prefix, suffix))
+    }
+
+  }
 
   /**
    * Reads a file’s contents into a String.
