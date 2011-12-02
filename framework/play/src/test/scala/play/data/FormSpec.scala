@@ -57,7 +57,7 @@ object FormSpec extends Specification {
 
     val userForm = Form(
       of(User)(
-          "name" -> of[String]}.verifying(required),
+          "name" -> of[String].verifying(required),
         "age" -> of[Int].verifying(min(0), max(100))
       )
     )
