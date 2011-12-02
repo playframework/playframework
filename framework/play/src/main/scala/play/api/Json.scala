@@ -7,17 +7,44 @@ object Json {
 
   // Extend the JsValue and JsObject API for easier parsing
 
-  implicit def dispatchJsObject2playJsObject(jsobject: JsObject) = PlayJsObject(jsobject)
   implicit def dispatchJsValue2playJsValue(jsvalue: JsValue) = PlayJsValue(jsvalue)
 
-  case class PlayJsValue(protected val value: JsValue) {
+  sealed trait PlayJson {
     import scala.util.control.Exception.catching
 
     /**
      * Convert the JsValue to a scala object. T can be any type with a Reads[T] available.
      * Throws an exception if the JsValue can not be converted into this type.
      */
-    def as[T](implicit fjs: Reads[T]): T = asOpt[T].get
+    def as[T](implicit fjs: Reads[T]): T
+
+    /**
+     * Convert the JsValue to a scala object. T can be any type with a Reads[T] available.
+     * Return None if the JsValue doesn't correspond to the expected type.
+     */
+    def asOpt[T](implicit fjs: Reads[T]): Option[T]
+
+    /**
+     * Supposes that the current JsValue is an object and tries to extract a given key.
+     * Throws if the JsValue is not an object.
+     */
+    def \(key: String): PlayJson
+
+    def asValue: JsValue = this match {
+      case PlayJsValue(v) => v
+      case u @ PlayJsUndefined(msg) => throw new Exception("msg")
+    }
+
+  }
+
+  case class PlayJsValue(protected val value: JsValue) extends PlayJson {
+    import scala.util.control.Exception.catching
+
+    /**
+     * Convert the JsValue to a scala object. T can be any type with a Reads[T] available.
+     * Throws an exception if the JsValue can not be converted into this type.
+     */
+    def as[T](implicit fjs: Reads[T]): T = fjs.reads(value)
 
     /**
      * Convert the JsValue to a scala object. T can be any type with a Reads[T] available.
@@ -25,23 +52,40 @@ object Json {
      */
     def asOpt[T](implicit fjs: Reads[T]): Option[T] = value match {
       case JsNull => None
-      case _ => catching(classOf[RuntimeException]).opt(fjs.reads(value))
+      case value => catching(classOf[RuntimeException]).opt(fjs.reads(value))
     }
 
     /**
      * Supposes that the current JsValue is an object and tries to extract a given key.
      * Throws if the JsValue is not an object.
      */
-    def \(key: String): JsValue = value match {
-      case JsObject(m) => m(JsString(key))
-      case _ => throw new RuntimeException(value + " is not a JsObject")
+    def \(key: String): PlayJson = value match {
+      case JsObject(m) => m.get(JsString(key)).map(PlayJsValue(_)).getOrElse(PlayJsUndefined(key + " is undefined on object: " + value))
+      case other => PlayJsUndefined(key + " is undefined on value: " + value)
     }
 
   }
 
-  case class PlayJsObject(protected override val value: JsObject) extends PlayJsValue(value) {
-    def apply(key: String): JsValue = value.self(JsString(key))
-    def get(key: String): Option[JsValue] = value.self.get(JsString(key))
+  case class PlayJsUndefined(error: String) extends PlayJson {
+
+    /**
+     * Convert the JsValue to a scala object. T can be any type with a Reads[T] available.
+     * Throws an exception if the JsValue can not be converted into this type.
+     */
+    def as[T](implicit fjs: Reads[T]): T = throw new Exception("undefined: " + error + ", cannot be viewed as the required type")
+
+    /**
+     * Convert the JsValue to a scala object. T can be any type with a Reads[T] available.
+     * Return None if the JsValue doesn't correspond to the expected type.
+     */
+    def asOpt[T](implicit fjs: Reads[T]): Option[T] = None
+
+    /**
+     * Supposes that the current JsValue is an object and tries to extract a given key.
+     * Throws if the JsValue is not an object.
+     */
+    def \(key: String): PlayJson = this
+
   }
 
   /**
