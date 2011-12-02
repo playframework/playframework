@@ -288,7 +288,7 @@ trait Results {
   import play.api._
   import play.api.http.Status._
   import play.api.http.HeaderNames._
-  import play.api.http.ContentTypes._
+  import play.api.http.ContentTypes
   import play.api.templates._
   import dispatch.json.JsValue
 
@@ -317,41 +317,41 @@ trait Results {
 
   /** Default content type for `Html` values (`text/html`). */
   implicit def contentTypeOf_Html(implicit codec: Codec): ContentTypeOf[Html] = {
-    ContentTypeOf[Html](Some(HTML))
+    ContentTypeOf[Html](Some(ContentTypes.HTML))
   }
 
   /** Default content type for `Xml` values (`text/xml`). */
   implicit def contentTypeOf_Xml(implicit codec: Codec): ContentTypeOf[Xml] = {
-    ContentTypeOf[Xml](Some(XML))
+    ContentTypeOf[Xml](Some(ContentTypes.XML))
   }
 
   /** Default content type for `JsValue` values (`application/json`). */
   implicit def contentTypeOf_JsValue(implicit codec: Codec): ContentTypeOf[JsValue] = {
-    ContentTypeOf[JsValue](Some(JSON))
+    ContentTypeOf[JsValue](Some(ContentTypes.JSON))
   }
 
   /** Default content type for `Txt` values (`text/plain`). */
   implicit def contentTypeOf_Txt(implicit codec: Codec): ContentTypeOf[Txt] = {
-    ContentTypeOf[Txt](Some(TEXT))
+    ContentTypeOf[Txt](Some(ContentTypes.TEXT))
   }
 
   /** Default content type for `String` values (`text/plain`). */
   implicit def contentTypeOf_String(implicit codec: Codec): ContentTypeOf[String] = {
-    ContentTypeOf[String](Some(TEXT))
+    ContentTypeOf[String](Some(ContentTypes.TEXT))
   }
 
   /** Default content type for `NodeSeq` values (`text/xml`). */
   implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): ContentTypeOf[C] = {
-    ContentTypeOf[C](Some(XML))
+    ContentTypeOf[C](Some(ContentTypes.XML))
   }
 
   /** Default content type for `NodeBuffer` values (`text/xml`). */
   implicit def contentTypeOf_NodeBuffer(implicit codec: Codec): ContentTypeOf[scala.xml.NodeBuffer] = {
-    ContentTypeOf[scala.xml.NodeBuffer](Some(XML))
+    ContentTypeOf[scala.xml.NodeBuffer](Some(ContentTypes.XML))
   }
 
   /** Default content type for byte array (application/application/octet-stream). */
-  implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] = ContentTypeOf[Array[Byte]](Some(BINARY))
+  implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] = ContentTypeOf[Array[Byte]](Some(ContentTypes.BINARY))
 
   /** Default content type for empty responses (no content type). */
   implicit def contentTypeOf_Empty: ContentTypeOf[Results.Empty] = ContentTypeOf[Results.Empty](None)

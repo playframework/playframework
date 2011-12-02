@@ -48,6 +48,19 @@ object FormSpec extends Specification {
 
     }
   }
+
+  "render form using field[Type] syntax" in {
+    import play.api.data._
+    import format.Formats._
+    import play.api.data.validation.Constraints._
+    val loginForm = Form(
+      of(
+        "email" -> of[String],
+        "password" -> of[Int]))
+    val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
+    loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
+  }
+
   "render a form with max 18 fields" in {
     import play.api.data._
 

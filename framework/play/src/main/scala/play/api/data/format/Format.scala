@@ -62,6 +62,22 @@ object Formats {
     def unbind(key: String, value: Long) = Map(key -> value.toString)
   }
 
+  /** Default formatter for the `Int` type. */
+  implicit def intFormat = new Formatter[Int] {
+
+    override val format = Some("format.numeric", Nil)
+
+    def bind(key: String, data: Map[String, String]) = {
+      stringFormat.bind(key, data).right.flatMap { s =>
+        scala.util.control.Exception.allCatch[Int]
+          .either(Integer.parseInt(s))
+          .left.map(e => Seq(FormError(key, "error.number", Nil)))
+      }
+    }
+
+    def unbind(key: String, value: Int) = Map(key -> value.toString)
+  }
+
   /** Default formatter for the `Boolean` type. */
   implicit def booleanFormat = new Formatter[Boolean] {
 
