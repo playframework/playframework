@@ -35,6 +35,10 @@ object Json {
       case u @ PlayJsUndefined(msg) => throw new Exception(msg)
     }
 
+    def toEither: Either[String, JsValue] = this match {
+      case PlayJsValue(v) => Right(v)
+      case u @ PlayJsUndefined(msg) => Left(msg)
+    }
   }
 
   case class PlayJsValue(protected val value: JsValue) extends PlayJson {
@@ -60,7 +64,7 @@ object Json {
      * Throws if the JsValue is not an object.
      */
     def \(key: String): PlayJson = value match {
-      case JsObject(m) => m.get(JsString(key)).map(PlayJsValue(_)).getOrElse(PlayJsUndefined("'"+key+"'" + " is undefined on object: " + value))
+      case JsObject(m) => m.get(JsString(key)).map(PlayJsValue(_)).getOrElse(PlayJsUndefined("'" + key + "'" + " is undefined on object: " + value))
       case other => PlayJsUndefined(key + " is undefined on value: " + value)
     }
 
