@@ -4,9 +4,12 @@ import java.io._
 
 import scala.xml._
 
+import play.api.Json
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.Files.{ TemporaryFile }
+
+import com.codahale.jerkson.AST._
 
 sealed trait AnyContent {
 
@@ -50,6 +53,21 @@ trait BodyParsers {
 
     def raw: BodyParser[Array[Byte]] = BodyParser { request =>
       Iteratee.consume.mapDone(c => Right(c))
+    }
+
+    def json: BodyParser[JValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson)
+
+    def tolerantJson: BodyParser[JValue] = BodyParser { request =>
+      Iteratee.consume.mapDone { bytes =>
+        scala.util.control.Exception.allCatch[JValue].either {
+          Json.parse(new String(bytes, request.charset.getOrElse("utf-8")))
+        }.left.map { e =>
+          (Results.BadRequest, bytes)
+        }
+      }.flatMap {
+        case Left((r, in)) => Done(Left(r), El(in))
+        case Right(json) => Done(Right(json), Empty)
+      }
     }
 
     def empty: BodyParser[None.type] = BodyParser { request =>
