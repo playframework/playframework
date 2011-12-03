@@ -28,24 +28,6 @@ package play.api.mvc {
     /** The HTTP cookies. */
     def cookies: Cookies
 
-    /**
-     * The user name, if defined for this request.
-     *
-     * It is usually set by wrapping your `Action` in another `Action` like `Authenticated`.
-     *
-     * For example:
-     * {{{
-     * Authenticated {
-     *   Action { request =>
-     *     Ok(request.username.map("Hello " + _))
-     *   }
-     * }
-     * }}}
-     *
-     * @see Authenticated
-     */
-    def username: Option[String]
-
     /** Parses the `Session` cookie and returns the `Session` data. */
     lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
 
@@ -74,9 +56,20 @@ package play.api.mvc {
    */
   @implicitNotFound("Cannot find any HTTP Request here")
   trait Request[+A] extends RequestHeader {
+    self =>
 
     /** The body content. */
     def body: A
+
+    def map[B](f: A => B): Request[B] = new Request[B] {
+      def uri = self.uri
+      def path = self.path
+      def method = self.method
+      def queryString = self.queryString
+      def headers = self.headers
+      def cookies = self.cookies
+      def body = f(self.body)
+    }
 
   }
 

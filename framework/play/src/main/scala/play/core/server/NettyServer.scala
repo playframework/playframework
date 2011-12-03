@@ -23,6 +23,7 @@ import play.core.server.websocket._
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
+import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._

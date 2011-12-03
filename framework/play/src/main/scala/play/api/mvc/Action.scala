@@ -41,27 +41,6 @@ trait Action[A] extends (Request[A] => Result) with Handler {
   def apply(request: Request[A]): Result
 
   /**
-   * Composes this action with another action.
-   *
-   * For example:
-   * {{{
-   *   val actionWithLogger = anyAction.compose { (request, originalAction) =>
-   *     Logger.info("Invoking " + originalAction)
-   *     val result = originalAction(request)
-   *     Logger.info("Got result: " + result)
-   *     result
-   *   }
-   * }}}
-   */
-  def compose(composer: (Request[A], Action[A]) => Result) = {
-    val self = this
-    new Action[A] {
-      def parser = self.parser
-      def apply(request: Request[A]) = composer(request, self)
-    }
-  }
-
-  /**
    * Returns itself, for better support in the routes file.
    *
    * @return itself

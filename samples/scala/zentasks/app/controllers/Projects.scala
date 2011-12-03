@@ -17,14 +17,16 @@ object Projects extends Controller with Secured {
   /**
    * Display the dashboard.
    */
-  def index = Action { request =>
-    Ok(
-      html.dashboard(
-        Project.findInvolving(request.username.get), 
-        Task.findTodoInvolving(request.username.get), 
-        User.findByEmail(request.username.get).get
+  def index = IsAuthenticated { username => _ =>
+    User.findByEmail(username).map { user =>
+      Ok(
+        html.dashboard(
+          Project.findInvolving(username), 
+          Task.findTodoInvolving(username), 
+          user
+        )
       )
-    )
+    }.getOrElse(Forbidden)
   }
 
   // -- Projects
@@ -32,14 +34,14 @@ object Projects extends Controller with Secured {
   /**
    * Add a project.
    */
-  def add = Action { implicit request =>
+  def add = IsAuthenticated { username => implicit request =>
     Form("group" -> requiredText).bindFromRequest.fold(
       errors => BadRequest,
       folder => Ok(
         views.html.projects.item(
           Project.create(
             Project(NotAssigned, folder, "New project"), 
-            Seq(request.username.get)
+            Seq(username)
           )
         )
       )
@@ -49,23 +51,22 @@ object Projects extends Controller with Secured {
   /**
    * Delete a project.
    */
-  def delete(project: Long) = Action { implicit request =>
-    IsMemberOf(project) {
-      Project.delete(project)
-      Ok
-    }
+  def delete(project: Long) = IsMemberOf(project) { username => _ =>
+    Project.delete(project)
+    Ok
   }
 
   /**
    * Rename a project.
    */
-  def rename(project: Long) = Action { implicit request =>
-    IsMemberOf(project) {
-      Form("name" -> requiredText).bindFromRequest.fold(
-        errors => BadRequest,
-        newName => { Project.rename(project, newName); Ok(newName) }
-      )
-    }
+  def rename(project: Long) = IsMemberOf(project) { username => implicit request =>
+    Form("name" -> requiredText).bindFromRequest.fold(
+      errors => BadRequest,
+      newName => { 
+        Project.rename(project, newName) 
+        Ok(newName) 
+      }
+    )
   }
 
   // -- Project groups
@@ -73,14 +74,14 @@ object Projects extends Controller with Secured {
   /**
    * Add a new project group.
    */
-  def addGroup = Action {
+  def addGroup = IsAuthenticated { _ => _ =>
     Ok(html.projects.group("New group"))
   }
 
   /**
    * Delete a project group.
    */
-  def deleteGroup(folder: String) = Action { 
+  def deleteGroup(folder: String) = IsAuthenticated { _ => _ =>
     Project.deleteInFolder(folder)
     Ok
   }
@@ -88,7 +89,7 @@ object Projects extends Controller with Secured {
   /**
    * Rename a project group.
    */
-  def renameGroup(folder: String) = Action { implicit request =>
+  def renameGroup(folder: String) = IsAuthenticated { _ => implicit request =>
     Form("name" -> requiredText).bindFromRequest.fold(
       errors => BadRequest,
       newName => { Project.renameFolder(folder, newName); Ok(newName) }
@@ -100,25 +101,21 @@ object Projects extends Controller with Secured {
   /**
    * Add a project member.
    */
-  def addUser(project: Long) = Action { implicit request =>
-    IsMemberOf(project) {
-      Form("user" -> requiredText).bindFromRequest.fold(
-        errors => BadRequest,
-        user => { Project.addMember(project, user); Ok }
-      )
-    }
+  def addUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
+    Form("user" -> requiredText).bindFromRequest.fold(
+      errors => BadRequest,
+      user => { Project.addMember(project, user); Ok }
+    )
   }
 
   /**
    * Remove a project member.
    */
-  def removeUser(project: Long) = Action { implicit request =>
-    IsMemberOf(project) {
-      Form("user" -> requiredText).bindFromRequest.fold(
-        errors => BadRequest,
-        user => { Project.removeMember(project, user); Ok }
-      )
-    }
+  def removeUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
+    Form("user" -> requiredText).bindFromRequest.fold(
+      errors => BadRequest,
+      user => { Project.removeMember(project, user); Ok }
+    )
   }
 
 }

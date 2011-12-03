@@ -66,30 +66,47 @@ object Application extends Controller {
 /**
  * Provide security features
  */
-trait Secured extends Security.AllAuthenticated {
-
+trait Secured {
+  
   /**
    * Retrieve the connected user email.
    */
-  override def username(request: RequestHeader) = request.session.get("email")
+  private def username(request: RequestHeader) = request.session.get("email")
 
   /**
-   * Redirect to login if the use in not authorized.
+   * Redirect to login if the user in not authorized.
    */
-  override def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+  
+  // --
+  
+  /** 
+   * Action for authenticated users.
+   */
+  def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
+    Action(request => f(user)(request))
+  }
 
   /**
    * Check if the connected user is a member of this project.
    */
-  def IsMemberOf(project: Long)(f: => Result)(implicit request: RequestHeader) = {
-    request.username.filter(Project.isMember(project, _)).map(_ => f).getOrElse(Results.Forbidden)
+  def IsMemberOf(project: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
+    if(Project.isMember(project, user)) {
+      f(user)(request)
+    } else {
+      Results.Forbidden
+    }
   }
 
   /**
    * Check if the connected user is a owner of this task.
    */
-  def IsOwnerOf(task: Long)(f: => Result)(implicit request: RequestHeader) = {
-    request.username.filter(Task.isOwner(task, _)).map(_ => f).getOrElse(Results.Forbidden)
+  def IsOwnerOf(task: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
+    if(Task.isOwner(task, user)) {
+      f(user)(request)
+    } else {
+      Results.Forbidden
+    }
   }
 
 }

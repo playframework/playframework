@@ -14,9 +14,9 @@ object Iteratee {
   def fold[E, A](state: A)(f: (A, E) => A): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
-      case EOF => Done(s, EOF)
-      case Empty => Cont[E, A](i => step(s)(i))
-      case El(e) => { val s1 = f(s, e); Cont[E, A](i => step(s1)(i)) }
+      case Input.EOF => Done(s, Input.EOF)
+      case Input.Empty => Cont[E, A](i => step(s)(i))
+      case Input.El(e) => { val s1 = f(s, e); Cont[E, A](i => step(s1)(i)) }
     }
     (Cont[E, A](i => step(state)(i)))
   }
@@ -32,21 +32,25 @@ object Iteratee {
 
 trait Input[+E] {
   def map[U](f: (E => U)): Input[U] = this match {
-    case El(e) => El(f(e))
-    case Empty => Empty
-    case EOF => EOF
+    case Input.El(e) => Input.El(f(e))
+    case Input.Empty => Input.Empty
+    case Input.EOF => Input.EOF
   }
 }
 
-case class El[E](e: E) extends Input[E]
-case object Empty extends Input[Nothing]
-case object EOF extends Input[Nothing]
+object Input {
+
+  case class El[E](e: E) extends Input[E]
+  case object Empty extends Input[Nothing]
+  case object EOF extends Input[Nothing]
+
+}
 
 trait Iteratee[E, +A] {
   self =>
   def run[AA >: A]: Promise[AA] = fold((a, _) => Promise.pure(a),
-    k => k(EOF).fold((a1, _) => Promise.pure(a1),
-      _ => error("diverging iteratee after EOF"),
+    k => k(Input.EOF).fold((a1, _) => Promise.pure(a1),
+      _ => error("diverging iteratee after Input.EOF"),
       (msg, e) => error(msg)),
     (msg, e) => error(msg))
 
@@ -87,7 +91,7 @@ trait Iteratee[E, +A] {
       error: (String, Input[E]) => Promise[C]) =
 
       self.fold({
-        case (a, Empty) => f(a).fold(done, cont, error)
+        case (a, Input.Empty) => f(a).fold(done, cont, error)
         case (a, e) => f(a).fold(
           (a, e) => done(a, e),
           k => k(e).fold(done, cont, error),
@@ -134,7 +138,7 @@ trait Enumerator[+E] {
   def <<:[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = apply(i)
 
   def andThen[F >: E](e: Enumerator[F]): Enumerator[F] = new Enumerator[F] {
-    def apply[A, FF >: F](i: Iteratee[FF, A]): Promise[Iteratee[FF, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove EOF in the end of first
+    def apply[A, FF >: F](i: Iteratee[FF, A]): Promise[Iteratee[FF, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
   }
 
   def >>>[F >: E](e: Enumerator[F]): Enumerator[F] = andThen(e)
@@ -148,7 +152,7 @@ trait Enumerator[+E] {
       def step(ri: Iteratee[UU, A])(in: Input[E]): R =
 
         in match {
-          case OuterEOF => Done(ri, EOF)
+          case OuterEOF => Done(ri, Input.EOF)
           case any =>
             Iteratee.flatten(
               ri.fold((a, _) => Promise.pure(Done(ri, any)),
@@ -165,7 +169,7 @@ trait Enumerator[+E] {
         .flatMap(_.fold((a, _) => Promise.pure(a),
           k => k(OuterEOF).fold(
             (a1, _) => Promise.pure(a1),
-            _ => error("diverging iteratee after EOF"),
+            _ => error("diverging iteratee after Input.EOF"),
             (msg, e) => error(msg)),
           (msg, e) => error(msg)))
     }
@@ -182,7 +186,7 @@ object Enumeratee {
     def apply[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
       def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
         in match {
-          case El(e) if (p(e)) => Done(inner, in)
+          case Input.El(e) if (p(e)) => Done(inner, in)
           case _ =>
             inner.flatFold((_, _) => Promise.pure(Done(inner, in)),
               k => Promise.pure(Cont(step(k(in)))),
@@ -206,7 +210,7 @@ object Enumerator {
 
   }
 
-  def empty[A] = enumInput[A](EOF)
+  def empty[A] = enumInput[A](Input.EOF)
 
   def apply[E](in: E*): Enumerator[E] = new Enumerator[E] {
 
@@ -216,7 +220,7 @@ object Enumerator {
   def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
       i.flatMap(_.fold((_, _) => i,
-        k => Promise.pure(k(El(e))),
+        k => Promise.pure(k(Input.El(e))),
         (_, _) => i)))
   }
 }
@@ -237,7 +241,7 @@ class CallbackEnumerator[E](
 
   def close() {
     if (iteratee == null) {
-      iteratee.feed(EOF).map { result =>
+      iteratee.feed(Input.EOF).map { result =>
         promise.redeem(result)
       }
       iteratee = null
@@ -257,7 +261,7 @@ class CallbackEnumerator[E](
 
         // CONTINUE
         k => {
-          val next = k(El(item))
+          val next = k(Input.El(item))
           next.pureFlatFold(
             (a, in) => {
               onComplete
@@ -296,7 +300,7 @@ object Parsing {
 
     def apply[A](inner: Iteratee[MatchInfo[Array[Byte]], A]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
 
-      Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), Empty: Input[Array[Byte]])),
+      Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
         k => Promise.pure(Cont(step(Array[Byte](), Cont(k)))),
         (err, r) => throw new Exception()))
 
@@ -327,27 +331,27 @@ object Parsing {
     def step[A](rest: Array[Byte], inner: Iteratee[MatchInfo[Array[Byte]], A])(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
 
       in match {
-        case Empty => Cont(step(rest, inner)) //here should rather pass Empty along
+        case Input.Empty => Cont(step(rest, inner)) //here should rather pass Input.Empty along
 
-        case EOF => Done(inner, El(rest))
+        case Input.EOF => Done(inner, Input.El(rest))
 
-        case El(chunk) =>
+        case Input.El(chunk) =>
 
           val all = rest ++ chunk
-          def inputOrEmpty(a: Array[Byte]) = if (a.isEmpty) Empty else El(a)
+          def inputOrEmpty(a: Array[Byte]) = if (a.isEmpty) Input.Empty else Input.El(a)
 
           Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(rest))),
             k => {
               val (result, suffix) = scan(Nil, all, 0)
               val fed = result.filter(!_.content.isEmpty).foldLeft(Promise.pure(Array[Byte](), Cont(k))) { (p, m) =>
                 p.flatMap(i => i._2.fold((a, e) => Promise.pure((i._1 ++ m.content, Done(a, e))),
-                  k => Promise.pure((i._1, k(El(m)))),
+                  k => Promise.pure((i._1, k(Input.El(m)))),
                   (err, e) => throw new Exception()))
               }
               fed.flatMap {
                 case (ss, i) => i.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
                   k => Promise.pure(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
-                    case EOF => Done(k(El(Unmatched(suffix))), EOF) //suffix maybe empty
+                    case Input.EOF => Done(k(Input.El(Unmatched(suffix))), Input.EOF) //suffix maybe empty
                     case other => step(ss ++ suffix, Cont(k))(other)
                   })),
                   (err, e) => throw new Exception())

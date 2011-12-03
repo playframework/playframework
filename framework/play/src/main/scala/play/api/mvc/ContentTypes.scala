@@ -5,6 +5,7 @@ import java.io._
 import scala.xml._
 
 import play.api.libs.iteratee._
+import play.api.libs.iteratee.Input._
 import play.api.libs.Files.{ TemporaryFile }
 
 sealed trait AnyContent {
