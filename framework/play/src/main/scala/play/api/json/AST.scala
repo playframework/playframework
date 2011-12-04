@@ -1,0 +1,157 @@
+package play.api.json
+
+import Json._
+
+object AST {
+
+  sealed trait JsValue {
+    import scala.util.control.Exception._
+
+    def value: Any
+
+    def valueAs[A]: A = value.asInstanceOf[A]
+
+    def \(fieldName: String): JsValue = JsNull
+
+    def apply(idx: Int): JsValue = JsNull
+
+    def \\(fieldName: String): Seq[JsValue] = Nil
+
+    def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this))
+
+    def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
+
+    override def toString = Json.generate(this)
+
+  }
+
+  case object JsNull extends JsValue {
+    override def value = null
+  }
+
+  case class JsBoolean(value: Boolean) extends JsValue
+
+  case class JsNumber(value: BigDecimal) extends JsValue
+
+  case class JsString(value: String) extends JsValue
+
+  case class JsArray(value: List[JsValue]) extends JsValue {
+
+    override def apply(index: Int): JsValue = {
+      try {
+        value(index)
+      } catch {
+        case _ => JsNull
+      }
+    }
+  }
+
+  case class JsObject(value: Map[String, JsValue]) extends JsValue {
+
+    override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(JsNull)
+    /*
+    override def \\(fieldName: String): Seq[JsValue] = {
+      values.flatMap {
+        case (key, value) if key == fieldName => Seq(value) ++ (value \\ fieldName)
+        case (_, value) => value \\ fieldName
+      }
+    }*/
+  }
+
+  import org.codehaus.jackson.JsonGenerator
+  import org.codehaus.jackson.map.{ SerializerProvider, JsonSerializer }
+  import org.codehaus.jackson.map.annotate.JsonCachable
+
+  import org.codehaus.jackson.map.{ DeserializationContext, JsonDeserializer }
+  import org.codehaus.jackson.{ JsonToken, JsonParser }
+  import collection.mutable.ArrayBuffer
+  import org.codehaus.jackson.map.annotate.JsonCachable
+  import org.codehaus.jackson.map.`type`.TypeFactory
+
+  @JsonCachable
+  class JsValueSerializer extends JsonSerializer[JsValue] {
+
+    def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
+      value match {
+        case JsNumber(v) => json.writeNumber(v.doubleValue())
+        case JsString(v) => json.writeString(v)
+        case JsBoolean(v) => json.writeBoolean(v)
+        case JsArray(elements) => json.writeObject(elements)
+        case JsObject(values) => {
+          json.writeStartObject()
+          values.foreach { t =>
+            json.writeFieldName(t._1)
+            json.writeObject(t._2)
+          }
+          json.writeEndObject()
+        }
+        case JsNull => json.writeNull()
+      }
+    }
+  }
+
+  @JsonCachable
+  class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
+    def deserialize(jp: JsonParser, ctxt: DeserializationContext): Object = {
+      if (jp.getCurrentToken == null) {
+        jp.nextToken()
+      }
+
+      val value = jp.getCurrentToken match {
+        case JsonToken.VALUE_NUMBER_INT => JsNumber(jp.getDoubleValue)
+        case JsonToken.VALUE_NUMBER_FLOAT => JsNumber(jp.getDoubleValue)
+        case JsonToken.VALUE_STRING => JsString(jp.getText)
+        case JsonToken.VALUE_TRUE => JsBoolean(true)
+        case JsonToken.VALUE_FALSE => JsBoolean(false)
+        case JsonToken.START_ARRAY => {
+          JsArray(jp.getCodec.readValue(jp, Types.build(factory, manifest[List[JsValue]])))
+        }
+        case JsonToken.START_OBJECT => {
+          jp.nextToken()
+          deserialize(jp, ctxt)
+        }
+        case JsonToken.FIELD_NAME | JsonToken.END_OBJECT => {
+          var fields = Map[String, JsValue]()
+          while (jp.getCurrentToken != JsonToken.END_OBJECT) {
+            val name = jp.getCurrentName
+            jp.nextToken()
+            fields = fields + (name -> jp.getCodec.readValue(jp, Types.build(factory, manifest[JsValue])))
+            jp.nextToken()
+          }
+          JsObject(fields)
+        }
+        case _ => throw ctxt.mappingException(classOf[JsValue])
+      }
+
+      if (!klass.isAssignableFrom(value.getClass)) {
+        throw ctxt.mappingException(klass)
+      }
+
+      value
+    }
+  }
+
+  import org.codehaus.jackson.`type`.JavaType
+  import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
+  import scala.collection.JavaConversions.asScalaConcurrentMap
+  import java.util.concurrent.ConcurrentHashMap
+
+  private object Types {
+    private val cachedTypes = asScalaConcurrentMap(new ConcurrentHashMap[Manifest[_], JavaType]())
+
+    def build(factory: TypeFactory, manifest: Manifest[_]): JavaType =
+      cachedTypes.getOrElseUpdate(manifest, constructType(factory, manifest))
+
+    private def constructType(factory: TypeFactory, manifest: Manifest[_]): JavaType = {
+      if (manifest.erasure.isArray) {
+        ArrayType.construct(factory.constructType(manifest.erasure.getComponentType), null, null)
+      } else {
+        factory.constructParametricType(
+          manifest.erasure,
+          manifest.typeArguments.map { m => build(factory, m) }.toArray: _*)
+      }
+    }
+  }
+
+}
+

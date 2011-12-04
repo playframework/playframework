@@ -1,7 +1,9 @@
 package test
 import org.specs2.mutable._
 import play.api.mvc._
-import play.api.Json._
+import play.api.json.Json._
+import play.api.json.Formats._
+import play.api.json.AST._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 import org.openqa.selenium.htmlunit.HtmlUnitDriver
@@ -26,7 +28,7 @@ object FunctionalSpec extends Specification {
       val resultPost: String = WS.url("http://localhost:9000/post").post().value match { case r: Redeemed[Response] => r.a.body }
       resultPost must contain ("POST!")
       val resultJson: User = WS.url("http://localhost:9000/json").get().value match {
-          case r: Redeemed[Response] => fromjson[User](r.a.json)
+          case r: Redeemed[Response] => r.a.json.as[User]
       }
       resultJson must be equalTo(User(1, "Sadek", List("tea")))
    }

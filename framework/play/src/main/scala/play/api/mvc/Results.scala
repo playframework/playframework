@@ -290,7 +290,7 @@ trait Results {
   import play.api.http.HeaderNames._
   import play.api.http.ContentTypes
   import play.api.templates._
-  import com.codahale.jerkson.AST.JValue
+  import play.api.json.AST._
 
   /** `Writeable` for `Content` values. */
   implicit def writeableOf_Content[C <: Content](implicit codec: Codec): Writeable[C] = {
@@ -307,9 +307,9 @@ trait Results {
     Writeable[scala.xml.NodeBuffer](xml => codec.encode(xml.toString))
   }
 
-  /** `Writeable` for `JValue` values - Json */
-  implicit def writeableOf_JValue(implicit codec: Codec): Writeable[JValue] = {
-    Writeable[JValue](jsval => codec.encode(com.codahale.jerkson.Json.generate(jsval)))
+  /** `Writeable` for `JsValue` values - Json */
+  implicit def writeableOf_JsValue(implicit codec: Codec): Writeable[JsValue] = {
+    Writeable[JsValue](jsval => codec.encode(jsval.toString))
   }
 
   /** `Writeable` for empty responses. */
@@ -325,9 +325,9 @@ trait Results {
     ContentTypeOf[Xml](Some(ContentTypes.XML))
   }
 
-  /** Default content type for `JValue` values (`application/json`). */
-  implicit def contentTypeOf_JValue(implicit codec: Codec): ContentTypeOf[JValue] = {
-    ContentTypeOf[JValue](Some(ContentTypes.JSON))
+  /** Default content type for `JsValue` values (`application/json`). */
+  implicit def contentTypeOf_JsValue(implicit codec: Codec): ContentTypeOf[JsValue] = {
+    ContentTypeOf[JsValue](Some(ContentTypes.JSON))
   }
 
   /** Default content type for `Txt` values (`text/plain`). */

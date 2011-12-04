@@ -277,9 +277,9 @@ package ws {
     lazy val xml = XML.loadString(body)
 
     /**
-     * Return the body as a JValue.
+     * Return the body as a JsValue.
      */
-    lazy val json = play.api.Json.parse(body)
+    lazy val json = play.api.json.Json.Js(body)
 
   }
 
