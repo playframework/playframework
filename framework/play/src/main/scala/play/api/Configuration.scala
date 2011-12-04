@@ -6,7 +6,7 @@ import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
 import com.typesafe.config
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ ConfigFactory, ConfigParseOptions, ConfigSyntax }
 
 /**
  * This object provides a set of operations to create `Configuration` values.
@@ -31,7 +31,8 @@ object Configuration {
    */
   def fromFile(file: File) = {
     import collection.JavaConverters._
-    val currentConfig = ConfigFactory.load(ConfigFactory.parseFile(file))
+    val options = ConfigParseOptions.defaults().setAllowMissing(false).setSyntax(ConfigSyntax.PROPERTIES)
+    val currentConfig = ConfigFactory.load(ConfigFactory.parseFile(file, options))
     val javaEntries = currentConfig.entrySet()
     val data = javaEntries.asScala.toSeq.map { e => (e.getKey, Config(e.getKey, e.getValue.unwrapped.toString, file)) }.toMap
     Configuration(data)
