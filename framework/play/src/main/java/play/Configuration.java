@@ -4,6 +4,7 @@ import java.util.*;
 import scala.collection.JavaConverters;
 
 import play.libs.Scala;
+import com.typesafe.config.Config;
 
 /**
  * The current application configuration.
@@ -34,6 +35,22 @@ public class Configuration {
     
     // --
     
+    /**
+     * loads application.conf, application.properties, application.json resource from classpath
+     * @param resource to load
+     * @return config 
+     */
+    public Config load(String resource) {
+        return conf.loadAsJava(resource);
+    }
+
+    /**
+     * loads application.conf, application.properties, application.json resource from classpath
+     * @return config 
+     */
+    public Config load() {
+        return conf.loadAsJava();
+    }
     /**
      * Retrieves a sub-configuration, which is a configuration instance containing all keys that start with the given prefix.
      *

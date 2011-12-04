@@ -5,6 +5,8 @@ import java.io._
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
+import com.typesafe.config
+import com.typesafe.config.ConfigFactory
 
 /**
  * This object provides a set of operations to create `Configuration` values.
@@ -28,77 +30,45 @@ object Configuration {
    * @return a `Configuration` instance
    */
   def fromFile(file: File) = {
-    Configuration(new ConfigurationParser(file).parse.map(c => c.key -> c).toMap)
+    import collection.JavaConverters._
+    val currentConfig = ConfigFactory.load(ConfigFactory.parseFile(file))
+    val javaEntries = currentConfig.entrySet()
+    val data = javaEntries.asScala.toSeq.map { e => (e.getKey, Config(e.getKey, e.getValue.unwrapped.toString, file)) }.toMap
+    Configuration(data)
   }
+
+  /**
+   * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
+   * @return com.typsafe.config.Config more information: https://github.com/havocp/config
+   */
+  def loadAsJava = ConfigFactory.load()
+
+  /**
+   * reads json/conf style configration from given relative resource
+   * @param relative resource to load
+   * @return com.typsafe.config.Config more information: https://github.com/havocp/config
+   */
+  def loadAsJava(resource: String) = ConfigFactory.load(resource)
 
   def empty = Configuration(Map.empty)
 
-  class ConfigurationParser(configurationFile: File) extends RegexParsers {
+  /**
+   * provides a way to allow method calls to underlying Config
+   */
+  implicit def delegateToConfig(c: RichConfig) = c.underlying
 
-    case class Comment(msg: String)
+  /**
+   * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
+   * @return ichConfig which is a wrapper around com.typesafe.config.Config https://github.com/havocp/config
+   */
+  def load = new RichConfig(ConfigFactory.load())
 
-    def EOF = "\\z".r
-
-    override def skipWhitespace = false
-    override val whiteSpace = """[ \t]+""".r
-
-    override def phrase[T](p: Parser[T]) = new Parser[T] {
-      lastNoSuccess = null
-      def apply(in: Input) = p(in) match {
-        case s @ Success(out, in1) =>
-          if (in1.atEnd)
-            s
-          else if (lastNoSuccess == null || lastNoSuccess.next.pos < in1.pos)
-            Failure("end of input expected", in1)
-          else
-            lastNoSuccess
-        case _ => lastNoSuccess
-      }
-    }
-
-    def namedError[A](p: Parser[A], msg: String) = Parser[A] { i =>
-      p(i) match {
-        case Failure(_, in) => Failure(msg, in)
-        case o => o
-      }
-    }
-
-    def end = """\s*""".r
-    def newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
-    def blankLine = ignoreWhiteSpace <~ newLine ^^ { case _ => Comment("") }
-    def ignoreWhiteSpace = opt(whiteSpace)
-
-    def comment = """#.*""".r ^^ { case s => Comment(s) }
-
-    def configKey = namedError("""[^\s=]+""".r, "Configuration key expected")
-    def configValue = namedError(""".+""".r, "Configuration value expected")
-    def config = ignoreWhiteSpace ~ configKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ configValue ^^ {
-      case (_ ~ k ~ _ ~ v) => Configuration.Config(k, v.trim, configurationFile)
-    }
-
-    def sentence = (comment | positioned(config)) <~ (newLine | EOF)
-
-    def parser = phrase((sentence | blankLine *) <~ end) ^^ {
-      case configs => configs.collect {
-        case c @ Configuration.Config(_, _, _) => c
-      }
-    }
-
-    def parse = {
-      parser(new CharSequenceReader(scalax.file.Path(configurationFile).slurpString)) match {
-        case Success(configs, _) => configs
-        case NoSuccess(message, in) => {
-          throw new PlayException("Configuration error", message) with PlayException.ExceptionSource {
-            def line = Some(in.pos.line)
-            def position = Some(in.pos.column - 1)
-            def input = Some(scalax.file.Path(configurationFile))
-            def sourceName = Some(configurationFile.getAbsolutePath)
-          }
-        }
-      }
-    }
-
-  }
+  /**
+   * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
+   * @param resource to load
+   * @return RichConfig which is a wrapper around com.typesafe.config.Config https://github.com/havocp/config
+   */
+  def load(r: String) = new RichConfig(ConfigFactory.load(r))
 
   /**
    * A configuration item.
@@ -109,6 +79,14 @@ object Configuration {
    */
   case class Config(key: String, value: String, file: File) extends Positional
 
+}
+
+/**
+ * scalafy com.typsafe.config.Config
+ */
+
+class RichConfig(val underlying: config.Config) {
+  def get[T](key: String)(implicit m: Manifest[T]): Option[T] = Option(underlying.getAnyRef(key).asInstanceOf[T])
 }
 
 /**
