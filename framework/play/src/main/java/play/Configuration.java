@@ -45,13 +45,6 @@ public class Configuration {
     }
 
     /**
-     * loads application.conf, application.properties, application.json resource from classpath
-     * @return config 
-     */
-    public Config load() {
-        return conf.loadAsJava();
-    }
-    /**
      * Retrieves a sub-configuration, which is a configuration instance containing all keys that start with the given prefix.
      *
      * @param key The root prefix for this sub configuration.

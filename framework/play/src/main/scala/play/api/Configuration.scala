@@ -39,12 +39,6 @@ object Configuration {
   }
 
   /**
-   * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
-   * @return com.typsafe.config.Config more information: https://github.com/havocp/config
-   */
-  def loadAsJava = ConfigFactory.load()
-
-  /**
    * reads json/conf style configration from given relative resource
    * @param relative resource to load
    * @return com.typsafe.config.Config more information: https://github.com/havocp/config
@@ -57,12 +51,6 @@ object Configuration {
    * provides a way to allow method calls to underlying Config
    */
   implicit def delegateToConfig(c: RichConfig) = c.underlying
-
-  /**
-   * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
-   * @return ichConfig which is a wrapper around com.typesafe.config.Config https://github.com/havocp/config
-   */
-  def load = new RichConfig(ConfigFactory.load())
 
   /**
    * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
