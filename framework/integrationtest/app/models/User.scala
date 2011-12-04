@@ -1,6 +1,6 @@
 package models
 
-import play.api.json.Json._
+import play.api.Json._
 import play.api.json.AST._
 import play.api.json.Formats._
 

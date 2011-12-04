@@ -279,7 +279,7 @@ package ws {
     /**
      * Return the body as a JsValue.
      */
-    lazy val json = play.api.json.Json.Js(body)
+    lazy val json = Json.parse(body)
 
   }
 

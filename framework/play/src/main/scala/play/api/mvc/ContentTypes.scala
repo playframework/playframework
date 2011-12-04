@@ -5,11 +5,10 @@ import java.io._
 import scala.xml._
 
 import play.api.Json
+import play.api.json.AST._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.Files.{ TemporaryFile }
-
-import com.codahale.jerkson.AST._
 
 sealed trait AnyContent {
 
@@ -55,11 +54,11 @@ trait BodyParsers {
       Iteratee.consume.mapDone(c => Right(c))
     }
 
-    def json: BodyParser[JValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson)
+    def json: BodyParser[JsValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson)
 
-    def tolerantJson: BodyParser[JValue] = BodyParser { request =>
+    def tolerantJson: BodyParser[JsValue] = BodyParser { request =>
       Iteratee.consume.mapDone { bytes =>
-        scala.util.control.Exception.allCatch[JValue].either {
+        scala.util.control.Exception.allCatch[JsValue].either {
           Json.parse(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
           (Results.BadRequest, bytes)

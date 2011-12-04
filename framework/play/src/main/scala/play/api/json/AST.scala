@@ -1,6 +1,6 @@
 package play.api.json
 
-import Json._
+import play.api.Json._
 
 object AST {
 
@@ -21,7 +21,7 @@ object AST {
 
     def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
 
-    override def toString = Json.generate(this)
+    override def toString = stringify(this)
 
   }
 
@@ -58,15 +58,11 @@ object AST {
     }*/
   }
 
-  import org.codehaus.jackson.JsonGenerator
-  import org.codehaus.jackson.map.{ SerializerProvider, JsonSerializer }
+  import org.codehaus.jackson.{ JsonGenerator, JsonToken, JsonParser }
+  import org.codehaus.jackson.map.{ SerializerProvider, JsonSerializer, DeserializationContext, JsonDeserializer }
   import org.codehaus.jackson.map.annotate.JsonCachable
-
-  import org.codehaus.jackson.map.{ DeserializationContext, JsonDeserializer }
-  import org.codehaus.jackson.{ JsonToken, JsonParser }
-  import collection.mutable.ArrayBuffer
-  import org.codehaus.jackson.map.annotate.JsonCachable
-  import org.codehaus.jackson.map.`type`.TypeFactory
+  import org.codehaus.jackson.`type`.JavaType
+  import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
 
   @JsonCachable
   class JsValueSerializer extends JsonSerializer[JsValue] {
@@ -131,13 +127,10 @@ object AST {
     }
   }
 
-  import org.codehaus.jackson.`type`.JavaType
-  import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
-  import scala.collection.JavaConversions.asScalaConcurrentMap
-  import java.util.concurrent.ConcurrentHashMap
-
   private object Types {
-    private val cachedTypes = asScalaConcurrentMap(new ConcurrentHashMap[Manifest[_], JavaType]())
+    import java.util.concurrent.ConcurrentHashMap
+
+    private val cachedTypes = scala.collection.JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Manifest[_], JavaType]())
 
     def build(factory: TypeFactory, manifest: Manifest[_]): JavaType =
       cachedTypes.getOrElseUpdate(manifest, constructType(factory, manifest))

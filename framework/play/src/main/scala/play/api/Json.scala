@@ -1,23 +1,30 @@
-package play.api.json
+package play.api
 
 import org.codehaus.jackson.map.module.SimpleModule
 import org.codehaus.jackson.Version
 import org.codehaus.jackson.map.Module.SetupContext
 
-import AST._
-import Formats._
+import json._
+import json.AST._
+import json.Formats._
 
 object Json extends com.codahale.jerkson.Json {
 
-  private object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
-    override def setupModule(context: SetupContext) {
-      context.addDeserializers(new PlayDeserializers(classLoader))
-      context.addSerializers(new PlaySerializers)
-    }
-  }
-  mapper.registerModule(module)
+  private object JerksonJson extends com.codahale.jerkson.Json {
 
-  def Js(input: String): JsValue = parse[JsValue](input)
+    object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
+      override def setupModule(context: SetupContext) {
+        context.addDeserializers(new PlayDeserializers(classLoader))
+        context.addSerializers(new PlaySerializers)
+      }
+    }
+    mapper.registerModule(module)
+
+  }
+
+  def parse(input: String): JsValue = JerksonJson.parse[JsValue](input)
+
+  def stringify(json: JsValue): String = JerksonJson.generate(json)
 
   def tojson[T](o: T)(implicit tjs: Writes[T]): JsValue = tjs.writes(o)
 

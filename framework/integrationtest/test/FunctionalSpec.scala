@@ -1,9 +1,8 @@
 package test
 import org.specs2.mutable._
 import play.api.mvc._
-import play.api.json.Json._
+import play.api.Json._
 import play.api.json.Formats._
-import play.api.json.AST._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 import org.openqa.selenium.htmlunit.HtmlUnitDriver

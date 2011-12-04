@@ -1,6 +1,6 @@
 package play.api.json
 
-import Json._
+import play.api.Json._
 import AST._
 
 object Formats {
