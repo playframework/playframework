@@ -8,6 +8,9 @@ import validation._
  *
  * For example, a form handling a `User` case class submission:
  * {{{
+ * import play.api.data._
+ * import play.api.data.format.Formats._
+ *
  * val userForm = Form(
  *   of(User)(
  *     "name" -> of[String],
@@ -183,6 +186,9 @@ object Form {
    *
    * For example:
    * {{{
+   * import play.api.data._
+   * import play.api.data.format.Formats._
+   *
    * val userForm = Form(
    *   of(User)(
    *     "name" -> of[String],
@@ -270,7 +276,10 @@ trait Mapping[T] {
    *
    * For example:
    * {{{
-   *   Form("phonenumber" -> text verifying required)
+   *   import play.api.data._
+   *   import play.api.data.validation.Constraints._
+   *
+   *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
    * @param constraints the constraints to add
@@ -283,7 +292,10 @@ trait Mapping[T] {
    *
    * For example:
    * {{{
-   *   Form("phonenumber" -> text verifying {_.grouped(2).size == 5})
+   *   import play.api.data._
+   *   import play.api.data.validation.Constraints._
+   *
+   *   Form("phonenumber" -> text.verifying {_.grouped(2).size == 5})
    * }}}
    *
    * @param constraint a function describing the constraint that returns `false` on failure
@@ -296,7 +308,10 @@ trait Mapping[T] {
    *
    * For example:
    * {{{
-   *   Form("phonenumber" -> text verifying("Bad phone number", {_.grouped(2).size == 5}))
+   *   import play.api.data._
+   *   import play.api.data.validation.Constraints._
+   * 
+   *   Form("phonenumber" -> text.verifying("Bad phone number", {_.grouped(2).size == 5}))
    * }}}
    *
    * @param error The error message used if the constraint fails
@@ -345,7 +360,10 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    *
    * For example:
    * {{{
-   *   Form("phonenumber" -> text verifying required)
+   *   import play.api.data._
+   *   import play.api.data.validation.Constraints._
+   *
+   *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
    * @param constraints the constraints to add
@@ -406,7 +424,10 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
    *
    * For example:
    * {{{
-   *   Form("phonenumber" -> text verifying required)
+   *   import play.api.data._
+   *   import play.api.data.validation.Constraints._
+   * 
+   *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
    * @param constraints the constraints to add
@@ -545,7 +566,10 @@ case class ObjectMapping1[T <: Product, A](apply: Function1[A, T], fa: (String, 
    *
    * For example:
    * {{{
-   *   Form("phonenumber" -> text verifying required)
+   *   import play.api.data._
+   *   import validation.Constraints._
+   * 
+   *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
    * @param constraints the constraints to add

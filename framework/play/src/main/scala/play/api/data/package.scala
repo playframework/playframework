@@ -7,6 +7,8 @@ import data.validation._
  * Contains data manipulation helpers (typically HTTP form handling)
  *
  * {{{
+ * import play.api.data._
+ *
  * val taskForm = Form(
  *   of(Task)(
  *     "name" -> text(minLength = 3),
@@ -24,6 +26,9 @@ package object data {
    *
    * For example:
    * {{{
+   * import play.api.data._
+   * import format.Formats._
+   *
    *   Form("email" -> of[String])
    * }}}
    *
@@ -37,6 +42,9 @@ package object data {
    *
    * For example:
    * {{{
+   *   import play.api.data._
+   *   import format.Formats._
+   *
    *   Form(
    *     of(User)("email" -> of[String])
    *   )
@@ -108,6 +116,9 @@ package object data {
    *
    * For example:
    * {{{
+   *   import play.api.data._
+   *   import format.Formats._
+   *
    *   Form(
    *     of(
    *       "email" -> of[String],

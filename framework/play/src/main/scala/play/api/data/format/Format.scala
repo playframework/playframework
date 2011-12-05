@@ -2,7 +2,10 @@ package play.api.data.format
 
 import play.api.data._
 
+import annotation.implicitNotFound
+
 /** Handles field binding and unbinding. */
+@implicitNotFound(msg = "Cannot find Formatter type class for ${T}. Perhaps you will need to import play.api.data.format.Formats._ ")
 trait Formatter[T] {
 
   /** The expected format of `Any`. */
