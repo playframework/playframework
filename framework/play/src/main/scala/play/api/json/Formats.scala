@@ -87,9 +87,31 @@ object Formats {
   }
   def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
 
-  implicit object JsValueFormat extends Format[JsValue] {
-    def writes(o: JsValue) = o
-    def reads(json: JsValue) = json
+  implicit def mapFormat[K, V](implicit fmtk: Format[K], fmtv: Format[V]): Format[Map[K, V]] = new Format[Map[K, V]] {
+    def writes(ts: Map[K, V]) = JsObject(ts.map { case (k, v) => (k.toString, tojson(v)(fmtv)) })
+    def reads(json: JsValue) = json match {
+      case JsObject(m) => Map() ++ m.map { case (k, v) => (fromjson[K](JsString(k))(fmtk), fromjson[V](v)(fmtv)) }
+      case _ => throw new RuntimeException("Map expected")
+    }
+  }
+
+  import scala.collection._
+  implicit def mutableSetFormat[T](implicit fmt: Format[T]): Format[mutable.Set[T]] =
+    viaSeq((x: Seq[T]) => mutable.Set(x: _*))
+
+  implicit def immutableSetFormat[T](implicit fmt: Format[T]): Format[immutable.Set[T]] =
+    viaSeq((x: Seq[T]) => immutable.Set(x: _*))
+
+  implicit def immutableSortedSetFormat[S](implicit ord: S => Ordered[S], binS: Format[S]): Format[immutable.SortedSet[S]] = {
+    viaSeq((x: Seq[S]) => immutable.TreeSet[S](x: _*))
+  }
+
+  def viaSeq[S <: Iterable[T], T](f: Seq[T] => S)(implicit fmt: Format[T]): Format[S] = new Format[S] {
+    def writes(ts: S) = JsArray(ts.map(t => tojson(t)(fmt)).toList)
+    def reads(json: JsValue) = json match {
+      case JsArray(ts) => f(ts.map(t => fromjson[T](t)))
+      case _ => throw new RuntimeException("Collection expected")
+    }
   }
 
 }

@@ -29,13 +29,13 @@ object AST {
     override def value = null
   }
 
-  case class JsBoolean(value: Boolean) extends JsValue
+  case class JsBoolean(override val value: Boolean) extends JsValue
 
-  case class JsNumber(value: BigDecimal) extends JsValue
+  case class JsNumber(override val value: BigDecimal) extends JsValue
 
-  case class JsString(value: String) extends JsValue
+  case class JsString(override val value: String) extends JsValue
 
-  case class JsArray(value: List[JsValue]) extends JsValue {
+  case class JsArray(override val value: List[JsValue]) extends JsValue {
 
     override def apply(index: Int): JsValue = {
       try {
@@ -46,7 +46,7 @@ object AST {
     }
   }
 
-  case class JsObject(value: Map[String, JsValue]) extends JsValue {
+  case class JsObject(override val value: Map[String, JsValue]) extends JsValue {
 
     override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(JsNull)
     /*
