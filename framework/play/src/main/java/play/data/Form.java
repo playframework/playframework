@@ -74,7 +74,10 @@ public class Form<T> {
     
     protected Map<String,String> requestData() {
         Map<String,String> data = new HashMap<String,String>();
-        Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().urlFormEncoded();
+        Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().body().asUrlFormEncoded();
+        if(urlFormEncoded == null) {
+            urlFormEncoded = new HashMap<String,String[]>();
+        }
         Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
         for(String key: urlFormEncoded.keySet()) {
             String[] value = urlFormEncoded.get(key);

@@ -9,7 +9,12 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def uri() = "/test"
   def method() = "GET"
   def path() = "test"
-  def urlFormEncoded() = data.asJava
+  def body() = new Http.RequestBody {
+    def asUrlFormEncoded = data.asJava
+    def asRaw = null
+    def asText = null
+    def asXml = null
+  }
   def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
 }
@@ -57,14 +62,12 @@ object FormSpec extends Specification {
 
     val userForm = Form(
       of(User)(
-          "name" -> of[String].verifying(required),
-        "age" -> of[Int].verifying(min(0), max(100))
-      )
-    )
+        "name" -> of[String].verifying(required),
+        "age" -> of[Int].verifying(min(0), max(100))))
     val loginForm = Form(
       of(
         "email" -> of[String],
-        "password" -> of[Int])) 
+        "password" -> of[Int]))
     val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
     loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
   }

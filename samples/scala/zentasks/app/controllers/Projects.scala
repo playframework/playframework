@@ -59,7 +59,7 @@ object Projects extends Controller with Secured {
   /**
    * Rename a project.
    */
-  def rename(project: Long) = IsMemberOf(project) { username => implicit request =>
+  def rename(project: Long) = IsMemberOf(project) { _ => implicit request =>
     Form("name" -> requiredText).bindFromRequest.fold(
       errors => BadRequest,
       newName => { 

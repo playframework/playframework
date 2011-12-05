@@ -27,6 +27,11 @@ sealed trait AnyContent {
     case _ => None
   }
 
+  def asJson: Option[JValue] = this match {
+    case AnyContentAsJson(json) => Some(json)
+    case _ => None
+  }
+
   def asRaw: Option[Array[Byte]] = this match {
     case AnyContentAsRaw(raw) => Some(raw)
     case _ => None
@@ -39,6 +44,7 @@ case class AnyContentAsText(txt: String) extends AnyContent
 case class AnyContentAsUrlFormEncoded(data: Map[String, Seq[String]]) extends AnyContent
 case class AnyContentAsRaw(raw: Array[Byte]) extends AnyContent
 case class AnyContentAsXml(xml: NodeSeq) extends AnyContent
+case class AnyContentAsJson(jsno: JValue) extends AnyContent
 
 trait BodyParsers {
 
@@ -129,6 +135,8 @@ trait BodyParsers {
         case _ if request.method == "GET" || request.method == "HEAD" => empty(request).mapDone(_.right.map(_ => AnyContentAsEmpty))
         case Some("text/plain") => txt(request).mapDone(_.right.map(s => AnyContentAsText(s)))
         case Some("text/xml") => xml(request).mapDone(_.right.map(x => AnyContentAsXml(x)))
+        case Some("text/json") => json(request).mapDone(_.right.map(j => AnyContentAsJson(j)))
+        case Some("application/json") => json(request).mapDone(_.right.map(j => AnyContentAsJson(j)))
         case Some("application/x-www-form-urlencoded") => urlFormEncoded(request).mapDone(_.right.map(d => AnyContentAsUrlFormEncoded(d)))
         case _ => raw(request).mapDone(_.right.map(r => AnyContentAsRaw(r)))
       }

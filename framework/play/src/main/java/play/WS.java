@@ -58,7 +58,7 @@ public class WS {
          */
         public Document asXml() {
             try {
-                return play.libs.XML.fromInputStream(getAHCResponse().getResponseBodyAsStream());
+                return play.libs.XML.fromInputStream(getAHCResponse().getResponseBodyAsStream(), "utf-8");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

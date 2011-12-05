@@ -133,10 +133,11 @@ public class Http {
         public abstract Map<String,String[]> queryString();
         
         /**
-         * The request content parsed as URL form-encoded.
+         * The request body.
          */
-        public abstract Map<String,String[]> urlFormEncoded();
+        public abstract RequestBody body();
         
+        // -- username
 
         private String username = null;
         
@@ -154,6 +155,33 @@ public class Http {
         public void setUsername(String username) {
             this.username = username;
         }
+        
+    }
+    
+    /**
+     * The request body.
+     */
+    public static abstract class RequestBody {
+        
+        /**
+         * The request content parsed as URL form-encoded.
+         */
+        public abstract Map<String,String[]> asUrlFormEncoded();
+        
+        /**
+         * The request content as Array bytes.
+         */
+        public abstract byte[] asRaw();
+        
+        /**
+         * The request content as text.
+         */
+        public abstract String asText();
+        
+        /**
+         * The request content as XML.
+         */
+        public abstract org.w3c.dom.Document asXml();
         
     }
     

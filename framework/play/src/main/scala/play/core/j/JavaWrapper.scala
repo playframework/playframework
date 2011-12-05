@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 import play.api.mvc._
 
 import play.mvc.{ Action => JAction, Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody }
 
 trait JavaAction extends Action[AnyContent] {
 
@@ -25,12 +25,30 @@ trait JavaAction extends Action[AnyContent] {
         def method = req.method
         def path = req.method
 
-        def queryString = {
+        lazy val queryString = {
           req.queryString.mapValues(_.toArray).asJava
         }
 
-        def urlFormEncoded = {
-          req.body.asUrlFormEncoded.getOrElse(Map.empty).mapValues(_.toArray).asJava
+        def body = new JBody {
+
+          lazy val asUrlFormEncoded = {
+            req.body.asUrlFormEncoded.map(_.mapValues(_.toArray).asJava).orNull
+          }
+
+          def asRaw = {
+            req.body.asRaw.orNull
+          }
+
+          def asText = {
+            req.body.asText.orNull
+          }
+
+          lazy val asXml = {
+            req.body.asXml.map { xml =>
+              play.libs.XML.fromString(xml.toString)
+            }.orNull
+          }
+
         }
 
         override def toString = req.toString

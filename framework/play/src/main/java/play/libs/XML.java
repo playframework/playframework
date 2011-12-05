@@ -1,7 +1,9 @@
 package play.libs;
 
-import java.io.InputStream;
 import java.util.Iterator;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -12,25 +14,39 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class XML {
-
-  public static Document fromInputStream(InputStream in) {
-    DocumentBuilderFactory factory = null;
-    DocumentBuilder builder = null;
-    Document ret = null;
-
-    try {
-      factory = DocumentBuilderFactory.newInstance();
-      builder = factory.newDocumentBuilder();
-    } catch (ParserConfigurationException e) {
-      throw new RuntimeException(e);
+    
+    public static Document fromString(String xml) {
+        try {
+            return fromInputStream(
+                new ByteArrayInputStream(xml.getBytes("utf-8")),
+                "utf-8"
+            );
+        } catch(UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    try {
-      ret = builder.parse(new InputSource(in));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    public static Document fromInputStream(InputStream in, String encoding) {
+       DocumentBuilderFactory factory = null;
+       DocumentBuilder builder = null;
+       Document ret = null;
+       
+       try {
+           factory = DocumentBuilderFactory.newInstance();
+           builder = factory.newDocumentBuilder();
+       } catch (ParserConfigurationException e) {
+           throw new RuntimeException(e);
+       }
+       
+       try {
+           InputSource is = new InputSource(in);
+           is.setEncoding(encoding);
+           ret = builder.parse(is);
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+       
+       return ret;
     }
-    return ret;
-  }
 
 }
