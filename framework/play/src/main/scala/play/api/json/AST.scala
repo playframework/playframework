@@ -11,9 +11,9 @@ object AST {
 
     def valueAs[A]: A = value.asInstanceOf[A]
 
-    def \(fieldName: String): JsValue = JsNull
+    def \(fieldName: String): JsValue = JsUndefined("'" + fieldName + "'" + " is undefined on object: " + this)
 
-    def apply(idx: Int): JsValue = JsNull
+    def apply(idx: Int): JsValue = JsUndefined(this.toString + " is not an array")
 
     def \\(fieldName: String): Seq[JsValue] = Nil
 
@@ -26,6 +26,10 @@ object AST {
   }
 
   case object JsNull extends JsValue {
+    override def value = null
+  }
+
+  case class JsUndefined(error: String) extends JsValue {
     override def value = null
   }
 
@@ -51,7 +55,7 @@ object AST {
 
   case class JsObject(override val value: Map[String, JsValue]) extends JsValue {
 
-    override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(JsNull)
+    override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
     override def \\(fieldName: String): Seq[JsValue] = {
       value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
@@ -85,6 +89,10 @@ object AST {
           json.writeEndObject()
         }
         case JsNull => json.writeNull()
+        case JsUndefined(error) => {
+          play.Logger.warn("Serializing an object with an undefined property: " + error)
+          json.writeNull()
+        }
       }
     }
   }
