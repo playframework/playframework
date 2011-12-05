@@ -29,6 +29,11 @@ object FunctionalSpec extends Specification {
       val resultJson: User = WS.url("http://localhost:9000/json").get().value match {
           case r: Redeemed[Response] => r.a.json.as[User]
       }
+
+      driver.get("http://localhost:9000/conf")
+      driver.getPageSource must contain("This value comes from complex-app's complex1.conf")
+      driver.getPageSource must contain("None")
+
       resultJson must be equalTo(User(1, "Sadek", List("tea")))
    }
   }

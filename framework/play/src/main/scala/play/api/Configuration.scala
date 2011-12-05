@@ -43,7 +43,7 @@ object Configuration {
    * @param relative resource to load
    * @return com.typsafe.config.Config more information: https://github.com/havocp/config
    */
-  def loadAsJava(resource: String) = ConfigFactory.load(resource)
+  def loadAsJava(resource: String) = ConfigFactory.load(ConfigFactory.parseFile(new File(resource)))
 
   def empty = Configuration(Map.empty)
 
@@ -57,7 +57,7 @@ object Configuration {
    * @param resource to load
    * @return RichConfig which is a wrapper around com.typesafe.config.Config https://github.com/havocp/config
    */
-  def load(r: String) = new RichConfig(ConfigFactory.load(r))
+  def load(resource: String) = new RichConfig(ConfigFactory.load(ConfigFactory.parseFile(new File(resource))))
 
   /**
    * A configuration item.

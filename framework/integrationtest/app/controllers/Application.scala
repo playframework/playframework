@@ -19,6 +19,15 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get[String]("hello").getOrElse("oh noooz")))
   }
 
+  def conf = Action {
+    import play.api.Configuration
+    val config = Configuration.load("conf/my.conf")
+    val s = config.get[String]("complex-app.something").getOrElse("boooooo")
+    val c = try { config.underlying.getString("nokey") } catch {
+                 case e: com.typesafe.config.ConfigException => "None"
+                }
+    Ok(s + " no key: " + c)
+  }
   def post = Action {
     Ok(views.html.index("POST!"))
   }
