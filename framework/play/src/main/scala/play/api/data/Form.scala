@@ -168,6 +168,11 @@ case class Field(name: String, constraints: Seq[(String, Seq[Any])], format: Opt
    * @return an error
    */
   def error: Option[FormError] = errors.headOption
+
+  /**
+   * Check if this field has errors.
+   */
+  def hasErrors: Boolean = !errors.isEmpty
 }
 
 /** Provides a set of operations for creating `Form` values. */

@@ -73,7 +73,7 @@ object Action {
    *
    * For example:
    * {{{
-   * val echo = Action(anyContentParser) { request =>
+   * val echo = Action(parse.anyContent) { request =>
    *   Ok("Got request [" + request + "]")
    * }
    * }}}

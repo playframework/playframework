@@ -1,0 +1,38 @@
+@**
+ * Default field constructor.
+ *
+ * It generates field as following:
+ * {{{
+ * <dl class="error">
+ *   <dt><label for="name">Your name:</label></dt>
+ *   <dd><input type="text" id="name" name="name"></dd>
+ *   <dd class="error">This field is required</dd>
+ *   <dd class="info">Required</dd>
+ * </dl>
+ * }}}
+ *
+ * @param el The field informations.
+ *@
+@(elements: FieldElements)
+
+@errors = @{
+    elements.field.errors.map(e => play.api.i18n.Messages(e.message, e.args:_*))
+}
+
+@infos = @{
+    if(elements.showInfo) {
+        elements.field.constraints.map(c => play.api.i18n.Messages(c._1, c._2:_*)) ++ 
+        elements.field.format.map(f => play.api.i18n.Messages(f._1, f._2:_*))
+    } else Nil
+}
+
+<dl @if(errors.size > 0) { class="error" }>
+    <dt><label for="@elements.id">@elements.label.getOrElse(elements.field.name)</label></dt>
+    <dd>@elements.input</dd>
+    @errors.map { error =>
+        <dd class="error">@error</dd>
+    }
+    @infos.map { info =>
+        <dd class="info">@info</dd>
+    }
+</dl>

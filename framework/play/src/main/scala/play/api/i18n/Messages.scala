@@ -99,7 +99,7 @@ object Messages {
     }
 
     def parse = {
-      parser(new CharSequenceReader(messageInput.slurpString)) match {
+      parser(new CharSequenceReader(messageInput.slurpString + "\n")) match {
         case Success(messages, _) => messages
         case NoSuccess(message, in) => {
           throw new PlayException("Configuration error", message) with PlayException.ExceptionSource {

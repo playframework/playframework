@@ -4,22 +4,22 @@ import scala.collection.JavaConverters._
 
 package views.html.helper {
 
-  case class InputElements(label: Html, input: Html, errors: Seq[String], infos: Seq[String])
+  case class FieldElements(id: String, field: play.api.data.Field, input: Html, label: Option[String], showInfo: Boolean = true)
 
-  trait InputConstructor extends NotNull {
-    def apply(elts: InputElements): Html
+  trait FieldConstructor extends NotNull {
+    def apply(elts: FieldElements): Html
   }
 
-  object InputConstructor {
+  object FieldConstructor {
 
-    implicit val defaultInput = InputConstructor(views.html.helper.defaultInputHandler.f)
+    implicit val defaultField = FieldConstructor(views.html.helper.defaultFieldHandler.f)
 
-    def apply(f: (InputElements) => Html): InputConstructor = new InputConstructor {
-      def apply(elts: InputElements) = f(elts)
+    def apply(f: (FieldElements) => Html): FieldConstructor = new FieldConstructor {
+      def apply(elts: FieldElements) = f(elts)
     }
 
-    implicit def inlineInputConstructor(f: (InputElements) => Html) = InputConstructor(f)
-    implicit def templateAsInputConstructor(t: Template1[InputElements, Html]) = InputConstructor(t.render)
+    implicit def inlineFieldConstructor(f: (FieldElements) => Html) = FieldConstructor(f)
+    implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]) = FieldConstructor(t.render)
 
   }
 
