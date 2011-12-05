@@ -27,7 +27,7 @@ sealed trait AnyContent {
     case _ => None
   }
 
-  def asJson: Option[JValue] = this match {
+  def asJson: Option[JsValue] = this match {
     case AnyContentAsJson(json) => Some(json)
     case _ => None
   }
@@ -44,7 +44,7 @@ case class AnyContentAsText(txt: String) extends AnyContent
 case class AnyContentAsUrlFormEncoded(data: Map[String, Seq[String]]) extends AnyContent
 case class AnyContentAsRaw(raw: Array[Byte]) extends AnyContent
 case class AnyContentAsXml(xml: NodeSeq) extends AnyContent
-case class AnyContentAsJson(jsno: JValue) extends AnyContent
+case class AnyContentAsJson(jsno: JsValue) extends AnyContent
 
 trait BodyParsers {
 
