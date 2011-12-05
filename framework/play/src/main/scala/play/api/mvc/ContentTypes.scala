@@ -4,8 +4,7 @@ import java.io._
 
 import scala.xml._
 
-import play.api.Json
-import play.api.json.AST._
+import play.api.json._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.Files.{ TemporaryFile }
@@ -65,7 +64,7 @@ trait BodyParsers {
     def tolerantJson: BodyParser[JsValue] = BodyParser { request =>
       Iteratee.consume.mapDone { bytes =>
         scala.util.control.Exception.allCatch[JsValue].either {
-          Json.parse(new String(bytes, request.charset.getOrElse("utf-8")))
+          parseJson(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
           (Results.BadRequest, bytes)
         }

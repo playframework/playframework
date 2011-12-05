@@ -4,8 +4,7 @@ import play.api.mvc._
 import play.api.cache.Cache
 import play.cache.{Cache=>JCache}
 
-import play.api.Json._
-import play.api.json.Formats._
+import play.api.json._
 import models._
 import models.Protocol._
 
@@ -33,7 +32,7 @@ object Application extends Controller {
   }
 
   def json = Action {
-    Ok(tojson(User(1, "Sadek", List("tea"))))
+    Ok(toJson(User(1, "Sadek", List("tea"))))
   }
 
   def index_java_cache = Action {

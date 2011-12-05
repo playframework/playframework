@@ -290,7 +290,7 @@ trait Results {
   import play.api.http.HeaderNames._
   import play.api.http.ContentTypes
   import play.api.templates._
-  import play.api.json.AST._
+  import play.api.json._
 
   /** `Writeable` for `Content` values. */
   implicit def writeableOf_Content[C <: Content](implicit codec: Codec): Writeable[C] = {
