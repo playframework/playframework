@@ -44,18 +44,21 @@ object AST {
         case _ => JsNull
       }
     }
+
+    override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
+
   }
 
   case class JsObject(override val value: Map[String, JsValue]) extends JsValue {
 
     override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(JsNull)
-    /*
+
     override def \\(fieldName: String): Seq[JsValue] = {
-      values.flatMap {
-        case (key, value) if key == fieldName => Seq(value) ++ (value \\ fieldName)
-        case (_, value) => value \\ fieldName
-      }
-    }*/
+      value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
+        case (key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
+        case (_, value) => o ++ (value \\ fieldName)
+      })
+    }
   }
 
   import org.codehaus.jackson.{ JsonGenerator, JsonToken, JsonParser }

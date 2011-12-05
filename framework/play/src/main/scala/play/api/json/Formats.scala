@@ -114,5 +114,10 @@ object Formats {
     }
   }
 
+  implicit object JsValueFormat extends Format[JsValue] {
+    def writes(o: JsValue) = o
+    def reads(json: JsValue) = json
+  }
+
 }
 
