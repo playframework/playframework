@@ -568,7 +568,6 @@ object PlayProject extends Plugin {
       } catch {
         case e => {
           sys.error("Invalid port argument: " + portString)
-          None
         }
       }
     }
