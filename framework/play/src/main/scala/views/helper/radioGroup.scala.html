@@ -1,0 +1,11 @@
+@(field:play.api.data.Field, options:Seq[(String,String)], args:(Symbol,Any)*)(implicit handler: InputConstructor, innerHandler: RadioConstructor = defaultRadio)
+
+@defining(Utils.filter(args, 'id -> field.id, 'label -> field.name, 'default -> null)) { args =>
+    @input(field, args._1('id), Some(args._1('label)), showInfo = false) { (id,name,value) =>
+        @options.map { v =>
+            @radio(field.name, v._1, Some(v._2)) { (id2,value2) =>
+                <input type="radio" value="@value2" id="@id2" name="@id2" @(if(value == Some(value2) || (!value.isDefined && args._1('default) == value2)) Html("checked=\"checked\"") else "") @toHtmlArgs(args._2)>
+            }(innerHandler)
+        }
+    }(handler)
+}

@@ -6,7 +6,7 @@ package views.html
 package object helper {
 
   /**
-   * Default inpout structure.
+   * Default input structure.
    *
    * {{{
    * <dl>
@@ -18,5 +18,17 @@ package object helper {
    * }}}
    */
   val defaultInput = defaultInputHandler.f
+
+  /**
+   * Default radio structure.
+   *
+   * {{{
+   * <p>
+   *   <input type="radio" name="country" id="country" value="germany">
+   *   <label for="germany">Germany</label>
+   * </p>
+   * }}}
+   */
+  val defaultRadio = defaultRadioHandler.f
 
 }
