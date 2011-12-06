@@ -93,12 +93,26 @@ trait Iteratee[E, +A] {
       self.fold({
         case (a, Input.Empty) => f(a).fold(done, cont, error)
         case (a, e) => f(a).fold(
-          (a, e) => done(a, e),
+          (a, _) => done(a, e),
           k => k(e).fold(done, cont, error),
           error)
       },
         ((k) => cont(e => (k(e).flatMap(f)))),
         error)
+
+  }
+
+  def joinI[EIn, AIn](implicit in: A <:< Iteratee[EIn, AIn]): Iteratee[E, AIn] = {
+    this.flatMap { a =>
+      val inner = in(a)
+      inner.pureFlatFold(
+        (a, _) => Done(a, Empty),
+        k => k(EOF).pureFlatFold(
+          (a, _) => Done(a, Empty),
+          k => Error("divergent inner iteratee on joinI after EOF", EOF),
+          (msg, e) => Error(msg, EOF)),
+        (msg, e) => Error(msg, Empty))
+    }
 
   }
 
@@ -179,6 +193,8 @@ trait Enumerator[+E] {
 
 trait Enumeratee[In, Out] {
   def apply[A](inner: Iteratee[In, A]): Iteratee[Out, Iteratee[In, A]]
+
+  def transform[A](inner: Iteratee[In, A]): Iteratee[Out, A] = apply(inner).joinI
 }
 object Enumeratee {
 
