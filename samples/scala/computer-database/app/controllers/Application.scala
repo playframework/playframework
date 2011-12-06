@@ -24,7 +24,7 @@ object Application extends Controller {
    * Describe the computer form (used in both edit and create screens).
    */ 
   val computerForm = Form(
-    of(Computer.apply _)(
+    of(Computer.apply _, Computer.unapply _)(
       "id" -> ignored(NotAssigned),
       "name" -> requiredText,
       "introduced" -> optional(date("yyyy-MM-dd")),

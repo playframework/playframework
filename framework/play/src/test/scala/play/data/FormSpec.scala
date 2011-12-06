@@ -62,7 +62,7 @@ object FormSpec extends Specification {
     case class User(name: String, age: Int)
 
     val userForm = Form(
-      of(User)(
+      of(User.apply _, User.unapply _)(
         "name" -> of[String].verifying(required),
         "age" -> of[Int].verifying(min(0), max(100))))
     val loginForm = Form(

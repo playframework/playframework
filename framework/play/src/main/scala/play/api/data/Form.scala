@@ -12,7 +12,7 @@ import validation._
  * import play.api.data.format.Formats._
  *
  * val userForm = Form(
- *   of(User)(
+ *   of(User.apply _, User.unapply _)(
  *     "name" -> of[String],
  *     "age" -> of[Int],
  *     "email" -> of[String]
