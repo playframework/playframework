@@ -373,8 +373,10 @@ object Evolutions {
 class EvolutionsPlugin(app: Application) extends Plugin {
 
   import Evolutions._
+  
+  val pluginDisabled = app.configuration.getBoolean("evolutions.enabled").headOption
 
-  override def enabled = app.configuration.getSub("db").isDefined
+  override def enabled = app.configuration.getSub("db").isDefined && pluginDisabled.getOrElse(true)
 
   /** Checks the evolutions state. */
   override def onStart {
