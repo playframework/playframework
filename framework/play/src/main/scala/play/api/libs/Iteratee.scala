@@ -106,12 +106,12 @@ trait Iteratee[E, +A] {
     this.flatMap { a =>
       val inner = in(a)
       inner.pureFlatFold(
-        (a, _) => Done(a, Empty),
-        k => k(EOF).pureFlatFold(
-          (a, _) => Done(a, Empty),
-          k => Error("divergent inner iteratee on joinI after EOF", EOF),
-          (msg, e) => Error(msg, EOF)),
-        (msg, e) => Error(msg, Empty))
+        (a, _) => Done(a, Input.Empty),
+        k => k(Input.EOF).pureFlatFold(
+          (a, _) => Done(a, Input.Empty),
+          k => Error("divergent inner iteratee on joinI after EOF", Input.EOF),
+          (msg, e) => Error(msg, Input.EOF)),
+        (msg, e) => Error(msg, Input.Empty))
     }
 
   }
