@@ -43,6 +43,15 @@ trait JavaAction extends Action[AnyContent] {
             req.body.asText.orNull
           }
 
+          lazy val asJson = {
+            import org.codehaus.jackson._
+            import org.codehaus.jackson.map._
+
+            req.body.asJson.map { json =>
+              new ObjectMapper().readValue(json.toString, classOf[JsonNode])
+            }.orNull
+          }
+
           lazy val asXml = {
             req.body.asXml.map { xml =>
               play.libs.XML.fromString(xml.toString)

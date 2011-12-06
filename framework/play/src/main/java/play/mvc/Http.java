@@ -2,6 +2,9 @@ package play.mvc;
 
 import java.util.*;
 
+import org.w3c.dom.*;
+import org.codehaus.jackson.*;
+
 /**
  * Defines HTTP standard objects.
  */
@@ -181,7 +184,12 @@ public class Http {
         /**
          * The request content as XML.
          */
-        public abstract org.w3c.dom.Document asXml();
+        public abstract Document asXml();
+        
+        /**
+         * The request content as Json.
+         */
+        public abstract JsonNode asJson();
         
     }
     
