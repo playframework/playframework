@@ -48,7 +48,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            resolvers ++= Seq(DefaultMavenRepository, typesafe, codahale),
+            resolvers ++= Seq(DefaultMavenRepository, typesafe),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
             compile in (Compile) <<= PostCompile,
             ivyLoggingLevel := UpdateLogging.DownloadOnly
@@ -103,7 +103,6 @@ object PlayBuild extends Build {
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
         val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-        var codahale = "Codahale" at "http://repo.codahale.com" // For Jerkson (json library)
     }
 
     object Dependencies {
