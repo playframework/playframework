@@ -31,8 +31,16 @@ object PlayProject extends Plugin {
 
   // ----- Exceptions
 
+  def filterAnnoyingErrorMessages(message: String): String = {
+    val overloaded = """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r
+    message match {
+      case overloaded(method, _, signature) => "Overloaded method value [" + method + "] cannot be applied to " + signature
+      case msg => msg
+    }
+  }
+
   case class CompilationException(problem: xsbti.Problem) extends PlayException(
-    "Compilation error", problem.message) with PlayException.ExceptionSource {
+    "Compilation error", filterAnnoyingErrorMessages(problem.message)) with PlayException.ExceptionSource {
     def line = problem.position.line.map(m => m.asInstanceOf[Int])
     def position = problem.position.pointer.map(m => m.asInstanceOf[Int])
     def input = problem.position.sourceFile.map(scalax.file.Path(_))
