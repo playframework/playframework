@@ -1,27 +1,45 @@
 package play.api.json
 
-import org.codehaus.jackson.map.module.SimpleModule
-import org.codehaus.jackson.Version
-import org.codehaus.jackson.map.Module.SetupContext
-
+import org.codehaus.jackson.{ JsonGenerator, JsonToken, JsonParser }
 import org.codehaus.jackson.`type`.JavaType
 import org.codehaus.jackson.map._
-import scala.collection.{ Traversable, MapLike, immutable, mutable }
-import scala.collection.generic.{ MapFactory, GenericCompanion }
+import org.codehaus.jackson.map.annotate.JsonCachable
+import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
+
+import scala.collection._
 
 object `package` {
 
+  /**
+   * Parse a String representing a json, and return it as a JsValue
+   * @param input a String to parse
+   * @return the JsValue representing the strgin
+   */
   def parseJson(input: String): JsValue = JerksonJson.parse[JsValue](input)
 
+  /**
+   * Convert a JsValue to its string representation.
+   * @param json the JsValue to convert
+   * @return a String with the json representation
+   */
   def stringify(json: JsValue): String = JerksonJson.generate(json)
 
+  /**
+   * Provided a Reads implicit for its type is available, convert any object into a JsValue
+   */
   def toJson[T](o: T)(implicit tjs: Writes[T]): JsValue = tjs.writes(o)
 
+  /**
+   * Provided a Writes implicit for that type is available, convert a JsValue to any type
+   */
   def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): T = fjs.reads(json)
 
 }
 
 private object JerksonJson extends com.codahale.jerkson.Json {
+  import org.codehaus.jackson.Version
+  import org.codehaus.jackson.map.module.SimpleModule
+  import org.codehaus.jackson.map.Module.SetupContext
 
   object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
     override def setupModule(context: SetupContext) {
@@ -33,14 +51,29 @@ private object JerksonJson extends com.codahale.jerkson.Json {
 
 }
 
+/**
+ * Json serializer: write an implicit to define a serializer for any type
+ */
 trait Writes[T] {
+  /**
+   * Convert the object into a JsValue
+   */
   def writes(o: T): JsValue
 }
 
+/**
+ * Json deserializer: write an implicit to define a deserializer for any type
+ */
 trait Reads[T] {
+  /**
+   * Convert the JsValue into a T
+   */
   def reads(json: JsValue): T
 }
 
+/**
+ * Json formatter: write an implicit to define both a serializer and a deserializer for any type
+ */
 trait Format[T] extends Writes[T] with Reads[T]
 
 object Reads {
@@ -124,7 +157,6 @@ object Reads {
     }
   }
 
-  import scala.collection._
   implicit def mutableSetReads[T](implicit fmt: Reads[T]): Reads[mutable.Set[T]] =
     viaSeq((x: Seq[T]) => mutable.Set(x: _*))
 
@@ -220,6 +252,9 @@ object Writes {
 
 // AST
 
+/**
+ * Generic json value
+ */
 sealed trait JsValue {
   import scala.util.control.Exception._
 
@@ -227,14 +262,35 @@ sealed trait JsValue {
 
   def valueAs[A]: A = value.asInstanceOf[A]
 
+  /**
+   * Return the property corresponding to the fieldName, supposing we have a JsObject.
+   * @param fieldName the name of the property to lookup
+   * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
+   */
   def \(fieldName: String): JsValue = JsUndefined("'" + fieldName + "'" + " is undefined on object: " + this)
 
+  /**
+   * Return the element at a given index, supposing we have a JsArray.
+   * @param idx the index to lookup
+   * @param the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
+   */
   def apply(idx: Int): JsValue = JsUndefined(this.toString + " is not an array")
 
+  /**
+   * Lookup for fieldName in the current object and all descendants.
+   * @return the list of matching nodes
+   */
   def \\(fieldName: String): Seq[JsValue] = Nil
 
+  /**
+   * Tries to convert the node into a T. An implicit Reads[T] must be defined.
+   * @return Some[T] if it succeeds, None if it fails.
+   */
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this))
 
+  /**
+   * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
+   */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
 
   override def toString = stringify(this)
@@ -261,7 +317,7 @@ case class JsArray(override val value: List[JsValue]) extends JsValue {
     try {
       value(index)
     } catch {
-      case _ => JsNull
+      case _ => JsUndefined("Array index out of bounds in " + this)
     }
   }
 
@@ -281,14 +337,8 @@ case class JsObject(override val value: Map[String, JsValue]) extends JsValue {
   }
 }
 
-import org.codehaus.jackson.{ JsonGenerator, JsonToken, JsonParser }
-import org.codehaus.jackson.map.{ SerializerProvider, JsonSerializer, DeserializationContext, JsonDeserializer }
-import org.codehaus.jackson.map.annotate.JsonCachable
-import org.codehaus.jackson.`type`.JavaType
-import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
-
 @JsonCachable
-class JsValueSerializer extends JsonSerializer[JsValue] {
+private class JsValueSerializer extends JsonSerializer[JsValue] {
 
   def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
@@ -314,7 +364,7 @@ class JsValueSerializer extends JsonSerializer[JsValue] {
 }
 
 @JsonCachable
-class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
+private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
   def deserialize(jp: JsonParser, ctxt: DeserializationContext): Object = {
     if (jp.getCurrentToken == null) {
       jp.nextToken()
@@ -354,7 +404,7 @@ class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDes
   }
 }
 
-class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
+private class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
   override def findBeanDeserializer(javaType: JavaType, config: DeserializationConfig,
     provider: DeserializerProvider, beanDesc: BeanDescription,
     property: BeanProperty) = {
@@ -366,7 +416,7 @@ class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
 
 }
 
-class PlaySerializers extends Serializers.Base {
+private class PlaySerializers extends Serializers.Base {
   override def findSerializer(config: SerializationConfig, javaType: JavaType, beanDesc: BeanDescription, beanProp: BeanProperty) = {
     val ser: Object = if (classOf[JsValue].isAssignableFrom(beanDesc.getBeanClass)) {
       new JsValueSerializer

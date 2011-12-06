@@ -310,7 +310,7 @@ trait Mapping[T] {
    * {{{
    *   import play.api.data._
    *   import play.api.data.validation.Constraints._
-   * 
+   *
    *   Form("phonenumber" -> text.verifying("Bad phone number", {_.grouped(2).size == 5}))
    * }}}
    *
@@ -426,7 +426,7 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
    * {{{
    *   import play.api.data._
    *   import play.api.data.validation.Constraints._
-   * 
+   *
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
@@ -568,7 +568,7 @@ case class ObjectMapping1[T <: Product, A](apply: Function1[A, T], fa: (String, 
    * {{{
    *   import play.api.data._
    *   import validation.Constraints._
-   * 
+   *
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
