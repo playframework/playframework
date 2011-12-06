@@ -53,62 +53,60 @@ package object data {
    * @tparam T the mapping type
    * @return a mapping for type `T`
    */
-  def of[R <: Product, A1](apply: Function1[A1, R])(a1: (String, Mapping[A1])): Mapping[R] = {
-    ObjectMapping1(apply, a1)
+
+  def of[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]])(a1: (String, Mapping[A1])): Mapping[R] = {
+    ObjectMapping1(apply, unapply, a1)
   }
-  def of[R <: Product, A1, A2](apply: Function2[A1, A2, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2])): Mapping[R] = {
-    ObjectMapping2(apply, a1, a2)
+  def of[R, A1, A2](apply: Function2[A1, A2, R], unapply: Function1[R, Option[(A1, A2)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2])): Mapping[R] = {
+    ObjectMapping2(apply, unapply, a1, a2)
   }
-  def of[R <: Product, A1, A2, A3](apply: Function3[A1, A2, A3, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3])): Mapping[R] = {
-    ObjectMapping3(apply, a1, a2, a3)
+  def of[R, A1, A2, A3](apply: Function3[A1, A2, A3, R], unapply: Function1[R, Option[(A1, A2, A3)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3])): Mapping[R] = {
+    ObjectMapping3(apply, unapply, a1, a2, a3)
   }
-  def of[R <: Product, A1, A2, A3, A4](apply: Function4[A1, A2, A3, A4, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4])): Mapping[R] = {
-    ObjectMapping4(apply, a1, a2, a3, a4)
+  def of[R, A1, A2, A3, A4](apply: Function4[A1, A2, A3, A4, R], unapply: Function1[R, Option[(A1, A2, A3, A4)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4])): Mapping[R] = {
+    ObjectMapping4(apply, unapply, a1, a2, a3, a4)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5](apply: Function5[A1, A2, A3, A4, A5, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5])): Mapping[R] = {
-    ObjectMapping5(apply, a1, a2, a3, a4, a5)
+  def of[R, A1, A2, A3, A4, A5](apply: Function5[A1, A2, A3, A4, A5, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5])): Mapping[R] = {
+    ObjectMapping5(apply, unapply, a1, a2, a3, a4, a5)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6](apply: Function6[A1, A2, A3, A4, A5, A6, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6])): Mapping[R] = {
-    ObjectMapping6(apply, a1, a2, a3, a4, a5, a6)
+  def of[R, A1, A2, A3, A4, A5, A6](apply: Function6[A1, A2, A3, A4, A5, A6, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6])): Mapping[R] = {
+    ObjectMapping6(apply, unapply, a1, a2, a3, a4, a5, a6)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7](apply: Function7[A1, A2, A3, A4, A5, A6, A7, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7])): Mapping[R] = {
-    ObjectMapping7(apply, a1, a2, a3, a4, a5, a6, a7)
+  def of[R, A1, A2, A3, A4, A5, A6, A7](apply: Function7[A1, A2, A3, A4, A5, A6, A7, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7])): Mapping[R] = {
+    ObjectMapping7(apply, unapply, a1, a2, a3, a4, a5, a6, a7)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8](apply: Function8[A1, A2, A3, A4, A5, A6, A7, A8, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8])): Mapping[R] = {
-    ObjectMapping8(apply, a1, a2, a3, a4, a5, a6, a7, a8)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8](apply: Function8[A1, A2, A3, A4, A5, A6, A7, A8, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8])): Mapping[R] = {
+    ObjectMapping8(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9](apply: Function9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9])): Mapping[R] = {
-    ObjectMapping9(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9](apply: Function9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9])): Mapping[R] = {
+    ObjectMapping9(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](apply: Function10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10])): Mapping[R] = {
-    ObjectMapping10(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](apply: Function10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10])): Mapping[R] = {
+    ObjectMapping10(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](apply: Function11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11])): Mapping[R] = {
-    ObjectMapping11(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](apply: Function11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11])): Mapping[R] = {
+    ObjectMapping11(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](apply: Function12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12])): Mapping[R] = {
-    ObjectMapping12(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](apply: Function12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12])): Mapping[R] = {
+    ObjectMapping12(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](apply: Function13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13])): Mapping[R] = {
-    ObjectMapping13(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](apply: Function13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13])): Mapping[R] = {
+    ObjectMapping13(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](apply: Function14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14])): Mapping[R] = {
-    ObjectMapping14(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](apply: Function14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14])): Mapping[R] = {
+    ObjectMapping14(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](apply: Function15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15])): Mapping[R] = {
-    ObjectMapping15(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](apply: Function15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15])): Mapping[R] = {
+    ObjectMapping15(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](apply: Function16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16])): Mapping[R] = {
-    ObjectMapping16(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](apply: Function16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16])): Mapping[R] = {
+    ObjectMapping16(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](apply: Function17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17])): Mapping[R] = {
-    ObjectMapping17(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](apply: Function17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17])): Mapping[R] = {
+    ObjectMapping17(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](apply: Function18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18])): Mapping[R] = {
-    ObjectMapping18(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
-  }
-  def of[R <: Product, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](apply: Function19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18]), a19: (String, Mapping[A19])): Mapping[R] = {
-    ObjectMapping19(apply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
+  def of[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](apply: Function18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R], unapply: Function1[R, Option[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18])): Mapping[R] = {
+    ObjectMapping18(apply, unapply, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
   /**
@@ -129,95 +127,42 @@ package object data {
    *
    * @return a mapping for a tuple `(A,B)`
    */
-  def of[A, B](a: (String, Mapping[A]), b: (String, Mapping[B])): Mapping[(A, B)] = of((a: A, b: B) => (a, b))(a, b)
 
-  def of[A, B, C](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C])): Mapping[(A, B, C)] = of((a: A, b: B, c: C) => (a, b, c))(a, b, c)
+  def of[A1](a1: (String, Mapping[A1])): Mapping[(A1)] = of((a1: A1) => (a1), (t: (A1)) => Some(t))(a1)
 
-  def of[A, B, C, D](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]), d: (String, Mapping[D])): Mapping[(A, B, C, D)] = of((a: A, b: B, c: C, d: D) => (a, b, c, d))(a, b, c, d)
+  def of[A1, A2](a1: (String, Mapping[A1]), a2: (String, Mapping[A2])): Mapping[(A1, A2)] = of((a1: A1, a2: A2) => (a1, a2), (t: (A1, A2)) => Some(t))(a1, a2)
 
-  def of[A, B, C, D, E](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]), d: (String, Mapping[D]), e: (String, Mapping[E])): Mapping[(A, B, C, D, E)] = of((a: A, b: B, c: C, d: D, e: E) => (a, b, c, d, e))(a, b, c, d, e)
+  def of[A1, A2, A3](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3])): Mapping[(A1, A2, A3)] = of((a1: A1, a2: A2, a3: A3) => (a1, a2, a3), (t: (A1, A2, A3)) => Some(t))(a1, a2, a3)
 
-  def of[A, B, C, D, E, F](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F])): Mapping[(A, B, C, D, E, F)] = of((a: A, b: B, c: C, d: D, e: E, f: F) => (a, b, c, d, e, f))(a, b, c, d, e, f)
+  def of[A1, A2, A3, A4](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4])): Mapping[(A1, A2, A3, A4)] = of((a1: A1, a2: A2, a3: A3, a4: A4) => (a1, a2, a3, a4), (t: (A1, A2, A3, A4)) => Some(t))(a1, a2, a3, a4)
 
-  def of[A, B, C, D, E, F, G](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G])): Mapping[(A, B, C, D, E, F, G)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G) => (a, b, c, d, e, f, g))(a, b, c, d, e, f, g)
+  def of[A1, A2, A3, A4, A5](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5])): Mapping[(A1, A2, A3, A4, A5)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => (a1, a2, a3, a4, a5), (t: (A1, A2, A3, A4, A5)) => Some(t))(a1, a2, a3, a4, a5)
 
-  def of[A, B, C, D, E, F, G, H](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G]), h: (String, Mapping[H])): Mapping[(A, B, C, D, E, F, G, H)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H) => (a, b, c, d, e, f, g, h))(a, b, c, d, e, f, g, h)
+  def of[A1, A2, A3, A4, A5, A6](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6])): Mapping[(A1, A2, A3, A4, A5, A6)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => (a1, a2, a3, a4, a5, a6), (t: (A1, A2, A3, A4, A5, A6)) => Some(t))(a1, a2, a3, a4, a5, a6)
 
-  def of[A, B, C, D, E, F, G, H, I](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G]), h: (String, Mapping[H]), i: (String, Mapping[I])): Mapping[(A, B, C, D, E, F, G, H, I)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I) => (a, b, c, d, e, f, g, h, i))(a, b, c, d, e, f, g, h, i)
+  def of[A1, A2, A3, A4, A5, A6, A7](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7])): Mapping[(A1, A2, A3, A4, A5, A6, A7)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => (a1, a2, a3, a4, a5, a6, a7), (t: (A1, A2, A3, A4, A5, A6, A7)) => Some(t))(a1, a2, a3, a4, a5, a6, a7)
 
-  def of[A, B, C, D, E, F, G, H, I, J](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]), g: (String, Mapping[G]), h: (String, Mapping[H]), i: (String, Mapping[I]), j: (String, Mapping[J])): Mapping[(A, B, C, D, E, F, G, H, I, J)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J) => (a, b, c, d, e, f, g, h, i, j))(a, b, c, d, e, f, g, h, i, j)
-  //10th
-  def of[A, B, C, D, E, F, G, H, I, J, K](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]), i: (String, Mapping[I]), j: (String, Mapping[J]), k: (String, Mapping[K])): Mapping[(A, B, C, D, E, F, G, H, I, J, K)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K) => (a, b, c, d, e, f, g, h, i, j, k))(a, b, c, d, e, f, g, h, i, j, k)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => (a1, a2, a3, a4, a5, a6, a7, a8), (t: (A1, A2, A3, A4, A5, A6, A7, A8)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L) => (a, b, c, d, e, f, g, h, i, j, k, l))(a, b, c, d, e, f, g, h, i, j, k, l)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => (a1, a2, a3, a4, a5, a6, a7, a8, a9), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]), n: (String, Mapping[N])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N) => (a, b, c, d, e, f, g, h, i, j, k, l, n))(a, b, c, d, e, f, g, h, i, j, k, l, n)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]), n: (String, Mapping[N]), m: (String, Mapping[M])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M)] = of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m))(a, b, c, d, e, f, g, h, i, j, k, l, n, m)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]),
-    n: (String, Mapping[N]), m: (String, Mapping[M]),
-    o: (String, Mapping[O])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O)] =
-    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]),
-    n: (String, Mapping[N]), m: (String, Mapping[M]),
-    o: (String, Mapping[O]), p: (String, Mapping[P])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P)] =
-    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]),
-    n: (String, Mapping[N]), m: (String, Mapping[M]),
-    o: (String, Mapping[O]), p: (String, Mapping[P]), r: (String, Mapping[R])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R)] =
-    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P, r: R) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]),
-    n: (String, Mapping[N]), m: (String, Mapping[M]),
-    o: (String, Mapping[O]), p: (String, Mapping[P]), r: (String, Mapping[R]), s: (String, Mapping[S])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S)] =
-    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P, r: R, s: S) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
 
-  def of[A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S, T](a: (String, Mapping[A]), b: (String, Mapping[B]), c: (String, Mapping[C]),
-    d: (String, Mapping[D]), e: (String, Mapping[E]), f: (String, Mapping[F]),
-    g: (String, Mapping[G]), h: (String, Mapping[H]),
-    i: (String, Mapping[I]), j: (String, Mapping[J]),
-    k: (String, Mapping[K]), l: (String, Mapping[L]),
-    n: (String, Mapping[N]), m: (String, Mapping[M]),
-    o: (String, Mapping[O]), p: (String, Mapping[P]), r: (String, Mapping[R]), s: (String, Mapping[S]), t: (String, Mapping[T])): Mapping[(A, B, C, D, E, F, G, H, I, J, K, L, N, M, O, P, R, S, T)] =
-    of((a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, n: N, m: M, o: O, p: P, r: R, s: S, t: T) => (a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s, t))(a, b, c, d, e, f, g, h, i, j, k, l, n, m, o, p, r, s, t)
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
+
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
+
+  def of[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](a1: (String, Mapping[A1]), a2: (String, Mapping[A2]), a3: (String, Mapping[A3]), a4: (String, Mapping[A4]), a5: (String, Mapping[A5]), a6: (String, Mapping[A6]), a7: (String, Mapping[A7]), a8: (String, Mapping[A8]), a9: (String, Mapping[A9]), a10: (String, Mapping[A10]), a11: (String, Mapping[A11]), a12: (String, Mapping[A12]), a13: (String, Mapping[A13]), a14: (String, Mapping[A14]), a15: (String, Mapping[A15]), a16: (String, Mapping[A16]), a17: (String, Mapping[A17]), a18: (String, Mapping[A18])): Mapping[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] = of((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18), (t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) => Some(t))(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
 
   // --
 

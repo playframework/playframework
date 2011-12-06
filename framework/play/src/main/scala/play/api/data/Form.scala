@@ -230,7 +230,7 @@ object Form {
  * @param message The form message (often a simple message key needing to be translated).
  * @param args Arguments used to format the message.
  */
-case class FormError(key: String, message: String, args: Seq[Any])
+case class FormError(key: String, message: String, args: Seq[Any] = Nil)
 
 /** A mapping is a two-way binder to handle a form field. */
 trait Mapping[T] {
@@ -520,67 +520,39 @@ trait ObjectMapping {
  * @param fa a mapping for field `A`
  * @param constraints constraints associated with this mapping
  */
-case class ObjectMapping1[T <: Product, A](apply: Function1[A, T], fa: (String, Mapping[A]), val key: String = "", val constraints: Seq[Constraint[T]] = Nil) extends Mapping[T] with ObjectMapping {
 
-  val fieldA = fa._2.withPrefix(fa._1).withPrefix(key)
+case class ObjectMapping1[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]], f1: (String, Mapping[A1]), val key: String = "", val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
 
-  /**
-   * Binds this object, i.e. constructs a concrete value from submitted data.
-   *
-   * @param data the submitted data
-   * @return either a concrete value of type `T` or a set of errors, if the binding failed
-   */
-  def bind(data: Map[String, String]): Either[Seq[FormError], T] = {
-    merge(fieldA.bind(data)) match {
+  val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
+
+  def bind(data: Map[String, String]) = {
+    merge(field1.bind(data)) match {
       case Left(errors) => Left(errors)
       case Right(values) => {
         applyConstraints(apply(
-          values(0).asInstanceOf[A]))
+
+          values(0).asInstanceOf[A1]))
       }
     }
   }
 
-  /**
-   * Unbinds this object, i.e. transforms a concrete value to plain data.
-   *
-   * @param value the value to unbind
-   * @return either the plain data or a set of errors, if the unbinding failed
-   */
-  def unbind(value: T): (Map[String, String], Seq[FormError]) = {
-    val a = fieldA.unbind(value.productElement(0).asInstanceOf[A])
-    (a._1) -> (a._2)
+  def unbind(value: R) = {
+    unapply(value).map { fields =>
+      val (v1) = fields
+      val a1 = field1.unbind(v1)
+
+      (a1._1) ->
+        (a1._2)
+    }.getOrElse(Map.empty -> Seq(FormError(key, "unbind.failed")))
   }
 
-  /**
-   * Constructs a new Mapping based on this one, adding a prefix to the key.
-   *
-   * @param prefix the prefix to add to the key
-   * @return the same mapping, with only the key changed
-   */
-  def withPrefix(prefix: String): Mapping[T] = {
-    addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
-  }
+  def withPrefix(prefix: String) = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
 
-  /**
-   * Constructs a new Mapping based on this one, by adding new constraints.
-   *
-   * For example:
-   * {{{
-   *   import play.api.data._
-   *   import validation.Constraints._
-   *
-   *   Form("phonenumber" -> text.verifying(required) )
-   * }}}
-   *
-   * @param constraints the constraints to add
-   * @return the new mapping
-   */
-  def verifying(addConstraints: Constraint[T]*): Mapping[T] = {
+  def verifying(addConstraints: Constraint[R]*) = {
     this.copy(constraints = constraints ++ addConstraints.toSeq)
   }
 
-  /** Sub-mappings (these can be seen as sub-keys). */
-  val mappings: Seq[Mapping[_]] = Seq(this) ++ fieldA.mappings
+  val mappings = Seq(this) ++ field1.mappings
 
 }
 
