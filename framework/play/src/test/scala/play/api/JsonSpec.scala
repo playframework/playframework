@@ -1,14 +1,13 @@
 package play.api.json
 
 import org.specs2.mutable._
-import play.api.Json
+import play.api.json._
 
 object JsonSpec extends Specification {
 
-  import Formats._
-  import AST._
   case class User(id: Long, name: String, friends: List[User])
-  implicit object UserFormat extends Json.Format[User] {
+
+  implicit object UserFormat extends Format[User] {
     def reads(json: JsValue): User = User(
       (json \ "id").as[Long],
       (json \ "name").as[String],
@@ -26,7 +25,7 @@ object JsonSpec extends Specification {
       val kinopio = User(2, "Kinopio", List())
       val yoshi = User(3, "Yoshi", List())
       val mario = User(0, "Mario", List(luigi, kinopio, yoshi))
-      val jsonMario = Json.tojson(mario)
+      val jsonMario = toJson(mario)
       jsonMario.as[User] must equalTo(mario)
       (jsonMario \\ "name") must equalTo(Seq(JsString("Mario"), JsString("Luigi"), JsString("Kinopio"), JsString("Yoshi")))
     }

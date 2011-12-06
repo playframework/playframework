@@ -14,6 +14,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
     def asRaw = null
     def asText = null
     def asXml = null
+    def asJson = null
   }
   def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
