@@ -262,8 +262,18 @@ object Router {
                   path, hash, date,
                   packageName,
                   routes.groupBy(_.call.controller).map {
-                    case (controller, _) => {
-                      "public static final " + packageName + ".Reverse" + controller + " " + controller + " = new " + packageName + ".Reverse" + controller + "();"
+                    case (controller, routes) => {
+                      val fields = routes.groupBy(_.call.field)
+                      if (fields.size == 1 && fields.keys.head == None) {
+                        "public static final " + packageName + ".Reverse" + controller + " " + controller + " = new " + packageName + ".Reverse" + controller + "();"
+                      } else {
+                        "public static class Reverse" + controller + " extends " + packageName + ".Reverse" + controller + " {\n" + {
+                          fields.keys.collect { case Some(f) => f }.map { field =>
+                            "public Reverse" + controller + "_" + field + " " + field + " = this.new Reverse" + controller + "_" + field + "();"
+                          }.mkString("\n")
+                        } + "\n}\n" +
+                          "public static final Reverse" + controller + " " + controller + " = new Reverse" + controller + "();"
+                      }
                     }
                   }.mkString("\n"),
                   routes.groupBy(_.call.controller).map {
@@ -313,124 +323,141 @@ object Router {
                   // alias
                   controller.replace(".", "_"),
 
-                  // reverse method
-                  routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map {
-                    case ((m, _), routes) =>
+                  // group by field
+                  routes.groupBy(_.call.field).map {
+                    case (field, routes) => {
 
-                      assert(routes.size > 0, "Empty routes set???")
+                      """
+                        |%s
+                        |%s
+                        |%s
+                      """.stripMargin.format(
 
-                      val parameters = routes(0).call.parameters.getOrElse(Nil)
+                        field.map(f => "class Reverse" + controller.replace(".", "_") + "_" + f + " {").getOrElse(""),
 
-                      val reverseParameters = parameters.zipWithIndex.filterNot {
-                        case (p, i) => {
-                          val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
-                          fixeds.size == 1 && fixeds(0) != None
-                        }
-                      }
+                        // reverse method
+                        routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map {
+                          case ((m, _), routes) =>
 
-                      def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
-                        route.verb.value,
-                        route.path.parts.map {
-                          case StaticPart(part) => "\"" + part + "\""
-                          case DynamicPart(name, _) => {
-                            route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                              "(\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
-                            }.getOrElse {
-                              throw new Error("missing key " + name)
+                            assert(routes.size > 0, "Empty routes set???")
+
+                            val parameters = routes(0).call.parameters.getOrElse(Nil)
+
+                            val reverseParameters = parameters.zipWithIndex.filterNot {
+                              case (p, i) => {
+                                val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
+                                fixeds.size == 1 && fixeds(0) != None
+                              }
                             }
 
-                          }
-                        }.mkString(" + "),
+                            def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
+                              route.verb.value,
+                              route.path.parts.map {
+                                case StaticPart(part) => "\"" + part + "\""
+                                case DynamicPart(name, _) => {
+                                  route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
+                                    "(\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+                                  }.getOrElse {
+                                    throw new Error("missing key " + name)
+                                  }
 
-                        {
-                          val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
-                            p.fixed.isDefined ||
-                              route.path.parts.collect {
-                                case DynamicPart(name, _) => name
-                              }.contains(p.name)
-                          }
+                                }
+                              }.mkString(" + "),
 
-                          if (queryParams.size == 0) {
-                            ""
-                          } else {
-                            """ + _qS([%s])""".format(
-                              queryParams.map { p =>
-                                ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
-                              }.map {
-                                case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == \"\"\" +  implicitly[JavascriptLitteral[" + typeName.replace(".", "_") + "]].to(" + default + ") + \"\"\" ? null : " + u + ")"
-                                case (u, Parameter(name, typeName, None, None)) => u
-                              }.mkString(", "))
+                              {
+                                val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
+                                  p.fixed.isDefined ||
+                                    route.path.parts.collect {
+                                      case DynamicPart(name, _) => name
+                                    }.contains(p.name)
+                                }
 
-                          }
+                                if (queryParams.size == 0) {
+                                  ""
+                                } else {
+                                  """ + _qS([%s])""".format(
+                                    queryParams.map { p =>
+                                      ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+                                    }.map {
+                                      case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == \"\"\" +  implicitly[JavascriptLitteral[" + typeName.replace(".", "_") + "]].to(" + default + ") + \"\"\" ? null : " + u + ")"
+                                      case (u, Parameter(name, typeName, None, None)) => u
+                                    }.mkString(", "))
 
-                        })
+                                }
 
-                      routes match {
+                              })
 
-                        case Seq(route) => {
-                          """ 
-                                                    |%s
-                                                    |def %s = JavascriptReverseRoute(
-                                                    |   "%s",
-                                                    |   %s
-                                                    |      function(%s) {
-                                                    |%s
-                                                    |      }
-                                                    |   %s
-                                                    |)
-                                                """.stripMargin.format(
-                            markLines(route),
-                            route.call.method,
-                            packageName + "." + controller + "." + route.call.method,
-                            "\"\"\"",
-                            reverseParameters.map(_._1.name).mkString(","),
-                            genCall(route),
-                            "\"\"\"")
-                        }
+                            routes match {
 
-                        case Seq(route, routes @ _*) => {
-                          """ 
-                                                    |%s
-                                                    |def %s = JavascriptReverseRoute(
-                                                    |   "%s",
-                                                    |   %s
-                                                    |      function(%s) {
-                                                    |%s
-                                                    |      }
-                                                    |   %s
-                                                    |)
-                                                """.stripMargin.format(
-                            markLines((route +: routes): _*),
-                            route.call.method,
-                            packageName + "." + controller + "." + route.call.method,
-                            "\"\"\"",
-                            reverseParameters.map(_._1.name).mkString(", "),
+                              case Seq(route) => {
+                                """ 
+                                                            |%s
+                                                            |def %s = JavascriptReverseRoute(
+                                                            |   "%s",
+                                                            |   %s
+                                                            |      function(%s) {
+                                                            |%s
+                                                            |      }
+                                                            |   %s
+                                                            |)
+                                                        """.stripMargin.format(
+                                  markLines(route),
+                                  route.call.method,
+                                  packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method,
+                                  "\"\"\"",
+                                  reverseParameters.map(_._1.name).mkString(","),
+                                  genCall(route),
+                                  "\"\"\"")
+                              }
 
-                            // route selection
-                            (route +: routes).map { route =>
+                              case Seq(route, routes @ _*) => {
+                                """ 
+                                                            |%s
+                                                            |def %s = JavascriptReverseRoute(
+                                                            |   "%s",
+                                                            |   %s
+                                                            |      function(%s) {
+                                                            |%s
+                                                            |      }
+                                                            |   %s
+                                                            |)
+                                                        """.stripMargin.format(
+                                  markLines((route +: routes): _*),
+                                  route.call.method,
+                                  packageName + "." + controller + "." + route.call.method,
+                                  "\"\"\"",
+                                  reverseParameters.map(_._1.name).mkString(", "),
 
-                              val localNames = reverseParameters.map {
-                                case (lp, i) => route.call.parameters.get(i).name -> lp.name
-                              }.toMap
+                                  // route selection
+                                  (route +: routes).map { route =>
 
-                              "      if (%s) {\n%s\n      }".format(
+                                    val localNames = reverseParameters.map {
+                                      case (lp, i) => route.call.parameters.get(i).name -> lp.name
+                                    }.toMap
 
-                                // Fixed constraints
-                                Option(route.call.parameters.getOrElse(Nil).filter { p =>
-                                  localNames.contains(p.name) && p.fixed.isDefined
-                                }.map { p =>
-                                  p.name + " == \"\"\" + implicitly[JavascriptLitteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
-                                }).filterNot(_.isEmpty).map(_.mkString(" && ")).getOrElse("true"),
+                                    "      if (%s) {\n%s\n      }".format(
 
-                                genCall(route, localNames))
+                                      // Fixed constraints
+                                      Option(route.call.parameters.getOrElse(Nil).filter { p =>
+                                        localNames.contains(p.name) && p.fixed.isDefined
+                                      }.map { p =>
+                                        p.name + " == \"\"\" + implicitly[JavascriptLitteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
+                                      }).filterNot(_.isEmpty).map(_.mkString(" && ")).getOrElse("true"),
 
-                            }.mkString("\n"),
+                                      genCall(route, localNames))
 
-                            "\"\"\"")
-                        }
+                                  }.mkString("\n"),
 
-                      }
+                                  "\"\"\"")
+                              }
 
+                            }
+
+                        }.mkString("\n"),
+
+                        field.map(_ => "}").getOrElse(""))
+
+                    }
                   }.mkString("\n"))
             }.mkString("\n"))
 
@@ -471,120 +498,137 @@ object Router {
                   // alias
                   controller.replace(".", "_"),
 
-                  // reverse method
-                  routes.groupBy(r => r.call.method -> r.call.parameters.getOrElse(Nil).map(p => p.typeName)).map {
-                    case ((m, _), routes) =>
+                  // group by field
+                  routes.groupBy(_.call.field).map {
+                    case (field, routes) => {
 
-                      assert(routes.size > 0, "Empty routes set???")
+                      """
+                        |%s
+                        |%s
+                        |%s
+                      """.stripMargin.format(
+                        field.map(f => "class Reverse" + controller.replace(".", "_") + "_" + f + " {").getOrElse(""),
 
-                      val parameters = routes(0).call.parameters.getOrElse(Nil)
+                        // reverse method
+                        routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(p => p.typeName))).map {
+                          case ((m, _), routes) =>
 
-                      val reverseParameters = parameters.zipWithIndex.filterNot {
-                        case (p, i) => {
-                          val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
-                          fixeds.size == 1 && fixeds(0) != None
-                        }
-                      }
+                            assert(routes.size > 0, "Empty routes set???")
 
-                      val reverseSignature = reverseParameters.map(p => p._1.name + ":" + p._1.typeName + {
-                        Option(routes.map(_.call.parameters.get(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
-                          case None => ""
-                          case Some(default) => " = " + default
-                        }.getOrElse("")
-                      }).mkString(", ")
+                            val parameters = routes(0).call.parameters.getOrElse(Nil)
 
-                      def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
-                        route.verb.value,
-                        route.path.parts.map {
-                          case StaticPart(part) => "\"" + part + "\""
-                          case DynamicPart(name, _) => {
-                            route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                              """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
-                            }.getOrElse {
-                              throw new Error("missing key " + name)
+                            val reverseParameters = parameters.zipWithIndex.filterNot {
+                              case (p, i) => {
+                                val fixeds = routes.map(_.call.parameters.get(i).fixed).distinct
+                                fixeds.size == 1 && fixeds(0) != None
+                              }
                             }
 
-                          }
-                        }.mkString(" + "),
+                            val reverseSignature = reverseParameters.map(p => p._1.name + ":" + p._1.typeName + {
+                              Option(routes.map(_.call.parameters.get(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
+                                case None => ""
+                                case Some(default) => " = " + default
+                              }.getOrElse("")
+                            }).mkString(", ")
 
-                        {
-                          val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
-                            p.fixed.isDefined ||
-                              route.path.parts.collect {
-                                case DynamicPart(name, _) => name
-                              }.contains(p.name)
-                          }
+                            def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
+                              route.verb.value,
+                              route.path.parts.map {
+                                case StaticPart(part) => "\"" + part + "\""
+                                case DynamicPart(name, _) => {
+                                  route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
+                                    """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+                                  }.getOrElse {
+                                    throw new Error("missing key " + name)
+                                  }
 
-                          if (queryParams.size == 0) {
-                            ""
-                          } else {
-                            """ + queryString(List(%s))""".format(
-                              queryParams.map { p =>
-                                ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
-                              }.map {
-                                case (u, Parameter(name, typeName, None, Some(default))) => """if(""" + localNames.get(name).getOrElse(name) + """ == """ + default + """) None else Some(""" + u + """)"""
-                                case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
-                              }.mkString(", "))
+                                }
+                              }.mkString(" + "),
 
-                          }
+                              {
+                                val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
+                                  p.fixed.isDefined ||
+                                    route.path.parts.collect {
+                                      case DynamicPart(name, _) => name
+                                    }.contains(p.name)
+                                }
 
-                        })
+                                if (queryParams.size == 0) {
+                                  ""
+                                } else {
+                                  """ + queryString(List(%s))""".format(
+                                    queryParams.map { p =>
+                                      ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+                                    }.map {
+                                      case (u, Parameter(name, typeName, None, Some(default))) => """if(""" + localNames.get(name).getOrElse(name) + """ == """ + default + """) None else Some(""" + u + """)"""
+                                      case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
+                                    }.mkString(", "))
 
-                      routes match {
+                                }
 
-                        case Seq(route) => {
-                          """ 
-                                                    |%s
-                                                    |def %s(%s) = {
-                                                    |   %s
-                                                    |}
-                                                """.stripMargin.format(
-                            markLines(route),
-                            route.call.method,
-                            reverseSignature,
-                            genCall(route))
-                        }
+                              })
 
-                        case Seq(route, routes @ _*) => {
-                          """ 
-                                                    |%s
-                                                    |def %s(%s) = {
-                                                    |   (%s) match {
-                                                    |%s    
-                                                    |   }
-                                                    |}
-                                                """.stripMargin.format(
-                            markLines((route +: routes): _*),
-                            route.call.method,
-                            reverseSignature,
-                            reverseParameters.map(_._1.name).mkString(", "),
+                            routes match {
 
-                            // route selection
-                            (route +: routes).map { route =>
-
-                              val localNames = reverseParameters.map {
-                                case (lp, i) => route.call.parameters.get(i).name -> lp.name
-                              }.toMap;
-
-                              """ |%s
-                                                            |case (%s) %s => %s
+                              case Seq(route) => {
+                                """ 
+                                                            |%s
+                                                            |def %s(%s) = {
+                                                            |   %s
+                                                            |}
                                                         """.stripMargin.format(
-                                markLines(route),
-                                reverseParameters.map(_._1.name).mkString(", "),
+                                  markLines(route),
+                                  route.call.method,
+                                  reverseSignature,
+                                  genCall(route))
+                              }
 
-                                // Fixed constraints
-                                Option(route.call.parameters.getOrElse(Nil).filter { p =>
-                                  localNames.contains(p.name) && p.fixed.isDefined
-                                }.map { p =>
-                                  p.name + " == " + p.fixed.get
-                                }).filterNot(_.isEmpty).map("if " + _.mkString(" && ")).getOrElse("if true"),
+                              case Seq(route, routes @ _*) => {
+                                """ 
+                                                            |%s
+                                                            |def %s(%s) = {
+                                                            |   (%s) match {
+                                                            |%s    
+                                                            |   }
+                                                            |}
+                                                        """.stripMargin.format(
+                                  markLines((route +: routes): _*),
+                                  route.call.method,
+                                  reverseSignature,
+                                  reverseParameters.map(_._1.name).mkString(", "),
 
-                                genCall(route, localNames))
+                                  // route selection
+                                  (route +: routes).map { route =>
 
-                            }.mkString("\n"))
-                        }
+                                    val localNames = reverseParameters.map {
+                                      case (lp, i) => route.call.parameters.get(i).name -> lp.name
+                                    }.toMap;
 
-                      }
+                                    """ |%s
+                                                                    |case (%s) %s => %s
+                                                                """.stripMargin.format(
+                                      markLines(route),
+                                      reverseParameters.map(_._1.name).mkString(", "),
+
+                                      // Fixed constraints
+                                      Option(route.call.parameters.getOrElse(Nil).filter { p =>
+                                        localNames.contains(p.name) && p.fixed.isDefined
+                                      }.map { p =>
+                                        p.name + " == " + p.fixed.get
+                                      }).filterNot(_.isEmpty).map("if " + _.mkString(" && ")).getOrElse("if true"),
+
+                                      genCall(route, localNames))
+
+                                  }.mkString("\n"))
+                              }
+
+                            }
+
+                        }.mkString("\n"),
+
+                        field.map(_ => "}").getOrElse(""))
+
+                    }
 
                   }.mkString("\n"))
             }.mkString("\n"))
@@ -653,7 +697,7 @@ object Router {
             }.map("(" + _ + ") =>").getOrElse(""),
 
             // call
-            r.call.packageName + "." + r.call.controller + "." + r.call.method,
+            r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method,
 
             // call parameters
             r.call.parameters.map { params =>
@@ -661,7 +705,7 @@ object Router {
             }.map("(" + _ + ")").getOrElse(""),
 
             // definition
-            """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
+            """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + r.call.field.map("." + _).getOrElse("") + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
               params.map("classOf[" + _.typeName + "]").mkString(", ")
             }.map("Seq(" + _ + ")").getOrElse("Nil") + """)""")
       }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
@@ -676,8 +720,8 @@ object Router {
     case class HttpVerb(value: String) {
       override def toString = value
     }
-    case class HandlerCall(packageName: String, controller: String, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
-      override def toString = packageName + "." + controller + "." + method + parameters.map { params =>
+    case class HandlerCall(packageName: String, controller: String, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
+      override def toString = packageName + "." + controller + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
         "(" + params.mkString(", ") + ")"
       }.getOrElse("")
     }
@@ -818,7 +862,15 @@ object Router {
       def parameters = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
       def call = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
-        case handler ~ parameters => HandlerCall(handler.dropRight(2).mkString("."), handler.takeRight(2).dropRight(1).mkString("."), handler.takeRight(1).mkString, parameters)
+        case handler ~ parameters =>
+          {
+            val packageName = handler.takeWhile(p => p.charAt(0).toUpperCase != p.charAt(0)).mkString(".")
+            val className = handler(packageName.split('.').size)
+            val rest = handler.drop(packageName.split('.').size + 1)
+            val field = Option(rest.dropRight(1).mkString(".")).filterNot(_.isEmpty)
+            val methodName = rest.takeRight(1).mkString
+            HandlerCall(packageName, className, methodName, field, parameters)
+          }
       }
 
       def route = httpVerb ~ separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
@@ -879,7 +931,22 @@ object Router {
 
   }
 
-  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]])
+  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]]) {
+
+    def getControllerClass: Class[_] = {
+      Option(controller.split('.').takeRight(1).head).filter(p => p.charAt(0).toUpperCase != p.charAt(0)).map { field =>
+        val parent = ref.getClass.getClassLoader.loadClass(controller.split('.').dropRight(1).mkString("."))
+        try {
+          parent.getMethod(field).getReturnType
+        } catch {
+          case _ => parent.getField(field).getType
+        }
+      }.getOrElse {
+        ref.getClass.getClassLoader.loadClass(controller)
+      }
+    }
+
+  }
 
   def queryString(items: List[Option[String]]) = {
     Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
@@ -1044,7 +1111,7 @@ object Router {
         def call(call: => play.mvc.Result, handler: HandlerDef) = {
           new play.core.j.JavaAction {
             def invocation = call
-            def controller = handler.ref.getClass.getClassLoader.loadClass(handler.controller)
+            def controller = handler.getControllerClass
             def method = controller.getDeclaredMethod(handler.method, handler.parameterTypes.map {
               case c if c == classOf[Long] => classOf[java.lang.Long]
               case c => c
