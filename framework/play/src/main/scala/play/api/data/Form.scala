@@ -187,7 +187,7 @@ object Form {
    * For example:
    * {{{
    * import play.api.data._
-   * import play.api.data.format.Formats._
+   * import format.Formats._
    *
    * val userForm = Form(
    *   of(User)(
@@ -277,7 +277,7 @@ trait Mapping[T] {
    * For example:
    * {{{
    *   import play.api.data._
-   *   import play.api.data.validation.Constraints._
+   *   import validation.Constraints._
    *
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
@@ -293,7 +293,7 @@ trait Mapping[T] {
    * For example:
    * {{{
    *   import play.api.data._
-   *   import play.api.data.validation.Constraints._
+   *   import validation.Constraints._
    *
    *   Form("phonenumber" -> text.verifying {_.grouped(2).size == 5})
    * }}}
@@ -309,7 +309,7 @@ trait Mapping[T] {
    * For example:
    * {{{
    *   import play.api.data._
-   *   import play.api.data.validation.Constraints._
+   *   import validation.Constraints._
    *
    *   Form("phonenumber" -> text.verifying("Bad phone number", {_.grouped(2).size == 5}))
    * }}}
@@ -361,7 +361,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    * For example:
    * {{{
    *   import play.api.data._
-   *   import play.api.data.validation.Constraints._
+   *   import validation.Constraints._
    *
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
@@ -425,7 +425,7 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
    * For example:
    * {{{
    *   import play.api.data._
-   *   import play.api.data.validation.Constraints._
+   *   import validation.Constraints._
    *
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
