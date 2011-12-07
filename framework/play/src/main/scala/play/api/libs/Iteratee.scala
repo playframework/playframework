@@ -11,6 +11,28 @@ object Iteratee {
       error: (String, Input[E]) => Promise[B]): Promise[B] = i.flatMap(_.fold(done, cont, error))
   }
 
+  def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
+
+    def step(s: Seq[A])(input: Input[E]): Iteratee[E, Seq[A]] = {
+      input match {
+        case Input.EOF => Done(s, Input.EOF)
+
+        case Input.Empty => Cont(step(s))
+
+        case Input.El(e) => i.pureFlatFold(
+          (a, e) => Done(s :+ a, input),
+          k => for {
+            a <- k(input);
+            az <- repeat(i)
+          } yield s ++ (a +: az),
+          (msg, e) => Error(msg, e))
+      }
+    }
+
+    Cont(step(Seq.empty[A]))
+
+  }
+
   def fold[E, A](state: A)(f: (A, E) => A): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
@@ -80,9 +102,11 @@ trait Iteratee[E, +A] {
     error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold(done, cont, error))
 
   def mapDone[B](f: A => B): Iteratee[E, B] =
-    Iteratee.flatten(this.fold((a, e) => Promise.pure(Done(f(a), e)),
-      k => Promise.pure(Cont((in: Input[E]) => k(in).mapDone(f))),
-      (err, e) => Promise.pure[Iteratee[E, B]](Error(err, e))))
+    this.pureFlatFold((a, e) => Done(f(a), e),
+      k => Cont((in: Input[E]) => k(in).mapDone(f)),
+      (err, e) => Error(err, e))
+
+  def map[B](f: A => B): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))
 
   def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = new Iteratee[E, B] {
 
