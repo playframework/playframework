@@ -11,7 +11,6 @@ object Iteratee {
       error: (String, Input[E]) => Promise[B]): Promise[B] = i.flatMap(_.fold(done, cont, error))
   }
 
-
   def fold[E, A](state: A)(f: (A, E) => A): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
@@ -87,23 +86,16 @@ trait Iteratee[E, +A] {
 
   def map[B](f: A => B): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))
 
-  def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = new Iteratee[E, B] {
-
-    def fold[C](done: (B, Input[E]) => Promise[C],
-      cont: (Input[E] => Iteratee[E, B]) => Promise[C],
-      error: (String, Input[E]) => Promise[C]) =
-
-      self.fold({
-        case (a, Input.Empty) => f(a).fold(done, cont, error)
-        case (a, e) => f(a).fold(
-          (a, _) => done(a, e),
-          k => k(e).fold(done, cont, error),
-          error)
-      },
-        ((k) => cont(e => (k(e).flatMap(f)))),
-        error)
-
-  }
+  def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(
+    {
+      case (a, Input.Empty) => f(a)
+      case (a, e) => f(a).pureFlatFold(
+        (a, _) => Done(a, e),
+        k => k(e),
+        (msg, e) => Error(msg, e))
+    },
+    k => Cont(in => k(in).flatMap(f)),
+    (msg, e) => Error(msg, e))
 
   def joinI[EIn, AIn](implicit in: A <:< Iteratee[EIn, AIn]): Iteratee[E, AIn] = {
     this.flatMap { a =>
@@ -273,8 +265,6 @@ object Enumeratee {
     }
 
   }
-
-
 
   def breakE[E](p: E => Boolean) = new Enumeratee[E, E] {
     def apply[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
