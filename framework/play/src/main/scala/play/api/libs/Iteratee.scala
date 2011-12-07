@@ -11,27 +11,6 @@ object Iteratee {
       error: (String, Input[E]) => Promise[B]): Promise[B] = i.flatMap(_.fold(done, cont, error))
   }
 
-  def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
-
-    def step(s: Seq[A])(input: Input[E]): Iteratee[E, Seq[A]] = {
-      input match {
-        case Input.EOF => Done(s, Input.EOF)
-
-        case Input.Empty => Cont(step(s))
-
-        case Input.El(e) => i.pureFlatFold(
-          (a, e) => Done(s :+ a, input),
-          k => for {
-            a <- k(input);
-            az <- repeat(i)
-          } yield s ++ (a +: az),
-          (msg, e) => Error(msg, e))
-      }
-    }
-
-    Cont(step(Seq.empty[A]))
-
-  }
 
   def fold[E, A](state: A)(f: (A, E) => A): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
@@ -221,6 +200,81 @@ trait Enumeratee[In, Out] {
   def transform[A](inner: Iteratee[In, A]): Iteratee[Out, A] = apply(inner).joinI
 }
 object Enumeratee {
+
+  def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
+
+    def step(s: Seq[A])(input: Input[E]): Iteratee[E, Seq[A]] = {
+      input match {
+        case Input.EOF => Done(s, Input.EOF)
+
+        case Input.Empty => Cont(step(s))
+
+        case Input.El(e) => i.pureFlatFold(
+          (a, e) => Done(s :+ a, input),
+          k => for {
+            a <- k(input);
+            az <- repeat(i)
+          } yield s ++ (a +: az),
+          (msg, e) => Error(msg, e))
+      }
+    }
+
+    Cont(step(Seq.empty[A]))
+
+  }
+
+  def take[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
+
+    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+
+      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+
+        in match {
+          case Input.El(e) if counter <= 0 => Done(inner, in)
+          case Input.El(e) => inner.pureFlatFold(
+            (_, _) => Done(inner, in),
+            k => {
+              val next = k(in)
+              val newCounter = counter - 1
+              if (newCounter == 0) Done(next, Input.Empty) else Cont(step(newCounter, next))
+            },
+            (_, _) => Done(inner, in))
+
+          case Input.EOF => Done(Iteratee.flatten(inner.feed(Input.EOF)), Input.Empty)
+
+          case Input.Empty => Cont(step(counter, inner))
+        }
+      }
+
+      Cont(step(count, iteratee))
+    }
+
+  }
+
+  def takeWhile[E](p: E => Boolean): Enumeratee[E, E] = new Enumeratee[E, E] {
+
+    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+
+      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+
+        in match {
+          case Input.El(e) if !p(e) => Done(inner, in)
+          case Input.El(e) => inner.pureFlatFold(
+            (_, _) => Done(inner, in),
+            k => Cont(step(k(in))),
+            (_, _) => Done(inner, in))
+          case Input.EOF => Done(Iteratee.flatten(inner.feed(Input.EOF)), Input.Empty)
+
+          case Input.Empty => Cont(step(inner))
+        }
+      }
+
+      Cont(step(iteratee))
+    }
+
+  }
+
+
 
   def breakE[E](p: E => Boolean) = new Enumeratee[E, E] {
     def apply[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
