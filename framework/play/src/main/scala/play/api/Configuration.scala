@@ -31,8 +31,7 @@ object Configuration {
    */
   def fromFile(file: File) = {
     import collection.JavaConverters._
-    val options = ConfigParseOptions.defaults().setAllowMissing(false).setSyntax(ConfigSyntax.PROPERTIES)
-    val currentConfig = ConfigFactory.load(ConfigFactory.parseFile(file, options))
+    val currentConfig = ConfigFactory.load(ConfigFactory.parseFile(file))
     val javaEntries = currentConfig.entrySet()
     val data = javaEntries.asScala.toSeq.map { e => (e.getKey, Config(e.getKey, e.getValue.unwrapped.toString, file)) }.toMap
     Configuration(data)

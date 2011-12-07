@@ -70,7 +70,7 @@ object Console {
       val random = new java.security.SecureRandom
       val newSecret = (1 to 64).map { _ =>
         (random.nextInt(74) + 48).toChar
-      }.mkString
+      }.mkString.replaceAll("\\\\+", "/")
 
       def copyRecursively(from: Path, target: Path) {
         from.copyTo(target)
