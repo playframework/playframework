@@ -60,7 +60,7 @@ package object data {
   def of[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]])(a1: (String, Mapping[A1])): Mapping[R] = {
     ObjectMapping1(apply, unapply, a1)
   }
-  
+
   def of[R, A1, A2](apply: Function2[A1, A2, R], unapply: Function1[R, Option[(A1, A2)]])(a1: (String, Mapping[A1]), a2: (String, Mapping[A2])): Mapping[R] = {
     ObjectMapping2(apply, unapply, a1, a2)
   }
