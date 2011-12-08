@@ -71,7 +71,7 @@ trait MockApplication extends Mock {
    * @param block
    */
   def withApplication(mockPlugins: List[String], mockConfig: Map[String, String])(f: => Unit): Boolean = {
-    val mockApp = injectGlobalMock(Nil, MockData.dataSource)
+    val mockApp = injectGlobalMock(Nil, mockConfig)
     try {
       f
       clearMock()
