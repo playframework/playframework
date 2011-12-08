@@ -110,6 +110,17 @@ package play.api.mvc {
     /** Retrieve all header values associated with the given key. */
     def getAll(key: String): Seq[String]
 
+    /** Retrieve all header keys **/
+    def keys: Set[String]
+
+    def toMap: Map[String, Seq[String]] = keys.map { headerKey =>
+      (headerKey, getAll(headerKey))
+    }.toMap
+
+    def toSimpleMap: Map[String, String] = keys.map { headerKey =>
+      (headerKey, apply(headerKey))
+    }.toMap
+
   }
 
   /** Trait that should be extended by the Cookie helpers. */

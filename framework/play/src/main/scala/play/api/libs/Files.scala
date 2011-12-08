@@ -50,6 +50,14 @@ object Files {
 
   }
 
+  def copyFile(from: File, to: File, copyAttributes: Boolean = true, replaceExisting: Boolean = true) = {
+    Path(from).copyTo(target = Path(to), copyAttributes = copyAttributes, replaceExisting = replaceExisting)
+  }
+
+  def moveFile(from: File, to: File, replace: Boolean = true, atomicMove: Boolean = true) = {
+    Path(from).moveTo(target = Path(to), replace = replace, atomicMove = atomicMove)
+  }
+
   /**
    * Reads a file’s contents into a String.
    *

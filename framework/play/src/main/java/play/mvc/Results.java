@@ -195,8 +195,8 @@ public class Results {
         public Ok() {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmpty(),
-                play.api.mvc.JResults.contentTypeOfEmpty()
+                play.api.mvc.JResults.writeEmptyContent(),
+                play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         
@@ -232,8 +232,8 @@ public class Results {
         public NotFound() {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmpty(),
-                play.api.mvc.JResults.contentTypeOfEmpty()
+                play.api.mvc.JResults.writeEmptyContent(),
+                play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         
@@ -269,8 +269,8 @@ public class Results {
         public InternalServerError() {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmpty(),
-                play.api.mvc.JResults.contentTypeOfEmpty()
+                play.api.mvc.JResults.writeEmptyContent(),
+                play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         
@@ -306,8 +306,8 @@ public class Results {
         public Forbidden() {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmpty(),
-                play.api.mvc.JResults.contentTypeOfEmpty()
+                play.api.mvc.JResults.writeEmptyContent(),
+                play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         
@@ -343,8 +343,8 @@ public class Results {
         public Unauthorized() {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmpty(),
-                play.api.mvc.JResults.contentTypeOfEmpty()
+                play.api.mvc.JResults.writeEmptyContent(),
+                play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         
@@ -380,8 +380,8 @@ public class Results {
         public BadRequest() {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmpty(),
-                play.api.mvc.JResults.contentTypeOfEmpty()
+                play.api.mvc.JResults.writeEmptyContent(),
+                play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         

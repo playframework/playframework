@@ -278,7 +278,7 @@ case class ContentTypeOf[A](mimeType: Option[String])
 object Results extends Results {
 
   /** Empty result, i.e. nothing to send. */
-  case class Empty()
+  case class EmptyContent()
 
 }
 
@@ -313,7 +313,7 @@ trait Results {
   }
 
   /** `Writeable` for empty responses. */
-  implicit val writeableOf_Empty = Writeable[Results.Empty](_ => Array.empty)
+  implicit val writeableOf_EmptyContent = Writeable[Results.EmptyContent](_ => Array.empty)
 
   /** Default content type for `Html` values (`text/html`). */
   implicit def contentTypeOf_Html(implicit codec: Codec): ContentTypeOf[Html] = {
@@ -354,14 +354,14 @@ trait Results {
   implicit def contentTypeOf_ByteArray: ContentTypeOf[Array[Byte]] = ContentTypeOf[Array[Byte]](Some(ContentTypes.BINARY))
 
   /** Default content type for empty responses (no content type). */
-  implicit def contentTypeOf_Empty: ContentTypeOf[Results.Empty] = ContentTypeOf[Results.Empty](None)
+  implicit def contentTypeOf_EmptyContent: ContentTypeOf[Results.EmptyContent] = ContentTypeOf[Results.EmptyContent](None)
 
   /**
    * Generates default `SimpleResult` from a content type, headers and content.
    *
    * @param status the HTTP response status, e.g ‘200 OK’
    */
-  class Status(status: Int) extends SimpleResult[Results.Empty](header = ResponseHeader(status), body = Enumerator(Results.Empty())) {
+  class Status(status: Int) extends SimpleResult[Results.EmptyContent](header = ResponseHeader(status), body = Enumerator(Results.EmptyContent())) {
 
     /**
      * Set the result's content.
@@ -443,13 +443,13 @@ trait Results {
    *
    * @param url the URL to redirect to
    */
-  def Redirect(url: String): SimpleResult[Results.Empty] = Status(FOUND).withHeaders(LOCATION -> url)
+  def Redirect(url: String): SimpleResult[Results.EmptyContent] = Status(FOUND).withHeaders(LOCATION -> url)
 
   /**
    * Generates a ‘302 FOUND’ simple result.
    *
    * @param call call defining the URL to redirect to, which typically comes from the reverse router
    */
-  def Redirect(call: Call): SimpleResult[Results.Empty] = Redirect(call.url)
+  def Redirect(call: Call): SimpleResult[Results.EmptyContent] = Redirect(call.url)
 
 }

@@ -2,7 +2,7 @@ package play.api.libs.iteratee
 
 object Traversable {
 
-  def passAlong[M <: scala.collection.TraversableLike[_, M]] = new Enumeratee[M, M] {
+  def passAlong[M] = new Enumeratee[M, M] {
     def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
       it.mapDone(a => Done(a, Input.Empty))
 
@@ -10,7 +10,7 @@ object Traversable {
 
   }
 
-  def takeUpTo[M <: scala.collection.TraversableLike[_, M]](count: Int): Enumeratee[M, M] = new Enumeratee[M, M] {
+  def takeUpTo[M](count: Int)(implicit p: M <%< scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
     def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
 
@@ -20,8 +20,8 @@ object Traversable {
             inner.pureFlatFold(
               (_, _) => Done(inner, in),
               k => e.splitAt(leftToTake) match {
-                case (all, Nil) => Cont(step(k(Input.El(all)), (leftToTake - all.size)))
-                case (Nil, left) => Done(inner, Input.El(left))
+                case (all, x) if x.isEmpty => Cont(step(k(Input.El(all)), (leftToTake - all.size)))
+                case (x, left) if x.isEmpty => Done(inner, Input.El(left))
                 case (toPush, left) => Done(k(Input.El(toPush)), Input.El(left))
               },
               (_, _) => Done(inner, in))
@@ -37,7 +37,7 @@ object Traversable {
     }
   }
 
-  def take[M <: scala.collection.TraversableLike[_, M]](count: Int): Enumeratee[M, M] = new Enumeratee[M, M] {
+  def take[M](count: Int)(implicit p: M <%< scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
     def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
 
@@ -45,11 +45,11 @@ object Traversable {
         in match {
           case in @ Input.El(e) =>
             e.splitAt(leftToTake) match {
-              case (all, Nil) => inner.pureFlatFold(
+              case (all, x) if x.isEmpty => inner.pureFlatFold(
                 (_, _) => Cont(step(inner, (leftToTake - all.size))),
                 k => Cont(step(k(Input.El(all)), (leftToTake - all.size))),
                 (_, _) => Cont(step(inner, (leftToTake - all.size))))
-              case (Nil, left) => Done(inner, Input.El(left))
+              case (x, left) if x.isEmpty => Done(inner, Input.El(left))
               case (toPush, left) => Done(inner.pureFlatFold((_, _) => inner, k => k(Input.El(toPush)), (_, _) => inner), Input.El(left))
             }
 
@@ -64,7 +64,7 @@ object Traversable {
     }
   }
 
-  def drop[M <: scala.collection.TraversableLike[_, M]](count: Int): Enumeratee[M, M] = new Enumeratee[M, M] {
+  def drop[M](count: Int)(implicit p: M <%< scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
     def apply[A](inner: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
 

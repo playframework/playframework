@@ -42,6 +42,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
   class PlayDefaultUpstreamHandler extends SimpleChannelUpstreamHandler {
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      e.getCause.printStackTrace()
       e.getChannel.close()
     }
 
@@ -83,7 +84,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
           val next = iteratee.pureFlatFold[Array[Byte], Either[Result, R]](
             (_, _) => iteratee,
             k => k(chunk),
-            (_, _) => iteratee)
+            (e, _) => iteratee)
           iteratee = next
 
           next.pureFold(
@@ -166,11 +167,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
             e.getCause().printStackTrace();
             e.getChannel().close();
           }
+
           override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
             enumerator.frameReceived(ctx, EOF)
             println("disconnecting socket")
             println("disconnected socket")
           }
+
         })
 
     }
@@ -183,6 +186,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
       new Headers {
         def getAll(key: String) = headers.get(key.toUpperCase).flatten.toSeq
+        def keys = headers.keySet
         override def toString = headers.toString
       }
 
@@ -378,7 +382,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
               eventuallyRequest.map {
                 case Left(errMsg) =>
                   response.handle(Results.InternalServerError)
-                  Promise.pure(None: Option[Request[action.BODY_CONTENT]])
                 case Right(eventuallyReq) =>
                   eventuallyReq.extend(_.value match {
                     case Redeemed(Left(result)) => response.handle(result)

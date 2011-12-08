@@ -21,12 +21,43 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
-  def consume: Iteratee[Array[Byte], Array[Byte]] = {
-    import scala.collection.mutable._
-    fold[Array[Byte], ArrayBuffer[Byte]](ArrayBuffer[Byte]())(_ ++= _).mapDone(_.toArray)
+  def consume[E[_], B] = new {
+    def apply[That]()(implicit bf: scala.collection.generic.CanBuildFrom[E[B], B, That], t: E[B] <%< TraversableOnce[B]): Iteratee[E[B], That] = {
+      fold[E[B], Seq[E[B]]](Seq.empty) { (els, chunk) =>
+        els :+ chunk
+      }.mapDone { elts =>
+        val builder = bf()
+        elts.foreach(builder ++= _)
+        builder.result()
+      }
+    }
   }
 
+  def ignore[E]: Iteratee[E, Unit] = fold[E, Unit](())((_, _) => ())
+
   def mapChunk_[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))
+
+  def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
+
+    def step(s: Seq[A])(input: Input[E]): Iteratee[E, Seq[A]] = {
+      input match {
+        case Input.EOF => Done(s, Input.EOF)
+
+        case Input.Empty => Cont(step(s))
+
+        case Input.El(e) => i.pureFlatFold(
+          (a, e) => Done(s :+ a, input),
+          k => for {
+            a <- k(input);
+            az <- repeat(i)
+          } yield s ++ (a +: az),
+          (msg, e) => Error(msg, e))
+      }
+    }
+
+    Cont(step(Seq.empty[A]))
+
+  }
 
 }
 
@@ -186,32 +217,54 @@ trait Enumerator[+E] {
 
 }
 
-trait Enumeratee[In, Out] {
-  def apply[A](inner: Iteratee[In, A]): Iteratee[Out, Iteratee[In, A]]
+trait Enumeratee[To, From] {
+  self =>
 
-  def transform[A](inner: Iteratee[In, A]): Iteratee[Out, A] = apply(inner).joinI
-}
-object Enumeratee {
+  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
 
-  def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
+  def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
 
-    def step(s: Seq[A])(input: Input[E]): Iteratee[E, Seq[A]] = {
-      input match {
-        case Input.EOF => Done(s, Input.EOF)
-
-        case Input.Empty => Cont(step(s))
-
-        case Input.El(e) => i.pureFlatFold(
-          (a, e) => Done(s :+ a, input),
-          k => for {
-            a <- k(input);
-            az <- repeat(i)
-          } yield s ++ (a +: az),
-          (msg, e) => Error(msg, e))
+  def ><>[To2](other: Enumeratee[To2, To]): Enumeratee[To2, From] = {
+    new Enumeratee[To2, From] {
+      def apply[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
+        self(other(iteratee)).joinI
       }
     }
+  }
 
-    Cont(step(Seq.empty[A]))
+}
+
+object Enumeratee {
+
+  def map[E, NE](f: E => NE): Enumeratee[NE, E] = new Enumeratee[NE, E] {
+
+    def apply[A](iteratee: Iteratee[NE, A]): Iteratee[E, Iteratee[NE, A]] = {
+
+      def step(inner: Iteratee[NE, A])(in: Input[E]): Iteratee[E, Iteratee[NE, A]] = {
+
+        in match {
+
+          case Input.El(e) => inner.pureFlatFold(
+            (_, _) => Done(inner, in),
+            k => {
+              val next = k(Input.El(f(e)))
+              Cont(step(next))
+            },
+            (_, _) => Done(inner, in))
+
+          case Input.EOF => inner.pureFlatFold(
+            (_, _) => Done(inner, Input.EOF),
+            k => Done(k(Input.EOF), Input.EOF),
+            (_, _) => Done(inner, Input.EOF))
+
+          case Input.Empty => Cont(step(inner))
+
+        }
+
+      }
+
+      Cont(step(iteratee))
+    }
 
   }
 
@@ -224,21 +277,56 @@ object Enumeratee {
         in match {
           case Input.El(e) if counter <= 0 => Done(inner, in)
           case Input.El(e) => inner.pureFlatFold(
-            (_, _) => Done(inner, in),
+            (_, _) => Cont(step(counter - 1, inner)),
             k => {
               val next = k(in)
               val newCounter = counter - 1
               if (newCounter == 0) Done(next, Input.Empty) else Cont(step(newCounter, next))
             },
-            (_, _) => Done(inner, in))
+            (_, _) => Cont(step(counter - 1, inner)))
 
-          case Input.EOF => Done(Iteratee.flatten(inner.feed(Input.EOF)), Input.Empty)
+          case Input.EOF => inner.pureFlatFold(
+            (_, _) => Done(inner, Input.EOF),
+            k => Done(k(Input.EOF), Input.EOF),
+            (_, _) => Done(inner, Input.EOF))
 
           case Input.Empty => Cont(step(counter, inner))
         }
       }
 
       Cont(step(count, iteratee))
+    }
+
+  }
+
+  def drop[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
+
+    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+
+      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+
+        in match {
+
+          case Input.El(e) if counter > 0 => Cont(step(counter - 1, inner))
+
+          case Input.El(e) if counter <= 0 => inner.pureFlatFold(
+            (_, _) => Done(inner, in),
+            k => Cont(step(0, k(in))),
+            (_, _) => Done(inner, in))
+
+          case Input.EOF => inner.pureFlatFold(
+            (_, _) => Done(inner, Input.EOF),
+            k => Done(k(Input.EOF), Input.EOF),
+            (_, _) => Done(inner, Input.EOF))
+
+          case Input.Empty => Cont(step(counter, inner))
+
+        }
+
+      }
+
+      Cont(step(count, iteratee))
+
     }
 
   }
@@ -252,10 +340,14 @@ object Enumeratee {
         in match {
           case Input.El(e) if !p(e) => Done(inner, in)
           case Input.El(e) => inner.pureFlatFold(
-            (_, _) => Done(inner, in),
+            (_, _) => Cont(step(inner)),
             k => Cont(step(k(in))),
-            (_, _) => Done(inner, in))
-          case Input.EOF => Done(Iteratee.flatten(inner.feed(Input.EOF)), Input.Empty)
+            (_, _) => Cont(step(inner)))
+
+          case Input.EOF => inner.pureFlatFold(
+            (_, _) => Done(inner, Input.EOF),
+            k => Done(k(Input.EOF), Input.EOF),
+            (_, _) => Done(inner, Input.EOF))
 
           case Input.Empty => Cont(step(inner))
         }
@@ -370,7 +462,13 @@ class CallbackEnumerator[E](
 
 object Parsing {
 
-  trait MatchInfo[A] { def content: A }
+  sealed trait MatchInfo[A] {
+    def content: A
+    def isMatch = this match {
+      case Matched(_) => true
+      case Unmatched(_) => false
+    }
+  }
   case class Matched[A](val content: A) extends MatchInfo[A]
   case class Unmatched[A](val content: A) extends MatchInfo[A]
 
@@ -378,7 +476,7 @@ object Parsing {
     val needleSize = needle.size
     val fullJump = needleSize
     val jumpBadCharecter: (Byte => Int) = {
-      val map = Map(needle.dropRight(1).reverse.zipWithIndex: _*) //remove the last
+      val map = Map(needle.dropRight(1).reverse.zipWithIndex.reverse: _*) //remove the last
       byte => map.get(byte).map(_ + 1).getOrElse(fullJump)
     }
 
@@ -390,25 +488,26 @@ object Parsing {
 
     }
     def scan(previousMatches: List[MatchInfo[Array[Byte]]], piece: Array[Byte], startScan: Int): (List[MatchInfo[Array[Byte]]], Array[Byte]) = {
-      val fullMatch = Range(needleSize - 1, -1, -1).forall(scan => needle(scan) == piece(scan + startScan))
-      if (fullMatch) {
-        val (prefix, then) = piece.splitAt(startScan)
-        val (matched, left) = then.splitAt(needleSize)
-        val newResults = previousMatches ++ List(Unmatched(prefix), Matched(matched)) filter (!_.content.isEmpty)
-
-        if (left.length < needleSize) (newResults, left) else scan(newResults, left, 0)
-
+      if (piece.length < needleSize) {
+        (previousMatches, piece)
       } else {
-        val jump = jumpBadCharecter(piece(startScan + needleSize - 1))
-        val isFullJump = jump == fullJump
-        val newScan = startScan + jump;
-        if (newScan + needleSize - 1 > piece.length - 1) {
-          if (isFullJump) (previousMatches ++ List(Unmatched(piece)), Array[Byte]())
-          else {
+        val fullMatch = Range(needleSize - 1, -1, -1).forall(scan => needle(scan) == piece(scan + startScan))
+        if (fullMatch) {
+          val (prefix, then) = piece.splitAt(startScan)
+          val (matched, left) = then.splitAt(needleSize)
+          val newResults = previousMatches ++ List(Unmatched(prefix), Matched(matched)) filter (!_.content.isEmpty)
+
+          if (left.length < needleSize) (newResults, left) else scan(newResults, left, 0)
+
+        } else {
+          val jump = jumpBadCharecter(piece(startScan + needleSize - 1))
+          val isFullJump = jump == fullJump
+          val newScan = startScan + jump
+          if (newScan + needleSize > piece.length) {
             val (prefix, suffix) = (piece.splitAt(startScan))
             (previousMatches ++ List(Unmatched(prefix)), suffix)
-          }
-        } else scan(previousMatches, piece, newScan)
+          } else scan(previousMatches, piece, newScan)
+        }
       }
     }
 
@@ -420,7 +519,6 @@ object Parsing {
         case Input.EOF => Done(inner, Input.El(rest))
 
         case Input.El(chunk) =>
-
           val all = rest ++ chunk
           def inputOrEmpty(a: Array[Byte]) = if (a.isEmpty) Input.Empty else Input.El(a)
 

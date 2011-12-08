@@ -17,6 +17,7 @@ class FakeRequest[AnyContent] extends Request[AnyContent] {
 
   def headers = new Headers {
    def getAll(key: String) = Seq("testValue1","testValue2") 
+   def keys = Set.empty
   }
   def cookies = new Cookies {
       def get(name: String) = Some(Cookie(name="foo",value="yay"))
