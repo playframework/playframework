@@ -16,7 +16,7 @@ echo "[info]"
 echo "[info] ---- RUNNING FRAMEWORK SPECS"
 echo "[info]"
 
-./build test
+./build -Dsbt.log.noformat=true test
 
 rm -rf ./logs
 
@@ -26,7 +26,7 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -38,7 +38,7 @@ echo "[info] ---- TESTING JAVA/HELLOWORLD"
 echo "[info]"
 
 cd ../samples/java/helloworld
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -46,7 +46,7 @@ echo "[info] ---- TESTING JAVA/COMPUTER-DATABASE"
 echo "[info]"
 
 cd ../samples/java/computer-database
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -54,7 +54,7 @@ echo "[info] ---- TESTING JAVA/ZENTASK"
 echo "[info]"
 
 cd ../samples/java/zentasks
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -62,7 +62,7 @@ echo "[info] ---- TESTING SCALA/HELLOWORLD"
 echo "[info]"
 
 cd ../samples/scala/helloworld
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -70,7 +70,7 @@ echo "[info] ---- TESTING SCALA/COMPUTER-DATABASE"
 echo "[info]"
 
 cd ../samples/scala/computer-database
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -78,7 +78,7 @@ echo "[info] ---- TESTING SCALA/ZENTASK"
 echo "[info]"
 
 cd ../samples/scala/zentasks
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
 
 echo "[info]"
@@ -86,5 +86,5 @@ echo "[info] ---- TESTING SCALA/PI-CALCULATOR"
 echo "[info]"
 
 cd ../samples/workinprogress/pi-calculator
-$PLAY clean test
+$PLAY -Dsbt.log.noformat=true clean test
 cd $CURRENT
