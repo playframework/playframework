@@ -31,7 +31,7 @@ object Configuration {
    */
   def fromFile(file: File) = {
     import collection.JavaConverters._
-    val currentConfig = ConfigFactory.load(ConfigFactory.parseFile(file))
+    val currentConfig = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
     val javaEntries = currentConfig.entrySet()
     val data = javaEntries.asScala.toSeq.map { e => (e.getKey, Config(e.getKey, e.getValue.unwrapped.toString, file)) }.toMap
     Configuration(data)
@@ -42,7 +42,7 @@ object Configuration {
    * @param relative resource to load
    * @return com.typsafe.config.Config more information: https://github.com/havocp/config
    */
-  def loadAsJava(resource: String) = ConfigFactory.load(ConfigFactory.parseFile(new File(resource)))
+  def loadAsJava(resource: String) = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File(resource)))
 
   def empty = Configuration(Map.empty)
 
@@ -56,7 +56,7 @@ object Configuration {
    * @param resource to load
    * @return RichConfig which is a wrapper around com.typesafe.config.Config https://github.com/havocp/config
    */
-  def load(resource: String) = new RichConfig(ConfigFactory.load(ConfigFactory.parseFile(new File(resource))))
+  def load(resource: String) = new RichConfig(ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File(resource))))
 
   /**
    * A configuration item.
