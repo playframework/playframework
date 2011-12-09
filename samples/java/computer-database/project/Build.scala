@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
       // Add your project dependencies here,
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies).settings(defaultJavaSettings:_*).settings(
+    val main = PlayProject(appName, appVersion, appDependencies).settings(
       // Add your own project settings here      
     )
 
