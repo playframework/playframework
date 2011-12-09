@@ -41,13 +41,6 @@ abstract class Mock {
    * clears mock from context
    */
   def clearMock() {
-    try {
-      val mockApp = play.api.Play.current
-      mockApp.configuration.getString("mock").map { _ =>
-        val s = play.api.db.DB.getConnection("default")(mockApp).createStatement
-        s.execute("SHUTDOWN")
-      }.getOrElse(None)
-    } catch { case ex: Exception => }
     Play.stop()
   }
 
