@@ -8,6 +8,8 @@ import java.io._
 
 import scala.collection.JavaConverters._
 
+import annotation.implicitNotFound
+
 /**
  * A Play application.
  *
@@ -24,6 +26,7 @@ import scala.collection.JavaConverters._
  * @param sources the `SourceMapper` used to retrieve source code displayed in error pages
  * @param mode `Dev` or `Prod`, passed as information for the user code
  */
+@implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current, running Application into context, just add import play.api.Play.current")
 case class Application(path: File, classloader: ApplicationClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
   private val userDefinedConfig = Option(System.getProperty("conf")).map(path => Configuration.fromFile(new File(path)))
