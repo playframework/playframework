@@ -5,6 +5,7 @@ import play.api.mvc._
 import play.api.libs._
 
 import play.api.libs.iteratee._
+import Input.EOF
 import play.api.libs.concurrent._
 
 
