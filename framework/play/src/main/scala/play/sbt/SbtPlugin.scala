@@ -10,6 +10,9 @@ import play.console.Colors
 
 object PlayProject extends Plugin {
 
+  val JAVA = "java"
+  val SCALA = "scala"
+
   // ----- We need this later
 
   private val consoleReader = new jline.ConsoleReader
@@ -261,7 +264,7 @@ object PlayProject extends Plugin {
 
     try {
 
-      val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
+      val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
 
       import com.avaje.ebean.enhance.agent._
       import com.avaje.ebean.enhance.ant._
@@ -999,7 +1002,7 @@ object PlayProject extends Plugin {
 
     playStage <<= playStageTask,
 
-    cleanFiles <+= distDirectory.identity,
+    cleanFiles <+= distDirectory,
 
     resourceGenerators in Compile <+= LessCompiler,
 
@@ -1025,12 +1028,17 @@ object PlayProject extends Plugin {
 
   // ----- Create a Play project with default settings
 
-  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file(".")) = {
+  private def whichLang(name: String) = if (name == JAVA) defaultJavaSettings else defaultScalaSettings
+
+  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = JAVA) = {
 
     Project(name, path)
       .settings(parallelExecution in Test := false)
+
       .settings(PlayProject.defaultSettings: _*)
       .settings(
+
+        scalacOptions ++= Seq("-deprecation", "-Xcheckinit", "-encoding", "utf8"),
 
         version := applicationVersion,
 
