@@ -47,9 +47,9 @@ object Configuration {
   def empty = Configuration(Map.empty)
 
   /**
-   * provides a way to allow method calls to underlying Config
+   * provides a way to use scalified config
    */
-  implicit def delegateToConfig(c: RichConfig) = c.underlying
+  implicit def delegateToRichConfig(c: config.Config) = new RichConfig(c)
 
   /**
    * reading json/onf/properties style configration (application.conf,application.json,application.properties) from root resource
