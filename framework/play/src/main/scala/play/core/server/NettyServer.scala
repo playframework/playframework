@@ -14,6 +14,7 @@ import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
+import org.jboss.netty.handler.execution.{ OrderedMemoryAwareThreadPoolExecutor, ExecutionHandler }
 
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
@@ -415,10 +416,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
     }
 
   }
+  private val executionHandler = new ExecutionHandler(new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576))
 
   class DefaultPipelineFactory extends ChannelPipelineFactory {
     def getPipeline = {
       val newPipeline = pipeline()
+      newPipeline.addLast("executionHandler", executionHandler)
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
@@ -458,7 +461,7 @@ object NettyServer {
         System.exit(-1)
       }
 
-      println("Process ID is " + pid)
+      play.api.Logger.info("Process ID is " + pid)
 
       new FileOutputStream(pidFile).write(pid.getBytes)
       Runtime.getRuntime.addShutdownHook(new Thread {
