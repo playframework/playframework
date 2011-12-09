@@ -1034,8 +1034,8 @@ object PlayProject extends Plugin {
 
     Project(name, path)
       .settings(parallelExecution in Test := false)
-
       .settings(PlayProject.defaultSettings: _*)
+      .settings(whichLang(mainLang): _*)
       .settings(
 
         scalacOptions ++= Seq("-deprecation", "-Xcheckinit", "-encoding", "utf8"),
