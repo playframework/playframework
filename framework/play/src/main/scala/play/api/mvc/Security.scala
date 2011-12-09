@@ -8,8 +8,8 @@ import play.api.libs.iteratee._
 /** Helpers to create secure actions. */
 object Security {
 
-  /** Key of the USERNAME attribute stored in session. */
-  val USERNAME = "username"
+  /** Key of the username attribute stored in session. */
+  lazy val username: String = Play.maybeApplication map (_.configuration.getString("session.username")) flatMap (e => e) getOrElse ("username")
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -72,7 +72,7 @@ object Security {
    * @param action the action to wrap
    */
   def Authenticated[A](action: String => Action[A]): Action[(Action[A], A)] = Authenticated(
-    req => req.session.get(USERNAME),
+    req => req.session.get(username),
     _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
 
 }
