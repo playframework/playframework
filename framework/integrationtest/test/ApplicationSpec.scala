@@ -36,5 +36,16 @@ object ApplicationSpec extends Specification {
         extracted._3 must contain ("Hello world")
     }
   }
- }
+  
+  "execute index1" in {
+      withApplication(Nil, MockData.dataSource) {
+        val action = controllers.Application.index()
+        val result = action.apply(new FakeRequest)
+        val extracted = Extract.from(result)
+        extracted._1.toString must equalTo("200")
+        extracted._2.toString must equalTo("Map(Content-Type -> text/html; charset=utf-8)")
+        extracted._3 must contain ("Hello world")
+    }
+  } 
+ } 
 }

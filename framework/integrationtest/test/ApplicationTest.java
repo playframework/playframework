@@ -10,11 +10,9 @@ import play.Logger;
 
 public class ApplicationTest extends MockApplication{
 
-  public ApplicationTest() {
-    Logger.warn("starting ApplicationTest...");
-  }
   @Before public void init() {
     injectGlobalMock(new ArrayList<String>(), MockData.dataSource());  
+    Logger.warn("starting ApplicationTest...");
   }
 
   @Test public void Test() {

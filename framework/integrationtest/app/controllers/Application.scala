@@ -7,11 +7,13 @@ import play.cache.{Cache=>JCache}
 import play.api.json._
 import models._
 import models.Protocol._
+import play.api.Play.current
 
 object Application extends Controller {
 
   def index = Action {
     import play.api.Play.current
+    val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello","world")
     val v2 = Cache.get[String]("peter","hello")
     if (v2("peter") == "world" && v2("hello") == "world") throw new RuntimeException("scala cache API is not working")

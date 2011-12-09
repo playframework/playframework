@@ -144,8 +144,9 @@ object Evolutions {
 
     } catch {
       case e: InconsistentDatabase => throw e
-      case _ => execute(
-        """
+      case _ => try {
+        execute(
+          """
                     create table play_evolutions (
                         id int not null primary key, hash varchar(255) not null, 
                         applied_at timestamp not null, 
@@ -155,6 +156,7 @@ object Evolutions {
                         last_problem text
                     )
                 """)
+      } catch { case ex: Exception => play.api.Logger.warn("play_evolutions table already existed") }
     } finally {
       connection.close()
     }

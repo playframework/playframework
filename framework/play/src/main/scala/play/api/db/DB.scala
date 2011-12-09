@@ -180,7 +180,7 @@ object DBApi {
     conf.getString("initSQL").map(datasource.setInitSQL(_))
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
     conf.getInt("maxConnectionAge").map(datasource.setMaxConnectionAgeInSeconds(_))
-
+    conf.getBoolean("disableJMX").map(datasource.setDisableJMX(_))
     datasource -> conf.absolute("url")
   }
 
@@ -303,7 +303,10 @@ class DBPlugin(app: Application) extends Plugin {
   /** Closes all data sources. */
   override def onStop {
     db.datasources.values.foreach {
-      case (ds, _) => try { ds.close() } catch { case _ => }
+      case (ds, _) => try {
+        val bone = new com.jolbox.bonecp.BoneCP(ds.getConfig)
+        bone.shutdown()
+      } catch { case _ => }
     }
   }
 

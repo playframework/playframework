@@ -13,6 +13,7 @@ object MockData {
     "db.default.driver" -> "org.h2.Driver",
     "db.default.url" -> "jdbc:h2:mem:play",
     "ebean.default" -> "models.*",
+    "db.default.disableJMX" -> "true",
     "mock" -> "true")
   def dataSourceAsJava = dataSource.asJava
 
@@ -40,6 +41,13 @@ abstract class Mock {
    * clears mock from context
    */
   def clearMock() {
+    try {
+      val mockApp = play.api.Play.current
+      mockApp.configuration.getString("mock").map { _ =>
+        val s = play.api.db.DB.getConnection("default")(mockApp).createStatement
+        s.execute("SHUTDOWN")
+      }.getOrElse(None)
+    } catch { case ex: Exception => }
     Play.stop()
   }
 
