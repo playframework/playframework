@@ -62,7 +62,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
       case body: play.api.mvc.AnyContent if body.asUrlFormEncoded.isDefined => body.asUrlFormEncoded.get
       case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined => body.asMultipartFormData.get.asUrlFormEncoded
       case body: Map[String, Seq[String]] => body
-      case body: play.api.mvc.MultipartFormData => body.asUrlFormEncoded
+      case body: play.api.mvc.MultipartFormData[_] => body.asUrlFormEncoded
       case _ => Map.empty[String, Seq[String]]
     }) ++ request.queryString
     bind(data.mapValues(_.headOption.getOrElse("")))

@@ -236,36 +236,38 @@ trait Enumeratee[To, From] {
 
 object Enumeratee {
 
-  def map[E, NE](f: E => NE): Enumeratee[NE, E] = new Enumeratee[NE, E] {
+  def map[E] = new {
+    def apply[NE](f: E => NE): Enumeratee[NE, E] = new Enumeratee[NE, E] {
 
-    def apply[A](iteratee: Iteratee[NE, A]): Iteratee[E, Iteratee[NE, A]] = {
+      def apply[A](iteratee: Iteratee[NE, A]): Iteratee[E, Iteratee[NE, A]] = {
 
-      def step(inner: Iteratee[NE, A])(in: Input[E]): Iteratee[E, Iteratee[NE, A]] = {
+        def step(inner: Iteratee[NE, A])(in: Input[E]): Iteratee[E, Iteratee[NE, A]] = {
 
-        in match {
+          in match {
 
-          case Input.El(e) => inner.pureFlatFold(
-            (_, _) => Done(inner, in),
-            k => {
-              val next = k(Input.El(f(e)))
-              Cont(step(next))
-            },
-            (_, _) => Done(inner, in))
+            case Input.El(e) => inner.pureFlatFold(
+              (_, _) => Done(inner, in),
+              k => {
+                val next = k(Input.El(f(e)))
+                Cont(step(next))
+              },
+              (_, _) => Done(inner, in))
 
-          case Input.EOF => inner.pureFlatFold(
-            (_, _) => Done(inner, Input.EOF),
-            k => Done(k(Input.EOF), Input.EOF),
-            (_, _) => Done(inner, Input.EOF))
+            case Input.EOF => inner.pureFlatFold(
+              (_, _) => Done(inner, Input.EOF),
+              k => Done(k(Input.EOF), Input.EOF),
+              (_, _) => Done(inner, Input.EOF))
 
-          case Input.Empty => Cont(step(inner))
+            case Input.Empty => Cont(step(inner))
+
+          }
 
         }
 
+        Cont(step(iteratee))
       }
 
-      Cont(step(iteratee))
     }
-
   }
 
   def take[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
