@@ -971,8 +971,7 @@ object PlayProject extends Plugin {
 
     libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.6.1" % "test",
       "com.novocode" % "junit-interface" % "0.7" % "test",
-      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.11.0" % "test",
-      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.11.0" % "test"),
+      "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"),
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
 
