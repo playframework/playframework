@@ -110,6 +110,10 @@ case class JsBoolean(override val value: Boolean) extends JsValue
 
 case class JsNumber(override val value: BigDecimal) extends JsValue
 
+case class JsInteger(override val value: Long) extends JsValue
+
+case class JsFloat(override val value: Double) extends JsValue
+
 case class JsString(override val value: String) extends JsValue
 
 case class JsArray(override val value: List[JsValue]) extends JsValue {
@@ -144,6 +148,8 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
   def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
       case JsNumber(v) => json.writeNumber(v.doubleValue())
+      case JsInteger(v) => json.writeNumber(v.longValue())
+      case JsFloat(v) => json.writeNumber(v.doubleValue())
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
       case JsArray(elements) => json.writeObject(elements)
