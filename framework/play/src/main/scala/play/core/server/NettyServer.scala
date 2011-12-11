@@ -134,7 +134,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
         def frameReceived(ctx: ChannelHandlerContext, input: Input[String]) {
           iterateeAgent.send(iteratee =>
             iteratee.map(it => it.flatFold(
-              (a, e) => { error("Getting messages on a supposedly closed socket? frame: " + input) },
+              (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
               k => {
                 val next = k(input)
                 next.fold(
@@ -215,7 +215,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
       e.getMessage match {
         case nettyHttpRequest: HttpRequest =>
-          val keepAlive = allowKeepAlive && nettyHttpRequest.isKeepAlive
+          val keepAlive = allowKeepAlive && isKeepAlive(nettyHttpRequest)
           var version = nettyHttpRequest.getProtocolVersion
           val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)

@@ -864,7 +864,7 @@ object Router {
       def call = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
         case handler ~ parameters =>
           {
-            val packageName = handler.takeWhile(p => p.charAt(0).toUpperCase != p.charAt(0)).mkString(".")
+            val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")
             val className = handler(packageName.split('.').size)
             val rest = handler.drop(packageName.split('.').size + 1)
             val field = Option(rest.dropRight(1).mkString(".")).filterNot(_.isEmpty)
@@ -934,7 +934,7 @@ object Router {
   case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]]) {
 
     def getControllerClass: Class[_] = {
-      Option(controller.split('.').takeRight(1).head).filter(p => p.charAt(0).toUpperCase != p.charAt(0)).map { field =>
+      Option(controller.split('.').takeRight(1).head).filter(p => p.charAt(0).toUpper != p.charAt(0)).map { field =>
         val parent = ref.getClass.getClassLoader.loadClass(controller.split('.').dropRight(1).mkString("."))
         try {
           parent.getMethod(field).getReturnType
