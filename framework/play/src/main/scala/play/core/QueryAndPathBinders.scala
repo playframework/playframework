@@ -32,8 +32,8 @@ object JavascriptLitteral {
     def to(value: Int) = value.toString
   }
 
-  implicit def litteralInteger = new JavascriptLitteral[Integer] {
-    def to(value: Integer) = value.toString
+  implicit def litteralInteger = new JavascriptLitteral[java.lang.Integer] {
+    def to(value: java.lang.Integer) = value.toString
   }
 
   implicit def litteralLong = new JavascriptLitteral[Long] {
@@ -79,7 +79,7 @@ object QueryStringBindable {
     def unbind(key: String, value: Long) = key + "=" + value.toString
   }
 
-  implicit def bindableInteger = new QueryStringBindable[Integer] {
+  implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
         Right(Integer.parseInt(i))

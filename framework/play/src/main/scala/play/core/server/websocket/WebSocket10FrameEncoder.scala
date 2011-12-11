@@ -86,7 +86,7 @@ class WebSocket10FrameEncoder extends OneToOneEncoder {
 
           val body = if (maskPayload) {
             val body = ChannelBuffers.buffer(length)
-            val random = (Math.random * Integer.MAX_VALUE).toInt
+            val random = (math.random * Integer.MAX_VALUE).toInt
             val mask = ByteBuffer.allocate(4).putInt(random).array
 
             header.writeBytes(mask)
