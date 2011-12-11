@@ -21,9 +21,9 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
-  def consume[E[_], B] = new {
-    def apply[That]()(implicit bf: scala.collection.generic.CanBuildFrom[E[B], B, That], t: E[B] => TraversableOnce[B]): Iteratee[E[B], That] = {
-      fold[E[B], Seq[E[B]]](Seq.empty) { (els, chunk) =>
+  def consume[E] = new {
+    def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
+      fold[E, Seq[E]](Seq.empty) { (els, chunk) =>
         els :+ chunk
       }.mapDone { elts =>
         val builder = bf()

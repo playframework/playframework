@@ -86,19 +86,19 @@ trait BodyParsers {
   object parse {
 
     def tolerantText: BodyParser[String] = BodyParser { request =>
-      Iteratee.consume[Array, Byte]().mapDone(c => Right(new String(c, request.charset.getOrElse("utf-8"))))
+      Iteratee.consume[Array[Byte]]().mapDone(c => Right(new String(c, request.charset.getOrElse("utf-8"))))
     }
 
     def text: BodyParser[String] = when(_.contentType.exists(_ == "text/plain"), tolerantText)
 
     def raw: BodyParser[Array[Byte]] = BodyParser { request =>
-      Iteratee.consume[Array, Byte]().mapDone(c => Right(c))
+      Iteratee.consume[Array[Byte]]().mapDone(c => Right(c))
     }
 
     def json: BodyParser[JsValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson)
 
     def tolerantJson: BodyParser[JsValue] = BodyParser { request =>
-      Iteratee.consume[Array, Byte]().mapDone { bytes =>
+      Iteratee.consume[Array[Byte]]().mapDone { bytes =>
         scala.util.control.Exception.allCatch[JsValue].either {
           parseJson(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
@@ -115,7 +115,7 @@ trait BodyParsers {
     }
 
     def tolerantXml: BodyParser[NodeSeq] = BodyParser { request =>
-      Iteratee.consume[Array, Byte]().mapDone { bytes =>
+      Iteratee.consume[Array[Byte]]().mapDone { bytes =>
         scala.util.control.Exception.allCatch[NodeSeq].either {
           XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
@@ -153,7 +153,7 @@ trait BodyParsers {
       import play.core.parsers._
       import scala.collection.JavaConverters._
 
-      Iteratee.consume[Array, Byte]().mapDone { c =>
+      Iteratee.consume[Array[Byte]]().mapDone { c =>
         scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
           UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
@@ -217,7 +217,7 @@ trait BodyParsers {
           val maxHeaderBuffer =
             Traversable.drop[Array[Byte]](2) ><>
               Traversable.takeUpTo(4 * 1024) transform
-              Iteratee.consume[Array, Byte]()
+              Iteratee.consume[Array[Byte]]()
 
           val collectHeaders = maxHeaderBuffer.flatMap { buffer =>
             val (headerBytes, rest) = buffer.splitAt(buffer.indexOfSlice(CRLF ++ CRLF))
@@ -333,7 +333,7 @@ trait BodyParsers {
 
       case PartInfoMatcher(partName) =>
         Traversable.takeUpTo[Array[Byte]](100 * 1024)
-          .transform(Iteratee.consume[Array, Byte]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
+          .transform(Iteratee.consume[Array[Byte]]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
           .flatMap { data =>
             Cont({
               case Input.El(_) => Done(MaxDataPartSizeExcedeed(partName), Input.Empty)
