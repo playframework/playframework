@@ -137,7 +137,7 @@ package play.api.mvc {
 
     /** Encodes the data as a `String`. */
     def encode(data: Map[String, String]): String = {
-      val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"))
+      val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"), "UTF-8")
       if (isSigned)
         Crypto.sign(encoded) + "-" + encoded
       else
@@ -147,7 +147,7 @@ package play.api.mvc {
     /** Decodes from an encoded `String`. */
     def decode(data: String): Map[String, String] = {
 
-      def urldecode(data: String) = java.net.URLDecoder.decode(data).split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+      def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
 
       try {
         if (isSigned) {

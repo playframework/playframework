@@ -22,7 +22,7 @@ object Iteratee {
   }
 
   def consume[E[_], B] = new {
-    def apply[That]()(implicit bf: scala.collection.generic.CanBuildFrom[E[B], B, That], t: E[B] <%< TraversableOnce[B]): Iteratee[E[B], That] = {
+    def apply[That]()(implicit bf: scala.collection.generic.CanBuildFrom[E[B], B, That], t: E[B] => TraversableOnce[B]): Iteratee[E[B], That] = {
       fold[E[B], Seq[E[B]]](Seq.empty) { (els, chunk) =>
         els :+ chunk
       }.mapDone { elts =>
@@ -81,9 +81,9 @@ trait Iteratee[E, +A] {
   self =>
   def run[AA >: A]: Promise[AA] = fold((a, _) => Promise.pure(a),
     k => k(Input.EOF).fold((a1, _) => Promise.pure(a1),
-      _ => error("diverging iteratee after Input.EOF"),
-      (msg, e) => error(msg)),
-    (msg, e) => error(msg))
+      _ => sys.error("diverging iteratee after Input.EOF"),
+      (msg, e) => sys.error(msg)),
+    (msg, e) => sys.error(msg))
 
   def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
     this <<: Enumerator.enumInput(in)
@@ -209,9 +209,9 @@ trait Enumerator[+E] {
         .flatMap(_.fold((a, _) => Promise.pure(a),
           k => k(OuterEOF).fold(
             (a1, _) => Promise.pure(a1),
-            _ => error("diverging iteratee after Input.EOF"),
-            (msg, e) => error(msg)),
-          (msg, e) => error(msg)))
+            _ => sys.error("diverging iteratee after Input.EOF"),
+            (msg, e) => sys.error(msg)),
+          (msg, e) => sys.error(msg)))
     }
   }
 

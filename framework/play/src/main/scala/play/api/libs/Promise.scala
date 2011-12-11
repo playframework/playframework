@@ -147,7 +147,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
   def redeem(body: => A): Unit = {
     val result = scala.util.control.Exception.allCatch[A].either(body)
     atomic { implicit txn =>
-      if (redeemed().isDefined) error("already redeemed")
+      if (redeemed().isDefined) sys.error("already redeemed")
       redeemed() = result.fold(Thrown(_), Redeemed(_))
     }
     actions.single.swap(List()).foreach(invoke(this, _))
@@ -200,7 +200,7 @@ object PurePromise {
 
     def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = Redeemed(a)
 
-    def redeem(a: A) = error("Already redeemed")
+    def redeem(a: A) = sys.error("Already redeemed")
 
     def extend[B](f: (Promise[A] => B)): Promise[B] = {
       apply(f(this))
