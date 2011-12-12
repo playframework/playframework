@@ -278,8 +278,6 @@ package ws {
 
   case class ResponseHeaders(status: Int, headers: Map[String, Seq[String]])
 
-  case class StreamedResponse(status: Int, headers: Map[String, Seq[String]], chunks: Enumerator[Array[Byte]])
-
   trait SignatureCalculator {
     def sign(request: WS.WSRequestBase[_, _])
   }
