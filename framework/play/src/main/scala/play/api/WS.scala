@@ -56,21 +56,21 @@ object WS {
      */
     def get(): Promise[R] = execute("GET")
 
-    def getStream(): Promise[StreamedResponse] = executeStream("GET")
+    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = executeStream("GET", consumer)
 
     /**
      * Perform a POST on the request asynchronously.
      */
     def post(): Promise[R] = execute("POST")
 
-    def postStream(): Promise[StreamedResponse] = executeStream("POST")
+    def post[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = executeStream("POST", consumer)
 
     /**
      * Perform a PUT on the request asynchronously.
      */
     def put(): Promise[R] = execute("PUT")
 
-    def putStream(): Promise[StreamedResponse] = executeStream("PUT")
+    def put[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = executeStream("PUT", consumer)
 
     /**
      * Perform a DELETE on the request asynchronously.
@@ -176,23 +176,15 @@ object WS {
 
     protected def wrapResponse(ahcResponse: AHCResponse): R
 
-    private def executeStream(method: String): Promise[StreamedResponse] = {
+    private def executeStream[A](method: String, consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
       import com.ning.http.client.AsyncHandler
-      var result = Promise[StreamedResponse]()
       var request = this.setMethod(method).build()
+      var doneOrError = false
       calculator.map(_.sign(this))
 
       var statusCode = 0
-      var iterateeP: STMPromise[Iteratee[Array[Byte], _]] = null
-      var iteratee: Iteratee[Array[Byte], _] = null
-      val enumerator = new Enumerator[Array[Byte]] {
-        def apply[A, EE >: Array[Byte]](it: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = {
-          iteratee = it.asInstanceOf[Iteratee[Array[Byte], _]]
-          val p = new STMPromise[Iteratee[EE, A]]()
-          iterateeP = p.asInstanceOf[STMPromise[Iteratee[Array[Byte], _]]]
-          p
-        }
-      }
+      var iterateeP: STMPromise[Iteratee[Array[Byte], A]] = null
+      var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(request, new AsyncHandler[Unit]() {
         import com.ning.http.client.AsyncHandler.STATE
@@ -204,35 +196,35 @@ object WS {
 
         override def onHeadersReceived(h: HttpResponseHeaders) = {
           val headers = h.getHeaders()
-          result.redeem(StreamedResponse(statusCode, ningHeadersToMap(headers), enumerator))
+          iteratee = consumer(ResponseHeaders(statusCode, ningHeadersToMap(headers)))
           STATE.CONTINUE
         }
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
-          if (iteratee != null) {
-            iteratee.fold(
+          if (!doneOrError) {
+            val nextIteratee = iteratee.pureFlatFold(
               // DONE
               (a, e) => {
-                iterateeP.redeem(iteratee)
-                iteratee = null
-                Promise.pure(STATE.ABORT)
+                val it = Done(a, e)
+                iterateeP.redeem(it)
+                it
               },
 
               // CONTINUE
               k => {
                 k(El(bodyPart.getBodyPartBytes()))
-                Promise.pure(STATE.CONTINUE)
               },
 
               // ERROR
               (e, input) => {
-                iterateeP.redeem(iteratee)
-                iteratee = null
-                Promise.pure(STATE.ABORT)
-              }).value.get
-          } else {
-            // The Iteratee has not been plugged yet - ignore the chunk and wait for the Iteratee
+                val it = Error(e, input)
+                iterateeP.redeem(it)
+                it
+              })
             STATE.CONTINUE
+          } else {
+            iteratee = null
+            STATE.ABORT
           }
         }
 
@@ -244,7 +236,7 @@ object WS {
           iterateeP.redeem(throw t)
         }
       })
-      result
+      iterateeP
     }
 
   }
@@ -283,6 +275,8 @@ package ws {
     lazy val json = parseJson(body)
 
   }
+
+  case class ResponseHeaders(status: Int, headers: Map[String, Seq[String]])
 
   case class StreamedResponse(status: Int, headers: Map[String, Seq[String]], chunks: Enumerator[Array[Byte]])
 
