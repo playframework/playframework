@@ -68,7 +68,7 @@ package play.api.mvc {
       def queryString = self.queryString
       def headers = self.headers
       def cookies = self.cookies
-      def body = f(self.body)
+      val body = f(self.body)
     }
 
   }
