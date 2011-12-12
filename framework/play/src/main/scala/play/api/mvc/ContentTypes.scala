@@ -36,7 +36,7 @@ sealed trait AnyContent {
     case _ => None
   }
 
-  def asMultipartFormData: Option[MultipartFormData[FilePart[(String, TemporaryFile)]]] = this match {
+  def asMultipartFormData: Option[MultipartFormData[TemporaryFile]] = this match {
     case AnyContentAsMultipartFormData(mfd) => Some(mfd)
     case _ => None
   }
@@ -54,30 +54,22 @@ case class AnyContentAsUrlFormEncoded(data: Map[String, Seq[String]]) extends An
 case class AnyContentAsRaw(raw: Array[Byte]) extends AnyContent
 case class AnyContentAsXml(xml: NodeSeq) extends AnyContent
 case class AnyContentAsJson(json: JsValue) extends AnyContent
-case class AnyContentAsMultipartFormData(mdf: MultipartFormData[FilePart[(String, TemporaryFile)]]) extends AnyContent
+case class AnyContentAsMultipartFormData(mdf: MultipartFormData[TemporaryFile]) extends AnyContent
 
-case class MultipartFormData[A](dataParts: Map[String, Seq[String]], other: Seq[A], badParts: Seq[BadPart]) {
+case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart], missingFileParts: Seq[MissingFilePart]) {
 
   def asUrlFormEncoded: Map[String, Seq[String]] = dataParts
 
-  def files[Ref](implicit files: A <:< FilePart[Ref]): Seq[FilePart[Ref]] = {
-    other.map(files)
-  }
+  def file(key: String): Option[FilePart[A]] = files.find(_.key == key)
 
-  def file[Ref](key: String)(implicit files: A <:< FilePart[Ref]): Option[FilePart[Ref]] = other.map(files).find(_.key == key)
-
-  def fileKeys[Ref](implicit files: A <:< FilePart[Ref]): Seq[String] = {
-    other.map(files).collect {
-      case FilePart(key, _, _, _) => key
-    }
-  }
+  def files(key: String): Seq[FilePart[A]] = files.filter(_.key == key)
 
 }
 
 object MultipartFormData {
   trait Part
   case class DataPart(key: String, value: String) extends Part
-  case class FilePart[A](key: String, filename: String, contentType: Option[String], fileRef: A) extends Part
+  case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part
   case class MissingFilePart(key: String) extends Part
   case class BadPart(headers: Map[String, String]) extends Part
   case class MaxDataPartSizeExcedeed(key: String) extends Part
@@ -223,175 +215,176 @@ trait BodyParsers {
 
     // -- Multipart
 
-    def multipartFormData: BodyParser[MultipartFormData[FilePart[(String, TemporaryFile)]]] = multipartFormData(handleFilePartAsTemporaryFile)
+    def multipartFormData: BodyParser[MultipartFormData[TemporaryFile]] = multipartFormData(Multipart.handleFilePartAsTemporaryFile)
 
-    type PartHandler[A] = PartialFunction[Map[String, String], Iteratee[Array[Byte], A]]
-
-    def multipartFormData[A](partHandler: PartHandler[A]): BodyParser[MultipartFormData[A]] = BodyParser { request =>
-      val handler: PartHandler[Either[Part, A]] =
-        handleDataPart.andThen(_.map(Left(_)))
-          .orElse(partHandler.andThen(_.map(Right(_))))
+    def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]]): BodyParser[MultipartFormData[A]] = BodyParser { request =>
+      val handler: Multipart.PartHandler[Either[Part, FilePart[A]]] =
+        Multipart.handleDataPart.andThen(_.map(Left(_)))
+          .orElse({ case Multipart.FileInfoMatcher(partName, fileName, _) if fileName.trim.isEmpty => Done(Left(MissingFilePart(partName)), Input.Empty) }: Multipart.PartHandler[Either[Part, FilePart[A]]])
+          .orElse(filePartHandler.andThen(_.map(Right(_))))
           .orElse { case headers => Done(Left(BadPart(headers)), Input.Empty) }
 
-      multipartParser(handler)(request).map { errorOrParts =>
+      Multipart.multipartParser(handler)(request).map { errorOrParts =>
         errorOrParts.right.map { parts =>
           val data = parts.collect { case Left(DataPart(key, value)) => (key, value) }.groupBy(_._1).mapValues(_.map(_._2))
           val az = parts.collect { case Right(a) => a }
           val bad = parts.collect { case Left(b @ BadPart(_)) => b }
-          MultipartFormData(data, az, bad)
+          val missing = parts.collect { case Left(missing @ MissingFilePart(_)) => missing }
+          MultipartFormData(data, az, bad, missing)
 
         }
       }
     }
 
-    def multipartParser[A](partHandler: Map[String, String] => Iteratee[Array[Byte], A]): BodyParser[Seq[A]] = parse.using { request =>
+    object Multipart {
 
-      val maybeBoundary = request.headers.get(play.api.http.HeaderNames.CONTENT_TYPE).filter(ct => ct.trim.startsWith("multipart/form-data")).flatMap { mpCt =>
-        mpCt.trim.split("boundary=").tail.headOption.map(b => ("\r\n--" + b).getBytes("utf-8"))
+      def multipartParser[A](partHandler: Map[String, String] => Iteratee[Array[Byte], A]): BodyParser[Seq[A]] = parse.using { request =>
+
+        val maybeBoundary = request.headers.get(play.api.http.HeaderNames.CONTENT_TYPE).filter(ct => ct.trim.startsWith("multipart/form-data")).flatMap { mpCt =>
+          mpCt.trim.split("boundary=").tail.headOption.map(b => ("\r\n--" + b).getBytes("utf-8"))
+        }
+
+        maybeBoundary.map { boundary =>
+
+          BodyParser { request =>
+
+            val CRLF = "\r\n".getBytes
+
+            val takeUpToBoundary = Enumeratee.takeWhile[MatchInfo[Array[Byte]]](!_.isMatch)
+
+            val maxHeaderBuffer =
+              Traversable.drop[Array[Byte]](2) ><>
+                Traversable.takeUpTo(4 * 1024) transform
+                Iteratee.consume[Array[Byte]]()
+
+            val collectHeaders = maxHeaderBuffer.flatMap { buffer =>
+              val (headerBytes, rest) = buffer.splitAt(buffer.indexOfSlice(CRLF ++ CRLF))
+
+              val headerString = new String(headerBytes)
+              val headers = headerString.lines.map { header =>
+                val key :: value = header.trim.split(":").toList
+                (key.trim.toLowerCase, value.mkString.trim)
+              }.toMap
+
+              Cont(in => Done(headers, in match {
+                case Input.El(e) => Input.El(rest.drop(4) ++ e)
+                case Input.EOF => Input.El(rest.drop(4))
+                case Input.Empty => Input.El(rest.drop(4))
+              }))
+            }
+
+            val readPart = collectHeaders.flatMap(partHandler)
+
+            val handlePart = Enumeratee.map[MatchInfo[Array[Byte]]](_.content).transform(readPart)
+
+            Traversable.take[Array[Byte]](boundary.size - 2).transform(Iteratee.consume()).flatMap { firstBoundary =>
+
+              Parsing.search(boundary) transform Iteratee.repeat {
+
+                takeUpToBoundary.transform(handlePart).flatMap { part =>
+                  Enumeratee.take(1)(Iteratee.ignore[MatchInfo[Array[Byte]]]).mapDone(_ => part)
+                }
+
+              }.map(parts => Right(parts.dropRight(1)))
+
+            }
+
+          }
+
+        }.getOrElse(parse.error(BadRequest("Missing boundary header")))
+
       }
 
-      maybeBoundary.map { boundary =>
+      type PartHandler[A] = PartialFunction[Map[String, String], Iteratee[Array[Byte], A]]
 
-        BodyParser { request =>
+      def handleFilePartAsTemporaryFile: PartHandler[FilePart[TemporaryFile]] = {
+        handleFilePart {
+          case FileInfo(partName, filename, contentType) =>
+            val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
+            Iteratee.fold[Array[Byte], FileOutputStream](new java.io.FileOutputStream(tempFile.file)) { (os, data) =>
+              os.write(data)
+              os
+            }.mapDone { os =>
+              os.close()
+              tempFile
+            }
+        }
+      }
 
-          val CRLF = "\r\n".getBytes
+      case class FileInfo(partName: String, fileName: String, contentType: Option[String])
 
-          val takeUpToBoundary = Enumeratee.takeWhile[MatchInfo[Array[Byte]]](!_.isMatch)
+      object FileInfoMatcher {
 
-          val maxHeaderBuffer =
-            Traversable.drop[Array[Byte]](2) ><>
-              Traversable.takeUpTo(4 * 1024) transform
-              Iteratee.consume[Array[Byte]]()
+        def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
 
-          val collectHeaders = maxHeaderBuffer.flatMap { buffer =>
-            val (headerBytes, rest) = buffer.splitAt(buffer.indexOfSlice(CRLF ++ CRLF))
+          val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
 
-            val headerString = new String(headerBytes)
-            val headers = headerString.lines.map { header =>
-              val key :: value = header.trim.split(":").toList
-              (key.trim.toLowerCase, value.mkString.trim)
+          for {
+            value <- headers.get("content-disposition")
+
+            val values = value.split(";").map(_.trim).map {
+              case keyValue(key, value) => (key.trim, value.trim)
+              case key => (key.trim, "")
             }.toMap
 
-            Cont(in => Done(headers, in match {
-              case Input.El(e) => Input.El(rest.drop(4) ++ e)
-              case Input.EOF => Input.El(rest.drop(4))
-              case Input.Empty => Input.El(rest.drop(4))
-            }))
-          }
+            _ <- values.get("form-data");
 
-          val readPart = collectHeaders.flatMap(partHandler)
+            partName <- values.get("name");
 
-          val handlePart = Enumeratee.map[MatchInfo[Array[Byte]]](_.content).transform(readPart)
+            fileName <- values.get("filename");
 
-          Traversable.take[Array[Byte]](boundary.size - 2).transform(Iteratee.consume()).flatMap { firstBoundary =>
+            val contentType = headers.get("content-type")
 
-            Parsing.search(boundary) transform Iteratee.repeat {
-
-              takeUpToBoundary.transform(handlePart).flatMap { part =>
-                Enumeratee.take(1)(Iteratee.ignore[MatchInfo[Array[Byte]]]).mapDone(_ => part)
-              }
-
-            }.map(parts => Right(parts.dropRight(1)))
-
-          }
-
+          } yield ((partName, fileName, contentType))
         }
-
-      }.getOrElse(parse.error(BadRequest("Missing boundary header")))
-
-    }
-
-    def handleFilePartAsTemporaryFile: PartHandler[FilePart[(String, TemporaryFile)]] = {
-
-      handleFilePart {
-        case FileInfo(partName, filename, contentType) =>
-          val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
-          Iteratee.fold[Array[Byte], FileOutputStream](new java.io.FileOutputStream(tempFile.file)) { (os, data) =>
-            os.write(data)
-            os
-          }.mapDone { os =>
-            os.close()
-            val safeFileName = filename.split('\\').takeRight(1).mkString
-            FilePart(partName, filename, contentType, (safeFileName, tempFile))
-          }
-
       }
-    }
 
-    case class FileInfo(partName: String, fileName: String, contentType: Option[String])
-
-    object FileInfoMatcher {
-
-      def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
-
-        val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
-
-        for {
-          value <- headers.get("content-disposition")
-
-          val values = value.split(";").map(_.trim).map {
-            case keyValue(key, value) => (key.trim, value.trim)
-            case key => (key.trim, "")
-          }.toMap
-
-          _ <- values.get("form-data");
-
-          partName <- values.get("name");
-
-          fileName <- values.get("filename");
-
-          val contentType = headers.get("content-type")
-
-        } yield ((partName, fileName, contentType))
+      def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]): PartHandler[FilePart[A]] = {
+        case FileInfoMatcher(partName, fileName, contentType) =>
+          val safeFileName = fileName.split('\\').takeRight(1).mkString
+          handler(FileInfo(partName, safeFileName, contentType)).map(a => FilePart(partName, safeFileName, contentType, a))
       }
-    }
 
-    def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]): PartialFunction[Map[String, String], Iteratee[Array[Byte], A]] = {
+      object PartInfoMatcher {
 
-      case FileInfoMatcher(partName, fileName, contentType) => handler(FileInfo(partName, fileName, contentType))
-    }
+        def unapply(headers: Map[String, String]): Option[String] = {
 
-    object PartInfoMatcher {
+          val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
 
-      def unapply(headers: Map[String, String]): Option[String] = {
+          for {
+            value <- headers.get("content-disposition")
 
-        val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
+            val values = value.split(";").map(_.trim).map {
+              case keyValue(key, value) => (key.trim, value.trim)
+              case key => (key.trim, "")
+            }.toMap
 
-        for {
-          value <- headers.get("content-disposition")
+            _ <- values.get("form-data");
 
-          val values = value.split(";").map(_.trim).map {
-            case keyValue(key, value) => (key.trim, value.trim)
-            case key => (key.trim, "")
-          }.toMap
+            partName <- values.get("name")
 
-          _ <- values.get("form-data");
-
-          partName <- values.get("name")
-
-        } yield (partName)
+          } yield (partName)
+        }
       }
-    }
 
-    def handleDataPart: PartialFunction[Map[String, String], Iteratee[Array[Byte], Part]] = {
+      def handleDataPart: PartHandler[Part] = {
+        case headers @ PartInfoMatcher(partName) if !FileInfoMatcher.unapply(headers).isDefined =>
+          Traversable.takeUpTo[Array[Byte]](DEFAULT_MAX_TEXT_LENGTH)
+            .transform(Iteratee.consume[Array[Byte]]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
+            .flatMap { data =>
+              Cont({
+                case Input.El(_) => Done(MaxDataPartSizeExcedeed(partName), Input.Empty)
+                case in => Done(data, in)
+              })
+            }
+      }
 
-      case PartInfoMatcher(partName) =>
-        Traversable.takeUpTo[Array[Byte]](DEFAULT_MAX_TEXT_LENGTH)
-          .transform(Iteratee.consume[Array[Byte]]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
-          .flatMap { data =>
-            Cont({
-              case Input.El(_) => Done(MaxDataPartSizeExcedeed(partName), Input.Empty)
-              case in => Done(data, in)
-            })
-          }
-
-    }
-
-    def handlePart(fileHandler: PartHandler[FilePart[File]]): PartHandler[Part] = {
-      handleDataPart
-        .orElse({ case FileInfoMatcher(partName, fileName, _) if fileName.trim.isEmpty => Done(MissingFilePart(partName), Input.Empty) }: PartHandler[Part])
-        .orElse(fileHandler)
-        .orElse({ case headers => Done(BadPart(headers), Input.Empty) })
+      def handlePart(fileHandler: PartHandler[FilePart[File]]): PartHandler[Part] = {
+        handleDataPart
+          .orElse({ case FileInfoMatcher(partName, fileName, _) if fileName.trim.isEmpty => Done(MissingFilePart(partName), Input.Empty) }: PartHandler[Part])
+          .orElse(fileHandler)
+          .orElse({ case headers => Done(BadPart(headers), Input.Empty) })
+      }
 
     }
 

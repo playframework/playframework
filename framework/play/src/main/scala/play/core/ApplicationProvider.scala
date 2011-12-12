@@ -60,42 +60,51 @@ abstract class ReloadableApplication(applicationPath: File) extends ApplicationP
 
     synchronized {
 
-      reload.right.flatMap { maybeClassloader =>
+      // Let's load the application on another thread
+      // as we are now on the Netty IO thread.
+      //
+      // Because we are on DEV mode here, it doesn't really matter
+      // but it's more coherent with the way it works in PROD mode.
+      akka.dispatch.Future({
 
-        val maybeApplication: Option[Either[PlayException, Application]] = maybeClassloader.map { classloader =>
-          try {
+        reload.right.flatMap { maybeClassloader =>
 
-            if (lastState.isRight) {
-              println()
-              println(play.console.Colors.magenta("--- (RELOAD) ---"))
-              println()
-            }
+          val maybeApplication: Option[Either[PlayException, Application]] = maybeClassloader.map { classloader =>
+            try {
 
-            val newApplication = Application(applicationPath, classloader, Some(new SourceMapper {
-              def sourceOf(className: String) = findSource(className)
-            }), Play.Mode.Dev)
+              if (lastState.isRight) {
+                println()
+                println(play.console.Colors.magenta("--- (RELOAD) ---"))
+                println()
+              }
 
-            Play.start(newApplication)
+              val newApplication = Application(applicationPath, classloader, Some(new SourceMapper {
+                def sourceOf(className: String) = findSource(className)
+              }), Play.Mode.Dev)
 
-            Right(newApplication)
-          } catch {
-            case e: PlayException => {
-              lastState = Left(e)
-              lastState
-            }
-            case e => {
-              lastState = Left(UnexpectedException(unexpected = Some(e)))
-              lastState
+              Play.start(newApplication)
+
+              Right(newApplication)
+            } catch {
+              case e: PlayException => {
+                lastState = Left(e)
+                lastState
+              }
+              case e => {
+                lastState = Left(UnexpectedException(unexpected = Some(e)))
+                lastState
+              }
             }
           }
+
+          maybeApplication.flatMap(_.right.toOption).foreach { app =>
+            lastState = Right(app)
+          }
+
+          maybeApplication.getOrElse(lastState)
         }
 
-        maybeApplication.flatMap(_.right.toOption).foreach { app =>
-          lastState = Right(app)
-        }
-
-        maybeApplication.getOrElse(lastState)
-      }
+      }, 60000).get
 
     }
   }

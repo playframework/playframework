@@ -416,12 +416,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
     }
 
   }
-  private val executionHandler = new ExecutionHandler(new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576))
 
   class DefaultPipelineFactory extends ChannelPipelineFactory {
     def getPipeline = {
       val newPipeline = pipeline()
-      newPipeline.addLast("executionHandler", executionHandler)
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
@@ -461,7 +459,8 @@ object NettyServer {
         System.exit(-1)
       }
 
-      play.api.Logger.info("Process ID is " + pid)
+      // The Logger is not initialized yet, we print the Process ID on STDOUT
+      println("Play server process ID is " + pid)
 
       new FileOutputStream(pidFile).write(pid.getBytes)
       Runtime.getRuntime.addShutdownHook(new Thread {
