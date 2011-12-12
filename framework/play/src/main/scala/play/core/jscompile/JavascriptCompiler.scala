@@ -29,7 +29,7 @@ object JavascriptCompiler {
     compiler.compile(extern, input, options).success match {
       case true => (tree.fullSource, compiler.toSource(), List(source))
       case false => {
-        val error = compiler.getErrors().first
+        val error = compiler.getErrors().head
         throw CompilationException(error.description, source, error.lineNumber, 0)
       }
     }
