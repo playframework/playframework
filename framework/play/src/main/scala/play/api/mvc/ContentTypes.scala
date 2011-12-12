@@ -70,6 +70,7 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], other: Seq[
       case FilePart(key, _, _, _) => key
     }
   }
+  
 }
 
 object MultipartFormData {

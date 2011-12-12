@@ -164,32 +164,53 @@ public class Http {
     /**
      * The request body.
      */
-    public static abstract class RequestBody {
+    public static class RequestBody {
         
         /**
          * The request content parsed as URL form-encoded.
          */
-        public abstract Map<String,String[]> asUrlFormEncoded();
+        public Map<String,String[]> asUrlFormEncoded() {
+            return null;
+        }
         
         /**
          * The request content as Array bytes.
          */
-        public abstract byte[] asRaw();
+        public byte[] asRaw() {
+            return null;
+        }
         
         /**
          * The request content as text.
          */
-        public abstract String asText();
+        public String asText() {
+            return null;
+        }
         
         /**
          * The request content as XML.
          */
-        public abstract Document asXml();
+        public Document asXml() {
+            return null;
+        }
         
         /**
          * The request content as Json.
          */
-        public abstract JsonNode asJson();
+        public JsonNode asJson() {
+            return null;
+        }
+        
+        /**
+         * Cast this RequestBody as T if possible.
+         */
+        public <T> T as(Class<T> tType) {
+            if(this.getClass().isAssignableFrom(tType)) {
+                return (T)this;
+            } else {
+                return null;
+            }
+        }
         
     }
     

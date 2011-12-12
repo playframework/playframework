@@ -54,7 +54,13 @@ trait Action[A] extends (Request[A] => Result) with Handler {
  *
  * @tparam T the body content type
  */
-trait BodyParser[+T] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]
+trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, A]]] {
+
+  def map[B](f: A => B): BodyParser[B] = BodyParser { request =>
+    this(request).map(_.right.map(f(_)))
+  }
+
+}
 
 /** Helper object to construct `BodyParser` values. */
 object BodyParser {

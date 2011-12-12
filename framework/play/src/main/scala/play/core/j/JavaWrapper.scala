@@ -7,15 +7,23 @@ import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody }
 
-trait JavaAction extends Action[AnyContent] {
+trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
-  def parser = BodyParsers.parse.anyContent
+  def parser = {
+    Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
+      .filterNot(_ == null)
+      .headOption.map { bodyParserOf =>
+        bodyParserOf.value.newInstance.parser
+      }.getOrElse(JParsers.anyContent)
+  }
+
+  JParsers.anyContent
 
   def invocation: JResult
   def controller: Class[_]
   def method: java.lang.reflect.Method
 
-  def apply(req: Request[AnyContent]) = {
+  def apply(req: Request[play.mvc.Http.RequestBody]) = {
 
     val javaContext = new JContext(
 
@@ -29,36 +37,7 @@ trait JavaAction extends Action[AnyContent] {
           req.queryString.mapValues(_.toArray).asJava
         }
 
-        def body = new JBody {
-
-          lazy val asUrlFormEncoded = {
-            req.body.asUrlFormEncoded.map(_.mapValues(_.toArray).asJava).orNull
-          }
-
-          def asRaw = {
-            req.body.asRaw.orNull
-          }
-
-          def asText = {
-            req.body.asText.orNull
-          }
-
-          lazy val asJson = {
-            import org.codehaus.jackson._
-            import org.codehaus.jackson.map._
-
-            req.body.asJson.map { json =>
-              new ObjectMapper().readValue(json.toString, classOf[JsonNode])
-            }.orNull
-          }
-
-          lazy val asXml = {
-            req.body.asXml.map { xml =>
-              play.libs.XML.fromString(xml.toString)
-            }.orNull
-          }
-
-        }
+        def body = req.body
 
         override def toString = req.toString
 

@@ -521,7 +521,7 @@ object PlayProject extends Plugin {
 
         PlayProject.synchronized {
 
-          Project.evaluateTask(playReload, state).get.toEither
+          val r = Project.evaluateTask(playReload, state).get.toEither
             .left.map { incomplete =>
               Incomplete.allExceptions(incomplete).headOption.map {
                 case e: PlayException => e
@@ -540,6 +540,7 @@ object PlayProject extends Plugin {
               }
             }
 
+          r
         }
 
       }
