@@ -33,6 +33,19 @@ object Iteratee {
     }
   }
 
+  def noInputLeft[E, A, B](count: Int, maxSizeExceeded: B)(iteratee: Iteratee[E, A])(implicit p: E => scala.collection.TraversableLike[_, E]): Iteratee[E, Either[B, A]] = {
+    Traversable.takeUpTo[E](count).transform(iteratee).flatMap { a =>
+      def cont: Iteratee[E, Either[B, A]] = Cont((in: Input[E]) => {
+        in match {
+          case Input.El(e) => Done(Left(maxSizeExceeded), in)
+          case Input.EOF => Done(Right(a), in)
+          case Input.Empty => cont
+        }
+      })
+      cont
+    }
+  }
+
   def ignore[E]: Iteratee[E, Unit] = fold[E, Unit](())((_, _) => ())
 
   def mapChunk_[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))

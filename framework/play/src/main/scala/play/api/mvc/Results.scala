@@ -422,6 +422,9 @@ trait Results {
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
 
+  /** Generates a ‘413 REQUEST_ENTITY_TOO_LARGE’ result. */
+  val EntityTooLarge = new Status(REQUEST_ENTITY_TOO_LARGE)
+
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
 

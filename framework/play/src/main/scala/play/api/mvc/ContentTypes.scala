@@ -4,6 +4,7 @@ import java.io._
 
 import scala.xml._
 
+import play.api._
 import play.api.json._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -70,7 +71,7 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], other: Seq[
       case FilePart(key, _, _, _) => key
     }
   }
-  
+
 }
 
 object MultipartFormData {
@@ -86,49 +87,85 @@ trait BodyParsers {
 
   object parse {
 
-    def tolerantText: BodyParser[String] = BodyParser { request =>
-      Iteratee.consume[Array[Byte]]().mapDone(c => Right(new String(c, request.charset.getOrElse("utf-8"))))
+    val UNLIMITED: Int = Integer.MAX_VALUE
+
+    lazy val DEFAULT_MAX_TEXT_LENGTH = Play.maybeApplication.flatMap { app =>
+      app.configuration.getInt("parsers.text.maxLength")
+    }.getOrElse(1024 * 100)
+
+    // -- Text parser
+
+    def tolerantText(maxLength: Int): BodyParser[String] = BodyParser { request =>
+      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
+        Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("utf-8")))
+      })
     }
 
-    def text: BodyParser[String] = when(_.contentType.exists(_ == "text/plain"), tolerantText)
+    def tolerantText: BodyParser[String] = tolerantText(DEFAULT_MAX_TEXT_LENGTH)
+
+    def text(maxLength: Int): BodyParser[String] = when(_.contentType.exists(_ == "text/plain"), tolerantText(maxLength))
+
+    def text: BodyParser[String] = text(DEFAULT_MAX_TEXT_LENGTH)
+
+    // -- Raw parser
 
     def raw: BodyParser[Array[Byte]] = BodyParser { request =>
       Iteratee.consume[Array[Byte]]().mapDone(c => Right(c))
     }
 
-    def json: BodyParser[JsValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson)
+    // -- JSON parser
 
-    def tolerantJson: BodyParser[JsValue] = BodyParser { request =>
-      Iteratee.consume[Array[Byte]]().mapDone { bytes =>
-        scala.util.control.Exception.allCatch[JsValue].either {
-          parseJson(new String(bytes, request.charset.getOrElse("utf-8")))
-        }.left.map { e =>
-          (Results.BadRequest, bytes)
+    def tolerantJson(maxLength: Int): BodyParser[JsValue] = BodyParser { request =>
+      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
+        Iteratee.consume[Array[Byte]]().mapDone { bytes =>
+          scala.util.control.Exception.allCatch[JsValue].either {
+            parseJson(new String(bytes, request.charset.getOrElse("utf-8")))
+          }.left.map { e =>
+            (Results.BadRequest, bytes)
+          }
+        }.flatMap {
+          case Left((r, in)) => Done(Left(r), El(in))
+          case Right(json) => Done(Right(json), Empty)
         }
-      }.flatMap {
-        case Left((r, in)) => Done(Left(r), El(in))
-        case Right(json) => Done(Right(json), Empty)
-      }
+      }).map(_.joinRight)
     }
+
+    def tolerantJson: BodyParser[JsValue] = tolerantJson(DEFAULT_MAX_TEXT_LENGTH)
+
+    def json(maxLength: Int): BodyParser[JsValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson(maxLength))
+
+    def json: BodyParser[JsValue] = json(DEFAULT_MAX_TEXT_LENGTH)
+
+    // -- Empty parser
 
     def empty: BodyParser[None.type] = BodyParser { request =>
       Done(Right(None), Empty)
     }
 
-    def tolerantXml: BodyParser[NodeSeq] = BodyParser { request =>
-      Iteratee.consume[Array[Byte]]().mapDone { bytes =>
-        scala.util.control.Exception.allCatch[NodeSeq].either {
-          XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
-        }.left.map { e =>
-          (Results.BadRequest, bytes)
+    // -- XML parser
+
+    def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser { request =>
+      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
+        Iteratee.consume[Array[Byte]]().mapDone { bytes =>
+          scala.util.control.Exception.allCatch[NodeSeq].either {
+            XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
+          }.left.map { e =>
+            (Results.BadRequest, bytes)
+          }
+        }.flatMap {
+          case Left((r, in)) => Done(Left(r), El(in))
+          case Right(xml) => Done(Right(xml), Empty)
         }
-      }.flatMap {
-        case Left((r, in)) => Done(Left(r), El(in))
-        case Right(xml) => Done(Right(xml), Empty)
-      }
+      }).map(_.joinRight)
     }
 
-    def xml: BodyParser[NodeSeq] = when(_.contentType.exists(_.startsWith("text/xml")), tolerantXml)
+    def tolerantXml: BodyParser[NodeSeq] = tolerantXml(DEFAULT_MAX_TEXT_LENGTH)
+
+    def xml(maxLength: Int): BodyParser[NodeSeq] = when(_.contentType.exists(_.startsWith("text/xml")), tolerantXml(maxLength))
+
+    def xml: BodyParser[NodeSeq] = xml(DEFAULT_MAX_TEXT_LENGTH)
+
+    // -- File parsers
 
     def file(to: File): BodyParser[File] = BodyParser { request =>
       Iteratee.fold[Array[Byte], FileOutputStream](new FileOutputStream(to)) { (os, data) =>
@@ -140,30 +177,36 @@ trait BodyParsers {
       }
     }
 
-    def error[A](result: Result = Results.BadRequest): BodyParser[A] = BodyParser { request =>
-      Done(Left(result), Empty)
-    }
-
     def temporaryFile: BodyParser[TemporaryFile] = BodyParser { request =>
       val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
       file(tempFile.file)(request).mapDone(_ => Right(tempFile))
     }
 
-    def tolerantUrlFormEncoded: BodyParser[Map[String, Seq[String]]] = BodyParser { request =>
+    // -- UrlFormEncoded
+
+    def tolerantUrlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = BodyParser { request =>
 
       import play.core.parsers._
       import scala.collection.JavaConverters._
 
-      Iteratee.consume[Array[Byte]]().mapDone { c =>
-        scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
-          UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
-        }.left.map { e =>
-          Results.BadRequest
+      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
+        Iteratee.consume[Array[Byte]]().mapDone { c =>
+          scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
+            UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
+          }.left.map { e =>
+            Results.BadRequest
+          }
         }
-      }
+      }).map(_.joinRight)
     }
 
-    def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = when(_.contentType.exists(_ == "application/x-www-form-urlencoded"), tolerantUrlFormEncoded)
+    def tolerantUrlFormEncoded: BodyParser[Map[String, Seq[String]]] = tolerantUrlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
+
+    def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(_.contentType.exists(_ == "application/x-www-form-urlencoded"), tolerantUrlFormEncoded(maxLength))
+
+    def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = urlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
+
+    // -- Magic any content
 
     def anyContent: BodyParser[AnyContent] = BodyParser { request =>
       request.contentType match {
@@ -333,7 +376,7 @@ trait BodyParsers {
     def handleDataPart: PartialFunction[Map[String, String], Iteratee[Array[Byte], Part]] = {
 
       case PartInfoMatcher(partName) =>
-        Traversable.takeUpTo[Array[Byte]](100 * 1024)
+        Traversable.takeUpTo[Array[Byte]](DEFAULT_MAX_TEXT_LENGTH)
           .transform(Iteratee.consume[Array[Byte]]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
           .flatMap { data =>
             Cont({
@@ -353,6 +396,18 @@ trait BodyParsers {
     }
 
     // -- Parsing utilities
+
+    def maxLength[A](maxLength: Int, parser: BodyParser[A]): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser { request =>
+      Iteratee.noInputLeft(maxLength, MaxSizeExceeded(maxLength))(parser(request)).map {
+        case Right(Right(result)) => Right(Right(result))
+        case Right(Left(badRequest)) => Left(badRequest)
+        case Left(maxSizeExceeded) => Right(Left(maxSizeExceeded))
+      }
+    }
+
+    def error[A](result: Result = Results.BadRequest): BodyParser[A] = BodyParser { request =>
+      Done(Left(result), Empty)
+    }
 
     def using[A](f: RequestHeader => BodyParser[A]) = BodyParser { request =>
       f(request)(request)
@@ -383,3 +438,4 @@ trait BodyParsers {
 
 object BodyParsers extends BodyParsers
 
+case class MaxSizeExceeded(length: Int)
