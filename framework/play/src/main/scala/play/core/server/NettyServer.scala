@@ -29,7 +29,7 @@ import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
 
-class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: Boolean = true) extends Server {
+class NettyServer(appProvider: ApplicationProvider, host: String, port: Int, allowKeepAlive: Boolean = true) extends Server {
 
   def applicationProvider = appProvider
 
@@ -252,7 +252,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                 headers.foreach {
 
-                  // Fix a bug for Set-Cookie header. 
+                  // Fix a bug for Set-Cookie header.
                   // Multiple cookies could be merge in a single header
                   // but it's not properly supported by some browsers
                   case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
@@ -288,7 +288,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
                 headers.foreach {
 
-                  // Fix a bug for Set-Cookie header. 
+                  // Fix a bug for Set-Cookie header.
                   // Multiple cookies could be merge in a single header
                   // but it's not properly supported by some browsers
                   case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
@@ -443,9 +443,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
 
   bootstrap.setPipelineFactory(new DefaultPipelineFactory)
 
-  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(port)))
+  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(host, port)))
 
-  Logger("play").info("Listening for HTTP on port %s...".format(port))
+  Logger("play").info("Listening for HTTP on %s:%s...".format(host, port))
 
   def stop() {
     Play.stop()
@@ -486,6 +486,7 @@ object NettyServer {
     try {
       Some(new NettyServer(
         new StaticApplication(applicationPath),
+        Option(System.getProperty("http.host")).getOrElse("0.0.0.0"),
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000)))
     } catch {
       case e => {

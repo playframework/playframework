@@ -45,7 +45,7 @@ object IntegrationTest {
   def withNettyServer(test: => Unit) = {
     val actor = actorOf[RunnerActor].start()
     val netty = Option(System.getProperty("user.dir")).map(new File(_)).filter(p => p.exists && p.isDirectory).map(applicationPath =>
-      new NettyServer(new StaticApplication(applicationPath), 9000))
+      new NettyServer(new StaticApplication(applicationPath), "0.0.0.0", 9000))
 
     actor ! Start(netty)
 
