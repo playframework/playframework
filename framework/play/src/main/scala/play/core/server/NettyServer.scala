@@ -325,13 +325,20 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
               val bodyParser = action.parser
 
               e.getChannel.setReadable(false)
+              ctx.setAttachment(scala.collection.mutable.ListBuffer.empty[org.jboss.netty.channel.MessageEvent])
 
               val eventuallyBodyParser = getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
 
               val eventuallyBody =
                 eventuallyBodyParser.flatMap { bodyParser =>
                   if (nettyHttpRequest.isChunked) {
+
                     val (result, handler) = newRequestBodyHandler(bodyParser)
+
+                    val intermediateChunks = ctx.getAttachment.asInstanceOf[scala.collection.mutable.ListBuffer[org.jboss.netty.channel.MessageEvent]]
+                    intermediateChunks.foreach(handler.messageReceived(ctx, _))
+                    ctx.setAttachment(null)
+
                     val p: ChannelPipeline = ctx.getChannel().getPipeline()
                     p.replace("handler", "handler", handler)
                     e.getChannel.setReadable(true)
@@ -409,6 +416,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, allowKeepAlive: B
             case Left(e) => response.handle(e)
 
           }
+
+        case chunk: org.jboss.netty.handler.codec.http.HttpChunk => {
+          val intermediateChunks = ctx.getAttachment.asInstanceOf[scala.collection.mutable.ListBuffer[org.jboss.netty.channel.MessageEvent]]
+          intermediateChunks += e
+          ctx.setAttachment(intermediateChunks)
+        }
 
         case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
 
