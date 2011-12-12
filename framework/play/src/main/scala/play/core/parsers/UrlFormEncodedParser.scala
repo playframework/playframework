@@ -15,7 +15,7 @@ object UrlFormEncodedParser {
 
         val parts = param.split('=')
         val key = parts.head
-        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""))
+        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), "utf-8")
 
         params += key -> (params.get(key).getOrElse(Seq.empty) :+ value)
 

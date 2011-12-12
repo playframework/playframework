@@ -60,7 +60,7 @@ object QueryStringBindable {
   implicit def bindableInt = new QueryStringBindable[Int] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
-        Right(Integer.parseInt(i))
+        Right(java.lang.Integer.parseInt(i))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Int: " + e.getMessage)
       }
@@ -82,12 +82,12 @@ object QueryStringBindable {
   implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
-        Right(Integer.parseInt(i))
+        Right(java.lang.Integer.parseInt(i))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Integer: " + e.getMessage)
       }
     }
-    def unbind(key: String, value: Integer) = key + "=" + value.toString
+    def unbind(key: String, value: java.lang.Integer) = key + "=" + value.toString
   }
 
   implicit def bindableOption[T: QueryStringBindable] = new QueryStringBindable[Option[T]] {
@@ -112,7 +112,7 @@ object PathBindable {
   implicit def bindableInt = new PathBindable[Int] {
     def bind(key: String, value: String) = {
       try {
-        Right(Integer.parseInt(URLDecoder.decode(value, "utf-8")))
+        Right(java.lang.Integer.parseInt(URLDecoder.decode(value, "utf-8")))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Int: " + e.getMessage)
       }
@@ -131,15 +131,15 @@ object PathBindable {
     def unbind(key: String, value: Long) = value.toString
   }
 
-  implicit def bindableInteger = new PathBindable[Integer] {
+  implicit def bindableInteger = new PathBindable[java.lang.Integer] {
     def bind(key: String, value: String) = {
       try {
-        Right(Integer.parseInt(URLDecoder.decode(value, "utf-8")))
+        Right(java.lang.Integer.parseInt(URLDecoder.decode(value, "utf-8")))
       } catch {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Integer: " + e.getMessage)
       }
     }
-    def unbind(key: String, value: Integer) = value.toString
+    def unbind(key: String, value: java.lang.Integer) = value.toString
   }
 
   implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {

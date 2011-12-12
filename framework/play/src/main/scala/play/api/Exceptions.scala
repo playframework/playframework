@@ -63,6 +63,14 @@ object PlayException {
 
   }
 
+  def apply(title: String, description: String, cause: Option[Throwable] = None): PlayException = {
+    new PlayException(title, description, cause)
+  }
+
+  def unapply(ex: PlayException): Option[(String, String, Option[Throwable])] = {
+    Some(ex.title, ex.description, ex.cause)
+  }
+
 }
 
 /**
@@ -72,7 +80,7 @@ object PlayException {
  * @param description the problem description
  * @param cause the underlying cause, if it exists
  */
-case class PlayException(title: String, description: String, cause: Option[Throwable] = None) extends RuntimeException("%s [%s]".format(title, description), cause.orNull) {
+class PlayException(val title: String, val description: String, val cause: Option[Throwable] = None) extends RuntimeException("%s [%s]".format(title, description), cause.orNull) {
 
   /** The exception ID, useful for retrieving problems in log files. */
   val id = PlayException.nextId

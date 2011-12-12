@@ -61,7 +61,7 @@ abstract class ReloadableApplication(applicationPath: File) extends ApplicationP
     synchronized {
 
       // Let's load the application on another thread
-      // as we are now on the Netty IO thread.
+      // since we are still on the Netty IO thread.
       //
       // Because we are on DEV mode here, it doesn't really matter
       // but it's more coherent with the way it works in PROD mode.
