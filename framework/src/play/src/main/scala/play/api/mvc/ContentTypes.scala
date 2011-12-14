@@ -83,9 +83,10 @@ trait BodyParsers {
     // -- Text parser
 
     def tolerantText(maxLength: Int): BodyParser[String] = BodyParser { request =>
-      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
-        Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("utf-8")))
-      })
+      Traversable.takeUpTo[Array[Byte]](maxLength)
+        .transform(Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("utf-8"))))
+        .flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
+
     }
 
     def tolerantText: BodyParser[String] = tolerantText(DEFAULT_MAX_TEXT_LENGTH)
@@ -103,18 +104,20 @@ trait BodyParsers {
     // -- JSON parser
 
     def tolerantJson(maxLength: Int): BodyParser[JsValue] = BodyParser { request =>
-      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
-        Iteratee.consume[Array[Byte]]().mapDone { bytes =>
-          scala.util.control.Exception.allCatch[JsValue].either {
-            parseJson(new String(bytes, request.charset.getOrElse("utf-8")))
-          }.left.map { e =>
-            (Results.BadRequest, bytes)
-          }
-        }.flatMap {
-          case Left((r, in)) => Done(Left(r), El(in))
-          case Right(json) => Done(Right(json), Empty)
+      Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
+        scala.util.control.Exception.allCatch[JsValue].either {
+          parseJson(new String(bytes, request.charset.getOrElse("utf-8")))
+        }.left.map { e =>
+          (Results.BadRequest, bytes)
         }
-      }).map(_.joinRight)
+      }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
+        .flatMap {
+          case Left(b) => Done(Left(b), Empty)
+          case Right(it) => it.flatMap {
+            case Left((r, in)) => Done(Left(r), El(in))
+            case Right(json) => Done(Right(json), Empty)
+          }
+        }
     }
 
     def tolerantJson: BodyParser[JsValue] = tolerantJson(DEFAULT_MAX_TEXT_LENGTH)
@@ -132,18 +135,20 @@ trait BodyParsers {
     // -- XML parser
 
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser { request =>
-      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
-        Iteratee.consume[Array[Byte]]().mapDone { bytes =>
-          scala.util.control.Exception.allCatch[NodeSeq].either {
-            XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
-          }.left.map { e =>
-            (Results.BadRequest, bytes)
-          }
-        }.flatMap {
-          case Left((r, in)) => Done(Left(r), El(in))
-          case Right(xml) => Done(Right(xml), Empty)
+      Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().mapDone { bytes =>
+        scala.util.control.Exception.allCatch[NodeSeq].either {
+          XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
+        }.left.map { e =>
+          (Results.BadRequest, bytes)
         }
-      }).map(_.joinRight)
+      }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
+        .flatMap {
+          case Left(b) => Done(Left(b), Empty)
+          case Right(it) => it.flatMap {
+            case Left((r, in)) => Done(Left(r), El(in))
+            case Right(xml) => Done(Right(xml), Empty)
+          }
+        }
     }
 
     def tolerantXml: BodyParser[NodeSeq] = tolerantXml(DEFAULT_MAX_TEXT_LENGTH)
@@ -176,15 +181,20 @@ trait BodyParsers {
       import play.core.parsers._
       import scala.collection.JavaConverters._
 
-      Iteratee.noInputLeft(maxLength, Results.EntityTooLarge)({
-        Iteratee.consume[Array[Byte]]().mapDone { c =>
-          scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
-            UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
-          }.left.map { e =>
-            Results.BadRequest
+      Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().mapDone { c =>
+        scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
+          UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
+        }.left.map { e =>
+          Results.BadRequest
+        }
+      }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
+        .flatMap {
+          case Left(b) => Done(Left(b), Empty)
+          case Right(it) => it.flatMap {
+            case Left(r) => Done(Left(r), Empty)
+            case Right(urlEncoded) => Done(Right(urlEncoded), Empty)
           }
         }
-      }).map(_.joinRight)
     }
 
     def tolerantUrlFormEncoded: BodyParser[Map[String, Seq[String]]] = tolerantUrlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
@@ -386,7 +396,7 @@ trait BodyParsers {
     // -- Parsing utilities
 
     def maxLength[A](maxLength: Int, parser: BodyParser[A]): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser { request =>
-      Iteratee.noInputLeft(maxLength, MaxSizeExceeded(maxLength))(parser(request)).map {
+      Traversable.takeUpTo[Array[Byte]](maxLength).transform(parser(request)).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
         case Right(Right(result)) => Right(Right(result))
         case Right(Left(badRequest)) => Left(badRequest)
         case Left(maxSizeExceeded) => Right(Left(maxSizeExceeded))
@@ -407,15 +417,6 @@ trait BodyParsers {
           parser(request)
         } else {
           Done(Left(badResult), Empty)
-        }
-      }
-    }
-
-    def either[A, B](parser1: BodyParser[A], parser2: BodyParser[B], badResult: (Result, Result) => Result = (_, _) => Results.BadRequest): BodyParser[Either[A, B]] = {
-      BodyParser { request =>
-        parser1(request).flatMap {
-          case Left(r1) => parser2(request).mapDone(_.right.map(Right(_)).left.map(r2 => badResult(r1, r2)))
-          case Right(v) => Done(Right(Left(v)), Empty)
         }
       }
     }

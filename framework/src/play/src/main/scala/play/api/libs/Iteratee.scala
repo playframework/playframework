@@ -33,12 +33,13 @@ object Iteratee {
     }
   }
 
-  def noInputLeft[E, A, B](count: Int, maxSizeExceeded: B)(iteratee: Iteratee[E, A])(implicit p: E => scala.collection.TraversableLike[_, E]): Iteratee[E, Either[B, A]] = {
-    Traversable.takeUpTo[E](count).transform(iteratee).flatMap { a =>
+  def eofOrElse[E] = new {
+
+    def apply[A, B](otherwise: B)(then: A) = {
       def cont: Iteratee[E, Either[B, A]] = Cont((in: Input[E]) => {
         in match {
-          case Input.El(e) => Done(Left(maxSizeExceeded), in)
-          case Input.EOF => Done(Right(a), in)
+          case Input.El(e) => Done(Left(otherwise), in)
+          case Input.EOF => Done(Right(then), in)
           case Input.Empty => cont
         }
       })
@@ -84,7 +85,7 @@ trait Input[+E] {
 
 object Input {
 
-  case class El[E](e: E) extends Input[E]
+  case class El[+E](e: E) extends Input[E]
   case object Empty extends Input[Nothing]
   case object EOF extends Input[Nothing]
 
@@ -141,7 +142,7 @@ trait Iteratee[E, +A] {
     k => Cont(in => k(in).flatMap(f)),
     (msg, e) => Error(msg, e))
 
-  def joinI[EIn, AIn](implicit in: A <:< Iteratee[EIn, AIn]): Iteratee[E, AIn] = {
+  def joinI[AIn](implicit in: A <:< Iteratee[_, AIn]): Iteratee[E, AIn] = {
     this.flatMap { a =>
       val inner = in(a)
       inner.pureFlatFold(
@@ -230,15 +231,15 @@ trait Enumerator[+E] {
 
 }
 
-trait Enumeratee[To, From] {
+trait Enumeratee[From, To] {
   self =>
 
   def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
 
   def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
 
-  def ><>[To2](other: Enumeratee[To2, To]): Enumeratee[To2, From] = {
-    new Enumeratee[To2, From] {
+  def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
+    new Enumeratee[From, To2] {
       def apply[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
         self(other(iteratee)).joinI
       }
@@ -250,7 +251,7 @@ trait Enumeratee[To, From] {
 object Enumeratee {
 
   def map[E] = new {
-    def apply[NE](f: E => NE): Enumeratee[NE, E] = new Enumeratee[NE, E] {
+    def apply[NE](f: E => NE): Enumeratee[E, NE] = new Enumeratee[E, NE] {
 
       def apply[A](iteratee: Iteratee[NE, A]): Iteratee[E, Iteratee[NE, A]] = {
 
@@ -487,7 +488,7 @@ object Parsing {
   case class Matched[A](val content: A) extends MatchInfo[A]
   case class Unmatched[A](val content: A) extends MatchInfo[A]
 
-  def search(needle: Array[Byte]): Enumeratee[MatchInfo[Array[Byte]], Array[Byte]] = new Enumeratee[MatchInfo[Array[Byte]], Array[Byte]] {
+  def search(needle: Array[Byte]): Enumeratee[Array[Byte], MatchInfo[Array[Byte]]] = new Enumeratee[Array[Byte], MatchInfo[Array[Byte]]] {
     val needleSize = needle.size
     val fullJump = needleSize
     val jumpBadCharecter: (Byte => Int) = {
