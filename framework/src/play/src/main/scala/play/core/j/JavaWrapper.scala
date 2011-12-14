@@ -102,5 +102,47 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
  * wrap a java result into an Action
  */
 object Wrap {
+  import collection.JavaConverters._
+  import play.api.mvc._
+ 
+
+  /*
+   * converts a Java action into a scala one
+   * @param java result
+   */
   def toAction(r: play.mvc.Result) = Action { r.getWrappedResult }
+
+  /**
+   * provides user defined request
+   * @param uri
+   * @param method
+   * @param queryString
+   * @param body
+   * @param username
+   * @param path
+   * @param headers
+   * @param cookies
+   */
+    
+  def toRequest(_uri: String, _method: String, _queryString: java.util.Map[String, Seq[String]],
+    _body: java.util.Map[String, Seq[String]], _username: String, _path: String, _headers: java.util.Map[String, Array[String]], _cookies: java.util.Map[String, String]) = new play.api.mvc.Request[AnyContent] {
+    def uri = _uri
+    def method = _method
+    def queryString = _queryString.asScala.toMap
+    def body: AnyContent = AnyContentAsUrlFormEncoded(_body.asScala.toMap).asInstanceOf[AnyContent]
+
+    def username = if (_username == null) None else Some(_username)
+    def path = _path
+
+    def headers = new Headers {
+      def getAll(key: String) = _headers.asScala.toMap.get(key).getOrElse(null)
+      def keys = _headers.asScala.toMap.keySet
+    }
+    def cookies = new Cookies {
+      def get(name: String) = {
+        val n = name
+        _cookies.asScala.toMap.get(n).map(c => Cookie(name = n, value = c))
+      }
+    }
+  }
 }
