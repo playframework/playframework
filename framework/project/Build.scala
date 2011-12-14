@@ -10,9 +10,9 @@ object PlayBuild extends Build {
     import LocalSBT._
     import Tasks._
 
-    val TemplatesProject = Project(
+    lazy val TemplatesProject = Project(
         "Templates",
-        file("templates"),
+        file("src/templates"),
         settings = buildSettings ++ Seq(
             libraryDependencies := templatesDependencies,
             publishMavenStyle := false,
@@ -25,9 +25,9 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
-    val AnormProject = Project(
+    lazy val AnormProject = Project(
         "Anorm",
-        file("anorm"),
+        file("src/anorm"),
         settings = buildSettings ++ Seq(
             libraryDependencies := anormDependencies,
             publishMavenStyle := false,
@@ -39,13 +39,12 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
-    val PlayProject = Project(
+    lazy val PlayProject = Project(
         "Play",
-        file("play"),
+        file("src/play"),
         settings = buildSettings ++ Seq(
             libraryDependencies := runtime,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-            unmanagedJars in Compile  ++=  sbtJars,
             publishMavenStyle := false,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
@@ -57,6 +56,45 @@ object PlayBuild extends Build {
             ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject, AnormProject)
+    
+    lazy val SbtPluginProject = Project(
+      "SBT-Plugin",
+      file("src/sbt-plugin"),
+      settings = buildSettings ++ Seq(
+        sbtPlugin := true,
+        libraryDependencies := sbtDependencies,
+        unmanagedJars in Compile  ++=  sbtJars,
+        publishMavenStyle := false,
+        publishTo := Some(playRepository),
+        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        publishArtifact in (Compile, packageDoc) := false,
+        publishArtifact in (Compile, packageSrc) := false,
+        resolvers ++= Seq(DefaultMavenRepository, typesafe),
+        ivyLoggingLevel := UpdateLogging.DownloadOnly,
+        projectDependencies := Seq(
+          "play" %% "play" % buildVersion notTransitive(),
+          "play" %% "console" % buildVersion notTransitive(),
+          "play" %% "templates" % buildVersion notTransitive()
+        ) 
+      )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
+    
+    lazy val ConsoleProject = Project(
+      "Console",
+      file("src/console"),
+      settings = buildSettings ++ Seq(
+        libraryDependencies := consoleDependencies,
+        unmanagedJars in Compile  ++=  sbtJars,
+        publishMavenStyle := false,
+        publishTo := Some(playRepository),
+        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        publishArtifact in (Compile, packageDoc) := false,
+        publishArtifact in (Compile, packageSrc) := false,
+        resolvers ++= Seq(DefaultMavenRepository, typesafe),
+        ivyLoggingLevel := UpdateLogging.DownloadOnly,
+        projectDependencies := Seq("play" %% "play" % buildVersion notTransitive()) 
+      )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(PlayProject)
 
     val Root = Project(
         "Root",
@@ -68,10 +106,10 @@ object PlayBuild extends Build {
             distTask,
             generateAPIDocsTask,
             ivyLoggingLevel := UpdateLogging.DownloadOnly,
-            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject) map { (_,_,_) => },
-            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject) map { (_,_,_) => }
+            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject) map { (_,_,_,_,_) => },
+            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject) map { (_,_,_,_,_) => }
         )
-    ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject)
+    ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject)
 
     object BuildSettings {
 
@@ -134,8 +172,6 @@ object PlayBuild extends Build {
             "mysql"                             %    "mysql-connector-java"     %   "5.1.17",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
-            "rhino"                             %    "js"                       %   "1.7R2",
-            "com.google.javascript"             %    "closure-compiler"         %   "r1459"           notTransitive(),
             "com.ning"                          %    "async-http-client"        %   "1.6.5",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
@@ -143,7 +179,20 @@ object PlayBuild extends Build {
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
-             "fr.javafreelance.fluentlenium"    %    "fluentlenium"             %   "0.5.3"      %  "test"
+            "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
+        )
+        
+        val sbtDependencies = Seq(
+          "rhino"                               %    "js"                       %   "1.7R2",
+          "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
+          "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
+          "org.avaje"                           %    "ebean"                    %   "2.7.3",
+          "com.h2database"                      %    "h2"                       %   "1.3.158",
+          "javassist"                           %    "javassist"                %   "3.12.1.GA"
+        )
+        
+        val consoleDependencies = Seq(
+          "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0"
         )
 
         val templatesDependencies = Seq(

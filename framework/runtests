@@ -20,7 +20,7 @@ echo "[info]"
 
 rm -rf ./logs
 
-cd ./integrationtest
+cd ./test/integrationtest
 
 echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"

@@ -5,7 +5,7 @@
 ****************************************@
 @link(newPage: Int, newOrderBy: Option[Int] = None) = @{
     routes.Application.list(newPage, newOrderBy.map { orderBy =>
-        if(orderBy == Math.abs(currentOrderBy)) -currentOrderBy else orderBy
+        if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
     }.getOrElse(currentOrderBy), currentFilter)
     
 }
@@ -14,7 +14,7 @@
 * Helper generating table headers *
 ***********************************@
 @header(orderBy: Int, title: String) = {
-    <th class="col@orderBy header @if(Math.abs(currentOrderBy) == orderBy) @{if(currentOrderBy < 0) "headerSortDown" else "headerSortUp"}">
+    <th class="col@orderBy header @if(scala.math.abs(currentOrderBy) == orderBy) @{if(currentOrderBy < 0) "headerSortDown" else "headerSortUp"}">
         <a href="@link(0, Some(orderBy))">@title</a>
     </th>
 }
