@@ -34,32 +34,43 @@ trait Server {
   val invoker = loadBalancerActor(new CyclicIterator(List.fill(3)(newInvoker))).start()
 
   def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
-    def sendHandler: Either[Throwable, (Handler, Application)] =
-      applicationProvider.get.right.map { application =>
-        val maybeAction = application.global.onRouteRequest(request)
-        (maybeAction.getOrElse(Action(_ => application.global.onHandlerNotFound(request))), application)
-      }
 
     import scala.util.control.Exception
-    applicationProvider.handleWebCommand(request).toLeft {
-      Exception.allCatch[Either[Throwable, (Handler, Application)]]
-        .either(sendHandler)
-        .joinRight
-        .left.map { e =>
 
-          Logger.error(
-            """
-            |
-            |! %sInternal server error, for request [%s] ->
-            |""".stripMargin.format(e match {
-              case p: PlayException => "@" + p.id + " - "
-              case _ => ""
-            }, request),
-            e)
-
-          DefaultGlobal.onError(request, e)
+    def sendHandler: Either[Throwable, (Handler, Application)] = {
+      try {
+        applicationProvider.get.right.map { application =>
+          val maybeAction = application.global.onRouteRequest(request)
+          (maybeAction.getOrElse(Action(_ => application.global.onHandlerNotFound(request))), application)
         }
-    }.joinRight
+      } catch {
+        case e => Left(e)
+      }
+    }
+
+    def logExceptionAndGetResult(e: Throwable) = {
+
+      Logger.error(
+        """
+        |
+        |! %sInternal server error, for request [%s] ->
+        |""".stripMargin.format(e match {
+          case p: PlayException => "@" + p.id + " - "
+          case _ => ""
+        }, request),
+        e)
+
+      DefaultGlobal.onError(request, e)
+
+    }
+
+    Exception
+      .allCatch[Option[Result]]
+      .either(applicationProvider.handleWebCommand(request))
+      .left.map(logExceptionAndGetResult)
+      .right.flatMap(maybeResult => maybeResult.toLeft(())).right.flatMap { _ =>
+        sendHandler.left.map(logExceptionAndGetResult)
+      }
 
   }
 

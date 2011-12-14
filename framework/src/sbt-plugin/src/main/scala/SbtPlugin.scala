@@ -574,6 +574,46 @@ object PlayProject extends Plugin {
 
       }
 
+      def definedTests: Seq[String] = {
+        Project.evaluateTask(Keys.definedTests in Test, state).get.toEither
+          .left.map { incomplete =>
+            Incomplete.allExceptions(incomplete).headOption.map {
+              case e: PlayException => e
+              case e: xsbti.CompileFailed => {
+                getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
+                  UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
+                }
+              }
+              case e => UnexpectedException(unexpected = Some(e))
+            }.getOrElse(
+              UnexpectedException(Some("Compilation task failed without any exception!?")))
+          }
+          .right.map(_.map(_.name))
+          .left.map(throw _)
+          .right.get
+      }
+
+      def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean] = {
+
+        try {
+          Command.process("test-only " + only.mkString(" "), state)
+          Right(true)
+        } catch {
+          case incomplete: sbt.Incomplete => {
+            Left({
+              Incomplete.allExceptions(incomplete).headOption.map {
+                case e: xsbti.CompileFailed => "Compilation failed"
+                case e => e.getMessage
+              }.getOrElse("Unexpected failure")
+            })
+          }
+          case unexpected => {
+            Left("Unexpected failure [" + unexpected.getClass.getName + "]")
+          }
+        }
+
+      }
+
     }
 
   }

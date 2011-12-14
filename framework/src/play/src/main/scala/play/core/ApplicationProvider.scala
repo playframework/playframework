@@ -45,6 +45,8 @@ trait SBTLink {
   def projectPath: File
   def runTask(name: String): Option[Any]
   def forceReload()
+  def definedTests: Seq[String]
+  def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean]
 }
 
 class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
@@ -113,20 +115,45 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
 
+    import play.api.mvc.Results._
+
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
+    val testPath = """/@tests""".r
+    val runTestPath = """/@run-test""".r
 
     request.path match {
 
       case applyEvolutions(db) => {
         import play.api.db._
         import play.api.db.evolutions._
-        import play.api.mvc.Results._
 
         OfflineEvolutions.applyScript(path, Play.current.classloader, db)
 
         sbtLink.forceReload()
 
         Some(Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")))
+      }
+
+      case testPath() => {
+
+        val r = <ul>
+                  { sbtLink.definedTests.map(name => <li><a href={ "/@run-test?className=" + name }>{ name }</a></li>) }
+                </ul>
+
+        Some(Ok(r).as("text/html"))
+
+      }
+
+      case runTestPath() => {
+
+        val classNames = request.queryString.get("className").getOrElse(Seq.empty)
+
+        Some({
+          sbtLink.runTests(classNames, _ => ()).fold(
+            msg => InternalServerError("Test failed... " + msg),
+            _ => Ok("Test successful!"))
+        })
+
       }
 
       case _ => None
