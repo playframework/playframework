@@ -14,7 +14,7 @@ object FunctionalSpec extends Specification {
   "pass functional test" in {
    withNettyServer{
     val driver = new HtmlUnitDriver()
-      driver.get("http://localhost:9000")
+      driver.get("http://localhost:9001")
       driver.getPageSource must contain ("Pi")
    }
   }
