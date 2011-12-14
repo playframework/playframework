@@ -7,7 +7,7 @@ import play.api._
 import play.core._
 
 import play.utils.Colors
-import org.scalatools.testing.{Event => TEvent, Result => TResult}
+import org.scalatools.testing.{ Event => TEvent, Result => TResult }
 
 private[sbt] class PlayTestListener extends TestReportListener {
 
@@ -15,42 +15,35 @@ private[sbt] class PlayTestListener extends TestReportListener {
 
   /** called for each class or equivalent grouping */
   def startGroup(name: String) {
-    // we can't report to play that a test group has started here,
-    // because even if parallel test execution is enabled there may be multiple
-    // projects running tests at the same time. So if you tell TC that a test
-    // group has started, the tests from different projects will get mixed up.
+    playReport("test", "started" -> name)
   }
 
   /** called for each test method or equivalent */
   def testEvent(event: TestEvent) {
-    for (e: TEvent <- event.detail) {
 
-      // this is a lie: the test has already been executed and started by this point,
-      // but sbt doesn't send an event when test starts
-      playReport("testStarted", "name" -> e.testName)
-
-      e.result match {
-        case TResult.Success => // nothing extra to report
-        case TResult.Error | TResult.Failure =>
-          playReport("testFailed",
-            "name" -> e.testName,
-            "details" -> (e.error.toString +
-              "\n" + e.error.getStackTrace.mkString("\n at ", "\n at ", "")))
-        case TResult.Skipped =>
-          playReport("testIgnored", "name" -> e.testName)
-      }
-
-      playReport("testFinished", "name" -> e.testName)
-
+    event match {
+      case e =>
+        for (d <- e.detail) {
+          d match {
+            case te: TEvent =>
+              te.result match {
+                case TResult.Success => playReport("test case", "finished, result" -> event.result.get.toString)
+                case TResult.Error | TResult.Failure =>
+                  playReport("test", "failed" -> te.testName, "details" -> (te.error.toString +
+                    "\n" + te.error.getStackTrace.mkString("\n at ", "\n at ", "")))
+                case TResult.Skipped =>
+                  playReport("test", "ignored" -> te.testName)
+              }
+          }
+        }
     }
+
   }
 
-
   /** called if there was an error during test */
-  def endGroup(name: String, t: Throwable) { }
+  def endGroup(name: String, t: Throwable) {}
   /** called if test completed */
-  def endGroup(name: String, result: TestResult.Value) { }
-
+  def endGroup(name: String, result: TestResult.Value) {}
 
   def tidy(s: String) = s
     .replace("|", "||")
@@ -64,21 +57,18 @@ private[sbt] class PlayTestListener extends TestReportListener {
     .replace("]", "|]")
 
   private def playReport(messageName: String, attributes: (String, String)*) {
-    result.append("##play[" + messageName + " " + attributes.map {
-      case (k, v) => k + "='" + tidy(v) + "'"
-    }.mkString(" ") + "]")
+    result.append("<li>" + messageName + " " + attributes.map {
+      case (k, v) => k + ": " + tidy(v)
+    }.mkString(" ") + "</li>")
   }
 }
 
-
 object PlayProject extends Plugin {
 
-  
   val JAVA = "java"
   val SCALA = "scala"
 
   private lazy val testListener = new PlayTestListener
-
 
   // ----- We need this later
 
@@ -159,7 +149,7 @@ object PlayProject extends Plugin {
 
   // ----- Play specific tasks
 
-  var commonClassLoader: ClassLoader = _
+  private[this] var commonClassLoader: ClassLoader = _
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
   val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
@@ -663,8 +653,13 @@ object PlayProject extends Plugin {
       def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean] = {
 
         try {
-          Command.process("test-only " + only.mkString(" "), state)
-          Right(true)
+          if (only == Nil) {
+            Command.process("test", state)
+            Right(true)
+          } else {
+            Command.process("test-only " + only.mkString(" "), state)
+            Right(true)
+          }
         } catch {
           case incomplete: sbt.Incomplete => {
             Left({
@@ -686,12 +681,12 @@ object PlayProject extends Plugin {
   }
 
   // ----- Play commands
-  
-  val playRunCommand = playRunCommandBase("run","(Server started, use Ctrl+D to stop and go back to the console...)")
 
-  val playWebTestCommand = playRunCommandBase("web-test","(Server started in test mode, go to http://localhost:9000/@test to run tests. Hit Ctrl+D to stop and go back to the console...)")
+  val playRunCommand = playRunCommandBase("run", "(Server started, use Ctrl+D to stop and go back to the console...)")
 
-  def playRunCommandBase(commandName: String, message: String) =  Command.args(commandName, "<port>") { (state: State, args: Seq[String]) =>
+  val playWebTestCommand = playRunCommandBase("web-test", "(Server started in test mode, go to http://localhost:9000/@tests to run tests. Hit Ctrl+D to stop and go back to the console...)")
+
+  def playRunCommandBase(commandName: String, message: String) = Command.args(commandName, "<port>") { (state: State, args: Seq[String]) =>
 
     // Parse HTTP port argument
     val port = args.headOption.map { portString =>
@@ -846,6 +841,7 @@ object PlayProject extends Plugin {
                 |reload                     Reload the current application build file.
                 |run <port>                 Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs from the command line
+                |web-test                   Run Junit tests and/or Specs from the browser
                 |start <port>               Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
@@ -960,7 +956,14 @@ object PlayProject extends Plugin {
 
   // -- Dependencies
   val testResultReporter = TaskKey[List[String]]("test-result-reporter")
-  val testResultReporterTask = testlistener.result.toList
+  val testResultReporterTask = (state, thisProjectRef) map { (s, r) =>
+    testListener.result.toList
+  }
+  // -- Dependencies
+  val testResultReporterReset = TaskKey[Unit]("test-result-reporter-reset")
+  val testResultReporterResetTask = (state, thisProjectRef) map { (s, r) =>
+    testListener.result.clear
+  }
 
   val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
   val computeDependenciesTask = (deliverLocal, ivySbt, streams, organizationName, moduleName, version, scalaVersion) map { (_, ivySbt, s, org, id, version, scalaVersion) =>
@@ -1156,6 +1159,8 @@ object PlayProject extends Plugin {
 
     testResultReporter <<= testResultReporterTask,
 
+    testResultReporterReset <<= testResultReporterResetTask,
+
     computeDependencies <<= computeDependenciesTask,
 
     playCommonClassloader <<= playCommonClassloaderTask,
@@ -1201,8 +1206,7 @@ object PlayProject extends Plugin {
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = JAVA) = {
 
     Project(name, path)
-      .config(IntegrationTest)
-      .settings(Seq(testListeners ++= testListener): _* )
+      .settings(Seq(testListeners += testListener): _*)
       .settings(parallelExecution in Test := false)
       .settings(PlayProject.defaultSettings: _*)
       .settings(whichLang(mainLang): _*)

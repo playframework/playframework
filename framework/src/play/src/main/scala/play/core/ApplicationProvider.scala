@@ -5,6 +5,7 @@ import play.api.mvc._
 
 import java.io._
 import java.net._
+import akka.dispatch.Future
 
 trait SourceMapper {
 
@@ -114,12 +115,13 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
   }
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-
     import play.api.mvc.Results._
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val testPath = """/@tests""".r
     val runTestPath = """/@run-test""".r
+    val runTestSuit = """/@run-all-tests""".r
+    val testReport = "/@test-report".r
 
     request.path match {
 
@@ -136,9 +138,15 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
       case testPath() => {
 
-        val r = <ul>
-                  { sbtLink.definedTests.map(name => <li><a href={ "/@run-test?className=" + name }>{ name }</a></li>) }
-                </ul>
+        val r = <p>
+                  <a href="/@run-all-tests">Run all tests</a><br/>
+                  Or run a specific test:
+                  <ul>
+                    {
+                      sbtLink.definedTests.map(name => <li><a href={ "/@run-test?className=" + name }>{ name }</a></li>)
+                    }
+                  </ul>
+                </p>
 
         Some(Ok(r).as("text/html"))
 
@@ -155,11 +163,21 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         })
 
       }
+      case runTestSuit() => {
+        Future {
+          sbtLink.runTask("test-result-reporter-reset")
+          sbtLink.runTests(Nil, _ => ())
+        }
+        Some(Redirect("/@test-report"))
+
+      }
+      case testReport() => {
+        Some(Ok(sbtLink.runTask("test-result-reporter").map(report => report.asInstanceOf[List[_]].mkString("")).getOrElse("...")).as("text/html"))
+      }
 
       case _ => None
 
     }
-
   }
-
 }
+
