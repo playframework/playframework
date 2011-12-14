@@ -398,13 +398,22 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 object OfflineEvolutions {
 
   /**
+   * make it super easy to apply a script for a db for the first time, can be useful for
+   * setting up a production environment or for mocking
+   *
+   * @param dbName
+   */
+  def applyScript(dbName: String) {
+    applyScript(new java.io.File("."), getClass.getClassLoader, dbName)
+  }
+  /**
    * Computes and applies an evolutions script.
    *
    * @param applicationPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
-  def applyScript(applicationPath: File, classloader: ClassLoader, dbName: String) = {
+  def applyScript(applicationPath: File, classloader: ClassLoader, dbName: String) {
 
     import play.api._
 
