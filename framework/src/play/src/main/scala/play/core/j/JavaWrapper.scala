@@ -104,7 +104,6 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 object Wrap {
   import collection.JavaConverters._
   import play.api.mvc._
- 
 
   /*
    * converts a Java action into a scala one
@@ -123,7 +122,7 @@ object Wrap {
    * @param headers
    * @param cookies
    */
-    
+
   def toRequest(_uri: String, _method: String, _queryString: java.util.Map[String, Seq[String]],
     _body: java.util.Map[String, Seq[String]], _username: String, _path: String, _headers: java.util.Map[String, Array[String]], _cookies: java.util.Map[String, String]) = new play.api.mvc.Request[AnyContent] {
     def uri = _uri

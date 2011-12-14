@@ -442,7 +442,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
   def htmlDescription = {
 
     <span>An SQL script will be run on your database -</span>
-    <input type="button" value="Apply this script now!" onclick={ javascript }/>
+    <input name="evolution-button" type="button" value="Apply this script now!" onclick={ javascript }/>
 
   }.map(_.toString).mkString
 
