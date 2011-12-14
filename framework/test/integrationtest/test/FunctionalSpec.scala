@@ -19,17 +19,17 @@ object FunctionalSpec extends Specification {
   "pass functional test" in {
    withNettyServer{
     val driver = new HtmlUnitDriver()
-      driver.get("http://localhost:9000")
+      driver.get("http://localhost:9001")
       driver.getPageSource must contain ("Hello world")
-      val resultGet: String = WS.url("http://localhost:9000").get().value match { case r: Redeemed[Response] => r.a.body }
+      val resultGet: String = WS.url("http://localhost:9001").get().value match { case r: Redeemed[Response] => r.a.body }
       resultGet must contain ("Hello world")
-      val resultPost: String = WS.url("http://localhost:9000/post").post().value match { case r: Redeemed[Response] => r.a.body }
+      val resultPost: String = WS.url("http://localhost:9001/post").post().value match { case r: Redeemed[Response] => r.a.body }
       resultPost must contain ("POST!")
-      val resultJson: User = WS.url("http://localhost:9000/json").get().value match {
+      val resultJson: User = WS.url("http://localhost:9001/json").get().value match {
           case r: Redeemed[Response] => r.a.json.as[User]
       }
 
-      driver.get("http://localhost:9000/conf")
+      driver.get("http://localhost:9001/conf")
       driver.getPageSource must contain("This value comes from complex-app's complex1.conf")
       driver.getPageSource must contain("None")
 
