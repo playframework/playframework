@@ -19,21 +19,21 @@ On windows systems you'll need to set it in the global environment variables.
 Enter any existing Play 2.0 application directory and use the `play` command to launch the development console:
 
 ```bash
-$ cd /dev/myApplication
+$ cd src/myApplication
 $ play
 ```
 
 You can also directly use `play run` to run the application:
 
 ```bash
-$ cd /dev/myApplication
+$ cd src/myApplication
 $ play run
 ```
 
 Use `play new yourNewApplication` to create a new application:
 
 ```bash
-$ cd /dev
+$ cd src
 $ play new myNewApplication
 ```
 
