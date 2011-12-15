@@ -19,7 +19,8 @@ object Twitter extends Controller {
   // OAuth
 
   val KEY = ConsumerKey("yzfT2vhgsBjgWEquQHSCsg",
-    "mtVRo5tJ0xJ4ZK8l7pAowaYjMSZRGdYY9NphtWVp5dA") // TODO: Hide before releasing source code
+    "mtVRo5tJ0xJ4ZK8l7pAowaYjMSZRGdYY9NphtWVp5dA")
+
   val TWITTER = OAuth(ServiceInfo(
     "https://api.twitter.com/oauth/request_token",
     "https://api.twitter.com/oauth/access_token",
