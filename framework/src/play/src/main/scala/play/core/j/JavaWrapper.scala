@@ -1,11 +1,10 @@
 package play.core.j
 
-import scala.collection.JavaConverters._
-
 import play.api.mvc._
-
 import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody }
+
+import scala.collection.JavaConverters._
 
 trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
@@ -13,11 +12,9 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
       .filterNot(_ == null)
       .headOption.map { bodyParserOf =>
-        bodyParserOf.value.newInstance.parser
-      }.getOrElse(JParsers.anyContent)
+        bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
+      }.getOrElse(JParsers.anyContent(-1))
   }
-
-  JParsers.anyContent
 
   def invocation: JResult
   def controller: Class[_]

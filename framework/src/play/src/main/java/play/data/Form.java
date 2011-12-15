@@ -73,24 +73,42 @@ public class Form<T> {
     }
     
     protected Map<String,String> requestData() {
-        Map<String,String> data = new HashMap<String,String>();
-        Map<String,String[]> urlFormEncoded = play.mvc.Controller.request().body().asUrlFormEncoded();
-        if(urlFormEncoded == null) {
-            urlFormEncoded = new HashMap<String,String[]>();
+        
+        Map<String,String[]> urlFormEncoded = new HashMap<String,String[]>();
+        if(play.mvc.Controller.request().body().asUrlFormEncoded() != null) {
+            urlFormEncoded = play.mvc.Controller.request().body().asUrlFormEncoded();
         }
+        
+        Map<String,String[]> multipartFormData = new HashMap<String,String[]>();
+        if(play.mvc.Controller.request().body().asMultipartFormData() != null) {
+            multipartFormData = play.mvc.Controller.request().body().asMultipartFormData().asUrlFormEncoded();
+        }
+        
         Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
+        
+        Map<String,String> data = new HashMap<String,String>();
+        
         for(String key: urlFormEncoded.keySet()) {
             String[] value = urlFormEncoded.get(key);
             if(value.length > 0) {
                 data.put(key, value[0]);
             }
         }
+        
+        for(String key: multipartFormData.keySet()) {
+            String[] value = multipartFormData.get(key);
+            if(value.length > 0) {
+                data.put(key, value[0]);
+            }
+        }
+        
         for(String key: queryString.keySet()) {
             String[] value = queryString.get(key);
             if(value.length > 0) {
                 data.put(key, value[0]);
             }
         }
+        
         return data;
     }
     

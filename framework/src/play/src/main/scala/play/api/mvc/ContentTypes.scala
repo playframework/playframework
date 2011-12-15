@@ -57,13 +57,8 @@ case class AnyContentAsJson(json: JsValue) extends AnyContent
 case class AnyContentAsMultipartFormData(mdf: MultipartFormData[TemporaryFile]) extends AnyContent
 
 case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart], missingFileParts: Seq[MissingFilePart]) {
-
   def asUrlFormEncoded: Map[String, Seq[String]] = dataParts
-
   def file(key: String): Option[FilePart[A]] = files.find(_.key == key)
-
-  def files(key: String): Seq[FilePart[A]] = files.filter(_.key == key)
-
 }
 
 object MultipartFormData {

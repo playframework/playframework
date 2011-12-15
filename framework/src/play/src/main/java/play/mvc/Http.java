@@ -1,5 +1,6 @@
 package play.mvc;
 
+import java.io.*;
 import java.util.*;
 
 import org.w3c.dom.*;
@@ -161,10 +162,67 @@ public class Http {
         
     }
     
+    public abstract static class MultipartFormData {
+        
+        public static class FilePart {
+            
+            final String key;
+            final String filename;
+            final String contentType;
+            final File file;
+            
+            public FilePart(String key, String filename, String contentType, File file) {
+                this.key = key;
+                this.filename = filename;
+                this.contentType = contentType;
+                this.file = file;
+            }
+            
+            public String getKey() {
+                return key;
+            }
+            
+            public String getFilename() {
+                return filename;
+            }
+            
+            public String getContentType() {
+                return contentType;
+            }
+            
+            public File getFile() {
+                return file;
+            }
+            
+        }
+        
+        public abstract Map<String,String[]> asUrlFormEncoded();
+        
+        public abstract List<FilePart> getFiles();
+        
+        public FilePart getFile(String key) {
+            for(FilePart filePart: getFiles()) {
+                if(filePart.getKey().equals(key)) {
+                    return filePart;
+                }
+            }
+            return null;
+        }
+    
+    }
+    
     /**
      * The request body.
      */
     public static class RequestBody {
+        
+        public boolean isMaxSizeExcedeed() {
+            return false;
+        }
+        
+        public MultipartFormData asMultipartFormData() {
+            return null;
+        }
         
         /**
          * The request content parsed as URL form-encoded.
