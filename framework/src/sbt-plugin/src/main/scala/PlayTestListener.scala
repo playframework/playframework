@@ -73,14 +73,7 @@ private[sbt] class PlayTestListener extends TestsListener {
   def endGroup(name: String, result: TestResult.Value) {}
 
   def tidy(s: String) = s
-    .replace("|", "||")
-    .replace("'", "|'")
-    .replace("\n", "|n")
-    .replace("\r", "|r")
-    .replace("\u0085", "|x")
-    .replace("\u2028", "|l")
-    .replace("\u2029", "|p")
-    .replace("[", "|[")
-    .replace("]", "|]")
-
+    .replace("\u0085", "")
+    .replace("\u2028", "")
+    .replace("\u2029", "")
 }
