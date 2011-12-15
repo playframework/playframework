@@ -56,7 +56,7 @@ object PlayBuild extends Build {
             ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject, AnormProject)
-    
+
     lazy val SbtPluginProject = Project(
       "SBT-Plugin",
       file("src/sbt-plugin"),
@@ -78,7 +78,7 @@ object PlayBuild extends Build {
         ) 
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
-    
+
     lazy val ConsoleProject = Project(
       "Console",
       file("src/console"),
@@ -181,7 +181,7 @@ object PlayBuild extends Build {
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
         )
-        
+
         val sbtDependencies = Seq(
           "rhino"                               %    "js"                       %   "1.7R2",
           "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
@@ -190,7 +190,7 @@ object PlayBuild extends Build {
           "com.h2database"                      %    "h2"                       %   "1.3.158",
           "javassist"                           %    "javassist"                %   "3.12.1.GA"
         )
-        
+
         val consoleDependencies = Seq(
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0"
         )
@@ -304,13 +304,13 @@ object PlayBuild extends Build {
                     IO.write(file(f.getAbsolutePath + "." + algo), checksum(algo)(content.getBytes))
                 }
             }
-            
+
             // Retrieve all ivy files from cache 
             // (since we cleaned the cache and run update just before, all these dependencies are useful)
             val ivyFiles = ((repository / "../cache" * "*").filter { d => 
               d.isDirectory && d.getName != "scala_%s".format(scalaVersion) 
             } ** "ivy-*.xml").get
-            
+
             // From the ivy files, deduct the dependencies
             val dependencies = ivyFiles.map { descriptor =>
               val organization = descriptor.getParentFile.getParentFile.getName
@@ -318,7 +318,7 @@ object PlayBuild extends Build {
               val version = descriptor.getName.drop(4).dropRight(4)
               descriptor -> (organization, name, version)
             }
-            
+
             // Resolve artifacts for these dependencies (only jars)
             val dependenciesWithArtifacts = dependencies.map {
               case (descriptor, (organization, name, version)) => {
@@ -329,14 +329,14 @@ object PlayBuild extends Build {
                 (descriptor, jars, (organization, name, version))
               }
             }
-            
+
             // Build the local repository from these informations
             dependenciesWithArtifacts.foreach { 
               case (descriptor, jars, (organization, name, version)) => {
                 val dependencyDir = repository / organization / name / version
                 val artifacts = jars.map(j => dependencyDir / j.getParentFile.getName / (j.getName.dropRight(5 + version.size) + ".jar"))
                 val ivy = dependencyDir / "ivys/ivy.xml"
-                
+
                 (Seq(descriptor -> ivy) ++ jars.zip(artifacts)).foreach(copyWithChecksums)
               }
             }
@@ -402,7 +402,7 @@ object PlayBuild extends Build {
                     }
                 }
             }
-            
+
             (sourceDirectory ** "*.scala.html").get.foreach { template =>
                 val compile = compiler.getDeclaredMethod("compile", classOf[java.io.File], classOf[java.io.File], classOf[java.io.File], classOf[String], classOf[String], classOf[String])
                 try {
