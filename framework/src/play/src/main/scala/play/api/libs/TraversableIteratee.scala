@@ -10,6 +10,31 @@ object Traversable {
 
   }
 
+  trait CheckDone[From, To] extends Enumeratee[From, To] {
+
+    def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
+
+    def apply[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = {
+
+      def step(in: Input[From]): Iteratee[From, Iteratee[To, A]] = {
+        in match {
+
+          case Input.El(e) => it.pureFlatFold(
+            (_, _) => Done(it, in),
+            k => continue(k),
+            (_, _) => Done(it, in))
+
+          case Input.EOF => Done(it, Input.EOF)
+
+          case Input.Empty => Cont(step)
+        }
+
+      }
+      Cont(step)
+    }
+
+  }
+
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
     def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {

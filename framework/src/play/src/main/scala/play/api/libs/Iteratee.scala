@@ -238,6 +238,10 @@ trait Enumeratee[From, To] {
 
   def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
 
+  def |>>[A](inner: Iteratee[To, A]): Iteratee[From, A] = transform(inner)
+
+  def |>[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = apply(inner)
+
   def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
     new Enumeratee[From, To2] {
       def apply[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
