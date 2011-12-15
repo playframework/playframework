@@ -1,74 +1,19 @@
 package sbt
 
 import Keys._
-import jline._
 
 import play.api._
 import play.core._
 
 import play.utils.Colors
-import org.scalatools.testing.{ Event => TEvent, Result => TResult }
 
-private[sbt] class PlayTestListener extends TestReportListener {
+import PlayExceptions._
+import PlayKeys._
 
-  val result = new collection.mutable.ListBuffer[String]
+trait PlayCommands {
+  this: PlayReloader =>
 
-  /** called for each class or equivalent grouping */
-  def startGroup(name: String) {
-    playReport("test", "started" -> name)
-  }
-
-  /** called for each test method or equivalent */
-  def testEvent(event: TestEvent) {
-
-    event match {
-      case e =>
-        for (d <- e.detail) {
-          d match {
-            case te: TEvent =>
-              te.result match {
-                case TResult.Success => playReport("test case", "finished, result" -> event.result.get.toString)
-                case TResult.Error | TResult.Failure =>
-                  playReport("test", "failed" -> te.testName, "details" -> (te.error.toString +
-                    "\n" + te.error.getStackTrace.mkString("\n at ", "\n at ", "")))
-                case TResult.Skipped =>
-                  playReport("test", "ignored" -> te.testName)
-              }
-          }
-        }
-    }
-
-  }
-
-  /** called if there was an error during test */
-  def endGroup(name: String, t: Throwable) {}
-  /** called if test completed */
-  def endGroup(name: String, result: TestResult.Value) {}
-
-  def tidy(s: String) = s
-    .replace("|", "||")
-    .replace("'", "|'")
-    .replace("\n", "|n")
-    .replace("\r", "|r")
-    .replace("\u0085", "|x")
-    .replace("\u2028", "|l")
-    .replace("\u2029", "|p")
-    .replace("[", "|[")
-    .replace("]", "|]")
-
-  private def playReport(messageName: String, attributes: (String, String)*) {
-    result.append("<li>" + messageName + " " + attributes.map {
-      case (k, v) => k + ": " + tidy(v)
-    }.mkString(" ") + "</li>")
-  }
-}
-
-object PlayProject extends Plugin {
-
-  val JAVA = "java"
-  val SCALA = "scala"
-
-  private lazy val testListener = new PlayTestListener
+  private[sbt] lazy val testListener = new PlayTestListener
 
   // ----- We need this later
 
@@ -88,50 +33,6 @@ object PlayProject extends Plugin {
     waitEOF
     consoleReader.getTerminal.enableEcho()
   }
-
-  // ----- Exceptions
-
-  def filterAnnoyingErrorMessages(message: String): String = {
-    val overloaded = """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r
-    message match {
-      case overloaded(method, _, signature) => "Overloaded method value [" + method + "] cannot be applied to " + signature
-      case msg => msg
-    }
-  }
-
-  case class CompilationException(problem: xsbti.Problem) extends PlayException(
-    "Compilation error", filterAnnoyingErrorMessages(problem.message)) with PlayException.ExceptionSource {
-    def line = problem.position.line.map(m => m.asInstanceOf[Int])
-    def position = problem.position.pointer.map(m => m.asInstanceOf[Int])
-    def input = problem.position.sourceFile.map(scalax.file.Path(_))
-    def sourceName = problem.position.sourceFile.map(_.getAbsolutePath)
-  }
-
-  case class TemplateCompilationException(source: File, message: String, atLine: Int, column: Int) extends PlayException(
-    "Compilation error", message) with PlayException.ExceptionSource {
-    def line = Some(atLine)
-    def position = Some(column)
-    def input = Some(scalax.file.Path(source))
-    def sourceName = Some(source.getAbsolutePath)
-  }
-
-  case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException(
-    "Compilation error", message) with PlayException.ExceptionSource {
-    def line = atLine
-    def position = column
-    def input = Some(scalax.file.Path(source))
-    def sourceName = Some(source.getAbsolutePath)
-  }
-
-  // ----- Keys
-
-  val distDirectory = SettingKey[File]("play-dist")
-  val playResourceDirectories = SettingKey[Seq[File]]("play-resource-directories")
-  val confDirectory = SettingKey[File]("play-conf")
-  val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
-
-  val templatesTypes = SettingKey[PartialFunction[String, (String, String)]]("play-templates-formats")
-  val minify = SettingKey[Boolean]("minify", "Whether assets (Javascript and CSS) should be minified or not")
 
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: ScopedSetting[T], data: Settings[Scope]): Seq[T] =
@@ -437,254 +338,9 @@ object PlayProject extends Plugin {
 
   }
 
-  // ----- Reloader
-
-  def newReloader(state: State) = {
-
-    val extracted = Project.extract(state)
-
-    new SBTLink {
-
-      // ----- Internal state used for reloading is kept here
-
-      def projectPath = extracted.currentProject.base
-
-      val watchFiles = {
-        ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "*").get
-      }
-
-      var reloadNextTime = false
-      var currentProducts = Map.empty[java.io.File, Long]
-      var currentAnalysis = Option.empty[sbt.inc.Analysis]
-
-      def forceReload() {
-        reloadNextTime = true
-      }
-
-      def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
-        val classFiles = newAnalysis.stamps.allProducts ++ watchFiles
-        val newProducts = classFiles.map { classFile =>
-          classFile -> classFile.lastModified
-        }.toMap
-        val updated = if (newProducts != currentProducts || reloadNextTime) {
-          Some(newProducts)
-        } else {
-          None
-        }
-        updated.foreach(currentProducts = _)
-        currentAnalysis = Some(newAnalysis)
-
-        reloadNextTime = false
-
-        updated
-      }
-
-      def findSource(className: String) = {
-        val topType = className.split('$').head
-        currentAnalysis.flatMap { analysis =>
-          analysis.apis.internal.flatMap {
-            case (sourceFile, source) => {
-              source.api.definitions.find(defined => defined.name == topType).map(_ => {
-                sourceFile: java.io.File
-              })
-            }
-          }.headOption
-        }
-      }
-
-      def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
-
-        problem.position.sourceFile.collect {
-
-          // Templates
-          case play.templates.MaybeGeneratedSource(generatedSource) => {
-            new xsbti.Problem {
-              def message = problem.message
-              def position = new xsbti.Position {
-                def line = {
-                  problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                }
-                def lineContent = ""
-                def offset = xsbti.Maybe.nothing[java.lang.Integer]
-                def pointer = {
-                  problem.position.offset.map { offset =>
-                    generatedSource.mapPosition(offset.asInstanceOf[Int]) - IO.read(generatedSource.source.get).split('\n').take(problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).get - 1).mkString("\n").size - 1
-                  }.map { p =>
-                    xsbti.Maybe.just(p.asInstanceOf[java.lang.Integer])
-                  }.getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                }
-                def pointerSpace = xsbti.Maybe.nothing[String]
-                def sourceFile = xsbti.Maybe.just(generatedSource.source.get)
-                def sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
-              }
-              def severity = problem.severity
-            }
-          }
-
-          // Routes files
-          case play.core.Router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
-            new xsbti.Problem {
-              def message = problem.message
-              def position = new xsbti.Position {
-                def line = {
-                  problem.position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                }
-                def lineContent = ""
-                def offset = xsbti.Maybe.nothing[java.lang.Integer]
-                def pointer = xsbti.Maybe.nothing[java.lang.Integer]
-                def pointerSpace = xsbti.Maybe.nothing[String]
-                def sourceFile = xsbti.Maybe.just(new File(generatedSource.source.get.path))
-                def sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
-              }
-              def severity = problem.severity
-            }
-          }
-
-        }.getOrElse {
-          problem
-        }
-
-      }
-
-      def getProblems(incomplete: Incomplete): Seq[xsbti.Problem] = {
-        (Compiler.allProblems(incomplete) ++ {
-          Incomplete.linearize(incomplete).filter(i => i.node.isDefined && i.node.get.isInstanceOf[ScopedKey[_]]).flatMap { i =>
-            val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
-            val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
-            val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
-
-            Project.evaluateTask(streamsManager, state).get.toEither.right.toOption.map { streamsManager =>
-              var first: (Option[(String, String, String)], Option[Int]) = (None, None)
-              var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
-              Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
-                case JavacError(file, line, message) => parsed = Some((file, line, message)) -> None
-                case JavacErrorInfo(key, message) => parsed._1.foreach { o =>
-                  parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
-                }
-                case JavacErrorPosition(pos) => {
-                  parsed = parsed._1 -> Some(pos.size)
-                  if (first == (None, None)) {
-                    first = parsed
-                  }
-                }
-              }
-              first
-            }.collect {
-              case (Some(error), maybePosition) => new xsbti.Problem {
-                def message = error._3
-                def position = new xsbti.Position {
-                  def line = xsbti.Maybe.just(error._2.toInt)
-                  def lineContent = ""
-                  def offset = xsbti.Maybe.nothing[java.lang.Integer]
-                  def pointer = maybePosition.map(pos => xsbti.Maybe.just((pos - 1).asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                  def pointerSpace = xsbti.Maybe.nothing[String]
-                  def sourceFile = xsbti.Maybe.just(file(error._1))
-                  def sourcePath = xsbti.Maybe.just(error._1)
-                }
-                def severity = xsbti.Severity.Error
-              }
-            }
-
-          }
-        }).map(remapProblemForGeneratedSources)
-      }
-
-      private def newClasspath = {
-        Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray
-      }
-
-      def reload = {
-
-        PlayProject.synchronized {
-
-          val r = Project.evaluateTask(playReload, state).get.toEither
-            .left.map { incomplete =>
-              Incomplete.allExceptions(incomplete).headOption.map {
-                case e: PlayException => e
-                case e: xsbti.CompileFailed => {
-                  getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                    UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
-                  }
-                }
-                case e => UnexpectedException(unexpected = Some(e))
-              }.getOrElse(
-                UnexpectedException(Some("Compilation task failed without any exception!?")))
-            }
-            .right.map { compilationResult =>
-              updateAnalysis(compilationResult).map { _ =>
-                newClasspath
-              }
-            }
-
-          r
-        }
-
-      }
-
-      def runTask(task: String): Option[Any] = {
-
-        val parser = Act.scopedKeyParser(state)
-        val Right(sk: ScopedKey[Task[_]]) = complete.DefaultParsers.result(parser, task)
-        val result = Project.evaluateTask(sk, state)
-
-        result.flatMap(_.toEither.right.toOption)
-
-      }
-
-      def definedTests: Seq[String] = {
-        Project.evaluateTask(Keys.definedTests in Test, state).get.toEither
-          .left.map { incomplete =>
-            Incomplete.allExceptions(incomplete).headOption.map {
-              case e: PlayException => e
-              case e: xsbti.CompileFailed => {
-                getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                  UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
-                }
-              }
-              case e => UnexpectedException(unexpected = Some(e))
-            }.getOrElse(
-              UnexpectedException(Some("Compilation task failed without any exception!?")))
-          }
-          .right.map(_.map(_.name))
-          .left.map(throw _)
-          .right.get
-      }
-
-      def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean] = {
-
-        try {
-          if (only == Nil) {
-            Command.process("test", state)
-            Right(true)
-          } else {
-            Command.process("test-only " + only.mkString(" "), state)
-            Right(true)
-          }
-        } catch {
-          case incomplete: sbt.Incomplete => {
-            Left({
-              Incomplete.allExceptions(incomplete).headOption.map {
-                case e: xsbti.CompileFailed => "Compilation failed"
-                case e => e.getMessage
-              }.getOrElse("Unexpected failure")
-            })
-          }
-          case unexpected => {
-            Left("Unexpected failure [" + unexpected.getClass.getName + "]")
-          }
-        }
-
-      }
-
-    }
-
-  }
-
   // ----- Play commands
 
   val playRunCommand = playRunCommandBase("run", "(Server started, use Ctrl+D to stop and go back to the console...)")
-
-  val playWebTestCommand = playRunCommandBase("web-test", "(Server started in test mode, go to http://localhost:9000/@tests to run tests. Hit Ctrl+D to stop and go back to the console...)")
 
   def playRunCommandBase(commandName: String, message: String) = Command.args(commandName, "<port>") { (state: State, args: Seq[String]) =>
 
@@ -697,7 +353,7 @@ object PlayProject extends Plugin {
       }
     }.getOrElse(9000)
 
-    val reloader = newReloader(state)
+    val reloader = newReloader(state, playReload)
 
     println()
 
@@ -841,7 +497,6 @@ object PlayProject extends Plugin {
                 |reload                     Reload the current application build file.
                 |run <port>                 Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs from the command line
-                |web-test                   Run Junit tests and/or Specs from the browser
                 |start <port>               Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
@@ -1077,145 +732,4 @@ object PlayProject extends Plugin {
 
   }
 
-  // ----- Default settings
-
-  lazy val defaultJavaSettings = Seq[Setting[_]](
-
-    templatesImport ++= Seq(
-      "models._",
-      "controllers._",
-
-      "java.lang._",
-      "java.util._",
-
-      "scala.collection.JavaConversions._",
-      "scala.collection.JavaConverters._",
-
-      "play.api.i18n.Messages",
-
-      "play.mvc._",
-      "play.data._",
-      "com.avaje.ebean._",
-
-      "play.mvc.Http.Context.Implicit._",
-
-      "views.%format%._"))
-
-  lazy val defaultScalaSettings = Seq[Setting[_]](
-
-    templatesImport ++= Seq(
-      "models._",
-      "controllers._",
-
-      "play.api.i18n.Messages",
-
-      "play.api.mvc._",
-      "play.api.data._",
-
-      "views.%format%._"))
-
-  lazy val defaultSettings = Seq[Setting[_]](
-
-    resolvers ++= Seq(
-      Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),
-      "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"),
-
-    target <<= baseDirectory / "target",
-
-    sourceDirectory in Compile <<= baseDirectory / "app",
-    sourceDirectory in Test <<= baseDirectory / "test",
-
-    confDirectory <<= baseDirectory / "conf",
-
-    scalaSource in Compile <<= baseDirectory / "app",
-    scalaSource in Test <<= baseDirectory / "test",
-
-    javaSource in Compile <<= baseDirectory / "app",
-    javaSource in Test <<= baseDirectory / "test",
-
-    distDirectory <<= baseDirectory / "dist",
-
-    libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
-
-    libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.6.1" % "test",
-      "com.novocode" % "junit-interface" % "0.7" % "test",
-      "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"),
-
-    sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
-
-    sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
-
-    commands ++= Seq(playCommand, playRunCommand, playWebTestCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
-
-    shellPrompt := playPrompt,
-
-    copyResources in Compile <<= (copyResources in Compile, playCopyResources) map { (r, pr) => r ++ pr },
-
-    mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
-
-    compile in (Compile) <<= PostCompile,
-
-    dist <<= distTask,
-
-    testResultReporter <<= testResultReporterTask,
-
-    testResultReporterReset <<= testResultReporterResetTask,
-
-    computeDependencies <<= computeDependenciesTask,
-
-    playCommonClassloader <<= playCommonClassloaderTask,
-
-    playCopyResources <<= playCopyResourcesTask,
-
-    playCompileEverything <<= playCompileEverythingTask,
-
-    playPackageEverything <<= playPackageEverythingTask,
-
-    playReload <<= playReloadTask,
-
-    playStage <<= playStageTask,
-
-    cleanFiles <+= distDirectory,
-
-    resourceGenerators in Compile <+= LessCompiler,
-
-    resourceGenerators in Compile <+= CoffeescriptCompiler,
-
-    resourceGenerators in Compile <+= JavascriptCompiler,
-
-    minify := false,
-
-    playResourceDirectories := Seq.empty[File],
-
-    playResourceDirectories <+= baseDirectory / "conf",
-
-    playResourceDirectories <+= baseDirectory / "public",
-
-    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
-
-    templatesTypes := {
-      case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
-      case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
-      case "xml" => ("play.api.templates.Xml", "play.api.templates.XmlFormat")
-    })
-
-  // ----- Create a Play project with default settings
-
-  private def whichLang(name: String) = if (name == JAVA) defaultJavaSettings else defaultScalaSettings
-
-  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = JAVA) = {
-
-    Project(name, path)
-      .settings(Seq(testListeners += testListener): _*)
-      .settings(parallelExecution in Test := false)
-      .settings(PlayProject.defaultSettings: _*)
-      .settings(whichLang(mainLang): _*)
-      .settings(
-
-        scalacOptions ++= Seq("-deprecation", "-Xcheckinit", "-encoding", "utf8"),
-
-        version := applicationVersion,
-
-        libraryDependencies ++= dependencies)
-  }
 }
