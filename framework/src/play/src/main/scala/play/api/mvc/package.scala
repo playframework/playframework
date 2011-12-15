@@ -14,4 +14,10 @@ package play.api
  * }
  * }}}
  */
-package object mvc
+package object mvc {
+
+  object Socket {
+    type Out[A] = play.api.libs.iteratee.Iteratee[A, Unit]
+  }
+
+}

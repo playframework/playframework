@@ -187,7 +187,7 @@ case class SimpleResult[A](header: ResponseHeader, body: Enumerator[A])(implicit
  * @param header the response header, which contains status code and HTTP headers
  * @param chunks the chunks enumerator
  */
-case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => Unit)(implicit val writeable: Writeable[A]) extends PlainResult {
+case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends PlainResult {
 
   /** The body content type. */
   type BODY_CONTENT = A
@@ -396,7 +396,7 @@ trait Results {
      * @param content A function that will give you the Iteratee to write in once ready.
      * @param a `ChunkedResult`
      */
-    def apply[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
+    def apply[C](content: Iteratee[C, Unit] => _)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         content)

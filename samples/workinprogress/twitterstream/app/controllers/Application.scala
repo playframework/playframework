@@ -24,16 +24,13 @@ object Application extends Controller {
 
   def twitter(term: String) = Action { request =>
     val tokens = Twitter.sessionTokenPair(request).get
-    val toComet = Enumeratee.map[Array[Byte]](bytes => {
-      val json = (new String(bytes)).replace("'", "\\'")
-      "<script>window.parent.twitts(" + new String(bytes) + ");</script>"
-    })
-    Ok[String]((it: Iteratee[String, Unit]) => {
+    val toComet = Enumeratee.map[Array[Byte]](bytes => new String(bytes)) ><> Comet(callback = "window.parent.twitts")(Comet.CometMessage(identity))
+
+    Ok { it: Socket.Out[play.api.templates.Html] =>
       WS.url("https://stream.twitter.com/1/statuses/filter.json?track=" + term)
         .sign(OAuthCalculator(Twitter.KEY, tokens))
-        .get({ res: ResponseHeaders => toComet.transform(it) })
-      ()
-    }).as(HTML)
+        .get(res => toComet.transform(it))
+    }
   }
 
 }

@@ -320,8 +320,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
                 val writer: Function1[r.BODY_CONTENT, ChannelFuture] = x => e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
 
                 val chunksIteratee = Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(Iteratee.fold(e.getChannel.write(nettyResponse))((_, e: r.BODY_CONTENT) => writer(e))).mapDone { _ =>
-                  val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
-                  if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                  if (e.getChannel.isConnected()) {
+                    val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
+                    if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                  }
                 }
 
                 chunks(chunksIteratee)
