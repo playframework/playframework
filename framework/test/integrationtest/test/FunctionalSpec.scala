@@ -34,6 +34,11 @@ object FunctionalSpec extends Specification {
       driver.getPageSource must contain("None")
 
       resultJson must be equalTo(User(1, "Sadek", List("tea")))
+
+      driver.get("http://localhost:9001/json_java")
+      driver.getPageSource must contain ("{\"peter\":\"foo\",\"yay\":\"value\"}")
+      
+
    }
   }
  }
