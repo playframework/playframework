@@ -19,21 +19,21 @@ On windows systems you'll need to set it in the global environment variables.
 Enter any existing Play 2.0 application directory and use the `play` command to launch the development console:
 
 ```bash
-$ cd /dev/myApplication
+$ cd ~/workspace/myApplication
 $ play
 ```
 
 You can also directly use `play run` to run the application:
 
 ```bash
-$ cd /dev/myApplication
+$ cd ~/workspace/myApplication
 $ play run
 ```
 
 Use `play new yourNewApplication` to create a new application:
 
 ```bash
-$ cd /dev
+$ cd ~/workspace
 $ play new myNewApplication
 ```
 
@@ -49,7 +49,7 @@ $ play
 There are several samples applications included in the `samples/` directory. For example, to run the included ZenTask sample application:
 
 ```bash
-$ cd samples/scala/zentasks/
+$ cd ~/workspace/play2/samples/scala/zentasks/
 $ play run
 ```
 > The application will be available on port 9000. On first run, it will notify you that database evolutions are required. Click "Apply this script now" and you're away! 
