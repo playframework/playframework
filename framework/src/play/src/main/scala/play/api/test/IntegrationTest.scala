@@ -37,6 +37,14 @@ private[test] class RunnerActor extends Actor {
  *
  */
 object IntegrationTest {
+
+  private def fromTraceToString(th: Throwable) = {
+    val sw = new StringWriter()
+    val pw = new PrintWriter(sw)
+    th.printStackTrace(pw)
+    sw.toString
+  }
+
   def run(r: Runnable) = () => r.run()
 
   /**
@@ -55,7 +63,7 @@ object IntegrationTest {
       test
       None
     } catch {
-      case ex: Exception => Some(ex)
+      case ex: Throwable => Some(ex)
       case _ => None
     }
 
@@ -63,7 +71,10 @@ object IntegrationTest {
 
     Thread.sleep(300)
 
-    if (cleanRun.isDefined) throw cleanRun.get
-    else true
+    if (cleanRun.isDefined) {
+      val err = cleanRun.get
+      play.Logger.error(fromTraceToString(err))
+      throw err
+    } else true
   }
 }

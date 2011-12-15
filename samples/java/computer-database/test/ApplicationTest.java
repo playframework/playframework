@@ -46,7 +46,7 @@ public class ApplicationTest extends MockApplication{
       controllers.Application.list(0, "name", "asc", "")
     );
 
-    //execute controller
+    //execute action
     ResultData result = Extract.from(action.apply(req));
 
     assertEquals(result.body().toString().contains("574 computers found"),true);
