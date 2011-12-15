@@ -104,7 +104,7 @@ package play.templates {
         )
 
     def mapPosition(generatedPosition: Int) = {
-      matrix.findIndexOf(p => p._1 > generatedPosition) match {
+      matrix.indexWhere(p => p._1 > generatedPosition) match {
         case 0 => 0
         case i if i > 0 => {
           val pos = matrix(i - 1)
@@ -118,7 +118,7 @@ package play.templates {
     }
 
     def mapLine(generatedLine: Int) = {
-      lines.findIndexOf(p => p._1 > generatedLine) match {
+      lines.indexWhere(p => p._1 > generatedLine) match {
         case 0 => 0
         case i if i > 0 => {
           val line = lines(i - 1)
