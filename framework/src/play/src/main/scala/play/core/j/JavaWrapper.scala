@@ -22,26 +22,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
   def apply(req: Request[play.mvc.Http.RequestBody]) = {
 
-    val javaContext = new JContext(
-
-      new JRequest {
-
-        def uri = req.uri
-        def method = req.method
-        def path = req.method
-
-        lazy val queryString = {
-          req.queryString.mapValues(_.toArray).asJava
-        }
-
-        def body = req.body
-
-        override def toString = req.toString
-
-      },
-
-      req.session.data.asJava,
-      req.flash.data.asJava)
+    val javaContext = Wrap.createJavaContext(req);
 
     val rootAction = new JAction[Any] {
 
@@ -101,7 +82,35 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 object Wrap {
   import collection.JavaConverters._
   import play.api.mvc._
+  import play.mvc.Http.RequestBody
 
+  /**
+   * creates a context for java apps
+   * @param request
+   */
+  def createJavaContext(req: Request[RequestBody]) = {
+    new JContext(new JRequest {
+
+      def uri = req.uri
+      def method = req.method
+      def path = req.method
+
+      def body = req.body
+
+      def queryString = {
+        req.queryString.mapValues(_.toArray).asJava
+      }
+
+      def urlFormEncoded = {
+        Map[String, Array[String]]().asJava
+      }
+
+      override def toString = req.toString
+
+    },
+      req.session.data.asJava,
+      req.flash.data.asJava)
+  }
   /*
    * converts a Java action into a scala one
    * @param java result
@@ -120,12 +129,12 @@ object Wrap {
    * @param cookies
    */
 
-  def toRequest(_uri: String, _method: String, _queryString: java.util.Map[String, Seq[String]],
-    _body: java.util.Map[String, Seq[String]], _username: String, _path: String, _headers: java.util.Map[String, Array[String]], _cookies: java.util.Map[String, String]) = new play.api.mvc.Request[AnyContent] {
+  def toRequest(_uri: String, _method: String, _queryString: java.util.Map[String, Array[String]],
+    _body: java.util.Map[String, Array[String]], _username: String, _path: String, _headers: java.util.Map[String, Array[String]], _cookies: java.util.Map[String, String]): play.api.mvc.Request[RequestBody] = new play.api.mvc.Request[RequestBody] {
     def uri = _uri
     def method = _method
-    def queryString = _queryString.asScala.toMap
-    def body: AnyContent = AnyContentAsUrlFormEncoded(_body.asScala.toMap).asInstanceOf[AnyContent]
+    def queryString = _queryString.asScala.toMap.map(i => i._1 -> i._2.toSeq)
+    def body: RequestBody = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq)).asInstanceOf[RequestBody]
 
     def username = if (_username == null) None else Some(_username)
     def path = _path
