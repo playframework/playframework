@@ -73,6 +73,16 @@ package play.api.mvc {
 
   }
 
+  class WrappedRequest[A](request: Request[A]) extends Request[A] {
+    def body = request.body
+    def cookies = request.cookies
+    def headers = request.headers
+    def queryString = request.queryString
+    def path = request.path
+    def uri = request.uri
+    def method = request.uri
+  }
+
   /** The HTTP response. */
   @implicitNotFound("Cannot find any HTTP Response here")
   trait Response {
