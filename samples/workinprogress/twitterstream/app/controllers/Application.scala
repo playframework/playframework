@@ -26,10 +26,10 @@ object Application extends Controller {
     val tokens = Twitter.sessionTokenPair(request).get
     val toComet = Enumeratee.map[Array[Byte]](bytes => new String(bytes)) ><> Comet(callback = "window.parent.twitts")(Comet.CometMessage(identity))
 
-    Ok { it: Socket.Out[play.api.templates.Html] =>
+    Ok { socket: Socket.Out[play.api.templates.Html] =>
       WS.url("https://stream.twitter.com/1/statuses/filter.json?track=" + term)
         .sign(OAuthCalculator(Twitter.KEY, tokens))
-        .get(res => toComet.transform(it))
+        .get(res => toComet |> socket)
     }
   }
 
