@@ -19,7 +19,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            scalacOptions ++= Seq("-deprecation", "-encoding", "utf8"),
+            scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
             ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
@@ -47,7 +47,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishMavenStyle := false,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+            scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
@@ -66,7 +66,7 @@ object PlayBuild extends Build {
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
-        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
