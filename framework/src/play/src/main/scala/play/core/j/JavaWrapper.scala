@@ -13,7 +13,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
       .filterNot(_ == null)
       .headOption.map { bodyParserOf =>
         bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
-      }.getOrElse(JParsers.anyContent(-1))
+      }.getOrElse(JParsers.anyContent(java.lang.Integer.MAX_VALUE))
   }
 
   def invocation: JResult
