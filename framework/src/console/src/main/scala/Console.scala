@@ -20,9 +20,18 @@ object Console {
 
   // -- Commands
 
+  def replace(file: File, tokens: (String, String)*) {
+    if (file.exists) {
+      Path(file).write(tokens.foldLeft(Path(file).slurpString) { (state, token) =>
+        state.replace("%" + token._1 + "%", token._2)
+      })
+    }
+  }
+
   def newCommand(args: Array[String]) = {
 
     val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
+
     val defaultName = path.getName
 
     println()
@@ -59,14 +68,6 @@ object Console {
       }
 
       consoleReader.printNewline
-
-      def replace(file: File, tokens: (String, String)*) {
-        if (file.exists) {
-          Path(file).write(tokens.foldLeft(Path(file).slurpString) { (state, token) =>
-            state.replace("%" + token._1 + "%", token._2)
-          })
-        }
-      }
 
       val random = new java.security.SecureRandom
       val newSecret = (1 to 64).map { _ =>

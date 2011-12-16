@@ -26,7 +26,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
       .settings(whichLang(mainLang): _*)
       .settings(
 
-        scalacOptions ++= Seq("-deprecation", "-Xcheckinit", "-encoding", "utf8"),
+        scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xcheckinit", "-encoding", "utf8"),
 
         version := applicationVersion,
 

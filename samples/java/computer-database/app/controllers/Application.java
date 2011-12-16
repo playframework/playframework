@@ -2,9 +2,9 @@ package controllers;
 
 import java.util.*;
 
-import play.*;
 import play.mvc.*;
 import play.data.*;
+import play.*;
 
 import views.html.*;
 
@@ -13,13 +13,13 @@ import models.*;
 /**
  * Manage a database of computers
  */
-public class Application extends Controller { 
+public class Application extends Controller {
     
     /**
      * This result directly redirect to application home.
      */
     public static Result GO_HOME = redirect(
-        routes.Application.list(0, "name", "asc", "") 
+        routes.Application.list(0, "name", "asc", "")
     );
     
     /**

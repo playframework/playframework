@@ -127,6 +127,73 @@ trait PlayCommands {
     zip
   }
 
+  val playIntellij = TaskKey[Unit]("idea")
+  val playIntellijTask = (dependencyClasspath in Test, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version, scalaVersion, streams) map { (testDeps, root, packaged, dependencies, target, id, version, scalaVersion, s) =>
+
+    val sl = java.io.File.separator
+
+    val build = IO.read(new File(root + sl + "project" + sl + "Build.scala"))
+
+    val compVersion = "scala-compiler-" + scalaVersion
+
+    lazy val facet =
+      <component name="FacetManager">
+        <facet type="scala" name="Scala">
+          <configuration>
+            <option name="compilerLibraryLevel" value="Global"/>
+            <option name="compilerLibraryName" value={ compVersion }/>
+          </configuration>
+        </facet>
+      </component>
+
+    def entry(j: String, scope: String = "COMPILE") =
+      <orderEntry type="module-library" scope={ scope }>
+        <library>
+          <CLASSES>
+            <root url={ j }/>
+          </CLASSES>
+          <JAVADOC/>
+          <SOURCES/>
+        </library>
+      </orderEntry>
+
+    val scalaFacet = if (build.contains("mainLang") && build.contains("SCALA")) Some(facet.toString) else None
+
+    val mainLang = scalaFacet.map(_ => "SCALA").getOrElse("JAVA")
+
+    val genClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes_managed"
+
+    val testJars = testDeps.flatMap {
+      case (dep) if dep.data.ext == "jar" =>
+        val ref = "jar://" + dep.data + "!/"
+        entry(ref, "TEST")
+      case _ => None
+    }.mkString("\n")
+
+    val mainClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes"
+
+    val jars = dependencies.flatMap {
+      case (dep) if dep.data.ext == "jar" =>
+        val ref = "jar://" + dep.data + "!/"
+        entry(ref)
+      case _ => None
+    }.mkString("\n") + testJars + entry(genClasses).toString + mainClasses
+
+    val target = new File(root + sl + id + ".iml")
+    s.log.warn(play.console.Console.logo)
+    s.log.info("...about to generate an Intellij project module(" + mainLang + ") called " + target.getName)
+    if (target.exists) s.log.warn(target.toString + " will be overwritten")
+    IO.delete(target)
+
+    IO.copyFile(new File(System.getProperty("play.home") + sl + "skeletons" + sl + "intellij-skel" + sl + "template.iml"), target)
+
+    play.console.Console.replace(target, "SCALA_FACET" -> scalaFacet.getOrElse(""))
+    play.console.Console.replace(target, "SCALA_VERSION" -> scalaVersion)
+    play.console.Console.replace(target, "JARS" -> jars)
+    s.log.warn(target.getName + " was generated")
+    s.log.warn("Have fun!")
+  }
+
   val playStage = TaskKey[Unit]("stage")
   val playStageTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, streams) map { (root, packaged, dependencies, target, s) =>
 
@@ -503,6 +570,7 @@ trait PlayCommands {
                 |reload                     Reload the current application build file.
                 |run <port>                 Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs from the command line
+                |idea                       generate intellij IDEA project file
                 |start <port>               Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
