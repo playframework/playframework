@@ -22,7 +22,7 @@ public abstract class Action<T> extends Results {
     /**
      * Executes this action with the give HTTP context and returns the result.
      */
-    public abstract Result call(Context ctx);
+    public abstract Result call(Context ctx) throws Throwable;
     
     /**
      * A simple action with no configuration.

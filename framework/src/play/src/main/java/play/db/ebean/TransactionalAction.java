@@ -10,10 +10,16 @@ import com.avaje.ebean.*;
  */
 public class TransactionalAction extends Action<Transactional> {
     
-    public Result call(final Context ctx) {
+    public Result call(final Context ctx) throws Throwable {
         return Ebean.execute(new TxCallable<Result>() {  
             public Result call() {
-                return deleguate.call(ctx);
+                try {
+                    return deleguate.call(ctx);
+                } catch(RuntimeException e) {
+                    throw e;
+                } catch(Throwable t) {
+                    throw new RuntimeException(t);
+                }
             }
         });
     }

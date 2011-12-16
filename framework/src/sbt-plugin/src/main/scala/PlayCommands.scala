@@ -353,11 +353,9 @@ trait PlayCommands {
       }
     }.getOrElse(9000)
 
-    val reloader = newReloader(state, playReload)
-
     println()
 
-    val sbtLoader = reloader.getClass.getClassLoader
+    val sbtLoader = this.getClass.getClassLoader
     val commonLoader = Project.evaluateTask(playCommonClassloader, state).get.toEither.right.get
 
     Project.evaluateTask(dependencyClasspath in Compile, state).get.toEither.right.map { dependencies =>
@@ -371,7 +369,7 @@ trait PlayCommands {
        * It also uses the same Scala classLoader as SBT allowing to share any
        * values coming from the Scala library between both.
        */
-      val applicationLoader = new java.net.URLClassLoader(classpath, commonLoader) {
+      lazy val applicationLoader: ClassLoader = new java.net.URLClassLoader(classpath, commonLoader) {
 
         val sharedClasses = Seq(
           classOf[play.core.SBTLink].getName,
@@ -384,7 +382,13 @@ trait PlayCommands {
           if (sharedClasses.contains(name)) {
             sbtLoader.loadClass(name)
           } else {
-            super.loadClass(name)
+            try {
+              super.loadClass(name)
+            } catch {
+              case e: ClassNotFoundException => {
+                reloader.currentApplicationClassLoader.map(_.loadClass(name)).getOrElse(throw e)
+              }
+            }
           }
         }
 
@@ -393,6 +397,8 @@ trait PlayCommands {
         }
 
       }
+
+      lazy val reloader = newReloader(state, playReload, applicationLoader)
 
       val mainClass = applicationLoader.loadClass(classOf[play.core.server.NettyServer].getName)
       val mainDev = mainClass.getMethod("mainDev", classOf[SBTLink], classOf[Int])

@@ -9,19 +9,21 @@ trait PlayReloader {
 
   // ----- Reloader
 
-  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis]) = {
+  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], baseLoader: ClassLoader) = {
 
     val extracted = Project.extract(state)
 
     new SBTLink {
-
-      // ----- Internal state used for reloading is kept here
 
       def projectPath = extracted.currentProject.base
 
       val watchFiles = {
         ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "*").get
       }
+
+      // ----- Internal state used for reloading is kept here
+
+      var currentApplicationClassLoader: Option[ClassLoader] = None
 
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
@@ -159,8 +161,12 @@ trait PlayReloader {
         }).map(remapProblemForGeneratedSources)
       }
 
-      private def newClasspath = {
-        Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray
+      private def newClassLoader = {
+        val loader = new java.net.URLClassLoader(
+          Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
+          baseLoader)
+        currentApplicationClassLoader = Some(loader)
+        loader
       }
 
       def reload = {
@@ -182,7 +188,7 @@ trait PlayReloader {
             }
             .right.map { compilationResult =>
               updateAnalysis(compilationResult).map { _ =>
-                newClasspath
+                newClassLoader
               }
             }
 

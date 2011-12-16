@@ -70,6 +70,10 @@ public class Application {
         return Scala.orNull(application.resourceAsStream(relativePath));
     }
     
+    public <T> T plugin(Class<T> pluginClass) {
+        return Scala.orNull(application.plugin(pluginClass));
+    }
+    
     /**
      * Scans the application classloader to retrieve all types annotated with a specific annotation.
      * <p>

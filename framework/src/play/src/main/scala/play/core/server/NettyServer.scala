@@ -524,6 +524,7 @@ object NettyServer {
   }
 
   def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
+    Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
     new NettyServer(new ReloadableApplication(sbtLink), port)
   }
 

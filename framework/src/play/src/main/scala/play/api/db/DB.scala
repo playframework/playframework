@@ -1,6 +1,8 @@
 package play.api.db
 
 import play.api._
+import play.api.libs._
+
 import play.core._
 
 import java.sql._
@@ -181,6 +183,12 @@ object DBApi {
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
     conf.getInt("maxConnectionAge").map(datasource.setMaxConnectionAgeInSeconds(_))
     conf.getBoolean("disableJMX").map(datasource.setDisableJMX(_))
+
+    // Bind in JNDI
+    conf.getString("jndiName").map { name =>
+      JNDI.initialContext.rebind(name, datasource)
+    }
+
     datasource -> conf.absolute("url")
   }
 

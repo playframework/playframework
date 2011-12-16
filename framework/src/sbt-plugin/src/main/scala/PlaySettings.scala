@@ -118,6 +118,8 @@ trait PlaySettings {
 
     playResourceDirectories <+= baseDirectory / "public",
 
+    playResourceDirectories <+= baseDirectory / "META-INF",
+
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 
     templatesTypes := {

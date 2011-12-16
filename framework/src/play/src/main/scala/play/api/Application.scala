@@ -29,6 +29,8 @@ import annotation.implicitNotFound
 @implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current, running Application into context, just add import play.api.Play.current")
 case class Application(path: File, classloader: ClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
 
+  Thread.currentThread.setContextClassLoader(classloader)
+
   private val userDefinedConfig = Option(System.getProperty("conf")).map(path => Configuration.fromFile(new File(path)))
 
   private val initialConfiguration = userDefinedConfig.getOrElse(getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty))

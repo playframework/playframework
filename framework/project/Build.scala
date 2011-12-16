@@ -159,7 +159,8 @@ object PlayBuild extends Build {
             "se.scalablesolutions.akka"         %    "akka-actor"               %   "1.3-RC2",
             "se.scalablesolutions.akka"         %    "akka-slf4j"               %   "1.3-RC2",
             "com.typesafe.config"               %%   "config"                   %   "0.1.6",
-            "org.avaje"                         %    "ebean"                    %   "2.7.3",
+            "org.avaje"                         %    "ebean"                    %   "2.7.3" notTransitive(),
+            "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             "org.scala-tools"                   %%   "scala-stm"                %   "0.4",
             "com.jolbox"                        %    "bonecp"                   %   "0.7.1.RELEASE",
@@ -177,6 +178,7 @@ object PlayBuild extends Build {
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
             "org.reflections"                   %    "reflections"              %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
+            "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"

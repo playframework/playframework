@@ -41,7 +41,7 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
 }
 
 trait SBTLink {
-  def reload: Either[Throwable, Option[Array[java.net.URL]]]
+  def reload: Either[Throwable, Option[ClassLoader]]
   def findSource(className: String): Option[File]
   def projectPath: File
   def runTask(name: String): Option[Any]
@@ -70,9 +70,11 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       // but it's more coherent with the way it works in PROD mode.
       akka.dispatch.Future({
 
-        sbtLink.reload.right.flatMap { maybeClasspath =>
+        Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
 
-          val maybeApplication: Option[Either[Throwable, Application]] = maybeClasspath.map { classpath =>
+        sbtLink.reload.right.flatMap { maybeClassLoader =>
+
+          val maybeApplication: Option[Either[Throwable, Application]] = maybeClassLoader.map { classloader =>
             try {
 
               if (lastState.isRight) {
@@ -80,8 +82,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 println(play.utils.Colors.magenta("--- (RELOAD) ---"))
                 println()
               }
-
-              val classloader = new java.net.URLClassLoader(classpath, this.getClass.getClassLoader)
 
               val newApplication = Application(path, classloader, Some(new SourceMapper {
                 def sourceOf(className: String) = sbtLink.findSource(className)
