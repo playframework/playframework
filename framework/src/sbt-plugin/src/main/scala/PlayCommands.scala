@@ -571,6 +571,7 @@ trait PlayCommands {
                 |run <port>                 Run the current application in DEV mode.
                 |test                       Run Junit tests and/or Specs from the command line
                 |idea                       generate intellij IDEA project file
+                |eclipse                    generate eclipse project file
                 |start <port>               Start the current application in another JVM in PROD mode.
                 |update                     Update application dependencies.
                 |
