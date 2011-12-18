@@ -39,6 +39,22 @@ object FunctionalSpec extends Specification {
       driver.getPageSource must contain ("{\"peter\":\"foo\",\"yay\":\"value\"}")
       
 
+      // --- Cookies
+      driver.get("http://localhost:9001/json_java")
+      driver.manage.getCookies.size must be_== (0)
+
+      driver.get("http://localhost:9001/cookie")
+      val cookieFoo = driver.manage.getCookieNamed("foo")
+      cookieFoo.getValue must be_== ("bar")
+
+      driver.get("http://localhost:9001/read/foo")
+      driver.getPageSource must contain ("Cookie foo has value: bar")
+
+      driver.get("http://localhost:9001/read/bar")
+      driver.getPageSource must be_== ("")
+
+      driver.get("http://localhost:9001/clear/foo")
+      driver.manage.getCookies.size must be_== (0)
    }
   }
  }
