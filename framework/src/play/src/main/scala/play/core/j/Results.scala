@@ -9,4 +9,5 @@ object JResults extends Results {
   def contentTypeOfEmptyContent: ContentTypeOf[Results.EmptyContent] = contentTypeOf_EmptyContent
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
+  def async(p: play.api.libs.concurrent.Promise[Result]) = AsyncResult(p)
 }

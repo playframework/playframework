@@ -42,8 +42,8 @@ public class Constraints {
     /**
      * Converts a set of constraints to human-readable values.
      */
-    public static List<T2<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
-        List<T2<String,List<Object>>> displayable = new ArrayList<T2<String,List<Object>>>();
+    public static List<Tuple<String,List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
+        List<Tuple<String,List<Object>>> displayable = new ArrayList<Tuple<String,List<Object>>>();
         for(ConstraintDescriptor<?> c: constraints) {
             Class<?> annotationType = c.getAnnotation().annotationType();
             if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
@@ -54,7 +54,7 @@ public class Constraints {
                 for(String attr: d.attributes()) {
                     attributes.add(annotationAttributes.get(attr));
                 }
-                displayable.add(T2(name, attributes)); 
+                displayable.add(Tuple(name, attributes)); 
             }
         }        
         return displayable;
