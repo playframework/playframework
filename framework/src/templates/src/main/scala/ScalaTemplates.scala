@@ -721,6 +721,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
         case () => format.raw("")
         case None => format.raw("")
         case Some(v) => _display_(v)
+        case xml: scala.xml.NodeSeq => format.raw(xml.toString)
         case escapeds: TraversableOnce[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
         case escapeds: Array[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
         case string: String => format.escape(string)
