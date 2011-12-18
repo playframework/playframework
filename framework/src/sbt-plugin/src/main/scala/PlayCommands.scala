@@ -128,7 +128,9 @@ trait PlayCommands {
   }
 
   val playIntellij = TaskKey[Unit]("idea")
-  val playIntellijTask = (dependencyClasspath in Test, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version, scalaVersion, streams) map { (testDeps, root, packaged, dependencies, target, id, version, scalaVersion, s) =>
+  val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
+
+    val mainClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes"
 
     val sl = java.io.File.separator
 
@@ -146,6 +148,17 @@ trait PlayCommands {
         </facet>
       </component>
 
+    def sourceRef(s: String, defaultMain: String = "main/src/"): List[String] = {
+      val folder = s.substring(s.lastIndexOf(sl) + 1)
+      //maven layout?
+      if (folder == "java")
+        List("file://$MODULE_DIR$/" + defaultMain + "/java" + "file://$MODULE_DIR$/" + defaultMain + "/scala")
+      else
+        List("file://$MODULE_DIR$/" + folder)
+    }
+
+    def sourceEntry(name: String, test: String = "false") = <sourceFolder url={ name } isTestSource={ test }/>
+
     def entry(j: String, scope: String = "COMPILE") =
       <orderEntry type="module-library" scope={ scope }>
         <library>
@@ -157,6 +170,7 @@ trait PlayCommands {
         </library>
       </orderEntry>
 
+    //generate project file  
     val scalaFacet = if (build.contains("mainLang") && build.contains("SCALA")) Some(facet.toString) else None
 
     val mainLang = scalaFacet.map(_ => "SCALA").getOrElse("JAVA")
@@ -170,8 +184,10 @@ trait PlayCommands {
       case _ => None
     }.mkString("\n")
 
-    val mainClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes"
+    //calculate sources, capture both play and standard maven layout in case of multi project setups
+    val sources = (sourceRef(javaSource.getCanonicalPath).map(dir => sourceEntry(dir)) ++ sourceRef(jTestSource.getCanonicalPath, "main/test").map(dir => sourceEntry(dir, test = "true"))).mkString("\n")
 
+    //calculate dependencies
     val jars = dependencies.flatMap {
       case (dep) if dep.data.ext == "jar" =>
         val ref = "jar://" + dep.data + "!/"
@@ -190,6 +206,7 @@ trait PlayCommands {
     play.console.Console.replace(target, "SCALA_FACET" -> scalaFacet.getOrElse(""))
     play.console.Console.replace(target, "SCALA_VERSION" -> scalaVersion)
     play.console.Console.replace(target, "JARS" -> jars)
+    play.console.Console.replace(target, "SOURCE" -> sources)
     s.log.warn(target.getName + " was generated")
     s.log.warn("Have fun!")
   }
