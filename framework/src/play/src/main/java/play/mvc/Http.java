@@ -73,7 +73,7 @@ public class Http {
         public Flash flash() {
             return flash;
         }
-        
+
         /**
          * Import in templates to get implicit HTTP context.
          */
@@ -140,6 +140,11 @@ public class Http {
          * The request body.
          */
         public abstract RequestBody body();
+        
+        /**
+         * @return the request cookies
+         */
+        public abstract Cookies cookies(); // FIXME Provide a “Cookie cookie(String name)” function instead of this one?
         
         // -- username
 
@@ -278,6 +283,8 @@ public class Http {
     public static class Response implements HeaderNames {
         
         private final Map<String,String> headers = new HashMap<String,String>();
+        private final List<Cookie> cookies = new ArrayList<Cookie>();
+        private final List<String> discardedCookies = new ArrayList<String>();
         
         /**
          * Adds a new header to the response.
@@ -300,6 +307,89 @@ public class Http {
             setHeader(CONTENT_TYPE, contentType);
         }
         
+        /**
+         * Set a new transient cookie with path “/”<br />
+         * For example:
+         * <pre>
+         * response().setCookie("theme", "blue");
+         * </pre>
+         * @param name Cookie name
+         * @param value Cookie value
+         */
+        public void setCookie(String name, String value) {
+          setCookie(name, value, -1);
+        }
+        
+        /**
+         * Set a new cookie with path “/”
+         * @param name Cookie name
+         * @param value Cookie value
+         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         */
+        public void setCookie(String name, String value, int maxAge) {
+          setCookie(name, value, maxAge, "/");
+        }
+
+        
+        /**
+         * Set a new cookie
+         * @param name Cookie name
+         * @param value Cookie value
+         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param path Cookie path
+         */
+        public void setCookie(String name, String value, int maxAge, String path) {
+          setCookie(name, value, maxAge, path, null);
+        }
+
+        
+        /**
+         * Set a new cookie
+         * @param name Cookie name
+         * @param value Cookie value
+         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param path Cookie path
+         * @param domain Cookie domain
+         */
+        public void setCookie(String name, String value, int maxAge, String path, String domain) {
+          setCookie(name, value, maxAge, path, domain, false, false);
+        }
+
+        
+        /**
+         * Set a new cookie
+         * @param name Cookie name
+         * @param value Cookie value
+         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param path Cookie path
+         * @param domain Cookie domain
+         * @param secure Whether the cookie is secured (for HTTPS requests)
+         * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
+         */
+        public void setCookie(String name, String value, int maxAge, String path, String domain, boolean secure, boolean httpOnly) {
+          cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
+        }
+
+        /**
+         * Discard cookies along this result<br />
+         * For example:
+         * <pre>
+         * response().discardCookies("theme");
+         * </pre>
+         * @param names Names of the cookies to discard
+         */
+        public void discardCookies(String... names) {
+          discardedCookies.addAll(Arrays.asList(names));
+        }
+        
+        // FIXME return a more convenient type? e.g. Map<String, Cookie>
+        public Iterable<Cookie> cookies() {
+          return cookies;
+        }
+        
+        public Iterable<String> discardedCookies() {
+          return discardedCookies;
+        }
     }
     
     /**
@@ -400,9 +490,94 @@ public class Http {
         public void clear() {
             isDirty = true;
             super.clear();
-        }        
+        }
         
     }
+    
+    /**
+     * HTTP Cookie
+     */
+    public static class Cookie {
+        private final String name;
+        private final String value;
+        private final int maxAge;
+        private final String path;
+        private final String domain;
+        private final boolean secure;
+        private final boolean httpOnly;
+        
+        public Cookie(String name, String value, int maxAge, String path,
+            String domain, boolean secure, boolean httpOnly) {
+          this.name = name;
+          this.value = value;
+          this.maxAge = maxAge;
+          this.path = path;
+          this.domain = domain;
+          this.secure = secure;
+          this.httpOnly = httpOnly;
+        }
+        
+        /**
+         * @return the cookie name
+         */
+        public String name() {
+          return name;
+        }
+        
+        /**
+         * @return the cookie value
+         */
+        public String value() {
+          return value;
+        }
+        
+        /**
+         * @return the cookie expiration date in seconds, -1 for a transient cookie, 0 for a cookie that expires now
+         */
+        public int maxAge() {
+          return maxAge;
+        }
+        
+        /**
+         * @return the cookie path
+         */
+        public String path() {
+          return path;
+        }
+        
+        /**
+         * @return the cookie domain, or null if not defined
+         */
+        public String domain() {
+          return domain;
+        }
+        
+        /**
+         * @return wether the cookie is secured, sent only for HTTPS requests
+         */
+        public boolean secure() {
+          return secure;
+        }
+        
+        /**
+         * @return wether the cookie is HTTP only, i.e. not accessible from client-side JavaScript code
+         */
+        public boolean httpOnly() {
+          return httpOnly;
+        }
+    }
+    
+    /**
+     * HTTP Cookies set
+     */
+    public interface Cookies {
+        /**
+         * @param name Name of the cookie to retrieve
+         * @return the cookie that is associated with the given name, or null if there is no such cookie
+         */
+        public Cookie get(String name);
+    }
+    
     
     /**
      * Defines all standard HTTP headers.
