@@ -144,7 +144,7 @@ object Wrap {
     def queryString = _queryString.asScala.toMap.map(i => i._1 -> i._2.toSeq)
     def body: RequestBody = {
       val anyContent = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq))
-      play.core.j.JParsers.DefaultRequestBody(
+      JParsers.DefaultRequestBody(
         anyContent.asUrlFormEncoded,
         anyContent.asRaw,
         anyContent.asText,
