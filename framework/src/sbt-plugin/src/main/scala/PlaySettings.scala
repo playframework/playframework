@@ -102,6 +102,8 @@ trait PlaySettings {
 
     playStage <<= playStageTask,
 
+    playIntellij <<= playIntellijTask,
+
     cleanFiles <+= distDirectory,
 
     resourceGenerators in Compile <+= LessCompiler,

@@ -1,5 +1,3 @@
-package test;
-
 import org.junit.*;
 import play.test.*;
 import static play.test.IntegrationTest.*;

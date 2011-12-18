@@ -7,7 +7,9 @@ import play.db.ebean.*;
 import play.data.format.*;
 import play.data.validation.*;
 
+
 import com.avaje.ebean.*;
+
 
 /**
  * Company entity managed by Ebean

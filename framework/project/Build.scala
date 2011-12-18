@@ -9,6 +9,8 @@ object PlayBuild extends Build {
     import Generators._
     import LocalSBT._
     import Tasks._
+    
+    val typesafeRepo = "http://repo.typesafe.com/typesafe/releases/"
 
     lazy val TemplatesProject = Project(
         "Templates",
@@ -19,7 +21,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
-            scalacOptions ++= Seq("-deprecation", "-encoding", "utf8"),
+            scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
             ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
@@ -47,7 +49,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishMavenStyle := false,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+            scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
@@ -61,15 +63,20 @@ object PlayBuild extends Build {
       "SBT-Plugin",
       file("src/sbt-plugin"),
       settings = buildSettings ++ Seq(
+       
         sbtPlugin := true,
         libraryDependencies := sbtDependencies,
+        libraryDependencies <+= (sbtVersion in update,scalaVersion) { (sbtV, scalaV) => 
+            val sbtEclipseV = "1.5.0"    
+            "com.typesafe.sbteclipse" % "sbteclipse" % sbtEclipseV from typesafeRepo+"/com.typesafe.sbteclipse/sbteclipse/scala_"+scalaV+"/sbt_"+sbtV+"/"+sbtEclipseV+"/jars/sbteclipse.jar"}, 
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
-        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
+
         ivyLoggingLevel := UpdateLogging.DownloadOnly,
         projectDependencies := Seq(
           "play" %% "play" % buildVersion notTransitive(),
@@ -143,7 +150,7 @@ object PlayBuild extends Build {
     object Resolvers {
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
         val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
-        val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+        val typesafe = "Typesafe Repository" at typesafeRepo
     }
 
     object Dependencies {
@@ -184,13 +191,14 @@ object PlayBuild extends Build {
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
         )
 
-        val sbtDependencies = Seq(
+        val sbtDependencies = Seq(            
           "rhino"                               %    "js"                       %   "1.7R2",
           "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
           "org.avaje"                           %    "ebean"                    %   "2.7.3",
           "com.h2database"                      %    "h2"                       %   "1.3.158",
-          "javassist"                           %    "javassist"                %   "3.12.1.GA"
+          "javassist"                           %    "javassist"                %   "3.12.1.GA",
+          "org.scalaz"                          %%   "scalaz-core"              % "6.0.3"
         )
 
         val consoleDependencies = Seq(
