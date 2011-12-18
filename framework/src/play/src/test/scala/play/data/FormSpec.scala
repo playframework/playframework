@@ -16,6 +16,9 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
     override def asXml = null
     override def asJson = null
   }
+  def cookies() = new play.mvc.Http.Cookies {
+    def get(name: String) = null
+  }
   def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
 }
