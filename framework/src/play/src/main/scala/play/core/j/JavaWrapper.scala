@@ -142,7 +142,16 @@ object Wrap {
     def uri = _uri
     def method = _method
     def queryString = _queryString.asScala.toMap.map(i => i._1 -> i._2.toSeq)
-    def body: RequestBody = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq)).asInstanceOf[RequestBody]
+    def body: RequestBody = {
+      val anyContent = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq))
+      play.core.j.JParsers.DefaultRequestBody(
+        anyContent.asUrlFormEncoded,
+        anyContent.asRaw,
+        anyContent.asText,
+        anyContent.asJson,
+        anyContent.asXml,
+        anyContent.asMultipartFormData)
+    }
 
     def username = if (_username == null) None else Some(_username)
     def path = _path
