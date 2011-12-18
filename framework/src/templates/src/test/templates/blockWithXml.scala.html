@@ -1,0 +1,24 @@
+@(message: String)
+
+@* Simple Scala block containing XML *@
+@{ <span>Hello {message}</span> }
+
+@* More complex Scala block containing XML *@
+@{
+  "hello" match {
+    case "world" => <span color="red">World { message }</span>
+    case "hello" => <span color="green">Hello { message }</span>
+  }
+}
+
+@* Scala function containing XML *@
+@functionReturningXml(string: String) = {
+@string.split(",").map(str => <span class="label">{ str.trim }</span>)
+}
+@functionReturningXml("test1,test2,test3")
+
+@* Scala function containing Scala block containing XML *@
+@functionReturningXml2(string: String) = @{
+string.split(",").map(str => <span class="label">{ str.trim }</span>)
+}
+@functionReturningXml2("test1,test2,test3")

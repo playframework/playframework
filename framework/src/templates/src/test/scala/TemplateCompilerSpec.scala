@@ -35,7 +35,18 @@ object TemplateCompilerSpec extends Specification {
       helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
         "<h1>Hello World!</h1>")
 
+      // tests that compiler can manage Xml in Scala blocks
+      // @{ <span>{ variable }</span> }    
+      /*
+       * Put this test here because if I create a single test after next test, I get 
+       * weird and changing errors NoSuchElementException in other tests...
+       * Don't know why... maybe linked to compilation failure in next test???
+       */
+      helper.compile[((String) => Html)]("blockWithXml.scala.html", "html.blockWithXml")("test").toString.trim.replaceAll("\\r|\\n", "") must be_==(
+        """<span>Hello test</span><span color="green">Hello test</span><span class="label">test1</span><span class="label">test2</span><span class="label">test3</span><span class="label">test1</span><span class="label">test2</span><span class="label">test3</span>""")
+
     }
+
     "fail compilation for error.scala.html" in {
       val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
       helper.compile[(() => Html)]("error.scala.html", "html.error") must throwA[CompilationError].like {
@@ -44,6 +55,12 @@ object TemplateCompilerSpec extends Specification {
       }
     }
 
+    //"compile successfully blocks containing Scala XML" in {
+    //val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
+    /*helper.compile[((String) => Html)]("blockWithXml.scala.html", "html.blockWithXml")("test").toString.trim.replaceAll("\\r|\\n", "") must be_==(
+        """<span>Hello test</span><span color="green">Hello test</span><span class="label">test1</span><span class="label">test2</span><span class="label">test3</span><span class="label">test1</span><span class="label">test2</span><span class="label">test3</span>""")*/
+    //  ok
+    //}
   }
 
 }
