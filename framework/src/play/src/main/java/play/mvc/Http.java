@@ -22,7 +22,11 @@ public class Http {
          * Retrieves the current HTTP context, for the current thread.
          */
         public static Context current() {
-            return current.get();
+            Context c = current.get();
+            if(c == null) {
+                c = new Context();
+            }
+            return c;
         }
         
         //
@@ -31,6 +35,14 @@ public class Http {
         private final Response response;
         private final Session session;
         private final Flash flash;
+        
+        private Context() {
+            request = null;
+            response = null;
+            session = null;
+            flash = null;
+        }
+        
         
         /**
          * Creates a new HTTP context.
