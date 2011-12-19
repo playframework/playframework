@@ -18,8 +18,22 @@ object JsonSpec extends Specification {
       "friends" -> JsArray(u.friends.map(fr => JsObject(Map("id" -> JsNumber(fr.id), "name" -> JsString(fr.name)))))))
   }
 
-  "JSON" should {
+  case class Car(id: Long, models: Map[String, String])
 
+  implicit object CarFormat extends Format[Car] {
+    def reads(json: JsValue): Car = Car(
+      (json \ "id").as[Long], (json \ "models").as[String, String])
+    def writes(c: Car): JsValue = JsObject(Map(
+      "id" -> JsNumber(c.id),
+      "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)))))
+  }
+
+  "JSON" should {
+    "handle maps" in {
+      val c = Car(1, Map("ford" -> "1954 model"))
+      val jsonCar = toJson(c)
+      jsonCar.as[Car] must equalTo(c)
+    }
     "serialize and deserialize" in {
       val luigi = User(1, "Luigi", List())
       val kinopio = User(2, "Kinopio", List())
