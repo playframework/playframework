@@ -23,14 +23,15 @@ private[sbt] class PlayTestListener extends TestsListener {
 
   val result = new collection.mutable.ListBuffer[String]
 
-  def doComplete(finalResult: TestResult.Value) {
+  override def doComplete(finalResult: TestResult.Value) {
     val totalCount = failures + errors + skipped + passed
     val postfix = "Total " + totalCount + ", Failed " + failures + ", Errors " + errors + ", Passed " + passed + ", Skipped " + skipped
     result.append("</ul>")
     result.append("<p>" + postfix + "</p>")
   }
 
-  def doInit {
+  // There is a "side-effecting nullary methods are discouraged" warning but we can't fix it because we're overriding SBT
+  override def doInit {
     result.append("<p>Executing Test suit</p>")
     result.append("<ul>")
     failures = 0
@@ -40,12 +41,12 @@ private[sbt] class PlayTestListener extends TestsListener {
   }
 
   /** called for each class or equivalent grouping */
-  def startGroup(name: String) {
+  override def startGroup(name: String) {
     playReport("test", "started" -> name)
   }
 
   /** called for each test method or equivalent */
-  def testEvent(event: TestEvent) {
+  override def testEvent(event: TestEvent) {
 
     event match {
       case e =>
@@ -68,9 +69,9 @@ private[sbt] class PlayTestListener extends TestsListener {
   }
 
   /** called if there was an error during test */
-  def endGroup(name: String, t: Throwable) {}
+  override def endGroup(name: String, t: Throwable) {}
   /** called if test completed */
-  def endGroup(name: String, result: TestResult.Value) {}
+  override def endGroup(name: String, result: TestResult.Value) {}
 
   def tidy(s: String) = s
     .replace("\u0085", "")
