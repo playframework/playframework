@@ -42,12 +42,12 @@ sealed trait JsValue {
    * Tries to convert the node into a T. An implicit Reads[T] must be defined.
    * @return Some[T] if it succeeds, None if it fails.
    */
-  def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this))
+  def asOpt[T](implicit f: JsValue => T): Option[T] = catching(classOf[RuntimeException]).opt(f(this))
 
   /**
    * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
    */
-  def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
+  def as[T](implicit f: JsValue => T): T = f(this)
 
   override def toString = stringify(this)
 
