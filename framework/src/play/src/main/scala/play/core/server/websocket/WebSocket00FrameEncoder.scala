@@ -25,7 +25,7 @@ class WebSocket00FrameEncoder extends OneToOneEncoder {
           encoded.writeByte(0x00)
           encoded.writeBytes(data, data.readerIndex, data.readableBytes)
           encoded.writeByte(0xFF)
-          return encoded
+          encoded
         }
       /**
        * From the spec: !!!  WARNING: At this time, the WebSocket protocol cannot be used to
@@ -72,10 +72,10 @@ class WebSocket00FrameEncoder extends OneToOneEncoder {
 
           // Encode binary data.
           encoded.writeBytes(data, data.readerIndex, dataLen)
-          return encoded;
+          encoded
         }
     }
-    return msg;
   }
+
 }
 

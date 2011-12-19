@@ -1096,7 +1096,7 @@ object Router {
       routes.lift(request)
     }
 
-    @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an action")
+    @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an Handler")
     trait HandlerInvoker[T] {
       def call(call: => T, handler: HandlerDef): Handler
     }
@@ -1118,6 +1118,10 @@ object Router {
             }: _*)
           }
         }
+      }
+
+      implicit def javaStringWebSocket: HandlerInvoker[play.mvc.WebSocket[String]] = new HandlerInvoker[play.mvc.WebSocket[String]] {
+        def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
       }
 
     }

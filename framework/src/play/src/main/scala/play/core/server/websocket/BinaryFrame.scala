@@ -7,6 +7,4 @@ import java.util._
 /**
  * Websocket binary frame.
  */
-class BinaryFrame(finalFragment: Boolean, rsv: Int, binaryData: ChannelBuffer) extends Frame(finalFragment, rsv, binaryData) {
-
-}
+case class BinaryFrame(override val finalFragment: Boolean, override val rsv: Int, override val binaryData: ChannelBuffer) extends Frame(finalFragment, rsv, binaryData)

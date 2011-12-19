@@ -9,7 +9,7 @@ import java.util._
 /**
  * Websocket text frame.
  */
-class TextFrame(finalFragment: Boolean, rsv: Int, text: String) extends Frame(finalFragment, rsv, ChannelBuffers.copiedBuffer(text, CharsetUtil.UTF_8)) {
+case class TextFrame(override val finalFragment: Boolean, override val rsv: Int, text: String) extends Frame(finalFragment, rsv, ChannelBuffers.copiedBuffer(text, CharsetUtil.UTF_8)) {
 
   def this(finalFragment: Boolean, rsv: Int, binaryData: ChannelBuffer) = { this(finalFragment, rsv, binaryData.toString(CharsetUtil.UTF_8)) }
 

@@ -55,24 +55,24 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
       HttpHeaders.Values.UPGRADE.equalsIgnoreCase(request.getHeader(CONNECTION)) &&
         HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.UPGRADE))
 
-    private def websocketHandshake(ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent): Enumerator[String] = {
+    private def websocketHandshake[A](ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Enumerator[A] = {
 
       WebSocketHandshake.shake(ctx, req)
 
-      val (enumerator, handler) = newWebSocketInHandler()
+      val (enumerator, handler) = newWebSocketInHandler(frameFormatter)
       val p: ChannelPipeline = ctx.getChannel().getPipeline();
       p.replace("handler", "handler", handler);
 
       enumerator
     }
 
-    private def socketOut[A](ctx: ChannelHandlerContext)(writeable: Writeable[A]): Iteratee[A, Unit] = {
+    private def socketOut[A](ctx: ChannelHandlerContext)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Iteratee[A, Unit] = {
       val channel = ctx.getChannel()
+      val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
       def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
         input match {
-          // FIXME: what is we want something else than text?
-          case El(e) => Cont(step(Some(channel.write(new TextFrame(true, 0, new String(writeable.transform(e)))))))
+          case El(e) => Cont(step(Some(channel.write(nettyFrameFormatter.toFrame(e)))))
           case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
           case Empty => Cont(step(future))
         }
@@ -132,18 +132,20 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
 
     }
 
-    private def newWebSocketInHandler() = {
+    private def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = {
 
-      val enumerator = new Enumerator[String] {
-        val iterateeAgent = Agent[Option[Iteratee[String, Any]]](None)
-        private val promise: Promise[Iteratee[String, Any]] with Redeemable[Iteratee[String, Any]] = Promise[Iteratee[String, Any]]()
+      val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
-        def apply[R, EE >: String](i: Iteratee[EE, R]) = {
-          iterateeAgent.send(_.orElse(Some(i.asInstanceOf[Iteratee[String, Any]])))
+      val enumerator = new Enumerator[A] {
+        val iterateeAgent = Agent[Option[Iteratee[A, Any]]](None)
+        private val promise: Promise[Iteratee[A, Any]] with Redeemable[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
+
+        def apply[R, EE >: A](i: Iteratee[EE, R]) = {
+          iterateeAgent.send(_.orElse(Some(i.asInstanceOf[Iteratee[A, Any]])))
           promise.asInstanceOf[Promise[Iteratee[EE, R]]]
         }
 
-        def frameReceived(ctx: ChannelHandlerContext, input: Input[String]) {
+        def frameReceived(ctx: ChannelHandlerContext, input: Input[A]) {
           iterateeAgent.send(iteratee =>
             iteratee.map(it => it.flatFold(
               (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
@@ -169,10 +171,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
 
           override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
             e.getMessage match {
-              // FIXME: This should not be a string in the future
-              case frame: BinaryFrame => enumerator.frameReceived(ctx, El(new String(frame.binaryData.array, "UTF-8")))
+              case frame: Frame if nettyFrameFormatter.fromFrame.isDefinedAt(frame) => {
+                enumerator.frameReceived(ctx, El(nettyFrameFormatter.fromFrame(frame)))
+              }
               case frame: CloseFrame => enumerator.frameReceived(ctx, EOF)
-              case frame: TextFrame => enumerator.frameReceived(ctx, El(frame.getTextData))
+              case frame: Frame => //
+              case _ => //
             }
           }
 
@@ -416,8 +420,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
 
             case Right((ws @ WebSocket(f), app)) if (isWebSocket(nettyHttpRequest)) => {
               try {
-                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)
-                f(requestHeader)(enumerator, socketOut(ctx)(ws.writeable))
+                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
+                f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
               } catch {
                 case e => e.printStackTrace
               }

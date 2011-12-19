@@ -6,6 +6,35 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
 
 import scala.collection.JavaConverters._
 
+object JavaWebSocket {
+
+  def ofString(retrieveWebSocket: => play.mvc.WebSocket[String]) = WebSocket[String] { request =>
+    (in, out) =>
+
+      import play.api.libs.iteratee._
+
+      val javaWebSocket = try {
+        JContext.current.set(Wrap.createJavaContext(request))
+        retrieveWebSocket
+      } finally {
+        JContext.current.remove()
+      }
+
+      val enumerator = new CallbackEnumerator[String]
+
+      val socketOut = new play.mvc.WebSocket.Out[String](enumerator)
+      val socketIn = new play.mvc.WebSocket.In[String]
+
+      Iteratee.mapChunk_((msg: String) => socketIn.callbacks.asScala.foreach(_.invoke(msg))) <<: in
+
+      out <<: enumerator
+
+      javaWebSocket.onReady(socketIn, socketOut)
+
+  }
+
+}
+
 trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
   def parser = {
@@ -22,7 +51,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
   def apply(req: Request[play.mvc.Http.RequestBody]) = {
 
-    val javaContext = Wrap.createJavaContext(req);
+    val javaContext = Wrap.createJavaContext(req)
 
     val rootAction = new JAction[Any] {
 
@@ -92,23 +121,19 @@ object Wrap {
    * creates a context for java apps
    * @param request
    */
-  def createJavaContext(req: Request[RequestBody]) = {
+  def createJavaContext(req: RequestHeader) = {
     new JContext(new JRequest {
 
       def uri = req.uri
       def method = req.method
       def path = req.method
 
-      def body = req.body
+      def body = null
 
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
       def queryString = {
         req.queryString.mapValues(_.toArray).asJava
-      }
-
-      def urlFormEncoded = {
-        Map[String, Array[String]]().asJava
       }
 
       def cookies = new JCookies {
@@ -122,6 +147,36 @@ object Wrap {
       req.session.data.asJava,
       req.flash.data.asJava)
   }
+
+  /**
+   * creates a context for java apps
+   * @param request
+   */
+  def createJavaContext(req: Request[RequestBody]) = {
+    new JContext(new JRequest {
+
+      def uri = req.uri
+      def method = req.method
+      def path = req.method
+
+      def body = req.body
+
+      def queryString = {
+        req.queryString.mapValues(_.toArray).asJava
+      }
+
+      def cookies = new JCookies {
+        def get(name: String) = (for (cookie <- req.cookies.get(name))
+          yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
+      }
+
+      override def toString = req.toString
+
+    },
+      req.session.data.asJava,
+      req.flash.data.asJava)
+  }
+
   /*
    * converts a Java action into a scala one
    * @param java result
