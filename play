@@ -29,5 +29,11 @@ if [ -f conf/application.conf ]; then
     `dirname $0`/framework/build play
   fi
 else
-  java -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework -Dsbt.boot.properties=`dirname $0`/framework/sbt/play.boot.properties -jar `dirname $0`/framework/sbt/sbt-launch-0.11.0.jar "$@"
+  if [ -L $0 ]; then
+    frameworkpath=`dirname $0`/`readlink $0`
+    frameworkpath=`dirname $frameworkpath`
+  else
+    frameworkpath=`dirname $0`
+  fi
+  java -Dsbt.ivy.home=$frameworkpath/repository -Dplay.home=$frameworkpath/framework -Dsbt.boot.properties=$frameworkpath/framework/sbt/play.boot.properties -jar $frameworkpath/framework/sbt/sbt-launch-0.11.0.jar "$@"
 fi
