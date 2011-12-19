@@ -350,7 +350,7 @@ public class Form<T> {
         }
         
         // Format
-        T2<String,List<Object>> format = null;
+        Tuple<String,List<Object>> format = null;
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance);
         beanWrapper.setAutoGrowNestedPaths(true);
         try {
@@ -367,7 +367,7 @@ public class Form<T> {
                             } catch(Exception e) {}
                             attributes.add(attrValue);
                         }
-                        format = T2(d.name(), attributes);
+                        format = Tuple(d.name(), attributes);
                     }
                 }
             }
@@ -376,7 +376,7 @@ public class Form<T> {
         
         // Constraints
         PropertyDescriptor property = play.data.validation.Validation.getValidator().getConstraintsForClass(backedType).getConstraintsForProperty(key);
-        List<T2<String,List<Object>>> constraints = new ArrayList<T2<String,List<Object>>>();
+        List<Tuple<String,List<Object>>> constraints = new ArrayList<Tuple<String,List<Object>>>();
         if(property != null) {
             constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
         }
@@ -394,8 +394,8 @@ public class Form<T> {
     public static class Field {
         
         private final String name;
-        private final List<T2<String,List<Object>>> constraints;
-        private final T2<String,List<Object>> format;
+        private final List<Tuple<String,List<Object>>> constraints;
+        private final Tuple<String,List<Object>> format;
         private final List<ValidationError> errors;
         private final String value;
         
@@ -408,7 +408,7 @@ public class Form<T> {
          * @param errors the errors associated with this field
          * @param value the field value ,if any
          */
-        public Field(String name, List<T2<String,List<Object>>> constraints, T2<String,List<Object>> format, List<ValidationError> errors, String value) {
+        public Field(String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
             this.name = name;
             this.constraints = constraints;
             this.format = format;
@@ -448,7 +448,7 @@ public class Form<T> {
          *
          * @return The constraints associated with this field.
          */
-        public List<T2<String,List<Object>>> constraints() {
+        public List<Tuple<String,List<Object>>> constraints() {
             return constraints;
         }
         
@@ -457,7 +457,7 @@ public class Form<T> {
          * 
          * @return The expected format for this field.
          */
-        public T2<String,List<Object>> format() {
+        public Tuple<String,List<Object>> format() {
             return format;
         }
         

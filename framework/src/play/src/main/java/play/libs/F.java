@@ -21,6 +21,77 @@ import java.util.concurrent.atomic.AtomicLong;
  * Defines a set of functional programming style helpers.
  */
 public class F {
+    
+    public static interface Action<A> {
+        public void apply(A a);
+    }
+    
+    public static interface Action2<A,B> {
+        public void apply(A a, B b);
+    }
+    
+    public static interface Action3<A,B,C> {
+        public void apply(A a, B b, C c);
+    }
+    
+    public static interface Function<A,R> {
+        public R apply(A a);
+    }
+    
+    public static interface Function2<A,B,R> {
+        public R apply(A a, B b);
+    }
+    
+    public static interface Function3<A,B,C,R> {
+        public R apply(A a, B b, C c);
+    }
+    
+    public static class Promise<A> {
+        
+        private final play.api.libs.concurrent.Promise<A> promise;
+        
+        public Promise(play.api.libs.concurrent.Promise<A> promise) {
+            this.promise = promise;
+        }
+        
+        public A get() {
+            return promise.value().get();
+        }
+        
+        public void onRedeem(final Action<A> action) {
+            promise.onRedeem(new Scala.Function1<A,scala.runtime.BoxedUnit>() {
+                public scala.runtime.BoxedUnit apply(A a) {
+                    action.apply(a);
+                    return null;
+                }
+            });
+        }
+        
+        public <B> Promise<B> map(final Function<A,B> f) {
+            return new Promise(
+                promise.map(new Scala.Function1<A,B>() {
+                    public B apply(A a) {
+                        return f.apply(a);
+                    }
+                })
+            );
+        }
+        
+        public <B> Promise<B> flatMap(final Function<A,Promise<B>> f) {
+            return new Promise(
+                promise.flatMap(new Scala.Function1<A,play.api.libs.concurrent.Promise<B>>() {
+                    public play.api.libs.concurrent.Promise<B> apply(A a) {
+                        return f.apply(a).promise;
+                    }
+                })
+            );
+        }
+        
+        public play.api.libs.concurrent.Promise<A> getWrappedPromise() {
+            return promise;
+        }
+        
+    }
 
     /**
      * Represents optional values. Instances of <code>Option</code> are either an instance of <code>Some</code> or the object <code>None</code>.
@@ -177,7 +248,7 @@ public class F {
 
         @Override
         public String toString() {
-            return "T2(_1: " + _1 + ", _2: " + _2 + ")";
+            return "Tuple2(_1: " + _1 + ", _2: " + _2 + ")";
         }
     }
 
@@ -189,32 +260,15 @@ public class F {
     }
 
     /**
-     * A tuple of A,B
-     */
-    public static class T2<A, B> extends Tuple<A, B> {
-
-        public T2(A _1, B _2) {
-            super(_1, _2);
-        }
-    }
-
-    /**
-     * Constructs a tuple of A,B
-     */
-    public static <A, B> T2<A, B> T2(A a, B b) {
-        return new T2(a, b);
-    }
-
-    /**
      * A tuple of A,B,C
      */
-    public static class T3<A, B, C> {
+    public static class Tuple3<A, B, C> {
 
         final public A _1;
         final public B _2;
         final public C _3;
 
-        public T3(A _1, B _2, C _3) {
+        public Tuple3(A _1, B _2, C _3) {
             this._1 = _1;
             this._2 = _2;
             this._3 = _3;
@@ -222,28 +276,28 @@ public class F {
 
         @Override
         public String toString() {
-            return "T3(_1: " + _1 + ", _2: " + _2 + ", _3:" + _3 + ")";
+            return "Tuple3(_1: " + _1 + ", _2: " + _2 + ", _3:" + _3 + ")";
         }
     }
 
     /**
      * Constructs a tuple of A,B,C
      */
-    public static <A, B, C> T3<A, B, C> T3(A a, B b, C c) {
-        return new T3(a, b, c);
+    public static <A, B, C> Tuple3<A, B, C> Tuple3(A a, B b, C c) {
+        return new Tuple3(a, b, c);
     }
 
     /**
      * A tuple of A,B,C,D
      */
-    public static class T4<A, B, C, D> {
+    public static class Tuple4<A, B, C, D> {
 
         final public A _1;
         final public B _2;
         final public C _3;
         final public D _4;
 
-        public T4(A _1, B _2, C _3, D _4) {
+        public Tuple4(A _1, B _2, C _3, D _4) {
             this._1 = _1;
             this._2 = _2;
             this._3 = _3;
@@ -252,21 +306,21 @@ public class F {
 
         @Override
         public String toString() {
-            return "T4(_1: " + _1 + ", _2: " + _2 + ", _3:" + _3 + ", _4:" + _4 + ")";
+            return "Tuple4(_1: " + _1 + ", _2: " + _2 + ", _3:" + _3 + ", _4:" + _4 + ")";
         }
     }
 
     /**
      * Constructs a tuple of A,B,C,D
      */
-    public static <A, B, C, D> T4<A, B, C, D> T4(A a, B b, C c, D d) {
-        return new T4<A, B, C, D>(a, b, c, d);
+    public static <A, B, C, D> Tuple4<A, B, C, D> Tuple4(A a, B b, C c, D d) {
+        return new Tuple4<A, B, C, D>(a, b, c, d);
     }
 
     /**
      * A tuple of A,B,C,D,E
      */
-    public static class T5<A, B, C, D, E> {
+    public static class Tuple5<A, B, C, D, E> {
 
         final public A _1;
         final public B _2;
@@ -274,7 +328,7 @@ public class F {
         final public D _4;
         final public E _5;
 
-        public T5(A _1, B _2, C _3, D _4, E _5) {
+        public Tuple5(A _1, B _2, C _3, D _4, E _5) {
             this._1 = _1;
             this._2 = _2;
             this._3 = _3;
@@ -284,15 +338,15 @@ public class F {
 
         @Override
         public String toString() {
-            return "T5(_1: " + _1 + ", _2: " + _2 + ", _3:" + _3 + ", _4:" + _4 + ", _5:" + _5 + ")";
+            return "Tuple5(_1: " + _1 + ", _2: " + _2 + ", _3:" + _3 + ", _4:" + _4 + ", _5:" + _5 + ")";
         }
     }
 
     /**
      * Constructs a tuple of A,B,C,D,E
      */
-    public static <A, B, C, D, E> T5<A, B, C, D, E> T5(A a, B b, C c, D d, E e) {
-        return new T5<A, B, C, D, E>(a, b, c, d, e);
+    public static <A, B, C, D, E> Tuple5<A, B, C, D, E> Tuple5(A a, B b, C c, D d, E e) {
+        return new Tuple5<A, B, C, D, E>(a, b, c, d, e);
     }
 
 }

@@ -18,6 +18,10 @@ public class Results {
      */
     public static Result TODO = new Todo();
     
+    public static Result async(play.libs.F.Promise<Result> p) {
+        return new AsyncResult(p);
+    }
+    
     /**
      * Generates a 200 OK simple result.
      */
@@ -176,6 +180,26 @@ public class Results {
                 views.html.defaultpages.todo.render(),
                 play.api.mvc.JResults.writeContent(),
                 play.api.mvc.JResults.contentTypeOf("text/html; charset=utf-8")
+            );
+        }
+        
+        public play.api.mvc.Result getWrappedResult() {
+            return this.wrappedResult;
+        }
+        
+    }
+    
+    public static class AsyncResult implements Result {
+        
+        final private play.api.mvc.Result wrappedResult;
+        
+        public AsyncResult(play.libs.F.Promise<Result> p) {
+            wrappedResult = play.api.mvc.JResults.async(
+                p.map(new play.libs.F.Function<Result,play.api.mvc.Result>() {
+                    public play.api.mvc.Result apply(Result r) {
+                        return r.getWrappedResult();
+                    }
+                }).getWrappedPromise()
             );
         }
         

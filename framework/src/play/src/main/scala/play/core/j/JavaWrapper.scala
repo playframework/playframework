@@ -2,7 +2,7 @@ package play.core.j
 
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 
 import scala.collection.JavaConverters._
 
@@ -54,7 +54,10 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
     finalAction.call(javaContext).getWrappedResult match {
       case result @ SimpleResult(_, _) => {
+        import collection.JavaConverters._
         val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
+          .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
+          .discardingCookies(javaContext.response.discardedCookies.asScala.toSeq: _*)
 
         if (javaContext.session.isDirty && javaContext.flash.isDirty) {
           wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
@@ -105,6 +108,11 @@ object Wrap {
         Map[String, Array[String]]().asJava
       }
 
+      def cookies = new JCookies {
+        def get(name: String) = (for (cookie <- req.cookies.get(name))
+          yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
+      }
+
       override def toString = req.toString
 
     },
@@ -134,7 +142,16 @@ object Wrap {
     def uri = _uri
     def method = _method
     def queryString = _queryString.asScala.toMap.map(i => i._1 -> i._2.toSeq)
-    def body: RequestBody = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq)).asInstanceOf[RequestBody]
+    def body: RequestBody = {
+      val anyContent = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq))
+      JParsers.DefaultRequestBody(
+        anyContent.asUrlFormEncoded,
+        anyContent.asRaw,
+        anyContent.asText,
+        anyContent.asJson,
+        anyContent.asXml,
+        anyContent.asMultipartFormData)
+    }
 
     def username = if (_username == null) None else Some(_username)
     def path = _path

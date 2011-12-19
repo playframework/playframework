@@ -20,9 +20,9 @@ public class Model {
     // -- Magic to dynamically access the @Id property
     
     @javax.persistence.Transient
-    private T2<Method,Method> _idGetSet;
+    private Tuple<Method,Method> _idGetSet;
     
-    private T2<Method,Method> _idAccessors() {
+    private Tuple<Method,Method> _idAccessors() {
         if(_idGetSet == null) {
             try {
                 Class<?> clazz = this.getClass();
@@ -30,7 +30,7 @@ public class Model {
                     for(Field f:clazz.getDeclaredFields()) {
                         if(f.isAnnotationPresent(javax.persistence.Id.class)) {
                             PropertyDescriptor idProperty = new BeanWrapperImpl(this).getPropertyDescriptor(f.getName());
-                            _idGetSet = T2(idProperty.getReadMethod() , idProperty.getWriteMethod());
+                            _idGetSet = Tuple(idProperty.getReadMethod() , idProperty.getWriteMethod());
                         }
                     }
                     clazz = clazz.getSuperclass();
