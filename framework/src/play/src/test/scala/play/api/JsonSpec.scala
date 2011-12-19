@@ -29,7 +29,7 @@ object JsonSpec extends Specification {
   }
 
   "JSON" should {
-    "handle maps" in {
+    "serialize and desarialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))
       val jsonCar = toJson(c)
       jsonCar.as[Car] must equalTo(c)

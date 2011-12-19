@@ -85,11 +85,11 @@ trait DefaultReads {
       case _ => throw new RuntimeException("Array expected")
     }
   }
-  def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
+  private[this] def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
 
-  implicit def mapReads[K, V](implicit fmtk: Reads[K], fmtv: Reads[V]): Reads[Map[K, V]] = new Reads[Map[K, V]] {
+  implicit def mapReads[K, V](implicit fmtk: Reads[K], fmtv: Reads[V]): Reads[collection.immutable.Map[K, V]] = new Reads[collection.immutable.Map[K, V]] {
     def reads(json: JsValue) = json match {
-      case JsObject(m) => Map() ++ m.map { case (k, v) => (fromJson[K](JsString(k))(fmtk), fromJson[V](v)(fmtv)) }
+      case JsObject(m) => collection.immutable.Map() ++ m.map { case (k, v) => (fromJson[K](JsString(k))(fmtk), fromJson[V](v)(fmtv)) }
       case _ => throw new RuntimeException("Map expected")
     }
   }
