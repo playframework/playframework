@@ -254,6 +254,8 @@ trait BodyParsers {
           BodyParser { request =>
 
             val CRLF = "\r\n".getBytes
+            val CRLFCRLF = CRLF ++ CRLF
+            
 
             val takeUpToBoundary = Enumeratee.takeWhile[MatchInfo[Array[Byte]]](!_.isMatch)
 
@@ -263,7 +265,7 @@ trait BodyParsers {
                 Iteratee.consume[Array[Byte]]()
 
             val collectHeaders = maxHeaderBuffer.flatMap { buffer =>
-              val (headerBytes, rest) = buffer.splitAt(buffer.indexOfSlice(CRLF ++ CRLF))
+              val (headerBytes, rest) = buffer.splitAt(buffer.indexOfSlice(CRLFCRLF))
 
               val headerString = new String(headerBytes)
               val headers = headerString.lines.map { header =>
@@ -271,10 +273,12 @@ trait BodyParsers {
                 (key.trim.toLowerCase, value.mkString.trim)
               }.toMap
 
+              val left = rest.drop( CRLFCRLF.length )
+
               Cont(in => Done(headers, in match {
-                case Input.El(e) => Input.El(rest.drop(4) ++ e)
-                case Input.EOF => Input.El(rest.drop(4))
-                case Input.Empty => Input.El(rest.drop(4))
+                case Input.El(e) => Input.El (left ++ e)
+                case Input.EOF => Input.El(left)
+                case Input.Empty => Input.El(left)
               }))
             }
 
