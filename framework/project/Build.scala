@@ -68,7 +68,7 @@ object PlayBuild extends Build {
         libraryDependencies := sbtDependencies,
         libraryDependencies <+= (sbtVersion in update,scalaVersion) { (sbtV, scalaV) => 
             val sbtEclipseV = "1.5.0"    
-            "com.typesafe.sbteclipse" % "sbteclipse" % sbtEclipseV from typesafeRepo+"/com.typesafe.sbteclipse/sbteclipse/scala_"+scalaV+"/sbt_"+sbtV+"/"+sbtEclipseV+"/jars/sbteclipse.jar"}, 
+            "com.typesafe.sbteclipse" % ("sbteclipse-" + sbtV) % sbtEclipseV from typesafeRepo+"/com.typesafe.sbteclipse/sbteclipse/scala_"+scalaV+"/sbt_"+sbtV+"/"+sbtEclipseV+"/jars/sbteclipse.jar"}, 
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
@@ -123,7 +123,7 @@ object PlayBuild extends Build {
         val buildOrganization = "play"
         val buildVersion      = "2.0-RC1-SNAPSHOT"
         val buildScalaVersion = "2.9.1"
-        val buildSbtVersion   = "0.11.0"
+        val buildSbtVersion   = "0.11.2"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
