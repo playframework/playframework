@@ -21,16 +21,16 @@ trait PlayCommands {
 
   private def waitForKey() = {
     consoleReader.getTerminal.disableEcho()
-    def waitEOF {
+    def waitEOF() {
       consoleReader.readVirtualKey() match {
         case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF
-        case 10 => println(); waitEOF
-        case _ => waitEOF
+        case 11 => consoleReader.clearScreen(); waitEOF()
+        case 10 => println(); waitEOF()
+        case _ => waitEOF()
       }
 
     }
-    waitEOF
+    waitEOF()
     consoleReader.getTerminal.enableEcho()
   }
 
