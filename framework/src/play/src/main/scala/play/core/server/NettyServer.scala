@@ -80,10 +80,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
       Cont(step(None))
     }
 
-    private def newRequestBodyHandler[R](it: Iteratee[Array[Byte], Either[Result, R]]): (Promise[Either[String, Iteratee[Array[Byte], Either[Result, R]]]], SimpleChannelUpstreamHandler) = {
+    private def newRequestBodyHandler[R](it: Iteratee[Array[Byte], Either[Result, R]]): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
       var redeemed = false
       var iteratee: Iteratee[Array[Byte], Either[Result, R]] = it
-      var p = Promise[Either[String, Iteratee[Array[Byte], Either[Result, R]]]]()
+      var p = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
 
       def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
         if (!redeemed) {
@@ -94,9 +94,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
           iteratee = next
 
           next.pureFold(
-            (a, e) => if (!redeemed) { p.redeem(Right(next)); iteratee = null; p = null; redeemed = true },
+            (a, e) => if (!redeemed) { p.redeem(next); iteratee = null; p = null; redeemed = true },
             k => (),
-            (msg, e) => if (!redeemed) { p.redeem(Left(msg)); iteratee = null; p = null; redeemed = true })
+            (msg, e) => if (!redeemed) { p.redeem(Done(Left(Results.InternalServerError),e)); iteratee = null; p = null; redeemed = true })
         }
       }
 
@@ -374,13 +374,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
                       Enumerator(body).andThen(Enumerator.enumInput(EOF))
                     }
 
-                    (bodyParser <<: bodyEnumerator).map(p => Right(p)): Promise[Either[String, Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]]
+                    (bodyParser <<: bodyEnumerator): Promise[Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]
                   }
                 }
 
               val eventuallyRequest =
-                eventuallyBody.map { errOrBody =>
-                  errOrBody.right.map((it: Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]) => it.run.map { (something: Either[Result, action.BODY_CONTENT]) =>
+                eventuallyBody.flatMap { it: Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]] => it.run}
+                              .map { (something: Either[Result, action.BODY_CONTENT]) =>
 
                     something match {
 
@@ -402,20 +402,15 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
 
                     }
 
-                  })
-                }
+                  }
 
-              eventuallyRequest.map {
-                case Left(errMsg) =>
-                  response.handle(Results.InternalServerError)
-                case Right(eventuallyReq) =>
-                  eventuallyReq.extend(_.value match {
+              eventuallyRequest.extend (_.value match {
                     case Redeemed(Left(result)) => response.handle(result)
                     case Redeemed(Right(request)) =>
                       invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
                   })
 
-              }
+              
             }
 
             case Right((ws @ WebSocket(f), app)) if (isWebSocket(nettyHttpRequest)) => {
