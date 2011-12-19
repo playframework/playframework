@@ -53,7 +53,8 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
     }
 
     finalAction.call(javaContext).getWrappedResult match {
-      case result @ SimpleResult(_, _) => {
+
+      case result: PlainResult => {
         import collection.JavaConverters._
         val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
           .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)

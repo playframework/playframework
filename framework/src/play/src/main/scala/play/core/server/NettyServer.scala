@@ -451,7 +451,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
       val newPipeline = pipeline()
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
-      //newPipeline.addLast("chunkedWriter", new ChunkedWriteHandler())
       newPipeline.addLast("handler", new PlayDefaultUpstreamHandler())
       newPipeline
     }

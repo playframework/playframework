@@ -186,8 +186,8 @@ object Error {
 }
 
 trait Enumerator[+E] {
-
   parent =>
+
   def apply[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]]
   def <<:[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = apply(i)
 
@@ -384,9 +384,16 @@ object Enumeratee {
         in match {
           case Input.El(e) if (p(e)) => Done(inner, in)
           case _ =>
-            inner.flatFold((_, _) => Promise.pure(Done(inner, in)),
-              k => Promise.pure(Cont(step(k(in)))),
-              (_, _) => Promise.pure(Done(inner, in)))
+            inner.pureFlatFold(
+              (_, _) => Done(inner, in),
+              k => {
+                val next = k(in)
+                next.pureFlatFold(
+                  (_, _) => Done(inner, in),
+                  k => Cont(step(next)),
+                  (_, _) => Done(inner, in))
+              },
+              (_, _) => Done(inner, in))
         }
 
       }
@@ -436,10 +443,8 @@ class CallbackEnumerator[E](
   }
 
   def close() {
-    if (iteratee == null) {
-      iteratee.feed(Input.EOF).map { result =>
-        promise.redeem(result)
-      }
+    if (iteratee != null) {
+      iteratee.feed(Input.EOF).map(result => promise.redeem(result))
       iteratee = null
       promise = null
     }

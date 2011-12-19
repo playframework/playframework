@@ -22,16 +22,20 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class F {
     
-    public static interface Action<A> {
-        public void apply(A a);
+    public static interface Callback0 {
+        public void invoke();
     }
     
-    public static interface Action2<A,B> {
-        public void apply(A a, B b);
+    public static interface Callback<A> {
+        public void invoke(A a);
     }
     
-    public static interface Action3<A,B,C> {
-        public void apply(A a, B b, C c);
+    public static interface Callback2<A,B> {
+        public void invoke(A a, B b);
+    }
+    
+    public static interface Callback3<A,B,C> {
+        public void invoke(A a, B b, C c);
     }
     
     public static interface Function<A,R> {
@@ -58,10 +62,10 @@ public class F {
             return promise.value().get();
         }
         
-        public void onRedeem(final Action<A> action) {
+        public void onRedeem(final Callback<A> action) {
             promise.onRedeem(new Scala.Function1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
-                    action.apply(a);
+                    action.invoke(a);
                     return null;
                 }
             });

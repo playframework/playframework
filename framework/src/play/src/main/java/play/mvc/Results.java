@@ -4,6 +4,9 @@ import play.api.*;
 import play.api.mvc.*;
 import play.api.mvc.Results.* ;
 
+import play.libs.*;
+import play.libs.F.*;
+
 /**
  * Common results.
  */
@@ -29,210 +32,217 @@ public class Results {
      * Generates a 200 OK simple result.
      */
     public static Result ok() {
-        return new Ok();
+        return new Status(play.api.mvc.JResults.Ok());
     }
     
     /**
      * Generates a 200 OK simple result.
      */
     public static Result ok(Content content) {
-        return new Ok(content, utf8);
+        return new Status(play.api.mvc.JResults.Ok(), content, utf8);
     }
     
     /**
      * Generates a 200 OK simple result.
      */
     public static Result ok(Content content, String charset) {
-        return new Ok(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.Ok(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 200 OK simple result.
      */
     public static Result ok(String content) {
-        return new Ok(content, utf8);
+        return new Status(play.api.mvc.JResults.Ok(), content, utf8);
     }
     
     /**
      * Generates a 200 OK simple result.
      */
     public static Result ok(String content, String charset) {
-        return new Ok(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.Ok(), content, Codec.javaSupported(charset));
+    }
+    
+    /**
+     * Generates a 200 OK chunked result.
+     */
+    public static Result ok(Chunks<?> chunks) {
+        return new Status(play.api.mvc.JResults.Ok(), chunks);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError() {
-        return new InternalServerError();
+        return new Status(play.api.mvc.JResults.InternalServerError());
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError(Content content) {
-        return new InternalServerError(content, utf8);
+        return new Status(play.api.mvc.JResults.InternalServerError(), content, utf8);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError(Content content, String charset) {
-        return new InternalServerError(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.InternalServerError(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError(String content) {
-        return new InternalServerError(content, utf8);
+        return new Status(play.api.mvc.JResults.InternalServerError(), content, utf8);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError(String content, String charset) {
-        return new InternalServerError(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.InternalServerError(), content, Codec.javaSupported(charset));
     }
         
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound() {
-        return new NotFound();
+        return new Status(play.api.mvc.JResults.NotFound());
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound(Content content) {
-        return new NotFound(content, utf8);
+        return new Status(play.api.mvc.JResults.NotFound(), content, utf8);
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound(Content content, String charset) {
-        return new NotFound(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.NotFound(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound(String content) {
-        return new NotFound(content, utf8);
+        return new Status(play.api.mvc.JResults.NotFound(), content, utf8);
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound(String content, String charset) {
-        return new NotFound(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.NotFound(), content, Codec.javaSupported(charset));
     }
      
     /**
      * Generates a 403 FORBIDDEN simple result.
      */   
     public static Result forbidden() {
-        return new Forbidden();
+        return new Status(play.api.mvc.JResults.Forbidden());
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
     public static Result forbidden(Content content) {
-        return new Forbidden(content, utf8);
+        return new Status(play.api.mvc.JResults.Forbidden(), content, utf8);
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
     public static Result forbidden(Content content, String charset) {
-        return new Forbidden(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.Forbidden(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
     public static Result forbidden(String content) {
-        return new Forbidden(content, utf8);
+        return new Status(play.api.mvc.JResults.Forbidden(), content, utf8);
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
     public static Result forbidden(String content, String charset) {
-        return new Forbidden(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.Forbidden(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized() {
-        return new Unauthorized();
+        return new Status(play.api.mvc.JResults.Unauthorized());
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized(Content content) {
-        return new Unauthorized(content, utf8);
+        return new Status(play.api.mvc.JResults.Unauthorized(), content, utf8);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized(Content content, String charset) {
-        return new Unauthorized(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.Unauthorized(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized(String content) {
-        return new Unauthorized(content, utf8);
+        return new Status(play.api.mvc.JResults.Unauthorized(), content, utf8);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized(String content, String charset) {
-        return new Unauthorized(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.Unauthorized(), content, Codec.javaSupported(charset));
     }
        
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */ 
     public static Result badRequest() {
-        return new BadRequest();
+        return new Status(play.api.mvc.JResults.BadRequest());
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
     public static Result badRequest(Content content) {
-        return new BadRequest(content, utf8);
+        return new Status(play.api.mvc.JResults.BadRequest(), content, utf8);
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
     public static Result badRequest(Content content, String charset) {
-        return new BadRequest(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.BadRequest(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
     public static Result badRequest(String content) {
-        return new BadRequest(content, utf8);
+        return new Status(play.api.mvc.JResults.BadRequest(), content, utf8);
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
     public static Result badRequest(String content, String charset) {
-        return new BadRequest(content, Codec.javaSupported(charset));
+        return new Status(play.api.mvc.JResults.BadRequest(), content, Codec.javaSupported(charset));
     }
         
     /**
@@ -254,6 +264,79 @@ public class Results {
     }
     
     // -- Definitions
+    
+    public abstract static class Chunks<A> {
+        
+        final scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit> f;
+        final play.api.mvc.Writeable<A> w;
+        final play.api.mvc.ContentTypeOf<A> ct;
+        
+        public Chunks(play.api.mvc.Writeable<A> w, play.api.mvc.ContentTypeOf<A> ct) {
+            final Chunks<A> self = this;
+            this.w = w;
+            this.ct = ct;
+            f = new Scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
+                public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
+                    play.api.libs.iteratee.CallbackEnumerator<A> enumerator = play.api.mvc.JResults.chunked();
+                    enumerator.apply(iteratee);
+                    Chunks.Out<A> chunked = new Chunks.Out<A>(enumerator);
+                    self.onReady(chunked);
+                    return null;
+                }
+            };
+        }
+        
+        public abstract void onReady(Chunks.Out<A> out);
+        
+        public static class Out<A> {
+            
+            final play.api.libs.iteratee.CallbackEnumerator<A> enumerator;
+
+            public Out(play.api.libs.iteratee.CallbackEnumerator<A> enumerator) {
+                this.enumerator = enumerator;
+            }
+
+            public void write(A chunk) {
+                enumerator.push(chunk);
+            }
+
+            public void close() {
+                enumerator.close();
+            }
+            
+        }
+        
+    }
+    
+    public abstract static class StringChunks extends Chunks<String> {
+        
+        public StringChunks() {
+            this(utf8);
+        }
+        
+        public StringChunks(String codec) {
+            this(Codec.javaSupported(codec));
+        }
+        
+        public StringChunks(Codec codec) {
+            super(
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
+            );
+        }
+        
+    }
+    
+    public abstract static class ByteChunks extends Chunks<byte[]> {
+        
+        public ByteChunks() {
+            super(
+                play.api.mvc.JResults.writeBytes(),
+                play.api.mvc.JResults.contentTypeOfBytes()
+            );
+        }
+        
+    }
     
     /**
      * An asynchronous result.
@@ -302,219 +385,38 @@ public class Results {
     /**
      * A 200 OK simple result.
      */
-    public static class Ok implements Result {
+    public static class Status implements Result {
         
         final private play.api.mvc.Result wrappedResult;
         
-        public Ok() {
-            wrappedResult = play.api.mvc.JResults.Ok().apply(
+       public Status(play.api.mvc.Results.Status status) {
+            wrappedResult = status.apply(
                 play.api.mvc.JResults.empty(),
                 play.api.mvc.JResults.writeEmptyContent(),
                 play.api.mvc.JResults.contentTypeOfEmptyContent()
             );
         }
         
-        public Ok(String content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.Ok().apply(
+        public Status(play.api.mvc.Results.Status status, String content, Codec codec) {
+            wrappedResult = status.apply(
                 content,
                 play.api.mvc.JResults.writeString(codec),
                 play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public Ok(Content content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.Ok().apply(
+        public Status(play.api.mvc.Results.Status status, Content content, Codec codec) {
+            wrappedResult = status.apply(
                 content,
                 play.api.mvc.JResults.writeContent(codec),
                 play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );
         }
         
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
+        public <A> Status(play.api.mvc.Results.Status status, Chunks<A> chunks) {
+            wrappedResult = status.apply(chunks.f, chunks.w, chunks.ct);
         }
         
-    }
-    
-    /**
-     * A 404 NOT_FOUND simple result.
-     */
-    public static class NotFound implements Result {
-        
-        final private play.api.mvc.Result wrappedResult;
-        
-        public NotFound() {
-            wrappedResult = play.api.mvc.JResults.NotFound().apply(
-                play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmptyContent(),
-                play.api.mvc.JResults.contentTypeOfEmptyContent()
-            );
-        }
-        
-        public NotFound(String content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.NotFound().apply(
-                content,
-                play.api.mvc.JResults.writeString(codec),
-                play.api.mvc.JResults.contentTypeOfString(codec)
-            );
-        }
-        
-        public NotFound(Content content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.NotFound().apply(
-                content,
-                play.api.mvc.JResults.writeContent(codec),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
-            );        
-        }
-                
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
-        }
-        
-    }
-    
-    /**
-     * A 500 INTERNAL_SERVER_ERROR simple result.
-     */
-    public static class InternalServerError implements Result {
-        
-        final private play.api.mvc.Result wrappedResult;
-        
-        public InternalServerError() {
-            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
-                play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmptyContent(),
-                play.api.mvc.JResults.contentTypeOfEmptyContent()
-            );
-        }
-        
-        public InternalServerError(String content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
-                content,
-                play.api.mvc.JResults.writeString(codec),
-                play.api.mvc.JResults.contentTypeOfString(codec)
-            );
-        }
-        
-        public InternalServerError(Content content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
-                content,
-                play.api.mvc.JResults.writeContent(codec),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
-            );        
-        }
-                
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
-        }
-        
-    }
-    
-    /**
-     * A 403 FORBIDDEN simple result.
-     */
-    public static class Forbidden implements Result {
-        
-        final private play.api.mvc.Result wrappedResult;
-        
-        public Forbidden() {
-            wrappedResult = play.api.mvc.JResults.Forbidden().apply(
-                play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmptyContent(),
-                play.api.mvc.JResults.contentTypeOfEmptyContent()
-            );
-        }
-        
-        public Forbidden(String content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.Forbidden().apply(
-                content,
-                play.api.mvc.JResults.writeString(codec),
-                play.api.mvc.JResults.contentTypeOfString(codec)
-            );
-        }
-        
-        public Forbidden(Content content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.Forbidden().apply(
-                content,
-                play.api.mvc.JResults.writeContent(codec),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
-            );        
-        }
-                
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
-        }
-        
-    }
-    
-    /**
-     * A 401 UNAUTHORIZED simple result.
-     */
-    public static class Unauthorized implements Result {
-        
-        final private play.api.mvc.Result wrappedResult;
-        
-        public Unauthorized() {
-            wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
-                play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmptyContent(),
-                play.api.mvc.JResults.contentTypeOfEmptyContent()
-            );
-        }
-        
-        public Unauthorized(String content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
-                content,
-                play.api.mvc.JResults.writeString(codec),
-                play.api.mvc.JResults.contentTypeOfString(codec)
-            );
-        }
-        
-        public Unauthorized(Content content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
-                content,
-                play.api.mvc.JResults.writeContent(codec),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
-            );        
-        }
-                
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
-        }
-        
-    }
-    
-    /**
-     * A 400 BAD_REQUEST simple result.
-     */
-    public static class BadRequest implements Result {
-        
-        final private play.api.mvc.Result wrappedResult;
-        
-        public BadRequest() {
-            wrappedResult = play.api.mvc.JResults.BadRequest().apply(
-                play.api.mvc.JResults.empty(),
-                play.api.mvc.JResults.writeEmptyContent(),
-                play.api.mvc.JResults.contentTypeOfEmptyContent()
-            );
-        }
-        
-        public BadRequest(String content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.BadRequest().apply(
-                content,
-                play.api.mvc.JResults.writeString(codec),
-                play.api.mvc.JResults.contentTypeOfString(codec)
-            );
-        }
-        
-        public BadRequest(Content content, Codec codec) {
-            wrappedResult = play.api.mvc.JResults.BadRequest().apply(
-                content,
-                play.api.mvc.JResults.writeContent(codec),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
-            );        
-        }
-                
         public play.api.mvc.Result getWrappedResult() {
             return this.wrappedResult;
         }
