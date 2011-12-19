@@ -293,7 +293,7 @@ class DBPlugin(app: Application) extends Plugin {
   def api = db
 
   /** Reads the configuration and connects to every data source. */
-  override def onStart {
+  override def onStart() {
     db.datasources.map {
       case (name, (ds, config)) => {
         try {
@@ -309,7 +309,7 @@ class DBPlugin(app: Application) extends Plugin {
   }
 
   /** Closes all data sources. */
-  override def onStop {
+  override def onStop() {
     db.datasources.values.foreach {
       case (ds, _) => try {
         val bone = new com.jolbox.bonecp.BoneCP(ds.getConfig)

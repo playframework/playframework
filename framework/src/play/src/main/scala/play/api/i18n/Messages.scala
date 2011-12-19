@@ -160,7 +160,7 @@ class MessagesPlugin(app: Application) extends Plugin {
   def api = messages
 
   /** Loads all configuration and message files defined in the classpath. */
-  override def onStart {
+  override def onStart() {
     messages
   }
 

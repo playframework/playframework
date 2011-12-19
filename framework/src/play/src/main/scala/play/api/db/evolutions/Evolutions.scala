@@ -379,7 +379,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
   override def enabled = app.configuration.getSub("db").isDefined
 
   /** Checks the evolutions state. */
-  override def onStart {
+  override def onStart() {
     val api = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
 
     api.datasources.foreach {

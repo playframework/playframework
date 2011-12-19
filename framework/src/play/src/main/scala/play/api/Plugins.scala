@@ -21,12 +21,12 @@ trait Plugin {
   /**
    * Called when the application starts.
    */
-  def onStart {}
+  def onStart() {}
 
   /**
    * Called when the application stops.
    */
-  def onStop {}
+  def onStop() {}
 
   /**
    * Is the plugin enabled?

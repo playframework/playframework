@@ -123,12 +123,12 @@ class GlobalPlugin(app: Application) extends Plugin {
   app.global.beforeStart(app)
 
   /** Called when the application starts. */
-  override def onStart {
+  override def onStart() {
     app.global.onStart(app)
   }
 
   /** Called when the application stops. */
-  override def onStop {
+  override def onStop() {
     app.global.onStop(app)
   }
 
