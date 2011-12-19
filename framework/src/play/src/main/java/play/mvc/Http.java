@@ -158,6 +158,12 @@ public class Http {
          */
         public abstract Cookies cookies(); // FIXME Provide a “Cookie cookie(String name)” function instead of this one?
         
+        /**
+         * get headers
+         *
+         * @return headers
+         */
+        public abstract java.util.Map<String,String[]> headers();
         // -- username
 
         private String username = null;

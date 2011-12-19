@@ -38,6 +38,8 @@ object FunctionalSpec extends Specification {
       driver.get("http://localhost:9001/json_java")
       driver.getPageSource must contain ("{\"peter\":\"foo\",\"yay\":\"value\"}")
       
+      driver.get("http://localhost:9001/headers")
+      driver.getPageSource must contain("localhost:9001")
 
       // --- Cookies
       driver.get("http://localhost:9001/json_java")

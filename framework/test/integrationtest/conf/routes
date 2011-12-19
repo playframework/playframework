@@ -5,6 +5,7 @@
 GET     /                       controllers.Application.index()
 POST    /post                   controllers.Application.post()
 GET     /json_java              controllers.JavaApi.index()
+GET     /headers                controllers.JavaApi.headers()
 GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
