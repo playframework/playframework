@@ -347,7 +347,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
 
               val eventuallyBodyParser = getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
 
-              val eventuallyBody =
+              val eventuallyResultOrBody =
                 eventuallyBodyParser.flatMap { bodyParser =>
                   if (nettyHttpRequest.isChunked) {
 
@@ -378,33 +378,23 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
                   }
                 }
 
-              val eventuallyRequest =
-                eventuallyBody.flatMap { it: Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]] => it.run}
-                              .map { (something: Either[Result, action.BODY_CONTENT]) =>
+              val eventuallyResultOrRequest =
+                eventuallyResultOrBody
+                  .flatMap (it => it.run)
+                  .map { _.right.map ( b =>
+                      new Request[action.BODY_CONTENT] {
+                          def uri = nettyHttpRequest.getUri
+                          def path = nettyUri.getPath
+                          def method = nettyHttpRequest.getMethod.getName
+                          def queryString = parameters
+                          def headers = rHeaders
+                          def cookies = rCookies
+                          def username = None
+                          val body = b
+                      })
+              }
 
-                    something match {
-
-                      case Left(result) => Left(result)
-
-                      case Right(b: action.BODY_CONTENT) => {
-                        Right(
-                          new Request[action.BODY_CONTENT] {
-                            def uri = nettyHttpRequest.getUri
-                            def path = nettyUri.getPath
-                            def method = nettyHttpRequest.getMethod.getName
-                            def queryString = parameters
-                            def headers = rHeaders
-                            def cookies = rCookies
-                            def username = None
-                            val body = b
-                          })
-                      }
-
-                    }
-
-                  }
-
-              eventuallyRequest.extend (_.value match {
+              eventuallyResultOrRequest.extend (_.value match {
                     case Redeemed(Left(result)) => response.handle(result)
                     case Redeemed(Right(request)) =>
                       invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
