@@ -18,6 +18,9 @@ public class Results {
      */
     public static Result TODO = new Todo();
     
+    /**
+     * Handles an Asynchronous result.
+     */
     public static Result async(play.libs.F.Promise<Result> p) {
         return new AsyncResult(p);
     }
@@ -33,14 +36,28 @@ public class Results {
      * Generates a 200 OK simple result.
      */
     public static Result ok(Content content) {
-        return new Ok(content);
+        return new Ok(content, utf8);
+    }
+    
+    /**
+     * Generates a 200 OK simple result.
+     */
+    public static Result ok(Content content, String charset) {
+        return new Ok(content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 200 OK simple result.
      */
     public static Result ok(String content) {
-        return new Ok(content);
+        return new Ok(content, utf8);
+    }
+    
+    /**
+     * Generates a 200 OK simple result.
+     */
+    public static Result ok(String content, String charset) {
+        return new Ok(content, Codec.javaSupported(charset));
     }
     
     /**
@@ -54,14 +71,28 @@ public class Results {
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError(Content content) {
-        return new InternalServerError(content);
+        return new InternalServerError(content, utf8);
+    }
+    
+    /**
+     * Generates a 500 INTERNAL_SERVER_ERROR simple result.
+     */
+    public static Result internalServerError(Content content, String charset) {
+        return new InternalServerError(content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
     public static Result internalServerError(String content) {
-        return new InternalServerError(content);
+        return new InternalServerError(content, utf8);
+    }
+    
+    /**
+     * Generates a 500 INTERNAL_SERVER_ERROR simple result.
+     */
+    public static Result internalServerError(String content, String charset) {
+        return new InternalServerError(content, Codec.javaSupported(charset));
     }
         
     /**
@@ -75,14 +106,28 @@ public class Results {
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound(Content content) {
-        return new NotFound(content);
+        return new NotFound(content, utf8);
+    }
+    
+    /**
+     * Generates a 404 NOT_FOUND simple result.
+     */
+    public static Result notFound(Content content, String charset) {
+        return new NotFound(content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
     public static Result notFound(String content) {
-        return new NotFound(content);
+        return new NotFound(content, utf8);
+    }
+    
+    /**
+     * Generates a 404 NOT_FOUND simple result.
+     */
+    public static Result notFound(String content, String charset) {
+        return new NotFound(content, Codec.javaSupported(charset));
     }
      
     /**
@@ -96,14 +141,28 @@ public class Results {
      * Generates a 403 FORBIDDEN simple result.
      */
     public static Result forbidden(Content content) {
-        return new Forbidden(content);
+        return new Forbidden(content, utf8);
+    }
+    
+    /**
+     * Generates a 403 FORBIDDEN simple result.
+     */
+    public static Result forbidden(Content content, String charset) {
+        return new Forbidden(content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
     public static Result forbidden(String content) {
-        return new Forbidden(content);
+        return new Forbidden(content, utf8);
+    }
+    
+    /**
+     * Generates a 403 FORBIDDEN simple result.
+     */
+    public static Result forbidden(String content, String charset) {
+        return new Forbidden(content, Codec.javaSupported(charset));
     }
     
     /**
@@ -117,14 +176,28 @@ public class Results {
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized(Content content) {
-        return new Unauthorized(content);
+        return new Unauthorized(content, utf8);
+    }
+    
+    /**
+     * Generates a 401 UNAUTHORIZED simple result.
+     */
+    public static Result unauthorized(Content content, String charset) {
+        return new Unauthorized(content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
     public static Result unauthorized(String content) {
-        return new Unauthorized(content);
+        return new Unauthorized(content, utf8);
+    }
+    
+    /**
+     * Generates a 401 UNAUTHORIZED simple result.
+     */
+    public static Result unauthorized(String content, String charset) {
+        return new Unauthorized(content, Codec.javaSupported(charset));
     }
        
     /**
@@ -138,14 +211,28 @@ public class Results {
      * Generates a 400 BAD_REQUEST simple result.
      */
     public static Result badRequest(Content content) {
-        return new BadRequest(content);
+        return new BadRequest(content, utf8);
+    }
+    
+    /**
+     * Generates a 400 BAD_REQUEST simple result.
+     */
+    public static Result badRequest(Content content, String charset) {
+        return new BadRequest(content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
     public static Result badRequest(String content) {
-        return new BadRequest(content);
+        return new BadRequest(content, utf8);
+    }
+    
+    /**
+     * Generates a 400 BAD_REQUEST simple result.
+     */
+    public static Result badRequest(String content, String charset) {
+        return new BadRequest(content, Codec.javaSupported(charset));
     }
         
     /**
@@ -167,28 +254,10 @@ public class Results {
     }
     
     // -- Definitions
-
-    /**
-     * A 501 NOT_IMPLEMENTED simple result.
-     */
-    public static class Todo implements Result {
-        
-        final private play.api.mvc.Result wrappedResult;
-        
-        public Todo() {
-            wrappedResult = play.api.mvc.JResults.NotImplemented().apply(
-                views.html.defaultpages.todo.render(),
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf("text/html; charset=utf-8")
-            );
-        }
-        
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
-        }
-        
-    }
     
+    /**
+     * An asynchronous result.
+     */
     public static class AsyncResult implements Result {
         
         final private play.api.mvc.Result wrappedResult;
@@ -200,6 +269,27 @@ public class Results {
                         return r.getWrappedResult();
                     }
                 }).getWrappedPromise()
+            );
+        }
+        
+        public play.api.mvc.Result getWrappedResult() {
+            return this.wrappedResult;
+        }
+        
+    }
+
+    /**
+     * A 501 NOT_IMPLEMENTED simple result.
+     */
+    public static class Todo implements Result {
+        
+        final private play.api.mvc.Result wrappedResult;
+        
+        public Todo() {
+            wrappedResult = play.api.mvc.JResults.NotImplemented().apply(
+                views.html.defaultpages.todo.render(),
+                play.api.mvc.JResults.writeContent(utf8),
+                play.api.mvc.JResults.contentTypeOf("text/html; charset=utf-8")
             );
         }
         
@@ -224,19 +314,19 @@ public class Results {
             );
         }
         
-        public Ok(String content) {
+        public Ok(String content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 content,
-                play.api.mvc.JResults.writeString(),
-                play.api.mvc.JResults.contentTypeOfString()
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public Ok(Content content) {
+        public Ok(Content content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.Ok().apply(
                 content,
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
+                play.api.mvc.JResults.writeContent(codec),
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );
         }
         
@@ -261,19 +351,19 @@ public class Results {
             );
         }
         
-        public NotFound(String content) {
+        public NotFound(String content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 content,
-                play.api.mvc.JResults.writeString(),
-                play.api.mvc.JResults.contentTypeOfString()
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public NotFound(Content content) {
+        public NotFound(Content content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.NotFound().apply(
                 content,
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
+                play.api.mvc.JResults.writeContent(codec),
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );        
         }
                 
@@ -298,19 +388,19 @@ public class Results {
             );
         }
         
-        public InternalServerError(String content) {
+        public InternalServerError(String content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 content,
-                play.api.mvc.JResults.writeString(),
-                play.api.mvc.JResults.contentTypeOfString()
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public InternalServerError(Content content) {
+        public InternalServerError(Content content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.InternalServerError().apply(
                 content,
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
+                play.api.mvc.JResults.writeContent(codec),
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );        
         }
                 
@@ -335,19 +425,19 @@ public class Results {
             );
         }
         
-        public Forbidden(String content) {
+        public Forbidden(String content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 content,
-                play.api.mvc.JResults.writeString(),
-                play.api.mvc.JResults.contentTypeOfString()
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public Forbidden(Content content) {
+        public Forbidden(Content content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.Forbidden().apply(
                 content,
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
+                play.api.mvc.JResults.writeContent(codec),
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );        
         }
                 
@@ -372,19 +462,19 @@ public class Results {
             );
         }
         
-        public Unauthorized(String content) {
+        public Unauthorized(String content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 content,
-                play.api.mvc.JResults.writeString(),
-                play.api.mvc.JResults.contentTypeOfString()
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public Unauthorized(Content content) {
+        public Unauthorized(Content content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.Unauthorized().apply(
                 content,
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
+                play.api.mvc.JResults.writeContent(codec),
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );        
         }
                 
@@ -409,19 +499,19 @@ public class Results {
             );
         }
         
-        public BadRequest(String content) {
+        public BadRequest(String content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 content,
-                play.api.mvc.JResults.writeString(),
-                play.api.mvc.JResults.contentTypeOfString()
+                play.api.mvc.JResults.writeString(codec),
+                play.api.mvc.JResults.contentTypeOfString(codec)
             );
         }
         
-        public BadRequest(Content content) {
+        public BadRequest(Content content, Codec codec) {
             wrappedResult = play.api.mvc.JResults.BadRequest().apply(
                 content,
-                play.api.mvc.JResults.writeContent(),
-                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=utf-8")
+                play.api.mvc.JResults.writeContent(codec),
+                play.api.mvc.JResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
             );        
         }
                 
