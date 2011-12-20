@@ -1,7 +1,7 @@
 package play;
 
 public class Play {
-    
+
     public static Application application() {
         play.api.Application app = play.api.Play.unsafeApplication();
         if(app == null) {
@@ -9,5 +9,5 @@ public class Play {
         }
         return new Application(app);
     }
-    
+
 }
