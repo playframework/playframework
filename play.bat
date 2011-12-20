@@ -7,7 +7,7 @@ set p=%p:\=/%
 if exist "conf\application.conf" goto existingApplication
 
 :noApplication
-java -Dsbt.ivy.home=%~dp0repository -Dplay.home=%~dp0framework -Dsbt.boot.properties="file:///%p%framework/sbt/play.boot.properties" -jar %~dp0framework\sbt\sbt-launch-0.11.0.jar %*
+java -Dsbt.ivy.home=%~dp0repository -Dplay.home=%~dp0framework -Dsbt.boot.properties="file:///%p%framework/sbt/play.boot.properties" -jar %~dp0framework\sbt\sbt-launch.jar %*
 
 goto end
 
