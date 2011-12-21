@@ -90,6 +90,7 @@ trait Promise[+A] {
 
 trait Redeemable[A] {
   def redeem(a: => A): Unit
+  def throwing(t: Throwable): Unit
 }
 
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
@@ -153,6 +154,13 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     actions.single.swap(List()).foreach(invoke(this, _))
   }
 
+  def throwing(t: Throwable): Unit = {
+    atomic { implicit txn =>
+      if (redeemed().isDefined) sys.error("already redeemed")
+      redeemed() = Thrown(t)
+    }
+  }
+
   def map[B](f: A => B): Promise[B] = {
     val result = new STMPromise[B]()
     this.addAction(p => p.value match {
@@ -201,6 +209,8 @@ object PurePromise {
     def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = Redeemed(a)
 
     def redeem(a: A) = sys.error("Already redeemed")
+
+    def throwing(t: Throwable) = sys.error("Already redeemed")
 
     def extend[B](f: (Promise[A] => B)): Promise[B] = {
       apply(f(this))

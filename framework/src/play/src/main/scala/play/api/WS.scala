@@ -20,7 +20,7 @@ import com.ning.http.client.{
  * Usage example:
  * WS.url("http://example.com/feed").get()
  *
- * The value returned is a Promise of com.ning.http.client.Response,
+ * The value returned is a Promise[Response],
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
