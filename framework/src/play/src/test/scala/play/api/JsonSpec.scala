@@ -43,7 +43,6 @@ object JsonSpec extends Specification {
     def reads(json: JsValue): Date = json match {
         // Need to throw a RuntimeException, ParseException beeing out of scope of asOpt
         case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).getOrElse(throw new RuntimeException("Parse exception"))
-        case JsNull => throw new RuntimeException("Parse exception")
         case _ => throw new RuntimeException("Parse exception")
     }
   }
@@ -90,10 +89,30 @@ object JsonSpec extends Specification {
       val resultPost = parseJson(postJson).as[Post]
       resultPost must equalTo(expectedPost)
     }
-    "Can parse null values" in {
+    "Can parse recursive object" in {
+      val recursiveJson = """{"foo": {"foo":["bar"]}, "bar": {"foo":["bar"]}}"""
+      val expectedJson = JsObject(Map[String, JsValue](
+        "foo" -> JsObject(Map[String, JsValue](
+          "foo" -> JsArray(List[JsValue](JsString("bar")))
+          )),
+        "bar" -> JsObject(Map[String, JsValue](
+          "foo" -> JsArray(List[JsValue](JsString("bar")))
+          ))
+        ))
+      val resultJson = parseJson(recursiveJson)
+      resultJson must equalTo(expectedJson)
+
+    }
+    "Can parse null values in Object" in {
       val postJson = """{"foo": null}"""
       val parsedJson = parseJson(postJson)
       val expectedJson = JsObject(Map[String,JsValue]("foo" -> JsNull))
+      parsedJson must equalTo(expectedJson)
+    }
+    "Can parse null values in Array" in {
+      val postJson = """[null]"""
+      val parsedJson = parseJson(postJson)
+      val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
     }
   }
