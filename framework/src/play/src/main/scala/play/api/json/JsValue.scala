@@ -8,6 +8,8 @@ import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
 
 import scala.collection._
 
+import scala.collection.immutable.Stack
+
 /**
  * Generic json value
  */
@@ -126,34 +128,128 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
 
 @JsonCachable
 private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
-  def deserialize(jp: JsonParser, ctxt: DeserializationContext): Object = {
+  def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsValue = deserialize(jp, ctxt, Stack[JsValue]())
+
+  def deserialize(jp: JsonParser, ctxt: DeserializationContext, parserContext: Stack[JsValue] = Stack[JsValue]()): JsValue = {
     if (jp.getCurrentToken == null) {
       jp.nextToken()
     }
 
     val value = jp.getCurrentToken match {
-      case JsonToken.VALUE_NUMBER_INT => JsNumber(jp.getDoubleValue)
-      case JsonToken.VALUE_NUMBER_FLOAT => JsNumber(jp.getDoubleValue)
-      case JsonToken.VALUE_STRING => JsString(jp.getText)
-      case JsonToken.VALUE_TRUE => JsBoolean(true)
-      case JsonToken.VALUE_FALSE => JsBoolean(false)
-      case JsonToken.START_ARRAY => {
-        JsArray(jp.getCodec.readValue(jp, Types.build(factory, manifest[List[JsValue]])))
-      }
-      case JsonToken.START_OBJECT => {
+      case JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT=> {
+        // Read Value
+        val value = jp.getDoubleValue
+
+        // Read ahead
         jp.nextToken()
-        deserialize(jp, ctxt)
+
+        // Continue parsing
+        deserialize(jp, ctxt, JsNumber(value) +: parserContext)
       }
-      case JsonToken.FIELD_NAME | JsonToken.END_OBJECT => {
-        var fields = Map[String, JsValue]()
-        while (jp.getCurrentToken != JsonToken.END_OBJECT) {
-          val name = jp.getCurrentName
-          jp.nextToken()
-          fields = fields + (name -> jp.getCodec.readValue(jp, Types.build(factory, manifest[JsValue])))
-          jp.nextToken()
+      case JsonToken.VALUE_STRING => {
+        // Read value
+        val value = jp.getText
+
+        // Read ahead
+        jp.nextToken()
+
+        // Continue parsing
+        deserialize(jp, ctxt, JsString(value) +: parserContext)
         }
-        JsObject(fields)
+      case JsonToken.VALUE_TRUE => {
+        jp.nextToken()
+        deserialize(jp, ctxt, JsBoolean(true) +: parserContext)
       }
+      case JsonToken.VALUE_FALSE => {
+        jp.nextToken()
+        deserialize(jp, ctxt, JsBoolean(false) +: parserContext)
+      }
+      case JsonToken.VALUE_NULL => {
+        jp.nextToken()
+        deserialize(jp, ctxt, JsNull +: parserContext)
+      }
+      case JsonToken.START_ARRAY => {
+        jp.nextToken()
+
+        // We use JsUndefined as a stop condition on stack pop
+        deserialize(jp, ctxt, JsUndefined("") +: parserContext)
+      }
+      case JsonToken.END_ARRAY => {
+        var stack = parserContext
+
+        var elements = List[JsValue]()
+
+        var stillArray = true
+
+        while(stillArray) {
+          val value = stack.pop2
+          value match{
+            // Stop condition reached
+            case (JsUndefined(_), s) => {
+              stillArray = false
+              stack = stack.pop
+              }
+            case (v, s) => {
+              elements = v +: elements 
+              stack = s
+              }
+            }
+          }
+
+        // Throw old object and build a new one
+        jp.nextToken()
+
+        deserialize(jp, ctxt, JsArray(elements) +: stack)
+}
+      case JsonToken.START_OBJECT => {
+        // Depile start_object
+        jp.nextToken()
+
+        // We use JsUndefined as a stop condition on stack pop
+        deserialize(jp, ctxt, JsUndefined("") +: parserContext)
+      }
+      case JsonToken.FIELD_NAME => {
+        // Read field name
+        val name = jp.getCurrentName
+
+        // Pop separator
+        jp.nextToken()
+
+        // Continue serialize
+        deserialize(jp, ctxt, JsString(name) +: parserContext)
+      }
+      case JsonToken.END_OBJECT => { 
+        var stack = parserContext
+
+        var fields = Map[String, JsValue]()
+
+        var stillObject = true
+
+        while(stillObject) {
+          val value = stack.pop2
+          value match{
+            // Stop condition reached
+            case (JsUndefined(_), s) => {
+              stillObject = false
+              stack = stack.pop
+              }
+            case (v, s) => {
+              s.pop2 match {
+                case (JsString(k), t) => {
+                  fields = fields + (k -> v)
+                  stack = t
+                  }
+                }
+              }
+            }
+          }
+
+        // Throw old object and build a new one
+        jp.nextToken()
+
+        deserialize(jp, ctxt, JsObject(fields) +: stack)
+        }
+      case null => parserContext.last
       case _ => throw ctxt.mappingException(classOf[JsValue])
     }
 
