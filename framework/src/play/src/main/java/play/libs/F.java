@@ -21,47 +21,47 @@ import java.util.concurrent.atomic.AtomicLong;
  * Defines a set of functional programming style helpers.
  */
 public class F {
-    
+
     public static interface Callback0 {
         public void invoke();
     }
-    
+
     public static interface Callback<A> {
         public void invoke(A a);
     }
-    
+
     public static interface Callback2<A,B> {
         public void invoke(A a, B b);
     }
-    
+
     public static interface Callback3<A,B,C> {
         public void invoke(A a, B b, C c);
     }
-    
+
     public static interface Function<A,R> {
         public R apply(A a);
     }
-    
+
     public static interface Function2<A,B,R> {
         public R apply(A a, B b);
     }
-    
+
     public static interface Function3<A,B,C,R> {
         public R apply(A a, B b, C c);
     }
-    
+
     public static class Promise<A> {
-        
+
         private final play.api.libs.concurrent.Promise<A> promise;
-        
+
         public Promise(play.api.libs.concurrent.Promise<A> promise) {
             this.promise = promise;
         }
-        
+
         public A get() {
             return promise.value().get();
         }
-        
+
         public void onRedeem(final Callback<A> action) {
             promise.onRedeem(new Scala.Function1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
@@ -70,7 +70,7 @@ public class F {
                 }
             });
         }
-        
+
         public <B> Promise<B> map(final Function<A,B> f) {
             return new Promise(
                 promise.map(new Scala.Function1<A,B>() {
@@ -80,7 +80,7 @@ public class F {
                 })
             );
         }
-        
+
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> f) {
             return new Promise(
                 promise.flatMap(new Scala.Function1<A,play.api.libs.concurrent.Promise<B>>() {
@@ -90,11 +90,11 @@ public class F {
                 })
             );
         }
-        
+
         public play.api.libs.concurrent.Promise<A> getWrappedPromise() {
             return promise;
         }
-        
+
     }
 
     /**
@@ -133,7 +133,7 @@ public class F {
     public static <A> Some<A> Some(A a) {
         return new Some(a);
     }
-    
+
     /**
      * Constructs a <code>None</code> value.
      */
@@ -206,7 +206,7 @@ public class F {
          * The left value.
          */
         final public Option<A> left;
-        
+
         /**
          * The right value.
          */
