@@ -3,6 +3,9 @@ package play.api.json
 import org.specs2.mutable._
 import play.api.json._
 
+import scala.util.control.Exception._
+import java.text.ParseException
+
 object JsonSpec extends Specification {
 
   case class User(id: Long, name: String, friends: List[User])
@@ -28,6 +31,31 @@ object JsonSpec extends Specification {
       "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)))))
   }
 
+  import java.util.Date
+  case class Post(body: String, created_at: Option[Date])
+
+  import java.text.SimpleDateFormat
+  val dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'" // Iso8601 format (forgot timezone stuff)
+  val dateParser = new SimpleDateFormat(dateFormat)
+
+  // Try parsing date from iso8601 format
+  implicit object DateFormat extends Reads[Date] {
+    def reads(json: JsValue): Date = json match {
+        // Need to throw a RuntimeException, ParseException beeing out of scope of asOpt
+        case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).getOrElse(throw new RuntimeException("Parse exception"))
+        case _ => throw new RuntimeException("Parse exception")
+    }
+  }
+
+  implicit object PostFormat extends Format[Post] {
+    def reads(json: JsValue): Post = Post(
+      (json \ "body").as[String],
+      (json \ "created_at").asOpt[Date])
+    def writes(p: Post): JsValue = JsObject(Map(
+      "body" -> JsString(p.body))) // Don't care about creating created_at or not here
+  }
+
+
   "JSON" should {
     "serialize and desarialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))
@@ -43,6 +71,24 @@ object JsonSpec extends Specification {
       jsonMario.as[User] must equalTo(mario)
       (jsonMario \\ "name") must equalTo(Seq(JsString("Mario"), JsString("Luigi"), JsString("Kinopio"), JsString("Yoshi")))
     }
-
+    "Complete JSON should create full Post object" in {
+      val postJson = """{"body": "foobar", "created_at": "2011-04-22T13:33:48Z"}"""
+      val expectedPost = Post("foobar", Some(dateParser.parse("2011-04-22T13:33:48Z")))
+      val resultPost = parseJson(postJson).as[Post]
+      resultPost must equalTo(expectedPost)
+    }
+    "Optional parameters in JSON should generate post w/o date" in {
+      val postJson = """{"body": "foobar"}"""
+      val expectedPost = Post("foobar", None)
+      val resultPost = parseJson(postJson).as[Post]
+      resultPost must equalTo(expectedPost)
+    }
+    "Invalid parameters shoud be ignored" in {
+      val postJson = """{"body": "foobar", "created_at":null}"""
+      val expectedPost = Post("foobar", None)
+      val resultPost = parseJson(postJson).as[Post]
+      resultPost must equalTo(expectedPost)
+    }
   }
+
 }
