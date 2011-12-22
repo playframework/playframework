@@ -1,4 +1,4 @@
-package play.api.oauth
+package play.api.libs.oauth
 
 import _root_.oauth.signpost.{ OAuthConsumer, OAuthProvider }
 import _root_.oauth.signpost.exception.OAuthException
