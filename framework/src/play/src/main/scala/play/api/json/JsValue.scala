@@ -18,10 +18,6 @@ import scala.annotation.tailrec
 sealed trait JsValue {
   import scala.util.control.Exception._
 
-  def value: Any
-
-  def valueAs[A]: A = value.asInstanceOf[A]
-
   /**
    * Return the property corresponding to the fieldName, supposing we have a JsObject.
    * @param fieldName the name of the property to lookup
@@ -62,35 +58,26 @@ sealed trait JsValue {
 
 }
 
-case object JsNull extends JsValue {
-  override def value = null
-}
+case object JsNull extends JsValue
 
-case class JsUndefined(error: String) extends JsValue {
-  override def value = null
-}
+case class JsUndefined(error: String) extends JsValue
 
-case class JsBoolean(override val value: Boolean) extends JsValue
+case class JsBoolean(value: Boolean) extends JsValue
 
-case class JsNumber(override val value: BigDecimal) extends JsValue
+case class JsNumber(value: BigDecimal) extends JsValue
 
-case class JsString(override val value: String) extends JsValue
+case class JsString(value: String) extends JsValue
 
-case class JsArray(override val value: List[JsValue]) extends JsValue {
+case class JsArray(value: List[JsValue]) extends JsValue {
 
-  override def apply(index: Int): JsValue = {
-    try {
-      value(index)
-    } catch {
-      case _ => JsUndefined("Array index out of bounds in " + this)
-    }
-  }
+  override def apply(index: Int): JsValue = 
+    value.lift(index).getOrElse(JsUndefined("Array index out of bounds in " + this))
 
   override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
 
 }
 
-case class JsObject(override val value: Map[String, JsValue]) extends JsValue {
+case class JsObject(value: Map[String, JsValue]) extends JsValue {
 
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
