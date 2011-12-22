@@ -35,7 +35,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class WS {
 
-    private static AsyncHttpClient client = play.api.WS.client();
+    private static AsyncHttpClient client = play.api.libs.WS.client();
 
     /**
      * Prepare a new request. You can then construct it by chaining calls.

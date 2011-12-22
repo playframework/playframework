@@ -7,8 +7,8 @@ import play.api.libs.concurrent._
 import org.openqa.selenium.htmlunit.HtmlUnitDriver
 import play.api.test.IntegrationTest._
 import com.ning.http.client.providers.netty.NettyResponse
-import play.api.WS
-import play.api.ws.Response
+import play.api.libs.WS
+import play.api.libs.ws.Response
 
 import models._
 import models.Protocol._

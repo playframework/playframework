@@ -6,7 +6,7 @@ import play.api.libs.concurrent._
 import org.openqa.selenium.htmlunit.HtmlUnitDriver
 import play.api.test.IntegrationTest._
 import com.ning.http.client.providers.netty.NettyResponse
-import play.api.WS
+import play.api.libs.WS
 
 object FunctionalSpec extends Specification {
 

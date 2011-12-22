@@ -6,8 +6,8 @@ import _root_.oauth.signpost.basic.{ DefaultOAuthConsumer, DefaultOAuthProvider 
 import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
 
-import play.api.ws._
-import play.api.WS.WSRequestBase
+import play.api.libs.ws._
+import play.api.libs.WS.WSRequestBase
 
 /**
  * Library to access ressources protected by OAuth 1.0a.

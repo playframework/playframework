@@ -1,4 +1,4 @@
-package play.api
+package play.api.libs
 
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
