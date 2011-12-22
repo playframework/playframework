@@ -128,65 +128,33 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
   }
 }
 
-sealed trait DeserializerContext {
-  def read(): JsValue = JsUndefined("Uninitialized context")
-
-  def addValue(value: JsValue): DeserializerContext = throw new RuntimeException("Could not add value here")
+sealed trait DeserializerContext{
+  def addValue(value: JsValue): DeserializerContext
 }
 
-case class DefaultBaseDeserializerContext extends DeserializerContext {
-  override def addValue(value: JsValue): BaseDeserializerContext = BaseDeserializerContext(value)
-}
-
-case class BaseDeserializerContext(content: JsValue) extends DeserializerContext {
-  override def read(): JsValue = content
-}
-
-case class ReadingListDeserializerContext(content: List[JsValue], fatherStack: DeserializerContext) extends DeserializerContext {
-  override def addValue(value: JsValue): ReadingListDeserializerContext = {
-    // We will make a new context base on HEAD (father) and content
-    // of this context + value then return the brand new context
-
-    // First get back HEAD
-    val newFather = fatherStack
-
-    // Create new content
-    val newContent = content :+ value
-
-    ReadingListDeserializerContext(newContent, newFather)
+case class ReadingList(content: List[JsValue]) extends DeserializerContext {
+  override def addValue(value: JsValue): DeserializerContext = {
+   ReadingList(content :+ value) 
   }
 }
 
 // Context for reading an Object
-case class ReadingMapDeserializerContext(content: Map[String, JsValue], fatherStack: DeserializerContext) extends DeserializerContext {
-  def setField(fieldName: String): ReadingMapWithFieldDeserializerContext = ReadingMapWithFieldDeserializerContext(fieldName, this)
+case class KeyRead(content: Map[String, JsValue], fieldName:String) extends DeserializerContext {
+  def addValue(value: JsValue): DeserializerContext = ReadingMap(content + (fieldName -> value))
 }
 
 // Context for reading one item of an Object (we already red fieldName)
-case class ReadingMapWithFieldDeserializerContext(fieldName: String, fatherStack: ReadingMapDeserializerContext) extends DeserializerContext {
-  override def addValue(value: JsValue): ReadingMapDeserializerContext = {
-    // We will make a new context base on HEAD^2 (father of father) 
-    // and content of HEAD (father) + (fieldName -> value)
-    // then return the brand new context
+case class ReadingMap(content: Map[String, JsValue]) extends DeserializerContext {
 
-    // First get back HEAD^2
-    val newFather = fatherStack.fatherStack
+  def setField(fieldName:String) = KeyRead(content, fieldName)
+  def addValue(value: JsValue): DeserializerContext = throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
 
-    // Get back current content of HEAD
-    val currentContent = fatherStack.content
-
-    // Create new content
-    val newContent = currentContent + (fieldName -> value)
-
-    // We're still reading map, but this time ... we don't have field yet
-    ReadingMapDeserializerContext(newContent, newFather)
-  }
 }
 
 @JsonCachable
 private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
   def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsValue = {
-    val value = deserialize(jp, ctxt, DefaultBaseDeserializerContext())
+    val value = deserialize(jp, ctxt,List())
 
     if (!klass.isAssignableFrom(value.getClass)) {
       throw ctxt.mappingException(klass)
@@ -195,97 +163,64 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
   }
 
   @tailrec
-  final def deserialize(jp: JsonParser, ctxt: DeserializationContext, parserContext: DeserializerContext = DefaultBaseDeserializerContext()): JsValue = {
+  final def deserialize(jp: JsonParser, ctxt: DeserializationContext, parserContext: List[DeserializerContext]): JsValue = {
     if (jp.getCurrentToken == null) {
       jp.nextToken()
     }
 
-    jp.getCurrentToken match {
-      case JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT=> {
-        // Read Value
-        val value = jp.getDoubleValue
+    val (maybeValue,nextContext) = (jp.getCurrentToken, parserContext)  match {
 
-        // Read ahead
-        jp.nextToken()
+      case (JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDoubleValue)), c)
 
-        // Continue parsing
-        deserialize(jp, ctxt, parserContext.addValue(JsNumber(value)))
-      }
-      case JsonToken.VALUE_STRING => {
-        // Read value
-        val value = jp.getText
+      case (JsonToken.VALUE_STRING, c) => (Some(JsString(jp.getText)),c)
+        
+      case (JsonToken.VALUE_TRUE, c) => (Some(JsBoolean(true)),c)
 
-        // Read ahead
-        jp.nextToken()
+      case (JsonToken.VALUE_FALSE, c) => (Some(JsBoolean(false)),c)
 
-        // Continue parsing
-        deserialize(jp, ctxt, parserContext.addValue(JsString(value)))
-        }
-      case JsonToken.VALUE_TRUE => {
-        jp.nextToken()
-        deserialize(jp, ctxt, parserContext.addValue(JsBoolean(true)))
-      }
-      case JsonToken.VALUE_FALSE => {
-        jp.nextToken()
-        deserialize(jp, ctxt, parserContext.addValue(JsBoolean(false)))
-      }
-      case JsonToken.VALUE_NULL => {
-        jp.nextToken()
-        deserialize(jp, ctxt, parserContext.addValue(JsNull))
-      }
-      case JsonToken.START_ARRAY => {
-        jp.nextToken()
+      case (JsonToken.VALUE_NULL, c) => (Some(JsNull),c)
 
-        deserialize(jp, ctxt, ReadingListDeserializerContext(List[JsValue](), parserContext))
-      }
-      case JsonToken.END_ARRAY => {
-        parserContext match {
-          case ReadingListDeserializerContext(content, fatherStack) => {
-            // Throw the current end array and read new token
-            jp.nextToken()
+      case (JsonToken.START_ARRAY, c) => (None,(ReadingList(List())) +: c)
 
-            deserialize(jp, ctxt, fatherStack.addValue(JsArray(content)))
-          }
-          case _ => throw new RuntimeException("We should have been reading list, something got wrong")
-        }
-      }
-      case JsonToken.START_OBJECT => {
-        // Depile start_object
-        jp.nextToken()
+      case (JsonToken.END_ARRAY, ReadingList(content) :: stack) =>  (Some(JsArray(content)),stack)
 
-        // Bootstrap a new context
-        deserialize(jp, ctxt, ReadingMapDeserializerContext(Map[String, JsValue](), parserContext))
-      }
-      case JsonToken.FIELD_NAME => {
-        parserContext match {
-          case c: ReadingMapDeserializerContext => {
-            // Read field name
-            val name = jp.getCurrentName
+      case (JsonToken.END_ARRAY,_) => throw new RuntimeException("We should have been reading list, something got wrong")
 
-            // Content has been read, move ahead
-            jp.nextToken()
+      case (JsonToken.START_OBJECT, c) => (None,ReadingMap(Map()) +: c )
 
-            // Continue serialize
-            deserialize(jp, ctxt, c.setField(name))
-          }
-          case _ => throw new RuntimeException("We should be reading map, something got wrong")
-        }
-      }
-      case JsonToken.END_OBJECT => {
-        parserContext match {
-          case ReadingMapDeserializerContext(content, stack) => {
-            // Read ahead
-            jp.nextToken()
+      case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) =>  (None, c.setField(jp.getCurrentName) +: stack )
 
-            // Continue serialize
-            deserialize(jp, ctxt, stack.addValue(JsObject(content)))
-          }
-          case _ => throw new RuntimeException("We should have been reading an object, something got wrong")
-        }
-      }
-      case null => parserContext.read
+      case (JsonToken.FIELD_NAME,_) => throw new RuntimeException("We should be reading map, something got wrong")
+
+      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) =>  (Some(JsObject(content)),stack)
+
+      case (JsonToken.END_OBJECT,_) => throw new RuntimeException("We should have been reading an object, something got wrong")
+        
       case _ => throw ctxt.mappingException(classOf[JsValue])
     }
+
+    // Read ahead
+    jp.nextToken()
+
+    maybeValue match { 
+      case Some(v) if nextContext.isEmpty && jp.getCurrentToken == null =>
+        //done, no more tokens and got a value!
+        v 
+
+      case Some(v) if nextContext.isEmpty  =>
+        //strange, got value, but there is more tokens and have no prior context!
+        throw new Exception("Malformed JSON: Got a sequence of JsValue outside an array or an object.")
+
+      case maybeValue  => 
+        val toPass = maybeValue.map{ v => 
+          val previous :: stack = nextContext
+          (previous.addValue(v)) +: stack
+        }.getOrElse(nextContext)
+
+        deserialize(jp, ctxt,toPass)
+
+    }
+    
   }
 }
 
