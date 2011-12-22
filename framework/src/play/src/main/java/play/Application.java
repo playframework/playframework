@@ -31,6 +31,10 @@ public class Application {
         return application.path();
     }
     
+    public Configuration configuration() {
+        return new Configuration(application.configuration());
+    }
+    
     /**
      * Retrieves the application classloader.
      * <p>

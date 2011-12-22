@@ -33,7 +33,7 @@ trait ServerWithStop {
   def stop(): Unit
 }
 
-class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server with ServerWithStop {
+class NettyServer(appProvider: => ApplicationProvider, port: Int, mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   def applicationProvider = appProvider
 
@@ -449,11 +449,19 @@ class NettyServer(appProvider: ApplicationProvider, port: Int) extends Server wi
 
   allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(port)))
 
-  Logger("play").info("Listening for HTTP on port %s...".format(port))
+  mode match {
+    case Mode.Test => 
+    case _ => Logger("play").info("Listening for HTTP on port %s...".format(port))
+  }
 
   def stop() {
     Play.stop()
-    Logger("play").warn("Stopping server...")
+    
+    mode match {
+      case Mode.Test =>
+      case _ => Logger("play").warn("Stopping server...")
+    }
+    
     allChannels.disconnect().awaitUninterruptibly()
     allChannels.close().awaitUninterruptibly()
     bootstrap.releaseExternalResources()
@@ -513,7 +521,8 @@ object NettyServer {
 
   def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
     Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
-    new NettyServer(new ReloadableApplication(sbtLink), port)
+    val appProvider = new ReloadableApplication(sbtLink)
+    new NettyServer(appProvider, port, Mode.Dev)
   }
 
 }

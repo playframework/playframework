@@ -64,9 +64,11 @@ trait PlaySettings {
 
     libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
 
-    libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.6.1" % "test",
-      "com.novocode" % "junit-interface" % "0.7" % "test",
-      "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"),
+    libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
+      
+    testOptions in Test += Tests.Setup { loader => 
+      loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
+    },
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
 

@@ -1,0 +1,13 @@
+#! /usr/bin/env sh
+
+echo "[info] Cleaning target directories..."
+
+rm -rf `dirname $0`/target
+rm -rf `dirname $0`/project/project
+rm -rf `dirname $0`/project/target
+rm -rf `dirname $0`/logs
+rm -rf `dirname $0`/src/anorm/target
+rm -rf `dirname $0`/src/play/target
+rm -rf `dirname $0`/src/templates/target
+rm -rf `dirname $0`/src/sbt-plugin/target
+rm -rf `dirname $0`/src/console/target

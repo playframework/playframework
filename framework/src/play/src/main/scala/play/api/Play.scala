@@ -8,6 +8,12 @@ import java.io._
 
 import scala.collection.JavaConverters._
 
+/** Application mode, either `DEV` or `PROD`. */
+object Mode extends Enumeration {
+  type Mode = Value
+  val Dev, Prod, Test = Value
+}
+
 /**
  * High-level API to access Play global features.
  *
@@ -33,13 +39,7 @@ object Play {
    * Note that by relying on this, your code will only work properly in
    * the context of a running application.
    */
-  implicit def current = maybeApplication.get
-
-  /** Application mode, either `DEV` or `PROD`. */
-  object Mode extends Enumeration {
-    type Mode = Value
-    val Dev, Prod = Value
-  }
+  implicit def current = maybeApplication.getOrElse(sys.error("There is no started application"))
 
   private[play] var _currentApp: Application = _
 
@@ -57,7 +57,10 @@ object Play {
 
     app.plugins.foreach(_.onStart)
 
-    Logger("play").info("Application started")
+    app.mode match {
+      case Mode.Test =>
+      case mode => Logger("play").info("Application started (" + mode + ")")
+    }
 
   }
 
@@ -68,6 +71,7 @@ object Play {
         try { p.onStop } catch { case _ => }
       }
     }
+    _currentApp = null
   }
 
   /**
@@ -149,9 +153,9 @@ object Play {
   def mode(implicit app: Application) = app.mode
 
   /** Returns `true` if the current application is `DEV` mode. */
-  def isDev(implicit app: Application) = app.mode == Play.Mode.Dev
+  def isDev(implicit app: Application) = (app.mode == Mode.Dev)
 
   /** Returns `true` if the current application is `PROD` mode. */
-  def isProd(implicit app: Application) = app.mode == Play.Mode.Prod
+  def isProd(implicit app: Application) = (app.mode == Mode.Prod)
 
 }

@@ -51,6 +51,6 @@ public class ApplicationTest extends MockApplication{
   }
   
   @After public void after() {
-   clearMock();
+    clearMock();
   }
 }

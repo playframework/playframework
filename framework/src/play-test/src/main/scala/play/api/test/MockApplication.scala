@@ -32,9 +32,9 @@ abstract class Mock {
    * @return mocked application
    */
   def createMock(mockPlugins: java.util.List[String], mockConfig: java.util.Map[String, String]): Application = {
-    new Application(new File("."), cl, None, Play.Mode.Dev) {
+    new Application(new File("."), cl, None, Mode.Dev) {
       override lazy val configuration = new Configuration(mockConfig.asScala.toMap.map(item => item._1 -> Configuration.Config(item._1, item._2, new File("."))))
-      override val dynamicPlugins: List[String] = mockPlugins.asScala.toList
+      val dynamicPlugins: List[String] = mockPlugins.asScala.toList
     }
   }
   /**

@@ -26,8 +26,8 @@ import annotation.implicitNotFound
  * @param sources the `SourceMapper` used to retrieve source code displayed in error pages
  * @param mode `Dev` or `Prod`, passed as information for the user code
  */
-@implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current, running Application into context, just add import play.api.Play.current")
-case class Application(path: File, classloader: ClassLoader, sources: Option[SourceMapper], mode: Play.Mode.Mode) {
+@implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, just add import play.api.Play.current")
+class Application(val path: File, val classloader: ClassLoader, val sources: Option[SourceMapper], val mode: Mode.Mode) {
 
   Thread.currentThread.setContextClassLoader(classloader)
 
@@ -110,16 +110,9 @@ case class Application(path: File, classloader: ClassLoader, sources: Option[Sou
       })
 
   }
-
-  private[api] val dynamicPlugins: List[String] = Nil
-
-  /**
-   * The plugins list used by this application.
-   *
-   * @see play.api.Plugin
-   */
-  lazy val plugins: Seq[Plugin] = {
-
+  
+  private[api] def pluginClasses: Seq[String] = {
+    
     import scalax.file._
     import scalax.io.JavaConverters._
     import scala.collection.JavaConverters._
@@ -129,24 +122,30 @@ case class Application(path: File, classloader: ClassLoader, sources: Option[Sou
     val pluginFiles = classloader.getResources("play.plugins").asScala.toList ++ classloader.getResources("conf/play.plugins").asScala.toList
 
     pluginFiles.distinct.map { plugins =>
-      (dynamicPlugins ++ plugins.asInput.slurpString.split("\n").map(_.trim)).filterNot(_.isEmpty).map {
-        case PluginDeclaration(priority, className) => {
+      (plugins.asInput.slurpString.split("\n").map(_.trim)).filterNot(_.isEmpty).map {
+        case PluginDeclaration(priority, className) => (priority.toInt, className)
+      }
+    }.flatten.sortBy(_._1).map(_._2)
+    
+  }
+
+  /**
+   * The plugins list used by this application.
+   *
+   * @see play.api.Plugin
+   */
+  lazy val plugins: Seq[Plugin] = {
+    
+    pluginClasses.map { className =>
+      try {
+        val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
+        if (plugin.enabled) Some(plugin) else { Logger("play").debug("Plugin [" + className + "] is disabled"); None }
+      } catch {
+        case e: java.lang.NoSuchMethodException => {
           try {
-            val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
-            if (plugin._2.enabled) Some(plugin) else { Logger("play").debug("Plugin [" + className + "] is disabled"); None }
+            val plugin = classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
+            if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
           } catch {
-            case e: java.lang.NoSuchMethodException => {
-              try {
-                val plugin = Integer.parseInt(priority) -> classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
-                if (plugin._2.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
-              } catch {
-                case e: PlayException => throw e
-                case e => throw PlayException(
-                  "Cannot load plugin",
-                  "Plugin [" + className + "] cannot been instantiated.",
-                  Some(e))
-              }
-            }
             case e: PlayException => throw e
             case e => throw PlayException(
               "Cannot load plugin",
@@ -154,8 +153,13 @@ case class Application(path: File, classloader: ClassLoader, sources: Option[Sou
               Some(e))
           }
         }
+        case e: PlayException => throw e
+        case e => throw PlayException(
+          "Cannot load plugin",
+          "Plugin [" + className + "] cannot been instantiated.",
+          Some(e))
       }
-    }.flatten.toList.flatten.sortBy(_._1).map(_._2)
+    }.flatten
 
   }
 

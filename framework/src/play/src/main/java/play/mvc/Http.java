@@ -658,7 +658,7 @@ public class Http {
     /**
      * Defines all standard HTTP status codes.
      */
-    public static class Status {
+    public static interface Status {
 
         int CONTINUE = 100;
         int SWITCHING_PROTOCOLS = 101;

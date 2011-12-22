@@ -1,7 +1,6 @@
 package play.mvc;
 
 import play.api.*;
-import play.api.mvc.Content;
 
 import play.mvc.Http.*;
 import play.mvc.Result.*;
