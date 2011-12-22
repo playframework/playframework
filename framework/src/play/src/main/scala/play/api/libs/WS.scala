@@ -266,7 +266,7 @@ package ws {
 
   class Response(ahcResponse: AHCResponse) extends WSResponse(ahcResponse) {
     import scala.xml._
-    import play.api.json._
+    import play.api.libs.json._
 
     lazy val xml = XML.loadString(body)
 
