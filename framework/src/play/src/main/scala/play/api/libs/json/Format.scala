@@ -1,4 +1,4 @@
-package play.api.json
+package play.api.libs.json
 
 /**
  * Json formatter: write an implicit to define both a serializer and a deserializer for any type

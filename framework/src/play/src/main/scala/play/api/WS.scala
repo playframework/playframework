@@ -3,6 +3,7 @@ package play.api
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
+import play.api.libs.json._
 
 import com.ning.http.client.{
   AsyncHttpClient,
@@ -272,7 +273,7 @@ package ws {
     /**
      * Return the body as a JsValue.
      */
-    lazy val json = parseJson(body)
+    lazy val json = Json.parse(body)
 
   }
 

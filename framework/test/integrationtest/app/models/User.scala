@@ -1,6 +1,6 @@
 package models
 
-import play.api.json._
+import play.api.libs.json._
 
 case class User(id: Long, name: String, favThings: List[String])
 

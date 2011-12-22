@@ -1,4 +1,4 @@
-package play.api.json
+package play.api.libs.json
 
 import org.codehaus.jackson.{ JsonGenerator, JsonToken, JsonParser }
 import org.codehaus.jackson.`type`.JavaType
@@ -54,7 +54,7 @@ sealed trait JsValue {
    */
   def as[K, V](implicit fjs: Reads[collection.immutable.Map[K, V]]): collection.immutable.Map[K, V] = fjs.reads(this)
 
-  override def toString = stringify(this)
+  override def toString = Json.stringify(this)
 
 }
 

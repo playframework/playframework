@@ -1,7 +1,7 @@
-package play.api.json
+package play.api.libs.json
 
 import org.specs2.mutable._
-import play.api.json._
+import play.api.libs.json._
 
 import scala.util.control.Exception._
 import java.text.ParseException
@@ -74,19 +74,19 @@ object JsonSpec extends Specification {
     "Complete JSON should create full Post object" in {
       val postJson = """{"body": "foobar", "created_at": "2011-04-22T13:33:48Z"}"""
       val expectedPost = Post("foobar", Some(dateParser.parse("2011-04-22T13:33:48Z")))
-      val resultPost = parseJson(postJson).as[Post]
+      val resultPost = Json.parse(postJson).as[Post]
       resultPost must equalTo(expectedPost)
     }
     "Optional parameters in JSON should generate post w/o date" in {
       val postJson = """{"body": "foobar"}"""
       val expectedPost = Post("foobar", None)
-      val resultPost = parseJson(postJson).as[Post]
+      val resultPost = Json.parse(postJson).as[Post]
       resultPost must equalTo(expectedPost)
     }
     "Invalid parameters shoud be ignored" in {
       val postJson = """{"body": "foobar", "created_at":null}"""
       val expectedPost = Post("foobar", None)
-      val resultPost = parseJson(postJson).as[Post]
+      val resultPost = Json.parse(postJson).as[Post]
       resultPost must equalTo(expectedPost)
     }
     "Can parse recursive object" in {
@@ -99,19 +99,19 @@ object JsonSpec extends Specification {
           "foo" -> JsArray(List[JsValue](JsString("bar")))
           ))
         ))
-      val resultJson = parseJson(recursiveJson)
+      val resultJson = Json.parse(recursiveJson)
       resultJson must equalTo(expectedJson)
 
     }
     "Can parse null values in Object" in {
       val postJson = """{"foo": null}"""
-      val parsedJson = parseJson(postJson)
+      val parsedJson = Json.parse(postJson)
       val expectedJson = JsObject(Map[String,JsValue]("foo" -> JsNull))
       parsedJson must equalTo(expectedJson)
     }
     "Can parse null values in Array" in {
       val postJson = """[null]"""
-      val parsedJson = parseJson(postJson)
+      val parsedJson = Json.parse(postJson)
       val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
     }

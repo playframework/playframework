@@ -1,4 +1,4 @@
-package play.api.json
+package play.api.libs.json
 
 import scala.collection._
 

@@ -1,7 +1,7 @@
 package play.core.j
 
 import play.api.mvc._
-import play.api.json._
+import play.api.libs.json._
 import play.api.libs.Files.{ TemporaryFile }
 
 import scala.xml._

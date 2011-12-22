@@ -254,6 +254,20 @@ trait Enumeratee[From, To] {
 
 object Enumeratee {
 
+
+
+  trait CheckDone[From, To] extends Enumeratee[From, To] {
+
+    def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
+
+    def apply[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = 
+      it.pureFlatFold(
+        (_, _) => Done(it, Input.Empty),
+        k => continue(k),
+        (_, _) => Done(it, Input.Empty))
+
+  }
+
   def map[E] = new {
     def apply[NE](f: E => NE): Enumeratee[E, NE] = new Enumeratee[E, NE] {
 
