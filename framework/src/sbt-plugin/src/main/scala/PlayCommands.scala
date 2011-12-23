@@ -231,7 +231,7 @@ trait PlayCommands {
     IO.write(start,
       """|#! /usr/bin/env sh
          |
-         |java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |java "$@" -cp "`dirname $0`/staged/*" -Dhttp.port=${PORT:-9000} play.core.server.NettyServer `dirname $0`/..
          |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
