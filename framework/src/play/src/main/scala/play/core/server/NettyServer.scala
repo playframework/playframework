@@ -33,7 +33,7 @@ trait ServerWithStop {
   def stop(): Unit
 }
 
-class NettyServer(appProvider: => ApplicationProvider, port: Int, mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   def applicationProvider = appProvider
 

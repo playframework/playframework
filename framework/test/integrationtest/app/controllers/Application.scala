@@ -1,18 +1,20 @@
 package controllers
 
 import play.api.mvc._
-import play.api.cache.Cache
-import play.cache.{Cache=>JCache}
+import play.api.Play.current
+import play.api.Configuration
 
+import play.api.cache.Cache
 import play.api.libs.json._
+
 import models._
 import models.Protocol._
-import play.api.Play.current
+
+import play.cache.{Cache=>JCache}
 
 object Application extends Controller {
 
   def index = Action {
-    import play.api.Play.current
     val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello","world")
     val v2 = Cache.get[String]("peter","hello")
@@ -21,14 +23,16 @@ object Application extends Controller {
   }
 
   def conf = Action {
-    import play.api.Configuration
     val config = Configuration.load("conf/my.conf")
     val s = config.get[String]("complex-app.something").getOrElse("boooooo")
-    val c = try { config.underlying.getString("nokey") } catch {
-                 case e: com.typesafe.config.ConfigException => "None"
-                }
+    val c = try { 
+      config.underlying.getString("nokey") 
+    } catch {
+      case e: com.typesafe.config.ConfigException => "None"
+    }
     Ok(s + " no key: " + c)
   }
+  
   def post = Action {
     Ok(views.html.index("POST!"))
   }

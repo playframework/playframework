@@ -16,7 +16,7 @@ echo "[info]"
 echo "[info] ---- RUNNING FRAMEWORK SPECS"
 echo "[info]"
 
-./build -Dsbt.log.noformat=true test
+./build test
 
 rm -rf ./logs
 
@@ -26,7 +26,25 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
+cd $CURRENT
+
+cd ./test/integrationtest-java
+
+echo "[info]"
+echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
+echo "[info]"
+
+$PLAY clean test
+cd $CURRENT
+
+cd ./test/integrationtest-scala
+
+echo "[info]"
+echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
+echo "[info]"
+
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -38,7 +56,7 @@ echo "[info] ---- TESTING JAVA/HELLOWORLD"
 echo "[info]"
 
 cd ../samples/java/helloworld
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -46,7 +64,7 @@ echo "[info] ---- TESTING JAVA/COMPUTER-DATABASE"
 echo "[info]"
 
 cd ../samples/java/computer-database
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -54,7 +72,7 @@ echo "[info] ---- TESTING JAVA/ZENTASK"
 echo "[info]"
 
 cd ../samples/java/zentasks
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -62,7 +80,7 @@ echo "[info] ---- TESTING SCALA/HELLOWORLD"
 echo "[info]"
 
 cd ../samples/scala/helloworld
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -70,7 +88,7 @@ echo "[info] ---- TESTING SCALA/COMPUTER-DATABASE"
 echo "[info]"
 
 cd ../samples/scala/computer-database
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -78,7 +96,7 @@ echo "[info] ---- TESTING SCALA/ZENTASK"
 echo "[info]"
 
 cd ../samples/scala/zentasks
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT
 
 echo "[info]"
@@ -86,5 +104,5 @@ echo "[info] ---- TESTING SCALA/PI-CALCULATOR"
 echo "[info]"
 
 cd ../samples/workinprogress/pi-calculator
-$PLAY -Dsbt.log.noformat=true clean test
+$PLAY clean test
 cd $CURRENT

@@ -2,6 +2,8 @@ package play.test;
 
 import play.*;
 
+import java.util.*;
+
 import org.openqa.selenium.*;
 
 import fr.javafreelance.fluentlenium.core.*;
@@ -25,6 +27,18 @@ public class TestBrowser extends Fluent {
     
     public String url() {
         return super.url();
+    }
+    
+    public String pageSource() {
+        return super.pageSource();
+    }
+    
+    public Set<Cookie> getCookies() {
+        return getDriver().manage().getCookies();
+    }
+    
+    public Cookie getCookieNamed(String name) {
+        return getDriver().manage().getCookieNamed(name);
     }
     
     public void quit() {

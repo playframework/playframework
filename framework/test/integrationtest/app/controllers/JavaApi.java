@@ -5,12 +5,13 @@ import java.util.*;
 import play.*;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
+
 import static play.libs.Json.toJson;
 
 public class JavaApi extends Controller {
 
     public static Result headers() {
-       return ok(request().headers().get("HOST")[0]);
+       return ok(request().getHeader(HOST));
     }
 
     public static Result index() {

@@ -386,7 +386,10 @@ class EvolutionsPlugin(app: Application) extends Plugin {
       case (db, (ds, _)) => {
         val script = evolutionScript(api, app.path, db)
         if (!script.isEmpty) {
-          throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+          app.mode match {
+            case Mode.Test => OfflineEvolutions.applyScript(db)
+            case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+          }
         }
       }
     }
@@ -422,8 +425,10 @@ object OfflineEvolutions {
         Configuration.fromFile(new File(applicationPath, "conf/application.conf")).sub("db." + dbName), classloader)))
     val script = Evolutions.evolutionScript(api, applicationPath, dbName)
 
-    Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
-
+    if(!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+      Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))  
+    }
+    
     Evolutions.applyScript(api, dbName, script)
 
   }

@@ -9,20 +9,28 @@ case class FakeCookies(cookies: Seq[play.api.mvc.Cookie] = Seq.empty) extends pl
   def get(name: String) = cookies.find(_.name == name)
 }
 
-case class FakeRequest[A](method: String, uri: String, body: A) extends play.api.mvc.Request[A] {
-  
-  val headers = FakeHeaders()
-  val cookies = FakeCookies()
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, cookies: FakeCookies, body: A) extends play.api.mvc.Request[A] {
   
   lazy val path = uri.split('?').take(1).mkString
   lazy val queryString = play.core.parsers.UrlFormEncodedParser.parse(rawQueryString)
+  
+  def withHeaders(newHeaders: (String,String)*): FakeRequest[A] = {
+    copy(headers = FakeHeaders(
+      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
+    ))
+  }
 
 }
 
 object FakeRequest {
   
-  def apply(): FakeRequest[play.api.mvc.AnyContent] = FakeRequest("GET", "/", play.api.mvc.AnyContentAsEmpty)
-  def apply(method: String, path: String): FakeRequest[play.api.mvc.AnyContent] = FakeRequest(method, path, play.api.mvc.AnyContentAsEmpty)
+  def apply(): FakeRequest[play.api.mvc.AnyContent] = {
+    FakeRequest("GET", "/", FakeHeaders(), FakeCookies(), play.api.mvc.AnyContentAsEmpty)
+  }
+  
+  def apply(method: String, path: String): FakeRequest[play.api.mvc.AnyContent] = {
+    FakeRequest(method, path, FakeHeaders(), FakeCookies(), play.api.mvc.AnyContentAsEmpty)
+  }
   
 }
 

@@ -182,7 +182,7 @@ object DBApi {
     conf.getString("initSQL").map(datasource.setInitSQL(_))
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
     conf.getInt("maxConnectionAge").map(datasource.setMaxConnectionAgeInSeconds(_))
-    conf.getBoolean("disableJMX").map(datasource.setDisableJMX(_))
+    conf.getBoolean("disableJMX").orElse(Some(true)).map(datasource.setDisableJMX(_))
 
     // Bind in JNDI
     conf.getString("jndiName").map { name =>
@@ -298,7 +298,10 @@ class DBPlugin(app: Application) extends Plugin {
       case (name, (ds, config)) => {
         try {
           ds.getConnection.close()
-          Logger("play").info("database [" + name + "] connected at " + ds.getJdbcUrl)
+          app.mode match {
+            case Mode.Test =>
+            case mode => Logger("play").info("database [" + name + "] connected at " + ds.getJdbcUrl)
+          }
         } catch {
           case e => {
             throw app.configuration.reportError(config, "Cannot connect to database at [" + ds.getJdbcUrl + "]", Some(e.getCause))

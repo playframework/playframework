@@ -398,6 +398,9 @@ public class Results {
         }
 
         public Status(play.api.mvc.Results.Status status, String content, Codec codec) {
+            if(content == null) {
+                throw new NullPointerException("null content");
+            }
             wrappedResult = status.apply(
                 content,
                 play.core.j.JResults.writeString(codec),
@@ -406,6 +409,9 @@ public class Results {
         }
 
         public Status(play.api.mvc.Results.Status status, Content content, Codec codec) {
+            if(content == null) {
+                throw new NullPointerException("null content");
+            }
             wrappedResult = status.apply(
                 content,
                 play.core.j.JResults.writeContent(codec),

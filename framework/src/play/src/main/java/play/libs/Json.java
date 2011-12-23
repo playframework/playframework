@@ -25,7 +25,7 @@ public class Json {
     * @param data to be serialized 
     */
    public static play.mvc.Content toJson(final Object data) {
-     return new play.api.mvc.Content() {
+     return new play.mvc.Content() {
         public String body() {
             ObjectMapper mapper = new ObjectMapper();
             StringWriter w = new StringWriter();

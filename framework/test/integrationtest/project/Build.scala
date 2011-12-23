@@ -3,7 +3,7 @@ import Keys._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "helloworld"
+    val appName         = "integrationtest"
     val appVersion      = "0.1"
 
     val appDependencies = Nil 
