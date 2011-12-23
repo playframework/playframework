@@ -79,14 +79,14 @@ object PlayBuild extends Build {
       settings = buildSettings ++ Seq(
         sbtPlugin := true,
         libraryDependencies := sbtDependencies,
-        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse" % "2.0.0-SNAPSHOT"), // Despite of the name, _addSbtPlugin_ just adds a libraryDepencendy
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-M2"), // Despite of the name, _addSbtPlugin_ just adds a libraryDepencendy
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
-        resolvers ++= Seq(DefaultMavenRepository, typesafe, Classpaths.typesafeSnapshots), // TODO Remove _Classpaths.typesafeSnapshots_ when using sbteclipse release version!
+        resolvers ++= Seq(DefaultMavenRepository, typesafe),
         ivyLoggingLevel := UpdateLogging.DownloadOnly,
         projectDependencies := Seq(
           "play" %% "play" % buildVersion notTransitive(),
