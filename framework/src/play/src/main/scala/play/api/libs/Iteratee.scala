@@ -232,9 +232,11 @@ trait Enumerator[+E] {
 }
 
 trait Enumeratee[From, To] {
-  self =>
+  parent  =>
 
-  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
+  def applyOn[A, EE >: To](inner: Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]]
+
+  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn[A,To](inner)
 
   def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
 
@@ -244,8 +246,8 @@ trait Enumeratee[From, To] {
 
   def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
     new Enumeratee[From, To2] {
-      def apply[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
-        self(other(iteratee)).joinI
+      def applyOn[A, EE >: To2](iteratee: Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]] = {
+        parent.applyOn(other.applyOn(iteratee)).joinI
       }
     }
   }
@@ -258,9 +260,9 @@ object Enumeratee {
 
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
-    def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
+    def continue[A,EE >: To](k: Input[EE] => Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]]
 
-    def apply[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = 
+    def applyOn[A, EE >: To](it: Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]] = 
       it.pureFlatFold(
         (_, _) => Done(it, Input.Empty),
         k => continue(k),
@@ -271,9 +273,9 @@ object Enumeratee {
   def map[E] = new {
     def apply[NE](f: E => NE): Enumeratee[E, NE] = new Enumeratee[E, NE] {
 
-      def apply[A](iteratee: Iteratee[NE, A]): Iteratee[E, Iteratee[NE, A]] = {
+      def applyOn[A, EE >: NE](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
 
-        def step(inner: Iteratee[NE, A])(in: Input[E]): Iteratee[E, Iteratee[NE, A]] = {
+        def step(inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
 
           in match {
 
@@ -304,9 +306,9 @@ object Enumeratee {
 
   def take[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A, EE >: E](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
 
-      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+      def step(counter: Int, inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
 
         in match {
           case Input.El(e) if counter <= 0 => Done(inner, in)
@@ -335,9 +337,9 @@ object Enumeratee {
 
   def drop[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A, EE >: E](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
 
-      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+      def step(counter: Int, inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
 
         in match {
 
@@ -367,9 +369,9 @@ object Enumeratee {
 
   def takeWhile[E](p: E => Boolean): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A, EE >: E](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
 
-      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+      def step(inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
 
         in match {
           case Input.El(e) if !p(e) => Done(inner, in)
@@ -393,8 +395,8 @@ object Enumeratee {
   }
 
   def breakE[E](p: E => Boolean) = new Enumeratee[E, E] {
-    def apply[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
-      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A, EE >: E](inner: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
+      def step(inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
         in match {
           case Input.El(e) if (p(e)) => Done(inner, in)
           case _ =>
@@ -519,7 +521,7 @@ object Parsing {
       byte => map.get(byte).map(_ + 1).getOrElse(fullJump)
     }
 
-    def apply[A](inner: Iteratee[MatchInfo[Array[Byte]], A]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
+    def applyOn[A, EE >: MatchInfo[Array[Byte]]](inner: Iteratee[EE, A]): Iteratee[Array[Byte], Iteratee[EE, A]] = {
 
       Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
         k => Promise.pure(Cont(step(Array[Byte](), Cont(k)))),
@@ -550,7 +552,7 @@ object Parsing {
       }
     }
 
-    def step[A](rest: Array[Byte], inner: Iteratee[MatchInfo[Array[Byte]], A])(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
+    def step[A, EE >: MatchInfo[Array[Byte]]](rest: Array[Byte], inner: Iteratee[EE, A])(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[EE, A]] = {
 
       in match {
         case Input.Empty => Cont(step(rest, inner)) //here should rather pass Input.Empty along
@@ -571,7 +573,7 @@ object Parsing {
               }
               fed.flatMap {
                 case (ss, i) => i.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
-                  k => Promise.pure(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
+                  k => Promise.pure(Cont[Array[Byte], Iteratee[EE, A]]((in: Input[Array[Byte]]) => in match {
                     case Input.EOF => Done(k(Input.El(Unmatched(suffix))), Input.EOF) //suffix maybe empty
                     case other => step(ss ++ suffix, Cont(k))(other)
                   })),

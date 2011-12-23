@@ -403,7 +403,7 @@ trait Results {
      * @param content Enumerator providing the chunked content.
      * @param a `ChunkedResult`
      */
-    def apply[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
+    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         iteratee => iteratee <<: content)
@@ -416,7 +416,7 @@ trait Results {
      * @param content A function that will give you the Iteratee to write in once ready.
      * @param a `ChunkedResult`
      */
-    def apply[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
+    def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         content)

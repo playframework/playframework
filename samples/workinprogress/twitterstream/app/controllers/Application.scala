@@ -4,8 +4,8 @@ import views._
 
 import play.Logger
 import play.api._
-import play.api.ws._
-import play.api.oauth._
+import play.api.libs.ws._
+import play.api.libs.oauth._
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.concurrent._
@@ -26,7 +26,7 @@ object Application extends Controller {
     val tokens = Twitter.sessionTokenPair(request).get
     val toComet = Enumeratee.map[Array[Byte]](bytes => new String(bytes)) ><> Comet(callback = "window.parent.twitts")(Comet.CometMessage(identity))
 
-    Ok { socket: Socket.Out[play.api.templates.Html] =>
+    Ok.stream { socket: Socket.Out[play.api.templates.Html] =>
       WS.url("https://stream.twitter.com/1/statuses/filter.json?track=" + term)
         .sign(OAuthCalculator(Twitter.KEY, tokens))
         .get(res => toComet |> socket)

@@ -2,19 +2,25 @@ package play.api.libs.iteratee
 
 object Traversable {
 
-  def passAlong[M] = new Enumeratee[M, M] {
-    def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
-      it.mapDone(a => Done(a, Input.Empty))
 
+  def passAlong[M] = new Enumeratee.CheckDone[M,M]{
+
+    def continue[A,EE >: M](f: Input[EE] => Iteratee[EE, A]): Iteratee[M, Iteratee[EE, A]] = {
+      Cont(from => { 
+        val next = f(from)
+        next.pureFlatFold(
+          (_,_) => Done(next,from),
+          k => continue(k),
+          (_,_) => Done(next,from)) } )
     }
 
   }
 
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
-    def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
+    def applyOn[A, EE >: M](it: Iteratee[EE, A]): Iteratee[M, Iteratee[EE, A]] = {
 
-      def step(inner: Iteratee[M, A], leftToTake: Int)(in: Input[M]): Iteratee[M, Iteratee[M, A]] = {
+      def step(inner: Iteratee[EE, A], leftToTake: Int)(in: Input[M]): Iteratee[M, Iteratee[EE, A]] = {
         in match {
           case in @ Input.El(e) =>
             inner.pureFlatFold(
@@ -39,9 +45,9 @@ object Traversable {
 
   def take[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
-    def apply[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
+    def applyOn[A, EE >: M](it: Iteratee[EE, A]): Iteratee[M, Iteratee[EE, A]] = {
 
-      def step(inner: Iteratee[M, A], leftToTake: Int)(in: Input[M]): Iteratee[M, Iteratee[M, A]] = {
+      def step(inner: Iteratee[EE, A], leftToTake: Int)(in: Input[M]): Iteratee[M, Iteratee[EE, A]] = {
         in match {
           case in @ Input.El(e) =>
             e.splitAt(leftToTake) match {
@@ -66,9 +72,9 @@ object Traversable {
 
   def drop[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
-    def apply[A](inner: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
+    def applyOn[A, EE >: M](inner: Iteratee[EE, A]): Iteratee[M, Iteratee[EE, A]] = {
 
-      def step(it: Iteratee[M, A], leftToDrop: Int)(in: Input[M]): Iteratee[M, Iteratee[M, A]] = {
+      def step(it: Iteratee[EE, A], leftToDrop: Int)(in: Input[M]): Iteratee[M, Iteratee[EE, A]] = {
         in match {
           case in @ Input.El(e) =>
             val left = leftToDrop - e.size
@@ -78,7 +84,7 @@ object Traversable {
                 val toPass = if (i < 0) Input.El(e.drop(leftToDrop)) else Input.Empty
                 it.pureFlatFold(
                   (_, _) => Done(it, toPass),
-                  k => passAlong(k(toPass)),
+                  k => passAlong.applyOn(k(toPass)),
                   (_, _) => Done(it, toPass))
 
             }
