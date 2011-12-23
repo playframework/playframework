@@ -27,9 +27,17 @@ public class Scala {
     public static <T> scala.collection.Seq<T> toSeq(T[] array) {
         return toSeq(java.util.Arrays.asList(array));
     }
+    
+    public static <T> scala.collection.Seq<T> varargs(T... array) {
+        return toSeq(java.util.Arrays.asList(array));
+    }
 
     public static <T> scala.Option<T> Option(T t) {
         return scala.Option.apply(t);
+    }
+    
+    public static <A,B> scala.Tuple2<A,B> Tuple(A a, B b) {
+        return new scala.Tuple2(a, b);
     }
 
     //

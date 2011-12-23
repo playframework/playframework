@@ -164,6 +164,21 @@ public class Http {
          * @return headers
          */
         public abstract java.util.Map<String,String[]> headers();
+        
+        public String getHeader(String headerName) {
+            String[] headers = null;
+            for(String h: headers().keySet()) {
+                if(headerName.toLowerCase().equals(h.toLowerCase())) {
+                    headers = headers().get(h);
+                    break;
+                }
+            }
+            if(headers == null || headers.length == 0) {
+                return null;
+            }
+            return headers[0];
+        }
+        
         // -- username
 
         private String username = null;
@@ -658,7 +673,7 @@ public class Http {
     /**
      * Defines all standard HTTP status codes.
      */
-    public static class Status {
+    public static interface Status {
 
         int CONTINUE = 100;
         int SWITCHING_PROTOCOLS = 101;

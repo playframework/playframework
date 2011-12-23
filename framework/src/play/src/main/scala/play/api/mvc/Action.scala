@@ -7,6 +7,22 @@ import play.api.libs.iteratee._
  */
 trait Handler
 
+class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(implicit handlerInvoker: play.core.Router.HandlerInvoker[T]) extends play.mvc.HandlerRef {
+
+  def handler: play.api.mvc.Handler = {
+    handlerInvoker.call(callValue, handlerDef)
+  }
+
+  lazy val sym = {
+    handlerDef.controller + "." + handlerDef.method + "(" + handlerDef.parameterTypes.map(_.getName).mkString(", ") + ")"
+  }
+
+  override def toString = {
+    "HandlerMock[" +  sym + ")]"
+  }
+
+}
+
 /**
  * An action is essentially a (Request[A] => Result) function that
  * handles a request and generates a result to be sent to the client.

@@ -214,7 +214,9 @@ object Router {
                     |%s
                     |
                     |%s
-                """.stripMargin.format(path, hash, date, reverseRouting(routes), javaScriptReverseRouting(routes))),
+                    |
+                    |%s
+                """.stripMargin.format(path, hash, date, reverseRouting(routes), javaScriptReverseRouting(routes), refReverseRouting(routes))),
         ("routes_routing.scala",
           """ |// @SOURCE:%s
                     |// @HASH:%s
@@ -256,11 +258,15 @@ object Router {
                                 |%s
                                 |public static class javascript {
                                 |%s    
-                                |}    
+                                |}   
+                                |public static class ref {
+                                |%s    
+                                |} 
                                 |}
                             """.stripMargin.format(
                   path, hash, date,
                   packageName,
+                  
                   routes.groupBy(_.call.controller).map {
                     case (controller, routes) => {
                       val fields = routes.groupBy(_.call.field)
@@ -276,11 +282,20 @@ object Router {
                       }
                     }
                   }.mkString("\n"),
+                  
                   routes.groupBy(_.call.controller).map {
                     case (controller, _) => {
                       "public static final " + packageName + ".javascript.Reverse" + controller + " " + controller + " = new " + packageName + ".javascript.Reverse" + controller + "();"
                     }
-                  }.mkString("\n"))
+                  }.mkString("\n"),
+                  
+                  routes.groupBy(_.call.controller).map {
+                    case (controller, _) => {
+                      "public static final " + packageName + ".ref.Reverse" + controller + " " + controller + " = new " + packageName + ".ref.Reverse" + controller + "();"
+                    }
+                  }.mkString("\n")
+                  
+                  )
 
               }
 
@@ -464,6 +479,89 @@ object Router {
         }
       }.mkString("\n")
 
+    }
+    
+    /**
+     * Generate the routing refs
+     */
+    def refReverseRouting(routes: List[Route]) = {
+
+      routes.groupBy(_.call.packageName).map {
+        case (packageName, routes) => {
+
+          """
+                        |%s
+                        |package %s.ref {
+                        |%s
+                        |}
+                    """.stripMargin.format(
+            markLines(routes: _*),
+            packageName,
+
+            routes.groupBy(_.call.controller).map {
+              case (controller, routes) =>
+                """
+                                |%s
+                                |class Reverse%s {
+                                |    
+                                |%s
+                                |    
+                                |}
+                            """.stripMargin.format(
+                  markLines(routes: _*),
+
+                  // alias
+                  controller.replace(".", "_"),
+
+                  // group by field
+                  routes.groupBy(_.call.field).map {
+                    case (field, routes) => {
+
+                      """
+                        |%s
+                        |%s
+                        |%s
+                      """.stripMargin.format(
+                        field.map(f => "class Reverse" + controller.replace(".", "_") + "_" + f + " {").getOrElse(""),
+
+                          // reverse method
+                          routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(p => p.typeName))).map {
+                            case ((m, _), routes) =>
+
+                              assert(routes.size > 0, "Empty routes set???")
+                              
+                              val route = routes(0)
+
+                              val parameters = route.call.parameters.getOrElse(Nil)
+
+                              val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
+
+                              """ 
+                                  |%s
+                                  |def %s(%s) = new play.api.mvc.HandlerRef(
+                                  |   %s, HandlerDef(this, "%s", "%s", %s)
+                                  |)
+                              """.stripMargin.format(
+                                markLines(route),
+                                route.call.method,
+                                reverseSignature,
+                                packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + {parameters.map(_.name).mkString(", ")} + ")",
+                                packageName + "." + controller + route.call.field.map(_ + ".").getOrElse(""),
+                                route.call.method,
+                                "Seq(" + {parameters.map("classOf[" + _.typeName + "]").mkString(", ")} + ")")
+
+                          }.mkString("\n"),
+                        
+
+                        field.map(_ => "}").getOrElse(""))
+
+                    }
+
+                  }.mkString("\n"))
+            }.mkString("\n"))
+
+        }
+      }.mkString("\n")
     }
 
     /**
@@ -951,6 +1049,38 @@ object Router {
   def queryString(items: List[Option[String]]) = {
     Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
   }
+  
+  // HandlerInvoker
+  
+  @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an Handler")
+  trait HandlerInvoker[T] {
+    def call(call: => T, handler: HandlerDef): Handler
+  }
+
+  object HandlerInvoker {
+
+    implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
+      def call(call: => A, handler: HandlerDef): Handler = call
+    }
+
+    implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
+      def call(call: => play.mvc.Result, handler: HandlerDef) = {
+        new play.core.j.JavaAction {
+          def invocation = call
+          def controller = handler.getControllerClass
+          def method = controller.getDeclaredMethod(handler.method, handler.parameterTypes.map {
+            case c if c == classOf[Long] => classOf[java.lang.Long]
+            case c => c
+          }: _*)
+        }
+      }
+    }
+
+    implicit def javaStringWebSocket: HandlerInvoker[play.mvc.WebSocket[String]] = new HandlerInvoker[play.mvc.WebSocket[String]] {
+      def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
+    }
+
+  }
 
   trait Routes {
 
@@ -1094,36 +1224,6 @@ object Router {
 
     def handlerFor(request: RequestHeader): Option[Handler] = {
       routes.lift(request)
-    }
-
-    @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an Handler")
-    trait HandlerInvoker[T] {
-      def call(call: => T, handler: HandlerDef): Handler
-    }
-
-    object HandlerInvoker {
-
-      implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
-        def call(call: => A, handler: HandlerDef): Handler = call
-      }
-
-      implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
-        def call(call: => play.mvc.Result, handler: HandlerDef) = {
-          new play.core.j.JavaAction {
-            def invocation = call
-            def controller = handler.getControllerClass
-            def method = controller.getDeclaredMethod(handler.method, handler.parameterTypes.map {
-              case c if c == classOf[Long] => classOf[java.lang.Long]
-              case c => c
-            }: _*)
-          }
-        }
-      }
-
-      implicit def javaStringWebSocket: HandlerInvoker[play.mvc.WebSocket[String]] = new HandlerInvoker[play.mvc.WebSocket[String]] {
-        def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
-      }
-
     }
 
     def invokeHandler[T](call: => T, handler: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {

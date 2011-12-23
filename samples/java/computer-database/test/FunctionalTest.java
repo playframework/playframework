@@ -1,35 +1,24 @@
+package test;
+
 import org.junit.*;
+
+import play.mvc.*;
 import play.test.*;
-import static play.test.IntegrationTest.*;
-import java.util.*;
-import play.api.mvc.*;
-import play.Logger;
-import fr.javafreelance.fluentlenium.core.test.FluentTest;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
-import org.openqa.selenium.WebDriver;
-import static org.junit.Assert.assertEquals;
+import play.libs.F.*;
 
-public class FunctionalTest extends FluentTest{
+import static play.test.Helpers.*;
+import static org.fest.assertions.Assertions.*;
+
+public class FunctionalTest {
+    
+    @Test
+    public void test() {
+        running(testServer(9001), HTMLUNIT, new Callback<TestBrowser>() {
+            public void invoke(TestBrowser browser) {
+                browser.goTo("http://localhost:9001");
+                assertThat(browser.$("#homeTitle").getTexts().get(0)).isEqualTo("574 computers found");
+            }
+        });
+    }
   
-  public WebDriver webDriver = new HtmlUnitDriver();
-
-  @Override
-  public WebDriver getDefaultDriver() {
-        return webDriver;
-  }
-
-  @Before public void init() {
-    Logger.warn("starting FunctionalTest...");
-    play.api.db.evolutions.OfflineEvolutions.applyScript("default");
-  }
-
-  @Test public void Test() {
-     withNettyServer(new Runnable() {
-          public void run() {
-            goTo("http://localhost:9001");
-            boolean cond =  pageSource().contains("574 computers found");
-            assertEquals(cond, true);
-          }});
-  }
-
 }

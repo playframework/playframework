@@ -37,7 +37,7 @@
 
 @main {
     
-    <h1>@Messages("computers.list.title", currentPage.getTotalRowCount)</h1>
+    <h1 id="homeTitle">@Messages("computers.list.title", currentPage.getTotalRowCount)</h1>
 
     @if(flash.containsKey("success")) {
         <div class="alert-message warning">

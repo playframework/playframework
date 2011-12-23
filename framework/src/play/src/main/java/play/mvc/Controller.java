@@ -1,7 +1,6 @@
 package play.mvc;
 
 import play.api.*;
-import play.api.mvc.Content;
 
 import play.mvc.Http.*;
 import play.mvc.Result.*;
@@ -13,7 +12,7 @@ import java.util.*;
 /**
  * Superclass for a Java-based controller.
  */
-public abstract class Controller extends Results {
+public abstract class Controller extends Results implements Status, HeaderNames {
     
     /**
      * Returns the current HTTP context.

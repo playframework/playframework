@@ -5,6 +5,7 @@ import play.api.mvc._
 
 import java.io._
 import java.net._
+
 import akka.dispatch.Future
 
 trait SourceMapper {
@@ -32,12 +33,21 @@ trait ApplicationProvider {
 }
 
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
-  val application = Application(applicationPath, classOf[StaticApplication].getClassLoader, None, Play.Mode.Prod)
+  
+  val application = new Application(applicationPath, this.getClass.getClassLoader, None, Mode.Prod)
 
   Play.start(application)
 
   def get = Right(application)
   def path = applicationPath
+}
+
+class TestApplication(application: Application) extends ApplicationProvider {
+  
+  Play.start(application)
+
+  def get = Right(application)
+  def path = application.path
 }
 
 trait SBTLink {
@@ -83,9 +93,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 println()
               }
 
-              val newApplication = Application(path, classloader, Some(new SourceMapper {
+              val newApplication = new Application(path, classloader, Some(new SourceMapper {
                 def sourceOf(className: String) = sbtLink.findSource(className)
-              }), Play.Mode.Dev)
+              }), Mode.Dev)
 
               Play.start(newApplication)
 

@@ -58,6 +58,20 @@ object PlayBuild extends Build {
             ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(TemplatesProject, AnormProject)
+    
+    lazy val PlayTestProject = Project(
+      "Play-Test",
+      file("src/play-test"),
+      settings = buildSettings ++ Seq(
+        libraryDependencies := testDependencies,
+        publishMavenStyle := false,
+        publishTo := Some(playRepository),
+        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        publishArtifact in (Compile, packageDoc) := false,
+        publishArtifact in (Compile, packageSrc) := false,
+        resolvers ++= Seq(DefaultMavenRepository, typesafe)
+      )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*).dependsOn(PlayProject)
 
     lazy val SbtPluginProject = Project(
       "SBT-Plugin",
@@ -109,10 +123,10 @@ object PlayBuild extends Build {
             distTask,
             generateAPIDocsTask,
             ivyLoggingLevel := UpdateLogging.DownloadOnly,
-            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject) map { (_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject) map { (_,_,_,_,_) => }
+            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
+            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
         )
-    ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject)
+    ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
 
     object BuildSettings {
 
@@ -183,8 +197,7 @@ object PlayBuild extends Build {
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
-            "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
+            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test"
         )
 
         val sbtDependencies = Seq(            
@@ -194,7 +207,7 @@ object PlayBuild extends Build {
           "org.avaje"                           %    "ebean"                    %   "2.7.3",
           "com.h2database"                      %    "h2"                       %   "1.3.158",
           "javassist"                           %    "javassist"                %   "3.12.1.GA",
-          "org.scalaz"                          %%   "scalaz-core"              % "6.0.3"
+          "org.scalaz"                          %%   "scalaz-core"              %   "6.0.3"
         )
 
         val consoleDependencies = Seq(
@@ -209,6 +222,12 @@ object PlayBuild extends Build {
 
         val anormDependencies = Seq(
             "org.scala-lang"                    %    "scalap"                   %   buildScalaVersion 
+        )
+        
+        val testDependencies = Seq(
+            "org.specs2"                        %%   "specs2"                   %   "1.6.1",
+            "com.novocode"                      %    "junit-interface"          %   "0.7",
+            "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"
         )
 
     }

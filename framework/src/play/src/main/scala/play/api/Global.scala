@@ -60,9 +60,9 @@ trait GlobalSettings {
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
    * @see onActionNotFound
    */
-  def onRouteRequest(request: RequestHeader): Option[Handler] = Play._currentApp.routes.flatMap { router =>
+  def onRouteRequest(request: RequestHeader): Option[Handler] = Play.maybeApplication.flatMap(_.routes.flatMap { router =>
     router.handlerFor(request)
-  }
+  })
 
   /**
    * Called when an exception occurred.
@@ -74,8 +74,8 @@ trait GlobalSettings {
    * @return The result to send to the client
    */
   def onError(request: RequestHeader, ex: Throwable): Result = {
-    InternalServerError(Option(Play._currentApp).map {
-      case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devError.f
+    InternalServerError(Play.maybeApplication.map {
+      case app if app.mode == Mode.Dev => views.html.defaultpages.devError.f
       case app => views.html.defaultpages.error.f
     }.getOrElse(views.html.defaultpages.devError.f) {
       ex match {
@@ -94,10 +94,10 @@ trait GlobalSettings {
    * @return the result to send to the client
    */
   def onHandlerNotFound(request: RequestHeader): Result = {
-    NotFound(Option(Play._currentApp).map {
-      case app if app.mode == Play.Mode.Dev => views.html.defaultpages.devNotFound.f
+    NotFound(Play.maybeApplication.map {
+      case app if app.mode == Mode.Dev => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
-    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Option(Play._currentApp).flatMap(_.routes)))
+    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.flatMap(_.routes)))
   }
 
   /**

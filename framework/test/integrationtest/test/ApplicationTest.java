@@ -1,26 +1,32 @@
 package test;
 
 import org.junit.*;
-import static org.junit.Assert.assertEquals;
+
+import play.mvc.*;
 import play.test.*;
-import play.api.test.ResultData;
-import java.util.*;
-import play.api.mvc.*;
-import play.Logger;
+import play.libs.F.*;
 
-public class ApplicationTest extends MockApplication{
+import static play.test.Helpers.*;
+import static org.fest.assertions.Assertions.*;
 
-  @Before public void init() {
-    injectGlobalMock(new ArrayList<String>(), MockData.dataSource());  
-    Logger.warn("starting ApplicationTest...");
-  }
+public class ApplicationTest {
+    
+    @Test 
+    public void compute() {
+        assertThat(1 + 1).isEqualTo(2);
+    }
 
-  @Test public void Test() {
-    Action action = controllers.Application.index_java_cache();
-    ResultData result = Extract.from(action.apply(new FakeRequest()));
-    assertEquals(result.body().toString().contains("Hello world"),true);
-  }
-  @After public void after() {
-   clearMock();
-  }
+    @Test 
+    public void test() {
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                Result result = callAction(
+                    controllers.routes.ref.JavaApi.headers(),
+                    fakeRequest().withHeader(HOST, "playframework.org")
+                );
+                assertThat(contentAsString(result)).isEqualTo("playframework.org");
+            }
+        });
+    }
+
 }

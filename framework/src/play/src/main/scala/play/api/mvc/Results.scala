@@ -14,10 +14,25 @@ import play.api.http.HeaderNames._
  * @param status the response status, e.g. ‘200 OK’
  * @param headers the HTTP headers
  */
-case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
+case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty) {
+  
+  override def toString = {
+    status + ", " + headers
+  }
+  
+}
 
 /** Any Action result. */
 sealed trait Result
+
+object Result {
+  
+  def unapply(result: Result): Option[(Int, Map[String, String])] = result match {
+    case r: PlainResult => Some(r.header.status, r.header.headers)
+    case _ => None
+  }
+  
+}
 
 trait PlainResult extends Result {
 
@@ -177,6 +192,10 @@ case class SimpleResult[A](header: ResponseHeader, body: Enumerator[A])(implicit
    */
   def withHeaders(headers: (String, String)*) = {
     copy(header = header.copy(headers = header.headers ++ headers))
+  }
+  
+  override def toString = {
+    "SimpleResult(" + header + ")"
   }
 
 }

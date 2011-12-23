@@ -122,6 +122,13 @@ class Logger(val logger: Slf4jLogger) extends LoggerLike
  *
  */
 object Logger extends LoggerLike {
+  
+  def init(home: java.io.File) {
+    Logger.configure(
+      this.getClass.getClassLoader.getResource("conf/logger.xml"),
+      Map("application.home" -> home.getAbsolutePath),
+      Map.empty)
+  }
 
   /**
    * The 'application' logger.
