@@ -27,21 +27,22 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
   }
 
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE) = {
-    import com.typesafe.sbteclipse._
-
+    import com.typesafe.sbteclipse.EclipsePlugin
+    import com.typesafe.sbteclipse.EclipsePlugin._
     Project(name, path)
       .settings(Seq(testListeners += testListener): _*)
       .settings(parallelExecution in Test := false)
-      .settings(SbtEclipsePlugin.settings: _*)
+      .settings(EclipsePlugin.settings: _*)
+      .settings(
+        EclipseKeys.commandName := "eclipsify", // TODO Still without effect, more work on sbteclipse needed!
+        EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Managed
+      )
       .settings(PlayProject.defaultSettings: _*)
       .settings(whichLang(mainLang): _*)
       .settings(
-
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xcheckinit", "-encoding", "utf8"),
-
         version := applicationVersion,
-
-        libraryDependencies ++= dependencies)
-
+        libraryDependencies ++= dependencies
+      )
   }
 }

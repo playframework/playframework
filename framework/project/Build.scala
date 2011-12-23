@@ -63,20 +63,16 @@ object PlayBuild extends Build {
       "SBT-Plugin",
       file("src/sbt-plugin"),
       settings = buildSettings ++ Seq(
-       
         sbtPlugin := true,
         libraryDependencies := sbtDependencies,
-        libraryDependencies <+= (sbtVersion in update,scalaVersion) { (sbtV, scalaV) => 
-            val sbtEclipseV = "1.5.0"    
-            "com.typesafe.sbteclipse" % ("sbteclipse-" + sbtV) % sbtEclipseV from typesafeRepo+"/com.typesafe.sbteclipse/sbteclipse/scala_"+scalaV+"/sbt_"+sbtV+"/"+sbtEclipseV+"/jars/sbteclipse.jar"}, 
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse" % "2.0.0-SNAPSHOT"), // Despite of the name, _addSbtPlugin_ just adds a libraryDepencendy
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
-        resolvers ++= Seq(DefaultMavenRepository, typesafe),
-
+        resolvers ++= Seq(DefaultMavenRepository, typesafe, Classpaths.typesafeSnapshots), // TODO Remove _Classpaths.typesafeSnapshots_ when using sbteclipse release version!
         ivyLoggingLevel := UpdateLogging.DownloadOnly,
         projectDependencies := Seq(
           "play" %% "play" % buildVersion notTransitive(),
