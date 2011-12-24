@@ -24,7 +24,7 @@ public class TransactionalAction extends Action<Transactional> {
                 tx.begin();
             }
             
-            Result result = deleguate.call(ctx);
+            Result result = delegate.call(ctx);
             
             if(tx != null) {
                 if(tx.getRollbackOnly()) {
