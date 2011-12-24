@@ -79,7 +79,7 @@ object PlayBuild extends Build {
       settings = buildSettings ++ Seq(
         sbtPlugin := true,
         libraryDependencies := sbtDependencies,
-        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-M2"), // Despite of the name, _addSbtPlugin_ just adds a libraryDepencendy
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-M2"), 
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
@@ -206,8 +206,7 @@ object PlayBuild extends Build {
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
           "org.avaje"                           %    "ebean"                    %   "2.7.3",
           "com.h2database"                      %    "h2"                       %   "1.3.158",
-          "javassist"                           %    "javassist"                %   "3.12.1.GA",
-          "org.scalaz"                          %%   "scalaz-core"              %   "6.0.3"
+          "javassist"                           %    "javassist"                %   "3.12.1.GA"
         )
 
         val consoleDependencies = Seq(
