@@ -77,12 +77,9 @@ object PlayBuild extends Build {
       "SBT-Plugin",
       file("src/sbt-plugin"),
       settings = buildSettings ++ Seq(
-       
         sbtPlugin := true,
         libraryDependencies := sbtDependencies,
-        libraryDependencies <+= (sbtVersion in update,scalaVersion) { (sbtV, scalaV) => 
-            val sbtEclipseV = "1.5.0"    
-            "com.typesafe.sbteclipse" % ("sbteclipse-" + sbtV) % sbtEclipseV from typesafeRepo+"/com.typesafe.sbteclipse/sbteclipse/scala_"+scalaV+"/sbt_"+sbtV+"/"+sbtEclipseV+"/jars/sbteclipse.jar"}, 
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-M2"), 
         unmanagedJars in Compile  ++=  sbtJars,
         publishMavenStyle := false,
         publishTo := Some(playRepository),
@@ -90,7 +87,6 @@ object PlayBuild extends Build {
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
-
         ivyLoggingLevel := UpdateLogging.DownloadOnly,
         projectDependencies := Seq(
           "play" %% "play" % buildVersion notTransitive(),
@@ -210,8 +206,7 @@ object PlayBuild extends Build {
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
           "org.avaje"                           %    "ebean"                    %   "2.7.3",
           "com.h2database"                      %    "h2"                       %   "1.3.158",
-          "javassist"                           %    "javassist"                %   "3.12.1.GA",
-          "org.scalaz"                          %%   "scalaz-core"              %   "6.0.3"
+          "javassist"                           %    "javassist"                %   "3.12.1.GA"
         )
 
         val consoleDependencies = Seq(

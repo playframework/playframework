@@ -5,5 +5,5 @@ resolvers ++= Seq(
 
 addSbtPlugin("play" % "sbt-plugin" % "2.0-RC1-SNAPSHOT")
 
-addSbtPlugin("com.typesafe.sbtscalariform" % "sbt-scalariform" % "0.1.4")
+addSbtPlugin("com.typesafe.sbtscalariform" % "sbtscalariform" % "0.3.0")
 

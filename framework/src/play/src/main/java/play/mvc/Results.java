@@ -420,7 +420,7 @@ public class Results {
         }
 
         public <A> Status(play.api.mvc.Results.Status status, Chunks<A> chunks) {
-            wrappedResult = status.apply(chunks.f, chunks.w, chunks.ct);
+            wrappedResult = status.stream(chunks.f, chunks.w, chunks.ct);
         }
 
         public play.api.mvc.Result getWrappedResult() {

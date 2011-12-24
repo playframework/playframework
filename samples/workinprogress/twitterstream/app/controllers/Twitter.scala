@@ -4,8 +4,8 @@ import views._
 
 import play.Logger
 import play.api._
-import play.api.ws._
-import play.api.oauth._
+import play.api.libs.ws._
+import play.api.libs.oauth._
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.concurrent._
