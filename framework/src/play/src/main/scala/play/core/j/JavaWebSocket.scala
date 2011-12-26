@@ -19,7 +19,7 @@ object JavaWebSocket extends JavaHelpers {
       import play.api.libs.iteratee._
 
       val javaWebSocket = try {
-        JContext.current.set(Wrap.createJavaContext(request))
+        JContext.current.set(createJavaContext(request))
         retrieveWebSocket
       } finally {
         JContext.current.remove()
