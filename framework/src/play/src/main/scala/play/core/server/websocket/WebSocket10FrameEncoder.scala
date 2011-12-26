@@ -100,9 +100,9 @@ class WebSocket10FrameEncoder extends OneToOneEncoder {
           } else {
             data
           }
-          return ChannelBuffers.wrappedBuffer(header, body);
+          ChannelBuffers.wrappedBuffer(header, body);
         }
     }
-    return msg;
+    msg
   }
 }

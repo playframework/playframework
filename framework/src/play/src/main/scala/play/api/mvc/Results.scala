@@ -15,23 +15,23 @@ import play.api.http.HeaderNames._
  * @param headers the HTTP headers
  */
 case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty) {
-  
+
   override def toString = {
     status + ", " + headers
   }
-  
+
 }
 
 /** Any Action result. */
 sealed trait Result
 
 object Result {
-  
+
   def unapply(result: Result): Option[(Int, Map[String, String])] = result match {
     case r: PlainResult => Some(r.header.status, r.header.headers)
     case _ => None
   }
-  
+
 }
 
 trait PlainResult extends Result {
@@ -193,7 +193,7 @@ case class SimpleResult[A](header: ResponseHeader, body: Enumerator[A])(implicit
   def withHeaders(headers: (String, String)*) = {
     copy(header = header.copy(headers = header.headers ++ headers))
   }
-  
+
   override def toString = {
     "SimpleResult(" + header + ")"
   }
@@ -406,7 +406,7 @@ trait Results {
     def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        iteratee => iteratee <<: content)
+        iteratee => content |>> iteratee)
     }
 
     /**

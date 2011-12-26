@@ -25,9 +25,9 @@ object JavaWebSocket {
       val socketOut = new play.mvc.WebSocket.Out[String](enumerator)
       val socketIn = new play.mvc.WebSocket.In[String]
 
-      Iteratee.mapChunk_((msg: String) => socketIn.callbacks.asScala.foreach(_.invoke(msg))) <<: in
+      in |>> Iteratee.mapChunk_((msg: String) => socketIn.callbacks.asScala.foreach(_.invoke(msg)))
 
-      out <<: enumerator
+      enumerator |>> out
 
       javaWebSocket.onReady(socketIn, socketOut)
 
@@ -162,7 +162,7 @@ object Wrap {
       def body = req.body
 
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
-      
+
       def queryString = {
         req.queryString.mapValues(_.toArray).asJava
       }

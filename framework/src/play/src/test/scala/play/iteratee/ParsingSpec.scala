@@ -11,7 +11,7 @@ object ParsingSpec extends Specification {
     "split case 1" in {
 
       val data = Enumerator(List("xx", "kxckikixckikio", "cockik", "isdodskikisd", "ksdloii").map(_.getBytes): _*)
-      val parsed = Parsing.search("kiki".getBytes).transform(Iteratee.fold(List.empty[MatchInfo[Array[Byte]]]) { (s, c) => s :+ c }) <<: data
+      val parsed = data |>> Parsing.search("kiki".getBytes).transform(Iteratee.fold(List.empty[MatchInfo[Array[Byte]]]) { (s, c) => s :+ c })
 
       val result = parsed.flatMap(_.run).value.get.map {
         case Matched(kiki) => "Matched(" + new String(kiki) + ")"
@@ -26,7 +26,7 @@ object ParsingSpec extends Specification {
     "split case 1" in {
 
       val data = Enumerator(List("xx", "kxckikixcki", "k", "kicockik", "isdkikodskikisd", "ksdlokiikik", "i").map(_.getBytes): _*)
-      val parsed = Parsing.search("kiki".getBytes).transform(Iteratee.fold(List.empty[MatchInfo[Array[Byte]]]) { (s, c) => s :+ c }) <<: data
+      val parsed = data |>> Parsing.search("kiki".getBytes).transform(Iteratee.fold(List.empty[MatchInfo[Array[Byte]]]) { (s, c) => s :+ c })
 
       val result = parsed.flatMap(_.run).value.get.map {
         case Matched(kiki) => "Matched(" + new String(kiki) + ")"

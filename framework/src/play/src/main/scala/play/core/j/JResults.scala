@@ -22,17 +22,17 @@ object JResults extends Results {
 }
 
 object JResultExtractor {
-  
+
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
     case Result(status, _) => status
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
-  
-  def getHeaders(result: play.mvc.Result): java.util.Map[String,String] = result.getWrappedResult match {
+
+  def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
     case Result(_, headers) => headers.asJava
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
-  
+
   def getBody(result: play.mvc.Result): Array[Byte] = result.getWrappedResult match {
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
@@ -40,5 +40,5 @@ object JResultExtractor {
     }
     case r => sys.error("Cannot extract the body content from a result of type " + r.getClass.getName)
   }
-  
+
 }

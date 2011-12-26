@@ -33,7 +33,7 @@ trait ApplicationProvider {
 }
 
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
-  
+
   val application = new Application(applicationPath, this.getClass.getClassLoader, None, Mode.Prod)
 
   Play.start(application)
@@ -43,7 +43,7 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
 }
 
 class TestApplication(application: Application) extends ApplicationProvider {
-  
+
   Play.start(application)
 
   def get = Right(application)

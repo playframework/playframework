@@ -2,16 +2,16 @@ package play.api.libs.iteratee
 
 object Traversable {
 
+  def passAlong[M] = new Enumeratee.CheckDone[M, M] {
 
-  def passAlong[M] = new Enumeratee.CheckDone[M,M]{
-
-    def continue[A,EE >: M](f: Input[EE] => Iteratee[EE, A]): Iteratee[M, Iteratee[EE, A]] = {
-      Cont(from => { 
+    def continue[A, EE >: M](f: Input[EE] => Iteratee[EE, A]): Iteratee[M, Iteratee[EE, A]] = {
+      Cont(from => {
         val next = f(from)
         next.pureFlatFold(
-          (_,_) => Done(next,from),
+          (_, _) => Done(next, from),
           k => continue(k),
-          (_,_) => Done(next,from)) } )
+          (_, _) => Done(next, from))
+      })
     }
 
   }

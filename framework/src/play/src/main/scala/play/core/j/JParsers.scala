@@ -12,13 +12,13 @@ object JParsers extends BodyParsers {
   import play.mvc.Http.{ RequestBody }
 
   case class DefaultRequestBody(
-    urlFormEncoded: Option[Map[String, Seq[String]]] = None,
-    raw: Option[Array[Byte]] = None,
-    text: Option[String] = None,
-    json: Option[JsValue] = None,
-    xml: Option[NodeSeq] = None,
-    multipart: Option[MultipartFormData[TemporaryFile]] = None,
-    override val isMaxSizeExcedeed: Boolean = false) extends RequestBody {
+      urlFormEncoded: Option[Map[String, Seq[String]]] = None,
+      raw: Option[Array[Byte]] = None,
+      text: Option[String] = None,
+      json: Option[JsValue] = None,
+      xml: Option[NodeSeq] = None,
+      multipart: Option[MultipartFormData[TemporaryFile]] = None,
+      override val isMaxSizeExcedeed: Boolean = false) extends RequestBody {
 
     override lazy val asUrlFormEncoded = {
       urlFormEncoded.map(_.mapValues(_.toArray).asJava).orNull

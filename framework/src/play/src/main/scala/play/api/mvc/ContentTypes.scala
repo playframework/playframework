@@ -255,7 +255,6 @@ trait BodyParsers {
 
             val CRLF = "\r\n".getBytes
             val CRLFCRLF = CRLF ++ CRLF
-            
 
             val takeUpToBoundary = Enumeratee.takeWhile[MatchInfo[Array[Byte]]](!_.isMatch)
 
@@ -273,10 +272,10 @@ trait BodyParsers {
                 (key.trim.toLowerCase, value.mkString.trim)
               }.toMap
 
-              val left = rest.drop( CRLFCRLF.length )
+              val left = rest.drop(CRLFCRLF.length)
 
               Cont(in => Done(headers, in match {
-                case Input.El(e) => Input.El (left ++ e)
+                case Input.El(e) => Input.El(left ++ e)
                 case Input.EOF => Input.El(left)
                 case Input.Empty => Input.El(left)
               }))
