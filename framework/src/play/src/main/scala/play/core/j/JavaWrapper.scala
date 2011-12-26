@@ -179,52 +179,5 @@ object Wrap {
       req.flash.data.asJava)
   }
 
-  /*
-   * converts a Java action into a scala one
-   * @param java result
-   */
-  def toAction(r: play.mvc.Result) = Action { r.getWrappedResult }
-
-  /**
-   * provides user defined request
-   * @param uri
-   * @param method
-   * @param queryString
-   * @param body
-   * @param username
-   * @param path
-   * @param headers
-   * @param cookies
-   */
-
-  def toRequest(_uri: String, _method: String, _queryString: java.util.Map[String, Array[String]],
-    _body: java.util.Map[String, Array[String]], _username: String, _path: String, _headers: java.util.Map[String, Array[String]], _cookies: java.util.Map[String, String]): play.api.mvc.Request[RequestBody] = new play.api.mvc.Request[RequestBody] {
-    def uri = _uri
-    def method = _method
-    def queryString = _queryString.asScala.toMap.map(i => i._1 -> i._2.toSeq)
-    def body: RequestBody = {
-      val anyContent = AnyContentAsUrlFormEncoded(_body.asScala.toMap.map(i => i._1 -> i._2.toSeq))
-      JParsers.DefaultRequestBody(
-        anyContent.asUrlFormEncoded,
-        anyContent.asRaw,
-        anyContent.asText,
-        anyContent.asJson,
-        anyContent.asXml,
-        anyContent.asMultipartFormData)
-    }
-
-    def username = if (_username == null) None else Some(_username)
-    def path = _path
-
-    def headers = new Headers {
-      def getAll(key: String) = _headers.asScala.toMap.get(key).getOrElse(null)
-      def keys = _headers.asScala.toMap.keySet
-    }
-    def cookies = new Cookies {
-      def get(name: String) = {
-        val n = name
-        _cookies.asScala.toMap.get(n).map(c => Cookie(name = n, value = c))
-      }
-    }
-  }
+  
 }
