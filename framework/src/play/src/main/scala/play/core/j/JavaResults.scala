@@ -5,7 +5,10 @@ import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._
 
-object JResults extends Results {
+/**
+ *Java compatible Results
+ */ 
+object JavaResults extends Results {
   def writeContent(codec: Codec): Writeable[Content] = writeableOf_Content[Content](codec)
   def writeString(codec: Codec): Writeable[String] = Writeable.wString(codec)
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes
@@ -21,8 +24,8 @@ object JResults extends Results {
   def chunked[A] = new play.api.libs.iteratee.CallbackEnumerator[A]
 }
 
-object JResultExtractor {
-
+object JavaResultExtractor {
+  
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
     case Result(status, _) => status
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)

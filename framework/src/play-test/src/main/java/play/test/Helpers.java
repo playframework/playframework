@@ -65,15 +65,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
     
     public static int status(Result result) {
-        return play.core.j.JResultExtractor.getStatus(result);
+        return play.core.j.JavaResultExtractor.getStatus(result);
     }
     
     public static String header(String header, Result result) {
-        return play.core.j.JResultExtractor.getHeaders(result).get(header);
+        return play.core.j.JavaResultExtractor.getHeaders(result).get(header);
     }
     
     public static Map<String,String> headers(Result result) {
-        return play.core.j.JResultExtractor.getHeaders(result);
+        return play.core.j.JavaResultExtractor.getHeaders(result);
     }
     
     public static String contentType(Content content) {
@@ -101,7 +101,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
     
     public static byte[] contentAsBytes(Result result) {
-        return play.core.j.JResultExtractor.getBody(result);
+        return play.core.j.JavaResultExtractor.getBody(result);
     }
     
     public static byte[] contentAsBytes(Content content) {

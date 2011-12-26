@@ -7,7 +7,10 @@ import play.api.libs.Files.{ TemporaryFile }
 import scala.xml._
 import scala.collection.JavaConverters._
 
-object JParsers extends BodyParsers {
+/**
+ * provides Java centric BodyParsers
+ */
+object JavaParsers extends BodyParsers {
 
   import play.mvc.Http.{ RequestBody }
 

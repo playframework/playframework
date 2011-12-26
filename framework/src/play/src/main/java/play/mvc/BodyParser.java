@@ -17,61 +17,61 @@ public interface BodyParser {
     
     public static class AnyContent implements BodyParser {        
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.anyContent(maxLength);
+            return play.core.j.JavaParsers.anyContent(maxLength);
         }
     }
     
     public static class Json implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.json(maxLength);
+            return play.core.j.JavaParsers.json(maxLength);
         }
     }
     
     public static class TolerantJson implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.tolerantJson(maxLength);
+            return play.core.j.JavaParsers.tolerantJson(maxLength);
         }
     }
     
     public static class Xml implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.xml(maxLength);
+            return play.core.j.JavaParsers.xml(maxLength);
         }
     }
     
     public static class TolerantXml implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.tolerantXml(maxLength);
+            return play.core.j.JavaParsers.tolerantXml(maxLength);
         }
     }
     
     public static class Text implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.text(maxLength);
+            return play.core.j.JavaParsers.text(maxLength);
         }
     }
     
     public static class TolerantText implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.tolerantText(maxLength);
+            return play.core.j.JavaParsers.tolerantText(maxLength);
         }
     }
     
     public static class Raw implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.raw(maxLength);
+            return play.core.j.JavaParsers.raw(maxLength);
         }
     }
     
     public static class UrlFormEncoded implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.urlFormEncoded(maxLength);
+            return play.core.j.JavaParsers.urlFormEncoded(maxLength);
         }
     }
     
     public static class MultipartFormData implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
-            return play.core.j.JParsers.multipartFormData(maxLength);
+            return play.core.j.JavaParsers.multipartFormData(maxLength);
         }
     }
     

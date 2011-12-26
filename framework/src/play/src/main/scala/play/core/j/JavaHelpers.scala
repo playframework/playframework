@@ -6,85 +6,23 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
 
 import scala.collection.JavaConverters._
 
-object JavaWebSocket {
-
-  def ofString(retrieveWebSocket: => play.mvc.WebSocket[String]) = WebSocket[String] { request =>
-    (in, out) =>
-
-      import play.api.libs.iteratee._
-
-      val javaWebSocket = try {
-        JContext.current.set(Wrap.createJavaContext(request))
-        retrieveWebSocket
-      } finally {
-        JContext.current.remove()
-      }
-
-      val enumerator = new CallbackEnumerator[String]
-
-      val socketOut = new play.mvc.WebSocket.Out[String](enumerator)
-      val socketIn = new play.mvc.WebSocket.In[String]
-
-      in |>> Iteratee.mapChunk_((msg: String) => socketIn.callbacks.asScala.foreach(_.invoke(msg)))
-
-      enumerator |>> out
-
-      javaWebSocket.onReady(socketIn, socketOut)
-
-  }
-
-}
-
-trait JavaAction extends Action[play.mvc.Http.RequestBody] {
-
-  def parser = {
-    Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
-      .filterNot(_ == null)
-      .headOption.map { bodyParserOf =>
-        bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
-      }.getOrElse(JParsers.anyContent(java.lang.Integer.MAX_VALUE))
-  }
-
-  def invocation: JResult
-  def controller: Class[_]
-  def method: java.lang.reflect.Method
-
-  def apply(req: Request[play.mvc.Http.RequestBody]) = {
-
-    val javaContext = Wrap.createJavaContext(req)
-
-    val rootAction = new JAction[Any] {
-
-      def call(ctx: JContext): JResult = {
-        try {
-          JContext.current.set(ctx)
-          invocation
-        } finally {
-          JContext.current.remove()
-        }
-      }
-    }
-
-    val actionMixins = {
-      (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations)
-        .filter(_.annotationType.isAnnotationPresent(classOf[play.mvc.With]))
-        .map(a => a -> a.annotationType.getAnnotation(classOf[play.mvc.With]).value())
-        .reverse
-    }
-
-    val finalAction = actionMixins.foldLeft(rootAction) {
-      case (deleguate, (annotation, actionClass)) => {
-        val action = actionClass.newInstance().asInstanceOf[JAction[Any]]
-        action.configuration = annotation
-        action.deleguate = deleguate
-        action
-      }
-    }
-
-    finalAction.call(javaContext).getWrappedResult match {
-
+/**
+ *
+ * provides helper methods that manage java to scala Result and scala to java Context 
+ * creation
+ */
+trait JavaHelpers {
+  import collection.JavaConverters._
+  import play.api.mvc._
+  import play.mvc.Http.RequestBody
+  
+  /**
+   * creates a scala result from java context and result objects
+   * @param javaContext
+   * @param javaResult
+   */
+  def createResult(javaContext: JContext, javaResult: play.mvc.Result) =  javaResult.getWrappedResult match {
       case result: PlainResult => {
-        import collection.JavaConverters._
         val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
           .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
           .discardingCookies(javaContext.response.discardedCookies.asScala.toSeq: _*)
@@ -105,20 +43,10 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] {
 
       }
       case other => other
-    }
-  }
-
-}
-/**
- * wrap a java result into an Action
- */
-object Wrap {
-  import collection.JavaConverters._
-  import play.api.mvc._
-  import play.mvc.Http.RequestBody
+    }    
 
   /**
-   * creates a context for java apps
+   * creates a java context from a scala RequestHeader 
    * @param request
    */
   def createJavaContext(req: RequestHeader) = {
@@ -149,7 +77,7 @@ object Wrap {
   }
 
   /**
-   * creates a context for java apps
+   * creates a java context from a scala Request[RequestBody]
    * @param request
    */
   def createJavaContext(req: Request[RequestBody]) = {
@@ -181,3 +109,4 @@ object Wrap {
 
   
 }
+object JavaHelpers extends JavaHelpers
