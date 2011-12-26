@@ -36,16 +36,13 @@ object ApplicationSpec extends Specification {
       }
     }
     
-    "execute index again again" in {
-      
-      running(FakeApplication()) {
-        val action = controllers.Application.index()
-        val result = action(FakeRequest())
-        
-        status(result) must equalTo(OK)
-        contentType(result) must equalTo(Some("text/html"))
-        charset(result) must equalTo(Some("utf-8"))
-        contentAsString(result) must contain("Hello world")
+    "execute json" in {
+    running(FakeApplication()) {
+      val Some(result) = routeAndCall(FakeRequest(GET, "/json"))
+      status(result) must equalTo(OK)
+      contentType(result) must equalTo(Some("application/json"))
+      contentAsString(result) must contain("{\"id\":1.0,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
+
       }
     }
    
