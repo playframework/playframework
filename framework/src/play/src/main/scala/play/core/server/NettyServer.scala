@@ -140,9 +140,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode =
         val iterateeAgent = Agent[Option[Iteratee[A, Any]]](None)
         private val promise: Promise[Iteratee[A, Any]] with Redeemable[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
-        def apply[R, EE >: A](i: Iteratee[EE, R]) = {
+        def apply[R](i: Iteratee[A, R]) = {
           iterateeAgent.send(_.orElse(Some(i.asInstanceOf[Iteratee[A, Any]])))
-          promise.asInstanceOf[Promise[Iteratee[EE, R]]]
+          promise.asInstanceOf[Promise[Iteratee[A, R]]]
         }
 
         def frameReceived(ctx: ChannelHandlerContext, input: Input[A]) {
