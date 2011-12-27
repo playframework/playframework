@@ -139,7 +139,8 @@ object PlayBuild extends Build {
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
             version        := buildVersion,
-            scalaVersion   := buildScalaVersion
+            scalaVersion   := buildScalaVersion,
+            logLevel := Level.Warn
         )
 
     }
