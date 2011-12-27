@@ -22,8 +22,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
-            resolvers ++= Seq(DefaultMavenRepository, typesafe),
-            ivyLoggingLevel := UpdateLogging.DownloadOnly
+            resolvers ++= Seq(DefaultMavenRepository, typesafe)
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -36,8 +35,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
-            publishArtifact in (Compile, packageSrc) := false,
-            ivyLoggingLevel := UpdateLogging.DownloadOnly
+            publishArtifact in (Compile, packageSrc) := false
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -54,8 +52,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
-            compile in (Compile) <<= PostCompile,
-            ivyLoggingLevel := UpdateLogging.DownloadOnly
+            compile in (Compile) <<= PostCompile
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(TemplatesProject, AnormProject)
     
@@ -87,7 +84,6 @@ object PlayBuild extends Build {
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
-        ivyLoggingLevel := UpdateLogging.DownloadOnly,
         projectDependencies := Seq(
           "play" %% "play" % buildVersion notTransitive(),
           "play" %% "console" % buildVersion notTransitive(),
@@ -108,7 +104,6 @@ object PlayBuild extends Build {
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
-        ivyLoggingLevel := UpdateLogging.DownloadOnly,
         projectDependencies := Seq("play" %% "play" % buildVersion notTransitive()) 
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
@@ -122,7 +117,6 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            ivyLoggingLevel := UpdateLogging.DownloadOnly,
             publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
             publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
         )
@@ -140,7 +134,7 @@ object PlayBuild extends Build {
             organization   := buildOrganization,
             version        := buildVersion,
             scalaVersion   := buildScalaVersion,
-            logLevel := Level.Warn
+            ivyLoggingLevel := UpdateLogging.Quiet
         )
 
     }
