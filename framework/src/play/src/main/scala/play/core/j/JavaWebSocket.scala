@@ -38,5 +38,4 @@ object JavaWebSocket extends JavaHelpers {
 
   }
 
-
 }

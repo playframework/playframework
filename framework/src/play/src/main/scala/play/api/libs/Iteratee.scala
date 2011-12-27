@@ -277,8 +277,6 @@ object Enumeratee {
     def apply[NE](f: E => NE): Enumeratee[E, NE] = mapInput[E](in => in.map(f))
   }
 
-
-
   def take[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {

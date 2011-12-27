@@ -53,7 +53,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       }
     }
 
-    createResult(javaContext, finalAction.call(javaContext)) 
+    createResult(javaContext, finalAction.call(javaContext))
   }
 
 }

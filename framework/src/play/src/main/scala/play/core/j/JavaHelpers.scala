@@ -8,45 +8,45 @@ import scala.collection.JavaConverters._
 
 /**
  *
- * provides helper methods that manage java to scala Result and scala to java Context 
+ * provides helper methods that manage java to scala Result and scala to java Context
  * creation
  */
 trait JavaHelpers {
   import collection.JavaConverters._
   import play.api.mvc._
   import play.mvc.Http.RequestBody
-  
+
   /**
    * creates a scala result from java context and result objects
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: play.mvc.Result) =  javaResult.getWrappedResult match {
-      case result: PlainResult => {
-        val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-          .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
-          .discardingCookies(javaContext.response.discardedCookies.asScala.toSeq: _*)
+  def createResult(javaContext: JContext, javaResult: play.mvc.Result) = javaResult.getWrappedResult match {
+    case result: PlainResult => {
+      val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
+        .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
+        .discardingCookies(javaContext.response.discardedCookies.asScala.toSeq: _*)
 
-        if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-          wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+      if (javaContext.session.isDirty && javaContext.flash.isDirty) {
+        wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+      } else {
+        if (javaContext.session.isDirty) {
+          wResult.withSession(Session(javaContext.session.asScala.toMap))
         } else {
-          if (javaContext.session.isDirty) {
-            wResult.withSession(Session(javaContext.session.asScala.toMap))
+          if (javaContext.flash.isDirty) {
+            wResult.flashing(Flash(javaContext.flash.asScala.toMap))
           } else {
-            if (javaContext.flash.isDirty) {
-              wResult.flashing(Flash(javaContext.flash.asScala.toMap))
-            } else {
-              wResult
-            }
+            wResult
           }
         }
-
       }
-      case other => other
-    }    
+
+    }
+    case other => other
+  }
 
   /**
-   * creates a java context from a scala RequestHeader 
+   * creates a java context from a scala RequestHeader
    * @param request
    */
   def createJavaContext(req: RequestHeader) = {
@@ -107,6 +107,5 @@ trait JavaHelpers {
       req.flash.data.asJava)
   }
 
-  
 }
 object JavaHelpers extends JavaHelpers

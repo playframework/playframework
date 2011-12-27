@@ -11,8 +11,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser2[A1, A2, R](
-      tableDescription: Option[Description2] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], r: Manifest[R]) extends MParser2[A1, A2, R] {
+        tableDescription: Option[Description2] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], r: Manifest[R]) extends MParser2[A1, A2, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -44,9 +44,9 @@ package anorm {
     }
 
     case class MagicParser2[A1, A2, R](
-      cons: Function2[A1, A2, R],
-      tableDescription: Option[Description2] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], r: Manifest[R]) extends AbstractMagicParser2[A1, A2, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function2[A1, A2, R],
+        tableDescription: Option[Description2] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], r: Manifest[R]) extends AbstractMagicParser2[A1, A2, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2): R = cons(a1, a2)
 
@@ -70,8 +70,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser3[A1, A2, A3, R](
-      tableDescription: Option[Description3] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], r: Manifest[R]) extends MParser3[A1, A2, A3, R] {
+        tableDescription: Option[Description3] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], r: Manifest[R]) extends MParser3[A1, A2, A3, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -105,9 +105,9 @@ package anorm {
     }
 
     case class MagicParser3[A1, A2, A3, R](
-      cons: Function3[A1, A2, A3, R],
-      tableDescription: Option[Description3] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], r: Manifest[R]) extends AbstractMagicParser3[A1, A2, A3, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function3[A1, A2, A3, R],
+        tableDescription: Option[Description3] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], r: Manifest[R]) extends AbstractMagicParser3[A1, A2, A3, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3): R = cons(a1, a2, a3)
 
@@ -131,8 +131,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser4[A1, A2, A3, A4, R](
-      tableDescription: Option[Description4] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], r: Manifest[R]) extends MParser4[A1, A2, A3, A4, R] {
+        tableDescription: Option[Description4] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], r: Manifest[R]) extends MParser4[A1, A2, A3, A4, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -168,9 +168,9 @@ package anorm {
     }
 
     case class MagicParser4[A1, A2, A3, A4, R](
-      cons: Function4[A1, A2, A3, A4, R],
-      tableDescription: Option[Description4] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], r: Manifest[R]) extends AbstractMagicParser4[A1, A2, A3, A4, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function4[A1, A2, A3, A4, R],
+        tableDescription: Option[Description4] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], r: Manifest[R]) extends AbstractMagicParser4[A1, A2, A3, A4, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4): R = cons(a1, a2, a3, a4)
 
@@ -194,8 +194,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser5[A1, A2, A3, A4, A5, R](
-      tableDescription: Option[Description5] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], r: Manifest[R]) extends MParser5[A1, A2, A3, A4, A5, R] {
+        tableDescription: Option[Description5] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], r: Manifest[R]) extends MParser5[A1, A2, A3, A4, A5, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -233,9 +233,9 @@ package anorm {
     }
 
     case class MagicParser5[A1, A2, A3, A4, A5, R](
-      cons: Function5[A1, A2, A3, A4, A5, R],
-      tableDescription: Option[Description5] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], r: Manifest[R]) extends AbstractMagicParser5[A1, A2, A3, A4, A5, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function5[A1, A2, A3, A4, A5, R],
+        tableDescription: Option[Description5] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], r: Manifest[R]) extends AbstractMagicParser5[A1, A2, A3, A4, A5, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5): R = cons(a1, a2, a3, a4, a5)
 
@@ -259,8 +259,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser6[A1, A2, A3, A4, A5, A6, R](
-      tableDescription: Option[Description6] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], r: Manifest[R]) extends MParser6[A1, A2, A3, A4, A5, A6, R] {
+        tableDescription: Option[Description6] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], r: Manifest[R]) extends MParser6[A1, A2, A3, A4, A5, A6, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -300,9 +300,9 @@ package anorm {
     }
 
     case class MagicParser6[A1, A2, A3, A4, A5, A6, R](
-      cons: Function6[A1, A2, A3, A4, A5, A6, R],
-      tableDescription: Option[Description6] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], r: Manifest[R]) extends AbstractMagicParser6[A1, A2, A3, A4, A5, A6, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function6[A1, A2, A3, A4, A5, A6, R],
+        tableDescription: Option[Description6] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], r: Manifest[R]) extends AbstractMagicParser6[A1, A2, A3, A4, A5, A6, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6): R = cons(a1, a2, a3, a4, a5, a6)
 
@@ -326,8 +326,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser7[A1, A2, A3, A4, A5, A6, A7, R](
-      tableDescription: Option[Description7] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], r: Manifest[R]) extends MParser7[A1, A2, A3, A4, A5, A6, A7, R] {
+        tableDescription: Option[Description7] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], r: Manifest[R]) extends MParser7[A1, A2, A3, A4, A5, A6, A7, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -369,9 +369,9 @@ package anorm {
     }
 
     case class MagicParser7[A1, A2, A3, A4, A5, A6, A7, R](
-      cons: Function7[A1, A2, A3, A4, A5, A6, A7, R],
-      tableDescription: Option[Description7] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], r: Manifest[R]) extends AbstractMagicParser7[A1, A2, A3, A4, A5, A6, A7, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function7[A1, A2, A3, A4, A5, A6, A7, R],
+        tableDescription: Option[Description7] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], r: Manifest[R]) extends AbstractMagicParser7[A1, A2, A3, A4, A5, A6, A7, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7): R = cons(a1, a2, a3, a4, a5, a6, a7)
 
@@ -395,8 +395,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser8[A1, A2, A3, A4, A5, A6, A7, A8, R](
-      tableDescription: Option[Description8] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], r: Manifest[R]) extends MParser8[A1, A2, A3, A4, A5, A6, A7, A8, R] {
+        tableDescription: Option[Description8] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], r: Manifest[R]) extends MParser8[A1, A2, A3, A4, A5, A6, A7, A8, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -440,9 +440,9 @@ package anorm {
     }
 
     case class MagicParser8[A1, A2, A3, A4, A5, A6, A7, A8, R](
-      cons: Function8[A1, A2, A3, A4, A5, A6, A7, A8, R],
-      tableDescription: Option[Description8] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], r: Manifest[R]) extends AbstractMagicParser8[A1, A2, A3, A4, A5, A6, A7, A8, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function8[A1, A2, A3, A4, A5, A6, A7, A8, R],
+        tableDescription: Option[Description8] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], r: Manifest[R]) extends AbstractMagicParser8[A1, A2, A3, A4, A5, A6, A7, A8, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8): R = cons(a1, a2, a3, a4, a5, a6, a7, a8)
 
@@ -466,8 +466,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](
-      tableDescription: Option[Description9] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], r: Manifest[R]) extends MParser9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+        tableDescription: Option[Description9] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], r: Manifest[R]) extends MParser9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -513,9 +513,9 @@ package anorm {
     }
 
     case class MagicParser9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](
-      cons: Function9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R],
-      tableDescription: Option[Description9] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], r: Manifest[R]) extends AbstractMagicParser9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R],
+        tableDescription: Option[Description9] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], r: Manifest[R]) extends AbstractMagicParser9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9)
 
@@ -539,8 +539,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R](
-      tableDescription: Option[Description10] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], r: Manifest[R]) extends MParser10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R] {
+        tableDescription: Option[Description10] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], r: Manifest[R]) extends MParser10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -588,9 +588,9 @@ package anorm {
     }
 
     case class MagicParser10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R](
-      cons: Function10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R],
-      tableDescription: Option[Description10] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], r: Manifest[R]) extends AbstractMagicParser10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R],
+        tableDescription: Option[Description10] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], r: Manifest[R]) extends AbstractMagicParser10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
 
@@ -614,8 +614,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R](
-      tableDescription: Option[Description11] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], r: Manifest[R]) extends MParser11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R] {
+        tableDescription: Option[Description11] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], r: Manifest[R]) extends MParser11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -665,9 +665,9 @@ package anorm {
     }
 
     case class MagicParser11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R](
-      cons: Function11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R],
-      tableDescription: Option[Description11] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], r: Manifest[R]) extends AbstractMagicParser11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R],
+        tableDescription: Option[Description11] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], r: Manifest[R]) extends AbstractMagicParser11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
 
@@ -691,8 +691,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R](
-      tableDescription: Option[Description12] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], r: Manifest[R]) extends MParser12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R] {
+        tableDescription: Option[Description12] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], r: Manifest[R]) extends MParser12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -744,9 +744,9 @@ package anorm {
     }
 
     case class MagicParser12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R](
-      cons: Function12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R],
-      tableDescription: Option[Description12] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], r: Manifest[R]) extends AbstractMagicParser12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R],
+        tableDescription: Option[Description12] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], r: Manifest[R]) extends AbstractMagicParser12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
 
@@ -770,8 +770,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R](
-      tableDescription: Option[Description13] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], r: Manifest[R]) extends MParser13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R] {
+        tableDescription: Option[Description13] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], r: Manifest[R]) extends MParser13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -825,9 +825,9 @@ package anorm {
     }
 
     case class MagicParser13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R](
-      cons: Function13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R],
-      tableDescription: Option[Description13] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], r: Manifest[R]) extends AbstractMagicParser13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R],
+        tableDescription: Option[Description13] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], r: Manifest[R]) extends AbstractMagicParser13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
 
@@ -851,8 +851,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R](
-      tableDescription: Option[Description14] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], r: Manifest[R]) extends MParser14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R] {
+        tableDescription: Option[Description14] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], r: Manifest[R]) extends MParser14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -908,9 +908,9 @@ package anorm {
     }
 
     case class MagicParser14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R](
-      cons: Function14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R],
-      tableDescription: Option[Description14] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], r: Manifest[R]) extends AbstractMagicParser14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R],
+        tableDescription: Option[Description14] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], r: Manifest[R]) extends AbstractMagicParser14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
 
@@ -934,8 +934,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R](
-      tableDescription: Option[Description15] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], r: Manifest[R]) extends MParser15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R] {
+        tableDescription: Option[Description15] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], r: Manifest[R]) extends MParser15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -993,9 +993,9 @@ package anorm {
     }
 
     case class MagicParser15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R](
-      cons: Function15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R],
-      tableDescription: Option[Description15] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], r: Manifest[R]) extends AbstractMagicParser15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R],
+        tableDescription: Option[Description15] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], r: Manifest[R]) extends AbstractMagicParser15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
 
@@ -1019,8 +1019,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R](
-      tableDescription: Option[Description16] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], r: Manifest[R]) extends MParser16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R] {
+        tableDescription: Option[Description16] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], r: Manifest[R]) extends MParser16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1080,9 +1080,9 @@ package anorm {
     }
 
     case class MagicParser16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R](
-      cons: Function16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R],
-      tableDescription: Option[Description16] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], r: Manifest[R]) extends AbstractMagicParser16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R],
+        tableDescription: Option[Description16] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], r: Manifest[R]) extends AbstractMagicParser16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
 
@@ -1106,8 +1106,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R](
-      tableDescription: Option[Description17] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], r: Manifest[R]) extends MParser17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R] {
+        tableDescription: Option[Description17] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], r: Manifest[R]) extends MParser17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1169,9 +1169,9 @@ package anorm {
     }
 
     case class MagicParser17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R](
-      cons: Function17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R],
-      tableDescription: Option[Description17] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], r: Manifest[R]) extends AbstractMagicParser17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R],
+        tableDescription: Option[Description17] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], r: Manifest[R]) extends AbstractMagicParser17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
 
@@ -1195,8 +1195,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R](
-      tableDescription: Option[Description18] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], r: Manifest[R]) extends MParser18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R] {
+        tableDescription: Option[Description18] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], r: Manifest[R]) extends MParser18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1260,9 +1260,9 @@ package anorm {
     }
 
     case class MagicParser18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R](
-      cons: Function18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R],
-      tableDescription: Option[Description18] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], r: Manifest[R]) extends AbstractMagicParser18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R],
+        tableDescription: Option[Description18] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], r: Manifest[R]) extends AbstractMagicParser18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
 
@@ -1286,8 +1286,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R](
-      tableDescription: Option[Description19] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], r: Manifest[R]) extends MParser19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R] {
+        tableDescription: Option[Description19] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], r: Manifest[R]) extends MParser19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1353,9 +1353,9 @@ package anorm {
     }
 
     case class MagicParser19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R](
-      cons: Function19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R],
-      tableDescription: Option[Description19] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], r: Manifest[R]) extends AbstractMagicParser19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R],
+        tableDescription: Option[Description19] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], r: Manifest[R]) extends AbstractMagicParser19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
 
@@ -1379,8 +1379,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R](
-      tableDescription: Option[Description20] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], r: Manifest[R]) extends MParser20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R] {
+        tableDescription: Option[Description20] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], r: Manifest[R]) extends MParser20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1448,9 +1448,9 @@ package anorm {
     }
 
     case class MagicParser20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R](
-      cons: Function20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R],
-      tableDescription: Option[Description20] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], r: Manifest[R]) extends AbstractMagicParser20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R],
+        tableDescription: Option[Description20] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], r: Manifest[R]) extends AbstractMagicParser20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
 
@@ -1474,8 +1474,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R](
-      tableDescription: Option[Description21] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], r: Manifest[R]) extends MParser21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R] {
+        tableDescription: Option[Description21] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], r: Manifest[R]) extends MParser21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1545,9 +1545,9 @@ package anorm {
     }
 
     case class MagicParser21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R](
-      cons: Function21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R],
-      tableDescription: Option[Description21] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], r: Manifest[R]) extends AbstractMagicParser21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R],
+        tableDescription: Option[Description21] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], r: Manifest[R]) extends AbstractMagicParser21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
 
@@ -1571,8 +1571,8 @@ package anorm {
     }
 
     abstract class AbstractMagicParser22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R](
-      tableDescription: Option[Description22] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], c22: ColumnTo[A22], r: Manifest[R]) extends MParser22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R] {
+        tableDescription: Option[Description22] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], c22: ColumnTo[A22], r: Manifest[R]) extends MParser22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R] {
 
       lazy val p1 = c1
       lazy val p2 = c2
@@ -1644,9 +1644,9 @@ package anorm {
     }
 
     case class MagicParser22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R](
-      cons: Function22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R],
-      tableDescription: Option[Description22] = None,
-      conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], c22: ColumnTo[A22], r: Manifest[R]) extends AbstractMagicParser22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R](tableDescription = tableDescription, conventions = conventions) {
+        cons: Function22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R],
+        tableDescription: Option[Description22] = None,
+        conventions: PartialFunction[AnalyserInfo, String] = defaultConvention)(implicit c1: ColumnTo[A1], c2: ColumnTo[A2], c3: ColumnTo[A3], c4: ColumnTo[A4], c5: ColumnTo[A5], c6: ColumnTo[A6], c7: ColumnTo[A7], c8: ColumnTo[A8], c9: ColumnTo[A9], c10: ColumnTo[A10], c11: ColumnTo[A11], c12: ColumnTo[A12], c13: ColumnTo[A13], c14: ColumnTo[A14], c15: ColumnTo[A15], c16: ColumnTo[A16], c17: ColumnTo[A17], c18: ColumnTo[A18], c19: ColumnTo[A19], c20: ColumnTo[A20], c21: ColumnTo[A21], c22: ColumnTo[A22], r: Manifest[R]) extends AbstractMagicParser22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R](tableDescription = tableDescription, conventions = conventions) {
       override def thisClass = cons.getClass
       def apply(a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21, a22: A22): R = cons(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22)
 

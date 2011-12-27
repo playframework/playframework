@@ -101,7 +101,7 @@ package play.templates {
       // A generated source already exist but
       source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
         (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
-        )
+    )
 
     def mapPosition(generatedPosition: Int) = {
       matrix.indexWhere(p => p._1 > generatedPosition) match {
