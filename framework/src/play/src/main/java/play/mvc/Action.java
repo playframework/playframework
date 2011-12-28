@@ -17,7 +17,7 @@ public abstract class Action<T> extends Results {
     /**
      * The wrapped action.
      */
-    public Action<?> deleguate;
+    public Action<?> delegate;
     
     /**
      * Executes this action with the give HTTP context and returns the result.

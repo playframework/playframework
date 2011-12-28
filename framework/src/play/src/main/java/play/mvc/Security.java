@@ -36,7 +36,7 @@ public class Security {
                 } else {
                     try {
                         ctx.request().setUsername(username);
-                        return deleguate.call(ctx);
+                        return delegate.call(ctx);
                     } finally {
                         ctx.request().setUsername(null);
                     }

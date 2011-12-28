@@ -14,7 +14,7 @@ public class TransactionalAction extends Action<Transactional> {
         return Ebean.execute(new TxCallable<Result>() {  
             public Result call() {
                 try {
-                    return deleguate.call(ctx);
+                    return delegate.call(ctx);
                 } catch(RuntimeException e) {
                     throw e;
                 } catch(Throwable t) {
