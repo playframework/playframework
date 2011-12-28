@@ -72,8 +72,8 @@ trait JavaHelpers {
       override def toString = req.toString
 
     },
-      req.session.data.asJava,
-      req.flash.data.asJava)
+    req.session.data.asJava,
+    req.flash.data.asJava)
   }
 
   /**
@@ -85,7 +85,7 @@ trait JavaHelpers {
 
       def uri = req.uri
       def method = req.method
-      def path = req.method
+      def path = req.path
 
       def body = req.body
 
@@ -103,8 +103,8 @@ trait JavaHelpers {
       override def toString = req.toString
 
     },
-      req.session.data.asJava,
-      req.flash.data.asJava)
+    req.session.data.asJava,
+    req.flash.data.asJava)
   }
 
 }
