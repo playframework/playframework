@@ -85,7 +85,7 @@ trait JavaHelpers {
 
       def uri = req.uri
       def method = req.method
-      def path = req.method
+      def path = req.path
 
       def body = req.body
 
