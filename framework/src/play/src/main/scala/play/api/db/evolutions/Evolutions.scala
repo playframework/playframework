@@ -425,10 +425,10 @@ object OfflineEvolutions {
         Configuration.fromFile(new File(applicationPath, "conf/application.conf")).sub("db." + dbName), classloader)))
     val script = Evolutions.evolutionScript(api, applicationPath, dbName)
 
-    if(!Play.maybeApplication.exists(_.mode == Mode.Test)) {
-      Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))  
+    if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+      Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
-    
+
     Evolutions.applyScript(api, dbName, script)
 
   }

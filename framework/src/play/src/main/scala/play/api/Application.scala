@@ -110,9 +110,9 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       })
 
   }
-  
+
   private[api] def pluginClasses: Seq[String] = {
-    
+
     import scalax.file._
     import scalax.io.JavaConverters._
     import scala.collection.JavaConverters._
@@ -126,7 +126,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
         case PluginDeclaration(priority, className) => (priority.toInt, className)
       }
     }.flatten.sortBy(_._1).map(_._2)
-    
+
   }
 
   /**
@@ -135,7 +135,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    * @see play.api.Plugin
    */
   lazy val plugins: Seq[Plugin] = {
-    
+
     pluginClasses.map { className =>
       try {
         val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]

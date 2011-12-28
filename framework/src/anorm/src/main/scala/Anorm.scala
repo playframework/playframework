@@ -67,17 +67,17 @@ package anorm {
 
   case class Column[A](
 
-    nullHandler: Function2[Any, MetaDataItem, Option[SqlRequestError]] = (value, meta) => {
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      if (value == null)
-        Some(UnexpectedNullableFound(qualified))
-      else
-        None
-    },
+      nullHandler: Function2[Any, MetaDataItem, Option[SqlRequestError]] = (value, meta) => {
+        val MetaDataItem(qualified, nullable, clazz) = meta
+        if (value == null)
+          Some(UnexpectedNullableFound(qualified))
+        else
+          None
+      },
 
-    transformer: Function2[Any, MetaDataItem, utils.Scala.MayErr[SqlRequestError, A]] = (value: Any, meta: MetaDataItem) => {
-      Left(TypeDoesNotMatch("Default matcher doesn't match anything"))
-    }) extends ColumnTo[A] {
+      transformer: Function2[Any, MetaDataItem, utils.Scala.MayErr[SqlRequestError, A]] = (value: Any, meta: MetaDataItem) => {
+        Left(TypeDoesNotMatch("Default matcher doesn't match anything"))
+      }) extends ColumnTo[A] {
 
     def transform(row: Row, columnName: String): MayErr[SqlRequestError, A] = {
       for (
@@ -265,19 +265,19 @@ package anorm {
   case class Convention(conv: PartialFunction[AnalyserInfo, String] = asIs, extendSupport: ExtendSupport = JustDefault) {
 
     case class Magic[T](override val tableName: Option[String] = None,
-      override val conventions: PartialFunction[AnalyserInfo, String] = conv)(implicit val m: ClassManifest[T]) extends M[T] {
+        override val conventions: PartialFunction[AnalyserInfo, String] = conv)(implicit val m: ClassManifest[T]) extends M[T] {
       def using(tableName: Symbol) = this.copy(tableName = Some(tableName.name))
       override def extendExtractor[C](f: (Manifest[C] => Option[ColumnTo[C]])): PartialFunction[Manifest[C], Option[ColumnTo[C]]] = extendSupport.extendExtractor(f)
       override def anyParameter: ToStatement[Any] = extendSupport.extendSetAny(super.anyParameter)
     }
 
     case class MagicSql[T](override val tableName: Option[String] = None,
-      override val conventions: PartialFunction[AnalyserInfo, String] = conv)(implicit val m: ClassManifest[T]) extends MSql[T] {
+        override val conventions: PartialFunction[AnalyserInfo, String] = conv)(implicit val m: ClassManifest[T]) extends MSql[T] {
       def using(tableName: Symbol) = this.copy(tableName = Some(tableName.name))
     }
 
     case class MagicParser[T](override val tableName: Option[String] = None,
-      override val conventions: PartialFunction[AnalyserInfo, String] = conv)(implicit val m: ClassManifest[T]) extends MParser[T] with Analyser[T] {
+        override val conventions: PartialFunction[AnalyserInfo, String] = conv)(implicit val m: ClassManifest[T]) extends MParser[T] with Analyser[T] {
       def using(tableName: Symbol) = this.copy(tableName = Some(tableName.name))
       override def extendExtractor[C](f: (Manifest[C] => Option[ColumnTo[C]])): PartialFunction[Manifest[C], Option[ColumnTo[C]]] = extendSupport.extendExtractor(f)
     }

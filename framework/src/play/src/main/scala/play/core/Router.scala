@@ -266,7 +266,7 @@ object Router {
                             """.stripMargin.format(
                   path, hash, date,
                   packageName,
-                  
+
                   routes.groupBy(_.call.controller).map {
                     case (controller, routes) => {
                       val fields = routes.groupBy(_.call.field)
@@ -282,20 +282,20 @@ object Router {
                       }
                     }
                   }.mkString("\n"),
-                  
+
                   routes.groupBy(_.call.controller).map {
                     case (controller, _) => {
                       "public static final " + packageName + ".javascript.Reverse" + controller + " " + controller + " = new " + packageName + ".javascript.Reverse" + controller + "();"
                     }
                   }.mkString("\n"),
-                  
+
                   routes.groupBy(_.call.controller).map {
                     case (controller, _) => {
                       "public static final " + packageName + ".ref.Reverse" + controller + " " + controller + " = new " + packageName + ".ref.Reverse" + controller + "();"
                     }
                   }.mkString("\n")
-                  
-                  )
+
+                )
 
               }
 
@@ -480,7 +480,7 @@ object Router {
       }.mkString("\n")
 
     }
-    
+
     /**
      * Generate the routing refs
      */
@@ -524,34 +524,33 @@ object Router {
                       """.stripMargin.format(
                         field.map(f => "class Reverse" + controller.replace(".", "_") + "_" + f + " {").getOrElse(""),
 
-                          // reverse method
-                          routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(p => p.typeName))).map {
-                            case ((m, _), routes) =>
+                        // reverse method
+                        routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(p => p.typeName))).map {
+                          case ((m, _), routes) =>
 
-                              assert(routes.size > 0, "Empty routes set???")
-                              
-                              val route = routes(0)
+                            assert(routes.size > 0, "Empty routes set???")
 
-                              val parameters = route.call.parameters.getOrElse(Nil)
+                            val route = routes(0)
 
-                              val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
+                            val parameters = route.call.parameters.getOrElse(Nil)
 
-                              """ 
+                            val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
+
+                            """ 
                                   |%s
                                   |def %s(%s) = new play.api.mvc.HandlerRef(
                                   |   %s, HandlerDef(this, "%s", "%s", %s)
                                   |)
                               """.stripMargin.format(
-                                markLines(route),
-                                route.call.method,
-                                reverseSignature,
-                                packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + {parameters.map(_.name).mkString(", ")} + ")",
-                                packageName + "." + controller + route.call.field.map(_ + ".").getOrElse(""),
-                                route.call.method,
-                                "Seq(" + {parameters.map("classOf[" + _.typeName + "]").mkString(", ")} + ")")
+                              markLines(route),
+                              route.call.method,
+                              reverseSignature,
+                              packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")",
+                              packageName + "." + controller + route.call.field.map(_ + ".").getOrElse(""),
+                              route.call.method,
+                              "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")")
 
-                          }.mkString("\n"),
-                        
+                        }.mkString("\n"),
 
                         field.map(_ => "}").getOrElse(""))
 
@@ -1049,9 +1048,9 @@ object Router {
   def queryString(items: List[Option[String]]) = {
     Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
   }
-  
+
   // HandlerInvoker
-  
+
   @scala.annotation.implicitNotFound("Cannot use a method returning ${T} as an Handler")
   trait HandlerInvoker[T] {
     def call(call: => T, handler: HandlerDef): Handler

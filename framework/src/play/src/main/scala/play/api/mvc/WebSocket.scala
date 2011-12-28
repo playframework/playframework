@@ -35,7 +35,7 @@ object WebSocket {
    * @return a `WebSocket`
    */
   def using[A](f: RequestHeader => (Iteratee[A, Unit], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]) = {
-    WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); readIn <<: e; i <<: writeOut })
+    WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); e |>> readIn; writeOut |>> i })
   }
 
 }

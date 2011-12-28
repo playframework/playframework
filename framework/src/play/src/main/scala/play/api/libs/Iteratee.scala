@@ -2,6 +2,12 @@ package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
 
+object `package` {
+
+  type K[E, A] = Input[E] => Iteratee[E, A]
+
+}
+
 object Iteratee {
 
   def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
@@ -100,7 +106,7 @@ trait Iteratee[E, +A] {
     (msg, e) => sys.error(msg))
 
   def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
-    this <<: Enumerator.enumInput(in)
+    Enumerator.enumInput(in) |>> this
   }
 
   def fold[B](done: (A, Input[E]) => Promise[B],
@@ -185,68 +191,51 @@ object Error {
   }
 }
 
-trait Enumerator[+E] {
+trait Enumerator[E] {
   parent =>
 
-  def apply[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]]
-  def <<:[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = apply(i)
+  def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]]
+  def |>>[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = apply(i)
 
-  def andThen[F >: E](e: Enumerator[F]): Enumerator[F] = new Enumerator[F] {
-    def apply[A, FF >: F](i: Iteratee[FF, A]): Promise[Iteratee[FF, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
+  def andThen(e: Enumerator[E]): Enumerator[E] = new Enumerator[E] {
+    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
   }
 
-  def >>>[F >: E](e: Enumerator[F]): Enumerator[F] = andThen(e)
+  def &>[To](enumeratee: Enumeratee[E, To]): Enumerator[To] = new Enumerator[To] {
 
-  def map[U](f: Input[E] => Input[U]) = new Enumerator[U] {
-    def apply[A, UU >: U](it: Iteratee[UU, A]) = {
+    def apply[A](i: Iteratee[To, A]): Promise[Iteratee[To, A]] = {
+      val transformed = enumeratee.applyOn(i)
+      val xx = parent |>> transformed
+      xx.flatMap(_.run)
 
-      case object OuterEOF extends Input[Nothing]
-      type R = Iteratee[E, Iteratee[UU, A]]
-
-      def step(ri: Iteratee[UU, A])(in: Input[E]): R =
-
-        in match {
-          case OuterEOF => Done(ri, Input.EOF)
-          case any =>
-            Iteratee.flatten(
-              ri.fold((a, _) => Promise.pure(Done(ri, any)),
-                k => {
-                  val next = k(f(any))
-                  next.fold((a, _) => Promise.pure(Done(next, in)),
-                    _ => Promise.pure(Cont(step(next))),
-                    (msg, _) => Promise.pure[R](Error(msg, in)))
-                },
-                (msg, _) => Promise.pure[R](Error(msg, any))))
-        }
-
-      parent.apply(Cont(step(it)))
-        .flatMap(_.fold((a, _) => Promise.pure(a),
-          k => k(OuterEOF).fold(
-            (a1, _) => Promise.pure(a1),
-            _ => sys.error("diverging iteratee after Input.EOF"),
-            (msg, e) => sys.error(msg)),
-          (msg, e) => sys.error(msg)))
     }
+
   }
+
+  def >>>(e: Enumerator[E]): Enumerator[E] = andThen(e)
+
+  def map[U](f: E => U) = parent &> Enumeratee.map[E](f)
+
+  def mapInput[U](f: Input[E] => Input[U]) = parent &> Enumeratee.mapInput[E](f)
 
 }
 
 trait Enumeratee[From, To] {
-  parent  =>
+  parent =>
 
-  def applyOn[A, EE >: To](inner: Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]]
+  def applyOn[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
 
-  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn[A,To](inner)
+  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn[A](inner)
 
   def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
 
-  def |>>[A](inner: Iteratee[To, A]): Iteratee[From, A] = transform(inner)
+  def &>>[A](inner: Iteratee[To, A]): Iteratee[From, A] = transform(inner)
 
-  def |>[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = apply(inner)
+  def &>[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = apply(inner)
 
   def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
     new Enumeratee[From, To2] {
-      def applyOn[A, EE >: To2](iteratee: Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]] = {
+      def applyOn[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
         parent.applyOn(other.applyOn(iteratee)).joinI
       }
     }
@@ -256,13 +245,11 @@ trait Enumeratee[From, To] {
 
 object Enumeratee {
 
-
-
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
-    def continue[A,EE >: To](k: Input[EE] => Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]]
+    def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
 
-    def applyOn[A, EE >: To](it: Iteratee[EE, A]): Iteratee[From, Iteratee[EE, A]] = 
+    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
       it.pureFlatFold(
         (_, _) => Done(it, Input.Empty),
         k => continue(k),
@@ -270,45 +257,31 @@ object Enumeratee {
 
   }
 
-  def map[E] = new {
-    def apply[NE](f: E => NE): Enumeratee[E, NE] = new Enumeratee[E, NE] {
+  def mapInput[From] = new {
+    def apply[To](f: Input[From] => Input[To]) = new CheckDone[From, To] {
 
-      def applyOn[A, EE >: NE](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
+      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+        case in @ Input.El(_) =>
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A]) = Cont(step(k))
+          }.applyOn(k(f(in)))
 
-        def step(inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
-
-          in match {
-
-            case Input.El(e) => inner.pureFlatFold(
-              (_, _) => Done(inner, in),
-              k => {
-                val next = k(Input.El(f(e)))
-                Cont(step(next))
-              },
-              (_, _) => Done(inner, in))
-
-            case Input.EOF => inner.pureFlatFold(
-              (_, _) => Done(inner, Input.EOF),
-              k => Done(k(Input.EOF), Input.EOF),
-              (_, _) => Done(inner, Input.EOF))
-
-            case Input.Empty => Cont(step(inner))
-
-          }
-
-        }
-
-        Cont(step(iteratee))
+        case Input.EOF => Done(k(Input.EOF), Input.EOF)
       }
 
+      def continue[A](k: K[To, A]) = Cont(step(k))
     }
+  }
+
+  def map[E] = new {
+    def apply[NE](f: E => NE): Enumeratee[E, NE] = mapInput[E](in => in.map(f))
   }
 
   def take[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A, EE >: E](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
+    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
-      def step(counter: Int, inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
+      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
 
         in match {
           case Input.El(e) if counter <= 0 => Done(inner, in)
@@ -337,9 +310,9 @@ object Enumeratee {
 
   def drop[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A, EE >: E](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
+    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
-      def step(counter: Int, inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
+      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
 
         in match {
 
@@ -369,9 +342,9 @@ object Enumeratee {
 
   def takeWhile[E](p: E => Boolean): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A, EE >: E](iteratee: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
+    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
-      def step(inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
+      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
 
         in match {
           case Input.El(e) if !p(e) => Done(inner, in)
@@ -395,8 +368,8 @@ object Enumeratee {
   }
 
   def breakE[E](p: E => Boolean) = new Enumeratee[E, E] {
-    def applyOn[A, EE >: E](inner: Iteratee[EE, A]): Iteratee[E, Iteratee[EE, A]] = {
-      def step(inner: Iteratee[EE, A])(in: Input[E]): Iteratee[E, Iteratee[EE, A]] = {
+    def applyOn[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
         in match {
           case Input.El(e) if (p(e)) => Done(inner, in)
           case _ =>
@@ -422,7 +395,7 @@ object Enumeratee {
 object Enumerator {
 
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
-    def apply[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]] =
+    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] =
       i.fold((a, e) => Promise.pure(i),
         k => Promise.pure(k(e)),
         (_, _) => Promise.pure(i))
@@ -433,7 +406,7 @@ object Enumerator {
 
   def apply[E](in: E*): Enumerator[E] = new Enumerator[E] {
 
-    def apply[A, EE >: E](i: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = enumerate(in, i)
+    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = enumerate(in, i)
 
   }
   def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
@@ -445,15 +418,15 @@ object Enumerator {
 }
 
 class CallbackEnumerator[E](
-  onComplete: => Unit = () => (),
-  onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] {
+    onComplete: => Unit = () => (),
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] {
 
   var iteratee: Iteratee[E, _] = _
   var promise: Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
 
-  def apply[A, EE >: E](it: Iteratee[EE, A]): Promise[Iteratee[EE, A]] = {
+  def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
     iteratee = it.asInstanceOf[Iteratee[E, _]]
-    val newPromise = new STMPromise[Iteratee[EE, A]]()
+    val newPromise = new STMPromise[Iteratee[E, A]]()
     promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
     newPromise
   }
@@ -521,7 +494,7 @@ object Parsing {
       byte => map.get(byte).map(_ + 1).getOrElse(fullJump)
     }
 
-    def applyOn[A, EE >: MatchInfo[Array[Byte]]](inner: Iteratee[EE, A]): Iteratee[Array[Byte], Iteratee[EE, A]] = {
+    def applyOn[A](inner: Iteratee[MatchInfo[Array[Byte]], A]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
 
       Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
         k => Promise.pure(Cont(step(Array[Byte](), Cont(k)))),
@@ -552,7 +525,7 @@ object Parsing {
       }
     }
 
-    def step[A, EE >: MatchInfo[Array[Byte]]](rest: Array[Byte], inner: Iteratee[EE, A])(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[EE, A]] = {
+    def step[A](rest: Array[Byte], inner: Iteratee[MatchInfo[Array[Byte]], A])(in: Input[Array[Byte]]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
 
       in match {
         case Input.Empty => Cont(step(rest, inner)) //here should rather pass Input.Empty along
@@ -573,7 +546,7 @@ object Parsing {
               }
               fed.flatMap {
                 case (ss, i) => i.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
-                  k => Promise.pure(Cont[Array[Byte], Iteratee[EE, A]]((in: Input[Array[Byte]]) => in match {
+                  k => Promise.pure(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
                     case Input.EOF => Done(k(Input.El(Unmatched(suffix))), Input.EOF) //suffix maybe empty
                     case other => step(ss ++ suffix, Cont(k))(other)
                   })),

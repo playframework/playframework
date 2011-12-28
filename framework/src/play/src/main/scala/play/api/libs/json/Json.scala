@@ -16,5 +16,4 @@ object Json {
    */
   def stringify(json: JsValue): String = JerksonJson.generate(json)
 
-
 }

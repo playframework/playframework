@@ -11,7 +11,6 @@ import scala.collection._
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
 
-
 /**
  * Generic json value
  */
@@ -70,7 +69,7 @@ case class JsString(value: String) extends JsValue
 
 case class JsArray(value: List[JsValue]) extends JsValue {
 
-  override def apply(index: Int): JsValue = 
+  override def apply(index: Int): JsValue =
     value.lift(index).getOrElse(JsUndefined("Array index out of bounds in " + this))
 
   override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
@@ -115,25 +114,25 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
   }
 }
 
-sealed trait DeserializerContext{
+sealed trait DeserializerContext {
   def addValue(value: JsValue): DeserializerContext
 }
 
 case class ReadingList(content: List[JsValue]) extends DeserializerContext {
   override def addValue(value: JsValue): DeserializerContext = {
-   ReadingList(content :+ value) 
+    ReadingList(content :+ value)
   }
 }
 
 // Context for reading an Object
-case class KeyRead(content: Map[String, JsValue], fieldName:String) extends DeserializerContext {
+case class KeyRead(content: Map[String, JsValue], fieldName: String) extends DeserializerContext {
   def addValue(value: JsValue): DeserializerContext = ReadingMap(content + (fieldName -> value))
 }
 
 // Context for reading one item of an Object (we already red fieldName)
 case class ReadingMap(content: Map[String, JsValue]) extends DeserializerContext {
 
-  def setField(fieldName:String) = KeyRead(content, fieldName)
+  def setField(fieldName: String) = KeyRead(content, fieldName)
   def addValue(value: JsValue): DeserializerContext = throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
 
 }
@@ -141,7 +140,7 @@ case class ReadingMap(content: Map[String, JsValue]) extends DeserializerContext
 @JsonCachable
 private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
   def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsValue = {
-    val value = deserialize(jp, ctxt,List())
+    val value = deserialize(jp, ctxt, List())
 
     if (!klass.isAssignableFrom(value.getClass)) {
       throw ctxt.mappingException(klass)
@@ -155,59 +154,59 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
       jp.nextToken()
     }
 
-    val (maybeValue,nextContext) = (jp.getCurrentToken, parserContext)  match {
+    val (maybeValue, nextContext) = (jp.getCurrentToken, parserContext) match {
 
       case (JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDoubleValue)), c)
 
-      case (JsonToken.VALUE_STRING, c) => (Some(JsString(jp.getText)),c)
-        
-      case (JsonToken.VALUE_TRUE, c) => (Some(JsBoolean(true)),c)
+      case (JsonToken.VALUE_STRING, c) => (Some(JsString(jp.getText)), c)
 
-      case (JsonToken.VALUE_FALSE, c) => (Some(JsBoolean(false)),c)
+      case (JsonToken.VALUE_TRUE, c) => (Some(JsBoolean(true)), c)
 
-      case (JsonToken.VALUE_NULL, c) => (Some(JsNull),c)
+      case (JsonToken.VALUE_FALSE, c) => (Some(JsBoolean(false)), c)
 
-      case (JsonToken.START_ARRAY, c) => (None,(ReadingList(List())) +: c)
+      case (JsonToken.VALUE_NULL, c) => (Some(JsNull), c)
 
-      case (JsonToken.END_ARRAY, ReadingList(content) :: stack) =>  (Some(JsArray(content)),stack)
+      case (JsonToken.START_ARRAY, c) => (None, (ReadingList(List())) +: c)
 
-      case (JsonToken.END_ARRAY,_) => throw new RuntimeException("We should have been reading list, something got wrong")
+      case (JsonToken.END_ARRAY, ReadingList(content) :: stack) => (Some(JsArray(content)), stack)
 
-      case (JsonToken.START_OBJECT, c) => (None,ReadingMap(Map()) +: c )
+      case (JsonToken.END_ARRAY, _) => throw new RuntimeException("We should have been reading list, something got wrong")
 
-      case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) =>  (None, c.setField(jp.getCurrentName) +: stack )
+      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(Map()) +: c)
 
-      case (JsonToken.FIELD_NAME,_) => throw new RuntimeException("We should be reading map, something got wrong")
+      case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
 
-      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) =>  (Some(JsObject(content)),stack)
+      case (JsonToken.FIELD_NAME, _) => throw new RuntimeException("We should be reading map, something got wrong")
 
-      case (JsonToken.END_OBJECT,_) => throw new RuntimeException("We should have been reading an object, something got wrong")
-        
+      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
+
+      case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
+
       case _ => throw ctxt.mappingException(classOf[JsValue])
     }
 
     // Read ahead
     jp.nextToken()
 
-    maybeValue match { 
+    maybeValue match {
       case Some(v) if nextContext.isEmpty && jp.getCurrentToken == null =>
         //done, no more tokens and got a value!
-        v 
+        v
 
-      case Some(v) if nextContext.isEmpty  =>
+      case Some(v) if nextContext.isEmpty =>
         //strange, got value, but there is more tokens and have no prior context!
         throw new Exception("Malformed JSON: Got a sequence of JsValue outside an array or an object.")
 
-      case maybeValue  => 
-        val toPass = maybeValue.map{ v => 
+      case maybeValue =>
+        val toPass = maybeValue.map { v =>
           val previous :: stack = nextContext
           (previous.addValue(v)) +: stack
         }.getOrElse(nextContext)
 
-        deserialize(jp, ctxt,toPass)
+        deserialize(jp, ctxt, toPass)
 
     }
-    
+
   }
 }
 
