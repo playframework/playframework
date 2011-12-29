@@ -48,11 +48,6 @@ sealed trait JsValue {
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
 
-  /**
-   * tries to convert from [K,V] to Map[K,V]
-   */
-  def as[K, V](implicit fjs: Reads[collection.immutable.Map[K, V]]): collection.immutable.Map[K, V] = fjs.reads(this)
-
   override def toString = Json.stringify(this)
 
 }

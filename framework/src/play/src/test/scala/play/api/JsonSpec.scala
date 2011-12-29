@@ -25,7 +25,7 @@ object JsonSpec extends Specification {
 
   implicit object CarFormat extends Format[Car] {
     def reads(json: JsValue): Car = Car(
-      (json \ "id").as[Long], (json \ "models").as[String, String])
+      (json \ "id").as[Long], (json \ "models").as[Map[String, String]])
     def writes(c: Car): JsValue = JsObject(Map(
       "id" -> JsNumber(c.id),
       "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)))))
