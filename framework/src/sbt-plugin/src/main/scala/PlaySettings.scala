@@ -49,7 +49,7 @@ trait PlaySettings {
 
     target <<= baseDirectory / "target",
 
-    sourceDirectory in Compile <<= baseDirectory / "app",
+    sourceDirectory <<= baseDirectory / "app",
     sourceDirectory in Test <<= baseDirectory / "test",
 
     confDirectory <<= baseDirectory / "conf",
