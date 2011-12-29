@@ -48,16 +48,13 @@ sealed trait JsValue {
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
 
-  /**
-   * tries to convert from [K,V] to Map[K,V]
-   */
-  def as[K, V](implicit fjs: Reads[collection.immutable.Map[K, V]]): collection.immutable.Map[K, V] = fjs.reads(this)
-
   override def toString = Json.stringify(this)
 
 }
 
 case object JsNull extends JsValue
+
+case class JsAny(value: Any) extends JsValue
 
 case class JsUndefined(error: String) extends JsValue
 
@@ -76,7 +73,7 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 
 }
 
-case class JsObject(value: Map[String, JsValue]) extends JsValue {
+case class JsObject(value: collection.immutable.Map[String, JsValue]) extends JsValue {
 
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
@@ -93,6 +90,7 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
 
   def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
+      case JsAny(v) => json.writeObject(v)
       case JsNumber(v) => json.writeNumber(v.doubleValue())
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
@@ -178,7 +176,7 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
 
       case (JsonToken.FIELD_NAME, _) => throw new RuntimeException("We should be reading map, something got wrong")
 
-      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
+      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content.asInstanceOf[collection.immutable.Map[String, play.api.libs.json.JsValue]])), stack)
 
       case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
 
