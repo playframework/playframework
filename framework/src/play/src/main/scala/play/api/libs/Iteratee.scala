@@ -256,15 +256,63 @@ object Enumeratee {
         (_, _) => Done(it, Input.Empty))
 
   }
+  def zip[E,A,B](inner1:Iteratee[E,A],inner2:Iteratee[E,B]):Iteratee[E,(A,B)] = zipWith(inner1,inner2)((_,_))
+
+  def zipWith[E,A,B,C](inner1:Iteratee[E,A],inner2:Iteratee[E,B])(zipper:(A,B) => C):Iteratee[E,C] = {
+
+    def getNext(it1:Iteratee[E,A],it2:Iteratee[E,B]):Iteratee[E,C] = {
+      val eventuallyIter = 
+         for ( (a1,it1_) <- getInside(it1);
+              (a2,it2_) <- getInside(it2) )
+         yield checkDone(a1,a2) match {
+           case Left((msg,in)) => Error(msg,in)
+           case Right(None) => Cont(step(it1_,it2_))
+           case Right(Some(Left(Left(a)))) => it2_.map(b => zipper(a,b))
+           case Right(Some(Left(Right(b)))) =>  it1_.map(a => zipper(a,b))
+           case Right(Some(Right(((a,b),e)))) => Done(zipper(a,b),e)
+         }
+
+      Iteratee.flatten(eventuallyIter)
+    }
+
+
+    def step(it1:Iteratee[E,A],it2:Iteratee[E,B])(in:Input[E]) = {
+      Iteratee.flatten(
+        for( it1_ <- it1.feed(in);
+            it2_ <- it2.feed(in)
+          ) yield getNext(it1_,it2_) )
+
+    }
+
+    def getInside[T](it:Iteratee[E,T]):Promise[(Option[Either[(String,Input[E]),(T,Input[E])]],Iteratee[E,T])] = {
+      it.pureFold(
+        (a,e) => Some(Right((a,e))),
+        k => None,
+        (msg,e) => Some(Left((msg,e)))
+      ).map(r => (r,it))
+
+    }
+
+    def checkDone(x:Option[Either[(String,Input[E]),(A,Input[E])]],y:Option[Either[(String,Input[E]),(B,Input[E])]]): Either[(String,Input[E]),Option[Either[Either[A,B],((A,B),Input[E])]]] =
+      (x,y) match {
+        case (Some(Right((a,e1))),Some(Right((b,e2)))) => Right(Some(Right(((a,b),e1 /* FIXME: should calculate smalled here*/ ))))
+        case (Some(Left((msg,e))), _) => Left((msg,e))
+        case (_,Some(Left((msg,e)))) => Left((msg,e))
+        case (Some(Right((a,_))), None) => Right(Some(Left(Left(a))))
+        case (None,Some(Right((b,_)))) => Right(Some(Left(Right(b))))
+        case (None,None) => Right(None)
+
+      }
+    getNext(inner1,inner2)
+
+  }
 
   def mapInput[From] = new {
     def apply[To](f: Input[From] => Input[To]) = new CheckDone[From, To] {
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case in @ Input.El(_) =>
-          new CheckDone[From, To] {
-            def continue[A](k: K[To, A]) = Cont(step(k))
-          }.applyOn(k(f(in)))
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(f(in))
 
         case Input.EOF => Done(k(Input.EOF), Input.EOF)
       }
@@ -277,34 +325,19 @@ object Enumeratee {
     def apply[NE](f: E => NE): Enumeratee[E, NE] = mapInput[E](in => in.map(f))
   }
 
-  def take[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
+  def take[E](count: Int): Enumeratee[E, E] = new CheckDone[E, E] {
 
-    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
 
-      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+      case in @ Input.El(_) if remaining > 0 =>
+        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining - 1)(k)) } &> k(in)
 
-        in match {
-          case Input.El(e) if counter <= 0 => Done(inner, in)
-          case Input.El(e) => inner.pureFlatFold(
-            (_, _) => Cont(step(counter - 1, inner)),
-            k => {
-              val next = k(in)
-              val newCounter = counter - 1
-              if (newCounter == 0) Done(next, Input.Empty) else Cont(step(newCounter, next))
-            },
-            (_, _) => Cont(step(counter - 1, inner)))
+      case in if remaining <= 0 => Done(Cont(k), in)
 
-          case Input.EOF => inner.pureFlatFold(
-            (_, _) => Done(inner, Input.EOF),
-            k => Done(k(Input.EOF), Input.EOF),
-            (_, _) => Done(inner, Input.EOF))
-
-          case Input.Empty => Cont(step(counter, inner))
-        }
-      }
-
-      Cont(step(count, iteratee))
+      case Input.EOF => Done(k(Input.EOF), Input.EOF)
     }
+
+    def continue[A](k: K[E, A]) = Cont(step(count)(k))
 
   }
 
