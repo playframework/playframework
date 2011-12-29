@@ -27,7 +27,7 @@ object JavascriptCompiler {
     val input = tree.dependencies.map(file => JSSourceFile.fromCode(file.getName(), SourceTree.requireRe.replaceAllIn(Path(file).slurpString, ""))).toArray
 
     compiler.compile(extern, input, options).success match {
-      case true => (tree.fullSource, compiler.toSource(), List(source))
+      case true => (SourceTree.requireRe.replaceAllIn(tree.fullSource, ""), SourceTree.requireRe.replaceAllIn(compiler.toSource(), ""), List(source))
       case false => {
         val error = compiler.getErrors().head
         throw CompilationException(error.description, source, error.lineNumber, 0)
@@ -40,8 +40,8 @@ object JavascriptCompiler {
 case class SourceTree(node: File, ancestors: Set[File] = Set(), children: List[SourceTree] = List()) {
   override def toString = print()
   def print(indent: String = ""): String = (indent + node.getName() + "\n" + children.mkString("\n"))
-  private lazy val flatDependencies: List[File] = node +: children.flatMap(_.flatDependencies)
-  lazy val dependencies: List[File] = flatDependencies.reverse.distinct
+  private lazy val flatDependencies: List[File] = (node +: children.flatMap(_.flatDependencies)).distinct
+  lazy val dependencies: List[File] = flatDependencies.tail.reverse ::: List[File](flatDependencies.head) 
   lazy val fullSource = dependencies.map(Path(_).slurpString).mkString("\n")
 }
 
