@@ -80,7 +80,13 @@ trait PlaySettings {
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile) map RouteFiles,
 
+    // Adds config/routes to continious triggers
+    watchSources <+= confDirectory map { _ / "routes" },
+
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
+
+    // Adds views template to continious triggers
+    watchSources <++= baseDirectory map {path => ( (path / "app" / "views") ** "*").get },
 
     commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
