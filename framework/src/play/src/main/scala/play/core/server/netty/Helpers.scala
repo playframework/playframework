@@ -68,5 +68,4 @@ private[netty] trait Helpers {
     }
 
   }
-
 }

@@ -29,7 +29,7 @@ object Application extends Controller {
     Ok.stream { socket: Socket.Out[play.api.templates.Html] =>
       WS.url("https://stream.twitter.com/1/statuses/filter.json?track=" + term)
         .sign(OAuthCalculator(Twitter.KEY, tokens))
-        .get(res => toComet |> socket)
+        .get(res => toComet &> socket)
     }
   }
 

@@ -4,7 +4,7 @@ import PlayProject._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "websockets"
+    val appName         = "chatroom"
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
