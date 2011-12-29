@@ -256,54 +256,55 @@ object Enumeratee {
         (_, _) => Done(it, Input.Empty))
 
   }
-  def zip[E,A,B](inner1:Iteratee[E,A],inner2:Iteratee[E,B]):Iteratee[E,(A,B)] = zipWith(inner1,inner2)((_,_))
+  def zip[E, A, B](inner1: Iteratee[E, A], inner2: Iteratee[E, B]): Iteratee[E, (A, B)] = zipWith(inner1, inner2)((_, _))
 
-  def zipWith[E,A,B,C](inner1:Iteratee[E,A],inner2:Iteratee[E,B])(zipper:(A,B) => C):Iteratee[E,C] = {
+  def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C): Iteratee[E, C] = {
 
-    def getNext(it1:Iteratee[E,A],it2:Iteratee[E,B]):Iteratee[E,C] = {
-      val eventuallyIter = 
-         for ( (a1,it1_) <- getInside(it1);
-              (a2,it2_) <- getInside(it2) )
-         yield checkDone(a1,a2) match {
-           case Left((msg,in)) => Error(msg,in)
-           case Right(None) => Cont(step(it1_,it2_))
-           case Right(Some(Left(Left(a)))) => it2_.map(b => zipper(a,b))
-           case Right(Some(Left(Right(b)))) =>  it1_.map(a => zipper(a,b))
-           case Right(Some(Right(((a,b),e)))) => Done(zipper(a,b),e)
-         }
+    def getNext(it1: Iteratee[E, A], it2: Iteratee[E, B]): Iteratee[E, C] = {
+      val eventuallyIter =
+        for (
+          (a1, it1_) <- getInside(it1);
+          (a2, it2_) <- getInside(it2)
+        ) yield checkDone(a1, a2) match {
+          case Left((msg, in)) => Error(msg, in)
+          case Right(None) => Cont(step(it1_, it2_))
+          case Right(Some(Left(Left(a)))) => it2_.map(b => zipper(a, b))
+          case Right(Some(Left(Right(b)))) => it1_.map(a => zipper(a, b))
+          case Right(Some(Right(((a, b), e)))) => Done(zipper(a, b), e)
+        }
 
       Iteratee.flatten(eventuallyIter)
     }
 
-
-    def step(it1:Iteratee[E,A],it2:Iteratee[E,B])(in:Input[E]) = {
+    def step(it1: Iteratee[E, A], it2: Iteratee[E, B])(in: Input[E]) = {
       Iteratee.flatten(
-        for( it1_ <- it1.feed(in);
-            it2_ <- it2.feed(in)
-          ) yield getNext(it1_,it2_) )
+        for (
+          it1_ <- it1.feed(in);
+          it2_ <- it2.feed(in)
+        ) yield getNext(it1_, it2_))
 
     }
 
-    def getInside[T](it:Iteratee[E,T]):Promise[(Option[Either[(String,Input[E]),(T,Input[E])]],Iteratee[E,T])] = {
+    def getInside[T](it: Iteratee[E, T]): Promise[(Option[Either[(String, Input[E]), (T, Input[E])]], Iteratee[E, T])] = {
       it.pureFold(
-        (a,e) => Some(Right((a,e))),
+        (a, e) => Some(Right((a, e))),
         k => None,
-        (msg,e) => Some(Left((msg,e)))
-      ).map(r => (r,it))
+        (msg, e) => Some(Left((msg, e)))
+      ).map(r => (r, it))
 
     }
 
-    def checkDone(x:Option[Either[(String,Input[E]),(A,Input[E])]],y:Option[Either[(String,Input[E]),(B,Input[E])]]): Either[(String,Input[E]),Option[Either[Either[A,B],((A,B),Input[E])]]] =
-      (x,y) match {
-        case (Some(Right((a,e1))),Some(Right((b,e2)))) => Right(Some(Right(((a,b),e1 /* FIXME: should calculate smalled here*/ ))))
-        case (Some(Left((msg,e))), _) => Left((msg,e))
-        case (_,Some(Left((msg,e)))) => Left((msg,e))
-        case (Some(Right((a,_))), None) => Right(Some(Left(Left(a))))
-        case (None,Some(Right((b,_)))) => Right(Some(Left(Right(b))))
-        case (None,None) => Right(None)
+    def checkDone(x: Option[Either[(String, Input[E]), (A, Input[E])]], y: Option[Either[(String, Input[E]), (B, Input[E])]]): Either[(String, Input[E]), Option[Either[Either[A, B], ((A, B), Input[E])]]] =
+      (x, y) match {
+        case (Some(Right((a, e1))), Some(Right((b, e2)))) => Right(Some(Right(((a, b), e1 /* FIXME: should calculate smalled here*/ ))))
+        case (Some(Left((msg, e))), _) => Left((msg, e))
+        case (_, Some(Left((msg, e)))) => Left((msg, e))
+        case (Some(Right((a, _))), None) => Right(Some(Left(Left(a))))
+        case (None, Some(Right((b, _)))) => Right(Some(Left(Right(b))))
+        case (None, None) => Right(None)
 
       }
-    getNext(inner1,inner2)
+    getNext(inner1, inner2)
 
   }
 

@@ -16,6 +16,13 @@ object Reads extends DefaultReads
 
 trait DefaultReads {
 
+  implicit object AnyReads extends Reads[Any] {
+    def reads(json: JsValue) = json match {
+      case JsAny(n) => n.asInstanceOf[Any]
+      case _ => throw new RuntimeException("Any expected")
+    }
+  }
+
   implicit object IntReads extends Reads[Int] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => n.toInt
@@ -87,9 +94,9 @@ trait DefaultReads {
   }
   private[this] def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
 
-  implicit def mapReads[String, V](implicit fmtv: Reads[V]): Reads[collection.immutable.Map[String, V]] = new Reads[collection.immutable.Map[String, V]] {
+  implicit def mapReads[String, V](implicit fmtv: Reads[V]): Reads[collection.immutable.Map[java.lang.String, V]] = new Reads[collection.immutable.Map[java.lang.String, V]] {
     def reads(json: JsValue) = json match {
-      case JsObject(m) => m.map { case (k, v) => (k -> fromJson[V](v)(fmtv)) }.asInstanceOf[collection.immutable.Map[String,V]]
+      case JsObject(m) => m.map { case (k, v) => (k.toString -> fromJson[V](v)(fmtv)) }
       case _ => throw new RuntimeException("Map expected")
     }
   }

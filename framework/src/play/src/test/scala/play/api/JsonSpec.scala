@@ -21,14 +21,14 @@ object JsonSpec extends Specification {
       "friends" -> JsArray(u.friends.map(fr => JsObject(Map("id" -> JsNumber(fr.id), "name" -> JsString(fr.name)))))))
   }
 
-  case class Car(id: Long, models: Map[String, String])
+  case class Car(id: Long, models: Map[String, Any])
 
   implicit object CarFormat extends Format[Car] {
     def reads(json: JsValue): Car = Car(
-      (json \ "id").as[Long], (json \ "models").as[Map[String, String]])
+      (json \ "id").as[Long], (json \ "models").as[Map[String, Any]])
     def writes(c: Car): JsValue = JsObject(Map(
       "id" -> JsNumber(c.id),
-      "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)))))
+      "models" -> JsObject(c.models.map(x => x._1 -> JsAny(x._2)))))
   }
 
   import java.util.Date
