@@ -49,7 +49,7 @@ trait PlaySettings {
 
     target <<= baseDirectory / "target",
 
-    sourceDirectory in Compile <<= baseDirectory / "app",
+    sourceDirectory <<= baseDirectory / "app",
     sourceDirectory in Test <<= baseDirectory / "test",
 
     confDirectory <<= baseDirectory / "conf",
@@ -86,7 +86,7 @@ trait PlaySettings {
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
     // Adds views template to continious triggers
-    watchSources <++= baseDirectory map {path => ( (path / "app" / "views") ** "*").get },
+    watchSources <++= sourceDirectory map {path => ( (path / "views") ** "*.scala.*").get },
 
     commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
