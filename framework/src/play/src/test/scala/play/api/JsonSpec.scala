@@ -15,10 +15,10 @@ object JsonSpec extends Specification {
       (json \ "id").as[Long],
       (json \ "name").as[String],
       (json \ "friends").asOpt[List[User]].getOrElse(List()))
-    def writes(u: User): JsValue = JsObject(Map(
-      "id" -> JsNumber(u.id),
-      "name" -> JsString(u.name),
-      "friends" -> JsArray(u.friends.map(fr => JsObject(Map("id" -> JsNumber(fr.id), "name" -> JsString(fr.name)))))))
+    def writes(u: User): JsValue = JsObject(List(
+      JsField("id" , JsNumber(u.id)),
+      JsField("name" , JsString(u.name)),
+      JsField("friends" , JsArray(u.friends.map(fr => JsObject(List(JsField("id", JsNumber(fr.id)), JsField("name", JsString(fr.name)))))))))
   }
 
   case class Car(id: Long, models: Map[String, String])
@@ -51,8 +51,8 @@ object JsonSpec extends Specification {
     def reads(json: JsValue): Post = Post(
       (json \ "body").as[String],
       (json \ "created_at").asOpt[Date])
-    def writes(p: Post): JsValue = JsObject(Map(
-      "body" -> JsString(p.body))) // Don't care about creating created_at or not here
+    def writes(p: Post): JsValue = JsObject(List(
+      JsField("body" , JsString(p.body)))) // Don't care about creating created_at or not here
   }
 
 
@@ -91,13 +91,13 @@ object JsonSpec extends Specification {
     }
     "Can parse recursive object" in {
       val recursiveJson = """{"foo": {"foo":["bar"]}, "bar": {"foo":["bar"]}}"""
-      val expectedJson = JsObject(Map[String, JsValue](
-        "foo" -> JsObject(Map[String, JsValue](
-          "foo" -> JsArray(List[JsValue](JsString("bar")))
-          )),
-        "bar" -> JsObject(Map[String, JsValue](
-          "foo" -> JsArray(List[JsValue](JsString("bar")))
-          ))
+      val expectedJson = JsObject(List[JsField](
+        JsField("foo" , JsObject(List[JsField](
+          JsField("foo" , JsArray(List[JsValue](JsString("bar"))))
+          ))),
+        JsField("bar" , JsObject(List[JsField](
+          JsField("foo" , JsArray(List[JsValue](JsString("bar"))))
+          )))
         ))
       val resultJson = Json.parse(recursiveJson)
       resultJson must equalTo(expectedJson)
@@ -106,7 +106,7 @@ object JsonSpec extends Specification {
     "Can parse null values in Object" in {
       val postJson = """{"foo": null}"""
       val parsedJson = Json.parse(postJson)
-      val expectedJson = JsObject(Map[String,JsValue]("foo" -> JsNull))
+      val expectedJson = JsObject(List[JsField](JsField("foo" , JsNull)))
       parsedJson must equalTo(expectedJson)
     }
     "Can parse null values in Array" in {
@@ -114,6 +114,224 @@ object JsonSpec extends Specification {
       val parsedJson = Json.parse(postJson)
       val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
+    }
+    "Parse Tuple2 from JsObject" >> {
+      "With at least 2 fields (String, Boolean)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": true }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2) = parsedJson.as[Tuple2[String, Boolean]]
+        (foo1, foo2) must equalTo(("bar1", true))
+      }
+      "With at least 2 fields (Short, Int)" in {
+        val postJson = """{ "foo1":12, "foo2": 12345 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2) = parsedJson.as[Tuple2[Short, Int]]
+        (foo1, foo2) must equalTo((12, 12345))
+      }
+      "With at least 2 fields (Long, Float)" in {
+        val postJson = """{ "foo1":123456789, "foo2": 12345.789 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2) = parsedJson.as[Tuple2[Long, Float]]
+        (foo1, foo2) must equalTo((123456789, 12345.789F))
+      }
+      "With at least 2 fields (Double, Array)" in {
+        val postJson = """{ "foo1":12345678.12345678, "foo2": [ "bar1", "bar2", "bar3"] }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2) = parsedJson.as[Tuple2[Double, Array[String]]]
+        (foo1, foo2.toSeq) must equalTo((12345678.12345678, Seq("bar1", "bar2", "bar3")))
+      }
+      "With at least 2 fields (List, Map)" in {
+        val postJson = """{ "foo1": [ "bar1", "bar2", "bar3"], "foo2": { "foo21": "bar21", "foo22": "bar22"} }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2) = parsedJson.as[Tuple2[List[String], Map[String, String]]]
+        (foo1, foo2) must equalTo((List("bar1", "bar2", "bar3"), Map( "foo21" -> "bar21", "foo22" -> "bar22")))
+      }
+      "With less than 2 fields, throws RuntimeException" in {
+        val postJson = """{ "foo1":"bar1" }"""
+        val parsedJson = Json.parse(postJson)
+        parsedJson.as[Tuple2[String, Int]] must throwA[RuntimeException](message = "Map with size>=2 expected")
+      }
+      "With more than 2 fields (String, String, String)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": "bar2", "foo3": "bar3" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2) = parsedJson.as[Tuple2[String, String]]
+        (foo1, foo2) must equalTo(("bar1", "bar2"))
+      }
+    }
+    "Parse Tuple3 from JsObject" >> {
+      "With at least 3 fields (String, Boolean, Int)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": true, "foo3": 123456 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3) = parsedJson.as[Tuple3[String, Boolean, Int]]
+        (foo1, foo2, foo3) must equalTo(("bar1", true, 123456))
+      }
+      "With at least 3 fields (Short, Int, Float)" in {
+        val postJson = """{ "foo1":12, "foo2": 12345, "foo3": 12345.789 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3) = parsedJson.as[Tuple3[Short, Int, Float]]
+        (foo1, foo2, foo3) must equalTo((12, 12345, 12345.789F))
+      }
+      "With at least 3 fields (Long, Float, String)" in {
+        val postJson = """{ "foo1":123456789, "foo2": 12345.789, "foo3": "bar3" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3) = parsedJson.as[Tuple3[Long, Float, String]]
+        (foo1, foo2, foo3) must equalTo((123456789, 12345.789F, "bar3"))
+      }
+      "With at least 3 fields (Double, Array, List[Int])" in {
+        val postJson = """{ "foo1":12345678.12345678, "foo2": [ "bar1", "bar2", "bar3"], "foo3": [ 123, 456, 789 ] }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3) = parsedJson.as[Tuple3[Double, Array[String], List[Int]]]
+        (foo1, foo2.toSeq, foo3) must equalTo((12345678.12345678, Seq("bar1", "bar2", "bar3"), List(123, 456, 789)))
+      }
+      "With at least 3 fields (List, Map, Map[String, Int])" in {
+        val postJson = """{ "foo1": [ "bar1", "bar2", "bar3"], "foo2": { "foo21": "bar21", "foo22": "bar22"}, "foo3": { "foo21": 123, "foo22": 456} }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3) = parsedJson.as[Tuple3[List[String], Map[String, String], Map[String, Int]]]
+        (foo1, foo2, foo3) must equalTo((List("bar1", "bar2", "bar3"), Map( "foo21" -> "bar21", "foo22" -> "bar22"), Map( "foo21" -> 123, "foo22" -> 456)))
+      }
+      "With less than 3 fields, throws RuntimeException" in {
+        val postJson = """{ "foo1":"bar1" }"""
+        val parsedJson = Json.parse(postJson)
+        parsedJson.as[Tuple3[String, String, String]] must throwA[RuntimeException](message = "Map with size>=3 expected")
+      }
+      "With more than 3 fields (String, String, String, String)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": "bar2", "foo3": "bar3", "foo4": "bar4" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3) = parsedJson.as[Tuple3[String, String, String]]
+        (foo1, foo2, foo3) must equalTo(("bar1", "bar2", "bar3"))
+      }
+    }
+    "Parse Tuple4 from JsObject" >> {
+      "With at least 4 fields (String, Boolean, Int, Float)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": true, "foo3": 123456, "foo4": 12345.789 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4) = parsedJson.as[Tuple4[String, Boolean, Int, Float]]
+        (foo1, foo2, foo3, foo4) must equalTo(("bar1", true, 123456, 12345.789F))
+      }
+      "With at least 4 fields (Short, Int, Float, Double)" in {
+        val postJson = """{ "foo1":12, "foo2": 12345, "foo3": 12345.789, "foo4": 12345678.12345678 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4) = parsedJson.as[Tuple4[Short, Int, Float, Double]]
+        (foo1, foo2, foo3, foo4) must equalTo((12, 12345, 12345.789F, 12345678.12345678))
+      }
+      "With at least 4 fields (Array[String], List[String], List[Int], Map[String, String])" in {
+        val postJson = """{ "foo1":[ "bar1", "bar2", "bar3"], "foo2": [ "bar1", "bar2", "bar3"], "foo3": [ 123, 456, 789 ], "foo4": { "foo41": "bar41", "foo42": "bar42"} }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4) = parsedJson.as[Tuple4[Array[String], List[String], List[Int], Map[String, String]]]
+        (foo1.toSeq, foo2, foo3, foo4) must equalTo((Seq("bar1", "bar2", "bar3"), List("bar1", "bar2", "bar3"), List(123,456,789), Map( "foo41" -> "bar41", "foo42" -> "bar42")))
+      }
+      "With less than 4 fields, throws RuntimeException" in {
+        val postJson = """{ "foo1":"bar1" }"""
+        val parsedJson = Json.parse(postJson)
+        parsedJson.as[Tuple4[String, String, String, String]] must throwA[RuntimeException](message = "Map with size>=4 expected")
+      }
+      "With more than 4 fields (String, String, String, String, String)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": "bar2", "foo3": "bar3", "foo4": "bar4", "foo5": "bar5" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4) = parsedJson.as[Tuple4[String, String, String, String]]
+        (foo1, foo2, foo3, foo4) must equalTo(("bar1", "bar2", "bar3", "bar4"))
+      }
+    }
+
+    "Parse Tuple5 from JsObject" >> {
+      "With at least 5 fields (String, Boolean, Short, Int, Float)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": true, "foo3": 123, "foo4": 123456, "foo5": 12345.678 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5) = parsedJson.as[Tuple5[String, Boolean, Short, Int, Float]]
+        (foo1, foo2, foo3, foo4, foo5) must equalTo(("bar1", true, 123, 123456, 12345.678F))
+      }
+      "With at least 5 fields (Double, Array[String], List[String], List[Int], Map[String, String])" in {
+        val postJson = """{ "foo1": 12345678.12345678, "foo2":[ "bar1", "bar2", "bar3"], "foo3": [ "bar1", "bar2", "bar3"], "foo4": [ 123, 456, 789 ], "foo5": { "foo1": "bar1", "foo2": "bar2"} }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5) = parsedJson.as[Tuple5[Double, Array[String], List[String], List[Int], Map[String, String]]]
+        (foo1, foo2.toSeq, foo3, foo4, foo5) must equalTo((12345678.12345678, Seq("bar1", "bar2", "bar3"), List("bar1", "bar2", "bar3"), List(123,456,789), Map( "foo1" -> "bar1", "foo2" -> "bar2")))
+      }
+      "With less than 5 fields, throws RuntimeException" in {
+        val postJson = """{ "foo1":"bar1" }"""
+        val parsedJson = Json.parse(postJson)
+        parsedJson.as[Tuple5[String, String, String, String, String]] must throwA[RuntimeException](message = "Map with size>=5 expected")
+      }
+      "With more than 5 fields (String, String, String, String, String, String)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": "bar2", "foo3": "bar3", "foo4": "bar4", "foo5": "bar5", "foo6": "bar6" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5) = parsedJson.as[Tuple5[String, String, String, String, String]]
+        (foo1, foo2, foo3, foo4, foo5) must equalTo(("bar1", "bar2", "bar3", "bar4", "bar5"))
+      }
+    }
+
+    "Parse Tuple6 from JsObject" >> {
+      "With at least 6 fields (String, Boolean, Short, Int, Float, Double)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": true, "foo3": 123, "foo4": 123456, "foo5": 12345.678, "foo6": 12345678.12345678 }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5, foo6) = parsedJson.as[Tuple6[String, Boolean, Short, Int, Float, Double]]
+        (foo1, foo2, foo3, foo4, foo5, foo6) must equalTo(("bar1", true, 123, 123456, 12345.678F, 12345678.12345678))
+      }
+      "With at least 6 fields (Array[String], Array[Int], List[String], List[Int], Map[String, String], Map[String, Long])" in {
+        val postJson = """{ "foo1":[ "bar1", "bar2", "bar3"], "foo2": [ 123, 456, 789 ], "foo3": [ "bar1", "bar2", "bar3"], "foo4": [ 123, 456, 789 ], "foo5": { "foo1": "bar1", "foo2": "bar2"}, "foo6": { "foo1": 12345678, "foo2": 987654321} }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5, foo6) = parsedJson.as[Tuple6[Array[String], Array[Int], List[String], List[Int], Map[String, String], Map[String, Long]]]
+        (foo1.toSeq, foo2.toSeq, foo3, foo4, foo5, foo6) must equalTo((Seq("bar1", "bar2", "bar3"), Seq(123, 456, 789), List("bar1", "bar2", "bar3"), List(123, 456, 789), Map( "foo1" -> "bar1", "foo2" -> "bar2"), Map( "foo1" -> 12345678, "foo2" -> 987654321)))
+      }
+      "With less than 6 fields, throws RuntimeException" in {
+        val postJson = """{ "foo1":"bar1" }"""
+        val parsedJson = Json.parse(postJson)
+        parsedJson.as[Tuple6[String, String, String, String, String, String]] must throwA[RuntimeException](message = "Map with size>=6 expected")
+      }
+      "With more than 6 fields (String, String, String, String, String, String, String)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": "bar2", "foo3": "bar3", "foo4": "bar4", "foo5": "bar5", "foo6": "bar6", "foo7": "bar7" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5, foo6) = parsedJson.as[Tuple6[String, String, String, String, String, String]]
+        (foo1, foo2, foo3, foo4, foo5, foo6) must equalTo(("bar1", "bar2", "bar3", "bar4", "bar5", "bar6"))
+      }
+    }
+
+    "Parse Tuple22 from JsObject" >> {
+      "With at least 22 fields (String, ...)" in {
+        val postJson = """{ 
+          "foo1":"bar1", "foo2": "bar2", "foo3": "bar3", "foo4": "bar4", "foo5": "bar5", 
+          "foo6":"bar6", "foo7": "bar7", "foo8": "bar8", "foo9": "bar9", "foo10": "bar10", 
+          "foo11":"bar11", "foo12": "bar12", "foo13": "bar13", "foo14": "bar14", "foo15": "bar15", 
+          "foo16":"bar16", "foo17": "bar17", "foo18": "bar18", "foo19": "bar19", "foo20": "bar20", 
+          "foo21":"bar21", "foo22": "bar22"
+        }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5, 
+          foo6, foo7, foo8, foo9, foo10, 
+          foo11, foo12, foo13, foo14, foo15, 
+          foo16, foo17, foo18, foo19, foo20, 
+          foo21, foo22) = parsedJson.as[Tuple22[String, String, String, String, String, 
+                                                String, String, String, String, String,
+                                                String, String, String, String, String,
+                                                String, String, String, String, String,
+                                                String, String]]
+        (foo1, foo2, foo3, foo4, foo5, 
+          foo6, foo7, foo8, foo9, foo10, 
+          foo11, foo12, foo13, foo14, foo15, 
+          foo16, foo17, foo18, foo19, foo20, 
+          foo21, foo22) must equalTo((
+                        "bar1", "bar2", "bar3", "bar4", "bar5", 
+                        "bar6", "bar7", "bar8", "bar9", "bar10", 
+                        "bar11", "bar12", "bar13", "bar14", "bar15", 
+                        "bar16", "bar17", "bar18", "bar19", "bar20", 
+                        "bar21", "bar22"))
+      }
+      "With at least 6 fields (Array[String], Array[Int], List[String], List[Int], Map[String, String], Map[String, Long])" in {
+        val postJson = """{ "foo1":[ "bar1", "bar2", "bar3"], "foo2": [ 123, 456, 789 ], "foo3": [ "bar1", "bar2", "bar3"], "foo4": [ 123, 456, 789 ], "foo5": { "foo1": "bar1", "foo2": "bar2"}, "foo6": { "foo1": 12345678, "foo2": 987654321} }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5, foo6) = parsedJson.as[Tuple6[Array[String], Array[Int], List[String], List[Int], Map[String, String], Map[String, Long]]]
+        (foo1.toSeq, foo2.toSeq, foo3, foo4, foo5, foo6) must equalTo((Seq("bar1", "bar2", "bar3"), Seq(123, 456, 789), List("bar1", "bar2", "bar3"), List(123, 456, 789), Map( "foo1" -> "bar1", "foo2" -> "bar2"), Map( "foo1" -> 12345678, "foo2" -> 987654321)))
+      }
+      "With less than 6 fields, throws RuntimeException" in {
+        val postJson = """{ "foo1":"bar1" }"""
+        val parsedJson = Json.parse(postJson)
+        parsedJson.as[Tuple6[String, String, String, String, String, String]] must throwA[RuntimeException](message = "Map with size>=6 expected")
+      }
+      "With more than 6 fields (String, String, String, String, String, String, String)" in {
+        val postJson = """{ "foo1":"bar1", "foo2": "bar2", "foo3": "bar3", "foo4": "bar4", "foo5": "bar5", "foo6": "bar6", "foo7": "bar7" }"""
+        val parsedJson = Json.parse(postJson)
+        val (foo1, foo2, foo3, foo4, foo5, foo6) = parsedJson.as[Tuple6[String, String, String, String, String, String]]
+        (foo1, foo2, foo3, foo4, foo5, foo6) must equalTo(("bar1", "bar2", "bar3", "bar4", "bar5", "bar6"))
+      }
     }
   }
 
