@@ -8,7 +8,7 @@ import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
 
 import scala.collection._
 
-import scala.collection.immutable.{Stack, Queue}
+import scala.collection.immutable.Stack
 import scala.annotation.tailrec
 
 /**
@@ -74,7 +74,7 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
   lazy val value:Map[String,JsValue] = fields.toMap
-  
+
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
   override def \\(fieldName: String): Seq[JsValue] = {
@@ -82,6 +82,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
       case (key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
       case (_, value) => o ++ (value \\ fieldName)
     })
+  }
 }
 
 @JsonCachable
@@ -96,8 +97,8 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
       case JsObject(values) => {
         json.writeStartObject()
         values.foreach { t =>
-          json.writeFieldName(t.name)
-          json.writeObject(t.value)
+          json.writeFieldName(t._1)
+          json.writeObject(t._2)
         }
         json.writeEndObject()
       }
@@ -121,7 +122,6 @@ case class ReadingList(content: List[JsValue]) extends DeserializerContext {
 }
 
 // Context for reading an Object
-
 case class KeyRead(content: List[(String, JsValue)], fieldName: String) extends DeserializerContext {
   def addValue(value: JsValue): DeserializerContext = ReadingMap(content :+ (fieldName -> value))
 }
@@ -171,11 +171,11 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
 
       case (JsonToken.START_OBJECT, c) => (None, ReadingMap(List()) +: c)
 
-      case (JsonToken.FIELD_NAME, (c: ReadingFields) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
+      case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
 
       case (JsonToken.FIELD_NAME, _) => throw new RuntimeException("We should be reading map, something got wrong")
 
-      case (JsonToken.END_OBJECT, ReadingFields(content) :: stack) => (Some(JsObject(content.toList)), stack)
+      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
 
       case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
 

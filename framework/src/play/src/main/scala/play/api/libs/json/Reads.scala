@@ -121,8 +121,8 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -134,9 +134,9 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -148,10 +148,10 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -163,11 +163,11 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -179,12 +179,12 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -196,13 +196,13 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -214,14 +214,14 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -233,15 +233,15 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -253,16 +253,16 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -274,17 +274,17 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -296,18 +296,18 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12)          
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12)          
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -319,19 +319,19 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -343,20 +343,20 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -368,21 +368,21 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -394,22 +394,22 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -421,23 +421,23 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16),
-          fromJson(idxm(16).value)(fmt17)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16),
+          fromJson(idxm(16)._2)(fmt17)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -449,24 +449,24 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16),
-          fromJson(idxm(16).value)(fmt17),
-          fromJson(idxm(17).value)(fmt18)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16),
+          fromJson(idxm(16)._2)(fmt17),
+          fromJson(idxm(17)._2)(fmt18)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -478,25 +478,25 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16),
-          fromJson(idxm(16).value)(fmt17),
-          fromJson(idxm(17).value)(fmt18),
-          fromJson(idxm(18).value)(fmt19)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16),
+          fromJson(idxm(16)._2)(fmt17),
+          fromJson(idxm(17)._2)(fmt18),
+          fromJson(idxm(18)._2)(fmt19)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -508,26 +508,26 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16),
-          fromJson(idxm(16).value)(fmt17),
-          fromJson(idxm(17).value)(fmt18),
-          fromJson(idxm(18).value)(fmt19),
-          fromJson(idxm(19).value)(fmt20)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16),
+          fromJson(idxm(16)._2)(fmt17),
+          fromJson(idxm(17)._2)(fmt18),
+          fromJson(idxm(18)._2)(fmt19),
+          fromJson(idxm(19)._2)(fmt20)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -539,27 +539,27 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16),
-          fromJson(idxm(16).value)(fmt17),
-          fromJson(idxm(17).value)(fmt18),
-          fromJson(idxm(18).value)(fmt19),
-          fromJson(idxm(19).value)(fmt20),
-          fromJson(idxm(20).value)(fmt21)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16),
+          fromJson(idxm(16)._2)(fmt17),
+          fromJson(idxm(17)._2)(fmt18),
+          fromJson(idxm(18)._2)(fmt19),
+          fromJson(idxm(19)._2)(fmt20),
+          fromJson(idxm(20)._2)(fmt21)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
@@ -571,28 +571,28 @@ trait DefaultReads {
       case JsObject(m) if(m.size >= sz) => {
         val idxm = m.view(0, sz).toIndexedSeq
         (
-          fromJson(idxm(0).value)(fmt1),
-          fromJson(idxm(1).value)(fmt2),
-          fromJson(idxm(2).value)(fmt3),
-          fromJson(idxm(3).value)(fmt4),
-          fromJson(idxm(4).value)(fmt5),
-          fromJson(idxm(5).value)(fmt6),
-          fromJson(idxm(6).value)(fmt7),
-          fromJson(idxm(7).value)(fmt8),
-          fromJson(idxm(8).value)(fmt9),
-          fromJson(idxm(9).value)(fmt10),
-          fromJson(idxm(10).value)(fmt11),
-          fromJson(idxm(11).value)(fmt12),
-          fromJson(idxm(12).value)(fmt13),
-          fromJson(idxm(13).value)(fmt14),
-          fromJson(idxm(14).value)(fmt15),
-          fromJson(idxm(15).value)(fmt16),
-          fromJson(idxm(16).value)(fmt17),
-          fromJson(idxm(17).value)(fmt18),
-          fromJson(idxm(18).value)(fmt19),
-          fromJson(idxm(19).value)(fmt20),
-          fromJson(idxm(20).value)(fmt21),
-          fromJson(idxm(21).value)(fmt22)
+          fromJson(idxm(0)._2)(fmt1),
+          fromJson(idxm(1)._2)(fmt2),
+          fromJson(idxm(2)._2)(fmt3),
+          fromJson(idxm(3)._2)(fmt4),
+          fromJson(idxm(4)._2)(fmt5),
+          fromJson(idxm(5)._2)(fmt6),
+          fromJson(idxm(6)._2)(fmt7),
+          fromJson(idxm(7)._2)(fmt8),
+          fromJson(idxm(8)._2)(fmt9),
+          fromJson(idxm(9)._2)(fmt10),
+          fromJson(idxm(10)._2)(fmt11),
+          fromJson(idxm(11)._2)(fmt12),
+          fromJson(idxm(12)._2)(fmt13),
+          fromJson(idxm(13)._2)(fmt14),
+          fromJson(idxm(14)._2)(fmt15),
+          fromJson(idxm(15)._2)(fmt16),
+          fromJson(idxm(16)._2)(fmt17),
+          fromJson(idxm(17)._2)(fmt18),
+          fromJson(idxm(18)._2)(fmt19),
+          fromJson(idxm(19)._2)(fmt20),
+          fromJson(idxm(20)._2)(fmt21),
+          fromJson(idxm(21)._2)(fmt22)
         )
       }  
       case _ => throw new RuntimeException("Map with size>="+sz+" expected")
