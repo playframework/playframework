@@ -44,10 +44,6 @@ trait DefaultWrites {
     def writes(o: String) = JsString(o)
   }
 
-  implicit object AnyWrites extends Writes[Any] {
-    def writes(o: Any) = JsAny(o)
-  }
-
   implicit def listWrites[T](implicit fmt: Writes[T]): Writes[List[T]] = new Writes[List[T]] {
     def writes(ts: List[T]) = JsArray(ts.map(t => toJson(t)(fmt)))
   }
@@ -61,8 +57,8 @@ trait DefaultWrites {
   }
   def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
 
-  implicit def mapWrites[String, V](fmtv: Writes[V]): Writes[collection.immutable.Map[String, V]] = new Writes[collection.immutable.Map[String, V]] {
-    def writes(ts: collection.immutable.Map[String, V]) = JsObject(ts.map { case (k, v) => (k.toString, toJson(v)(fmtv)) })
+  implicit def mapWrites[V](fmtv: Writes[V]): Writes[collection.immutable.Map[String, V]] = new Writes[collection.immutable.Map[String, V]] {
+    def writes(ts: collection.immutable.Map[String, V]) = JsObject(ts.map { case (k, v) => (k, toJson(v)(fmtv)) })
   }
 
   implicit def mutableSetWrites[T](implicit fmt: Writes[T]): Writes[mutable.Set[T]] =
