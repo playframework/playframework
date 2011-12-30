@@ -71,6 +71,10 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 
 }
 
+object JsArray {
+  def apply(values: JsValue*): JsArray = JsArray(values.toList)
+}
+
 case class JsObject(value: Map[String, JsValue]) extends JsValue {
 
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
@@ -81,6 +85,10 @@ case class JsObject(value: Map[String, JsValue]) extends JsValue {
       case (_, value) => o ++ (value \\ fieldName)
     })
   }
+}
+
+object JsObject {
+  def apply(values: (String, JsValue)*): JsObject = JsObject(values.toMap)
 }
 
 @JsonCachable
