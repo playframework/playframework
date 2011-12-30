@@ -58,7 +58,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode =
 
   mode match {
     case Mode.Test =>
-    case _ => Logger("play").info("Listening for HTTP on port %s...".format(port))
+    case _ => logger.info("Listening for HTTP on port %s with %d invokers...".format(port, invokerCount))
   }
 
   def stop() {
@@ -66,7 +66,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode =
 
     mode match {
       case Mode.Test =>
-      case _ => Logger("play").warn("Stopping server...")
+      case _ => logger.warn("Stopping server...")
     }
 
     allChannels.disconnect().awaitUninterruptibly()

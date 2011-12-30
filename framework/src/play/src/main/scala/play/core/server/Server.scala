@@ -36,6 +36,8 @@ trait Server {
     },
     Map("application.home" -> applicationProvider.path.getAbsolutePath))
 
+  lazy val logger = Logger("play")
+
   def response(webSocketableRequest: WebSocketable)(otheResults: PartialFunction[Result, Unit]) = new Response {
 
     val websocketErrorResult: PartialFunction[Result, Unit] = { case _ if (webSocketableRequest.check) => handle(Results.BadRequest) }
@@ -53,9 +55,12 @@ trait Server {
     def handle(result: Result) = (asyncResult orElse websocketErrorResult orElse otheResults)(result)
   }
 
-  def newInvoker = { val inv = actorOf[Invoker]; inv.start(); inv }
+  lazy val invokerCount = applicationProvider.get.right.get.configuration.getInt("server.invokerCount").getOrElse(3)
 
-  val invoker = loadBalancerActor(new CyclicIterator(List.fill(3)(newInvoker))).start()
+  def newInvoker = { val inv = actorOf[Invoker]; inv.start(); inv }
+  lazy val invoker = {
+    loadBalancerActor(new CyclicIterator(List.fill(invokerCount)(newInvoker))).start()
+  }
 
   def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
 

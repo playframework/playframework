@@ -10,14 +10,9 @@ import play.api.http.HeaderNames._
 
 import akka.actor.Actor
 import akka.dispatch.Dispatchers._
+import akka.dispatch.Dispatchers
 
 object DispatchStrategy {
-
-  val d = newExecutorBasedEventDrivenWorkStealingDispatcher("name")
-    .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
-    .setCorePoolSize(3)
-    .setMaxPoolSize(3)
-    .build
 
   val sockets = newExecutorBasedEventDrivenDispatcher("name")
     .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
@@ -35,14 +30,13 @@ object DispatchStrategy {
 
 case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 class Invoker extends Actor {
-  self.dispatcher = DispatchStrategy.d
+  self.dispatcher = Dispatchers.newThreadBasedDispatcher(self)
 
   def receive = {
 
     case (requestHeader: RequestHeader, bodyFunction: BodyParser[_]) => self.reply(bodyFunction(requestHeader))
 
     case HandleAction(request, response: Response, action, app: Application) =>
-
       val result = try {
         // Be sure to use the Play classloader in this Thread
         Thread.currentThread.setContextClassLoader(app.classloader)
