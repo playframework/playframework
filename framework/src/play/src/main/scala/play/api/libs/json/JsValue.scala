@@ -48,11 +48,6 @@ sealed trait JsValue {
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
 
-  /**
-   * tries to convert from [K,V] to Map[K,V]
-   */
-  def as[K, V](implicit fjs: Reads[collection.immutable.Map[K, V]]): collection.immutable.Map[K, V] = fjs.reads(this)
-
   override def toString = Json.stringify(this)
 
 }
@@ -76,24 +71,17 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 
 }
 
+case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
-case class JsField(name: String, value: JsValue) extends JsValue
-
-case class JsObject(fields: List[JsField]) extends JsValue {
-  def this(mapFields: collection.immutable.Map[String, JsValue]) = this(mapFields.toList.map{ case (k,v) => JsField(k,v)})
-
-  override def \(fieldName: String): JsValue = {
-    fields.find {
-      case JsField(name, _) => name == fieldName
-    }.map{ case JsField(_, value) => value }.getOrElse(super.\(fieldName)) 
-  }
+  lazy val value:Map[String,JsValue] = fields.toMap
+  
+  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
   override def \\(fieldName: String): Seq[JsValue] = {
-    fields.foldLeft(Seq[JsValue]())((o, pair) => pair match {
-      case JsField(key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
-      case JsField(_, value) => o ++ (value \\ fieldName)
+    value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
+      case (key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
+      case (_, value) => o ++ (value \\ fieldName)
     })
-  }
 }
 
 @JsonCachable
@@ -133,12 +121,13 @@ case class ReadingList(content: List[JsValue]) extends DeserializerContext {
 }
 
 // Context for reading an Object
-case class KeyRead(content: Queue[JsField], fieldName: String) extends DeserializerContext {
-  def addValue(value: JsValue): DeserializerContext = ReadingFields(content :+ JsField(fieldName, value))
+
+case class KeyRead(content: List[(String, JsValue)], fieldName: String) extends DeserializerContext {
+  def addValue(value: JsValue): DeserializerContext = ReadingMap(content :+ (fieldName -> value))
 }
 
 // Context for reading one item of an Object (we already red fieldName)
-case class ReadingFields(content: Queue[JsField]) extends DeserializerContext {
+case class ReadingMap(content: List[(String, JsValue)]) extends DeserializerContext {
 
   def setField(fieldName: String) = KeyRead(content, fieldName)
   def addValue(value: JsValue): DeserializerContext = throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
@@ -180,7 +169,7 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
 
       case (JsonToken.END_ARRAY, _) => throw new RuntimeException("We should have been reading list, something got wrong")
 
-      case (JsonToken.START_OBJECT, c) => (None, ReadingFields(Queue()) +: c)
+      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(List()) +: c)
 
       case (JsonToken.FIELD_NAME, (c: ReadingFields) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
 

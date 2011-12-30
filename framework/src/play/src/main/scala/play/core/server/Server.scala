@@ -5,6 +5,20 @@ import play.core._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.akka._
+import akka.actor._
+import akka.actor.Actor._
+import akka.routing.Routing._
+import akka.routing.CyclicIterator
+import akka.config._
+import akka.config.Supervision._
+import play.api.libs.iteratee._
+import play.api.libs.iteratee.Input._
+import play.api.libs.concurrent._
+
+trait WebSocketable {
+  def getHeader(header: String): String
+  def check: Boolean
+}
 
 trait Server {
 
@@ -22,12 +36,22 @@ trait Server {
     },
     Map("application.home" -> applicationProvider.path.getAbsolutePath))
 
-  import akka.actor._
-  import akka.actor.Actor._
-  import akka.routing.Routing._
-  import akka.routing.CyclicIterator
-  import akka.config._
-  import akka.config.Supervision._
+  def response(webSocketableRequest: WebSocketable)(otheResults: PartialFunction[Result, Unit]) = new Response {
+
+    val websocketErrorResult: PartialFunction[Result, Unit] = { case _ if (webSocketableRequest.check) => handle(Results.BadRequest) }
+
+    val asyncResult: PartialFunction[Result, Unit] = {
+      case AsyncResult(p) => p.extend1 {
+        case Redeemed(v) => handle(v)
+        case Thrown(e) => {
+          Logger("play").error("Waiting for a promise, but got an error: " + e.getMessage, e)
+          handle(Results.InternalServerError)
+        }
+      }
+    }
+
+    def handle(result: Result) = (asyncResult orElse websocketErrorResult orElse otheResults)(result)
+  }
 
   def newInvoker = { val inv = actorOf[Invoker]; inv.start(); inv }
 

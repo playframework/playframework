@@ -25,7 +25,6 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
-
 import scala.collection.JavaConverters._
 
 private[server] trait WebSocketHandler {
@@ -92,10 +91,6 @@ private[server] trait WebSocketHandler {
 
   }
 
-  def isWebSocket(request: HttpRequest) =
-    HttpHeaders.Values.UPGRADE.equalsIgnoreCase(request.getHeader(CONNECTION)) &&
-      HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.UPGRADE))
-
   def websocketHandshake[A](ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Enumerator[A] = {
 
     WebSocketHandshake.shake(ctx, req)
@@ -105,6 +100,13 @@ private[server] trait WebSocketHandler {
     p.replace("handler", "handler", handler);
 
     enumerator
+  }
+
+  def websocketable(req: HttpRequest) = new server.WebSocketable {
+    def check =
+      HttpHeaders.Values.UPGRADE.equalsIgnoreCase(req.getHeader(CONNECTION)) &&
+        HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(req.getHeader(HttpHeaders.Names.UPGRADE))
+    def getHeader(header: String) = req.getHeader(header)
   }
 
 }

@@ -9,7 +9,7 @@ object Protocol {
     implicit object UserFormat extends Format[User] {
 
         def writes(o: User): JsValue = JsObject(
-            Map("id" -> JsNumber(o.id),
+            List("id" -> JsNumber(o.id),
                 "name" -> JsString(o.name),
                 "favThings" -> JsArray(o.favThings.map(JsString(_)))
             )

@@ -7,6 +7,9 @@ import org.jboss.netty.channel.Channels._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.channel.socket.nio._
 import org.jboss.netty.handler.stream._
+import org.jboss.netty.handler.codec.http.HttpHeaders._
+import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
+import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 
 import org.jboss.netty.channel.group._
 import java.util.concurrent._

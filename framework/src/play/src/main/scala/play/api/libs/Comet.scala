@@ -10,7 +10,10 @@ object Comet {
 
   case class CometMessage[A](toJavascriptMessage: A => String)
 
-  implicit val stringMessages = CometMessage[String](str => "'" + StringEscapeUtils.escapeJavaScript(str) + "'")
+  object CometMessage {
+    implicit val stringMessages = CometMessage[String](str => "'" + StringEscapeUtils.escapeJavaScript(str) + "'")
+    implicit val jsonMessages = CometMessage[play.api.libs.json.JsValue](json => json.toString())
+  }
 
   def apply[E](callback: String, initialChunk: Html = Html(Array.fill[Char](5000)(' ').mkString + "<html><body>"))(implicit encoder: CometMessage[E]) = new Enumeratee[E, Html] {
 

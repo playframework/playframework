@@ -4,16 +4,13 @@ object Traversable {
 
   def passAlong[M] = new Enumeratee.CheckDone[M, M] {
 
-    def continue[A](f: Input[M] => Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
-      Cont(from => {
-        val next = f(from)
-        next.pureFlatFold(
-          (_, _) => Done(next, from),
-          k => continue(k),
-          (_, _) => Done(next, from))
-      })
-    }
+    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
 
+      case in @ Input.El(_) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+
+      case Input.EOF => Done(k(Input.EOF), Input.EOF)
+    }
+    def continue[A](k: K[M, A]) = Cont(step(k))
   }
 
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
