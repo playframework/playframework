@@ -167,7 +167,7 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
 
       case (JsonToken.END_ARRAY, _) => throw new RuntimeException("We should have been reading list, something got wrong")
 
-      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(Map()) +: c)
+      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(collection.immutable.TreeMap()) +: c)
 
       case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
 
