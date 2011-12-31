@@ -71,7 +71,9 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 
 }
 
-case class JsObject(value: Map[String, JsValue]) extends JsValue {
+case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
+
+  lazy val value:Map[String,JsValue] = fields.toMap
 
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
@@ -120,12 +122,12 @@ case class ReadingList(content: List[JsValue]) extends DeserializerContext {
 }
 
 // Context for reading an Object
-case class KeyRead(content: Map[String, JsValue], fieldName: String) extends DeserializerContext {
-  def addValue(value: JsValue): DeserializerContext = ReadingMap(content + (fieldName -> value))
+case class KeyRead(content: List[(String, JsValue)], fieldName: String) extends DeserializerContext {
+  def addValue(value: JsValue): DeserializerContext = ReadingMap(content :+ (fieldName -> value))
 }
 
 // Context for reading one item of an Object (we already red fieldName)
-case class ReadingMap(content: Map[String, JsValue]) extends DeserializerContext {
+case class ReadingMap(content: List[(String, JsValue)]) extends DeserializerContext {
 
   def setField(fieldName: String) = KeyRead(content, fieldName)
   def addValue(value: JsValue): DeserializerContext = throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
@@ -167,7 +169,7 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
 
       case (JsonToken.END_ARRAY, _) => throw new RuntimeException("We should have been reading list, something got wrong")
 
-      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(collection.immutable.TreeMap()) +: c)
+      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(List()) +: c)
 
       case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
 

@@ -15,10 +15,10 @@ object JsonSpec extends Specification {
       (json \ "id").as[Long],
       (json \ "name").as[String],
       (json \ "friends").asOpt[List[User]].getOrElse(List()))
-    def writes(u: User): JsValue = JsObject(Map(
+    def writes(u: User): JsValue = JsObject(List(
       "id" -> JsNumber(u.id),
       "name" -> JsString(u.name),
-      "friends" -> JsArray(u.friends.map(fr => JsObject(Map("id" -> JsNumber(fr.id), "name" -> JsString(fr.name)))))))
+      "friends" -> JsArray(u.friends.map(fr => JsObject(List("id" -> JsNumber(fr.id), "name" -> JsString(fr.name)))))))
   }
 
   case class Car(id: Long, models: Map[String, String])
@@ -26,9 +26,9 @@ object JsonSpec extends Specification {
   implicit object CarFormat extends Format[Car] {
     def reads(json: JsValue): Car = Car(
       (json \ "id").as[Long], (json \ "models").as[Map[String, String]])
-    def writes(c: Car): JsValue = JsObject(Map(
+    def writes(c: Car): JsValue = JsObject(List(
       "id" -> JsNumber(c.id),
-      "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)))))
+      "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)).toList)))
   }
 
   import java.util.Date
@@ -51,7 +51,7 @@ object JsonSpec extends Specification {
     def reads(json: JsValue): Post = Post(
       (json \ "body").as[String],
       (json \ "created_at").asOpt[Date])
-    def writes(p: Post): JsValue = JsObject(Map(
+    def writes(p: Post): JsValue = JsObject(List(
       "body" -> JsString(p.body))) // Don't care about creating created_at or not here
   }
 
@@ -91,11 +91,11 @@ object JsonSpec extends Specification {
     }
     "Can parse recursive object" in {
       val recursiveJson = """{"foo": {"foo":["bar"]}, "bar": {"foo":["bar"]}}"""
-      val expectedJson = JsObject(Map[String, JsValue](
-        "foo" -> JsObject(Map[String, JsValue](
+      val expectedJson = JsObject(List(
+        "foo" -> JsObject(List(
           "foo" -> JsArray(List[JsValue](JsString("bar")))
           )),
-        "bar" -> JsObject(Map[String, JsValue](
+        "bar" -> JsObject(List(
           "foo" -> JsArray(List[JsValue](JsString("bar")))
           ))
         ))
@@ -106,7 +106,7 @@ object JsonSpec extends Specification {
     "Can parse null values in Object" in {
       val postJson = """{"foo": null}"""
       val parsedJson = Json.parse(postJson)
-      val expectedJson = JsObject(Map[String,JsValue]("foo" -> JsNull))
+      val expectedJson = JsObject(List("foo" -> JsNull))
       parsedJson must equalTo(expectedJson)
     }
     "Can parse null values in Array" in {
