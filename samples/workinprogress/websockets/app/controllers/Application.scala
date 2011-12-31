@@ -20,9 +20,9 @@ object Application extends Controller {
   def echo(name: String) = WebSocket[String] { request => (in, out) =>
     
     Logger.info(name + " is connected!")
-    
-    out <<: in.map {
-      case EOF => {
+
+    in.mapInput {
+      case Input.EOF => {
         Logger.info(name + " is disconnected. Cleaning resources")
         EOF
       }
@@ -30,8 +30,8 @@ object Application extends Controller {
         Logger.info("Got message: " + el)
         el.map("[" + name + "] " + _.reverse)
       }
-    }    
-    
+    } |>> out    
+
   }
   
 }
