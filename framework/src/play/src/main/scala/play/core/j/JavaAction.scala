@@ -45,10 +45,10 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     }
 
     val finalAction = actionMixins.foldLeft(rootAction) {
-      case (deleguate, (annotation, actionClass)) => {
+      case (delegate, (annotation, actionClass)) => {
         val action = actionClass.newInstance().asInstanceOf[JAction[Any]]
         action.configuration = annotation
-        action.deleguate = deleguate
+        action.delegate = delegate
         action
       }
     }
