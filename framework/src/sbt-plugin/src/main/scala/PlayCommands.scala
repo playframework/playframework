@@ -498,10 +498,7 @@ trait PlayCommands {
       println()
 
       val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")
-      def isEOF(c: Int): Boolean = c match { 
-          case 4 => true
-          case _ => false
-        }
+      def isEOF(c: Int): Boolean = c == 4
 
       def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws:
       Option[WatchState] = None): Option[String] = {
