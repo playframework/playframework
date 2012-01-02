@@ -14,9 +14,9 @@ abstract class CachePlugin extends Plugin {
 /** Plugin that manages the `BasicCache` life-cycle. */
 class BasicCachePlugin(app: Application) extends CachePlugin {
 
-  val pluginDisabled = app.configuration.getString("cache.default").filter(_ == "disabled").headOption
+  val pluginDisabled = app.configuration.getString("cache.default").filter(_ == "disabled").isDefined
 
-  override def enabled = pluginDisabled.isDefined == false
+  override def enabled = pluginDisabled == false
 
   lazy val cache = new BasicCache
 
