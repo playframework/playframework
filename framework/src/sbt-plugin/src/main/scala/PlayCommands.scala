@@ -500,7 +500,7 @@ trait PlayCommands {
       val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")
       def isEOF(c: Int): Boolean = c == 4
 
-      def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws:
+      @tailrec def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws:
       Option[WatchState] = None): Option[String] = {
         @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
 
@@ -521,17 +521,26 @@ trait PlayCommands {
 
 
         if(triggered) {
+          //Then launch compile
           PlayProject.synchronized{
             Project.evaluateTask(compile in Compile, newState)
           }
+
+          // Avoid launching too much compilation
           Thread.sleep(Watched.PollDelayMillis)
+
+          // Call back myself
           executeContinuously(watched, newState, reloader, Some(newWatchState))
         }
         else {
+          // Stop 
           Some("Okay, i'm done")
         }
       }
 
+      // If we have both Watched.Configuration and Watched.ContinuousState
+      // attributes and if Watched.ContinuousState.count is 1 then we assume
+      // we're in ~ run mode
       val maybeContinuous = state.get(Watched.Configuration).map{ w =>
         state.get(Watched.ContinuousState).map { ws => 
           (ws.count == 1, w, ws)
@@ -540,11 +549,14 @@ trait PlayCommands {
 
       val newState = maybeContinuous match {
         case (true, w:sbt.Watched, ws) => {
+          // ~ run mode
           executeContinuously(w, state, reloader)
+
           // Remove state two first commands added by sbt ~
           state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)
         }
         case _ => { 
+          // run mode
           waitForKey()
           state
         }
