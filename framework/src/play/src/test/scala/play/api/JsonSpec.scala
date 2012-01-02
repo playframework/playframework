@@ -89,6 +89,12 @@ object JsonSpec extends Specification {
       val resultPost = Json.parse(postJson).as[Post]
       resultPost must equalTo(expectedPost)
     }
+
+    "Map[String,String] should be turned into JsValue" in {
+      val f = toJson(Map("k"->"v"))
+      f.toString must equalTo("{\"k\":\"v\"}")
+    }
+
     "Can parse recursive object" in {
       val recursiveJson = """{"foo": {"foo":["bar"]}, "bar": {"foo":["bar"]}}"""
       val expectedJson = JsObject(List(

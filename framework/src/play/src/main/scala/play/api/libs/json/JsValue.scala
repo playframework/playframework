@@ -73,7 +73,7 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 
 case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
-  lazy val value:Map[String,JsValue] = fields.toMap
+  lazy val value: Map[String, JsValue] = fields.toMap
 
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 

@@ -40,6 +40,9 @@ object Application extends Controller {
   def json = Action {
     Ok(toJson(User(1, "Sadek", List("tea"))))
   }
+  def jsonFromJsObject = Action {
+    Ok(toJson(JsObject(List("blah" -> JsString("foo"))))) 
+  }
 
   def index_java_cache = Action {
     import play.api.Play.current

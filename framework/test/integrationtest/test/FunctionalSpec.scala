@@ -33,6 +33,9 @@ object FunctionalSpec extends Specification {
         browser.goTo("http://localhost:9001/json_java")
         browser.pageSource must contain ("{\"peter\":\"foo\",\"yay\":\"value\"}")
 
+        browser.goTo("http://localhost:9001/json_from_jsobject")
+        browser.pageSource must contain ("{\"blah\":\"foo\"}")
+
         browser.goTo("http://localhost:9001/headers")
         browser.pageSource must contain("localhost:9001")
         

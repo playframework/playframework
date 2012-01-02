@@ -116,5 +116,12 @@ trait DefaultReads {
     def reads(json: JsValue) = json
   }
 
+  implicit object JsObjectReads extends Reads[JsObject] {
+    def reads(json: JsValue) = json match {
+      case o @ JsObject(_) => o
+      case _ => throw new RuntimeException("JsObject expected")
+    }
+  }
+
 }
 

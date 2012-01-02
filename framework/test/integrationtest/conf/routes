@@ -10,6 +10,7 @@ GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
 GET     /json                   controllers.Application.json()
+GET     /json_from_jsobject     controllers.Application.jsonFromJsObject()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
 # Map static resources from the /public folder to the /public path
