@@ -47,6 +47,8 @@ sealed trait JsValue {
    * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
+  def as[T1, T2](f1:String, f2:String)(implicit fmt1: Reads[T1], fmt2: Reads[T2]): (T1, T2) = (\(f1).as[T1], \(f2).as[T2])  
+  def as[T1, T2](f1:JsPath, f2:JsPath)(implicit fmt1: Reads[T1], fmt2: Reads[T2]): (T1, T2) = ( fromJson(f1.resolve(this))(fmt1), fromJson(f2.resolve(this))(fmt2) )  
 
   override def toString = Json.stringify(this)
 
@@ -244,3 +246,26 @@ private object JerksonJson extends com.codahale.jerkson.Json {
   mapper.registerModule(module)
 
 }
+
+sealed trait JsPath {
+  def \ (field: String)  = new JsPathParentChild(field)
+      
+  def \\ (field: String)  = new JsPathParentChild(field, recursive=true)
+
+  def resolve(json: JsValue):JsValue = json
+}
+
+case class JsPathParentChild(val field:String, val parent:JsPath = ROOT, val recursive:Boolean = false) extends JsPath{
+  override def \ (field: String)  = new JsPathParentChild(field, this)
+      
+  override def \\ (field: String)  = new JsPathParentChild(field, this, true) 
+
+  override def resolve(json:JsValue):JsValue = {
+    parent match {
+      case ROOT => json\field
+      case p => p.resolve(json)\field
+    }    
+  }
+}
+
+case object ROOT extends JsPath

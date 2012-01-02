@@ -116,6 +116,20 @@ object JsonSpec extends Specification {
       parsedJson must equalTo(expectedJson)
     }
 
+    "Can parse multiple fields to Tuple2[String, String]" in {
+      val postJson = """{ "foo1":"bar1", "foo2": "bar2" }"""  
+      val parsedJson = Json.parse(postJson)
+      val (foo1, foo2) = parsedJson.as[String, String]("foo1", "foo2")
+      (foo1, foo2) must equalTo(("bar1", "bar2"))
+    }
+
+    "Can parse multiple JsPath to Tuple2[String, String]" in {
+      val postJson = """{ "foo1": { "foo11" : "bar11", "foo12": "bar12" }, "foo2": "bar2" }"""  
+      val parsedJson = Json.parse(postJson)
+      val (foo1, foo2) = parsedJson.as[String, String](ROOT\"foo1"\"foo12", ROOT\"foo2")
+      (foo1, foo2) must equalTo(("bar12", "bar2"))
+    }
+
     "Parse Tuple2 from JsObject" >> {
       "With at least 2 fields (String, Boolean)" in {
         val postJson = """{ "foo1":"bar1", "foo2": true }"""
