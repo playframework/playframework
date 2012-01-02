@@ -1,6 +1,7 @@
 package sbt
 
 import Keys._
+import CommandSupport.{ClearOnFailure,FailureWall}
 
 import play.api._
 import play.core._
@@ -9,6 +10,8 @@ import play.utils.Colors
 
 import PlayExceptions._
 import PlayKeys._
+
+import scala.annotation.tailrec
 
 trait PlayCommands {
   this: PlayReloader =>
@@ -494,7 +497,54 @@ trait PlayCommands {
       println(Colors.green(message))
       println()
 
-      waitForKey()
+      val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")
+      def isEOF(c: Int): Boolean = c match { 
+          case 4 => true
+          case _ => false
+        }
+
+      def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws:
+      Option[WatchState] = None): Option[String] = {
+        @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
+
+        val sourcesFinder = PathFinder { watched watchPaths s }
+        val watchState = ws.getOrElse(s get ContinuousState getOrElse WatchState.empty)
+
+        val (triggered, newWatchState, newState) =
+          try {
+            val (triggered, newWatchState) = SourceModificationWatch.watch(sourcesFinder, watched.pollInterval, watchState)(shouldTerminate)
+            (triggered, newWatchState, s)
+          }
+          catch { case e: Exception =>
+            val log = s.log
+            log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
+            BuiltinCommands.handleException(e, s, log)
+            (false, watchState, s.fail)
+          }
+
+
+        if(triggered) {
+          PlayProject.synchronized{
+            Project.evaluateTask(compile in Compile, newState)
+          }
+          Thread.sleep(Watched.PollDelayMillis)
+          executeContinuously(watched, newState, reloader, Some(newWatchState))
+        }
+        else {
+          Some("Okay, i'm done")
+        }
+      }
+
+      val maybeContinuous = state.get(Watched.Configuration).map{ w =>
+        state.get(Watched.ContinuousState).map { ws => 
+          (ws.count == 1, w, ws)
+        }.getOrElse((false, None, None))
+      }.getOrElse((false, None, None))
+
+      maybeContinuous match {
+        case (true, w:sbt.Watched, ws) => executeContinuously(w, state, reloader)
+        case _ => waitForKey()
+      }
 
       server.stop()
 
@@ -502,8 +552,10 @@ trait PlayCommands {
 
     println()
 
-    state
+    state.copy(remainingCommands = Seq("shell")).remove(Watched.ContinuousState)
   }
+
+
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
