@@ -445,7 +445,7 @@ trait PlayCommands {
     val sbtLoader = this.getClass.getClassLoader
     val commonLoader = Project.evaluateTask(playCommonClassloader, state).get.toEither.right.get
 
-    Project.evaluateTask(dependencyClasspath in Compile, state).get.toEither.right.map { dependencies =>
+    val maybeNewState = Project.evaluateTask(dependencyClasspath in Compile, state).get.toEither.right.map { dependencies =>
 
       val classpath = dependencies.map(_.data.toURI.toURL).toArray
 
@@ -538,18 +538,29 @@ trait PlayCommands {
         }.getOrElse((false, None, None))
       }.getOrElse((false, None, None))
 
-      maybeContinuous match {
-        case (true, w:sbt.Watched, ws) => executeContinuously(w, state, reloader)
-        case _ => waitForKey()
+      val newState = maybeContinuous match {
+        case (true, w:sbt.Watched, ws) => {
+          executeContinuously(w, state, reloader)
+          // Remove state two first commands added by sbt ~
+          state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)
+        }
+        case _ => { 
+          waitForKey()
+          state
+        }
       }
 
       server.stop()
 
+      newState
     }
 
     println()
 
-    state.copy(remainingCommands = Seq("shell")).remove(Watched.ContinuousState)
+    maybeNewState match {
+      case Right(x) => x
+      case _ => state
+    }
   }
 
 
