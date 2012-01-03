@@ -112,7 +112,7 @@ trait PlayCommands {
 
     val start = target / "start"
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /* */ )
+      """java "$@" -cp "`dirname $0`/lib/"""+"""*" play.core.server.NettyServer `dirname $0`""" /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
     val conf = Seq((root / "conf" / "application.conf") -> (packageName + "/conf/application.conf"))
@@ -231,7 +231,7 @@ trait PlayCommands {
     IO.write(start,
       """|#! /usr/bin/env sh
          |
-         |java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |java "$@" -cp "`dirname $0`/staged/"""+"""*" play.core.server.NettyServer `dirname $0`/..
          |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
@@ -250,6 +250,7 @@ trait PlayCommands {
 
       import java.io._
 
+      val compileName = name
       val cacheFile = cache / name
       val sourceFiles = files(src / "assets")
       val currentInfos = sourceFiles.get.map(f => f -> FileInfo.lastModified(f)).toMap
@@ -264,7 +265,34 @@ trait PlayCommands {
           case (sourceFile, name) => sourceFile -> ("public/" + naming(name))
         }.flatMap {
           case (sourceFile, name) => {
-            val ((css, dependencies), out) = compile(sourceFile, min) -> new File(resources, name)
+	    //do intermediary js closure compile if we have coffeescript, else just do compile action
+	     val compileTuple = compileName match{
+	      case "coffeescript" => {
+		val (preClosureSource, deps) = compile(sourceFile, min)
+		val splitPath = name.split("/")
+		val preClosureFile = new File(IO.temporaryDirectory.name+"/"+splitPath(splitPath.length-1))
+		IO.write(preClosureFile, preClosureSource, IO.utf8)
+
+		val jsSourceFiles = IO.copy(
+		  (
+		    (src / "assets") ** "*.js"
+		  ).get.map(
+		    file=>
+		      file->new File(
+			IO.temporaryDirectory.name+"/"+file.name
+		      )
+		  ), true
+		)
+		val (fullSource, minified, jsDeps) = play.core.jscompile.JavascriptCompiler.compile(preClosureFile)
+		(if (min) minified else fullSource, jsDeps++deps)->new File(resources, name)
+	      }
+	      // less or js compile action
+	      case _ => {
+		compile(sourceFile, min) -> new File(resources, name)
+	      } // end match
+	    }
+	    val ((css, dependencies), out) = compileTuple
+	    // write out
             IO.write(out, css)
             dependencies.map(_ -> out)
           }
@@ -302,7 +330,9 @@ trait PlayCommands {
   val CoffeescriptCompiler = AssetsCompiler("coffeescript",
     { assets => (assets ** "*.coffee") },
     { name => name.replace(".coffee", ".js") },
-    { (coffeeFile, minify) => (play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile), Seq(coffeeFile)) })
+    { 
+      (coffeeFile, minify) => (play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile), Seq(coffeeFile))
+    })
 
   // ----- Post compile (need to be refactored and fully configurable)
 
