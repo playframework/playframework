@@ -26,7 +26,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     if (server != null) {
       sys.error("Server already started!")
     }
-    server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, Mode.Test)
+    server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, mode = Mode.Test)
   }
 
   def stop() {

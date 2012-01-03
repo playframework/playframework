@@ -29,7 +29,7 @@ trait ServerWithStop {
   def stop(): Unit
 }
 
-class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   def applicationProvider = appProvider
 
@@ -54,7 +54,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode =
 
   bootstrap.setPipelineFactory(new DefaultPipelineFactory)
 
-  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(port)))
+  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
 
   mode match {
     case Mode.Test =>
@@ -111,7 +111,8 @@ object NettyServer {
     try {
       Some(new NettyServer(
         new StaticApplication(applicationPath),
-        Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000)))
+        Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
+        Option(System.getProperty("http.address")).getOrElse("0.0.0.0")))
     } catch {
       case e => {
         println("Oops, cannot start the server.")
@@ -134,7 +135,7 @@ object NettyServer {
   def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
     Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
     val appProvider = new ReloadableApplication(sbtLink)
-    new NettyServer(appProvider, port, Mode.Dev)
+    new NettyServer(appProvider, port, mode = Mode.Dev)
   }
 
 }
