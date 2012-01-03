@@ -125,7 +125,6 @@ object Logger extends LoggerLike {
 
   def init(home: java.io.File) {
     Logger.configure(
-      this.getClass.getClassLoader.getResource("conf/logger.xml"),
       Map("application.home" -> home.getAbsolutePath),
       Map.empty)
   }
@@ -158,7 +157,7 @@ object Logger extends LoggerLike {
    * @param properties these properties will be added to the logger context (for example `application.home`)
    * @see http://logback.qos.ch/
    */
-  def configure(configFile: java.net.URL, properties: Map[String, String] = Map.empty, levels: Map[String, ch.qos.logback.classic.Level] = Map.empty) {
+  def configure(properties: Map[String, String] = Map.empty, levels: Map[String, ch.qos.logback.classic.Level] = Map.empty) {
 
     // Redirect JUL -> SL4FJ
     {
@@ -189,7 +188,23 @@ object Logger extends LoggerLike {
         properties.foreach {
           case (name, value) => ctx.putProperty(name, value)
         }
-        configurator.doConfigure(configFile)
+        
+        try {
+          Option(System.getProperty("logger.resource")).map(s => if(s.startsWith("/")) s.drop(1) else s).map(r => Option(this.getClass.getClassLoader.getResource(r)).getOrElse(new java.net.URL("file:///" + System.getProperty("logger.resource")))).
+            orElse {
+              Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
+            }.
+            orElse {
+              Option(System.getProperty("logger.url")).map(new java.net.URL(_))
+            }.
+            orElse(Option(this.getClass.getClassLoader.getResource("logger.xml"))).
+            map { url => 
+              configurator.doConfigure(url)
+            }
+        } catch {
+          case e => e.printStackTrace()
+        }
+        
         levels.foreach {
           case (logger, level) => ctx.getLogger(logger).setLevel(level)
         }

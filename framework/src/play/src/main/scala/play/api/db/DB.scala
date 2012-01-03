@@ -16,7 +16,7 @@ import com.jolbox.bonecp.hooks._
  *
  * @param datasources the managed data sources
  */
-case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
+case class DBApi(datasources: Map[String, (BoneCPDataSource, Configuration)]) {
 
   /**
    * Retrieves a JDBC connection.
@@ -57,7 +57,7 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, String)]) {
    * @throws an error if the required data source is not registered
    */
   def getDataSourceURL(name: String): String = {
-    datasources.get(name).map { _._2 }.getOrElse {
+    datasources.get(name).flatMap { _._2.getString("url") }.getOrElse {
       throw new Exception("No database [" + name + "] is registred")
     }
   }
@@ -163,7 +163,7 @@ object DBApi {
 
     // url is required
     conf.getString("url").map(datasource.setJdbcUrl(_)).orElse {
-      throw conf.globalError("Missing url configuration for database [" + conf.root + "]")
+      throw conf.globalError("Missing url configuration for database [" + conf + "]")
     }
 
     conf.getString("user").map(datasource.setUsername(_))
@@ -176,12 +176,12 @@ object DBApi {
     conf.getInt("minConnectionsPerPartition").map(datasource.setMinConnectionsPerPartition(_))
     conf.getInt("acquireIncrement").map(datasource.setAcquireIncrement(_))
     conf.getInt("acquireRetryAttempts").map(datasource.setAcquireRetryAttempts(_))
-    conf.getInt("acquireRetryDelay").map(datasource.setAcquireRetryDelayInMs(_))
-    conf.getInt("connectionTimeout").map(datasource.setConnectionTimeoutInMs(_))
-    conf.getInt("idleMaxAge").map(datasource.setIdleMaxAgeInSeconds(_))
+    conf.getMilliseconds("acquireRetryDelay").map(datasource.setAcquireRetryDelayInMs(_))
+    conf.getMilliseconds("connectionTimeout").map(datasource.setConnectionTimeoutInMs(_))
+    conf.getMilliseconds("idleMaxAge").map(datasource.setIdleMaxAgeInSeconds(_))
     conf.getString("initSQL").map(datasource.setInitSQL(_))
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
-    conf.getInt("maxConnectionAge").map(datasource.setMaxConnectionAgeInSeconds(_))
+    conf.getMilliseconds("maxConnectionAge").map(datasource.setMaxConnectionAge(_, java.util.concurrent.TimeUnit.MILLISECONDS))
     conf.getBoolean("disableJMX").orElse(Some(true)).map(datasource.setDisableJMX(_))
 
     // Bind in JNDI
@@ -189,7 +189,7 @@ object DBApi {
       JNDI.initialContext.rebind(name, datasource)
     }
 
-    datasource -> conf.absolute("url")
+    datasource -> conf
   }
 
 }
@@ -280,9 +280,9 @@ object DB {
 class DBPlugin(app: Application) extends Plugin {
 
   private lazy val db = {
-    DBApi(app.configuration.getSub("db").map { dbConf =>
+    DBApi(app.configuration.getConfig("db").map { dbConf =>
       dbConf.subKeys.map { db =>
-        db -> DBApi.createDataSource(dbConf.getSub(db).get, app.classloader)
+        db -> DBApi.createDataSource(dbConf.getConfig(db).get, app.classloader)
       }.toMap
     }.getOrElse(Map.empty))
   }
@@ -304,7 +304,7 @@ class DBPlugin(app: Application) extends Plugin {
           }
         } catch {
           case e => {
-            throw app.configuration.reportError(config, "Cannot connect to database at [" + ds.getJdbcUrl + "]", Some(e.getCause))
+            throw config.reportError("url", "Cannot connect to database at [" + ds.getJdbcUrl + "]", Some(e.getCause))
           }
         }
       }

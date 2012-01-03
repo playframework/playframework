@@ -62,8 +62,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, mode: Mode.Mode =
   }
 
   def stop() {
-    Play.stop()
 
+    try {
+      Play.stop()
+    } catch {
+      case e => Logger("play").error("Error while stopping the application", e)
+    }
+    
     mode match {
       case Mode.Test =>
       case _ => Logger("play").warn("Stopping server...")

@@ -23,13 +23,9 @@ object Application extends Controller {
   }
 
   def conf = Action {
-    val config = Configuration.load("conf/my.conf")
-    val s = config.get[String]("complex-app.something").getOrElse("boooooo")
-    val c = try { 
-      config.underlying.getString("nokey") 
-    } catch {
-      case e: com.typesafe.config.ConfigException => "None"
-    }
+    val config = play.api.Play.configuration
+    val s = config.getString("complex-app.something").getOrElse("boooooo")
+    val c = config.getString("nokey").getOrElse("None")
     Ok(s + " no key: " + c)
   }
   

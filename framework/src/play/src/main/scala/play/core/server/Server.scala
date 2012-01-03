@@ -31,9 +31,6 @@ trait Server {
 
   // Configure the logger for the first time
   Logger.configure(
-    Option(new java.io.File(applicationProvider.path, "conf/logger.xml")).filter(_.exists).map(_.toURI.toURL).getOrElse {
-      this.getClass.getClassLoader.getResource("conf/logger.xml")
-    },
     Map("application.home" -> applicationProvider.path.getAbsolutePath))
 
   def response(webSocketableRequest: WebSocketable)(otheResults: PartialFunction[Result, Unit]) = new Response {

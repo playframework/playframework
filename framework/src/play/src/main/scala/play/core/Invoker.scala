@@ -49,7 +49,8 @@ class Invoker extends Actor {
         try {
           action(request)
         } catch {
-          case e: Exception => {
+          case e: PlayException => throw e
+          case e: Throwable => {
 
             val source = app.sources.flatMap(_.sourceFor(e))
 

@@ -51,8 +51,10 @@ trait PlaySettings {
 
     sourceDirectory in Compile <<= baseDirectory / "app",
     sourceDirectory in Test <<= baseDirectory / "test",
-
+    
     confDirectory <<= baseDirectory / "conf",
+    
+    resourceDirectory in Compile <<= baseDirectory / "conf",
 
     scalaSource in Compile <<= baseDirectory / "app",
     scalaSource in Test <<= baseDirectory / "test",
@@ -130,13 +132,9 @@ trait PlaySettings {
 
     minify := false,
 
-    playResourceDirectories := Seq.empty[File],
+    playAssetsDirectories := Seq.empty[File],
 
-    playResourceDirectories <+= baseDirectory / "conf",
-
-    playResourceDirectories <+= baseDirectory / "public",
-
-    playResourceDirectories <+= baseDirectory / "META-INF",
+    playAssetsDirectories <+= baseDirectory / "public",
 
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 

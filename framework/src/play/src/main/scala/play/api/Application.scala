@@ -31,9 +31,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
 
   Thread.currentThread.setContextClassLoader(classloader)
 
-  private val userDefinedConfig = Option(System.getProperty("conf")).map(path => Configuration.fromFile(new File(path)))
-
-  private val initialConfiguration = userDefinedConfig.getOrElse(getExistingFile("conf/application.conf").map(Configuration.fromFile).getOrElse(Configuration.empty))
+  private val initialConfiguration = Configuration.load()
 
   // -- Global stuff
 
@@ -71,16 +69,18 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       e.getMessage,
       Some(e))
   }
+  
+  private val fullConfiguration = initialConfiguration ++ global.configuration 
 
   /**
    * The configuration used by this application.
    *
    * @see play.api.Configuration
    */
-  lazy val configuration = global.configuration ++ initialConfiguration
+  def configuration = fullConfiguration
 
   /** The router used by this application. */
-  lazy val routes: Option[Router.Routes] = try {
+  val routes: Option[Router.Routes] = try {
     Some(classloader.loadClass("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes])
   } catch {
     case e: ClassNotFoundException => None
@@ -97,17 +97,14 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
     }
 
     Logger.configure(
-      getExistingFile("conf/logger.xml").map(_.toURI.toURL).getOrElse {
-        resource("conf/logger.xml").getOrElse(null)
-      },
       Map("application.home" -> path.getAbsolutePath),
-      configuration.getSub("logger").map { loggerConfig =>
-        loggerConfig.keys.map { key =>
-          key -> loggerConfig.getString(key, validValues).map(setLevel).get
+      configuration.getConfig("logger").map { loggerConfig =>
+        loggerConfig.keys.map {
+          case "resource" | "file" | "url" => "" -> null
+          case key @ "root" => "ROOT" -> loggerConfig.getString(key, validValues).map(setLevel).get
+          case key => key -> loggerConfig.getString(key, validValues).map(setLevel).get
         }.toMap
-      }.getOrElse(Map.empty) ++ {
-        configuration.getString("logger", validValues).map(setLevel).map(rootLevel => Map("ROOT" -> rootLevel)).getOrElse(Map.empty)
-      })
+      }.getOrElse(Map.empty))
 
   }
 
@@ -134,8 +131,9 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    *
    * @see play.api.Plugin
    */
-  lazy val plugins: Seq[Plugin] = {
 
+  val plugins: Seq[Plugin] = {
+    
     pluginClasses.map { className =>
       try {
         val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
@@ -162,7 +160,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
     }.flatten
 
   }
-
+  
   /**
    * Retrieves a plugin of type `T`.
    *

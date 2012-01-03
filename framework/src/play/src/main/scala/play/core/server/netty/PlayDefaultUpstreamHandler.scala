@@ -56,7 +56,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def method = nettyHttpRequest.getMethod.getName
           def queryString = parameters
           def headers = rHeaders
-          def cookies = rCookies
           def username = None
         }
         // converting netty response to play's
@@ -184,7 +183,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       def method = nettyHttpRequest.getMethod.getName
                       def queryString = parameters
                       def headers = rHeaders
-                      def cookies = rCookies
                       def username = None
                       val body = b
                     })

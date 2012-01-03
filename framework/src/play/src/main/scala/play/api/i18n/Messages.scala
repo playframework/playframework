@@ -148,7 +148,7 @@ class MessagesPlugin(app: Application) extends Plugin {
 
   private lazy val messages = {
     MessagesApi {
-      app.classloader.getResources("conf/messages").asScala.map { messageFile =>
+      app.classloader.getResources("messages").asScala.map { messageFile =>
         new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
           message.key -> message.pattern
         }.toMap

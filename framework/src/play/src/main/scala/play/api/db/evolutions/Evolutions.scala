@@ -378,7 +378,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 
   private val pluginDisabled = app.configuration.getString("evolution").filter(_ == "disabled").isDefined
 
-  override def enabled = app.configuration.getSub("db").isDefined && pluginDisabled == false
+  override def enabled = app.configuration.getConfig("db").isDefined && pluginDisabled == false
 
   /** Checks the evolutions state. */
   override def onStart() {
@@ -389,7 +389,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
         val script = evolutionScript(api, app.path, db)
         if (!script.isEmpty) {
           app.mode match {
-            case Mode.Test => OfflineEvolutions.applyScript(db)
+            case Mode.Test => Evolutions.applyScript(api, db, script)
             case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
           }
         }
@@ -403,15 +403,6 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 object OfflineEvolutions {
 
   /**
-   * make it super easy to apply a script for a db for the first time, can be useful for
-   * setting up a production environment or for mocking
-   *
-   * @param dbName
-   */
-  def applyScript(dbName: String) {
-    applyScript(new java.io.File("."), getClass.getClassLoader, dbName)
-  }
-  /**
    * Computes and applies an evolutions script.
    *
    * @param applicationPath the application path
@@ -424,7 +415,7 @@ object OfflineEvolutions {
 
     val api = DBApi(
       Map(dbName -> DBApi.createDataSource(
-        Configuration.fromFile(new File(applicationPath, "conf/application.conf")).sub("db." + dbName), classloader)))
+        Configuration.load().getConfig("db." + dbName).get, classloader)))
     val script = Evolutions.evolutionScript(api, applicationPath, dbName)
 
     if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {

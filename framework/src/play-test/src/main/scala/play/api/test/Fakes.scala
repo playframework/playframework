@@ -1,16 +1,14 @@
 package play.api.test;
 
-case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends play.api.mvc.Headers {
+import play.api.mvc._
+
+case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Headers {
   lazy val keys = data.keySet
   def getAll(key: String) = data.get(key).getOrElse(Seq.empty)
 }
 
-case class FakeCookies(cookies: Seq[play.api.mvc.Cookie] = Seq.empty) extends play.api.mvc.Cookies {
-  def get(name: String) = cookies.find(_.name == name)
-}
-
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, cookies: FakeCookies, body: A) extends play.api.mvc.Request[A] {
-
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A) extends Request[A] {
+  
   lazy val path = uri.split('?').take(1).mkString
   lazy val queryString = play.core.parsers.UrlFormEncodedParser.parse(rawQueryString)
 
@@ -19,40 +17,39 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, coo
       headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
     ))
   }
+  
+  def withUrlFormEncodedBody(data: (String, String) *) = {
+    copy(body = AnyContentAsUrlFormEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
+  }
 
 }
 
 object FakeRequest {
 
   def apply(): FakeRequest[play.api.mvc.AnyContent] = {
-    FakeRequest("GET", "/", FakeHeaders(), FakeCookies(), play.api.mvc.AnyContentAsEmpty)
+    FakeRequest("GET", "/", FakeHeaders(), AnyContentAsEmpty)
   }
 
   def apply(method: String, path: String): FakeRequest[play.api.mvc.AnyContent] = {
-    FakeRequest(method, path, FakeHeaders(), FakeCookies(), play.api.mvc.AnyContentAsEmpty)
+    FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
   }
 
 }
 
 case class FakeApplication(
-    override val path: java.io.File = new java.io.File("."),
-    override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
-
-  private val addPlugins = scala.collection.mutable.ArrayBuffer.empty[String]
-  private val removePlugins = scala.collection.mutable.ArrayBuffer.empty[String]
-
-  def addPlugin(className: String) = {
-    addPlugins += className
-    this
+  override val path: java.io.File = new java.io.File("."), 
+  override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
+  val additionalPlugins: Seq[String] = Nil,
+  val withoutPlugins: Seq[String] = Nil,
+  val additionalConfiguration: Map[String,String] = Map.empty
+) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
+  
+  override def pluginClasses = {
+    additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
+  } 
+  
+  override def configuration = {
+    super.configuration ++ play.api.Configuration.from(additionalConfiguration)
   }
-
-  def removePlugin(className: String) = {
-    removePlugins += className
-    this
-  }
-
-  override lazy val pluginClasses = {
-    addPlugins ++ super.pluginClasses.diff(removePlugins)
-  }
-
+  
 }

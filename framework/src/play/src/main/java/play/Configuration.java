@@ -34,15 +34,6 @@ public class Configuration {
     }
     
     // --
-    
-    /**
-     * loads application.conf, application.properties, application.json resource from classpath
-     * @param resource to load
-     * @return config 
-     */
-    public Config load(String resource) {
-        return conf.loadAsJava(resource);
-    }
 
     /**
      * Retrieves a sub-configuration, which is a configuration instance containing all keys that start with the given prefix.
@@ -50,8 +41,8 @@ public class Configuration {
      * @param key The root prefix for this sub configuration.
      * @return Maybe a new configuration
      */
-    public Configuration getSub(String key) {
-        scala.Option<play.api.Configuration> nConf = conf.getSub(key);
+    public Configuration getConfig(String key) {
+        scala.Option<play.api.Configuration> nConf = conf.getConfig(key);
         if(nConf.isDefined()) {
             return new Configuration(nConf.get());
         }
@@ -66,6 +57,14 @@ public class Configuration {
      */
     public String getString(String key) {
         return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
+    }
+    
+    public Long getMilliseconds(String key) {
+        return (Long)Scala.orNull(conf.getMilliseconds(key));
+    }
+    
+    public Long getBytes(String key) {
+        return (Long)Scala.orNull(conf.getBytes(key));
     }
     
     /**

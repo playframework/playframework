@@ -1,5 +1,7 @@
 package play.libs;
 
+import java.util.*;
+
 /*
  * class that contains useful java <-> scala conversion helpers
  */
@@ -38,6 +40,14 @@ public class Scala {
     
     public static <A,B> scala.Tuple2<A,B> Tuple(A a, B b) {
         return new scala.Tuple2(a, b);
+    }
+    
+    public static <T> scala.collection.Seq<T> emptySeq() {
+        return (scala.collection.Seq<T>)toSeq(new Object[] {});
+    }
+    
+    public static <A,B> scala.collection.immutable.Map<A,B> emptyMap() {
+        return new scala.collection.immutable.HashMap<A,B>();
     }
 
     //

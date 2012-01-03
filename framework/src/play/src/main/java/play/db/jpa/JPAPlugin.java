@@ -27,7 +27,7 @@ public class JPAPlugin extends Plugin {
      */
     public void onStart() {
 
-        Configuration jpaConf = Configuration.root().getSub("jpa");
+        Configuration jpaConf = Configuration.root().getConfig("jpa");
         
         if(jpaConf != null) {
             for(String key: jpaConf.keys()) {

@@ -26,7 +26,7 @@ package play.api.mvc {
     def headers: Headers
 
     /** The HTTP cookies. */
-    def cookies: Cookies
+    lazy val cookies: Cookies = Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
 
     /** Parses the `Session` cookie and returns the `Session` data. */
     lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
@@ -67,7 +67,6 @@ package play.api.mvc {
       def method = self.method
       def queryString = self.queryString
       def headers = self.headers
-      def cookies = self.cookies
       def body = f(self.body)
     }
 
@@ -75,7 +74,6 @@ package play.api.mvc {
 
   class WrappedRequest[A](request: Request[A]) extends Request[A] {
     def body = request.body
-    def cookies = request.cookies
     def headers = request.headers
     def queryString = request.queryString
     def path = request.path
@@ -343,6 +341,15 @@ package play.api.mvc {
 
     // We use netty here but just as an API to handle cookies encoding
     import org.jboss.netty.handler.codec.http.{ CookieEncoder, CookieDecoder, DefaultCookie }
+    
+    def apply(header: Option[String]) = new Cookies {
+      
+      lazy val cookies: Map[String,Cookie] = header.map(Cookies.decode(_)).getOrElse(Seq.empty).groupBy(_.name).mapValues(_.head)
+      
+      def get(name: String) = cookies.get(name)
+      override def toString = cookies.toString
+      
+    }
 
     /**
      * Encodes cookies as a proper HTTP header.

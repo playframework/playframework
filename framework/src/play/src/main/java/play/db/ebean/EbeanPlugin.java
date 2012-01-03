@@ -33,7 +33,7 @@ public class EbeanPlugin extends Plugin {
      */
     public void onStart() {
 
-        Configuration ebeanConf = Configuration.root().getSub("ebean");
+        Configuration ebeanConf = Configuration.root().getConfig("ebean");
         
         if(ebeanConf != null) {
             for(String key: ebeanConf.keys()) {

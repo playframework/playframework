@@ -8,8 +8,8 @@ import play.api.Play.current
 import anorm._
 import anorm.SqlParser._
 
-case class Company(id: Pk[Long], name: String)
-case class Computer(id: Pk[Long], name: String, introduced: Option[Date], discontinued: Option[Date], companyId: Option[Long])
+case class Company(id: Pk[Long] = NotAssigned, name: String)
+case class Computer(id: Pk[Long] = NotAssigned, name: String, introduced: Option[Date], discontinued: Option[Date], companyId: Option[Long])
 
 /**
  * Helper for pagination.
@@ -62,7 +62,7 @@ object Computer {
    * @param orderBy Computer property used for sorting
    * @param filter Filter applied on the name column
    */
-  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = ""): Page[(Computer, Option[Company])] = {
+  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Computer, Option[Company])] = {
     
     val offest = pageSize * page
     

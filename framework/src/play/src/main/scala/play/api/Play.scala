@@ -157,5 +157,8 @@ object Play {
 
   /** Returns `true` if the current application is `PROD` mode. */
   def isProd(implicit app: Application) = (app.mode == Mode.Prod)
+  
+  /** Returns `true` if the current application is `TEST` mode. */
+  def isTest(implicit app: Application) = (app.mode == Mode.Test)
 
 }

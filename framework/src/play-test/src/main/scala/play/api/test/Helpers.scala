@@ -75,12 +75,24 @@ object Helpers extends Status with HeaderNames {
 
   def status(of: Result): Int = of match {
     case Result(status, _) => status
+    case r => sys.error("Cannot extract the status from a result of type " + r.getClass.getName)
+  }
+  
+  def cookies(of: Result): Cookies = Cookies(header(SET_COOKIE, of))
+  
+  def flash(of: Result): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
+  
+  def redirectLocation(of: Result): Option[String] = of match {
+    case Result(FOUND, headers) => headers.get(LOCATION)
+    case Result(_, _) => None
+    case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
   }
 
   def header(header: String, of: Result): Option[String] = headers(of).get(header)
 
   def headers(of: Result): Map[String, String] = of match {
     case Result(_, headers) => headers
+    case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
   }
 
   def routeAndCall[T](request: FakeRequest[T]): Option[Result] = {
@@ -98,4 +110,11 @@ object Helpers extends Status with HeaderNames {
 
   def await[T](p: play.api.libs.concurrent.Promise[T], timeout: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): T = p.await(timeout, unit).get
 
+  def inMemoryDatabase(name: String = "default") = {
+    Map(
+      ("db." + name + ".driver") -> "org.h2.Driver",
+      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt)
+    )
+  }
+  
 }

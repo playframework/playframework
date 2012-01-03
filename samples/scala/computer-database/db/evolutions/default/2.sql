@@ -51,11 +51,11 @@ insert into computer (id,name,introduced,discontinued,company_id) values (  3,'C
 insert into computer (id,name,introduced,discontinued,company_id) values (  4,'CM-5e',null,null,2);
 insert into computer (id,name,introduced,discontinued,company_id) values (  5,'CM-5','1991-01-01',null,2);
 insert into computer (id,name,introduced,discontinued,company_id) values (  6,'MacBook Pro','2006-01-10',null,1);
-insert into computer (id,name,introduced,discontinued,company_id) values (  7,'Apple IIe',null,null,null);
-insert into computer (id,name,introduced,discontinued,company_id) values (  8,'Apple IIc',null,null,null);
-insert into computer (id,name,introduced,discontinued,company_id) values (  9,'Apple IIGS',null,null,null);
-insert into computer (id,name,introduced,discontinued,company_id) values ( 10,'Apple IIc Plus',null,null,null);
-insert into computer (id,name,introduced,discontinued,company_id) values ( 11,'Apple II Plus',null,null,null);
+insert into computer (id,name,introduced,discontinued,company_id) values (  7,'Apple IIe',null,null,1);
+insert into computer (id,name,introduced,discontinued,company_id) values (  8,'Apple IIc',null,null,1);
+insert into computer (id,name,introduced,discontinued,company_id) values (  9,'Apple IIGS',null,null,1);
+insert into computer (id,name,introduced,discontinued,company_id) values ( 10,'Apple IIc Plus',null,null,1);
+insert into computer (id,name,introduced,discontinued,company_id) values ( 11,'Apple II Plus',null,null,1);
 insert into computer (id,name,introduced,discontinued,company_id) values ( 12,'Apple III','1980-05-01','1984-04-01',1);
 insert into computer (id,name,introduced,discontinued,company_id) values ( 13,'Apple Lisa',null,null,1);
 insert into computer (id,name,introduced,discontinued,company_id) values ( 14,'CM-2',null,null,2);

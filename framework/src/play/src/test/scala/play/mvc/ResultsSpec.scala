@@ -67,7 +67,7 @@ object ResultsSpec extends Specification {
       val cl = Thread.currentThread().getContextClassLoader()
 
       implicit val app: Application = new Application(new File("."), cl, None, Mode.Test) {
-        override lazy val configuration = new Configuration(Map("application.secret" -> Configuration.Config("application.secret", "pass", new File("."))), "")
+        override lazy val configuration = Configuration.from(Map("application.secret" -> "pass"))
       }
       Play.start(app)
 
