@@ -2,6 +2,7 @@ package play.api.libs.json
 
 import org.specs2.mutable._
 import play.api.libs.json._
+import play.api.libs.json.Generic._
 
 import scala.util.control.Exception._
 import java.text.ParseException
@@ -23,13 +24,7 @@ object JsonSpec extends Specification {
 
   case class Car(id: Long, models: Map[String, String])
 
-  implicit object CarFormat extends Format[Car] {
-    def reads(json: JsValue): Car = Car(
-      (json \ "id").as[Long], (json \ "models").as[Map[String, String]])
-    def writes(c: Car): JsValue = JsObject(List(
-      "id" -> JsNumber(c.id),
-      "models" -> JsObject(c.models.map(x => x._1 -> JsString(x._2)).toList)))
-  }
+  implicit val CarFormat:Format[Car] = productFormat2("id", "models")(Car.apply _)(Car.unapply(_).get)
 
   import java.util.Date
   case class Post(body: String, created_at: Option[Date])
