@@ -183,6 +183,7 @@ object DBApi {
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
     conf.getMilliseconds("maxConnectionAge").map(datasource.setMaxConnectionAge(_, java.util.concurrent.TimeUnit.MILLISECONDS))
     conf.getBoolean("disableJMX").orElse(Some(true)).map(datasource.setDisableJMX(_))
+    conf.getString("connectionTestStatement").map(datasource.setConnectionTestStatement(_))
 
     // Bind in JNDI
     conf.getString("jndiName").map { name =>
