@@ -50,7 +50,6 @@ object JsonSpec extends Specification {
       "body" -> JsString(p.body))) // Don't care about creating created_at or not here
   }
 
-
   "JSON" should {
     "serialize and desarialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))

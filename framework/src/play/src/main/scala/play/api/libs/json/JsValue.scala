@@ -69,13 +69,18 @@ case class JsArray(value: List[JsValue]) extends JsValue {
 
   override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
 
+  /**
+   * Concatenates this array with the elements of an other array
+   */
+  def ++(other: JsArray): JsArray = JsArray(value ++ other.value)
+
 }
 
 case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
   lazy val value: Map[String, JsValue] = fields.toMap
 
-  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
+  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldname))
 
   override def \\(fieldName: String): Seq[JsValue] = {
     value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
@@ -83,6 +88,22 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
       case (_, value) => o ++ (value \\ fieldName)
     })
   }
+
+  /**
+   * Return all keys
+   */
+  def keys: Set[String] = fields.map(_._1).toSet
+
+  /**
+   * Return all values
+   */
+  def values: Set[JsValue] = fields.map(_._2).toSet
+
+  /**
+   * Merge this object with an other one. Values from other override value of the current object.
+   */
+  def ++(other: JsObject) = JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
+
 }
 
 @JsonCachable
