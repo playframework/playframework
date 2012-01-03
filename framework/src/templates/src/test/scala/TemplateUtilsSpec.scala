@@ -16,13 +16,19 @@ object TemplateUtilsSpec extends Specification {
 
       "HTML for example" in {
 
-        case class Html(text: String) extends Appendable[Html] {
+        class Html(text: String) extends Appendable[Html] {
           val buffer = new StringBuilder(text)
           def +(other: Html) = {
             buffer.append(other.buffer)
             this
           }
           override def toString = buffer.toString
+        }
+
+        object Html {
+          
+          def apply(text: String) = new Html(text)
+
         }
 
         object HtmlFormat extends Format[Html] {
@@ -38,13 +44,19 @@ object TemplateUtilsSpec extends Specification {
 
       "Text for example" in {
 
-        case class Text(text: String) extends Appendable[Text] {
+        class Text(text: String) extends Appendable[Text] {
           val buffer = new StringBuilder(text)
           def +(other: Text) = {
             buffer.append(other.buffer)
             this
           }
           override def toString = buffer.toString
+        }
+
+        object Text {
+         
+          def apply(text: String) = new Text(text)
+
         }
 
         object TextFormat extends Format[Text] {

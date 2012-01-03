@@ -6,6 +6,7 @@ import play.templates._
 import java.io._
 
 object TemplateCompilerSpec extends Specification {
+  sequential
 
   import Helper._
 
@@ -34,7 +35,9 @@ object TemplateCompilerSpec extends Specification {
 
       helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
         "<h1>Hello World!</h1>")
-
+      
+      helper.compile[(() => Html)]("set.scala.html", "html.set")().toString.trim must be_==(
+        "12 34")
     }
     "fail compilation for error.scala.html" in {
       val helper = new CompilerHelper(sourceDir, generatedDir, generatedClasses)
@@ -43,14 +46,13 @@ object TemplateCompilerSpec extends Specification {
         case _ => ko
       }
     }
-
   }
 
 }
 
 object Helper {
 
-  case class Html(text: String) extends Appendable[Html] {
+  class Html(text: String) extends Appendable[Html] {
     val buffer = new StringBuilder(text)
     def +(other: Html) = {
       buffer.append(other.buffer)
@@ -58,6 +60,13 @@ object Helper {
     }
     override def toString = buffer.toString
   }
+
+  object Html {
+
+    def apply(text: String) = new Html(text)
+
+  }
+
 
   object HtmlFormat extends Format[Html] {
     def raw(text: String) = Html(text)
