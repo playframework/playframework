@@ -67,7 +67,7 @@ package play.api.mvc {
       def method = self.method
       def queryString = self.queryString
       def headers = self.headers
-      def body = f(self.body)
+      lazy val body = f(self.body)
     }
 
   }
