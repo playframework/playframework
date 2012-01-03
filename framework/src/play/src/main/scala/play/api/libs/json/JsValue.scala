@@ -80,7 +80,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
   lazy val value: Map[String, JsValue] = fields.toMap
 
-  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldname))
+  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
   override def \\(fieldName: String): Seq[JsValue] = {
     value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
