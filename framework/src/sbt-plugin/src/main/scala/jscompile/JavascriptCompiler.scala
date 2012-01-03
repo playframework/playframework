@@ -41,7 +41,7 @@ case class SourceTree(node: File, ancestors: Set[File] = Set(), children: List[S
   override def toString = print()
   def print(indent: String = ""): String = (indent + node.getName() + "\n" + children.mkString("\n"))
   private lazy val flatDependencies: List[File] = (node +: children.flatMap(_.flatDependencies)).distinct
-  lazy val dependencies: List[File] = flatDependencies.tail.reverse ::: List[File](flatDependencies.head) 
+  lazy val dependencies: List[File] = flatDependencies.tail ::: List[File](flatDependencies.head) 
   lazy val fullSource = dependencies.map(Path(_).slurpString).mkString("\n")
 }
 
