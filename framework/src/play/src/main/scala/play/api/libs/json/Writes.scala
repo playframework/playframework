@@ -79,7 +79,7 @@ trait DefaultWrites {
     def writes(o: JsValue) = o
     def reads(json: JsValue) = json
   }
-  
+
   implicit object JsObjectWrites extends Writes[JsObject] {
     def writes(o: JsObject) = o
   }

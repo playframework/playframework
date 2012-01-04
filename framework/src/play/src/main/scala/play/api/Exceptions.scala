@@ -96,7 +96,7 @@ class PlayException(val title: String, val description: String, val cause: Optio
 
   /** The exception ID, useful for retrieving problems in log files. */
   val id = PlayException.nextId
-  
+
   override def toString = "PlayException: " + getMessage
 
 }

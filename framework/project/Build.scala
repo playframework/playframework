@@ -168,7 +168,7 @@ object PlayBuild extends Build {
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.2",
             "ch.qos.logback"                    %    "logback-core"             %   "0.9.30",
             "ch.qos.logback"                    %    "logback-classic"          %   "0.9.30",
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.3.0",
             "se.scalablesolutions.akka"         %    "akka-actor"               %   "1.3-RC2",
             "se.scalablesolutions.akka"         %    "akka-slf4j"               %   "1.3-RC2",
             "com.typesafe.config"               %%   "config"                   %   "0.1.6",

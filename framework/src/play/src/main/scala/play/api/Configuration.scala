@@ -31,13 +31,13 @@ object Configuration {
     try {
       Configuration(Play.maybeApplication.filter(_.mode == Mode.Dev).map(_ => ConfigFactory.load("application")).getOrElse(ConfigFactory.load()))
     } catch {
-      case e:ConfigException => throw configError(e.origin, e.getMessage, Some(e))
+      case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
   }
 
   def empty = Configuration(ConfigFactory.empty())
-  
-  def from(data: Map[String,String]) = {
+
+  def from(data: Map[String, String]) = {
     Configuration(ConfigFactory.parseMap(data.asJava))
   }
 
@@ -72,12 +72,12 @@ case class Configuration(underlying: Config) {
   def ++(other: Configuration): Configuration = {
     Configuration(other.underlying.withFallback(underlying))
   }
-  
+
   private def readValue[T](path: String, v: => T): Option[T] = {
     try {
       Option(v)
     } catch {
-      case e:ConfigException.Missing => None
+      case e: ConfigException.Missing => None
       case e => throw reportError(path, e.getMessage, Some(e))
     }
   }
@@ -135,9 +135,9 @@ case class Configuration(underlying: Config) {
    * @return a configuration value
    */
   def getBoolean(path: String): Option[Boolean] = readValue(path, underlying.getBoolean(path))
-  
+
   def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))
-  
+
   def getBytes(path: String): Option[Long] = readValue(path, underlying.getBytes(path))
 
   /**
@@ -183,7 +183,7 @@ case class Configuration(underlying: Config) {
    * @return a configuration exception
    */
   def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
-    Configuration.configError(if(underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin, message, e)
+    Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin, message, e)
   }
 
   /**

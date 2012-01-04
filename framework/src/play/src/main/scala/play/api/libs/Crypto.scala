@@ -23,5 +23,5 @@ object Crypto {
       throw PlayException("Configuration error", "Missing application.secret")
     }
   }
-  
+
 }

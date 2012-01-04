@@ -188,9 +188,9 @@ object Logger extends LoggerLike {
         properties.foreach {
           case (name, value) => ctx.putProperty(name, value)
         }
-        
+
         try {
-          Option(System.getProperty("logger.resource")).map(s => if(s.startsWith("/")) s.drop(1) else s).map(r => Option(this.getClass.getClassLoader.getResource(r)).getOrElse(new java.net.URL("file:///" + System.getProperty("logger.resource")))).
+          Option(System.getProperty("logger.resource")).map(s => if (s.startsWith("/")) s.drop(1) else s).map(r => Option(this.getClass.getClassLoader.getResource(r)).getOrElse(new java.net.URL("file:///" + System.getProperty("logger.resource")))).
             orElse {
               Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
             }.
@@ -198,13 +198,13 @@ object Logger extends LoggerLike {
               Option(System.getProperty("logger.url")).map(new java.net.URL(_))
             }.
             orElse(Option(this.getClass.getClassLoader.getResource("logger.xml"))).
-            map { url => 
+            map { url =>
               configurator.doConfigure(url)
             }
         } catch {
           case e => e.printStackTrace()
         }
-        
+
         levels.foreach {
           case (logger, level) => ctx.getLogger(logger).setLevel(level)
         }

@@ -3,6 +3,7 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.api.libs._
+import play.api.libs.iteratee._
 
 import Play.current
 
@@ -28,22 +29,41 @@ object Assets extends Controller {
   def at(path: String, file: String) = Action { request =>
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
-    val resourceStream = Play.resourceAsStream(resourceName)
+    val resource = {
+      Play.resource(resourceName + ".gz").map(_ -> true)
+        .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
+        .orElse(Play.resource(resourceName).map(_ -> false))
+    }
 
-    resourceStream.map { is =>
+    resource.map {
 
-      // TODO replace by an Enumerator
-      lazy val resourceData = Resource.fromInputStream(is).byteArray
+      case (url, isGzipped) => {
 
-      request.headers.get(IF_NONE_MATCH).filter(_ == etagFor(resourceName, resourceData)).map(_ => NotModified).getOrElse {
+        // TODO replace by an Enumerator
+        lazy val resourceData = enumerate(url.openStream())
 
-        val response = Ok(resourceData)
-          .as(MimeTypes.forFileName(file).getOrElse(BINARY))
-          .withHeaders(ETAG -> etagFor(resourceName, resourceData))
+        request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 
-        Play.configuration.getString("assets.cache." + resourceName).map { cacheControl =>
-          response.withHeaders(CACHE_CONTROL -> cacheControl)
-        }.getOrElse(response)
+          // Prepare a chunked response
+          val response = Ok.stream(resourceData).as(MimeTypes.forFileName(file).getOrElse(BINARY))
+
+          // Is Gzipped?
+          val gzippedResponse = if (isGzipped) {
+            response.withHeaders(CONTENT_ENCODING -> "gzip")
+          } else {
+            response
+          }
+
+          // Add Etag if we are able to compute it
+          val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
+
+          // Add Cache directive if configured
+          val cachedResponse = Play.configuration.getString("assets.cache." + resourceName).map { cacheControl =>
+            taggedResponse.withHeaders(CACHE_CONTROL -> cacheControl)
+          }.getOrElse(taggedResponse)
+
+          cachedResponse
+        }
 
       }
 
@@ -55,14 +75,20 @@ object Assets extends Controller {
 
   private val etags = scala.collection.mutable.HashMap.empty[String, String]
 
-  private def etagFor(resourceName: String, data: => Array[Byte]) = {
-    etags.get(resourceName).filter(_ => Play.isProd).getOrElse {
-      etags.put(resourceName, computeETag(data))
-      etags(resourceName)
+  private def etagFor(resource: java.net.URL): Option[String] = {
+    etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
+      val maybeEtag = resource.getProtocol match {
+        case "file" => Some(new java.io.File(resource.getPath).lastModified.toString)
+        case "jar" => new java.net.URL(resource.getPath) match {
+          case url if url.getProtocol == "file" => Some(new java.io.File(url.getPath.takeWhile(c => !(c == '!'))).lastModified.toString)
+          case _ => None
+        }
+        case _ => None
+      }
+      maybeEtag.foreach(etags.put(resource.toExternalForm, _))
+      maybeEtag
     }
   }
-
-  private def computeETag(data: Array[Byte]) = Codecs.sha1(data)
 
 }
 

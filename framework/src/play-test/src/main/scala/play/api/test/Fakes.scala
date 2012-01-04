@@ -8,7 +8,7 @@ case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Heade
 }
 
 case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A) extends Request[A] {
-  
+
   lazy val path = uri.split('?').take(1).mkString
   lazy val queryString = play.core.parsers.UrlFormEncodedParser.parse(rawQueryString)
 
@@ -17,8 +17,8 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
       headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
     ))
   }
-  
-  def withUrlFormEncodedBody(data: (String, String) *) = {
+
+  def withUrlFormEncodedBody(data: (String, String)*) = {
     copy(body = AnyContentAsUrlFormEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 
@@ -37,19 +37,18 @@ object FakeRequest {
 }
 
 case class FakeApplication(
-  override val path: java.io.File = new java.io.File("."), 
-  override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-  val additionalPlugins: Seq[String] = Nil,
-  val withoutPlugins: Seq[String] = Nil,
-  val additionalConfiguration: Map[String,String] = Map.empty
-) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
-  
+    override val path: java.io.File = new java.io.File("."),
+    override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
+    val additionalPlugins: Seq[String] = Nil,
+    val withoutPlugins: Seq[String] = Nil,
+    val additionalConfiguration: Map[String, String] = Map.empty) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
+
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
-  } 
-  
+  }
+
   override def configuration = {
     super.configuration ++ play.api.Configuration.from(additionalConfiguration)
   }
-  
+
 }

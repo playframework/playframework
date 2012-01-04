@@ -345,7 +345,7 @@ object Evolutions {
         case _ => false
       }
 
-      Path(dir).children().map(f => f.name -> f).collect {
+      Path(dir).children().toSeq.map(f => f.name -> f).collect {
         case (evolutionScript(revision), script) => Integer.parseInt(revision) -> script.slurpString
       }.toList.sortBy(_._1).map {
         case (revision, script) => {

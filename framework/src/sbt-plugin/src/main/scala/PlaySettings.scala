@@ -51,9 +51,9 @@ trait PlaySettings {
 
     sourceDirectory in Compile <<= baseDirectory / "app",
     sourceDirectory in Test <<= baseDirectory / "test",
-    
+
     confDirectory <<= baseDirectory / "conf",
-    
+
     resourceDirectory in Compile <<= baseDirectory / "conf",
 
     scalaSource in Compile <<= baseDirectory / "app",
@@ -94,7 +94,7 @@ trait PlaySettings {
 
     shellPrompt := playPrompt,
 
-    copyResources in Compile <<= (copyResources in Compile, playCopyResources) map { (r, pr) => r ++ pr },
+    copyResources in Compile <<= (copyResources in Compile, playCopyAssets) map { (r, pr) => r ++ pr },
 
     mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
 
@@ -110,7 +110,7 @@ trait PlaySettings {
 
     playCommonClassloader <<= playCommonClassloaderTask,
 
-    playCopyResources <<= playCopyResourcesTask,
+    playCopyAssets <<= playCopyAssetsTask,
 
     playCompileEverything <<= playCompileEverythingTask,
 

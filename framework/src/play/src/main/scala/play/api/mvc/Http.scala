@@ -341,14 +341,14 @@ package play.api.mvc {
 
     // We use netty here but just as an API to handle cookies encoding
     import org.jboss.netty.handler.codec.http.{ CookieEncoder, CookieDecoder, DefaultCookie }
-    
+
     def apply(header: Option[String]) = new Cookies {
-      
-      lazy val cookies: Map[String,Cookie] = header.map(Cookies.decode(_)).getOrElse(Seq.empty).groupBy(_.name).mapValues(_.head)
-      
+
+      lazy val cookies: Map[String, Cookie] = header.map(Cookies.decode(_)).getOrElse(Seq.empty).groupBy(_.name).mapValues(_.head)
+
       def get(name: String) = cookies.get(name)
       override def toString = cookies.toString
-      
+
     }
 
     /**

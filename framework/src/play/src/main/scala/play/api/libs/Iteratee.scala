@@ -6,6 +6,58 @@ object `package` {
 
   type K[E, A] = Input[E] => Iteratee[E, A]
 
+  import scalax.io.JavaConverters._
+
+  def enumerate(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = new Enumerator[Array[Byte]] {
+    def apply[A](it: Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
+
+      var iteratee: Iteratee[Array[Byte], A] = it
+      var iterateeP: Promise[Iteratee[Array[Byte], A]] = null
+
+      while (iterateeP == null) {
+        iteratee = iteratee.pureFlatFold(
+
+          // Done
+          (_, _) => {
+            iterateeP = Promise.pure(iteratee)
+            iteratee
+          },
+
+          // CONTINUE
+          k => {
+            val buffer = new Array[Byte](chunkSize)
+            input.read(buffer) match {
+              case -1 => {
+                val remainingIteratee = k(Input.EOF)
+                iterateeP = Promise.pure(remainingIteratee)
+                remainingIteratee
+              }
+              case read => {
+                val input = new Array[Byte](read)
+                System.arraycopy(buffer, 0, input, 0, read)
+                val nextIteratee = k(Input.El(input))
+                nextIteratee
+              }
+            }
+          },
+
+          // ERROR
+          (_, _) => {
+            iterateeP = Promise.pure(iteratee)
+            iteratee
+          }
+
+        )
+      }
+
+      input.close()
+
+      iterateeP
+    }
+  }
+
+  def enumerate(file: java.io.File): Enumerator[Array[Byte]] = enumerate(new java.io.FileInputStream(file))
+
 }
 
 object Iteratee {

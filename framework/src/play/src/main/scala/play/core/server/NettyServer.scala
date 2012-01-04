@@ -68,15 +68,15 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
     } catch {
       case e => Logger("play").error("Error while stopping the application", e)
     }
-    
+
     mode match {
       case Mode.Test =>
       case _ => Logger("play").warn("Stopping server...")
     }
 
-    allChannels.disconnect().awaitUninterruptibly()
     allChannels.close().awaitUninterruptibly()
     bootstrap.releaseExternalResources()
+
   }
 
 }

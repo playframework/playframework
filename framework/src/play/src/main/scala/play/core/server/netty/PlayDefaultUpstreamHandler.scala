@@ -31,10 +31,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
     e.getChannel.close()
   }
 
-  override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
-
+  override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     allChannels.add(e.getChannel)
+  }
 
+  override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
       case nettyHttpRequest: HttpRequest =>
         val keepAlive = isKeepAlive(nettyHttpRequest)
