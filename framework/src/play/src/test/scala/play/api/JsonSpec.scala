@@ -115,6 +115,36 @@ object JsonSpec extends Specification {
       val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
     }
+
+    "Can parse null values in Array" in {
+      val postJson = """[null]"""
+      val parsedJson = Json.parse(postJson)
+      val expectedJson = JsArray(List(JsNull))
+      parsedJson must equalTo(expectedJson)
+    }
+
+    "Can use buildFormat1" in {
+      case class Foo(bar1:String)
+      implicit val FooFormat = buildFormat1("bar1")(Foo)(Foo.unapply)
+
+      val postJson = """{"bar1":"chboing"}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      foo must equalTo(Foo("chboing"))
+      toJson(foo).toString must equalTo(postJson)
+    }
+
+    "Can use buildFormat2" in {
+      case class Foo(bar1:String, bar2:Int)
+      implicit val FooFormat = buildFormat2("bar1", "bar2")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing","bar2":12345.0}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      foo must equalTo(Foo("chboing",12345))
+      toJson(foo).toString must equalTo(postJson)
+    }    
   }
 
 }
