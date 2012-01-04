@@ -195,6 +195,42 @@ object JsonSpec extends Specification {
       (bar1, bar2, bar3, bar4, bar5, bar6.toSeq) must equalTo(("chboing",12345,1.234578912345679E7,List("bar41","bar42","bar43"), Map( "foo51"->"bar51", "foo52"->"bar52", "foo53"->"bar53"), Array(123,456,789).toSeq))
       toJson(foo).toString must equalTo(postJson)
     } 
-  }
 
+    "Can read/write caseclasses with buildFormat10" in {
+      case class Foo( bar1:String, bar2:String, bar3:String, bar4:String, bar5: String, 
+                      bar6:String, bar7:String, bar8:String, bar9:String, bar10: String)
+      implicit val FooFormat = buildFormat10("bar1", "bar2", "bar3", "bar4", "bar5", 
+                                            "bar6", "bar7", "bar8", "bar9", "bar10")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing1","bar2":"chboing2","bar3":"chboing3","bar4":"chboing4","bar5":"chboing5","bar6":"chboing6","bar7":"chboing7","bar8":"chboing8","bar9":"chboing9","bar10":"chboing10"}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      // pb with equal between arrays
+      foo must equalTo(Foo("chboing1", "chboing2", "chboing3", "chboing4", "chboing5", "chboing6", "chboing7", "chboing8", "chboing9", "chboing10"))
+      toJson(foo).toString must equalTo(postJson)
+    } 
+  
+
+    "Can read/write caseclasses with buildFormat22" in {
+      case class Foo( bar1:String, bar2:String, bar3:String, bar4:String, bar5: String, 
+                      bar6:String, bar7:String, bar8:String, bar9:String, bar10: String, 
+                      bar11:String, bar12:String, bar13:String, bar14:String, bar15: String, 
+                      bar16:String, bar17:String, bar18:String, bar19:String, bar20: String,
+                      bar21:String, bar22:String)
+      implicit val FooFormat = buildFormat22("bar1", "bar2", "bar3", "bar4", "bar5", 
+                                            "bar6", "bar7", "bar8", "bar9", "bar10",
+                                            "bar11", "bar12", "bar13", "bar14", "bar15",
+                                            "bar16", "bar17", "bar18", "bar19", "bar20",
+                                            "bar21", "bar22")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing1","bar2":"chboing2","bar3":"chboing3","bar4":"chboing4","bar5":"chboing5","bar6":"chboing6","bar7":"chboing7","bar8":"chboing8","bar9":"chboing9","bar10":"chboing10","bar11":"chboing11","bar12":"chboing12","bar13":"chboing13","bar14":"chboing14","bar15":"chboing15","bar16":"chboing16","bar17":"chboing17","bar18":"chboing18","bar19":"chboing19","bar20":"chboing20","bar21":"chboing21","bar22":"chboing22"}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      // pb with equal between arrays
+      foo must equalTo(Foo("chboing1", "chboing2", "chboing3", "chboing4", "chboing5", "chboing6", "chboing7", "chboing8", "chboing9", "chboing10", "chboing11", "chboing12", "chboing13", "chboing14", "chboing15", "chboing16", "chboing17", "chboing18", "chboing19", "chboing20", "chboing21", "chboing22"))
+      toJson(foo).toString must equalTo(postJson)
+    } 
+  }
 }
