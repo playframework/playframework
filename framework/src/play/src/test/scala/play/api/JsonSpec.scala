@@ -123,7 +123,7 @@ object JsonSpec extends Specification {
       parsedJson must equalTo(expectedJson)
     }
 
-    "Can use buildFormat1" in {
+    "Can read/write caseclasses with buildFormat1" in {
       case class Foo(bar1:String)
       implicit val FooFormat = buildFormat1("bar1")(Foo)(Foo.unapply)
 
@@ -134,7 +134,7 @@ object JsonSpec extends Specification {
       toJson(foo).toString must equalTo(postJson)
     }
 
-    "Can use buildFormat2" in {
+    "Can read/write caseclasses with buildFormat2" in {
       case class Foo(bar1:String, bar2:Int)
       implicit val FooFormat = buildFormat2("bar1", "bar2")(Foo)(Foo.unapply)
 
@@ -145,6 +145,56 @@ object JsonSpec extends Specification {
       foo must equalTo(Foo("chboing",12345))
       toJson(foo).toString must equalTo(postJson)
     }    
+
+    "Can read/write caseclasses with buildFormat3" in {
+      case class Foo(bar1:String, bar2:Int, bar3:Double)
+      implicit val FooFormat = buildFormat3("bar1", "bar2", "bar3")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing","bar2":12345.0,"bar3":1.234578912345679E7}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      foo must equalTo(Foo("chboing",12345, 1.234578912345679E7))
+      toJson(foo).toString must equalTo(postJson)
+    }    
+
+    "Can read/write caseclasses with buildFormat4" in {
+      case class Foo(bar1:String, bar2:Int, bar3:Double, bar4:List[String])
+      implicit val FooFormat = buildFormat4("bar1", "bar2", "bar3", "bar4")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing","bar2":12345.0,"bar3":1.234578912345679E7,"bar4":["bar41","bar42","bar43"]}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      foo must equalTo(Foo("chboing",12345,1.234578912345679E7,List("bar41","bar42","bar43")))
+      toJson(foo).toString must equalTo(postJson)
+    }    
+
+    "Can read/write caseclasses with buildFormat5" in {
+      case class Foo(bar1:String, bar2:Int, bar3:Double, bar4:List[String], bar5: Map[String, String])
+      implicit val FooFormat = buildFormat5("bar1", "bar2", "bar3", "bar4", "bar5")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing","bar2":12345.0,"bar3":1.234578912345679E7,"bar4":["bar41","bar42","bar43"],"bar5":{"foo51":"bar51","foo52":"bar52","foo53":"bar53"}}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      foo must equalTo(Foo("chboing",12345,1.234578912345679E7,List("bar41","bar42","bar43"), Map( "foo51"->"bar51", "foo52"->"bar52", "foo53"->"bar53")))
+      toJson(foo).toString must equalTo(postJson)
+    } 
+
+    "Can read/write caseclasses with buildFormat6" in {
+      case class Foo(bar1:String, bar2:Int, bar3:Double, bar4:List[String], bar5: Map[String, String], bar6: Array[Int])
+      implicit val FooFormat = buildFormat6("bar1", "bar2", "bar3", "bar4", "bar5", "bar6")(Foo)(Foo.unapply)
+
+      // bar2 is a float just for the test as serialization of JsNumber gives a float
+      val postJson = """{"bar1":"chboing","bar2":12345.0,"bar3":1.234578912345679E7,"bar4":["bar41","bar42","bar43"],"bar5":{"foo51":"bar51","foo52":"bar52","foo53":"bar53"},"bar6":[123.0,456.0,789.0]}"""
+      val parsedJson = Json.parse(postJson)
+      val foo = parsedJson.as[Foo]
+      // pb with equal between arrays
+      val Foo(bar1, bar2, bar3, bar4, bar5, bar6) = foo
+      (bar1, bar2, bar3, bar4, bar5, bar6.toSeq) must equalTo(("chboing",12345,1.234578912345679E7,List("bar41","bar42","bar43"), Map( "foo51"->"bar51", "foo52"->"bar52", "foo53"->"bar53"), Array(123,456,789).toSeq))
+      toJson(foo).toString must equalTo(postJson)
+    } 
   }
 
 }
