@@ -62,7 +62,7 @@ case class JsNumber(value: BigDecimal) extends JsValue
 
 case class JsString(value: String) extends JsValue
 
-case class JsArray(value: List[JsValue]) extends JsValue {
+case class JsArray(value: List[JsValue] = List()) extends JsValue {
 
   override def apply(index: Int): JsValue =
     value.lift(index).getOrElse(JsUndefined("Array index out of bounds in " + this))
@@ -73,6 +73,16 @@ case class JsArray(value: List[JsValue]) extends JsValue {
    * Concatenates this array with the elements of an other array
    */
   def ++(other: JsArray): JsArray = JsArray(value ++ other.value)
+
+  /**
+   * Adds an element to the end of the array
+   */
+  def :+(el: JsValue): JsArray = JsArray(value :+ el)
+
+  /**
+   * Adds an element to the beggining of the array
+   */
+  def +:(el: JsValue): JsArray = JsArray(el +: value)
 
 }
 
