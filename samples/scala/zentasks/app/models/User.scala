@@ -16,9 +16,9 @@ object User {
    * Parse a User from a ResultSet
    */
   val simple = {
-    get[String]("user.email") ~/
-    get[String]("user.name") ~/
-    get[String]("user.password") ^^ {
+    get[String]("user.email") ~
+    get[String]("user.name") ~
+    get[String]("user.password") map {
       case email~name~password => User(email, name, password)
     }
   }
@@ -32,7 +32,7 @@ object User {
     DB.withConnection { implicit connection =>
       SQL("select * from user where email = {email}").on(
         'email -> email
-      ).as(User.simple ?)
+      ).as(User.simple.singleOpt)
     }
   }
   
@@ -58,7 +58,7 @@ object User {
       ).on(
         'email -> email,
         'password -> password
-      ).as(User.simple ?)
+      ).as(User.simple.singleOpt)
     }
   }
    

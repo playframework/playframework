@@ -1,148 +1,177 @@
+package anorm
 
-import java.util.Date
+import SqlParser.ResultSet
 
-package anorm {
+object SqlParser {
+  import java.util.Date
 
-  import utils.Scala.MayErr
-  import utils.Scala.MayErr._
+  type ResultSet = Stream[Row]
 
-  object SqlParser extends SqlParser {
-    def flatten[T1, T2, R](implicit f: TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
+  def scalar[T](implicit transformer: Column[T]): RowParser[T] = RowParser[T] { row =>
+    import utils.Scala.MayErr._
+
+    (for {
+      meta <- row.metaData.ms.headOption.toRight(NoColumnsInReturnedResult)
+      value <- row.data.headOption.toRight(NoColumnsInReturnedResult)
+      result <- transformer(value, meta)
+    } yield result).fold(e => Error(e), a => Success(a))
   }
 
-  trait SqlParser extends scala.util.parsing.combinator1.Parsers {
+  def flatten[T1, T2, R](implicit f: anorm.TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
 
-    case class StreamReader(s: Stream[Row], override val lastNoSuccess: NoSuccess = null) extends ReaderWithLastNoSuccess {
-      override type R = Input
-      def first = s.headOption.toRight(EndOfStream())
-      def rest = this.copy(s = (s.drop(1)))
-      def pos = scala.util.parsing.input.NoPosition
-      def atEnd = s.isEmpty
-      override def withLastNoSuccess(noSuccess: NoSuccess) = this.copy(lastNoSuccess = noSuccess)
+  def str(columnName: String): RowParser[String] = get[String](columnName)(implicitly[anorm.Column[String]])
+
+  def bool(columnName: String): RowParser[Boolean] = get[Boolean](columnName)(implicitly[Column[Boolean]])
+
+  def int(columnName: String): RowParser[Int] = get[Int](columnName)(implicitly[Column[Int]])
+
+  def long(columnName: String): RowParser[Long] = get[Long](columnName)(implicitly[Column[Long]])
+
+  def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[Column[Date]])
+
+  def get[T](columnName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
+    import utils.Scala.MayErr._
+
+    (for {
+      meta <- row.metaData.get(columnName)
+        .toRight(ColumnNotFound(columnName, row.metaData.availableColumns))
+      value <- row.get1(columnName)
+      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3))
+    } yield result).fold(e => Error(e), a => Success(a))
+  }
+
+  def contains[TT: Column, T <: TT](columnName: String, t: T): RowParser[Unit] =
+    get[TT](columnName)(implicitly[Column[TT]])
+      .collect("Row doesn't contain a column: " + columnName + " with value " + t) { case a if a == t => Unit }
+
+}
+
+case class ~[+A, +B](_1: A, _2: B)
+
+trait Result[+A] {
+
+  self =>
+
+  def flatMap[B](k: A => Result[B]): Result[B] = self match {
+
+    case Success(a) => k(a)
+    case e @ Error(_) => e
+
+  }
+
+  def map[B](f: A => B): Result[B] = self match {
+
+    case Success(a) => Success(f(a))
+    case e @ Error(_) => e
+
+  }
+
+}
+
+case class Success[A](a: A) extends Result[A]
+
+case class Error(msg: SqlRequestError) extends Result[Nothing]
+
+object RowParser {
+
+  def apply[A](f: Row => Result[A]): RowParser[A] = new RowParser[A] {
+
+    def apply(row: Row): Result[A] = f(row)
+
+  }
+
+}
+
+trait RowParser[+A] extends (Row => Result[A]) {
+
+  parent =>
+
+  def map[B](f: A => B): RowParser[B] = RowParser(parent.andThen(_.map(f)))
+
+  def collect[B](otherwise: String)(f: PartialFunction[A, B]): RowParser[B] = RowParser(row => parent(row).flatMap(a => if (f.isDefinedAt(a)) Success(f(a)) else Error(SqlMappingError(otherwise))))
+
+  def flatMap[B](k: A => RowParser[B]): RowParser[B] = RowParser(row => parent(row).flatMap(a => k(a)(row)))
+
+  def ~[B](p: RowParser[B]): RowParser[A ~ B] = RowParser(row => parent(row).flatMap(a => p(row).map(new ~(a, _))))
+
+  def ~>[B](p: RowParser[B]): RowParser[B] = RowParser(row => parent(row).flatMap(a => p(row)))
+
+  def <~[B](p: RowParser[B]): RowParser[A] = parent.~(p).map(_._1)
+
+  def |[B >: A](p: RowParser[B]): RowParser[B] = RowParser { row =>
+    parent(row) match {
+
+      case Error(_) => p(row)
+
+      case a => a
 
     }
+  }
 
-    case class EndOfStream()
-
-    type Elem = Either[EndOfStream, Row]
-
-    type Input = StreamReader
-
-    import scala.collection.generic.CanBuildFrom
-    import scala.collection.mutable.Builder
-
-    implicit def extendParser[A](a: Parser[A]): ExtendedParser[A] = ExtendedParser(a)
-
-    case class ExtendedParser[A](p: Parser[A]) {
-      // a combinator that keeps first parser from consuming input
-      def ~<[B](b: Parser[B]): Parser[A ~ B] = guard(p) ~ b
-      def ~/[B](b: Parser[B]): Parser[A ~ B] = guard(p) ~ b
-      def ?! : Parser[Option[A]] = (p ^^ { case o => Some(o) } | newLine ^^^ None)
+  def ? : RowParser[Option[A]] = RowParser { row =>
+    parent(row) match {
+      case Success(a) => Success(Some(a))
+      case Error(_) => Success(None)
     }
+  }
 
-    def sequence[A](ps: Traversable[Parser[A]])(implicit bf: CanBuildFrom[Traversable[_], A, Traversable[A]]) = {
-      Parser[Traversable[A]] { in =>
-        ps.foldLeft(success(bf(ps)))((s, p) =>
-          for (ss <- s; pp <- p) yield ss += pp) map (_.result) apply in
+  def >>[B](f: A => RowParser[B]): RowParser[B] = flatMap(f)
+
+  def * : ResultSetParser[List[A]] = ResultSetParser.list(parent)
+
+  def + : ResultSetParser[List[A]] = ResultSetParser.nonEmptyList(parent)
+
+  def single = ResultSetParser.single(parent)
+
+  def singleOpt = ResultSetParser.singleOpt(parent)
+
+}
+
+trait ResultSetParser[+A] extends (ResultSet => Result[A]) {
+  parent =>
+
+  def map[B](f: A => B): ResultSetParser[B] = ResultSetParser(rs => parent(rs).map(f))
+
+}
+
+object ResultSetParser {
+
+  def apply[A](f: ResultSet => Result[A]): ResultSetParser[A] = new ResultSetParser[A] { rows =>
+
+    def apply(rows: ResultSet): Result[A] = f(rows)
+
+  }
+
+  def list[A](p: RowParser[A]): ResultSetParser[List[A]] = {
+
+    @scala.annotation.tailrec
+    def sequence(results: Result[List[A]], rows: Stream[Row]): Result[List[A]] = {
+
+      (results, rows) match {
+
+        case (Success(rs), row #:: tail) => sequence(p(row).map(rs :+ _), tail)
+
+        case (r, _) => r
+
       }
-    }
-    implicit def rowFunctionToParser[T](f: (Row => MayErr[SqlRequestError, T])): Parser[T] = {
-      eatRow(Parser[T] { in =>
-        in.first.left.map(_ => PFailure("End of Stream", in))
-          .flatMap(f(_).left.map({ case e => PFailure(e.toString, in) }))
-          .fold(e => e, a => { Success(a, in) })
-      })
-    }
-
-    implicit def rowParserToFunction[T](p: RowParser[T]): (Row => MayErr[SqlRequestError, T]) = p.f
-
-    case class RowParser[A](f: (Row => MayErr[SqlRequestError, A])) extends Parser[A] {
-      lazy val parser = rowFunctionToParser(f)
-      def apply(in: Input) = parser(in)
-      def ~<[B](b: RowParser[B]): RowParser[A ~ B] = RowParser[A ~ B](r =>
-        f(r).flatMap(a =>
-          b.f(r).map(c =>
-            new ~(a, c))))
-      def ~<[B](b: Parser[B]): Parser[A ~ B] = extendParser(this) ~< b
-      def ~/[B](b: Parser[B]): Parser[A ~ B] = extendParser(this) ~< b
-      def ?! : Parser[Option[A]] = extendParser(this) ?!
-    }
-
-    def maybe[A](p: Parser[A]): Parser[Option[A]] = extendParser(p) ?!
-
-    def str(columnName: String): RowParser[String] = get[String](columnName)(implicitly[ColumnTo[String]])
-
-    def bool(columnName: String): RowParser[Boolean] = get[Boolean](columnName)(implicitly[ColumnTo[Boolean]])
-
-    def int(columnName: String): RowParser[Int] = get[Int](columnName)(implicitly[ColumnTo[Int]])
-
-    def long(columnName: String): RowParser[Long] = get[Long](columnName)(implicitly[ColumnTo[Long]])
-
-    def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[ColumnTo[Date]])
-
-    def get[T](columnName: String)(implicit extractor: ColumnTo[T]): RowParser[T] = RowParser(extractor.transform(_, columnName))
-
-    def contains[TT: ColumnTo, T <: TT](columnName: String, t: T): Parser[Unit] = guard(get[TT](columnName)(implicitly[ColumnTo[TT]]) ^? { case a if a == t => Unit })
-
-    def current[T](columnName: String)(implicit extractor: ColumnTo[T]): RowParser[T] = RowParser(extractor.transform(_, columnName))
-
-    def eatRow[T](p: Parser[T]) = p <~ newLine
-    /*
-        def noError[T](p:Parser[T]) = Parser( in => {
-          val before = lastNoSuccess
-          val result = p(in)
-          val after = lastNoSuccess
-          if((after != null) && !(before eq after))
-            after match {
-              case Error(_,_) => after
-              case Failure(_,_)  => result
-            }
-          else result
-
-        })*/
-
-    def current1[T](columnName: String)(implicit extractor: ColumnTo[T]): Parser[T] = commit(current[T](columnName)(extractor))
-
-    def newLine: Parser[Unit] = Parser[Unit] { in =>
-      if (in.atEnd) PFailure("end", in) else Success(Unit, in.rest)
-    }
-
-    def scalar[T](implicit m: Manifest[T]) = {
-      SqlParser.RowParser(row =>
-        row.asList
-          .headOption.toRight(NoColumnsInReturnedResult)
-          .flatMap(a =>
-            if (m >:> TypeWrangler.javaType(a.asInstanceOf[AnyRef].getClass))
-              Right(a.asInstanceOf[T])
-            else
-              Left(TypeDoesNotMatch(m.erasure + " and " + a.asInstanceOf[AnyRef].getClass))))
-    }
-
-    def spanM[A](by: (Row => MayErr[SqlRequestError, Any]), a: Parser[A]): Parser[List[A]] = {
-      val d = guard(by)
-      d >> (first => Parser[List[A]] { in =>
-        //instead of cast it'd be much better to override type Reader
-        {
-          val (groupy, rest) = in.s.span(by(_).right.toOption.exists(r => r == first))
-          val g = (a *)(StreamReader(groupy))
-          g match {
-            case Success(a, _) => Success(a, StreamReader(rest))
-            case Failure(msg, _) => PFailure(msg, in)
-            case Error(msg, _) => PError(msg, in)
-          }
-        }
-      })
-    }
-
-    implicit def symbolToColumn(columnName: Symbol): ColumnSymbol = ColumnSymbol(columnName)
-
-    case class ColumnSymbol(name: Symbol) {
-
-      def of[T](implicit extractor: ColumnTo[T]): Parser[T] = get[T](name.name)(extractor)
-      def is[TT: ColumnTo, T <: TT](t: T): Parser[Unit] = contains[TT, T](name.name, t)(implicitly[ColumnTo[TT]])
 
     }
 
+    ResultSetParser { rows => sequence(Success(List()), rows) }
+  }
+
+  def nonEmptyList[A](p: RowParser[A]): ResultSetParser[List[A]] = ResultSetParser(rows => if (rows.isEmpty) Error(SqlMappingError("Empty Result Set")) else list(p)(rows))
+
+  def single[A](p: RowParser[A]): ResultSetParser[A] = ResultSetParser {
+    case head #:: Stream.Empty => p(head)
+    case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+  }
+
+  def singleOpt[A](p: RowParser[A]): ResultSetParser[Option[A]] = ResultSetParser { rows =>
+    single(p)(rows) match {
+      case Error(_) => Success(None)
+      case Success(otherwise) => Success(Some(otherwise))
+    }
   }
 
 }

@@ -27,11 +27,11 @@ object Computer {
    * Parse a Computer from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("computer.id") ~/
-    get[String]("computer.name") ~/
-    get[Option[Date]]("computer.introduced") ~/
-    get[Option[Date]]("computer.discontinued") ~/
-    get[Option[Long]]("computer.company_id") ^^ {
+    get[Pk[Long]]("computer.id") ~
+    get[String]("computer.name") ~
+    get[Option[Date]]("computer.introduced") ~
+    get[Option[Date]]("computer.discontinued") ~
+    get[Option[Long]]("computer.company_id") map {
       case id~name~introduced~discontinued~companyId => Computer(id, name, introduced, discontinued, companyId)
     }
   }
@@ -39,7 +39,7 @@ object Computer {
   /**
    * Parse a (Computer,Company) from a ResultSet
    */
-  val withCompany = Computer.simple ~/ maybe(Company.simple) ^^ {
+  val withCompany = Computer.simple ~ (Company.simple ?) map {
     case computer~company => (computer,company)
   }
   
@@ -50,7 +50,7 @@ object Computer {
    */
   def findById(id: Long): Option[Computer] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from computer where id = {id}").on('id -> id).as(Computer.simple ?)
+      SQL("select * from computer where id = {id}").on('id -> id).as(Computer.simple.singleOpt)
     }
   }
   
@@ -91,7 +91,7 @@ object Computer {
         """
       ).on(
         'filter -> filter
-      ).as(scalar[Long])
+      ).as(scalar[Long].single)
 
       Page(computers, page, offest, totalRows)
       
@@ -165,8 +165,8 @@ object Company {
    * Parse a Company from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("company.id") ~/
-    get[String]("company.name") ^^ {
+    get[Pk[Long]]("company.id") ~
+    get[String]("company.name") map {
       case id~name => Company(id, name)
     }
   }

@@ -16,9 +16,9 @@ object Project {
    * Parse a Project from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("project.id") ~/
-    get[String]("project.folder") ~/
-    get[String]("project.name") ^^ {
+    get[Pk[Long]]("project.id") ~
+    get[String]("project.folder") ~
+    get[String]("project.name") map {
       case id~folder~name => Project(id, folder, name)
     }
   }
@@ -32,7 +32,7 @@ object Project {
     DB.withConnection { implicit connection =>
       SQL("select * from project where id = {id}").on(
         'id -> id
-      ).as(Project.simple ?)
+      ).as(Project.simple.singleOpt)
     }
   }
   
@@ -152,7 +152,7 @@ object Project {
       ).on(
         'project -> project,
         'email -> user
-      ).as(scalar[Boolean])
+      ).as(scalar[Boolean].single)
     }
   }
    
@@ -164,7 +164,7 @@ object Project {
        
        // Get the project id
        val id: Long = project.id.getOrElse {
-         SQL("select next value for project_seq").as(scalar[Long])
+         SQL("select next value for project_seq").as(scalar[Long].single)
        }
        
        // Insert the project

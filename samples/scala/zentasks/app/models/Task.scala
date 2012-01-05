@@ -18,13 +18,13 @@ object Task {
    * Parse a Task from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("task.id") ~/
-    get[String]("task.folder") ~/
-    get[Long]("task.project") ~/
-    get[String]("task.title") ~/
-    get[Boolean]("task.done") ~/
-    get[Option[Date]]("task.due_date") ~/
-    get[Option[String]]("task.assigned_to") ^^ {
+    get[Pk[Long]]("task.id") ~
+    get[String]("task.folder") ~
+    get[Long]("task.project") ~
+    get[String]("task.title") ~
+    get[Boolean]("task.done") ~
+    get[Option[Date]]("task.due_date") ~
+    get[Option[String]]("task.assigned_to") map {
       case id~folder~project~title~done~dueDate~assignedTo => Task(
         id, folder, project, title, done, dueDate, assignedTo
       )
@@ -40,7 +40,7 @@ object Task {
     DB.withConnection { implicit connection =>
       SQL("select * from task where id = {id}").on(
         'id -> id
-      ).as(Task.simple ?)
+      ).as(Task.simple.singleOpt)
     }
   }
   
@@ -58,7 +58,7 @@ object Task {
         """
       ).on(
         'email -> user
-      ).as(Task.simple ~/ Project.simple ^^ {
+      ).as(Task.simple ~ Project.simple map {
         case task~project => task -> project
       } *)
     }
@@ -140,7 +140,7 @@ object Task {
       ).on(
         'task -> task,
         'email -> user
-      ).as(scalar[Boolean])
+      ).as(scalar[Boolean].single)
     }
   }
 
@@ -152,7 +152,7 @@ object Task {
       
       // Get the task id
       val id: Long = task.id.getOrElse {
-        SQL("select next value for task_seq").as(scalar[Long])
+        SQL("select next value for task_seq").as(scalar[Long].single)
       }
       
       SQL(
