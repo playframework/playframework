@@ -183,7 +183,7 @@ trait BodyParsers {
 
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().mapDone { c =>
         scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
-          UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")))
+          UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
         }.left.map { e =>
           Results.BadRequest
         }

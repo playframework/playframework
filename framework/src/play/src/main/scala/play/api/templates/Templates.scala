@@ -150,20 +150,30 @@ object PlayMagic {
   def toHtmlArgs(args: Seq[(Symbol, Any)]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
 
   /** Transforms a Play Java form `Field` to a proper Scala form `Field`. */
-  implicit def javaFieldtoScalaField(field: play.data.Form.Field) = {
-    play.api.data.Field(
-      field.name,
-      field.constraints.asScala.map { jT =>
+  implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {
+    
+    new play.api.data.Field(
+      null,
+      jField.name,
+      jField.constraints.asScala.map { jT =>
         jT._1 -> jT._2.asScala
       },
-      Option(field.format).map(f => f._1 -> f._2.asScala),
-      field.errors.asScala.map { jE =>
+      Option(jField.format).map(f => f._1 -> f._2.asScala),
+      jField.errors.asScala.map { jE =>
         play.api.data.FormError(
           jE.key,
           jE.message,
           jE.arguments.asScala)
       },
-      Option(field.value))
+      Option(jField.value)) {
+        
+        override def apply(key: String) = {
+          javaFieldtoScalaField(jField.sub(key))
+        }
+        
+        override lazy val indexes = jField.indexes.asScala.toSeq.map(_.toInt)
+        
+      }
   }
 
 }

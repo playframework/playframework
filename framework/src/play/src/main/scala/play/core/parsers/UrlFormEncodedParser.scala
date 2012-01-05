@@ -2,7 +2,7 @@ package play.core.parsers
 
 object UrlFormEncodedParser {
 
-  def parse(data: String): Map[String, Seq[String]] = {
+  def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
 
     import java.net._
     import scala.collection.mutable.{ HashMap }
@@ -14,8 +14,8 @@ object UrlFormEncodedParser {
       if (param.contains('=')) {
 
         val parts = param.split('=')
-        val key = parts.head
-        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), "utf-8")
+        val key = URLDecoder.decode(parts.head, encoding)
+        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), encoding)
 
         params += key -> (params.get(key).getOrElse(Seq.empty) :+ value)
 

@@ -13,7 +13,7 @@ object Application extends Controller {
    */
   val helloForm = Form(
     of(
-      "name" -> requiredText,
+      "name" -> nonEmptyText,
       "repeat" -> number(min = 1, max = 100),
       "color" -> optional(text)
     )

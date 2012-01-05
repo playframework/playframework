@@ -210,7 +210,7 @@ package object data {
    *   Form("username" -> requiredText)
    * }}}
    */
-  val requiredText: Mapping[String] = text verifying Constraints.required
+  val nonEmptyText: Mapping[String] = text verifying Constraints.nonEmpty
 
   /**
    * Constructs a simple mapping for a text field.
@@ -241,7 +241,7 @@ package object data {
    * @param minLength Text min length.
    * @param maxLength Text max length.
    */
-  def requiredText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = text(minLength, maxLength) verifying Constraints.required
+  def nonEmptyText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = text(minLength, maxLength) verifying Constraints.nonEmpty
 
   /**
    * Constructs a simple mapping for a numeric field.
@@ -251,8 +251,10 @@ package object data {
    *   Form("size" -> number)
    * }}}
    */
-  val number: Mapping[Long] = of[Long]
-
+  val number: Mapping[Int] = of[Int]
+  
+  val longNumber: Mapping[Long] = of[Long]
+  
   /**
    * Constructs a simple mapping for a numeric field.
    *
@@ -264,10 +266,10 @@ package object data {
    * @param min minimum value
    * @param max maximum value
    */
-  def number(min: Long = Long.MinValue, max: Long = Long.MaxValue): Mapping[Long] = (min, max) match {
-    case (Long.MinValue, Long.MaxValue) => number
-    case (min, Long.MaxValue) => number verifying Constraints.min(min)
-    case (Long.MinValue, max) => number verifying Constraints.max(max)
+  def number(min: Int = Int.MinValue, max: Int = Int.MaxValue): Mapping[Int] = (min, max) match {
+    case (Int.MinValue, Int.MaxValue) => number
+    case (min, Int.MaxValue) => number verifying Constraints.min(min)
+    case (Int.MinValue, max) => number verifying Constraints.max(max)
     case (min, max) => number verifying (Constraints.min(min), Constraints.max(max))
   }
 
@@ -295,6 +297,8 @@ package object data {
    * @param mapping The mapping to make optional.
    */
   def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
+  
+  def list[A](mapping: Mapping[A]): Mapping[List[A]] = RepeatedMapping(mapping)
 
   /**
    * Constructs a simple mapping for a date field.

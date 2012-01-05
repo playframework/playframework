@@ -67,7 +67,7 @@ object FormSpec extends Specification {
 
     val userForm = Form(
       of(User.apply _, User.unapply _)(
-        "name" -> of[String].verifying(required),
+        "name" -> of[String].verifying(nonEmpty),
         "age" -> of[Int].verifying(min(0), max(100))))
     val loginForm = Form(
       of(
@@ -82,7 +82,7 @@ object FormSpec extends Specification {
 
     val helloForm = Form(
       of(
-        "name" -> requiredText,
+        "name" -> nonEmptyText,
         "repeat" -> number(min = 1, max = 100),
         "color" -> optional(text),
         "still works" -> optional(text),

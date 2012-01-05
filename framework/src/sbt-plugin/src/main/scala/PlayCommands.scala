@@ -603,7 +603,15 @@ trait PlayCommands {
         if (triggered) {
           //Then launch compile
           PlayProject.synchronized {
-            Project.evaluateTask(compile in Compile, newState)
+            val start = System.currentTimeMillis
+            Project.evaluateTask(compile in Compile, newState).get.toEither.right.map { _ =>
+              val duration = System.currentTimeMillis - start
+              val formatted = duration match {
+                case ms if ms < 1000 => ms + "ms"
+                case s => (s / 1000) + "s"
+              }
+              println("[" + Colors.green("success") + "] Compiled in " + formatted)
+            }
           }
 
           // Avoid launching too much compilation

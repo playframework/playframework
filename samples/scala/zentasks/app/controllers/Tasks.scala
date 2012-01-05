@@ -29,7 +29,7 @@ object Tasks extends Controller with Secured {
 
   val taskForm = Form(
     of(
-      "title" -> requiredText,
+      "title" -> nonEmptyText,
       "dueDate" -> optional(date("MM/dd/yy")),
       "assignedTo" -> optional(text)
     )
@@ -95,7 +95,7 @@ object Tasks extends Controller with Secured {
    * Rename a tasks folder.
    */
   def renameFolder(project: Long, folder: String) = IsMemberOf(project) { _ => implicit request =>
-    Form("name" -> requiredText).bindFromRequest.fold(
+    Form("name" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
       newName => { 
         Task.renameFolder(project, folder, newName) 

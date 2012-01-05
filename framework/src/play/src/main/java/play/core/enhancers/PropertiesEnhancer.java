@@ -51,6 +51,8 @@ public class PropertiesEnhancer {
                     String propertyName = ctField.getName().substring(0, 1).toUpperCase() + ctField.getName().substring(1);
                     String getter = "get" + propertyName;
                     String setter = "set" + propertyName;
+                    
+                    SignatureAttribute signature = ((SignatureAttribute)ctField.getFieldInfo().getAttribute(SignatureAttribute.tag));
 
                     try {
                         CtMethod ctMethod = ctClass.getDeclaredMethod(getter);
@@ -63,6 +65,13 @@ public class PropertiesEnhancer {
                         ctClass.addMethod(getMethod);
                         createAnnotation(getAnnotations(getMethod), GeneratedAccessor.class);
                         createAnnotation(getAnnotations(ctField), GeneratedGetAccessor.class);
+                        if(signature != null) {
+                            String fieldSignature = signature.getSignature();
+                            String getMethodSignature = "()" + fieldSignature;
+                            getMethod.getMethodInfo().addAttribute(
+                                new SignatureAttribute(getMethod.getMethodInfo().getConstPool(), getMethodSignature)
+                            );
+                        }
                     }
 
                     try {
@@ -76,6 +85,13 @@ public class PropertiesEnhancer {
                         ctClass.addMethod(setMethod);
                         createAnnotation(getAnnotations(setMethod), GeneratedAccessor.class);
                         createAnnotation(getAnnotations(ctField), GeneratedSetAccessor.class);
+                        if(signature != null) {
+                            String fieldSignature = signature.getSignature();
+                            String setMethodSignature = "(" + fieldSignature + ")V";
+                            setMethod.getMethodInfo().addAttribute(
+                                new SignatureAttribute(setMethod.getMethodInfo().getConstPool(), setMethodSignature)
+                            );
+                        }
                     }
                     
                 }

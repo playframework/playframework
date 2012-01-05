@@ -10,7 +10,7 @@ import play.api.data._
  * @param args the message arguments, to format the constraint name
  * @param f the validation function
  */
-case class Constraint[T](name: Option[String], args: Seq[Any])(f: (T => ValidationResult)) {
+case class Constraint[-T](name: Option[String], args: Seq[Any])(f: (T => ValidationResult)) {
 
   /**
    * Run the constraint validation.
@@ -66,28 +66,8 @@ trait Constraints {
    * '''name'''[constraint.required]
    * '''error'''[error.required]
    */
-  def required = Constraint[String]("constraint.required") { o =>
+  def nonEmpty = Constraint[String]("constraint.required") { o =>
     if (o.isEmpty) Invalid(ValidationError("error.required")) else Valid
-  }
-
-  /**
-   * Defines a minimum value constraint for `Long` values, i.e. the value must be greater than or equal to the constraint parameter
-   *
-   * '''name'''[constraint.min(minValue)]
-   * '''error'''[error.min(minValue)]
-   */
-  def min(minValue: Long) = Constraint[Long]("constraint.min", minValue) { o =>
-    if (o >= minValue) Valid else Invalid(ValidationError("error.min", minValue))
-  }
-
-  /**
-   * Defines a maximum value constraint for `Long` values, i.e. value must be less than or equal to the constraint parameter
-   *
-   * '''name'''[constraint.max(maxValue)]
-   * '''error'''[error.max(maxValue)]
-   */
-  def max(maxValue: Long) = Constraint[Long]("constraint.max", maxValue) { o =>
-    if (o <= maxValue) Valid else Invalid(ValidationError("error.max", maxValue))
   }
 
   /**

@@ -37,6 +37,7 @@ public class Form<T> {
     
     // --
     
+    private final String rootName;
     private final Class<T> backedType;
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
@@ -49,7 +50,11 @@ public class Form<T> {
      * @param clazz wrapped class
      */
     public Form(Class<T> clazz) {
-        this(clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None());
+        this(null, clazz);
+    }
+    
+    public Form(String name, Class<T> clazz) {
+        this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None());
     }
     
     /**
@@ -60,7 +65,8 @@ public class Form<T> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
      */
-    public Form(Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
+        this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
         this.errors = errors;
@@ -68,7 +74,7 @@ public class Form<T> {
         try {
             blankInstance = backedType.newInstance();
         } catch(Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Cannot instantiate " + clazz + ". It must have a default constructor", e);
         }
     }
     
@@ -129,11 +135,23 @@ public class Form<T> {
      */
     public Form<T> bind(Map<String,String> data) {
         
-        DataBinder dataBinder = new DataBinder(blankInstance);
+        DataBinder dataBinder = null;
+        Map<String, String> objectData = data;
+        if(rootName == null) {
+            dataBinder = new DataBinder(blankInstance);
+        } else {
+            dataBinder = new DataBinder(blankInstance, rootName);
+            objectData = new HashMap<String,String>();
+            for(String key: data.keySet()) {
+                if(key.startsWith(rootName + ".")) {
+                    objectData.put(key.substring(rootName.length() + 1), data.get(key));
+                }
+            }
+        }
         dataBinder.setValidator(new SpringValidatorAdapter(play.data.validation.Validation.getValidator()));
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
-        dataBinder.bind(new MutablePropertyValues(data));
+        dataBinder.bind(new MutablePropertyValues(objectData));
         dataBinder.validate();
         BindingResult result = dataBinder.getBindingResult();
         
@@ -141,7 +159,7 @@ public class Form<T> {
             Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
             for(FieldError error: result.getFieldErrors()) {
                 String key = error.getObjectName() + "." + error.getField();
-                if(key.startsWith("target.")) {
+                if(key.startsWith("target.") && rootName == null) {
                     key = key.substring(7);
                 }
                 List<Object> arguments = new ArrayList<Object>();
@@ -155,7 +173,7 @@ public class Form<T> {
                 }
                 errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
             }
-            return new Form(backedType, data, errors, None());
+            return new Form(rootName, backedType, data, errors, None());
         } else {
             String globalError = null;
             if(result.getTarget() != null) {
@@ -168,9 +186,9 @@ public class Form<T> {
                 Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
                 errors.put("", new ArrayList<ValidationError>());
                 errors.get("").add(new ValidationError("", globalError, new ArrayList()));
-                return new Form(backedType, data, errors, None());
+                return new Form(rootName, backedType, data, errors, None());
             }
-            return new Form(backedType, data, errors, Some((T)result.getTarget()));
+            return new Form(rootName, backedType, data, errors, Some((T)result.getTarget()));
         }
     }
     
@@ -179,6 +197,10 @@ public class Form<T> {
      */
     public Map<String,String> data() {
         return data;
+    }
+    
+    public String name() {
+        return rootName;
     }
     
     /**
@@ -198,7 +220,7 @@ public class Form<T> {
         if(value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
+        return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
     }
     
     /**
@@ -333,9 +355,15 @@ public class Form<T> {
         if(value.isDefined()) {
             BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
             beanWrapper.setAutoGrowNestedPaths(true);
-            Object oValue = beanWrapper.getPropertyValue(key);
-            if(oValue != null) {
-                fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(key), oValue);
+            String objectKey = key;
+            if(rootName != null && key.startsWith(rootName + ".")) {
+                objectKey = key.substring(rootName.length() + 1);
+            }
+            if(beanWrapper.isReadableProperty(objectKey)) {
+                Object oValue = beanWrapper.getPropertyValue(objectKey);
+                if(oValue != null) {
+                    fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKey), oValue);
+                }
             }
         } else {
             if(data.containsKey(key)) {
@@ -381,11 +409,11 @@ public class Form<T> {
             constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
         }
         
-        return new Field(key, constraints, format, fieldErrors, fieldValue);
+        return new Field(this, key, constraints, format, fieldErrors, fieldValue);
     }
     
     public String toString() {
-        return "Form";
+        return "Form(of=" + backedType + ", data=" + data + ", value=" + value +", errors=" + errors + ")";
     }
     
     /**
@@ -393,6 +421,7 @@ public class Form<T> {
      */
     public static class Field {
         
+        private final Form<?> form;
         private final String name;
         private final List<Tuple<String,List<Object>>> constraints;
         private final Tuple<String,List<Object>> format;
@@ -408,7 +437,8 @@ public class Form<T> {
          * @param errors the errors associated with this field
          * @param value the field value ,if any
          */
-        public Field(String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
+        public Field(Form<?> form, String name, List<Tuple<String,List<Object>>> constraints, Tuple<String,List<Object>> format, List<ValidationError> errors, String value) {
+            this.form = form;
             this.name = name;
             this.constraints = constraints;
             this.format = format;
@@ -459,6 +489,45 @@ public class Form<T> {
          */
         public Tuple<String,List<Object>> format() {
             return format;
+        }
+        
+        public List<Integer> indexes() {
+            List<Integer> result = new ArrayList<Integer>();
+            if(form.value().isDefined()) {
+                BeanWrapper beanWrapper = new BeanWrapperImpl(form.value().get());
+                beanWrapper.setAutoGrowNestedPaths(true);
+                String objectKey = name;
+                if(form.name() != null && name.startsWith(form.name() + ".")) {
+                    objectKey = name.substring(form.name().length() + 1);
+                }
+                if(beanWrapper.isReadableProperty(objectKey)) {
+                    Object value = beanWrapper.getPropertyValue(objectKey);
+                    if(value instanceof Collection) {
+                        for(int i=0; i<((Collection)value).size(); i++) {
+                            result.add(i);
+                        }
+                    }
+                }
+            } else {
+                java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(name) + "\\[(\\d+)\\].*$");
+                for(String key: form.data().keySet()) {
+                    java.util.regex.Matcher matcher = pattern.matcher(key);
+                    if(matcher.matches()) {
+                        result.add(Integer.parseInt(matcher.group(1)));
+                    }
+                }
+            }
+            return result;
+        }
+        
+        public Field sub(String key) {
+            String subKey = null;
+            if(key.startsWith("[")) {
+                subKey = name + key;
+            } else {
+                subKey = name + "." + key;
+            }
+            return form.field(subKey);
         }
         
         public String toString() {

@@ -71,7 +71,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
 
     mode match {
       case Mode.Test =>
-      case _ => Logger("play").warn("Stopping server...")
+      case _ => Logger("play").info("Stopping server...")
     }
 
     allChannels.close().awaitUninterruptibly()

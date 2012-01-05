@@ -67,7 +67,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             headers.foreach {
 
               // Fix a bug for Set-Cookie header. 
-              // Multiple cookies could be merge in a single header
+              // Multiple cookies could be merged in a single header
               // but it's not properly supported by some browsers
               case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
                 nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
@@ -99,7 +99,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             headers.foreach {
 
               // Fix a bug for Set-Cookie header. 
-              // Multiple cookies could be merge in a single header
+              // Multiple cookies could be merged in a single header
               // but it's not properly supported by some browsers
               case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
 

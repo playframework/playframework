@@ -27,7 +27,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param value optional concrete value if the form submission was successful
      */
     public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Option<Dynamic> value) {
-        super(DynamicForm.Dynamic.class, data, errors, value);
+        super(null, DynamicForm.Dynamic.class, data, errors, value);
     }
     
     /**

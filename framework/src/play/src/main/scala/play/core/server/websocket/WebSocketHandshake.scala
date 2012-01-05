@@ -70,7 +70,7 @@ object WebSocketHandshake {
     val res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(101, "Web Socket Protocol Handshake"))
     res.addHeader(HttpHeaders.Names.UPGRADE, HttpHeaders.Values.WEBSOCKET)
     res.addHeader(CONNECTION, HttpHeaders.Values.UPGRADE)
-
+    
     // Check which protocol we support
     protocols map (proto => {
       if (proto.support(req)) {

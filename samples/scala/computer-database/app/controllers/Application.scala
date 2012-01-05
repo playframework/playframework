@@ -26,10 +26,10 @@ object Application extends Controller {
   val computerForm = Form(
     of(Computer.apply _, Computer.unapply _)(
       "id" -> ignored(NotAssigned),
-      "name" -> requiredText,
+      "name" -> nonEmptyText,
       "introduced" -> optional(date("yyyy-MM-dd")),
       "discontinued" -> optional(date("yyyy-MM-dd")),
-      "company" -> optional(number)
+      "company" -> optional(longNumber)
     )
   )
   

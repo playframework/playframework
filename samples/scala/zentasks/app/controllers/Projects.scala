@@ -35,7 +35,7 @@ object Projects extends Controller with Secured {
    * Add a project.
    */
   def add = IsAuthenticated { username => implicit request =>
-    Form("group" -> requiredText).bindFromRequest.fold(
+    Form("group" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
       folder => Ok(
         views.html.projects.item(
@@ -60,7 +60,7 @@ object Projects extends Controller with Secured {
    * Rename a project.
    */
   def rename(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    Form("name" -> requiredText).bindFromRequest.fold(
+    Form("name" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
       newName => { 
         Project.rename(project, newName) 
@@ -90,7 +90,7 @@ object Projects extends Controller with Secured {
    * Rename a project group.
    */
   def renameGroup(folder: String) = IsAuthenticated { _ => implicit request =>
-    Form("name" -> requiredText).bindFromRequest.fold(
+    Form("name" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
       newName => { Project.renameFolder(folder, newName); Ok(newName) }
     )
@@ -102,7 +102,7 @@ object Projects extends Controller with Secured {
    * Add a project member.
    */
   def addUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    Form("user" -> requiredText).bindFromRequest.fold(
+    Form("user" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
       user => { Project.addMember(project, user); Ok }
     )
@@ -112,7 +112,7 @@ object Projects extends Controller with Secured {
    * Remove a project member.
    */
   def removeUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    Form("user" -> requiredText).bindFromRequest.fold(
+    Form("user" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
       user => { Project.removeMember(project, user); Ok }
     )

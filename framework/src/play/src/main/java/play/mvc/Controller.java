@@ -93,4 +93,11 @@ public abstract class Controller extends Results implements Status, HeaderNames 
         return new Form(clazz);
     }
     
+    /**
+     * Instantiates a new form that wraps the specified class.
+     */
+    public static <T> Form<T> form(String name, Class<T> clazz) {
+        return new Form(name, clazz);
+    }
+    
 }
