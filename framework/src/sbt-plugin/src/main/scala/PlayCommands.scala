@@ -265,34 +265,34 @@ trait PlayCommands {
           case (sourceFile, name) => sourceFile -> ("public/" + naming(name))
         }.flatMap {
           case (sourceFile, name) => {
-	    //do intermediary js closure compile if we have coffeescript, else just do compile action
-	     val compileTuple = compileName match{
-	      case "coffeescript" => {
-		val (preClosureSource, deps) = compile(sourceFile, min)
-		val splitPath = name.split("/")
-		val preClosureFile = new File(IO.temporaryDirectory.name+"/"+splitPath(splitPath.length-1))
-		IO.write(preClosureFile, preClosureSource, IO.utf8)
+            //do intermediary js closure compile if we have coffeescript, else just do compile action
+             val compileTuple = compileName match{
+              case "coffeescript" => {
+                val (preClosureSource, deps) = compile(sourceFile, min)
+                val splitPath = name.split("/")
+                val preClosureFile = new File(IO.temporaryDirectory.name+"/"+splitPath(splitPath.length-1))
+                IO.write(preClosureFile, preClosureSource, IO.utf8)
 
-		val jsSourceFiles = IO.copy(
-		  (
-		    (src / "assets") ** "*.js"
-		  ).get.map(
-		    file=>
-		      file->new File(
-			IO.temporaryDirectory.name+"/"+file.name
-		      )
-		  ), true
-		)
-		val (fullSource, minified, jsDeps) = play.core.jscompile.JavascriptCompiler.compile(preClosureFile)
-		(if (min) minified else fullSource, jsDeps++deps)->new File(resources, name)
-	      }
-	      // less or js compile action
-	      case _ => {
-		compile(sourceFile, min) -> new File(resources, name)
-	      } // end match
-	    }
-	    val ((css, dependencies), out) = compileTuple
-	    // write out
+                val jsSourceFiles = IO.copy(
+                  (
+                    (src / "assets") ** "*.js"
+                  ).get.map(
+                    file=>
+                      file->new File(
+                        IO.temporaryDirectory.name+"/"+file.name
+                      )
+                  ), true
+                )
+                val (fullSource, minified, jsDeps) = play.core.jscompile.JavascriptCompiler.compile(preClosureFile)
+                (if (min) minified else fullSource, jsDeps++deps)->new File(resources, name)
+              }
+              // less or js compile action
+              case _ => {
+                compile(sourceFile, min) -> new File(resources, name)
+              } // end match
+            }
+            val ((css, dependencies), out) = compileTuple
+            // write out
             IO.write(out, css)
             dependencies.map(_ -> out)
           }
