@@ -5,24 +5,19 @@ object UrlFormEncodedParser {
   def parse(data: String): Map[String, Seq[String]] = {
 
     import java.net._
-    import scala.collection.mutable.{ HashMap }
 
-    var params = HashMap.empty[String, Seq[String]]
-
-    data.split('&').foreach { param =>
+    data.split('&').foldLeft(Map.empty[String, Seq[String]]) { case (params, param) =>
 
       if (param.contains('=')) {
 
-        val parts = param.split('=')
+        val parts = param.split('=').map(URLDecoder.decode(_, "utf-8"))
         val key = parts.head
-        val value = URLDecoder.decode(parts.tail.headOption.getOrElse(""), "utf-8")
+        val value = parts.tail.headOption.getOrElse("")
 
-        params += key -> (params.get(key).getOrElse(Seq.empty) :+ value)
+        params + (key -> (params.get(key).getOrElse(Seq.empty) :+ value))
 
-      }
+      } else params
     }
-
-    params.toMap
   }
 
 }
