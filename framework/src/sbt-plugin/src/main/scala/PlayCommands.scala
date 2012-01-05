@@ -351,8 +351,18 @@ trait PlayCommands {
       val t = new Transformer(cp, "debug=-1")
 
       val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
-      ft.process("models/**")
 
+      var packages = ""
+      for(line <- scala.io.Source.fromFile("conf/application.conf").getLines()) {
+        if (line.startsWith("ebean.")) {
+          if (!packages.isEmpty()) {
+            packages += ","
+          }
+          packages += line.split("=")(1).replaceAll("\"", "")
+        }
+      }
+
+      ft.process(packages)
     } catch {
       case _ =>
     }
