@@ -16,6 +16,15 @@ import scala.annotation.tailrec
 trait PlayCommands {
   this: PlayReloader =>
 
+  //- mainly scala, mainly java or none
+
+  val JAVA = "java"
+  val SCALA = "scala"
+  val NONE = "none"
+
+  // ----- Create a Play project with default settings
+
+
   private[sbt] lazy val testListener = new PlayTestListener
 
   // ----- We need this later
@@ -145,6 +154,30 @@ trait PlayCommands {
     zip
   }
 
+
+  /**
+   * provides Settings for the eclipse project
+   * @param mainLang mainly scala or java?
+   */
+  def eclipseCommandSettings(mainLang: String) = {
+    import com.typesafe.sbteclipse.core._
+    import com.typesafe.sbteclipse.core.EclipsePlugin._
+    def transformerFactory =
+      if (mainLang == SCALA)
+        EclipseClasspathEntryTransformerFactory.Default
+      else
+        new EclipseClasspathEntryTransformerFactory {
+          override def createTransformer(ref: ProjectRef, state: State) =
+            setting(crossTarget in ref)(state) map (ct =>
+              (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + "/classes_managed")
+            )
+        }
+        EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
+        EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Managed,
+        EclipseKeys.preTasks := Seq(compile in Compile),
+        EclipseKeys.classpathEntryTransformerFactory := transformerFactory) 
+  }     
+    
   val playIntellij = TaskKey[Unit]("idea")
   val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
 
