@@ -21,6 +21,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
     }
   }
 
+  // ----- Create a Play project with default settings
 
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE) = {
   
