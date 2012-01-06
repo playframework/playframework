@@ -427,6 +427,12 @@ package anorm {
 
     def as[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.as[T](parser, resultSet())
 
+    def list[A](rowParser:RowParser[A])(implicit connection: java.sql.Connection): Seq[A] = as(rowParser *)
+
+    def single[A](rowParser:RowParser[A])(implicit connection: java.sql.Connection): A = as(ResultSetParser.single(rowParser))
+
+    def singleOpt[A](rowParser:RowParser[A])(implicit connection: java.sql.Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
+
     def parse[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.parse[T](parser, resultSet())
 
     def execute()(implicit connection: java.sql.Connection): Boolean = getFilledStatement(connection).execute()
