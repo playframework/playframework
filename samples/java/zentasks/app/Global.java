@@ -19,7 +19,7 @@ public class Global extends GlobalSettings {
             if(Ebean.find(User.class).findRowCount() == 0) {
                 
                 Map<String,List<Object>> all = (Map<String,List<Object>>)Yaml.load(
-                    app.resourceAsStream("conf/initial-data.yml"),
+                    app.resourceAsStream("initial-data.yml"),
                     app.classloader()
                 );
 
