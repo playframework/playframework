@@ -132,15 +132,20 @@ object PromiseInvoker {
 
   val invoker = pool
 }
+
 object Agent {
 
-  implicit def dispatcher = system.dispatchers.lookup("invoker.socket-dispatcher")
-
   def apply[A](a: A) = {
+    val actor = system.actorOf(Props(new Agent[A](a)).withDispatcher("invoker.socket-dispatcher"))
     new {
-      def send(action: (A => A)) {
-        Future { action(a) }
-      }
+      def send(action: (A => A)) { actor ! action }
+      def close() = { system.stop(actor) }
+    }
+
+  }
+  private class Agent[A](var a: A) extends Actor {
+    def receive = {
+      case action: Function1[A, A] => a = action(a)
     }
   }
 }

@@ -507,7 +507,7 @@ object Enumerator {
         (_, _) => Promise.pure(i))
 
   }
-  
+
   import scalax.io.JavaConverters._
 
   def enumerateStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = new Enumerator[Array[Byte]] {

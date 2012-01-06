@@ -49,6 +49,7 @@ private[server] trait WebSocketHandler {
               val next = k(input)
               next.fold(
                 (a, e) => {
+                  iterateeAgent.close()
                   ctx.getChannel().disconnect();
                   promise.redeem(next);
                   println("cleaning for channel " + ctx.getChannel());
