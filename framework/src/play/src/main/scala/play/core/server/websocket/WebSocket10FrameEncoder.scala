@@ -103,6 +103,5 @@ class WebSocket10FrameEncoder extends OneToOneEncoder {
           ChannelBuffers.wrappedBuffer(header, body);
         }
     }
-    msg
   }
 }

@@ -37,7 +37,9 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buffer: ChannelBuffer, state: DecodingState): Object = {
 
     if (closing) {
-      buffer.skipBytes(actualReadableBytes())
+      //skipping bytes after close...
+      buffer.readBytes((buffer.readableBytes()))
+      null
     } else {
 
       state match {
@@ -162,8 +164,9 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
           }
         }
       }
+      null
     }
-    null
+    
   }
 
   def isOpcode(opcode: Int) = {
