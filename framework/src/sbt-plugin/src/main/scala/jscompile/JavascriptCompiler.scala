@@ -1,5 +1,7 @@
 package play.core.jscompile
 
+import sbt.PlayExceptions.AssetCompilationException
+
 import java.io._
 import play.api._
 
@@ -14,7 +16,7 @@ object JavascriptCompiler {
 
   import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
 
-  def compile(source: File): (String, String, Seq[File]) = {
+  def compile(source: File): (String, Option[String], Seq[File]) = {
 
     val compiler = new Compiler()
     val options = new CompilerOptions()
@@ -27,22 +29,49 @@ object JavascriptCompiler {
     val input = tree.dependencies.map(file => JSSourceFile.fromCode(file.getName(), SourceTree.requireRe.replaceAllIn(Path(file).slurpString, ""))).toArray
 
     compiler.compile(extern, input, options).success match {
-      case true => (tree.fullSource, compiler.toSource(), List(source))
+      case true => (tree.fullSource, Some(compiler.toSource()), tree.dependencies)
       case false => {
         val error = compiler.getErrors().head
-        throw CompilationException(error.description, source, error.lineNumber, 0)
+        throw AssetCompilationException(Some(source), error.description, error.lineNumber, 0)
       }
     }
+  }
+
+  /**
+   * Minify a Javascript string
+   */
+  def minify(source: String, name: Option[String]): String = {
+
+    val compiler = new Compiler()
+    val options = new CompilerOptions()
+
+    val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
+    val input = JSSourceFile.fromCode(name.getOrElse("unknown"), source)
+
+    compiler.compile(extern, input, options).success match {
+      case true => compiler.toSource()
+      case false => {
+        val error = compiler.getErrors().head
+        throw AssetCompilationException(None, error.description, error.lineNumber, 0)
+      }
+    }
+
   }
 
 }
 
 case class SourceTree(node: File, ancestors: Set[File] = Set(), children: List[SourceTree] = List()) {
+
   override def toString = print()
+
   def print(indent: String = ""): String = (indent + node.getName() + "\n" + children.mkString("\n"))
+
   private lazy val flatDependencies: List[File] = node +: children.flatMap(_.flatDependencies)
+
   lazy val dependencies: List[File] = flatDependencies.reverse.distinct
+
   lazy val fullSource = dependencies.map(Path(_).slurpString).mkString("\n")
+
 }
 
 object SourceTree {
@@ -52,7 +81,7 @@ object SourceTree {
       val node = pair._1
       val lineNo = pair._2
       // Check for cycles
-      if (ancestors.contains(root)) throw new CompilationException("Cycle detected in require instruction", node, lineNo, 0)
+      if (ancestors.contains(root)) throw new AssetCompilationException(Some(node), "Cycle detected in require instruction", lineNo, 0)
       SourceTree.build(node, ancestors + root)
     }).toList)
   }
@@ -65,17 +94,9 @@ object SourceTree {
       .map(pair => { // (lineNo, filename)
         val require = new File(input.getParentFile(), pair._2 + ".js")
         if (!require.canRead || !require.isFile)
-          throw new CompilationException("Unable to find file " + pair._2 + ".js", input, pair._1, 0)
+          throw new AssetCompilationException(Some(input), "Unable to find file " + pair._2 + ".js", pair._1, 0)
         (require, pair._1)
       })
 
-}
-
-case class CompilationException(message: String, jsFile: File, atLine: Int, atColumn: Int) extends PlayException(
-  "Compilation error", message) with PlayException.ExceptionSource {
-  def line = Some(atLine)
-  def position = Some(atColumn)
-  def input = Some(scalax.file.Path(jsFile))
-  def sourceName = Some(jsFile.getAbsolutePath)
 }
 

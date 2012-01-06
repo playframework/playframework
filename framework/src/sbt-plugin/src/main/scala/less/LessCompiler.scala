@@ -104,9 +104,11 @@ object LessCompiler {
 
   private lazy val minCompiler = compiler(true)
 
-  def compile(source: File, minify: Boolean): (String, Seq[File]) = {
+  def compile(source: File): (String, Option[String], Seq[File]) = {
     try {
-      if (minify) minCompiler(source) else debugCompiler(source)
+      val debug = debugCompiler(source)
+      val min = minCompiler(source)
+      (debug._1, Some(min._1), debug._2)
     } catch {
       case e: JavaScriptException => {
 

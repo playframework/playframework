@@ -36,5 +36,14 @@ trait PlayExceptions {
     def input = Some(scalax.file.Path(source))
     def sourceName = Some(source.getAbsolutePath)
   }
+
+  case class AssetCompilationException(source: Option[File], message: String, atLine: Int, atColumn: Int) extends PlayException(
+    "Compilation error", message) with PlayException.ExceptionSource {
+    def line = Some(atLine)
+    def position = Some(atColumn)
+    def input = source.map(scalax.file.Path(_))
+    def sourceName = source.map(_.getAbsolutePath)
+  }
+
 }
 object PlayExceptions extends PlayExceptions
