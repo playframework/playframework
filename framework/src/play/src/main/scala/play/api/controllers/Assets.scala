@@ -28,46 +28,55 @@ object Assets extends Controller {
    */
   def at(path: String, file: String) = Action { request =>
 
-    val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
-    val resource = {
-      Play.resource(resourceName + ".gz").map(_ -> true)
-        .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
-        .orElse(Play.resource(resourceName).map(_ -> false))
-    }
+    val resourceName = new File(
+      Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+    ).getCanonicalPath
 
-    resource.map {
+    if (!resourceName.startsWith(new File(path).getCanonicalPath)) {
+      Forbidden
+    } else {
 
-      case (url, isGzipped) => {
-
-        // TODO replace by an Enumerator
-        lazy val resourceData = enumerate(url.openStream())
-
-        request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
-
-          // Prepare a chunked response
-          val response = Ok.stream(resourceData).as(MimeTypes.forFileName(file).getOrElse(BINARY))
-
-          // Is Gzipped?
-          val gzippedResponse = if (isGzipped) {
-            response.withHeaders(CONTENT_ENCODING -> "gzip")
-          } else {
-            response
-          }
-
-          // Add Etag if we are able to compute it
-          val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-
-          // Add Cache directive if configured
-          val cachedResponse = Play.configuration.getString("assets.cache." + resourceName).map { cacheControl =>
-            taggedResponse.withHeaders(CACHE_CONTROL -> cacheControl)
-          }.getOrElse(taggedResponse)
-
-          cachedResponse
-        }
-
+      val resource = {
+        Play.resource(resourceName + ".gz").map(_ -> true)
+          .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
+          .orElse(Play.resource(resourceName).map(_ -> false))
       }
 
-    }.getOrElse(NotFound)
+      resource.map {
+
+        case (url, isGzipped) => {
+
+          // TODO replace by an Enumerator
+          lazy val resourceData = enumerate(url.openStream())
+
+          request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
+
+            // Prepare a chunked response
+            val response = Ok.stream(resourceData).as(MimeTypes.forFileName(file).getOrElse(BINARY))
+
+            // Is Gzipped?
+            val gzippedResponse = if (isGzipped) {
+              response.withHeaders(CONTENT_ENCODING -> "gzip")
+            } else {
+              response
+            }
+
+            // Add Etag if we are able to compute it
+            val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
+
+            // Add Cache directive if configured
+            val cachedResponse = Play.configuration.getString("\"assets.cache." + resourceName + "\"").map { cacheControl =>
+              taggedResponse.withHeaders(CACHE_CONTROL -> cacheControl)
+            }.getOrElse(taggedResponse)
+
+            cachedResponse
+          }
+
+        }
+
+      }.getOrElse(NotFound)
+
+    }
 
   }
 

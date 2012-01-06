@@ -24,7 +24,6 @@ trait PlayCommands {
 
   // ----- Create a Play project with default settings
 
-
   private[sbt] lazy val testListener = new PlayTestListener
 
   // ----- We need this later
@@ -154,7 +153,6 @@ trait PlayCommands {
     zip
   }
 
-
   /**
    * provides Settings for the eclipse project
    * @param mainLang mainly scala or java?
@@ -172,12 +170,12 @@ trait PlayCommands {
               (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + "/classes_managed")
             )
         }
-        EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
-        EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Managed,
-        EclipseKeys.preTasks := Seq(compile in Compile),
-        EclipseKeys.classpathEntryTransformerFactory := transformerFactory) 
-  }     
-    
+    EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
+      EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Managed,
+      EclipseKeys.preTasks := Seq(compile in Compile),
+      EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
+  }
+
   val playIntellij = TaskKey[Unit]("idea")
   val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
 

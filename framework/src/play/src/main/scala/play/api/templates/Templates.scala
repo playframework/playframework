@@ -151,7 +151,7 @@ object PlayMagic {
 
   /** Transforms a Play Java form `Field` to a proper Scala form `Field`. */
   implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {
-    
+
     new play.api.data.Field(
       null,
       jField.name,
@@ -166,14 +166,14 @@ object PlayMagic {
           jE.arguments.asScala)
       },
       Option(jField.value)) {
-        
-        override def apply(key: String) = {
-          javaFieldtoScalaField(jField.sub(key))
-        }
-        
-        override lazy val indexes = jField.indexes.asScala.toSeq.map(_.toInt)
-        
+
+      override def apply(key: String) = {
+        javaFieldtoScalaField(jField.sub(key))
       }
+
+      override lazy val indexes = jField.indexes.asScala.toSeq.map(_.toInt)
+
+    }
   }
 
 }

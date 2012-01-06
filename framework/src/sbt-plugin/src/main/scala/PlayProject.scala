@@ -10,8 +10,7 @@ import play.utils.Colors
 
 object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands with PlaySettings {
 
-  
-   private def whichLang(name: String) = {
+  private def whichLang(name: String) = {
     if (name == JAVA) {
       defaultJavaSettings
     } else if (name == SCALA) {
@@ -24,7 +23,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
   // ----- Create a Play project with default settings
 
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE) = {
-  
+
     Project(name, path)
       .settings(Seq(testListeners += testListener): _*)
       .settings(eclipseCommandSettings(mainLang): _*)

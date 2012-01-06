@@ -63,6 +63,10 @@ trait Action[A] extends (Request[A] => Result) with Handler {
    */
   def apply() = this
 
+  override def toString = {
+    "Action(parser=" + parser + ")"
+  }
+
 }
 
 /**
@@ -71,9 +75,11 @@ trait Action[A] extends (Request[A] => Result) with Handler {
  * @tparam T the body content type
  */
 trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, A]]] {
+  self =>
 
-  def map[B](f: A => B): BodyParser[B] = BodyParser { request =>
-    this(request).map(_.right.map(f(_)))
+  def map[B](f: A => B): BodyParser[B] = new BodyParser[B] { request =>
+    def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))
+    override def toString = self.toString
   }
 
 }
@@ -81,8 +87,13 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
 /** Helper object to construct `BodyParser` values. */
 object BodyParser {
 
-  def apply[T](f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]) = new BodyParser[T] {
+  def apply[T](f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]): BodyParser[T] = {
+    apply("(no name)")(f)
+  }
+
+  def apply[T](debugName: String)(f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
+    override def toString = "BodyParser(" + debugName + ")"
   }
 
 }

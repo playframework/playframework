@@ -38,6 +38,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
       case nettyHttpRequest: HttpRequest =>
+
+        Logger("play").trace("Http request received by netty: " + nettyHttpRequest)
+
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
         var version = nettyHttpRequest.getProtocolVersion
@@ -135,9 +138,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           //execute normal action
           case Right((action: Action[_], app)) => {
 
+            Logger("play").trace("Serving this request with: " + action)
+
             val bodyParser = action.parser
 
             e.getChannel.setReadable(false)
+
             ctx.setAttachment(scala.collection.mutable.ListBuffer.empty[org.jboss.netty.channel.MessageEvent])
 
             val eventuallyBodyParser = server.getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
@@ -198,6 +204,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
           //execute websocket action
           case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) => {
+
+            Logger("play").trace("Serving this request with: " + ws)
+
             try {
               val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
               f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
@@ -207,10 +216,18 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
           //handle bad websocket request  
           case Right((WebSocket(_), _)) => {
+
+            Logger("play").trace("Bad websocket request")
+
             response.handle(Results.BadRequest)
           }
           //handle errors
-          case Left(e) => response.handle(e)
+          case Left(e) => {
+
+            Logger("play").trace("No handler, got direct error: " + e)
+
+            response.handle(e)
+          }
 
         }
 

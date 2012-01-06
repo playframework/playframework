@@ -200,6 +200,15 @@ public class Http {
         
     }
     
+    public abstract static class RawBuffer {
+        
+        public abstract Long size();
+        public abstract byte[] asBytes(int maxLength);
+        public abstract byte[] asBytes();
+        public abstract File asFile();
+        
+    }
+    
     public abstract static class MultipartFormData {
         
         public static class FilePart {
@@ -272,7 +281,7 @@ public class Http {
         /**
          * The request content as Array bytes.
          */
-        public byte[] asRaw() {
+        public RawBuffer asRaw() {
             return null;
         }
         

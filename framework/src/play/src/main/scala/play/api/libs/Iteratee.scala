@@ -71,13 +71,13 @@ object Iteratee {
 
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function
-   * 
+   *
    * Example:
    * {{{
    *   // Count the number of input elements
    *   def count[E]: Iteratee[E, Int] = Iteratee.fold(0)((c, _) => c + 1)
    * }}}
-   * 
+   *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new state
    */
@@ -170,7 +170,7 @@ object Input {
  */
 trait Iteratee[E, +A] {
   self =>
-  
+
   def run[AA >: A]: Promise[AA] = fold((a, _) => Promise.pure(a),
     k => k(Input.EOF).fold((a1, _) => Promise.pure(a1),
       _ => sys.error("diverging iteratee after Input.EOF"),
@@ -288,7 +288,7 @@ trait Enumerator[E] {
    * Apply this Enumerator to an Iteratee
    */
   def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]]
-  
+
   /**
    * Alias for `apply`
    */
@@ -564,7 +564,7 @@ object Enumerator {
 
   /**
    * Create an Enumerator from a set of values
-   * 
+   *
    * Example:
    * {{{
    *   val enumerator: Enumerator[String] = Enumerator("kiki", "foo", "bar")

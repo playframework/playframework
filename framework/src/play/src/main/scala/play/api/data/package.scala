@@ -252,9 +252,9 @@ package object data {
    * }}}
    */
   val number: Mapping[Int] = of[Int]
-  
+
   val longNumber: Mapping[Long] = of[Long]
-  
+
   /**
    * Constructs a simple mapping for a numeric field.
    *
@@ -297,7 +297,7 @@ package object data {
    * @param mapping The mapping to make optional.
    */
   def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
-  
+
   def list[A](mapping: Mapping[A]): Mapping[List[A]] = RepeatedMapping(mapping)
 
   /**

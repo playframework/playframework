@@ -183,15 +183,15 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
    * Check if this field has errors.
    */
   lazy val hasErrors: Boolean = !errors.isEmpty
-  
+
   def apply(key: String): Field = {
-    form(Option(name).filterNot(_.isEmpty).map(_ + (if(key(0) == '[') "" else ".")).getOrElse("") + key)
+    form(Option(name).filterNot(_.isEmpty).map(_ + (if (key(0) == '[') "" else ".")).getOrElse("") + key)
   }
-  
+
   lazy val indexes: Seq[Int] = {
     RepeatedMapping.indexes(name, form.data)
   }
-  
+
 }
 
 /** Provides a set of operations for creating `Form` values. */
@@ -301,7 +301,7 @@ trait Mapping[T] {
    * @param constraints the constraints to add
    * @return the new mapping
    */
-  def verifying(constraints: Constraint[T]*): Mapping[T]  
+  def verifying(constraints: Constraint[T]*): Mapping[T]
 
   /**
    * Constructs a new Mapping based on this one, by adding a new ad-hoc constraint.
@@ -361,8 +361,8 @@ trait Mapping[T] {
 }
 
 object RepeatedMapping {
-  
-  def indexes(key: String, data: Map[String,String]): Seq[Int] = {
+
+  def indexes(key: String, data: Map[String, String]): Seq[Int] = {
     val KeyPattern = ("^" + java.util.regex.Pattern.quote(key) + """\[(\d+)\].*$""").r
     data.toSeq.collect { case (KeyPattern(index), _) => index.toInt }.sorted.distinct
   }
@@ -370,33 +370,33 @@ object RepeatedMapping {
 }
 
 case class RepeatedMapping[T](wrapped: Mapping[T], val key: String = "", val constraints: Seq[Constraint[List[T]]] = Nil) extends Mapping[List[T]] {
-  
+
   override val format: Option[(String, Seq[Any])] = wrapped.format
-  
+
   def verifying(addConstraints: Constraint[List[T]]*): Mapping[List[T]] = {
     this.copy(constraints = constraints ++ addConstraints.toSeq)
   }
-  
+
   def bind(data: Map[String, String]): Either[Seq[FormError], List[T]] = {
-    val allErrorsOrItems: Seq[Either[Seq[FormError], T]] = RepeatedMapping.indexes(key, data).map(i => wrapped.withPrefix(key + "[" + i +"]").bind(data))
-    if(allErrorsOrItems.forall(_.isRight)) {
+    val allErrorsOrItems: Seq[Either[Seq[FormError], T]] = RepeatedMapping.indexes(key, data).map(i => wrapped.withPrefix(key + "[" + i + "]").bind(data))
+    if (allErrorsOrItems.forall(_.isRight)) {
       Right(allErrorsOrItems.map(_.right.get).toList).right.flatMap(applyConstraints)
     } else {
       Left(allErrorsOrItems.collect { case Left(errors) => errors }.flatten)
     }
   }
-  
+
   def unbind(value: List[T]): (Map[String, String], Seq[FormError]) = {
     val (datas, errors) = value.zipWithIndex.map { case (t, i) => wrapped.withPrefix(key + "[" + i + "]").unbind(t) }.unzip
-    (datas.foldLeft(Map.empty[String,String])(_ ++ _), errors.flatten ++ collectErrors(value))
+    (datas.foldLeft(Map.empty[String, String])(_ ++ _), errors.flatten ++ collectErrors(value))
   }
-  
+
   def withPrefix(prefix: String): Mapping[List[T]] = {
     addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
   }
-  
+
   val mappings: Seq[Mapping[_]] = wrapped.mappings
-  
+
 }
 
 /**
@@ -491,7 +491,7 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
   def verifying(addConstraints: Constraint[T]*): Mapping[T] = {
     this.copy(constraints = constraints ++ addConstraints.toSeq)
   }
-  
+
   /**
    * Changes the binder used to handle this field.
    *

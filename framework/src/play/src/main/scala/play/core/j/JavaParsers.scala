@@ -16,7 +16,7 @@ object JavaParsers extends BodyParsers {
 
   case class DefaultRequestBody(
       urlFormEncoded: Option[Map[String, Seq[String]]] = None,
-      raw: Option[Array[Byte]] = None,
+      raw: Option[RawBuffer] = None,
       text: Option[String] = None,
       json: Option[JsValue] = None,
       xml: Option[NodeSeq] = None,
@@ -28,7 +28,15 @@ object JavaParsers extends BodyParsers {
     }
 
     override def asRaw = {
-      raw.orNull
+      raw.map { rawBuffer =>
+        new play.mvc.Http.RawBuffer {
+          def size = rawBuffer.size
+          def asBytes(maxLength: Int) = rawBuffer.asBytes(maxLength).orNull
+          def asBytes = rawBuffer.asBytes().orNull
+          def asFile = rawBuffer.asFile
+          override def toString = rawBuffer.toString
+        }
+      }.orNull
     }
 
     override def asText = {
