@@ -21,7 +21,7 @@ object ApplicationSpec extends Specification {
       
       val result = controllers.Application.index(FakeRequest())
       
-      status(result) must equalTo(FOUND)
+      status(result) must equalTo(SEE_OTHER)
       redirectLocation(result) must beSome.which(_ == "/computers")
       
     }
@@ -68,7 +68,7 @@ object ApplicationSpec extends Specification {
           FakeRequest().withUrlFormEncodedBody("name" -> "FooBar", "introduced" -> "2011-12-24", "company" -> "1")
         )
         
-        status(result) must equalTo(FOUND)
+        status(result) must equalTo(SEE_OTHER)
         redirectLocation(result) must beSome.which(_ == "/computers")
         flash(result).get("success") must beSome.which(_ == "Computer FooBar has been created")
         

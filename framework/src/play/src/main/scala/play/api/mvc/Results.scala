@@ -421,38 +421,126 @@ trait Results {
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         content)
     }
+    
+    def stream(content: java.io.File): ChunkedResult[Array[Byte]] = {
+      ChunkedResult(
+        header = ResponseHeader(
+          status, 
+          play.api.libs.MimeTypes.forFileName(content.getName()).map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map(CONTENT_TYPE -> "application/octet-stream"))
+        ),
+        iteratee => Enumerator.enumerateFile(content) |>> iteratee
+      )
+    }
 
   }
+  
+  def Async(promise: Promise[Result]) = AsyncResult(promise)
 
   /** Generates a ‘200 OK’ result. */
   val Ok = new Status(OK)
 
   /** Generates a ‘201 CREATED’ result. */
   val Created = new Status(CREATED)
-
-  /** Generates a ‘401 UNAUTHORIZED’ result. */
-  val Unauthorized = new Status(UNAUTHORIZED)
-
-  /** Generates a ‘404 NOT_FOUND’ result. */
-  val NotFound = new Status(NOT_FOUND)
-
-  /** Generates a ‘403 FORBIDDEN’ result. */
-  val Forbidden = new Status(FORBIDDEN)
+  
+  /** Generates a ‘202 ACCEPTED’ result. */
+  val Accepted = new Status(ACCEPTED)
+  
+  /** Generates a ‘203 NON_AUTHORITATIVE_INFORMATION’ result. */
+  val NonAuthoritativeInformation = new Status(NON_AUTHORITATIVE_INFORMATION)
+  
+  /** Generates a ‘204 NO_CONTENT’ result. */
+  val NoContent = SimpleResult(header = ResponseHeader(NO_CONTENT), body = Enumerator(Results.EmptyContent()))
+  
+  /** Generates a ‘205 RESET_CONTENT’ result. */
+  val ResetContent = SimpleResult(header = ResponseHeader(RESET_CONTENT), body = Enumerator(Results.EmptyContent()))
+  
+  /** Generates a ‘206 PARTIAL_CONTENT’ result. */
+  val PartialContent = new Status(PARTIAL_CONTENT)
+    
+  /**
+   * Generates a ‘301 MOVED_PERMANENTLY’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def MovedPermanently(url: String): SimpleResult[Results.EmptyContent] = Redirect(url, MOVED_PERMANENTLY)
+  
+  /**
+   * Generates a ‘302 FOUND’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def Found(url: String): SimpleResult[Results.EmptyContent] = Redirect(url, FOUND)
+  
+  /**
+   * Generates a ‘303 SEE_OTHER’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def SeeOther(url: String): SimpleResult[Results.EmptyContent] = Redirect(url, SEE_OTHER)
+  
+  /** Generates a ‘304 NOT_MODIFIED’ result. */
+  val NotModified = SimpleResult(header = ResponseHeader(NOT_MODIFIED), body = Enumerator(Results.EmptyContent()))
+  
+  /**
+   * Generates a ‘307 TEMPORARY_REDIRECT’ simple result.
+   *
+   * @param url the URL to redirect to
+   */
+  def TemporaryRedirect(url: String): SimpleResult[Results.EmptyContent] = Redirect(url, TEMPORARY_REDIRECT)
 
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
 
+  /** Generates a ‘401 UNAUTHORIZED’ result. */
+  val Unauthorized = new Status(UNAUTHORIZED)
+
+  /** Generates a ‘403 FORBIDDEN’ result. */
+  val Forbidden = new Status(FORBIDDEN)
+  
+  /** Generates a ‘404 NOT_FOUND’ result. */
+  val NotFound = new Status(NOT_FOUND)
+  
+  /** Generates a ‘405 METHOD_NOT_ALLOWED’ result. */
+  val MethodNotAllowed = new Status(METHOD_NOT_ALLOWED)
+  
+  /** Generates a ‘406 NOT_ACCEPTABLE’ result. */
+  val NotAcceptable = new Status(NOT_ACCEPTABLE)
+  
+  /** Generates a ‘408 REQUEST_TIMEOUT’ result. */
+  val RequestTimeout = new Status(REQUEST_TIMEOUT)
+  
+  /** Generates a ‘409 CONFLICT’ result. */
+  val Conflict = new Status(CONFLICT)
+  
+  /** Generates a ‘410 GONE’ result. */
+  val Gone = new Status(GONE)
+  
+  /** Generates a ‘412 PRECONDITION_FAILED’ result. */
+  val PreconditionFailed = new Status(PRECONDITION_FAILED)
+
   /** Generates a ‘413 REQUEST_ENTITY_TOO_LARGE’ result. */
   val EntityTooLarge = new Status(REQUEST_ENTITY_TOO_LARGE)
+  
+  /** Generates a ‘414 REQUEST_URI_TOO_LONG’ result. */
+  val UriTooLong = new Status(REQUEST_URI_TOO_LONG)
+  
+  /** Generates a ‘415 UNSUPPORTED_MEDIA_TYPE’ result. */
+  val UnsupportedMediaType = new Status(UNSUPPORTED_MEDIA_TYPE)
+  
+  /** Generates a ‘417 EXPECTATION_FAILED’ result. */
+  val ExpectationFailed = new Status(EXPECTATION_FAILED)
+  
+  /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
+  val TooManyRequest = new Status(TOO_MANY_REQUEST)
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
 
   /** Generates a ‘501 NOT_IMPLEMENTED’ result. */
   val NotImplemented = new Status(NOT_IMPLEMENTED)
-
-  /** Generates a ‘304 NOT_MODIFIED’ result. */
-  val NotModified = new Status(NOT_MODIFIED)
+  
+  /** Generates a ‘503 SERVICE_UNAVAILABLE’ result. */
+  val ServiceUnavailable = new Status(SERVICE_UNAVAILABLE)
 
   /**
    * Generates a simple result.
@@ -462,16 +550,16 @@ trait Results {
   def Status(code: Int) = new Status(code)
 
   /**
-   * Generates a ‘302 FOUND’ simple result.
+   * Generates a redirect simple result.
    *
    * @param url the URL to redirect to
    */
-  def Redirect(url: String): SimpleResult[Results.EmptyContent] = Status(FOUND).withHeaders(LOCATION -> url)
-
+  def Redirect(url: String, status: Int = SEE_OTHER): SimpleResult[Results.EmptyContent] = Status(status).withHeaders(LOCATION -> url)
+  
   /**
-   * Generates a ‘302 FOUND’ simple result.
+   * Generates a redirect simple result.
    *
-   * @param call call defining the URL to redirect to, which typically comes from the reverse router
+   * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    */
   def Redirect(call: Call): SimpleResult[Results.EmptyContent] = Redirect(call.url)
 

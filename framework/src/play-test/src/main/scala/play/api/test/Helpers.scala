@@ -84,6 +84,9 @@ object Helpers extends Status with HeaderNames {
 
   def redirectLocation(of: Result): Option[String] = of match {
     case Result(FOUND, headers) => headers.get(LOCATION)
+    case Result(SEE_OTHER, headers) => headers.get(LOCATION)
+    case Result(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
+    case Result(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
     case Result(_, _) => None
     case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
   }

@@ -47,7 +47,7 @@ object Assets extends Controller {
         case (url, isGzipped) => {
 
           // TODO replace by an Enumerator
-          lazy val resourceData = enumerate(url.openStream())
+          lazy val resourceData = Enumerator.enumerateStream(url.openStream())
 
           request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 

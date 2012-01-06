@@ -14,14 +14,18 @@ object JavaResults extends Results {
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes
   def writeEmptyContent: Writeable[Results.EmptyContent] = writeableOf_EmptyContent
   def contentTypeOfString(codec: Codec): ContentTypeOf[String] = contentTypeOf_String(codec)
+  def contentTypeOfJson(implicit codec: Codec): ContentTypeOf[String] = ContentTypeOf(Some(play.api.http.ContentTypes.JSON))
   def contentTypeOf(mimeType: String): ContentTypeOf[Content] = ContentTypeOf(Option(mimeType))
   def contentTypeOfEmptyContent: ContentTypeOf[Results.EmptyContent] = contentTypeOf_EmptyContent
   def noContentType[A]: ContentTypeOf[A] = ContentTypeOf(None)
   def contentTypeOfBytes: ContentTypeOf[Array[Byte]] = ContentTypeOf(Some("application/octet-stream"))
+  def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] = ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
   def async(p: play.api.libs.concurrent.Promise[Result]) = AsyncResult(p)
   def chunked[A] = new play.api.libs.iteratee.CallbackEnumerator[A]
+  def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.enumerateStream(stream, chunkSize)
+  def chunked(file: java.io.File, chunkSize: Int) = Enumerator.enumerateFile(file, chunkSize)
 }
 
 object JavaResultExtractor {
