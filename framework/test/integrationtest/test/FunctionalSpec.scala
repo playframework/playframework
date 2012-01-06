@@ -28,6 +28,7 @@ object FunctionalSpec extends Specification {
         
         browser.goTo("http://localhost:9001/conf")
         browser.pageSource must contain("This value comes from complex-app's complex1.conf")
+        browser.pageSource must contain("override akka:15")
         browser.pageSource must contain("None")
         
         browser.goTo("http://localhost:9001/json_java")

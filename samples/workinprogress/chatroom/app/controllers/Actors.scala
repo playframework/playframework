@@ -22,7 +22,7 @@ class ChatRoomActor extends Actor {
       )
       members = members :+ channel
       Logger.info("New member joined")
-      self.reply(channel)
+      sender ! channel
     }
     
     case Quit(channel) => {
@@ -45,7 +45,7 @@ object ChatRoomActor {
   case class Join() extends Event
   case class Quit(channel: CallbackEnumerator[String]) extends Event
   case class Message(msg: String) extends Event
-  
-  lazy val ref = actorOf[ChatRoomActor]
+  lazy val system = ActorSystem("chatroom")
+  lazy val ref = system.actorOf(Props[ChatRoomActor])
   
 }

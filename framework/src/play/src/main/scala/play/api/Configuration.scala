@@ -17,6 +17,14 @@ import scala.collection.JavaConverters._
 object Configuration {
 
   /**
+   * loads the configuration from 'conf/application.conf' in Dev mode
+   */
+
+  private[api] def loadDev = {
+    ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
+  }
+
+  /**
    * Loads a new configuration from a file.
    *
    * For example:
@@ -29,7 +37,7 @@ object Configuration {
    */
   def load() = {
     try {
-      Configuration(Play.maybeApplication.filter(_.mode == Mode.Dev).map(_ => ConfigFactory.load("application")).getOrElse(ConfigFactory.load()))
+      Configuration(Play.maybeApplication.filter(_.mode == Mode.Prod).map(app => ConfigFactory.load()).getOrElse(loadDev))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }

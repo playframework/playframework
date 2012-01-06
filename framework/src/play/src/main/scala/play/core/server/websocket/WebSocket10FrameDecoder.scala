@@ -166,7 +166,7 @@ class WebSocket10FrameDecoder extends ReplayingDecoder[DecodingState](DecodingSt
       }
       null
     }
-    
+
   }
 
   def isOpcode(opcode: Int) = {

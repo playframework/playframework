@@ -16,6 +16,6 @@ class Calculator extends Actor {
   }
 
   def receive = {
-    case Work(start, nrOfElements) => self.reply(calculatePiFor(start, nrOfElements))
+    case Work(start, nrOfElements) => sender ! (calculatePiFor(start, nrOfElements))
   }
 }

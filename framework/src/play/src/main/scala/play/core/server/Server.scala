@@ -5,15 +5,15 @@ import play.core._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.akka._
-import akka.actor._
-import akka.actor.Actor._
-import akka.routing.Routing._
-import akka.routing.CyclicIterator
-import akka.config._
-import akka.config.Supervision._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
+
+import akka.actor._
+import akka.actor.Actor._
+import akka.config._
+import akka.actor.Props
+import akka.routing.RoundRobinRouter
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -50,9 +50,12 @@ trait Server {
     def handle(result: Result) = (asyncResult orElse websocketErrorResult orElse otheResults)(result)
   }
 
-  def newInvoker = { val inv = actorOf[Invoker]; inv.start(); inv }
+  def newInvoker = {
+    val numberOfInvoker = Akka.system.settings.config.getInt("invoker.action.max")
+    Akka.system.actorOf(Props[Invoker].withDispatcher("invoker.action-dispatcher").withRouter(RoundRobinRouter(numberOfInvoker)), "serveractor")
+  }
 
-  val invoker = loadBalancerActor(new CyclicIterator(List.fill(3)(newInvoker))).start()
+  val invoker = newInvoker
 
   def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
 
@@ -99,7 +102,7 @@ trait Server {
 
   import play.api.libs.concurrent._
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    (invoker ? (requestHeaders, bodyFunction)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
+    (invoker ? ((requestHeaders, bodyFunction), Akka.system.settings.ActorTimeout)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
   }
 
   def applicationProvider: ApplicationProvider

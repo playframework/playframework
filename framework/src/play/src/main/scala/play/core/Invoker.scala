@@ -1,45 +1,30 @@
 package play.core
 
+import akka.actor.Actor
+import akka.actor.Props
+import akka.actor.Actor._
+import akka.dispatch.Dispatchers._
+import akka.dispatch.Future
+import akka.dispatch.Await
+import akka.util.duration._
+import akka.actor.OneForOneStrategy
+import akka.routing.{ DefaultActorPool, FixedCapacityStrategy, SmallestMailboxSelector }
+import com.typesafe.config.Config
+
 import play.core.server._
 import play.api.libs.iteratee._
-
 import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.http.HeaderNames._
-
-import akka.actor.Actor
-import akka.dispatch.Dispatchers._
-
-object DispatchStrategy {
-
-  val d = newExecutorBasedEventDrivenWorkStealingDispatcher("name")
-    .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
-    .setCorePoolSize(3)
-    .setMaxPoolSize(3)
-    .build
-
-  val sockets = newExecutorBasedEventDrivenDispatcher("name")
-    .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
-    .setCorePoolSize(3)
-    .setMaxPoolSize(3)
-    .build
-
-  val promises = newExecutorBasedEventDrivenDispatcher("name")
-    .withNewThreadPoolWithLinkedBlockingQueueWithCapacity(1000)
-    .setCorePoolSize(3)
-    .setMaxPoolSize(3)
-    .build
-
-}
+import play.api.libs.akka.Akka._
 
 case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 class Invoker extends Actor {
-  self.dispatcher = DispatchStrategy.d
 
   def receive = {
 
-    case (requestHeader: RequestHeader, bodyFunction: BodyParser[_]) => self.reply(bodyFunction(requestHeader))
+    case (requestHeader: RequestHeader, bodyFunction: BodyParser[_]) => sender ! (bodyFunction(requestHeader))
 
     case HandleAction(request, response: Response, action, app: Application) =>
 
@@ -118,43 +103,45 @@ class Invoker extends Actor {
 case class Invoke[A](a: A, k: A => Unit)
 class PromiseInvoker extends Actor {
 
-  self.dispatcher = DispatchStrategy.promises
-
   def receive = {
     case Invoke(a, k) => k(a)
   }
 }
+
 object PromiseInvoker {
-  import akka.actor.Actor._
-  import akka.routing.Routing._
-  import akka.routing.SmallestMailboxFirstIterator
 
-  private def newInvoker() = { val inv = actorOf(new PromiseInvoker()); inv.start(); inv }
+  private def getInt(c: Config, key: String) = try { Option(c.getInt(key)) } catch { case e: com.typesafe.config.ConfigException.Missing => None }
 
-  val invoker = loadBalancerActor(new SmallestMailboxFirstIterator(List.fill(2)(newInvoker()))).start()
+  private lazy val c = system.settings.config
+
+  private lazy val invokerLimit = getInt(c, "invoker.limit").getOrElse(5)
+  private lazy val withinTime = getInt(c, "invoker.withinTime").getOrElse(1000)
+  private lazy val retries = getInt(c, "invoker.max.try").getOrElse(1)
+  private lazy val count = getInt(c, "invoker.selection.count").getOrElse(1)
+
+  private val faultHandler = OneForOneStrategy(List(classOf[Exception]), retries, withinTime)
+
+  private lazy val pool = system.actorOf(
+    Props(new Actor with DefaultActorPool with FixedCapacityStrategy with SmallestMailboxSelector {
+      def instance(defaults: Props) = system.actorOf(defaults.withCreator(new PromiseInvoker).withDispatcher("invoker.promise-dispatcher"))
+      def limit = invokerLimit
+      def selectionCount = count
+      def partialFill = true
+      def receive = _route
+    }).withFaultHandler(faultHandler))
+
+  val invoker = pool
 }
-
 object Agent {
-  def apply[A](a: A) = {
-    import akka.actor.Actor._
-    var actor = actorOf(new Agent[A](a));
-    actor.start()
-    new {
-      def send(action: (A => A)) { actor ! action }
 
-      def close() = { actor.exit(); actor = null; }
+  implicit def dispatcher = system.dispatchers.lookup("invoker.socket-dispatcher")
+
+  def apply[A](a: A) = {
+    new {
+      def send(action: (A => A)) {
+        Future { action(a) }
+      }
     }
   }
 }
 
-private class Agent[A](var a: A) extends Actor {
-
-  self.dispatcher = DispatchStrategy.sockets
-
-  def receive = {
-
-    case action: Function1[A, A] => a = action(a)
-
-  }
-
-}

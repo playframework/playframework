@@ -4,7 +4,7 @@ import PlayProject._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "akka-promise"
+    val appName         = "pi-calculator"
     val appVersion      = "1.0"
 
     val appDependencies = Seq(

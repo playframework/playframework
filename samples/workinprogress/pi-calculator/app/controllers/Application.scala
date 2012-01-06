@@ -2,7 +2,9 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import akka.actor.Actor._
+import akka.actor._
+import akka.actor._
+import akka.util.duration._
 import library.{Calculator,Work}
 import play.api.mvc.Results._
 import play.api.libs.akka._
@@ -11,7 +13,8 @@ import play.api.libs.concurrent._
 
 object Application extends Controller {
   
-  val actor = actorOf[Calculator].start
+  val system = ActorSystem("pi")
+  val actor = system.actorOf(Props[Calculator])
   
   def index = Action {
     Ok(views.html.index())
@@ -19,7 +22,7 @@ object Application extends Controller {
 
   def compute(start: Int, elements: Int) = Action {
     AsyncResult {
-      (actor ? Work(start, elements)).mapTo[Double].asPromise.map { result =>
+      (actor ? (Work(start, elements), 5.seconds)).mapTo[Double].asPromise.map { result =>
         Ok(views.html.computingResult(start, elements, result))
       }
     }
