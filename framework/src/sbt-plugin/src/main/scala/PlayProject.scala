@@ -25,9 +25,9 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE) = {
 
     Project(name, path)
-      .settings(Seq(testListeners += testListener): _*)
       .settings(eclipseCommandSettings(mainLang): _*)
       .settings(PlayProject.defaultSettings: _*)
+      .settings(Seq(testListeners += testListener): _*)
       .settings(whichLang(mainLang): _*)
       .settings(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xcheckinit", "-encoding", "utf8"),
