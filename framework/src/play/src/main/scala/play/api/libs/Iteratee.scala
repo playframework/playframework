@@ -39,6 +39,20 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
+  def fold1[E, A](state: A)(f: (A, E) => Promise[A]): Iteratee[E, A] = {
+    def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
+
+      case Input.EOF => Done(s, Input.EOF)
+      case Input.Empty => Cont[E, A](i => step(s)(i))
+      case Input.El(e) => { val newS = f(s, e); flatten(newS.map(s1 => Cont[E, A](i => step(s1)(i)))) }
+    }
+    (Cont[E, A](i => step(state)(i)))
+  }
+
+  def fold1[E, A](state: Promise[A])(f: (A, E) => Promise[A]): Iteratee[E, A] = {
+    flatten(state.map(s => fold1(s)(f)))
+  }
+
   def consume[E] = new {
     def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
       fold[E, Seq[E]](Seq.empty) { (els, chunk) =>
@@ -381,7 +395,7 @@ object Enumeratee {
     def apply[To](f: Input[From] => Input[To]) = new CheckDone[From, To] {
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
-        case in @ Input.El(_) =>
+        case in @ (Input.El(_) | Input.Empty) =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(f(in))
 
         case Input.EOF => Done(k(Input.EOF), Input.EOF)
@@ -405,9 +419,12 @@ object Enumeratee {
       case in @ Input.El(_) if remaining > 0 =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining - 1)(k)) } &> k(in)
 
-      case in if remaining <= 0 => Done(Cont(k), in)
+      case in @ Input.Empty if remaining > 0 =>
+        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining)(k)) } &> k(in)
 
       case Input.EOF => Done(k(Input.EOF), Input.EOF)
+
+      case in => Done(Cont(k), in)
     }
 
     def continue[A](k: K[E, A]) = Cont(step(count)(k))
@@ -424,7 +441,7 @@ object Enumeratee {
 
           case Input.El(e) if counter > 0 => Cont(step(counter - 1, inner))
 
-          case Input.El(e) if counter <= 0 => inner.pureFlatFold(
+          case Input.El(e) => inner.pureFlatFold(
             (_, _) => Done(inner, in),
             k => Cont(step(0, k(in))),
             (_, _) => Done(inner, in))
