@@ -161,7 +161,11 @@ trait BodyParsers {
 
     def tolerantText: BodyParser[String] = tolerantText(DEFAULT_MAX_TEXT_LENGTH)
 
-    def text(maxLength: Int): BodyParser[String] = when(_.contentType.exists(_ == "text/plain"), tolerantText(maxLength))
+    def text(maxLength: Int): BodyParser[String] = when(
+      _.contentType.exists(_ == "text/plain"), 
+      tolerantText(maxLength),
+      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/plain body")).getOrElse(Results.BadRequest)
+    )
 
     def text: BodyParser[String] = text(DEFAULT_MAX_TEXT_LENGTH)
 
@@ -184,7 +188,7 @@ trait BodyParsers {
         scala.util.control.Exception.allCatch[JsValue].either {
           Json.parse(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
-          (Results.BadRequest, bytes)
+          (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid Json")).getOrElse(Results.BadRequest), bytes)
         }
       }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
         .flatMap {
@@ -198,7 +202,11 @@ trait BodyParsers {
 
     def tolerantJson: BodyParser[JsValue] = tolerantJson(DEFAULT_MAX_TEXT_LENGTH)
 
-    def json(maxLength: Int): BodyParser[JsValue] = when(_.contentType.exists(m => m == "text/json" || m == "application/json"), tolerantJson(maxLength))
+    def json(maxLength: Int): BodyParser[JsValue] = when(
+      _.contentType.exists(m => m == "text/json" || m == "application/json"), 
+      tolerantJson(maxLength),
+      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/json or application/json body")).getOrElse(Results.BadRequest)
+    )
 
     def json: BodyParser[JsValue] = json(DEFAULT_MAX_TEXT_LENGTH)
 
@@ -215,7 +223,7 @@ trait BodyParsers {
         scala.util.control.Exception.allCatch[NodeSeq].either {
           XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
-          (Results.BadRequest, bytes)
+          (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid XML")).getOrElse(Results.BadRequest), bytes)
         }
       }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
         .flatMap {
@@ -229,7 +237,11 @@ trait BodyParsers {
 
     def tolerantXml: BodyParser[NodeSeq] = tolerantXml(DEFAULT_MAX_TEXT_LENGTH)
 
-    def xml(maxLength: Int): BodyParser[NodeSeq] = when(_.contentType.exists(_.startsWith("text/xml")), tolerantXml(maxLength))
+    def xml(maxLength: Int): BodyParser[NodeSeq] = when(
+      _.contentType.exists(_.startsWith("text/xml")), 
+      tolerantXml(maxLength),
+      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/xml body")).getOrElse(Results.BadRequest)
+    )
 
     def xml: BodyParser[NodeSeq] = xml(DEFAULT_MAX_TEXT_LENGTH)
 
@@ -261,7 +273,7 @@ trait BodyParsers {
         scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
           UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
         }.left.map { e =>
-          Results.BadRequest
+          Play.maybeApplication.map(_.global.onBadRequest(request, "Error parsing application/x-www-form-urlencoded")).getOrElse(Results.BadRequest)
         }
       }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
         .flatMap {
@@ -275,7 +287,11 @@ trait BodyParsers {
 
     def tolerantUrlFormEncoded: BodyParser[Map[String, Seq[String]]] = tolerantUrlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
-    def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(_.contentType.exists(_ == "application/x-www-form-urlencoded"), tolerantUrlFormEncoded(maxLength))
+    def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
+      _.contentType.exists(_ == "application/x-www-form-urlencoded"), 
+      tolerantUrlFormEncoded(maxLength),
+      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting application/x-www-form-urlencoded body")).getOrElse(Results.BadRequest)
+    )
 
     def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = urlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
@@ -395,7 +411,7 @@ trait BodyParsers {
 
           }
 
-        }.getOrElse(parse.error(BadRequest("Missing boundary header")))
+        }.getOrElse(parse.error(Play.maybeApplication.map(_.global.onBadRequest(request, "Missing boundary header")).getOrElse(Results.BadRequest)))
 
       }
 
@@ -502,7 +518,7 @@ trait BodyParsers {
       }
     }
 
-    def error[A](result: Result = Results.BadRequest): BodyParser[A] = BodyParser("error, result=" + result) { request =>
+    def error[A](result: Result): BodyParser[A] = BodyParser("error, result=" + result) { request =>
       Done(Left(result), Empty)
     }
 
@@ -510,12 +526,12 @@ trait BodyParsers {
       f(request)(request)
     }
 
-    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: Result = Results.BadRequest): BodyParser[A] = {
+    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Result): BodyParser[A] = {
       BodyParser("conditional, wrapping=" + parser.toString) { request =>
         if (predicate(request)) {
           parser(request)
         } else {
-          Done(Left(badResult), Empty)
+          Done(Left(badResult(request)), Empty)
         }
       }
     }
