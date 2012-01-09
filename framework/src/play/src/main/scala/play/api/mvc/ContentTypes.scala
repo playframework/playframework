@@ -370,20 +370,17 @@ trait BodyParsers {
 
             val takeUpToBoundary = Enumeratee.takeWhile[MatchInfo[Array[Byte]]](!_.isMatch)
 
-            val maxHeaderBuffer =
-              Traversable.drop[Array[Byte]](2) ><>
-                Traversable.takeUpTo(4 * 1024) transform
-                Iteratee.consume[Array[Byte]]()
+            val maxHeaderBuffer = Traversable.takeUpTo[Array[Byte]](4 * 1024) transform Iteratee.consume[Array[Byte]]()
 
             val collectHeaders = maxHeaderBuffer.flatMap { buffer =>
-              val (headerBytes, rest) = buffer.splitAt(buffer.indexOfSlice(CRLFCRLF))
+              val (headerBytes, rest) = Option(buffer.drop(2)).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
 
               val headerString = new String(headerBytes)
               val headers = headerString.lines.map { header =>
                 val key :: value = header.trim.split(":").toList
                 (key.trim.toLowerCase, value.mkString.trim)
               }.toMap
-
+              
               val left = rest.drop(CRLFCRLF.length)
 
               Cont(in => Done(headers, in match {

@@ -6,7 +6,7 @@ object Traversable {
 
     def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
 
-      case in @ Input.El(_) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
 
       case Input.EOF => Done(k(Input.EOF), Input.EOF)
     }
