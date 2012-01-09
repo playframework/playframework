@@ -1,4 +1,4 @@
-@(currentPage: Page[Computer], currentSortBy: String, currentOrder: String, currentFilter: String)
+@(currentPage: Page[Computer], currentSortBy: String, currentOrder: String, currentFilter: String, numComputers: Int)
 
 @****************************************
 * Helper generating navigation links    *
@@ -35,7 +35,7 @@
     </th>
 }
 
-@main {
+@main(numComputers) {
     
     <h1 id="homeTitle">@Messages("computers.list.title", currentPage.getTotalRowCount)</h1>
 
