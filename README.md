@@ -1,3 +1,5 @@
+_( Please [read this page] (https://github.com/playframework/Play20/wiki/Pullrequests) before sending pull requests )_
+
 # Play 2.0 RC1
 
 Play 2.0 is a Java and Scala Web application framework (http://www.playframework.org/2.0).
