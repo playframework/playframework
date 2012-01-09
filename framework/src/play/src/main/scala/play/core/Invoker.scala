@@ -14,6 +14,7 @@ import com.typesafe.config.Config
 import play.core.server._
 import play.api.libs.iteratee._
 import play.api._
+import play.utils._
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.http.HeaderNames._
@@ -29,10 +30,10 @@ class Invoker extends Actor {
     case HandleAction(request, response: Response, action, app: Application) =>
 
       val result = try {
-        // Be sure to use the Play classloader in this Thread
-        Thread.currentThread.setContextClassLoader(app.classloader)
         try {
-          action(request)
+          Threads.withContextClassLoader(app.classloader) {
+            action(request)
+          }
         } catch {
           case e: PlayException.UsefulException => throw e
           case e: Throwable => {

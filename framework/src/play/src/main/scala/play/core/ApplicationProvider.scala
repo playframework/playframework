@@ -87,8 +87,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
       Await.result(Future {
 
-        Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
-
         sbtLink.reload.right.flatMap { maybeClassLoader =>
 
           val maybeApplication: Option[Either[Throwable, Application]] = maybeClassLoader.map { classloader =>

@@ -32,6 +32,12 @@ trait PlayReloader {
       def forceReload() {
         reloadNextTime = true
       }
+      
+      def clean() {
+        currentApplicationClassLoader = None
+        currentProducts = Map.empty[java.io.File, Long]
+        currentAnalysis = None
+      }
 
       def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
         val classFiles = newAnalysis.stamps.allProducts ++ watchFiles

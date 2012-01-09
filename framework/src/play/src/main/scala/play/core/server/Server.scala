@@ -21,6 +21,8 @@ trait WebSocketable {
 }
 
 trait Server {
+  
+  def mode: Mode.Mode
 
   // First delete the default log file for a fresh start
   try {
@@ -31,7 +33,8 @@ trait Server {
 
   // Configure the logger for the first time
   Logger.configure(
-    Map("application.home" -> applicationProvider.path.getAbsolutePath))
+    Map("application.home" -> applicationProvider.path.getAbsolutePath),
+    mode = mode)
 
   def response(webSocketableRequest: WebSocketable)(otheResults: PartialFunction[Result, Unit]) = new Response {
 
@@ -106,5 +109,10 @@ trait Server {
   }
 
   def applicationProvider: ApplicationProvider
+  
+  def stop() {
+    Akka.system.shutdown()
+    Logger.shutdown()
+  }
 
 }

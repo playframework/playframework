@@ -668,6 +668,7 @@ trait PlayCommands {
       }
 
       server.stop()
+      reloader.clean()
 
       newState
     }

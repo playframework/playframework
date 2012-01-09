@@ -1,6 +1,7 @@
 package play.api
 
 import play.core._
+import play.utils._
 
 import play.api.mvc._
 
@@ -29,9 +30,9 @@ import annotation.implicitNotFound
 @implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, just add import play.api.Play.current")
 class Application(val path: File, val classloader: ClassLoader, val sources: Option[SourceMapper], val mode: Mode.Mode) {
 
-  Thread.currentThread.setContextClassLoader(classloader)
-
-  private val initialConfiguration = Configuration.load()
+  private val initialConfiguration = Threads.withContextClassLoader(classloader) {
+    Configuration.load()
+  }
 
   // -- Global stuff
 
@@ -60,14 +61,16 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    *
    * @see play.api.GlobalSettings
    */
-  val global: GlobalSettings = try {
-    javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
-  } catch {
-    case e: PlayException => throw e
-    case e => throw PlayException(
-      "Cannot init the Global object",
-      e.getMessage,
-      Some(e))
+  val global: GlobalSettings = Threads.withContextClassLoader(classloader) {
+    try {
+      javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
+    } catch {
+      case e: PlayException => throw e
+      case e => throw PlayException(
+        "Cannot init the Global object",
+        e.getMessage,
+        Some(e))
+    }
   }
 
   private val fullConfiguration = initialConfiguration ++ global.configuration
@@ -104,7 +107,8 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
           case key @ "root" => "ROOT" -> loggerConfig.getString(key, validValues).map(setLevel).get
           case key => key -> loggerConfig.getString(key, validValues).map(setLevel).get
         }.toMap
-      }.getOrElse(Map.empty))
+      }.getOrElse(Map.empty),
+      mode)
 
   }
 
@@ -132,7 +136,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    * @see play.api.Plugin
    */
 
-  val plugins: Seq[Plugin] = {
+  val plugins: Seq[Plugin] = Threads.withContextClassLoader(classloader) {
 
     pluginClasses.map { className =>
       try {

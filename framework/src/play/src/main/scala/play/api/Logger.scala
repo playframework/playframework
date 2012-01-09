@@ -126,7 +126,8 @@ object Logger extends LoggerLike {
   def init(home: java.io.File) {
     Logger.configure(
       Map("application.home" -> home.getAbsolutePath),
-      Map.empty)
+      Map.empty,
+      Mode.Test)
   }
 
   /**
@@ -157,7 +158,7 @@ object Logger extends LoggerLike {
    * @param properties these properties will be added to the logger context (for example `application.home`)
    * @see http://logback.qos.ch/
    */
-  def configure(properties: Map[String, String] = Map.empty, levels: Map[String, ch.qos.logback.classic.Level] = Map.empty) {
+  def configure(properties: Map[String, String] = Map.empty, levels: Map[String, ch.qos.logback.classic.Level] = Map.empty, mode: Mode.Value) {
 
     // Redirect JUL -> SL4FJ
     {
@@ -184,7 +185,7 @@ object Logger extends LoggerLike {
         val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
         val configurator = new JoranConfigurator
         configurator.setContext(ctx)
-        ctx.reset
+        ctx.reset()
         properties.foreach {
           case (name, value) => ctx.putProperty(name, value)
         }
@@ -197,7 +198,13 @@ object Logger extends LoggerLike {
             orElse {
               Option(System.getProperty("logger.url")).map(new java.net.URL(_))
             }.
-            orElse(Option(this.getClass.getClassLoader.getResource("logger.xml"))).
+            orElse {
+              if(mode != Mode.Test) {
+                Option(this.getClass.getClassLoader.getResource("logger.xml"))
+              } else {
+                None
+              }
+            }.
             map { url =>
               configurator.doConfigure(url)
             }
@@ -208,13 +215,23 @@ object Logger extends LoggerLike {
         levels.foreach {
           case (logger, level) => ctx.getLogger(logger).setLevel(level)
         }
-        StatusPrinter.printInCaseOfErrorsOrWarnings(ctx)
+        StatusPrinter.printIfErrorsOccured(ctx)
       } catch {
         case _ =>
       }
 
     }
 
+  }
+  
+  def shutdown() {
+    import ch.qos.logback.classic.joran._
+    import ch.qos.logback.core.util._
+    import ch.qos.logback.classic._
+
+    val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+    ctx.stop()
+    
   }
 
   import ch.qos.logback.classic._

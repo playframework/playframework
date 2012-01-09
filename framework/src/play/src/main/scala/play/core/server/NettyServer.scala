@@ -29,7 +29,7 @@ trait ServerWithStop {
   def stop(): Unit
 }
 
-class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   def applicationProvider = appProvider
 
@@ -61,12 +61,18 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
     case _ => Logger("play").info("Listening for HTTP on port %s...".format(port))
   }
 
-  def stop() {
+  override def stop() {
 
     try {
       Play.stop()
     } catch {
       case e => Logger("play").error("Error while stopping the application", e)
+    }
+    
+    try {
+      super.stop()
+    } catch {
+      case e => Logger("play").error("Error while stopping akka", e)
     }
 
     mode match {
@@ -133,9 +139,10 @@ object NettyServer {
   }
 
   def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
-    Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
-    val appProvider = new ReloadableApplication(sbtLink)
-    new NettyServer(appProvider, port, mode = Mode.Dev)
+    play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
+      val appProvider = new ReloadableApplication(sbtLink)
+      new NettyServer(appProvider, port, mode = Mode.Dev)
+    }
   }
 
 }
