@@ -7,6 +7,16 @@ trait PlaySettings {
   this: PlayCommands =>
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
+    
+    testOptions in Test += Tests.Setup { loader =>
+      loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
+    },
+
+    testOptions in Test += Tests.Argument("sequential", "true"),
+
+    testOptions in Test += Tests.Argument("junitxml", "console"),
+
+    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
     templatesImport ++= Seq(
       "models._",
@@ -67,16 +77,6 @@ trait PlaySettings {
     libraryDependencies += "play" %% "play" % play.core.PlayVersion.current,
 
     libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
-
-    testOptions in Test += Tests.Setup { loader =>
-      loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
-    },
-
-    testOptions in Test += Tests.Argument("sequential", "true"),
-
-    testOptions in Test += Tests.Argument("junitxml", "console"),
-
-    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
     parallelExecution in Test := false,
 
