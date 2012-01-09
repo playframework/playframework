@@ -1,8 +1,8 @@
-@(id: Long, computerForm: Form[Computer])
+@(id: Long, computerForm: Form[Computer], numComputers: Int)
 
 @import helper._
 
-@main {
+@main(numComputers) {
     
     <h1>Edit computer</h1>
     

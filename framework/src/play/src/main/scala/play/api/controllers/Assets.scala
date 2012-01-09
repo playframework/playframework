@@ -47,12 +47,11 @@ object Assets extends Controller {
         case (url, isGzipped) => {
 
           // TODO replace by an Enumerator
-          lazy val resourceData = Enumerator.enumerateStream(url.openStream())
+          lazy val resourceData = Resource.fromInputStream(url.openStream()).byteArray
 
           request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 
-            // Prepare a chunked response
-            val response = Ok.stream(resourceData).as(MimeTypes.forFileName(file).getOrElse(BINARY))
+            val response = Ok(resourceData).as(MimeTypes.forFileName(file).getOrElse(BINARY))
 
             // Is Gzipped?
             val gzippedResponse = if (isGzipped) {
