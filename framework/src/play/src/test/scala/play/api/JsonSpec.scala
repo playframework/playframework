@@ -24,7 +24,7 @@ object JsonSpec extends Specification {
 
   case class Car(id: Long, models: Map[String, String])
 
-  implicit val CarFormat:Format[Car] = productFormat2("id", "models")(Car.apply _)(Car.unapply(_).get)
+  implicit val CarFormat:Format[Car] = productFormat2("id", "models")(Car)(Car.unapply)
 
   import java.util.Date
   case class Post(body: String, created_at: Option[Date])
