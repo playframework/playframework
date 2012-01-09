@@ -1,4 +1,4 @@
-@(content: Html)
+@(numComputers: Int)(content: Html)
 
 <!DOCTYPE html>
 <html>
@@ -12,7 +12,7 @@
         <header class="topbar">
             <h1 class="fill">
                 <a href="@routes.Application.index()">
-                    Play 2.0 sample application &mdash; Computer database
+                    Play 2.0 sample application &mdash; Database of @numComputers computers
                 </a>
             </h1>
         </header>
