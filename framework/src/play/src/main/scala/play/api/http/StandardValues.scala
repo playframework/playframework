@@ -94,6 +94,7 @@ trait HeaderNames {
 
   val CACHE_CONTROL = "Cache-Control"
   val CONNECTION = "Connection"
+  val CONTENT_DISPOSITION = "Content-Disposition"
   val CONTENT_ENCODING = "Content-Encoding"
   val CONTENT_LANGUAGE = "Content-Language"
   val CONTENT_LENGTH = "Content-Length"

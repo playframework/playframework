@@ -47,12 +47,21 @@ object Assets extends Controller {
         case (url, isGzipped) => {
 
           // TODO replace by an Enumerator
-          lazy val resourceData = Enumerator.enumerateStream(url.openStream())
+          lazy val (length, resourceData) = {
+            val stream = url.openStream()
+            (stream.available, Enumerator.enumerateStream(stream))
+          }
 
           request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 
             // Prepare a chunked response
-            val response = Ok.stream(resourceData).as(MimeTypes.forFileName(file).getOrElse(BINARY))
+            val response = SimpleResult(
+              header = ResponseHeader(OK, Map(
+                CONTENT_LENGTH -> length.toString,
+                CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
+              )),
+              resourceData
+            )
 
             // Is Gzipped?
             val gzippedResponse = if (isGzipped) {
@@ -60,9 +69,12 @@ object Assets extends Controller {
             } else {
               response
             }
+            
+            // Add Last-Modified if we are able to compute it
+            val lastModifiedResponse = lastModifiedFor(url).map(date => gzippedResponse.withHeaders(LAST_MODIFIED -> date)).getOrElse(gzippedResponse)
 
             // Add Etag if we are able to compute it
-            val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
+            val taggedResponse = etagFor(url).map(etag => lastModifiedResponse.withHeaders(ETAG -> etag)).getOrElse(lastModifiedResponse)
 
             // Add Cache directive if configured
             val cachedResponse = Play.configuration.getString("\"assets.cache." + resourceName + "\"").map { cacheControl =>
@@ -79,6 +91,33 @@ object Assets extends Controller {
     }
 
   }
+  
+  // -- LastModified handling
+  
+  private val dateFormatter = {
+    val formatter = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+    formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+    formatter
+  }
+  
+  private val lastModifieds = scala.collection.mutable.HashMap.empty[String, String]
+
+  private def lastModifiedFor(resource: java.net.URL): Option[String] = {
+    lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
+      val maybeLastModified = resource.getProtocol match {
+        case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
+        case "jar" => new java.net.URL(resource.getPath) match {
+          case url if url.getProtocol == "file" => Some(
+            dateFormatter.format(new java.util.Date(new java.io.File(url.getPath.takeWhile(c => !(c == '!'))).lastModified))
+          )
+          case _ => None
+        }
+        case _ => None
+      }
+      maybeLastModified.foreach(lastModifieds.put(resource.toExternalForm, _))
+      maybeLastModified
+    }
+  }
 
   // -- ETags handling
 
@@ -86,14 +125,7 @@ object Assets extends Controller {
 
   private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = resource.getProtocol match {
-        case "file" => Some(new java.io.File(resource.getPath).lastModified.toString)
-        case "jar" => new java.net.URL(resource.getPath) match {
-          case url if url.getProtocol == "file" => Some(new java.io.File(url.getPath.takeWhile(c => !(c == '!'))).lastModified.toString)
-          case _ => None
-        }
-        case _ => None
-      }
+      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1(_))
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))
       maybeEtag
     }

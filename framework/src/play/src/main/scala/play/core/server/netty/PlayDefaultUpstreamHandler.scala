@@ -67,6 +67,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           case r @ SimpleResult(ResponseHeader(status, headers), body) => {
             val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+            
+            // Set response headers
             headers.foreach {
 
               // Fix a bug for Set-Cookie header. 
@@ -78,27 +80,51 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
               case (name, value) => nettyResponse.setHeader(name, value)
             }
-            val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-            val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
-            val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-            val p = body |>> stringIteratee
-            p.flatMap(i => i.run)
-              .onRedeem { buffer =>
-                nettyResponse.setContent(buffer)
-                if (keepAlive) {
-                  nettyResponse.setHeader(CONTENT_LENGTH, nettyResponse.getContent.readableBytes)
-                  if (version == HttpVersion.HTTP_1_0) {
-                    // Response header Connection: Keep-Alive is needed for HTTP 1.0
-                    nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+            
+            // Response header Connection: Keep-Alive is needed for HTTP 1.0
+            if (keepAlive && version == HttpVersion.HTTP_1_0) {
+              nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+            }
+            
+            // Stream the result
+            headers.get(CONTENT_LENGTH).map { contentLength =>
+              
+              val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
+
+              val bodyIteratee = {
+                val writeIteratee = Iteratee.fold1(NettyPromise(e.getChannel.write(nettyResponse)))((_, e: r.BODY_CONTENT) => writer(e))
+                Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { p =>
+                  if (e.getChannel.isConnected()) {
+                    p.map(_ => if (!keepAlive) e.getChannel.close())
                   }
                 }
-                val f = e.getChannel.write(nettyResponse)
-                if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
               }
+
+              body(bodyIteratee)
+              
+            }.getOrElse {
+              
+              // No Content-Length header specified, buffer in-memory
+              val channelBuffer = ChannelBuffers.dynamicBuffer(512)
+              val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
+              val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
+              val p = body |>> stringIteratee
+              p.flatMap(i => i.run)
+                .onRedeem { buffer =>
+                  nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
+                  nettyResponse.setContent(buffer)
+                  val f = e.getChannel.write(nettyResponse)
+                  if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                }
+              
+            }
+              
           }
 
           case r @ ChunkedResult(ResponseHeader(status, headers), chunks) => {
             val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+            
+            // Copy headers to netty response
             headers.foreach {
 
               // Fix a bug for Set-Cookie header. 
@@ -115,6 +141,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
               case (name, value) => nettyResponse.setHeader(name, value)
             }
+            
             nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
             nettyResponse.setChunked(true)
 
@@ -222,6 +249,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             })
 
           }
+          
           //execute websocket action
           case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) => {
 

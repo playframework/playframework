@@ -395,6 +395,17 @@ trait Results {
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         Enumerator(content))
     }
+    
+    def sendFile(content: java.io.File, fileName: java.io.File => String = _.getName): SimpleResult[Array[Byte]] = {
+      SimpleResult(
+        header = ResponseHeader(OK, Map(
+          CONTENT_LENGTH -> content.length.toString,
+          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY),
+          CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))
+        )),
+        Enumerator.enumerateFile(content)
+      )
+    }
 
     /**
      * Set the result's content as chunked.
@@ -420,16 +431,6 @@ trait Results {
       ChunkedResult(
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         content)
-    }
-
-    def stream(content: java.io.File): ChunkedResult[Array[Byte]] = {
-      ChunkedResult(
-        header = ResponseHeader(
-          status,
-          play.api.libs.MimeTypes.forFileName(content.getName()).map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map(CONTENT_TYPE -> "application/octet-stream"))
-        ),
-        iteratee => Enumerator.enumerateFile(content) |>> iteratee
-      )
     }
 
   }
