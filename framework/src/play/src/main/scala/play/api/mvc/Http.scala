@@ -78,7 +78,7 @@ package play.api.mvc {
     def queryString = request.queryString
     def path = request.path
     def uri = request.uri
-    def method = request.uri
+    def method = request.method
   }
 
   /** The HTTP response. */
