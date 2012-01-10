@@ -1,14 +1,13 @@
 package models;
 
-import java.util.*;
-import javax.persistence.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import play.db.ebean.*;
-import play.data.format.*;
-import play.data.validation.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
-
-import com.avaje.ebean.*;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
 
 
 /**
@@ -26,7 +25,8 @@ public class Company extends Model {
     /**
      * Generic query helper for entity Company with id Long
      */
-    public static Model.Finder<Long,Company> find = new Model.Finder(Long.class, Company.class);
+    public static Model.Finder<Long,Company> find
+        = new Model.Finder<Long, Company>(Long.class, Company.class);
 
     public static Map<String,String> options() {
         LinkedHashMap<String,String> options = new LinkedHashMap<String,String>();

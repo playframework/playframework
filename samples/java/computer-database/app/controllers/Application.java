@@ -1,32 +1,26 @@
 package controllers;
 
-import java.util.*;
-
-import play.mvc.*;
-import play.data.*;
-import play.*;
-
-import views.html.*;
-
-import models.*;
+import models.Computer;
+import play.data.Form;
+import play.mvc.Controller;
+import play.mvc.Result;
+import views.html.createForm;
+import views.html.editForm;
+import views.html.list;
+import controllers.Interceptor.CommonHeader;
+import controllers.Interceptor.ComputerContext;
 
 /**
  * Manage a database of computers
  */
+@CommonHeader
 public class Application extends Controller {
-    
-    /**
-     * This result directly redirect to application home.
-     */
-    public static Result GO_HOME = redirect(
-        routes.Application.list(0, "name", "asc", "")
-    );
-    
+
     /**
      * Handle default path requests, redirect to computers list
      */
     public static Result index() {
-        return GO_HOME;
+        return list(0, "name", "asc", "");
     }
 
     /**
@@ -41,7 +35,7 @@ public class Application extends Controller {
         return ok(
             list.render(
                 Computer.page(page, 10, sortBy, order, filter),
-                sortBy, order, filter
+                sortBy, order, filter, numComputers()
             )
         );
     }
@@ -56,7 +50,7 @@ public class Application extends Controller {
             Computer.find.byId(id)
         );
         return ok(
-            editForm.render(id, computerForm)
+            editForm.render(id, computerForm, numComputers())
         );
     }
     
@@ -68,11 +62,11 @@ public class Application extends Controller {
     public static Result update(Long id) {
         Form<Computer> computerForm = form(Computer.class).bindFromRequest();
         if(computerForm.hasErrors()) {
-            return badRequest(editForm.render(id, computerForm));
+            return badRequest(editForm.render(id, computerForm, numComputers()));
         }
         computerForm.get().update(id);
         flash("success", "Computer " + computerForm.get().name + " has been updated");
-        return GO_HOME;
+        return index();
     }
     
     /**
@@ -81,7 +75,7 @@ public class Application extends Controller {
     public static Result create() {
         Form<Computer> computerForm = form(Computer.class);
         return ok(
-            createForm.render(computerForm)
+            createForm.render(computerForm, numComputers())
         );
     }
     
@@ -91,11 +85,11 @@ public class Application extends Controller {
     public static Result save() {
         Form<Computer> computerForm = form(Computer.class).bindFromRequest();
         if(computerForm.hasErrors()) {
-            return badRequest(createForm.render(computerForm));
+            return badRequest(createForm.render(computerForm, numComputers()));
         }
         computerForm.get().save();
         flash("success", "Computer " + computerForm.get().name + " has been created");
-        return GO_HOME;
+        return index();
     }
     
     /**
@@ -104,9 +98,12 @@ public class Application extends Controller {
     public static Result delete(Long id) {
         Computer.find.ref(id).delete();
         flash("success", "Computer has been deleted");
-        return GO_HOME;
+        return index();
     }
     
-
+    public static int numComputers() {
+      return ((ComputerContext) ctx()).numComputers();
+    }
+    
 }
             
