@@ -26,7 +26,7 @@
     } else Nil
 }
 
-<dl @if(errors.size > 0) { class="error" }>
+<dl @if(errors.size > 0) { class="error" } id="@(elements.id)_field">
     <dt><label for="@elements.id">@elements.label.getOrElse(elements.field.name)</label></dt>
     <dd>@elements.input</dd>
     @errors.map { error =>
