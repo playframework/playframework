@@ -28,11 +28,9 @@ object Assets extends Controller {
    */
   def at(path: String, file: String) = Action { request =>
 
-    val resourceName = new File(
-      Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
-    ).getCanonicalPath
+    val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
-    if (!resourceName.startsWith(new File(path).getCanonicalPath)) {
+    if (!new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
       Forbidden
     } else {
 
@@ -46,7 +44,6 @@ object Assets extends Controller {
 
         case (url, isGzipped) => {
 
-          // TODO replace by an Enumerator
           lazy val (length, resourceData) = {
             val stream = url.openStream()
             (stream.available, Enumerator.enumerateStream(stream))
@@ -54,7 +51,7 @@ object Assets extends Controller {
 
           request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 
-            // Prepare a chunked response
+            // Prepare a streamed response
             val response = SimpleResult(
               header = ResponseHeader(OK, Map(
                 CONTENT_LENGTH -> length.toString,
