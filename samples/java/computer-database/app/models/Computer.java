@@ -33,7 +33,7 @@ public class Computer extends Model {
     /**
      * Generic query helper for entity Computer with id Long
      */
-    public static Finder<Long,Computer> find = new Finder(Long.class, Computer.class); 
+    public static Finder<Long,Computer> find = new Finder<Long,Computer>(Long.class, Computer.class); 
     
     /**
      * Return a page of computer
@@ -44,12 +44,12 @@ public class Computer extends Model {
      * @param order Sort order (either or asc or desc)
      * @param filter Filter applied on the name column
      */
-    public static Page page(int page, int pageSize, String sortBy, String order, String filter) {
+    public static Page<Computer> page(int page, int pageSize, String sortBy, String order, String filter) {
         return 
             find.where()
                 .ilike("name", "%" + filter + "%")
                 .orderBy(sortBy + " " + order)
-                .join("company")
+                .fetch("company")
                 .findPagingList(pageSize)
                 .getPage(page);
     }

@@ -111,6 +111,8 @@ trait PlaySettings {
     testResultReporterReset <<= testResultReporterResetTask,
 
     computeDependencies <<= computeDependenciesTask,
+    
+    playVersion := play.core.PlayVersion.current,
 
     playCommonClassloader <<= playCommonClassloaderTask,
 

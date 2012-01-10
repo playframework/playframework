@@ -76,6 +76,8 @@ trait PlayCommands {
 
     commonClassLoader
   }
+  
+  val playVersion = SettingKey[String]("play-version")
 
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
@@ -171,7 +173,7 @@ trait PlayCommands {
             )
         }
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
-      EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Managed,
+      EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.preTasks := Seq(compile in Compile),
       EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
   }
@@ -410,7 +412,7 @@ trait PlayCommands {
 
     val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
 
-    val managedClasses = (srcManaged ** "*.scala").get.map { managedSourceFile =>
+    val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
       analysis.relations.products(managedSourceFile)
     }.flatten x rebase(classes, managedClassesDirectory)
 

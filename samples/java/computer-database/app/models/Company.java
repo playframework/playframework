@@ -26,7 +26,7 @@ public class Company extends Model {
     /**
      * Generic query helper for entity Company with id Long
      */
-    public static Model.Finder<Long,Company> find = new Model.Finder(Long.class, Company.class);
+    public static Model.Finder<Long,Company> find = new Model.Finder<Long,Company>(Long.class, Company.class);
 
     public static Map<String,String> options() {
         LinkedHashMap<String,String> options = new LinkedHashMap<String,String>();
