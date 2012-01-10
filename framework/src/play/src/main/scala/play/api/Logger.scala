@@ -7,6 +7,8 @@ trait LoggerLike {
 
   /** The underlying SLF4J Logger. */
   val logger: Slf4jLogger
+  
+  lazy val underlyingLogger = logger
 
   /** `true` if the logger instance is enabled for the `TRACE` level. */
   lazy val isTraceEnabled = logger.isTraceEnabled
@@ -28,7 +30,9 @@ trait LoggerLike {
    *
    * @param message the message to log
    */
-  def trace(message: String) { logger.trace(message) }
+  def trace(message: => String) { 
+    if(isTraceEnabled) logger.trace(message) 
+  }
 
   /**
    * Logs a message with the `TRACE` level.
@@ -36,14 +40,18 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def trace(message: String, error: Throwable) { logger.trace(message, error) }
+  def trace(message: => String, error: => Throwable) { 
+    if(isTraceEnabled) logger.trace(message, error) 
+  }
 
   /**
    * Logs a message with the `DEBUG` level.
    *
    * @param message the message to log
    */
-  def debug(message: String) { logger.debug(message) }
+  def debug(message: => String) { 
+    if(isDebugEnabled) logger.debug(message) 
+  }
 
   /**
    * Logs a message with the `DEBUG` level.
@@ -51,14 +59,18 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def debug(message: String, error: Throwable) { logger.debug(message, error) }
+  def debug(message: => String, error: => Throwable) { 
+    if(isDebugEnabled) logger.debug(message, error) 
+  }
 
   /**
    * Logs a message with the `INFO` level.
    *
    * @param message the message to log
    */
-  def info(message: String) { logger.info(message) }
+  def info(message: => String) { 
+    if(isInfoEnabled) logger.info(message) 
+  }
 
   /**
    * Logs a message with the `INFO` level.
@@ -66,14 +78,18 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def info(message: String, error: Throwable) { logger.info(message, error) }
+  def info(message: => String, error: => Throwable) { 
+    if(isInfoEnabled) logger.info(message, error) 
+  }
 
   /**
    * Logs a message with the `WARN` level.
    *
    * @param message the message to log
    */
-  def warn(message: String) { logger.warn(message) }
+  def warn(message: => String) { 
+    if(isWarnEnabled) logger.warn(message) 
+  }
 
   /**
    * Logs a message with the `WARN` level.
@@ -81,14 +97,18 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def warn(message: String, error: Throwable) { logger.warn(message, error) }
+  def warn(message: => String, error: => Throwable) { 
+    if(isWarnEnabled) logger.warn(message, error) 
+  }
 
   /**
    * Logs a message with the `ERROR` level.
    *
    * @param message the message to log
    */
-  def error(message: String) { logger.error(message) }
+  def error(message: => String) { 
+    if(isErrorEnabled) logger.error(message) 
+  }
 
   /**
    * Logs a message with the `ERROR` level.
@@ -96,7 +116,9 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def error(message: String, error: Throwable) { logger.error(message, error) }
+  def error(message: => String, error: => Throwable) { 
+    if(isErrorEnabled) logger.error(message, error) 
+  }
 
 }
 

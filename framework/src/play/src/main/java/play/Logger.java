@@ -217,7 +217,7 @@ public class Logger {
          * @param message message to log
          */
         public void trace(String message) { 
-            logger.trace(message);
+            logger.underlyingLogger().trace(message);
         }
 
         /**
@@ -227,7 +227,7 @@ public class Logger {
          * @param error associated exception
          */
         public void trace(String message, Throwable error) { 
-            logger.trace(message, error);
+            logger.underlyingLogger().trace(message, error);
         }
 
         /**
@@ -236,7 +236,7 @@ public class Logger {
          * @param message Message to log
          */
         public void debug(String message) { 
-            logger.debug(message);
+            logger.underlyingLogger().debug(message);
         }
 
         /**
@@ -246,7 +246,7 @@ public class Logger {
          * @param error associated exception
          */
         public void debug(String message, Throwable error) { 
-            logger.debug(message, error);
+            logger.underlyingLogger().debug(message, error);
         }
 
         /**
@@ -255,7 +255,7 @@ public class Logger {
          * @param message message to log
          */
         public void info(String message) { 
-            logger.info(message);
+            logger.underlyingLogger().info(message);
         }
 
         /**
@@ -265,7 +265,7 @@ public class Logger {
          * @param error associated exception
          */
         public void info(String message, Throwable error) { 
-            logger.info(message, error);
+            logger.underlyingLogger().info(message, error);
         }
 
         /**
@@ -274,7 +274,7 @@ public class Logger {
          * @param message message to log
          */
         public void warn(String message) { 
-            logger.warn(message);
+            logger.underlyingLogger().warn(message);
         }
 
         /**
@@ -284,7 +284,7 @@ public class Logger {
          * @param error associated exception
          */
         public void warn(String message, Throwable error) { 
-            logger.warn(message, error);
+            logger.underlyingLogger().warn(message, error);
         }
 
         /**
@@ -293,7 +293,7 @@ public class Logger {
          * @param message message to log
          */
         public void error(String message) { 
-            logger.error(message);
+            logger.underlyingLogger().error(message);
         }
 
         /**
@@ -303,7 +303,7 @@ public class Logger {
          * @param error associated exception
          */
         public void error(String message, Throwable error) { 
-            logger.error(message, error);
+            logger.underlyingLogger().error(message, error);
         }
 
     }
