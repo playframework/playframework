@@ -7,7 +7,7 @@ trait PlaySettings {
   this: PlayCommands =>
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
-    
+
     templatesImport ++= Seq(
       "models._",
       "controllers._",
@@ -69,11 +69,11 @@ trait PlaySettings {
     libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     parallelExecution in Test := false,
-    
+
     testOptions in Test += Tests.Setup { loader =>
       loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
     },
-    
+
     testOptions in Test += Tests.Cleanup { loader =>
       loader.loadClass("play.api.Logger").getMethod("shutdown").invoke(null)
     },
@@ -111,7 +111,7 @@ trait PlaySettings {
     testResultReporterReset <<= testResultReporterResetTask,
 
     computeDependencies <<= computeDependenciesTask,
-    
+
     playVersion := play.core.PlayVersion.current,
 
     playCommonClassloader <<= playCommonClassloaderTask,

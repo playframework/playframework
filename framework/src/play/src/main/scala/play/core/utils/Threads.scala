@@ -1,7 +1,7 @@
 package play.utils
 
 object Threads {
-  
+
   def withContextClassLoader[T](classloader: ClassLoader)(b: => T): T = {
     val thread = Thread.currentThread
     val oldLoader = thread.getContextClassLoader
@@ -10,5 +10,5 @@ object Threads {
     thread.setContextClassLoader(oldLoader)
     result
   }
-  
+
 }

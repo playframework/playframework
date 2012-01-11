@@ -66,7 +66,7 @@ object Assets extends Controller {
             } else {
               response
             }
-            
+
             // Add Last-Modified if we are able to compute it
             val lastModifiedResponse = lastModifiedFor(url).map(date => gzippedResponse.withHeaders(LAST_MODIFIED -> date)).getOrElse(gzippedResponse)
 
@@ -88,15 +88,15 @@ object Assets extends Controller {
     }
 
   }
-  
+
   // -- LastModified handling
-  
+
   private val dateFormatter = {
     val formatter = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
     formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
     formatter
   }
-  
+
   private val lastModifieds = scala.collection.mutable.HashMap.empty[String, String]
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {

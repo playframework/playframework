@@ -76,7 +76,7 @@ trait PlayCommands {
 
     commonClassLoader
   }
-  
+
   val playVersion = SettingKey[String]("play-version")
 
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")

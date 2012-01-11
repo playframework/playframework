@@ -395,7 +395,7 @@ trait Results {
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         Enumerator(content))
     }
-    
+
     def sendFile(content: java.io.File, fileName: java.io.File => String = _.getName): SimpleResult[Array[Byte]] = {
       SimpleResult(
         header = ResponseHeader(OK, Map(

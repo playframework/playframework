@@ -7,7 +7,7 @@ trait LoggerLike {
 
   /** The underlying SLF4J Logger. */
   val logger: Slf4jLogger
-  
+
   lazy val underlyingLogger = logger
 
   /** `true` if the logger instance is enabled for the `TRACE` level. */
@@ -30,8 +30,8 @@ trait LoggerLike {
    *
    * @param message the message to log
    */
-  def trace(message: => String) { 
-    if(isTraceEnabled) logger.trace(message) 
+  def trace(message: => String) {
+    if (isTraceEnabled) logger.trace(message)
   }
 
   /**
@@ -40,8 +40,8 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def trace(message: => String, error: => Throwable) { 
-    if(isTraceEnabled) logger.trace(message, error) 
+  def trace(message: => String, error: => Throwable) {
+    if (isTraceEnabled) logger.trace(message, error)
   }
 
   /**
@@ -49,8 +49,8 @@ trait LoggerLike {
    *
    * @param message the message to log
    */
-  def debug(message: => String) { 
-    if(isDebugEnabled) logger.debug(message) 
+  def debug(message: => String) {
+    if (isDebugEnabled) logger.debug(message)
   }
 
   /**
@@ -59,8 +59,8 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def debug(message: => String, error: => Throwable) { 
-    if(isDebugEnabled) logger.debug(message, error) 
+  def debug(message: => String, error: => Throwable) {
+    if (isDebugEnabled) logger.debug(message, error)
   }
 
   /**
@@ -68,8 +68,8 @@ trait LoggerLike {
    *
    * @param message the message to log
    */
-  def info(message: => String) { 
-    if(isInfoEnabled) logger.info(message) 
+  def info(message: => String) {
+    if (isInfoEnabled) logger.info(message)
   }
 
   /**
@@ -78,8 +78,8 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def info(message: => String, error: => Throwable) { 
-    if(isInfoEnabled) logger.info(message, error) 
+  def info(message: => String, error: => Throwable) {
+    if (isInfoEnabled) logger.info(message, error)
   }
 
   /**
@@ -87,8 +87,8 @@ trait LoggerLike {
    *
    * @param message the message to log
    */
-  def warn(message: => String) { 
-    if(isWarnEnabled) logger.warn(message) 
+  def warn(message: => String) {
+    if (isWarnEnabled) logger.warn(message)
   }
 
   /**
@@ -97,8 +97,8 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def warn(message: => String, error: => Throwable) { 
-    if(isWarnEnabled) logger.warn(message, error) 
+  def warn(message: => String, error: => Throwable) {
+    if (isWarnEnabled) logger.warn(message, error)
   }
 
   /**
@@ -106,8 +106,8 @@ trait LoggerLike {
    *
    * @param message the message to log
    */
-  def error(message: => String) { 
-    if(isErrorEnabled) logger.error(message) 
+  def error(message: => String) {
+    if (isErrorEnabled) logger.error(message)
   }
 
   /**
@@ -116,8 +116,8 @@ trait LoggerLike {
    * @param message the message to log
    * @param error the associated exception
    */
-  def error(message: => String, error: => Throwable) { 
-    if(isErrorEnabled) logger.error(message, error) 
+  def error(message: => String, error: => Throwable) {
+    if (isErrorEnabled) logger.error(message, error)
   }
 
 }
@@ -221,7 +221,7 @@ object Logger extends LoggerLike {
               Option(System.getProperty("logger.url")).map(new java.net.URL(_))
             }.
             orElse {
-              if(mode != Mode.Test) {
+              if (mode != Mode.Test) {
                 Option(this.getClass.getClassLoader.getResource("logger.xml"))
               } else {
                 None
@@ -245,7 +245,7 @@ object Logger extends LoggerLike {
     }
 
   }
-  
+
   def shutdown() {
     import ch.qos.logback.classic.joran._
     import ch.qos.logback.core.util._
@@ -253,7 +253,7 @@ object Logger extends LoggerLike {
 
     val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
-    
+
   }
 
   import ch.qos.logback.classic._

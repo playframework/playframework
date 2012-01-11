@@ -162,7 +162,7 @@ trait BodyParsers {
     def tolerantText: BodyParser[String] = tolerantText(DEFAULT_MAX_TEXT_LENGTH)
 
     def text(maxLength: Int): BodyParser[String] = when(
-      _.contentType.exists(_ == "text/plain"), 
+      _.contentType.exists(_ == "text/plain"),
       tolerantText(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/plain body")).getOrElse(Results.BadRequest)
     )
@@ -203,7 +203,7 @@ trait BodyParsers {
     def tolerantJson: BodyParser[JsValue] = tolerantJson(DEFAULT_MAX_TEXT_LENGTH)
 
     def json(maxLength: Int): BodyParser[JsValue] = when(
-      _.contentType.exists(m => m == "text/json" || m == "application/json"), 
+      _.contentType.exists(m => m == "text/json" || m == "application/json"),
       tolerantJson(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/json or application/json body")).getOrElse(Results.BadRequest)
     )
@@ -238,7 +238,7 @@ trait BodyParsers {
     def tolerantXml: BodyParser[NodeSeq] = tolerantXml(DEFAULT_MAX_TEXT_LENGTH)
 
     def xml(maxLength: Int): BodyParser[NodeSeq] = when(
-      _.contentType.exists(_.startsWith("text/xml")), 
+      _.contentType.exists(_.startsWith("text/xml")),
       tolerantXml(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/xml body")).getOrElse(Results.BadRequest)
     )
@@ -288,7 +288,7 @@ trait BodyParsers {
     def tolerantUrlFormEncoded: BodyParser[Map[String, Seq[String]]] = tolerantUrlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
     def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
-      _.contentType.exists(_ == "application/x-www-form-urlencoded"), 
+      _.contentType.exists(_ == "application/x-www-form-urlencoded"),
       tolerantUrlFormEncoded(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting application/x-www-form-urlencoded body")).getOrElse(Results.BadRequest)
     )
@@ -380,7 +380,7 @@ trait BodyParsers {
                 val key :: value = header.trim.split(":").toList
                 (key.trim.toLowerCase, value.mkString.trim)
               }.toMap
-              
+
               val left = rest.drop(CRLFCRLF.length)
 
               Cont(in => Done(headers, in match {

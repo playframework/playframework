@@ -32,7 +32,7 @@ trait PlayReloader {
       def forceReload() {
         reloadNextTime = true
       }
-      
+
       def clean() {
         currentApplicationClassLoader = None
         currentProducts = Map.empty[java.io.File, Long]
