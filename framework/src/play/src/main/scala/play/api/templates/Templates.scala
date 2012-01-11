@@ -8,7 +8,7 @@ import play.templates._
  *
  * @param text the HTML text
  */
-case class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
+class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
   val buffer = new StringBuilder(text)
 
   /** Appends this HTML fragment to another. */
@@ -33,6 +33,9 @@ object Html {
   /** Creates an empty HTML fragment. */
   def empty = Html("")
 
+  /** Create a new HTML fragment with text. */
+  def apply(text: String) = new Html(text)
+
 }
 
 /** Formatter for HTML content. */
@@ -51,7 +54,7 @@ object HtmlFormat extends Format[Html] {
  *
  * @param text The plain text.
  */
-case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
+class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
   val buffer = new StringBuilder(text)
 
   /** Appends this text fragment to another. */
@@ -72,7 +75,10 @@ case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.
 object Txt {
 
   /** Creates an empty text fragment. */
-  def empty = Txt("")
+  def empty = new Txt("")
+
+  /** Create a new text fragment with text. */
+  def apply(text: String) = new Txt(text)
 
 }
 
@@ -92,7 +98,7 @@ object TxtFormat extends Format[Txt] {
  *
  * @param text the plain xml text
  */
-case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
+class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
   val buffer = new StringBuilder(text)
 
   /** Append this XML fragment to another. */
@@ -113,7 +119,10 @@ case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.
 object Xml {
 
   /** Create an empty XML fragment. */
-  def empty = Xml("")
+  def empty = new Xml("")
+
+  /** Create a new XML fragment with text. */
+  def apply(text: String) = new Xml(text)
 
 }
 
