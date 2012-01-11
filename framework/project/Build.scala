@@ -286,11 +286,11 @@ object PlayBuild extends Build {
           IO.delete(file("../documentation/api"))
 
           // Scaladoc
-          val sourceFiles = (file("play/src/main/scala/play/api") ** "*.scala").get ++ (file("play/src/main/scala/views") ** "*.scala").get ++ (file("play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
+          val sourceFiles = (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ (file("src/play/src/main/scala/views") ** "*.scala").get ++ (file("src/play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc
-          val javaSources = file("play/src/main/java")
+          val javaSources = file("src/play/src/main/java")
           val javaApiTarget = file("../documentation/api/java")
           val javaClasspath = classpath.map(_.data).mkString(":")
           """javadoc -windowtitle playframework -doctitle Play&nbsp;2.0&nbsp;Java&nbsp;API  -sourcepath %s -d %s -subpackages play -exclude play.api:play.core -classpath %s""".format(javaSources, javaApiTarget, javaClasspath) ! s.log
