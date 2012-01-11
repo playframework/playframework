@@ -216,7 +216,6 @@ trait PlayCommands {
           <CLASSES>
             <root url={ j }/>
           </CLASSES>
-          <JAVADOC/>
           <SOURCES/>
         </library>
       </orderEntry>
@@ -259,6 +258,7 @@ trait PlayCommands {
     play.console.Console.replace(target, "JARS" -> jars)
     play.console.Console.replace(target, "SOURCE" -> sources)
     s.log.warn(target.getName + " was generated")
+    s.log.warn("If you see unresolved symbols, you might need to run compile first.")
     s.log.warn("Have fun!")
   }
 

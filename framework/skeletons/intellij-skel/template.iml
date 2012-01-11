@@ -5,7 +5,6 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       %SOURCE%
-      <sourceFolder url="file://$MODULE_DIR$/target/scala-%SCALA_VERSION%/src_managed/main" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
