@@ -21,7 +21,7 @@ trait WebSocketable {
 }
 
 trait Server {
-  
+
   def mode: Mode.Mode
 
   // First delete the default log file for a fresh start
@@ -109,7 +109,7 @@ trait Server {
   }
 
   def applicationProvider: ApplicationProvider
-  
+
   def stop() {
     Akka.system.shutdown()
     Logger.shutdown()

@@ -13,6 +13,9 @@ package play.api.mvc {
     /** The complete request URI, containing both path and query string. */
     def uri: String
 
+    /** The HTTP host (domain, optionally port) */
+    def host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("") // The server will return 400 Bad Request if the Host header is missing, but the RequestHeader is constructed before this response so we can't assume that HOST is present at this time.
+
     /** The URI path. */
     def path: String
 

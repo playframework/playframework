@@ -68,7 +68,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
     } catch {
       case e => Logger("play").error("Error while stopping the application", e)
     }
-    
+
     try {
       super.stop()
     } catch {
