@@ -82,7 +82,11 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
    */
   def flatMap[B](f: A => Promise[B]): Promise[B] = {
     val result = Promise[B]()
-    future.map(f(_).map(result.redeem(_)))
+    future.onSuccess { case a => f(a).extend1 { 
+      case Redeemed(a) => result.redeem(a)
+      case Thrown(e) => result.throwing(e)
+    }}
+    future.onFailure { case e => result.throwing(e) }
     result
   }
 }

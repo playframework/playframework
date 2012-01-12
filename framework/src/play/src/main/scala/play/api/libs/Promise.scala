@@ -159,6 +159,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
       if (redeemed().isDefined) sys.error("already redeemed")
       redeemed() = Thrown(t)
     }
+    actions.single.swap(List()).foreach(invoke(this, _))
   }
 
   def map[B](f: A => B): Promise[B] = {
