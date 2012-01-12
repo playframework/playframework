@@ -182,6 +182,27 @@ trait Iteratee[E, +A] {
     k => Cont(in => k(in).flatMap(f)),
     (msg, e) => Error(msg, e))
 
+  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold(
+    {
+      case (a, Input.Empty) => f(a)
+      case (a, e) => f(a).pureFlatFold(
+        (a, eIn) => {
+          val fullIn = (e, eIn) match {
+            case (Input.Empty, in) => in
+            case (in, Input.Empty) => in
+            case (Input.EOF, _) => Input.EOF
+            case (in, Input.EOF) => in
+            case (Input.El(e1), Input.El(e2)) => Input.El[E](p(e1) ++ p(e2))
+          }
+
+          Done(a, fullIn)
+        },
+        k => k(e),
+        (msg, e) => Error(msg, e))
+    },
+    k => Cont(in => k(in).flatMap(f)),
+    (msg, e) => Error(msg, e))
+
   def joinI[AIn](implicit in: A <:< Iteratee[_, AIn]): Iteratee[E, AIn] = {
     this.flatMap { a =>
       val inner = in(a)
@@ -196,6 +217,19 @@ trait Iteratee[E, +A] {
 
   }
 
+  def joinConcatI[AIn, X](implicit in: A <:< Iteratee[E, AIn], p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, AIn] = {
+    this.flatMapTraversable { a =>
+      val inner = in(a)
+      inner.pureFlatFold(
+        (a, e) => Done(a, e),
+        k => k(Input.EOF).pureFlatFold(
+          (a, e) => Done(a, e),
+          k => Error("divergent inner iteratee on joinI after EOF", Input.EOF),
+          (msg, e) => Error(msg, Input.EOF)),
+        (msg, e) => Error(msg, Input.Empty))
+    }
+
+  }
 }
 
 object Done {
@@ -263,6 +297,10 @@ trait Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
   }
 
+  def interleave[B >: E](other:Enumerator[B]):Enumerator[B] = Enumerator.interleave(this,other)
+
+  def >-[B >: E](other:Enumerator[B]):Enumerator[B] = interleave(other)
+
   /**
    * Compose this Enumerator with an Enumeratee
    */
@@ -313,16 +351,28 @@ trait Enumeratee[From, To] {
    */
   def &>[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = apply(inner)
 
-  /**
-   * Compose this Enumerator with another Enumerator
-   */
-  def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
+  def compose[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
     new Enumeratee[From, To2] {
       def applyOn[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
         parent.applyOn(other.applyOn(iteratee)).joinI
       }
     }
   }
+
+  /**
+   * Compose this Enumerator with another Enumerator
+   */
+  def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = compose(other)
+
+  def composeConcat[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = {
+    new Enumeratee[From, To] {
+      def applyOn[A](iteratee: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = {
+        parent.applyOn(other.applyOn(iteratee).joinConcatI)
+      }
+    }
+  }
+
+  def >+>[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = composeConcat[X](other)
 
 }
 
@@ -525,6 +575,65 @@ object Enumerator {
 
   }
 
+  def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2]{
+
+    import scala.concurrent.stm._
+
+    def apply[A](it: Iteratee[E2, A]): Promise[Iteratee[E2, A]] = {
+
+      var iter: Ref[Iteratee[E2, A]] = Ref(it)
+      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true,true))
+      val result = Promise[Iteratee[E2,A]]()
+
+      def redeemResultIfNotYet() = {
+        val toRedeem = atomic { implicit transaction =>
+          if (attending().isDefined) {
+            attending() = None
+            val it = iter()
+            Some(it)
+          } else None
+        }
+        toRedeem.foreach(result.redeem(_))
+      }
+
+      def iteratee[EE <: E2](f: ((Boolean, Boolean)) => (Boolean, Boolean)): Iteratee[EE, Unit] = {
+        def step(in: Input[EE]): Iteratee[EE, Unit] = {
+          in match {
+            case Input.El(_) | Input.Empty =>
+              val p = Promise[Iteratee[E2, A]]()
+              val i = iter.single.swap(Iteratee.flatten(p))
+              val nextI = Iteratee.flatten(i.feed(in))
+              p.redeem(nextI)
+              nextI.pureFlatFold(
+                (a, e) => {
+                  redeemResultIfNotYet()
+                  Done((), Input.Empty:Input[EE])
+                },
+                k => Cont(step),
+                (msg, e) => {
+                  redeemResultIfNotYet()
+                  Error(msg, Input.Empty:Input[EE] )
+                })
+
+            case Input.EOF => {
+              if (attending.single.transformAndGet { _.map(f) } == Some((false, false)))
+                redeemResultIfNotYet()
+              Done((), Input.Empty)
+            }
+          }
+        }
+        Cont(step)
+      }
+
+      val itE1 = iteratee[E1] { case (l, r) => (false, r) }
+      val itE2 = iteratee[E2] { case (l, r) => (l, false) }
+      e1 |>> itE1
+      e2 |>> itE2
+      result
+    }
+
+  }
+
   import scalax.io.JavaConverters._
 
   def enumerateStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = new Enumerator[Array[Byte]] {
@@ -595,9 +704,9 @@ object Enumerator {
 
   def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
-      i.flatMap(_.fold((_, _) => i,
-        k => Promise.pure(k(Input.El(e))),
-        (_, _) => i)))
+      i.map(it => it.pureFlatFold((_, _) => it,
+        k => k(Input.El(e)),
+        (_, _) => it)))
   }
 
 }
