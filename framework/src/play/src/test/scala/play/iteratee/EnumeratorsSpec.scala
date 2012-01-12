@@ -38,10 +38,10 @@ object EnumeratorsSpec extends Specification {
       val e2 = Enumerator(List(2),List(4),List(6),List(8))
       val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk = (e |>> Enumeratee.take[List[Int]](7) &>> Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
+      val kk = (e |>> Enumeratee.take(7) &>> Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
       p.redeem(List())
       val result = kk.value.get
-      result.diff(Seq(1,2,3,4,5,6,7)) must equalTo(Seq())
+      result.length must equalTo(7)
     }
 
 }
