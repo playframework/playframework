@@ -297,9 +297,9 @@ trait Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
   }
 
-  def interleave[B >: E](other:Enumerator[B]):Enumerator[B] = Enumerator.interleave(this,other)
+  def interleave[B >: E](other: Enumerator[B]): Enumerator[B] = Enumerator.interleave(this, other)
 
-  def >-[B >: E](other:Enumerator[B]):Enumerator[B] = interleave(other)
+  def >-[B >: E](other: Enumerator[B]): Enumerator[B] = interleave(other)
 
   /**
    * Compose this Enumerator with an Enumeratee
@@ -575,15 +575,15 @@ object Enumerator {
 
   }
 
-  def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2]{
+  def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2] {
 
     import scala.concurrent.stm._
 
     def apply[A](it: Iteratee[E2, A]): Promise[Iteratee[E2, A]] = {
 
       var iter: Ref[Iteratee[E2, A]] = Ref(it)
-      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true,true))
-      val result = Promise[Iteratee[E2,A]]()
+      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true, true))
+      val result = Promise[Iteratee[E2, A]]()
 
       def redeemResultIfNotYet() = {
         val toRedeem = atomic { implicit transaction =>
@@ -607,12 +607,12 @@ object Enumerator {
               nextI.pureFlatFold(
                 (a, e) => {
                   redeemResultIfNotYet()
-                  Done((), Input.Empty:Input[EE])
+                  Done((), Input.Empty: Input[EE])
                 },
                 k => Cont(step),
                 (msg, e) => {
                   redeemResultIfNotYet()
-                  Error(msg, Input.Empty:Input[EE] )
+                  Error(msg, Input.Empty: Input[EE])
                 })
 
             case Input.EOF => {
