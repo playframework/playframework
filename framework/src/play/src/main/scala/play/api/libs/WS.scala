@@ -46,11 +46,11 @@ object WS {
 
     import scala.collection.JavaConversions
     import scala.collection.JavaConversions._
-    
+
     protected var calculator: Option[SignatureCalculator] = _calc
 
     protected var headers: Map[String, Seq[String]] = Map()
-    
+
     protected var _url: String = null
 
     //this will do a java mutable set hence the {} repsonse
@@ -67,7 +67,7 @@ object WS {
         .setUsePreemptiveAuth(true)
         .build())
     }
-  
+
     /**
      * Return the current headers of the request being constructed
      */
@@ -122,11 +122,18 @@ object WS {
       super.setHeaders(hdrs)
     }
 
+    def setHeaders(hdrs: Map[String, Seq[String]]) = {
+      headers = hdrs
+      hdrs.foreach(header => header._2.foreach (value =>
+        super.addHeader(header._1, value)
+      ))
+      this
+    }
+
     override def setUrl(url: String) = {
       _url = url
       super.setUrl(url)
     }
-   
 
     protected def wrapResponse(ahcResponse: AHCResponse): R
 
@@ -193,7 +200,7 @@ object WS {
     }
 
   }
-  
+
   /**
    * stores a URL and provides the main API methods for WS
    *
@@ -201,17 +208,19 @@ object WS {
   case class WSRequestHolder(url: String) {
 
     private var _body: Array[Byte] = null
-    
+
     private var _calc: Option[SignatureCalculator] = None
-    
-    private var _auth:Option[Tuple3[String,String,AuthScheme]] = None
+
+    private var _auth: Option[Tuple3[String,String,AuthScheme]] = None
+
+    private var _headers: Map[String, Seq[String]] = Map()
 
     /**
      * sets the body for the request
      * @param data send as part of the request body
      */
-    def body(data:Array[Byte]) = { 
-      _body = data; 
+    def body(data:Array[Byte]) = {
+      _body = data;
       this 
     }
 
@@ -228,7 +237,7 @@ object WS {
       _calc = Some(calc)
       this
     }
-    
+
     /**
      * sets the authentication realm
      * @param calc
@@ -236,6 +245,18 @@ object WS {
     def auth(username: String, password: String, scheme: AuthScheme) = {
        _auth = Some( (username,password,scheme) )
        this
+    }
+
+    /**
+     * adds any number of headers
+     * @param hdrs
+     */
+    def headers(hdrs: (String, String)*) = {
+        _headers = hdrs.foldLeft(_headers)((m, hdr) =>
+            if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
+            else (m + (hdr._1 -> Seq(hdr._2)))
+         )
+        this
     }
 
     /**
@@ -252,39 +273,39 @@ object WS {
     /**
      * Perform a POST on the request asynchronously.
      */
-    def post(): Promise[ws.Response] = new WSRequest("POST", _auth, _calc).setUrl(url).setBody(_body).execute
+    def post(): Promise[ws.Response] = new WSRequest("POST", _auth, _calc).setUrl(url).setBody(_body).setHeaders(_headers).execute
 
     /**
      * performs a POST with supplied body
      * @param consumer that's handling the response
      */
-    def post[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("POST", _auth, _calc).setUrl(url).executeStream(consumer) 
+    def post[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("POST", _auth, _calc).setUrl(url).setHeaders(_headers).executeStream(consumer)
 
     /**
      * Perform a PUT on the request asynchronously.
      */
-    def put(): Promise[ws.Response] = new WSRequest("PUT", _auth, _calc).setUrl(url).setBody(_body).execute
+    def put(): Promise[ws.Response] = new WSRequest("PUT", _auth, _calc).setUrl(url).setHeaders(_headers).setBody(_body).execute
 
      /**
      * performs a PUT with supplied body
      * @param consumer that's handling the response
      */
-    def put[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("PUT", _auth, _calc).setUrl(url).executeStream(consumer)
+    def put[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("PUT", _auth, _calc).setUrl(url).setHeaders(_headers).setBody(_body).executeStream(consumer)
 
     /**
      * Perform a DELETE on the request asynchronously.
      */
-    def delete(): Promise[ws.Response] = new WSRequest("DELETE", _auth, _calc).setUrl(url).execute
+    def delete(): Promise[ws.Response] = new WSRequest("DELETE", _auth, _calc).setUrl(url).setHeaders(_headers).execute
 
     /**
      * Perform a HEAD on the request asynchronously.
      */
-    def head(): Promise[ws.Response] = new WSRequest("HEAD", _auth, _calc).setUrl(url).execute
+    def head(): Promise[ws.Response] = new WSRequest("HEAD", _auth, _calc).setUrl(url).setHeaders(_headers).execute
 
     /**
      * Perform a OPTIONS on the request asynchronously.
      */
-    def options(): Promise[ws.Response] = new WSRequest("OPTIONS", _auth, _calc).setUrl(url).execute  
+    def options(): Promise[ws.Response] = new WSRequest("OPTIONS", _auth, _calc).setUrl(url).setHeaders(_headers).execute
 
   }
 
