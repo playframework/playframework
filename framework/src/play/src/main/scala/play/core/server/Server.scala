@@ -106,7 +106,7 @@ trait Server {
   }
 
   import play.api.libs.concurrent._
-  
+
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
     import akka.util.duration._
     (invoker ? ((requestHeaders, bodyFunction), 1 second)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
