@@ -36,78 +36,70 @@ object WS {
    * Prepare a new request. You can then construct it by chaining calls.
    * @param url the URL to request
    */
-  def url(url: String) = new WSRequest().setUrl(url)
+  def url(url: String) = WSRequestHolder(url)
 
   /**
    * A generic class for Request builders.
    * T is the type of request, R is the type of response.
    */
-  abstract class WSRequestBase[T <: WSRequestBase[T, R], R](clazz: Class[T]) extends RequestBuilderBase[T](clazz, "GET") {
+  abstract class WSRequestBase[T <: WSRequestBase[T, R], R](clazz: Class[T], _method: String, _auth:Option[Tuple3[String,String,AuthScheme]], _calc: Option[SignatureCalculator] ) extends RequestBuilderBase[T](clazz, _method) {
 
     import scala.collection.JavaConversions
     import scala.collection.JavaConversions._
+    
+    protected var calculator: Option[SignatureCalculator] = _calc
 
-    protected var calculator: Option[SignatureCalculator] = None
     protected var headers: Map[String, Seq[String]] = Map()
+    
     protected var _url: String = null
-    protected var _method = "GET"
 
-    /**
-     * Perform a GET on the request asynchronously.
-     */
-    def get(): Promise[R] = execute("GET")
-
-    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = executeStream("GET", consumer)
-
-    /**
-     * Perform a POST on the request asynchronously.
-     */
-    def post(): Promise[R] = execute("POST")
-
-    def post[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = executeStream("POST", consumer)
-
-    /**
-     * Perform a PUT on the request asynchronously.
-     */
-    def put(): Promise[R] = execute("PUT")
-
-    def put[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = executeStream("PUT", consumer)
-
-    /**
-     * Perform a DELETE on the request asynchronously.
-     */
-    def delete(): Promise[R] = execute("DELETE")
-
-    /**
-     * Perform a HEAD on the request asynchronously.
-     */
-    def head(): Promise[R] = execute("HEAD")
-
-    /**
-     * Perform a OPTIONS on the request asynchronously.
-     */
-    def options(): Promise[R] = execute("OPTION")
+    //this will do a java mutable set hence the {} repsonse
+    _auth.map(data => auth(data._1,data._2,data._3)).getOrElse({})
 
     /**
      * Add http auth headers
      */
-    def auth(username: String, password: String, scheme: AuthScheme) = {
+    private def auth(username: String, password: String, scheme: AuthScheme) = {
       this.setRealm((new RealmBuilder())
         .setScheme(scheme)
         .setPrincipal(username)
         .setPassword(password)
         .setUsePreemptiveAuth(true)
         .build())
-      this
     }
-
+  
     /**
-     * Set a signature calculator for the request. This is usually used for authentication,
-     * for example for OAuth.
+     * Return the current headers of the request being constructed
      */
-    def sign(calculator: SignatureCalculator) = {
-      this.calculator = Some(calculator)
-      this
+    def allHeaders: Map[String, Seq[String]] =
+      JavaConversions.mapAsScalaMap(request.getHeaders()).map { entry => (entry._1, entry._2.toSeq) }.toMap
+
+    def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
+
+    def method: String = _method
+
+    def url: String = _url
+
+    private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
+      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
+
+    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
+      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
+
+    private[libs] def execute: Promise[R] = {
+      import com.ning.http.client.AsyncCompletionHandler
+      var result = Promise[R]()
+      calculator.map(_.sign(this))
+      WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
+        override def onCompleted(response: AHCResponse) = {
+          result.redeem(wrapResponse(response))
+          response
+        }
+        override def onThrowable(t: Throwable) = {
+          result.redeem(throw t)
+        }
+      })
+      result
     }
 
     override def setHeader(name: String, value: String) = {
@@ -134,52 +126,12 @@ object WS {
       _url = url
       super.setUrl(url)
     }
-
-    override def setMethod(method: String) = {
-      _method = method
-      super.setMethod(method)
-    }
-
-    /**
-     * Return the current headers of the request being constructed
-     */
-    def allHeaders: Map[String, Seq[String]] =
-      JavaConversions.mapAsScalaMap(request.getHeaders()).map { entry => (entry._1, entry._2.toSeq) }.toMap
-
-    def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
-
-    def method: String = _method
-
-    def url: String = _url
-
-    private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
-      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
-
-    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
-      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
-
-    protected def execute(method: String): Promise[R] = {
-      import com.ning.http.client.AsyncCompletionHandler
-      var result = Promise[R]()
-      var request = this.setMethod(method).build()
-      calculator.map(_.sign(this))
-      WS.client.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
-        override def onCompleted(response: AHCResponse) = {
-          result.redeem(wrapResponse(response))
-          response
-        }
-        override def onThrowable(t: Throwable) = {
-          result.redeem(throw t)
-        }
-      })
-      result
-    }
+   
 
     protected def wrapResponse(ahcResponse: AHCResponse): R
 
-    private def executeStream[A](method: String, consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
+    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
       import com.ning.http.client.AsyncHandler
-      var request = this.setMethod(method).build()
       var doneOrError = false
       calculator.map(_.sign(this))
 
@@ -187,7 +139,7 @@ object WS {
       var iterateeP: STMPromise[Iteratee[Array[Byte], A]] = null
       var iteratee: Iteratee[Array[Byte], A] = null
 
-      WS.client.executeRequest(request, new AsyncHandler[Unit]() {
+      WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
         import com.ning.http.client.AsyncHandler.STATE
 
         override def onStatusReceived(status: HttpResponseStatus) = {
@@ -241,8 +193,102 @@ object WS {
     }
 
   }
+  
+  /**
+   * stores a URL and provides the main API methods for WS
+   *
+   */
+  case class WSRequestHolder(url: String) {
 
-  class WSRequest extends WS.WSRequestBase[WSRequest, ws.Response](classOf[WSRequest]) {
+    private var _body: Array[Byte] = null
+    
+    private var _calc: Option[SignatureCalculator] = None
+    
+    private var _auth:Option[Tuple3[String,String,AuthScheme]] = None
+
+    /**
+     * sets the body for the request
+     * @param data send as part of the request body
+     */
+    def body(data:Array[Byte]) = { 
+      _body = data; 
+      this 
+    }
+
+    def body(data: String) = {
+      _body = data.getBytes
+      this
+    }
+
+    /**
+     * sets the signature calculator for the request
+     * @param calc
+     */
+    def sign(calc: SignatureCalculator) = {
+      _calc = Some(calc)
+      this
+    }
+    
+    /**
+     * sets the authentication realm
+     * @param calc
+     */
+    def auth(username: String, password: String, scheme: AuthScheme) = {
+       _auth = Some( (username,password,scheme) )
+       this
+    }
+
+    /**
+     * performs a get with supplied body
+     */
+    def get(): Promise[ws.Response] = new WSRequest("GET", _auth, _calc ).setUrl(url).execute
+
+     /**
+     * performs a get with supplied body
+     * @param consumer that's handling the response
+     */
+    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("GET", _auth, _calc).setUrl(url).executeStream(consumer)
+
+    /**
+     * Perform a POST on the request asynchronously.
+     */
+    def post(): Promise[ws.Response] = new WSRequest("POST", _auth, _calc).setUrl(url).setBody(_body).execute
+
+    /**
+     * performs a POST with supplied body
+     * @param consumer that's handling the response
+     */
+    def post[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("POST", _auth, _calc).setUrl(url).executeStream(consumer) 
+
+    /**
+     * Perform a PUT on the request asynchronously.
+     */
+    def put(): Promise[ws.Response] = new WSRequest("PUT", _auth, _calc).setUrl(url).setBody(_body).execute
+
+     /**
+     * performs a PUT with supplied body
+     * @param consumer that's handling the response
+     */
+    def put[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("PUT", _auth, _calc).setUrl(url).executeStream(consumer)
+
+    /**
+     * Perform a DELETE on the request asynchronously.
+     */
+    def delete(): Promise[ws.Response] = new WSRequest("DELETE", _auth, _calc).setUrl(url).execute
+
+    /**
+     * Perform a HEAD on the request asynchronously.
+     */
+    def head(): Promise[ws.Response] = new WSRequest("HEAD", _auth, _calc).setUrl(url).execute
+
+    /**
+     * Perform a OPTIONS on the request asynchronously.
+     */
+    def options(): Promise[ws.Response] = new WSRequest("OPTIONS", _auth, _calc).setUrl(url).execute  
+
+  }
+
+  class WSRequest(method: String, auth:Option[Tuple3[String,String,AuthScheme]], calc: Option[SignatureCalculator]) extends WS.WSRequestBase[WSRequest, ws.Response](classOf[WSRequest], method, auth, calc) {
 
     override def wrapResponse(ahcResponse: AHCResponse) = new ws.Response(ahcResponse)
 

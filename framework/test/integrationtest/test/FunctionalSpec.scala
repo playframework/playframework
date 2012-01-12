@@ -17,13 +17,17 @@ object FunctionalSpec extends Specification {
     "pass functional test" in {
       running(TestServer(9001), HTMLUNIT) { browser =>
         
+        val content: String = await(WS.url("http://localhost:9001/post").body("param1=foo".getBytes).post()).body
+        content must contain ("param1")
+        content must contain ("foo")
+
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Hello world")
         
         await(WS.url("http://localhost:9001").get()).body must contain ("Hello world")
         
-        await(WS.url("http://localhost:9001/post").post()).body must contain ("POST!")
-        
+     
+
         await(WS.url("http://localhost:9001/json").get()).json.as[User] must equalTo(User(1, "Sadek", List("tea")))
         
         browser.goTo("http://localhost:9001/conf")
