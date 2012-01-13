@@ -31,8 +31,9 @@ object Application extends Controller {
     Ok(s + " no key: " + c +" - override akka:"+ overrideConfig)
   }
   
-  def post = Action {
-    Ok(views.html.index("POST!"))
+  def post = Action { request =>
+    val content: String = new String(request.body.asRaw.get.asBytes(10000000).get)
+    Ok(views.html.index(content))
   }
 
   def json = Action {
