@@ -4,7 +4,7 @@ import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.json._
-import play.api.mvc.Writeable
+import play.api.mvc.{Results,Writeable,ContentTypeOf}
 
 import com.ning.http.client.{
   AsyncHttpClient,
@@ -28,7 +28,7 @@ import com.ning.http.client.{
  *
  */
 object WS {
-
+ 
   import ws._
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 
@@ -210,7 +210,7 @@ object WS {
                              headers: Map[String, Seq[String]],
                              queryString: Map[String, String],
                              calc: Option[SignatureCalculator],
-                             auth:Option[Tuple3[String,String,AuthScheme]]) {
+                             auth:Option[Tuple3[String,String,AuthScheme]])  {
 
     /**
      * sets the signature calculator for the request
@@ -258,24 +258,24 @@ object WS {
     /**
      * Perform a POST on the request asynchronously.
      */
-    def post[T](body: T)(implicit wrt: Writeable[T]): Promise[ws.Response] = prepare("POST", body).execute
+    def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[ws.Response] = prepare("POST", body).execute
 
     /**
      * performs a POST with supplied body
      * @param consumer that's handling the response
      */
-    def post[A, T](consumer: ResponseHeaders => Iteratee[Array[Byte], A], body: T)(implicit wrt: Writeable[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
+    def post[A, T](consumer: ResponseHeaders => Iteratee[Array[Byte], A], body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
 
     /**
      * Perform a PUT on the request asynchronously.
      */
-    def put[T](body: T)(implicit wrt: Writeable[T]): Promise[ws.Response] = prepare("PUT", body).execute
+    def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[ws.Response] = prepare("PUT", body).execute
 
      /**
      * performs a PUT with supplied body
      * @param consumer that's handling the response
      */
-    def put[A, T](consumer: ResponseHeaders => Iteratee[Array[Byte], A], body: T)(implicit wrt: Writeable[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
+    def put[A, T](consumer: ResponseHeaders => Iteratee[Array[Byte], A], body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
 
     /**
      * Perform a DELETE on the request asynchronously.
@@ -297,9 +297,9 @@ object WS {
                                        .setHeaders(headers)
                                        .setQueryString(queryString)
 
-    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T]) =
+    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
       new WSRequest(method, auth, calc).setUrl(url)
-                                       .setHeaders(headers)
+                                       .setHeaders(headers ++ Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))))
                                        .setQueryString(queryString)
                                        .setBody(wrt.transform(body))
 

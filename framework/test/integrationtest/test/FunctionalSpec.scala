@@ -3,12 +3,13 @@ package test
 import play.api.test._
 import play.api.test.Helpers._
 
-import play.api.libs._
+import play.api.libs.WS
 
 import org.specs2.mutable._
 
 import models._
 import models.Protocol._
+
 
 object FunctionalSpec extends Specification {
 
@@ -19,7 +20,12 @@ object FunctionalSpec extends Specification {
 
         val content: String = await(WS.url("http://localhost:9001/post").post("param1=foo")).body
         content must contain ("param1")
+        content must contain("AnyContentAsText")
         content must contain ("foo")
+
+        val contentForm: String = await(WS.url("http://localhost:9001/post").post(Map("param1"->Seq("foo")))).body
+        contentForm must contain ("AnyContentAsUrlFormEncoded")
+        contentForm must contain ("foo")
 
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Hello world")

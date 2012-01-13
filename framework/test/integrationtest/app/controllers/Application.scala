@@ -32,7 +32,8 @@ object Application extends Controller {
   }
   
   def post = Action { request =>
-    val content: String = new String(request.body.asRaw.get.asBytes(10000000).get)
+    //val content: String = request.body.asString().getOrElse("boo")
+    val content: String = request.body.toString
     Ok(views.html.index(content))
   }
 

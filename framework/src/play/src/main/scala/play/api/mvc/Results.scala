@@ -327,6 +327,10 @@ trait Results {
     Writeable[scala.xml.NodeBuffer](xml => codec.encode(xml.toString))
   }
 
+   /** `Writeable` for `urlEncodedForm` values  */
+  implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String,Seq[String]]] = {
+    Writeable[Map[String,Seq[String]]](formData => codec.encode(formData.map(item => item._2.map(c=>item._1+"="+c)).flatten.mkString("&")))
+  }
   /** `Writeable` for `JsValue` values - Json */
   implicit def writeableOf_JsValue(implicit codec: Codec): Writeable[JsValue] = {
     Writeable[JsValue](jsval => codec.encode(jsval.toString))
@@ -358,6 +362,10 @@ trait Results {
   /** Default content type for `String` values (`text/plain`). */
   implicit def contentTypeOf_String(implicit codec: Codec): ContentTypeOf[String] = {
     ContentTypeOf[String](Some(ContentTypes.TEXT))
+  }
+   /** Default content type for `String` values (`application/x-www-form-urlencoded`). */
+  implicit def contentTypeOf_urlEncodedForm(implicit codec: Codec): ContentTypeOf[Map[String, Seq[String]]] = {
+    ContentTypeOf[Map[String, Seq[String]]](Some(ContentTypes.FORM))
   }
 
   /** Default content type for `NodeSeq` values (`text/xml`). */

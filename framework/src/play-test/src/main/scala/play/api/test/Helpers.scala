@@ -10,7 +10,7 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
-object Helpers extends Status with HeaderNames {
+object Helpers extends Status with HeaderNames with play.api.mvc.Results{
 
   val GET = "GET"
   val POST = "POST"
