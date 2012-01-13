@@ -9,15 +9,17 @@ import scala.collection.JavaConverters._
 /**
  * This object provides a set of operations to create `Configuration` values.
  *
- * For example, to load a `Configuration` from a file:
+ * For example, to load a `Configuration` in a running application:
  * {{{
- * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
+ * val config = Configuration.load()
+ * val foo = config.getString("foo").getOrElse("boo")
  * }}}
  */
 object Configuration {
 
   /**
-   * loads the configuration from 'conf/application.conf' in Dev mode
+   * loads `Configuration` from 'conf/application.conf' in Dev mode
+   * @return  configuration to be used
    */
 
   private[api] def loadDev = {
@@ -25,19 +27,19 @@ object Configuration {
   }
 
   /**
-   * Loads a new configuration from a file.
+   * Loads a new `Configuration` from either the classpath or from 
+   * `conf/application.conf` depending on the application's Mode
    *
-   * For example:
-   * {{{
-   * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
-   * }}}
    *
-   * @param the file configuration file to read
+   * @param mode that can be passed in if the application is not ready 
+   * yet, just like when calling this method from `play.api.Application`. 
+   * Defaults to Mode.Dev
    * @return a `Configuration` instance
    */
-  def load() = {
+  def load(mode: Mode.Mode = Mode.Dev) = {
     try {
-      Configuration(Play.maybeApplication.filter(_.mode == Mode.Prod).map(app => ConfigFactory.load()).getOrElse(loadDev))
+      val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
+      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev)
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
@@ -64,13 +66,8 @@ object Configuration {
 /**
  * A full configuration set.
  *
- * The best way to obtain this configuration is to read it from a file using:
- * {{{
- * val config = Configuration.fromFile(app.getFile("conf/application.conf"))
- * }}}
  *
- * @param data the configuration data
- * @param root the root key of this configuration if it represents a sub-configuration
+ * @param underlying the underlying Config implementation
  */
 case class Configuration(underlying: Config) {
 
@@ -95,7 +92,8 @@ case class Configuration(underlying: Config) {
    *
    * This method supports an optional set of valid values:
    * {{{
-   * val mode = configuration.getString("engine.mode", Some(Set("dev","prod")))
+   * val config = Configuration.load() 
+   * val mode = config.getString("engine.mode", Some(Set("dev","prod")))
    * }}}
    *
    * A configuration error will be thrown if the configuration value does not match any of the required values.
@@ -118,6 +116,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
+   * val configuration = Configuration.load() 
    * val poolSize = configuration.getInt("engine.pool.size")
    * }}}
    *
@@ -133,6 +132,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
+   * val configuration = Configuration.load() 
    * val isEnabled = configuration.getString("engine.isEnabled")
    * }}}
    *
@@ -153,6 +153,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
+   * val configuration = Configuration.load()     
    * val engineConfig = configuration.getSub("engine")
    * }}}
    *
@@ -166,6 +167,12 @@ case class Configuration(underlying: Config) {
   /**
    * Returns available keys.
    *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()     
+   * val keys = configuration.keys
+   * }}}
+   *
    * @return the set of keys available in this configuration
    */
   def keys: Set[String] = underlying.entrySet.asScala.map(_.getKey).toSet
@@ -173,6 +180,11 @@ case class Configuration(underlying: Config) {
   /**
    * Returns sub-keys.
    *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()     
+   * val subKeys = configuration.subKeys
+   * }}}
    * @return the set of direct sub-keys available in this configuration
    */
   def subKeys: Set[String] = keys.map(_.split('.').head)
@@ -182,6 +194,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
+   * val configuration = Configuration.load()  
    * throw configuration.reportError("engine.connectionUrl", "Cannot connect!")
    * }}}
    *
@@ -199,6 +212,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
+   * val configuration = Configuration.load()     
    * throw configuration.globalError("Missing configuration key: [yop.url]")
    * }}}
    *
