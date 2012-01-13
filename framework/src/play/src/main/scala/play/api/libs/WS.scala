@@ -21,6 +21,7 @@ import com.ning.http.client.{
  *
  * Usage example:
  * WS.url("http://example.com/feed").get()
+ * WS.url("http://example.com/item").post("content")
  *
  * The value returned is a Promise[Response],
  * and you should use Play's asynchronous mechanisms to use this response.
@@ -37,13 +38,9 @@ object WS {
    * Prepare a new request. You can then construct it by chaining calls.
    * @param url the URL to request
    */
-  def url(url: String) = WSRequestHolder(url)
+  def url(url: String) = WSRequestHolder(url, Map(), Map(), None, None)
 
-  /**
-   * A generic class for Request builders.
-   * T is the type of request, R is the type of response.
-   */
-  abstract class WSRequestBase[T <: WSRequestBase[T, R], R](clazz: Class[T], _method: String, _auth:Option[Tuple3[String,String,AuthScheme]], _calc: Option[SignatureCalculator] ) extends RequestBuilderBase[T](clazz, _method) {
+  class WSRequest(_method: String, _auth:Option[Tuple3[String,String,AuthScheme]], _calc: Option[SignatureCalculator] ) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method) {
 
     import scala.collection.JavaConversions
     import scala.collection.JavaConversions._
@@ -87,13 +84,13 @@ object WS {
     private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
       JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
 
-    private[libs] def execute: Promise[R] = {
+    private[libs] def execute: Promise[ws.Response] = {
       import com.ning.http.client.AsyncCompletionHandler
-      var result = Promise[R]()
+      var result = Promise[ws.Response]()
       calculator.map(_.sign(this))
       WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
         override def onCompleted(response: AHCResponse) = {
-          result.redeem(wrapResponse(response))
+          result.redeem(ws.Response(response))
           response
         }
         override def onThrowable(t: Throwable) = {
@@ -140,8 +137,6 @@ object WS {
       _url = url
       super.setUrl(url)
     }
-
-    protected def wrapResponse(ahcResponse: AHCResponse): R
 
     private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
       import com.ning.http.client.AsyncHandler
@@ -211,53 +206,42 @@ object WS {
    * stores a URL and provides the main API methods for WS
    *
    */
-  case class WSRequestHolder(url: String) {
-
-    private var _calc: Option[SignatureCalculator] = None
-
-    private var _auth: Option[Tuple3[String,String,AuthScheme]] = None
-
-    private var _headers: Map[String, Seq[String]] = Map()
-
-    private var _queryString: Map[String, String] = Map()
+  case class WSRequestHolder(url: String,
+                             headers: Map[String, Seq[String]],
+                             queryString: Map[String, String],
+                             calc: Option[SignatureCalculator],
+                             auth:Option[Tuple3[String,String,AuthScheme]]) {
 
     /**
      * sets the signature calculator for the request
      * @param calc
      */
-    def sign(calc: SignatureCalculator) = {
-      _calc = Some(calc)
-      this
-    }
+    def sign(calc: SignatureCalculator) = this.copy(calc = Some(calc))
 
     /**
      * sets the authentication realm
      * @param calc
      */
-    def auth(username: String, password: String, scheme: AuthScheme) = {
-       _auth = Some( (username,password,scheme) )
-       this
-    }
+    def withAuth(username: String, password: String, scheme: AuthScheme) =
+       this.copy(auth = Some( (username,password,scheme) ))
 
     /**
      * adds any number of HTTP headers
      * @param hdrs
      */
-    def headers(hdrs: (String, String)*) = {
-      _headers = hdrs.foldLeft(_headers)((m, hdr) =>
+    def withHeaders(hdrs: (String, String)*) = {
+      val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
         if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
         else (m + (hdr._1 -> Seq(hdr._2)))
       )
-      this
+      this.copy(headers = headers)
     }
 
     /**
-     * adds any number of query string parameters to the 
+     * adds any number of query string parameters to the
      */
-    def queryString(parameters: (String, String)*) = {
-      _queryString = parameters.foldLeft(_queryString)((m, param) => m + param)
-      this
-    }
+    def withQueryString(parameters: (String, String)*) =
+      this.copy(queryString = parameters.foldLeft(queryString)((m, param) => m + param))
 
     /**
      * performs a get with supplied body
@@ -309,21 +293,15 @@ object WS {
     def options(): Promise[ws.Response] = prepare("OPTIONS").execute
 
     private def prepare(method: String) =
-      new WSRequest(method, _auth, _calc).setUrl(url)
-                                         .setHeaders(_headers)
-                                         .setQueryString(_queryString)
+      new WSRequest(method, auth, calc).setUrl(url)
+                                       .setHeaders(headers)
+                                       .setQueryString(queryString)
 
     private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T]) =
-      new WSRequest(method, _auth, _calc).setUrl(url)
-                                         .setHeaders(_headers)
-                                         .setQueryString(_queryString)
-                                         .setBody(wrt.transform(body))
-
-  }
-
-  class WSRequest(method: String, auth:Option[Tuple3[String,String,AuthScheme]], calc: Option[SignatureCalculator]) extends WS.WSRequestBase[WSRequest, ws.Response](classOf[WSRequest], method, auth, calc) {
-
-    override def wrapResponse(ahcResponse: AHCResponse) = new ws.Response(ahcResponse)
+      new WSRequest(method, auth, calc).setUrl(url)
+                                       .setHeaders(headers)
+                                       .setQueryString(queryString)
+                                       .setBody(wrt.transform(body))
 
   }
 
@@ -331,7 +309,9 @@ object WS {
 
 package ws {
 
-  class WSResponse(ahcResponse: AHCResponse) {
+  case class Response(ahcResponse: AHCResponse) {
+    import scala.xml._
+    import play.api.libs.json._
 
     def getAHCResponse = ahcResponse
 
@@ -340,12 +320,6 @@ package ws {
     def header(key: String) = ahcResponse.getHeader(key)
 
     lazy val body: String = ahcResponse.getResponseBody()
-
-  }
-
-  class Response(ahcResponse: AHCResponse) extends WSResponse(ahcResponse) {
-    import scala.xml._
-    import play.api.libs.json._
 
     lazy val xml = XML.loadString(body)
 
@@ -359,7 +333,7 @@ package ws {
   case class ResponseHeaders(status: Int, headers: Map[String, Seq[String]])
 
   trait SignatureCalculator {
-    def sign(request: WS.WSRequestBase[_, _])
+    def sign(request: WS.WSRequest)
   }
 
 }

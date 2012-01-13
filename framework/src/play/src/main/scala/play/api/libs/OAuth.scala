@@ -7,7 +7,7 @@ import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
 
 import play.api.libs.ws._
-import play.api.libs.WS.WSRequestBase
+import play.api.libs.WS.WSRequest
 
 /**
  * Library to access ressources protected by OAuth 1.0a.
@@ -86,13 +86,13 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
   this.setTokenWithSecret(token.token, token.secret)
 
   override protected def wrap(request: Any) = request match {
-    case r: WSRequestBase[_, _] => new WSRequestAdapter(r)
-    case _ => throw new IllegalArgumentException("OAuthCalculator expects requests of type play.api.WS.WSRequestBase")
+    case r: WSRequest => new WSRequestAdapter(r)
+    case _ => throw new IllegalArgumentException("OAuthCalculator expects requests of type play.api.WS.WSRequest")
   }
 
-  override def sign(request: WSRequestBase[_, _]): Unit = sign(wrap(request))
+  override def sign(request: WSRequest): Unit = sign(wrap(request))
 
-  class WSRequestAdapter(request: WSRequestBase[_, _]) extends HttpRequest {
+  class WSRequestAdapter(request: WSRequest) extends HttpRequest {
 
     import scala.collection.JavaConversions._
 
