@@ -4,6 +4,7 @@ import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.json._
+import play.api.mvc.Writeable
 
 import com.ning.http.client.{
   AsyncHttpClient,
@@ -130,6 +131,11 @@ object WS {
       this
     }
 
+    def setQueryString(queryString: Map[String, String]) = {
+      queryString.foreach { param: (String, String) => this.addQueryParameter(param._1, param._2) }
+      this
+    }
+
     override def setUrl(url: String) = {
       _url = url
       super.setUrl(url)
@@ -207,27 +213,13 @@ object WS {
    */
   case class WSRequestHolder(url: String) {
 
-    private var _body: Array[Byte] = null
-
     private var _calc: Option[SignatureCalculator] = None
 
     private var _auth: Option[Tuple3[String,String,AuthScheme]] = None
 
     private var _headers: Map[String, Seq[String]] = Map()
 
-    /**
-     * sets the body for the request
-     * @param data send as part of the request body
-     */
-    def body(data:Array[Byte]) = {
-      _body = data;
-      this 
-    }
-
-    def body(data: String) = {
-      _body = data.getBytes
-      this
-    }
+    private var _queryString: Map[String, String] = Map()
 
     /**
      * sets the signature calculator for the request
@@ -248,64 +240,84 @@ object WS {
     }
 
     /**
-     * adds any number of headers
+     * adds any number of HTTP headers
      * @param hdrs
      */
     def headers(hdrs: (String, String)*) = {
-        _headers = hdrs.foldLeft(_headers)((m, hdr) =>
-            if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
-            else (m + (hdr._1 -> Seq(hdr._2)))
-         )
-        this
+      _headers = hdrs.foldLeft(_headers)((m, hdr) =>
+        if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
+        else (m + (hdr._1 -> Seq(hdr._2)))
+      )
+      this
+    }
+
+    /**
+     * adds any number of query string parameters to the 
+     */
+    def queryString(parameters: (String, String)*) = {
+      _queryString = parameters.foldLeft(_queryString)((m, param) => m + param)
+      this
     }
 
     /**
      * performs a get with supplied body
      */
-    def get(): Promise[ws.Response] = new WSRequest("GET", _auth, _calc ).setUrl(url).execute
+    def get(): Promise[ws.Response] = prepare("GET").execute
 
      /**
      * performs a get with supplied body
      * @param consumer that's handling the response
      */
-    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("GET", _auth, _calc).setUrl(url).executeStream(consumer)
+    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] =
+      prepare("GET").executeStream(consumer)
 
     /**
      * Perform a POST on the request asynchronously.
      */
-    def post(): Promise[ws.Response] = new WSRequest("POST", _auth, _calc).setUrl(url).setBody(_body).setHeaders(_headers).execute
+    def post[T](body: T)(implicit wrt: Writeable[T]): Promise[ws.Response] = prepare("POST", body).execute
 
     /**
      * performs a POST with supplied body
      * @param consumer that's handling the response
      */
-    def post[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("POST", _auth, _calc).setUrl(url).setHeaders(_headers).executeStream(consumer)
+    def post[A, T](consumer: ResponseHeaders => Iteratee[Array[Byte], A], body: T)(implicit wrt: Writeable[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
 
     /**
      * Perform a PUT on the request asynchronously.
      */
-    def put(): Promise[ws.Response] = new WSRequest("PUT", _auth, _calc).setUrl(url).setHeaders(_headers).setBody(_body).execute
+    def put[T](body: T)(implicit wrt: Writeable[T]): Promise[ws.Response] = prepare("PUT", body).execute
 
      /**
      * performs a PUT with supplied body
      * @param consumer that's handling the response
      */
-    def put[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = new WSRequest("PUT", _auth, _calc).setUrl(url).setHeaders(_headers).setBody(_body).executeStream(consumer)
+    def put[A, T](consumer: ResponseHeaders => Iteratee[Array[Byte], A], body: T)(implicit wrt: Writeable[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
 
     /**
      * Perform a DELETE on the request asynchronously.
      */
-    def delete(): Promise[ws.Response] = new WSRequest("DELETE", _auth, _calc).setUrl(url).setHeaders(_headers).execute
+    def delete(): Promise[ws.Response] = prepare("DELETE").execute
 
     /**
      * Perform a HEAD on the request asynchronously.
      */
-    def head(): Promise[ws.Response] = new WSRequest("HEAD", _auth, _calc).setUrl(url).setHeaders(_headers).execute
+    def head(): Promise[ws.Response] = prepare("HEAD").execute
 
     /**
      * Perform a OPTIONS on the request asynchronously.
      */
-    def options(): Promise[ws.Response] = new WSRequest("OPTIONS", _auth, _calc).setUrl(url).setHeaders(_headers).execute
+    def options(): Promise[ws.Response] = prepare("OPTIONS").execute
+
+    private def prepare(method: String) =
+      new WSRequest(method, _auth, _calc).setUrl(url)
+                                         .setHeaders(_headers)
+                                         .setQueryString(_queryString)
+
+    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T]) =
+      new WSRequest(method, _auth, _calc).setUrl(url)
+                                         .setHeaders(_headers)
+                                         .setQueryString(_queryString)
+                                         .setBody(wrt.transform(body))
 
   }
 

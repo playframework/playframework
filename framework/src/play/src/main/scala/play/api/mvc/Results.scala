@@ -267,7 +267,7 @@ object Codec {
 }
 
 /**
- * Content writeable to the HTTP response.
+ * Content writeable to the body of an HTTP response or request.
  *
  * @tparam A the content type
  */
