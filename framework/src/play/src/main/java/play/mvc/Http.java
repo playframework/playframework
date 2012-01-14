@@ -134,9 +134,14 @@ public class Http {
         public abstract String uri();
         
         /**
-         * The HTTP Method.
+         * The HTTP method.
          */
         public abstract String method();
+
+        /**
+         * The request host.
+         */
+        public abstract String host();
         
         /**
          * The URI path.
