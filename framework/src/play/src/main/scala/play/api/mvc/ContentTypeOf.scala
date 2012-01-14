@@ -17,6 +17,9 @@ case class ContentTypeOf[A](mimeType: Option[String])
 
 object ContentTypeOf extends DefaultContentTypeOfs
 
+/**
+ * contains typeclasses for ContentTypeOf
+ */
 trait DefaultContentTypeOfs {
 
   /** Default content type for `Html` values (`text/html`). */
@@ -43,7 +46,7 @@ trait DefaultContentTypeOfs {
   implicit def contentTypeOf_String(implicit codec: Codec): ContentTypeOf[String] = {
     ContentTypeOf[String](Some(ContentTypes.TEXT))
   }
-  /** Default content type for `String` values (`application/x-www-form-urlencoded`). */
+  /** Default content type for `Map[String, Seq[String]]]` values (`application/x-www-form-urlencoded`). */
   implicit def contentTypeOf_urlEncodedForm(implicit codec: Codec): ContentTypeOf[Map[String, Seq[String]]] = {
     ContentTypeOf[Map[String, Seq[String]]](Some(ContentTypes.FORM))
   }
