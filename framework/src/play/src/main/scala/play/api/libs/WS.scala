@@ -4,7 +4,7 @@ import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.json._
-import play.api.mvc.{Results,Writeable,ContentTypeOf}
+import play.api.mvc.{ Writeable, ContentTypeOf }
 
 import com.ning.http.client.{
   AsyncHttpClient,
@@ -28,7 +28,7 @@ import com.ning.http.client.{
  *
  */
 object WS {
- 
+
   import ws._
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 
@@ -40,7 +40,7 @@ object WS {
    */
   def url(url: String) = WSRequestHolder(url, Map(), Map(), None, None)
 
-  class WSRequest(_method: String, _auth:Option[Tuple3[String,String,AuthScheme]], _calc: Option[SignatureCalculator] ) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method) {
+  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method) {
 
     import scala.collection.JavaConversions
     import scala.collection.JavaConversions._
@@ -52,7 +52,7 @@ object WS {
     protected var _url: String = null
 
     //this will do a java mutable set hence the {} repsonse
-    _auth.map(data => auth(data._1,data._2,data._3)).getOrElse({})
+    _auth.map(data => auth(data._1, data._2, data._3)).getOrElse({})
 
     /**
      * Add http auth headers
@@ -122,7 +122,7 @@ object WS {
 
     def setHeaders(hdrs: Map[String, Seq[String]]) = {
       headers = hdrs
-      hdrs.foreach(header => header._2.foreach (value =>
+      hdrs.foreach(header => header._2.foreach(value =>
         super.addHeader(header._1, value)
       ))
       this
@@ -207,10 +207,10 @@ object WS {
    *
    */
   case class WSRequestHolder(url: String,
-                             headers: Map[String, Seq[String]],
-                             queryString: Map[String, String],
-                             calc: Option[SignatureCalculator],
-                             auth:Option[Tuple3[String,String,AuthScheme]])  {
+      headers: Map[String, Seq[String]],
+      queryString: Map[String, String],
+      calc: Option[SignatureCalculator],
+      auth: Option[Tuple3[String, String, AuthScheme]]) {
 
     /**
      * sets the signature calculator for the request
@@ -223,7 +223,7 @@ object WS {
      * @param calc
      */
     def withAuth(username: String, password: String, scheme: AuthScheme) =
-       this.copy(auth = Some( (username,password,scheme) ))
+      this.copy(auth = Some((username, password, scheme)))
 
     /**
      * adds any number of HTTP headers
@@ -248,7 +248,7 @@ object WS {
      */
     def get(): Promise[ws.Response] = prepare("GET").execute
 
-     /**
+    /**
      * performs a get with supplied body
      * @param consumer that's handling the response
      */
@@ -271,7 +271,7 @@ object WS {
      */
     def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[ws.Response] = prepare("PUT", body).execute
 
-     /**
+    /**
      * performs a PUT with supplied body
      * @param consumer that's handling the response
      */
@@ -294,14 +294,14 @@ object WS {
 
     private def prepare(method: String) =
       new WSRequest(method, auth, calc).setUrl(url)
-                                       .setHeaders(headers)
-                                       .setQueryString(queryString)
+        .setHeaders(headers)
+        .setQueryString(queryString)
 
     private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
       new WSRequest(method, auth, calc).setUrl(url)
-                                       .setHeaders(headers ++ Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))))
-                                       .setQueryString(queryString)
-                                       .setBody(wrt.transform(body))
+        .setHeaders(headers ++ Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))))
+        .setQueryString(queryString)
+        .setBody(wrt.transform(body))
 
   }
 
