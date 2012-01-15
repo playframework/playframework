@@ -38,15 +38,15 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     }
 
     val actionMixins = {
-      (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations)
-        .filter(_.annotationType.isAnnotationPresent(classOf[play.mvc.With]))
-        .map(a => a -> a.annotationType.getAnnotation(classOf[play.mvc.With]).value())
-        .reverse
+      (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations).collect {
+        case a: play.mvc.With => a -> a.value()
+        case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) => a -> a.annotationType.getAnnotation(classOf[play.mvc.With]).value()
+      }.reverse
     }
 
-    val finalAction = actionMixins.foldLeft(rootAction) {
+    val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](rootAction) {
       case (delegate, (annotation, actionClass)) => {
-        val action = actionClass.newInstance().asInstanceOf[JAction[Any]]
+        val action = actionClass.newInstance()
         action.configuration = annotation
         action.delegate = delegate
         action

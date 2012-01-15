@@ -6,6 +6,8 @@ import play.mvc.*;
 import play.test.*;
 import play.libs.F.*;
 
+import controllers.Interceptor;
+
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
@@ -29,4 +31,18 @@ public class ApplicationTest {
         });
     }
 
+    @Test
+    public void interceptors() {
+        Interceptor.state = "";
+        Result result = callAction(controllers.routes.ref.JavaApi.notIntercepted());
+        assertThat(contentAsString(result)).isEqualTo("");
+        
+        Interceptor.state = "";
+        result = callAction(controllers.routes.ref.JavaApi.interceptedUsingWith());
+        assertThat(contentAsString(result)).isEqualTo("intercepted");
+        
+        Interceptor.state = "";
+        result = callAction(controllers.routes.ref.JavaApi.intercepted());
+        assertThat(contentAsString(result)).isEqualTo("intercepted");
+    }
 }

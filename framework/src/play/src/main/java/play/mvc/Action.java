@@ -1,7 +1,5 @@
 package play.mvc;
 
-import play.core.j.*;
-
 import play.mvc.Http.*;
 
 /**
