@@ -157,6 +157,21 @@ object PathBindable {
     def unbind(key: String, value: java.lang.Integer) = value.toString
   }
 
+  implicit def bindableBoolean = new PathBindable[Boolean] {
+    def bind(key: String, value: String) = {
+      try {
+        java.lang.Integer.parseInt(URLDecoder.decode(value, "utf-8")) match {
+          case 0 => Right(false)
+          case 1 => Right(true)
+          case _ => Left("Cannot parse parameter " + key + " as Boolean: should be 0 or 1")
+        }
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Boolean: should be 0 or 1")
+      }
+    }
+    def unbind(key: String, value: Boolean) = key + "=" + (if (value) "1" else "0")
+  }
+
   implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {
     def bind(key: String, value: String) = {
       implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
