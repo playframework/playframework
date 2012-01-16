@@ -649,13 +649,11 @@ object Enumerator {
             val buffer = new Array[Byte](chunkSize)
             input.read(buffer) match {
               case -1 => {
-                println("DONE!")
                 val remainingIteratee = k(Input.EOF)
                 iterateeP.redeem(remainingIteratee)
                 None
               }
               case read => {
-                println("some input!")
                 val input = new Array[Byte](read)
                 System.arraycopy(buffer, 0, input, 0, read)
                 val nextIteratee = k(Input.El(input))
@@ -668,9 +666,7 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
-          case _ =>
-            println("closing expensive resource!")
-            input.close()
+          case _ => input.close()
         }
 
       }
