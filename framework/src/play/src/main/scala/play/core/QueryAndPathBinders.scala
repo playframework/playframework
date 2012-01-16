@@ -90,6 +90,21 @@ object QueryStringBindable {
     def unbind(key: String, value: java.lang.Integer) = key + "=" + value.toString
   }
 
+  implicit def bindableBoolean = new QueryStringBindable[Boolean] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        java.lang.Integer.parseInt(i) match {
+          case 0 => Right(false)
+          case 1 => Right(true)
+          case _ => Left("Cannot parse parameter " + key + " as Boolean: should be 0 or 1")
+        }
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Boolean: should be 0 or 1")
+      }
+    }
+    def unbind(key: String, value: Boolean) = key + "=" + (if (value) "1" else "0")
+  }
+
   implicit def bindableOption[T: QueryStringBindable] = new QueryStringBindable[Option[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(

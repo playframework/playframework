@@ -4,7 +4,6 @@ import play.api.mvc._
 import play.api._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
-import play.api.http.ContentTypes
 import play.api.templates._
 import play.api.libs.json._
 
