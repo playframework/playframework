@@ -34,6 +34,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
       sys.error("Server is not started!");
     }
     server.stop()
+    server = null
   }
 
 }

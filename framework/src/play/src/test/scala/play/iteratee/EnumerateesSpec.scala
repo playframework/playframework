@@ -67,6 +67,7 @@ object EnumerateesSpec extends Specification {
 
     }
 
+
     "infer its types correctly from previous enumeratee" in {
       
       val add1AndConsume = Enumeratee.map[Int](i => i+1) ><> Enumeratee.map(i => List(i)) &>>  Iteratee.consume()

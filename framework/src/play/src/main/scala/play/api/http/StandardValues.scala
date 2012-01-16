@@ -16,7 +16,7 @@ trait ContentTypes {
   def XML(implicit codec: Codec) = ("text/xml; charset=" + codec.charset)
   def CSS(implicit codec: Codec) = ("text/css; charset=" + codec.charset)
   def JAVASCRIPT(implicit codec: Codec) = ("text/javascript; charset=" + codec.charset)
-
+  def FORM(implicit codec: Codec) = ("application/x-www-form-urlencoded; charset=" + codec.charset)
   val BINARY = "application/octet-stream"
 
 }

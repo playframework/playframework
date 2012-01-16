@@ -891,10 +891,10 @@ public class Results {
     public abstract static class Chunks<A> {
 
         final scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit> f;
-        final play.api.mvc.Writeable<A> w;
-        final play.api.mvc.ContentTypeOf<A> ct;
+        final play.api.http.Writeable<A> w;
+        final play.api.http.ContentTypeOf<A> ct;
 
-        public Chunks(play.api.mvc.Writeable<A> w, play.api.mvc.ContentTypeOf<A> ct) {
+        public Chunks(play.api.http.Writeable<A> w, play.api.http.ContentTypeOf<A> ct) {
             final Chunks<A> self = this;
             this.w = w;
             this.ct = ct;

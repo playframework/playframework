@@ -31,7 +31,7 @@ import annotation.implicitNotFound
 class Application(val path: File, val classloader: ClassLoader, val sources: Option[SourceMapper], val mode: Mode.Mode) {
 
   private val initialConfiguration = Threads.withContextClassLoader(classloader) {
-    Configuration.load()
+    Configuration.load(mode)
   }
 
   // -- Global stuff

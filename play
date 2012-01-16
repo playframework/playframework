@@ -23,11 +23,17 @@ if [ -f conf/application.conf ]; then
       exit 1
     fi
   fi
-  if [ -n "$1" ]; then
-    `dirname $0`/framework/build "$@"
-  else
-    `dirname $0`/framework/build play
+  
+  if [ -z "${JPDA_PORT}" ]; then
+    JPDA_PORT="9999"
   fi
+  
+  if [ -n "$1" ]; then
+    JPDA_PORT="${JPDA_PORT}" `dirname $0`/framework/build "$@"
+  else
+    JPDA_PORT="${JPDA_PORT}" `dirname $0`/framework/build play
+  fi
+  
 else
   java -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework -Dsbt.boot.properties=`dirname $0`/framework/sbt/play.boot.properties -jar `dirname $0`/framework/sbt/sbt-launch.jar "$@"
 fi

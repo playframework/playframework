@@ -1,6 +1,7 @@
 package play.core.j
 
 import play.api.mvc._
+import play.api.http._
 import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._
@@ -8,7 +9,7 @@ import scala.collection.JavaConverters._
 /**
  * Java compatible Results
  */
-object JavaResults extends Results {
+object JavaResults extends Results with DefaultWriteables with DefaultContentTypeOfs {
   def writeContent(codec: Codec): Writeable[Content] = writeableOf_Content[Content](codec)
   def writeString(codec: Codec): Writeable[String] = Writeable.wString(codec)
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes

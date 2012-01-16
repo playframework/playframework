@@ -17,6 +17,12 @@ public class Scala {
     public static <K,V> java.util.Map<K,V> asJava(scala.collection.Map<K,V> scalaMap) {
        return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
     }
+    
+    public static <A,B> scala.collection.immutable.Map<A,B> asScala(Map<A,B> javaMap) {
+        return play.utils.Conversions.newMap(
+            scala.collection.JavaConverters.asScalaMapConverter(javaMap).asScala().toSeq()
+        );
+    } 
 
     public static <T> java.util.List<T> asJava(scala.collection.immutable.List<T> scalaList) {
        return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();

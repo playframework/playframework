@@ -2,6 +2,7 @@ package play.test;
 
 import play.*;
 import play.mvc.*;
+import play.libs.*;
 import play.libs.F.*;
 
 import org.openqa.selenium.*;
@@ -61,11 +62,33 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
     
     public static FakeApplication fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader());
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,String>());
+    }
+    
+    public static Map<String,String> inMemoryDatabase() {
+        return inMemoryDatabase("default");
+    }
+    
+    public static Map<String,String> inMemoryDatabase(String name) {
+        return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name));
+    }
+    
+    public static FakeApplication fakeApplication(Map<String,String> additionalConfiguration) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
     }
     
     public static int status(Result result) {
         return play.core.j.JavaResultExtractor.getStatus(result);
+    }
+    
+    public static String redirectLocation(Result result) {
+        return header(LOCATION, result);
+    }
+    
+    public static play.mvc.Http.Flash flash(Result result) {
+        return new play.mvc.Http.Flash(
+            Scala.asJava(play.api.test.Helpers.flash(result.getWrappedResult()).data())
+        );
     }
     
     public static String header(String header, Result result) {
@@ -170,6 +193,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     
     public static TestServer testServer(int port) {
         return new TestServer(port, fakeApplication());
+    }
+    
+    public static TestServer testServer(int port, FakeApplication app) {
+        return new TestServer(port, app);
     }
     
     public static void start(TestServer server) {

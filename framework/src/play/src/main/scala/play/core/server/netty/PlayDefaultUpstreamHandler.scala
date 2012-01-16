@@ -27,7 +27,7 @@ import scala.collection.JavaConverters._
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    e.getCause.printStackTrace()
+    //e.getCause.printStackTrace()
     e.getChannel.close()
   }
 
@@ -245,8 +245,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             eventuallyResultOrRequest.extend(_.value match {
               case Redeemed(Left(result)) => response.handle(result)
-              case Redeemed(Right(request)) =>
-                server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+              case Redeemed(Right(request)) => server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+              case error => {
+                Logger("play").trace("Cannot invoke the action, eventually got an error: " + error)
+                response.handle(Results.InternalServerError)
+                e.getChannel.setReadable(true)
+              }
             })
 
           }
