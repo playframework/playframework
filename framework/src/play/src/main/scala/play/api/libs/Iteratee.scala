@@ -639,47 +639,43 @@ object Enumerator {
   def enumerateStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = new Enumerator[Array[Byte]] {
     def apply[A](it: Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
 
-      var iteratee: Iteratee[Array[Byte], A] = it
-      var iterateeP: Promise[Iteratee[Array[Byte], A]] = null
+      var iterateeP = Promise[Iteratee[Array[Byte], A]]()
 
-      while (iterateeP == null) {
-        iteratee = iteratee.pureFlatFold(
+      def step(it: Iteratee[Array[Byte], A]) {
 
-          // Done
-          (_, _) => {
-            iterateeP = Promise.pure(iteratee)
-            iteratee
-          },
-
-          // CONTINUE
+        val next = it.pureFold(
+          (a, e) => { iterateeP.redeem(it); None },
           k => {
             val buffer = new Array[Byte](chunkSize)
             input.read(buffer) match {
               case -1 => {
+                println("DONE!")
                 val remainingIteratee = k(Input.EOF)
-                iterateeP = Promise.pure(remainingIteratee)
-                remainingIteratee
+                iterateeP.redeem(remainingIteratee)
+                None
               }
               case read => {
+                println("some input!")
                 val input = new Array[Byte](read)
                 System.arraycopy(buffer, 0, input, 0, read)
                 val nextIteratee = k(Input.El(input))
-                nextIteratee
+                Some(nextIteratee)
               }
             }
           },
-
-          // ERROR
-          (_, _) => {
-            iterateeP = Promise.pure(iteratee)
-            iteratee
-          }
-
+          (_, _) => { iterateeP.redeem(it); None }
         )
+
+        next.extend1 {
+          case Redeemed(Some(i)) => step(i)
+          case _ =>
+            println("closing expensive resource!")
+            input.close()
+        }
+
       }
 
-      input.close()
-
+      step(it)
       iterateeP
     }
   }

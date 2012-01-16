@@ -94,9 +94,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
               val bodyIteratee = {
                 val writeIteratee = Iteratee.fold1(NettyPromise(e.getChannel.write(nettyResponse)))((_, e: r.BODY_CONTENT) => writer(e))
-                Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { p =>
+
+                Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected()).transform(writeIteratee).mapDone { _ =>
                   if (e.getChannel.isConnected()) {
-                    p.map(_ => if (!keepAlive) e.getChannel.close())
+                    if (!keepAlive) e.getChannel.close()
                   }
                 }
               }
