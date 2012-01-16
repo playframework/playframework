@@ -299,7 +299,7 @@ object WS {
 
     private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
       new WSRequest(method, auth, calc).setUrl(url)
-        .setHeaders(headers ++ Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))))
+        .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers )
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
 
