@@ -3,7 +3,7 @@ package play.api.mvc
 import play.core._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-
+import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._

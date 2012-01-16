@@ -1,6 +1,7 @@
 package play.core.j
 
 import play.api.mvc._
+import play.api.http._
 import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._

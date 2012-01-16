@@ -4,7 +4,7 @@ import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.json._
-import play.api.mvc.{ Writeable, ContentTypeOf }
+import play.api.http.{ Writeable, ContentTypeOf }
 
 import com.ning.http.client.{
   AsyncHttpClient,

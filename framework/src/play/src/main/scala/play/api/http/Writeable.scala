@@ -1,5 +1,6 @@
-package play.api.mvc
+package play.api.http
 
+import play.api.mvc._
 import play.api._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
