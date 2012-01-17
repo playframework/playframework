@@ -22,7 +22,7 @@ object Configuration {
    * @return  configuration to be used
    */
 
-  private[api] def loadDev = {
+  private[play] def loadDev = {
     ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
   }
 
@@ -58,6 +58,7 @@ object Configuration {
       def position = None
       def input = Option(origin.url).map(_.asInput)
       def sourceName = Option(origin.filename)
+      override def toString = "Configuration error: " + getMessage
     }
   }
 

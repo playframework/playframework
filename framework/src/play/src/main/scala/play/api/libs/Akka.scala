@@ -9,15 +9,6 @@ import play.api.{ Mode, Configuration }
 import com.typesafe.config.ConfigFactory
 import play.api._
 
-private[play] object Akka {
-  lazy val system = {
-    val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
-      ConfigFactory.load()).getOrElse(Configuration.loadDev)
-    ActorSystem("playcore", conf.getConfig("playcore"))
-  }
-
-}
-
 /**
  * Defines convenient helpers to work with Akka from Play.
  */

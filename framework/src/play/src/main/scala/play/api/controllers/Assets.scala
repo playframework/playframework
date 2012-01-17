@@ -79,6 +79,7 @@ object Assets extends Controller {
             }.getOrElse(taggedResponse)
 
             cachedResponse
+
           }
 
         }
@@ -122,7 +123,7 @@ object Assets extends Controller {
 
   private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1(_))
+      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1)
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))
       maybeEtag
     }

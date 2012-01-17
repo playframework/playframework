@@ -7,8 +7,6 @@ import akka.dispatch.Future
 import akka.dispatch.Await
 import akka.util.duration._
 
-import play.api.libs.akka.Akka._
-import play.api.libs.akka.Akka._
 import play.api._
 import play.api.mvc._
 
@@ -83,7 +81,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       // Because we are on DEV mode here, it doesn't really matter
       // but it's more coherent with the way it works in PROD mode.
 
-      implicit def dispatcher = system.dispatcher
+      implicit def dispatcher = play.core.Invoker.system.dispatcher
 
       Await.result(Future {
 
@@ -133,10 +131,11 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
     import play.api.mvc.Results._
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
-    val testPath = """/@tests""".r
-    val runTestPath = """/@run-test""".r
-    val runTestSuit = """/@run-all-tests""".r
-    val testReport = "/@test-report".r
+
+    //val testPath = """/@tests""".r
+    //val runTestPath = """/@run-test""".r
+    //val runTestSuit = """/@run-all-tests""".r
+    //val testReport = "/@test-report".r
 
     request.path match {
 
@@ -151,6 +150,10 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         Some(Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")))
       }
 
+      /*
+      
+      Waiting next release
+      
       case testPath() => {
 
         val r = <p>
@@ -190,7 +193,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       }
       case testReport() => {
         Some(Ok(sbtLink.runTask("test-result-reporter").map(report => report.asInstanceOf[List[_]].mkString("")).getOrElse("...")).as("text/html"))
-      }
+      }*/
 
       case _ => None
 

@@ -248,7 +248,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case Redeemed(Left(result)) => response.handle(result)
               case Redeemed(Right(request)) => server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
               case error => {
-                Logger("play").trace("Cannot invoke the action, eventually got an error: " + error)
+                Logger("play").error("Cannot invoke the action, eventually got an error: " + error)
                 response.handle(Results.InternalServerError)
                 e.getChannel.setReadable(true)
               }

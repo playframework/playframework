@@ -1,33 +1,49 @@
 package play.core
 
-import akka.actor.Actor
-import akka.actor.Props
+import akka.actor._
 import akka.actor.Actor._
-import akka.dispatch.Dispatchers._
-import akka.dispatch.Future
-import akka.dispatch.Await
-import akka.util.duration._
-import akka.actor.OneForOneStrategy
-import akka.routing.{ DefaultActorPool, FixedCapacityStrategy, SmallestMailboxSelector }
-import com.typesafe.config.Config
+import akka.routing._
 
-import play.core.server._
-import play.api.libs.iteratee._
+import com.typesafe.config._
+
 import play.api._
-import play.utils._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.libs.iteratee._
 import play.api.http.HeaderNames._
-import play.api.libs.akka.Akka._
 
-case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
-class Invoker extends Actor {
+import play.utils._
+
+object Invoker {
+
+  case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
+  case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
+
+  val system = {
+    val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
+      ConfigFactory.load()).getOrElse(Configuration.loadDev)
+    ActorSystem("play", conf.getConfig("play"))
+  }
+
+  val promiseInvoker = {
+    system.actorOf(Props[play.api.libs.concurrent.STMPromise.PromiseInvoker].withDispatcher("akka.actor.promises-dispatcher").withRouter(RoundRobinRouter(100)), name = "promises")
+  }
+
+  val actionInvoker = {
+    system.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
+  }
+
+}
+
+class ActionInvoker extends Actor {
 
   def receive = {
 
-    case (requestHeader: RequestHeader, bodyFunction: BodyParser[_]) => sender ! (bodyFunction(requestHeader))
+    case Invoker.GetBodyParser(request, bodyParser) => {
+      sender ! (bodyParser(request))
+    }
 
-    case HandleAction(request, response: Response, action, app: Application) =>
+    case Invoker.HandleAction(request, response: Response, action, app: Application) => {
 
       val result = try {
         try {
@@ -51,7 +67,6 @@ class Invoker extends Actor {
             }
 
           }
-
         }
       } catch {
         case e => try {
@@ -76,7 +91,9 @@ class Invoker extends Actor {
 
         // Handle Flash Scope (probably not the good place to do it)
         result match {
-          case r @ SimpleResult(header, _) => {
+          case r: PlainResult => {
+
+            val header = r.header
 
             val flashCookie = {
               header.headers.get(SET_COOKIE)
@@ -89,7 +106,7 @@ class Invoker extends Actor {
             }
 
             flashCookie.map { newCookie =>
-              r.copy(header = header.copy(headers = header.headers + (SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))))
+              r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
             }.getOrElse(r)
 
           }
@@ -98,56 +115,26 @@ class Invoker extends Actor {
 
       }
 
+    }
   }
-}
-
-case class Invoke[A](a: A, k: A => Unit)
-class PromiseInvoker extends Actor {
-
-  def receive = {
-    case Invoke(a, k) => k(a)
-  }
-}
-
-object PromiseInvoker {
-
-  private def getInt(c: Config, key: String) = try { Option(c.getInt(key)) } catch { case e: com.typesafe.config.ConfigException.Missing => None }
-
-  private lazy val c = system.settings.config
-
-  private lazy val invokerLimit = getInt(c, "invoker.limit").getOrElse(5)
-  private lazy val withinTime = getInt(c, "invoker.withinTime").getOrElse(1000)
-  private lazy val retries = getInt(c, "invoker.max.try").getOrElse(1)
-  private lazy val count = getInt(c, "invoker.selection.count").getOrElse(1)
-
-  private val faultHandler = OneForOneStrategy(List(classOf[Exception]), retries, withinTime)
-
-  private lazy val pool = system.actorOf(
-    Props(new Actor with DefaultActorPool with FixedCapacityStrategy with SmallestMailboxSelector {
-      def instance(defaults: Props) = system.actorOf(defaults.withCreator(new PromiseInvoker).withDispatcher("invoker.promise-dispatcher"))
-      def limit = invokerLimit
-      def selectionCount = count
-      def partialFill = true
-      def receive = _route
-    }).withFaultHandler(faultHandler))
-
-  val invoker = pool
 }
 
 object Agent {
 
   def apply[A](a: A) = {
-    val actor = system.actorOf(Props(new Agent[A](a)).withDispatcher("invoker.socket-dispatcher"))
+    val actor = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"), name = "websockets")
     new {
       def send(action: (A => A)) { actor ! action }
-      def close() = { system.stop(actor) }
+      def close() = { Invoker.system.stop(actor) }
     }
 
   }
+
   private class Agent[A](var a: A) extends Actor {
     def receive = {
-      case action: Function1[A, A] => a = action(a)
+      case action: Function1[_, _] => a = action.asInstanceOf[Function1[A, A]](a)
     }
   }
+
 }
 

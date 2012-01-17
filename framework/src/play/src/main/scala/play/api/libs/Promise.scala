@@ -1,6 +1,11 @@
 package play.api.libs.concurrent
 
 import play.core._
+import play.api._
+
+import akka.actor._
+import akka.actor.Actor._
+
 import java.util.concurrent.TimeUnit
 
 object `package` {
@@ -93,6 +98,22 @@ trait Redeemable[A] {
   def throwing(t: Throwable): Unit
 }
 
+object STMPromise {
+
+  val invoker = play.core.Invoker.promiseInvoker
+
+  class PromiseInvoker extends Actor {
+
+    def receive = {
+      case Invoke(a, k) => k(a)
+    }
+
+  }
+
+  case class Invoke[A](a: A, k: A => Unit)
+
+}
+
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
   import scala.concurrent.stm._
 
@@ -143,7 +164,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     }
   }
 
-  private def invoke[T](a: T, k: T => Unit) = PromiseInvoker.invoker ! Invoke(a, k)
+  private def invoke[T](a: T, k: T => Unit) = STMPromise.invoker ! STMPromise.Invoke(a, k)
 
   def redeem(body: => A): Unit = {
     val result = scala.util.control.Exception.allCatch[A].either(body)
