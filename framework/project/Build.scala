@@ -9,7 +9,7 @@ object PlayBuild extends Build {
     import Generators._
     import LocalSBT._
     import Tasks._
-    
+
     val typesafeRepo = "http://repo.typesafe.com/typesafe/releases/"
 
     lazy val TemplatesProject = Project(
@@ -191,7 +191,7 @@ object PlayBuild extends Build {
             "mysql"                             %    "mysql-connector-java"     %   "5.1.17",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
-            "com.ning"                          %    "async-http-client"        %   "1.6.5",
+            "com.ning"                          %    "async-http-client"        %   "1.7.0",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
             "org.reflections"                   %    "reflections"              %   "0.9.5",

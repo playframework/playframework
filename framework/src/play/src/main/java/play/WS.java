@@ -48,7 +48,7 @@ public class WS {
     public static class WSRequest extends RequestBuilderBase<WSRequest> {
 
         public WSRequest() {
-            super(WSRequest.class, "GET");
+            super(WSRequest.class, "GET", false);
         }
 
         /**
