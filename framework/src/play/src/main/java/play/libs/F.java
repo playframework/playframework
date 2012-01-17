@@ -23,31 +23,35 @@ import java.util.concurrent.atomic.AtomicLong;
 public class F {
 
     public static interface Callback0 {
-        public void invoke();
+        public void invoke() throws Throwable;
     }
 
     public static interface Callback<A> {
-        public void invoke(A a);
+        public void invoke(A a) throws Throwable;
     }
 
     public static interface Callback2<A,B> {
-        public void invoke(A a, B b);
+        public void invoke(A a, B b) throws Throwable;
     }
 
     public static interface Callback3<A,B,C> {
-        public void invoke(A a, B b, C c);
+        public void invoke(A a, B b, C c) throws Throwable;
+    }
+    
+    public static interface Function0<R> {
+        public R apply() throws Throwable;
     }
 
     public static interface Function<A,R> {
-        public R apply(A a);
+        public R apply(A a) throws Throwable;
     }
 
     public static interface Function2<A,B,R> {
-        public R apply(A a, B b);
+        public R apply(A a, B b) throws Throwable;
     }
 
     public static interface Function3<A,B,C,R> {
-        public R apply(A a, B b, C c);
+        public R apply(A a, B b, C c) throws Throwable;
     }
 
     public static class Promise<A> {
@@ -65,7 +69,11 @@ public class F {
         public void onRedeem(final Callback<A> action) {
             promise.onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
-                    action.invoke(a);
+                    try {
+                        action.invoke(a);
+                    } catch(Throwable t) {
+                        throw new RuntimeException();
+                    }
                     return null;
                 }
             });
@@ -75,7 +83,11 @@ public class F {
             return new Promise(
                 promise.map(new scala.runtime.AbstractFunction1<A,B>() {
                     public B apply(A a) {
-                        return f.apply(a);
+                        try {
+                            return f.apply(a);
+                        } catch(Throwable t) {
+                            throw new RuntimeException();
+                        }
                     }
                 })
             );
@@ -85,7 +97,11 @@ public class F {
             return new Promise(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
                     public play.api.libs.concurrent.Promise<B> apply(A a) {
-                        return f.apply(a).promise;
+                        try {
+                            return f.apply(a).promise;
+                        } catch(Throwable t) {
+                            throw new RuntimeException();
+                        }
                     }
                 })
             );
@@ -136,7 +152,11 @@ public class F {
         
         public <A> Option<A> map(Function<T,A> f) {
             if(isDefined()) {
-                return Some(f.apply(get()));
+                try {
+                    return Some(f.apply(get()));
+                } catch(Throwable t) {
+                    throw new RuntimeException();
+                }
             } else {
                 return None();
             }

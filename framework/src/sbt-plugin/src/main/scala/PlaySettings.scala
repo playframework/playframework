@@ -30,7 +30,9 @@ trait PlaySettings {
       
     routesImport ++= Seq(
       "play.libs.F"
-    )
+    ),
+    
+    ebeanEnabled := true
     
   )
 
@@ -143,6 +145,8 @@ trait PlaySettings {
     resourceGenerators in Compile <+= JavascriptCompiler,
 
     minify := false,
+    
+    ebeanEnabled := false,
     
     logManager <<= extraLoggers(PlayLogManager.default),
     

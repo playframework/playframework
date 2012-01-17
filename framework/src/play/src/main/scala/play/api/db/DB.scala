@@ -188,6 +188,7 @@ object DBApi {
     // Bind in JNDI
     conf.getString("jndiName").map { name =>
       JNDI.initialContext.rebind(name, datasource)
+      Logger("play").info("datasource [" + conf.getString("url").get + "] bound to JNDI as " + name)
     }
 
     datasource -> conf

@@ -1,0 +1,20 @@
+@(elements: helper.FieldElements)
+
+@**************************************************
+* Generate input according twitter bootsrap rules *
+**************************************************@
+
+@infos = @{
+    if(elements.showInfo) {
+        elements.field.constraints.map(c => Messages(c._1, c._2:_*)) ++ 
+        elements.field.format.map(f => Messages(f._1, f._2:_*))
+    } else Nil
+}
+
+<div class="clearfix @if(elements.field.hasErrors) {error}">
+    <label for="@elements.id">@elements.label.getOrElse(elements.field.name)</label>
+    <div class="input">
+        @elements.input
+        <span class="help-inline">@infos</span> 
+    </div>
+</div>

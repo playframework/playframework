@@ -11,42 +11,15 @@ import javax.persistence.*;
 public class TransactionalAction extends Action<Transactional> {
     
     public Result call(final Context ctx) throws Throwable {
-        EntityManager em = null;
-        EntityTransaction tx = null;
-        try {
-            
-            String name = configuration.value();
-            em = JPA.em(name);
-            JPA.bindForCurrentThread(em);
-            
-            if(!configuration.readOnly()) {
-                tx = em.getTransaction();
-                tx.begin();
-            }
-            
-            Result result = delegate.call(ctx);
-            
-            if(tx != null) {
-                if(tx.getRollbackOnly()) {
-                    tx.rollback();
-                } else {
-                    tx.commit();
+        return JPA.withTransaction(
+            configuration.value(),
+            configuration.readOnly(),
+            new play.libs.F.Function0<Result>() {
+                public Result apply() throws Throwable {
+                    return delegate.call(ctx);
                 }
             }
-            
-            return result;
-            
-        } catch(Throwable t) {
-            if(tx != null) {
-                tx.rollback();
-            }
-            throw t;
-        } finally {
-            JPA.bindForCurrentThread(null);
-            if(em != null) {
-                em.close();
-            }
-        }
+        );
     }
     
 }

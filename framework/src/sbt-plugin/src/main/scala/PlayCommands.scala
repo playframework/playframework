@@ -375,7 +375,7 @@ trait PlayCommands {
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  val PostCompile = (sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile) map { (src, deps, analysis, javaSrc, srcManaged, classes) =>
+  val PostCompile = (sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
 
     // Properties
 
@@ -389,23 +389,24 @@ trait PlayCommands {
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
 
     // EBean
+    if(ebean) {
+      try {
 
-    try {
+        val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
 
-      val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
+        import com.avaje.ebean.enhance.agent._
+        import com.avaje.ebean.enhance.ant._
 
-      import com.avaje.ebean.enhance.agent._
-      import com.avaje.ebean.enhance.ant._
+        val cl = ClassLoader.getSystemClassLoader
 
-      val cl = ClassLoader.getSystemClassLoader
+        val t = new Transformer(cp, "debug=-1")
 
-      val t = new Transformer(cp, "debug=-1")
+        val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
+        ft.process("models/**")
 
-      val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
-      ft.process("models/**")
-
-    } catch {
-      case _ =>
+      } catch {
+        case _ =>
+      }
     }
 
     // Copy managed classes
