@@ -376,7 +376,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 
   import Evolutions._
 
-  private val pluginDisabled = app.configuration.getString("evolution").filter(_ == "disabled").isDefined
+  private val pluginDisabled = app.configuration.getString("evolutions").filter(_ == "disabled").isDefined
 
   override def enabled = app.configuration.getConfig("db").isDefined && pluginDisabled == false
 

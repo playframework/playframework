@@ -78,15 +78,18 @@ public class EbeanPlugin extends Plugin {
                 servers.put(key, EbeanServerFactory.create(config));
                 
                 // DDL
-                String evolutionScript = generateEvolutionScript(servers.get(key), config);
-                if(evolutionScript != null) {
-                    File evolutions = application.getFile("db/evolutions/" + key + "/1.sql");
-                    if(!evolutions.exists() || Files.readFile(evolutions).startsWith("# --- Created by Ebean DDL")) {
-                        Files.createDirectory(application.getFile("db/evolutions/" + key));
-                        Files.writeFileIfChanged(evolutions, evolutionScript);
+                boolean evolutionsEnabled = !"disabled".equals(application.configuration().getString("evolutions"));
+                if(evolutionsEnabled) {
+                    String evolutionScript = generateEvolutionScript(servers.get(key), config);
+                    if(evolutionScript != null) {
+                        File evolutions = application.getFile("db/evolutions/" + key + "/1.sql");
+                        if(!evolutions.exists() || Files.readFile(evolutions).startsWith("# --- Created by Ebean DDL")) {
+                            Files.createDirectory(application.getFile("db/evolutions/" + key));
+                            Files.writeFileIfChanged(evolutions, evolutionScript);
+                        }
                     }
                 }
-
+                
             }
         }
         
