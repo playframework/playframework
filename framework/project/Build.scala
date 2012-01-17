@@ -22,6 +22,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
+            javacOptions ++= Seq("-encoding", "utf8"),
             resolvers ++= Seq(DefaultMavenRepository, typesafe)
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -34,6 +35,7 @@ object PlayBuild extends Build {
             publishMavenStyle := false,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "utf8"),
+            javacOptions ++= Seq("-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false
         )
@@ -48,6 +50,7 @@ object PlayBuild extends Build {
             publishMavenStyle := false,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
+            javacOptions ++= Seq("-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
@@ -64,6 +67,7 @@ object PlayBuild extends Build {
         publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe)
@@ -81,6 +85,7 @@ object PlayBuild extends Build {
         publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
+        javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
@@ -101,6 +106,7 @@ object PlayBuild extends Build {
         publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+        javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
