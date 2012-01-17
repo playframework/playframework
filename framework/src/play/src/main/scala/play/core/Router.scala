@@ -208,6 +208,7 @@ object Router {
                     |import play.core.j._
                     |
                     |import play.api.mvc._
+                    |import play.libs.F
                     |
                     |import Router.queryString
                     |
@@ -227,6 +228,7 @@ object Router {
                     |import play.core.j._
                     |
                     |import play.api.mvc._
+                    |import play.libs.F
                     |
                     |import Router.queryString
                     |

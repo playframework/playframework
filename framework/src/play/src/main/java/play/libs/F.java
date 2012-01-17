@@ -115,7 +115,7 @@ public class F {
         /**
          * Constructs a <code>None</code> value.
          */
-        public static None None() {
+        public static <T> None<T> None() {
             return (None) new None();
         }
 
@@ -125,6 +125,23 @@ public class F {
         public static <T> Some<T> Some(T value) {
             return new Some<T>(value);
         }
+        
+        public T getOrElse(T defaultValue) {
+            if(isDefined()) {
+                return get();
+            } else {
+                return defaultValue;
+            }
+        }
+        
+        public <A> Option<A> map(Function<T,A> f) {
+            if(isDefined()) {
+                return Some(f.apply(get()));
+            } else {
+                return None();
+            }
+        }
+        
     }
 
     /**
