@@ -427,13 +427,13 @@ trait PlayCommands {
 
   // ----- Source generators
 
-  val RouteFiles = (confDirectory: File, generatedDir: File) => {
+  val RouteFiles = (confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
     import play.core.Router.RoutesCompiler._
 
     ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
     try {
       (confDirectory * "routes").get.foreach { routesFile =>
-        compile(routesFile, generatedDir)
+        compile(routesFile, generatedDir, additionalImports)
       }
     } catch {
       case RoutesCompilationError(source, message, line, column) => {

@@ -1,11 +1,15 @@
-package play.core
+package play.api.mvc
+
+import scala.annotation._
+
+import play.api.mvc._
 
 import java.net.{ URLEncoder, URLDecoder }
 import scala.annotation._
 
 import scala.collection.JavaConverters._
 
-@implicitNotFound("No queryString binder found for type ${A}. Try to implement an implicit QueryStringBindable for this type.")
+@implicitNotFound("No QueryString binder found for type ${A}. Try to implement an implicit QueryStringBindable for this type.")
 trait QueryStringBindable[A] {
   def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]]
   def unbind(key: String, value: A): String

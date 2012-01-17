@@ -8,12 +8,15 @@ import play.api.http.ContentTypes
 import play.api.templates._
 import play.api.libs.json._
 
+import scala.annotation._
+
 /**
  * Defines the default content type for type `A`.
  *
  * @tparam A the content type
  * @param the default content type for `A`, if any
  */
+@implicitNotFound("Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]") 
 case class ContentTypeOf[A](mimeType: Option[String])
 
 object ContentTypeOf extends DefaultContentTypeOfs

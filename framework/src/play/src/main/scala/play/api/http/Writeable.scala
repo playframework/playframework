@@ -7,11 +7,14 @@ import play.api.http.HeaderNames._
 import play.api.templates._
 import play.api.libs.json._
 
+import scala.annotation._
+
 /**
  * Content writeable to the body of an HTTP response or request.
  *
  * @tparam A the content type
  */
+@implicitNotFound("Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]")
 case class Writeable[A](transform: (A => Array[Byte]))
 
 /**

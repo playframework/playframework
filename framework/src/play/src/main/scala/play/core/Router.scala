@@ -114,7 +114,7 @@ object Router {
 
     }
 
-    def compile(file: File, generatedDir: File) {
+    def compile(file: File, generatedDir: File, additionalImports: Seq[String]) {
 
       val generated = GeneratedSource(new File(generatedDir, "routes_routing.scala"))
 
@@ -125,7 +125,7 @@ object Router {
         val routesContent = routeFile.slurpString
 
         (parser.parse(routesContent) match {
-          case parser.Success(parsed, _) => generate(routeFile, parsed)
+          case parser.Success(parsed, _) => generate(routeFile, parsed, additionalImports)
           case parser.NoSuccess(message, in) => {
             throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
           }
@@ -192,7 +192,7 @@ object Router {
     /**
      * Generate the actual Scala code for this router
      */
-    private def generate(file: Path, routes: List[Route]): Seq[(String, String)] = {
+    private def generate(file: Path, routes: List[Route], additionalImports: Seq[String]): Seq[(String, String)] = {
 
       check(new File(file.path), routes);
 
@@ -208,7 +208,7 @@ object Router {
                     |import play.core.j._
                     |
                     |import play.api.mvc._
-                    |import play.libs.F
+                    |%s
                     |
                     |import Router.queryString
                     |
@@ -217,7 +217,7 @@ object Router {
                     |%s
                     |
                     |%s
-                """.stripMargin.format(path, hash, date, reverseRouting(routes), javaScriptReverseRouting(routes), refReverseRouting(routes))),
+                """.stripMargin.format(path, hash, date, additionalImports.map("import " + _).mkString("\n"), reverseRouting(routes), javaScriptReverseRouting(routes), refReverseRouting(routes))),
         ("routes_routing.scala",
           """ |// @SOURCE:%s
                     |// @HASH:%s
@@ -228,7 +228,7 @@ object Router {
                     |import play.core.j._
                     |
                     |import play.api.mvc._
-                    |import play.libs.F
+                    |%s
                     |
                     |import Router.queryString
                     |
@@ -241,7 +241,7 @@ object Router {
                     |}
                     |    
                     |}
-                """.stripMargin.format(path, hash, date, routeDefinitions(routes), routing(routes)))) ++ {
+                """.stripMargin.format(path, hash, date, additionalImports.map("import " + _).mkString("\n"), routeDefinitions(routes), routing(routes)))) ++ {
 
           // Generate Java wrappers
 
