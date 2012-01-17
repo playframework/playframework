@@ -39,6 +39,19 @@ public class JavaApi extends Controller {
         response().discardCookies(name);
         return ok();
     }
+    
+    public static Result notIntercepted() {
+        return ok(Interceptor.state);
+    }
+    
+    @With(Interceptor.class)
+    public static Result interceptedUsingWith() {
+        return ok(Interceptor.state);
+    }
+    
+    @Intercepted
+    public static Result intercepted() {
+        return ok(Interceptor.state);
+    }
 }
-
 
