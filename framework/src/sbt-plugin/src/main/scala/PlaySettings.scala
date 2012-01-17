@@ -137,6 +137,10 @@ trait PlaySettings {
     resourceGenerators in Compile <+= JavascriptCompiler,
 
     minify := false,
+    
+    logManager <<= extraLoggers(PlayLogManager.default),
+    
+    ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
     playAssetsDirectories := Seq.empty[File],
 
