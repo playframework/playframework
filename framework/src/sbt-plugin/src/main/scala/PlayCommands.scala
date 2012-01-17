@@ -169,7 +169,7 @@ trait PlayCommands {
         new EclipseClasspathEntryTransformerFactory {
           override def createTransformer(ref: ProjectRef, state: State) =
             setting(crossTarget in ref)(state) map (ct =>
-              (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + "/classes_managed")
+              (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib("target/scala-2.9.1/classes_managed")
             )
         }
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
