@@ -114,7 +114,7 @@ public class WS {
                     @Override
                     public com.ning.http.client.Response onCompleted(com.ning.http.client.Response response) {
                         final com.ning.http.client.Response ahcResponse = response;
-                        scalaPromise.redeem(new Scala.Function0<Response>() {
+                        scalaPromise.redeem(new scala.runtime.AbstractFunction0<Response>() {
                             public Response apply() {
                                 return new Response(ahcResponse);
                             }
