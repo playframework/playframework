@@ -156,7 +156,7 @@ public class Http {
         /**
          * @return the request cookies
          */
-        public abstract Cookies cookies(); // FIXME Provide a “Cookie cookie(String name)” function instead of this one?
+        public abstract Cookies cookies(); // FIXME Provide a "Cookie cookie(String name)" function instead of this one?
         
         /**
          * get headers
@@ -350,7 +350,7 @@ public class Http {
         }
         
         /**
-         * Set a new transient cookie with path “/”<br />
+         * Set a new transient cookie with path "/"<br />
          * For example:
          * <pre>
          * response().setCookie("theme", "blue");
@@ -363,7 +363,7 @@ public class Http {
         }
         
         /**
-         * Set a new cookie with path “/”
+         * Set a new cookie with path "/"
          * @param name Cookie name
          * @param value Cookie value
          * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
