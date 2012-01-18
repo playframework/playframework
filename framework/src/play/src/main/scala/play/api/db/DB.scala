@@ -207,7 +207,7 @@ object DBApi {
 object DB {
 
   /** The exception we are throwing. */
-  private def error = throw new Exception("seems like db plugin is not registered properly, so we can not make calls to it.")
+  private def error = throw new Exception("DB plugin is not registered.")
 
   /**
    * Retrieves a JDBC connection.

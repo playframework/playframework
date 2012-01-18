@@ -83,3 +83,33 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
     result
   }
 }
+
+object Akka {
+  
+  def system(implicit app: Application) = {
+    app.plugin[AkkaPlugin].map(_.applicationSystem).getOrElse {
+      sys.error("Akka plugin is not registered.")
+    }
+  }
+  
+}
+
+class AkkaPlugin(app: Application) extends Plugin {
+  
+  private[akka] var applicationSystemEnabled = false
+  
+  lazy val applicationSystem: ActorSystem = {
+    applicationSystemEnabled = true
+    val system = ActorSystem("application", Configuration.load(app.mode).underlying)
+    Logger("play").info("Starting application default Akka system.")
+    system
+  }
+  
+  override def onStop() {
+    if(applicationSystemEnabled) {
+      Logger("play").info("Shutdown application default Akka system.")
+      applicationSystem.shutdown()
+    }
+  }
+  
+}

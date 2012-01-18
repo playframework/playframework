@@ -84,7 +84,7 @@ object Iteratee {
    */
   def ignore[E]: Iteratee[E, Unit] = fold[E, Unit](())((_, _) => ())
 
-  def mapChunk_[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))
+  def foreach[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))
 
   def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
 

@@ -1,5 +1,6 @@
 package play.api.mvc
 
+import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
@@ -24,6 +25,7 @@ object WebSocket {
 
     implicit val stringFrame: FrameFormatter[String] = play.core.server.websocket.Frames.textFrame
     implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = play.core.server.websocket.Frames.binaryFrame
+    implicit val jsonFrame: FrameFormatter[JsValue] = stringFrame.transform(Json.stringify, Json.parse)
 
   }
 

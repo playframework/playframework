@@ -173,7 +173,7 @@ trait BodyParsers {
 
     def raw(memoryThreshold: Int): BodyParser[RawBuffer] = BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
       val buffer = RawBuffer(memoryThreshold)
-      Iteratee.mapChunk_[Array[Byte]](bytes => buffer.push(bytes)).mapDone { _ =>
+      Iteratee.foreach[Array[Byte]](bytes => buffer.push(bytes)).mapDone { _ =>
         buffer.close()
         Right(buffer)
       }
