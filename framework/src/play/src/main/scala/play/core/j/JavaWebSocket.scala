@@ -30,7 +30,7 @@ object JavaWebSocket extends JavaHelpers {
       val socketOut = new play.mvc.WebSocket.Out[String](enumerator)
       val socketIn = new play.mvc.WebSocket.In[String]
 
-      in |>> Iteratee.mapChunk_((msg: String) => socketIn.callbacks.asScala.foreach(_.invoke(msg)))
+      in |>> Iteratee.foreach((msg: String) => socketIn.callbacks.asScala.foreach(_.invoke(msg)))
 
       enumerator |>> out
 

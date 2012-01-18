@@ -122,7 +122,7 @@ class ActionInvoker extends Actor {
 object Agent {
 
   def apply[A](a: A) = {
-    val actor = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"), name = "websockets")
+    val actor = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
     new {
       def send(action: (A => A)) { actor ! action }
       def close() = { Invoker.system.stop(actor) }

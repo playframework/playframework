@@ -52,7 +52,7 @@ private[server] trait WebSocketHandler {
                   iterateeAgent.close()
                   ctx.getChannel().disconnect();
                   promise.redeem(next);
-                  println("cleaning for channel " + ctx.getChannel());
+                  Logger("play").trace("cleaning for channel " + ctx.getChannel());
                   Promise.pure(next)
                 },
                 _ => Promise.pure(next),
@@ -83,8 +83,7 @@ private[server] trait WebSocketHandler {
 
         override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
           enumerator.frameReceived(ctx, EOF)
-          println("disconnecting socket")
-          println("disconnected socket")
+          Logger("play").trace("disconnected socket")
         }
 
       })
