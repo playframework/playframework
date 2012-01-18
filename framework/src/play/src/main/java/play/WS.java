@@ -6,10 +6,18 @@ import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilderBase;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Realm.RealmBuilder;
+import com.ning.http.client.FluentStringsMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.File;
+import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,14 +49,98 @@ public class WS {
      * Prepare a new request. You can then construct it by chaining calls.
      * @param url the URL to request
      */
-    public static WSRequest url(String url) {
-        return new WSRequest().setUrl(url);
+    public static WSRequestHolder url(String url) {
+        return new WSRequestHolder(url);
     }
 
     public static class WSRequest extends RequestBuilderBase<WSRequest> {
 
-        public WSRequest() {
-            super(WSRequest.class, "GET", false);
+        public WSRequest(String method) {
+            super(WSRequest.class, method, false);
+        }
+
+        /**
+         * Add http auth headers
+         */
+        public WSRequest auth(String username, String password, AuthScheme scheme) {
+            this.setRealm((new RealmBuilder())
+                .setScheme(scheme)
+                .setPrincipal(username)
+                .setPassword(password)
+                .setUsePreemptiveAuth(true)
+                .build());
+            return this;
+        }
+
+        private Promise<Response> execute() {
+            final play.api.libs.concurrent.STMPromise<Response> scalaPromise = new play.api.libs.concurrent.STMPromise<Response>();
+            try {
+                WS.client.executeRequest(request, new AsyncCompletionHandler<com.ning.http.client.Response>() {
+                    @Override
+                    public com.ning.http.client.Response onCompleted(com.ning.http.client.Response response) {
+                        final com.ning.http.client.Response ahcResponse = response;
+                        scalaPromise.redeem(new scala.runtime.AbstractFunction0<Response>() {
+                            public Response apply() {
+                                return new Response(ahcResponse);
+                            }
+                        });
+                        return response;
+                    }
+                    @Override
+                    public void onThrowable(Throwable t) {
+                        scalaPromise.throwing(t);
+                    }
+                });
+            } catch (IOException exception) {
+                scalaPromise.throwing(exception);
+            }
+            return new Promise(scalaPromise);
+        }
+    }
+
+    public static class WSRequestHolder {
+
+        private final String url;
+        private Map<String, Collection<String>> headers = new HashMap<String, Collection<String>>();
+        private Map<String, Collection<String>> queryParameters = new HashMap<String, Collection<String>>();
+
+        private String username = null;
+        private String password = null;
+        private AuthScheme scheme = null;
+
+        public WSRequestHolder(String url) {
+            this.url = url;
+        }
+
+        public WSRequestHolder setHeader(String name, String value) {
+            if (headers.containsKey(name)) {
+                Collection<String> values = headers.get(name);
+                values.add(value);
+            } else {
+                List<String> values = new ArrayList<String>();
+                values.add(value);
+                headers.put(name, values);
+            }
+            return this;
+        }
+
+        public WSRequestHolder setQueryParameter(String name, String value) {
+            if (queryParameters.containsKey(name)) {
+                Collection<String> values = headers.get(name);
+                values.add(value);
+            } else {
+                List<String> values = new ArrayList<String>();
+                values.add(value);
+                queryParameters.put(name, values);
+            }
+            return this;
+        }
+
+        public WSRequestHolder setAuth(String username, String password, AuthScheme scheme) {
+            this.username = username;
+            this.password = password;
+            this.scheme = scheme;
+            return this;
         }
 
         /**
@@ -61,15 +153,43 @@ public class WS {
         /**
          * Perform a POST on the request asynchronously.
          */
-        public Promise<Response> post() {
-            return execute("POST");
+        public Promise<Response> post(String body) {
+            return executeString("POST", body);
         }
 
         /**
          * Perform a PUT on the request asynchronously.
          */
-        public Promise<Response> put() {
-            return execute("PUT");
+        public Promise<Response> put(String body) {
+            return executeString("PUT", body);
+        }
+
+        /**
+         * Perform a POST on the request asynchronously.
+         */
+        public Promise<Response> post(InputStream body) {
+            return executeIS("POST", body);
+        }
+
+        /**
+         * Perform a PUT on the request asynchronously.
+         */
+        public Promise<Response> put(InputStream body) {
+            return executeIS("PUT", body);
+        }
+
+        /**
+         * Perform a POST on the request asynchronously.
+         */
+        public Promise<Response> post(File body) {
+            return executeFile("POST", body);
+        }
+
+        /**
+         * Perform a PUT on the request asynchronously.
+         */
+        public Promise<Response> put(File body) {
+            return executeFile("PUT", body);
         }
 
         /**
@@ -93,44 +213,46 @@ public class WS {
             return execute("OPTION");
         }
 
-        /**
-         * Add http auth headers
-         */
-        public WSRequest auth(String username, String password, AuthScheme scheme) {
-            this.setRealm((new RealmBuilder())
-                .setScheme(scheme)
-                .setPrincipal(username)
-                .setPassword(password)
-                .setUsePreemptiveAuth(true)
-                .build());
-            return this;
+        private Promise<Response> execute(String method) {
+            WSRequest req = new WSRequest(method).setUrl(url)
+                                                 .setHeaders(headers)
+                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.username != null && this.password != null && this.scheme != null)
+                req.auth(this.username, this.password, this.scheme);
+            return req.execute();
         }
 
-        private Promise<Response> execute(String method) {
-            final play.api.libs.concurrent.STMPromise<Response> scalaPromise = new play.api.libs.concurrent.STMPromise<Response>();
-            Request request = this.setMethod(method).build();
-            try {
-                WS.client.executeRequest(request, new AsyncCompletionHandler<com.ning.http.client.Response>() {
-                    @Override
-                    public com.ning.http.client.Response onCompleted(com.ning.http.client.Response response) {
-                        final com.ning.http.client.Response ahcResponse = response;
-                        scalaPromise.redeem(new scala.runtime.AbstractFunction0<Response>() {
-                            public Response apply() {
-                                return new Response(ahcResponse);
-                            }
-                        });
-                        return response;
-                    }
-                    @Override
-                    public void onThrowable(Throwable t) {
-                        scalaPromise.throwing(t);
-                    }
-                });
-            } catch (IOException exception) {
-                scalaPromise.throwing(exception);
-            }
-            return new Promise(scalaPromise);
+        private Promise<Response> executeString(String method, String body) {
+            WSRequest req = new WSRequest(method).setBody(body)
+                                                 .setUrl(url)
+                                                 .setHeaders(headers)
+                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.username != null && this.password != null && this.scheme != null)
+                req.auth(this.username, this.password, this.scheme);
+            return req.execute();
         }
+
+        private Promise<Response> executeIS(String method, InputStream body) {
+            WSRequest req = new WSRequest(method).setBody(body)
+                                                 .setUrl(url)
+                                                 .setHeaders(headers)
+                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.username != null && this.password != null && this.scheme != null)
+                req.auth(this.username, this.password, this.scheme);
+            return req.execute();
+        }
+
+        private Promise<Response> executeFile(String method, File body) {
+            WSRequest req = new WSRequest(method).setBody(body)
+                                                 .setUrl(url)
+                                                 .setHeaders(headers)
+                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.username != null && this.password != null && this.scheme != null)
+                req.auth(this.username, this.password, this.scheme);
+            return req.execute();
+        }
+
+
     }
 
     public static class Response {
