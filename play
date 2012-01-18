@@ -1,7 +1,7 @@
 #! /usr/bin/env sh
 
 if [ -f conf/application.conf ]; then
-  if test "$1" = "clean"; then
+  if test "$1" = "clean-ivy"; then
     `dirname $0`/framework/cleanIvyCache
   fi
   if test "$1" = "stop"; then

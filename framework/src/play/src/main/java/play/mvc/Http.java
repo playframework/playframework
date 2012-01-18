@@ -138,6 +138,11 @@ public class Http {
          */
         public abstract String method();
         
+    
+        /**
+         * The request host.
+         */
+        public abstract String host();
         /**
          * The URI path.
          */

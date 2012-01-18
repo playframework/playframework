@@ -53,7 +53,11 @@ trait JavaHelpers {
     new JContext(new JRequest {
 
       def uri = req.uri
+
       def method = req.method
+      
+      def host = req.host
+      
       def path = req.path
 
       def body = null
@@ -84,7 +88,11 @@ trait JavaHelpers {
     new JContext(new JRequest {
 
       def uri = req.uri
+      
       def method = req.method
+
+      def host = req.host
+
       def path = req.path
 
       def body = req.body
