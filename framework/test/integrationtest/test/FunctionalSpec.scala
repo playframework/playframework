@@ -27,6 +27,12 @@ object FunctionalSpec extends Specification {
         contentForm must contain ("AnyContentAsUrlFormEncoded")
         contentForm must contain ("foo")
 
+         val jpromise: play.libs.F.Promise[play.libs.WS.Response] = play.libs.WS.url("http://localhost:9001/post").setHeader("Content-Type","application/x-www-form-urlencoded").post("param1=foo")
+        val contentJava: String = jpromise.get().getBody()
+        contentJava must contain ("param1")
+        contentJava must contain ("AnyContentAsUrlFormEncoded")
+        contentJava must contain ("foo")
+
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Hello world")
 

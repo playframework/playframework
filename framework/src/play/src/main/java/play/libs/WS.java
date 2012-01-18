@@ -1,4 +1,4 @@
-package play;
+package play.libs;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncCompletionHandler;
@@ -35,7 +35,11 @@ import org.codehaus.jackson.map.ObjectMapper;
  * Asynchronous API to to query web services, as an http client
  *
  * Usage example:
+ * import play.libs.WS;
  * WS.url("http://example.com/feed").get()
+ * WS.url("http://mysite.com/post")
+ *                         .setHeader("Content-Type","application/x-www-form-urlencoded")
+ *                         .post("param1=foo")
  *
  * The value returned is a Promise<Response>,
  * and you should use Play's asynchronous mechanisms to use this response.
@@ -53,16 +57,16 @@ public class WS {
         return new WSRequestHolder(url);
     }
 
+    /**
+     * provides the bridge between Play and the underlying ning request
+     */
     public static class WSRequest extends RequestBuilderBase<WSRequest> {
 
         public WSRequest(String method) {
             super(WSRequest.class, method, false);
         }
 
-        /**
-         * Add http auth headers
-         */
-        public WSRequest auth(String username, String password, AuthScheme scheme) {
+        private WSRequest auth(String username, String password, AuthScheme scheme) {
             this.setRealm((new RealmBuilder())
                 .setScheme(scheme)
                 .setPrincipal(username)
@@ -97,7 +101,9 @@ public class WS {
             return new Promise(scalaPromise);
         }
     }
-
+    /**
+     * provides the user facing API for WS
+     */
     public static class WSRequestHolder {
 
         private final String url;
@@ -112,6 +118,11 @@ public class WS {
             this.url = url;
         }
 
+        /**
+         * sets a header with the given name, this can be called repeatedly 
+         * @param name
+         * @param value
+         */
         public WSRequestHolder setHeader(String name, String value) {
             if (headers.containsKey(name)) {
                 Collection<String> values = headers.get(name);
@@ -124,6 +135,11 @@ public class WS {
             return this;
         }
 
+        /**
+         * sets a query parameter with the given name,this can be called repeatedly
+         * @param name
+         * @param value
+         */
         public WSRequestHolder setQueryParameter(String name, String value) {
             if (queryParameters.containsKey(name)) {
                 Collection<String> values = headers.get(name);
@@ -136,6 +152,12 @@ public class WS {
             return this;
         }
 
+         /**
+         * sets the authentication header for the current request
+         * @param username
+         * @param password
+         * @param scheme authentication scheme
+         */
         public WSRequestHolder setAuth(String username, String password, AuthScheme scheme) {
             this.username = username;
             this.password = password;
@@ -152,6 +174,7 @@ public class WS {
 
         /**
          * Perform a POST on the request asynchronously.
+         * @param body represented as String
          */
         public Promise<Response> post(String body) {
             return executeString("POST", body);
@@ -159,6 +182,7 @@ public class WS {
 
         /**
          * Perform a PUT on the request asynchronously.
+          * @param body represented as String
          */
         public Promise<Response> put(String body) {
             return executeString("PUT", body);
@@ -166,6 +190,7 @@ public class WS {
 
         /**
          * Perform a POST on the request asynchronously.
+         * @param body represented as an InputStream
          */
         public Promise<Response> post(InputStream body) {
             return executeIS("POST", body);
@@ -173,6 +198,7 @@ public class WS {
 
         /**
          * Perform a PUT on the request asynchronously.
+         * @param body represented as an InputStream
          */
         public Promise<Response> put(InputStream body) {
             return executeIS("PUT", body);
@@ -180,6 +206,7 @@ public class WS {
 
         /**
          * Perform a POST on the request asynchronously.
+         * @param body represented as a File
          */
         public Promise<Response> post(File body) {
             return executeFile("POST", body);
@@ -187,6 +214,7 @@ public class WS {
 
         /**
          * Perform a PUT on the request asynchronously.
+         * @param body represented as a File
          */
         public Promise<Response> put(File body) {
             return executeFile("PUT", body);
@@ -254,7 +282,9 @@ public class WS {
 
 
     }
-
+    /**
+     * provides Response for all WS.url calls
+     */
     public static class Response {
 
         private com.ning.http.client.Response ahcResponse;
