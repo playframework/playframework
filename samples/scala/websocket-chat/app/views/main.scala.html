@@ -15,16 +15,16 @@
         <div class="topbar">
             <div class="fill">
                 <div class="container">
-                    <a class="brand" href="#">Websocket Chat-Room</a>
+                    <a class="brand" href="@routes.Application.index()">Websocket Chat-Room</a>
                     
                     @connected.map { username =>
-                        <form action="@routes.Application.index()" class="pull-right">
-                            @username
-                            <button class="btn" type="submit">Sign out</button>
-                        </form>
+                        <p class="pull-right">
+                            Logged in as @username —
+                            <a href="@routes.Application.index()">Disconnect</a>
+                        </p>
                     }.getOrElse {
                         <form action="@routes.Application.chatRoom()" class="pull-right">
-                            <input name="username" class="input-small" type="text" placeholder="Username">
+                            <input id="username" name="username" class="input-small" type="text" placeholder="Username">
                             <button class="btn" type="submit">Sign in</button>
                         </form>
                     }
@@ -40,7 +40,9 @@
             </div>
 
             <footer>
-                <p>www.playframework.org</p>
+                <p>
+                    <a href="http://www.playframework.org">www.playframework.org</a>
+                </p>
             </footer>
 
         </div>

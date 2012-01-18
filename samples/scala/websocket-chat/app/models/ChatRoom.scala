@@ -14,17 +14,22 @@ object Robot {
   
   def apply(chatRoom: ActorRef) {
     
+    // Create an Iteratee that log all messages to the console.
     val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))
     
+    // Create an Enemurator for the Robot. 
     val robotChannel = new CallbackEnumerator[JsValue]
     
+    // Apply this Enumerator on the logger.
     robotChannel |>> loggerIteratee
     
+    // Make the robot join the room
     chatRoom ! Join("Robot", robotChannel)
     
+    // Make the robot talk every 30 seconds
     Akka.system.scheduler.schedule(
-      10 seconds,
-      10 seconds,
+      30 seconds,
+      30 seconds,
       chatRoom,
       Talk("Robot", "I'm still alive")
     )
@@ -42,25 +47,6 @@ object ChatRoom {
     
     roomActor
   }
-
-  def join(username:String): (Iteratee[JsValue,_], Enumerator[JsValue]) = {
-
-    // Create an imperative enumerator to push messages into the socket                                        
-    val channel = new CallbackEnumerator[JsValue]
-
-    // Create an Iteratee to consume messages from the user and push them to the chatroom
-    val iteratee = Iteratee.foreach[JsValue] { event =>
-      default ! Talk(username, (event \ "text").as[String])
-    }.mapDone { _ =>
-      default ! Quit(username)
-    }
-
-    // Join this room
-    default ! Join(username, channel)
-
-    (iteratee,channel)
-
-  }
   
 }
 
@@ -71,8 +57,13 @@ class ChatRoom extends Actor {
   def receive = {
     
     case Join(username, channel) => {
-      members = members + (username -> channel)
-      notifyAll("join", username, "has joined") 
+      if(members.contains(username)) {
+        sender ! CannotConnect("This username is already used")
+      } else {
+        members = members + (username -> channel)
+        notifyAll("join", username, "has entered the room")
+        sender ! Connected()
+      }
     }
     
     case Talk(username, text) => {
@@ -81,7 +72,7 @@ class ChatRoom extends Actor {
     
     case Quit(username) => {
       members = members - username
-      notifyAll("quit", username, "has quitted")
+      notifyAll("quit", username, "has leaved the room")
     }
     
   }
@@ -107,3 +98,6 @@ class ChatRoom extends Actor {
 case class Join(username: String, channel: CallbackEnumerator[JsValue])
 case class Quit(username: String)
 case class Talk(username: String, text: String)
+
+case class Connected()
+case class CannotConnect(msg: String)

@@ -106,7 +106,17 @@ package play.api.mvc {
    * @param url the request URL
    */
   case class Call(method: String, url: String) extends play.mvc.Call {
+    
+    def absoluteURL(secure: Boolean = false)(implicit request: RequestHeader) = {
+      "http" + (if(secure) "s" else "") + "://" + request.host + this.url
+    }
+    
+    def webSocketURL(secure: Boolean = false)(implicit request: RequestHeader) = {
+      "ws" + (if(secure) "s" else "") + "://" + request.host + this.url
+    }
+    
     override def toString = url
+    
   }
 
   /** The HTTP headers set. */

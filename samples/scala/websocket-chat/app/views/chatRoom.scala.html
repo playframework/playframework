@@ -1,24 +1,81 @@
-@(username: String)
+@(username: String)(implicit request: RequestHeader)
 
 @main(Some(username)) {
     
-    <h1>Room</h1>
+    <div class="page-header">
+        <h1>Welcome to the chat room <small>You are chatting as @username</small></h1>
+    </div>
     
-    <input type="text" id="message" value='{"text": "Hello"}'> <button id="send">Send</button>
+    <div id="onError" class="alert-message error">
+        <p>
+            <strong>Oops!</strong> <span></span>
+        </p>
+    </div>
+    
+    <div id="onChat" class="row">
+        <div class="span10" id="main">
+            <div id="messages">
+            </div>
+            <textarea id="talk"></textarea>
+        </div>
+        <div class="span4">
+            <h2>Members</h2>
+            <ul id="members">
+            </ul>
+        </div>
+    </div>
     
     <script type="text/javascript" charset="utf-8">
     
         $(function() {
             
-            var chatSocket = new WebSocket("ws://127.0.0.1:9000@routes.Application.chat(username)")
+            var chatSocket = new WebSocket("@routes.Application.chat(username).webSocketURL()")
             
-            $("#send").click(function() {
-                chatSocket.send($("#message").val())
-            })  
-            
-            chatSocket.onmessage = function(msg) {
-                console.log(msg)
+            var sendMessage = function() {
+                chatSocket.send(JSON.stringify(
+                    {text: $("#talk").val()}
+                ))
+                $("#talk").val('')
             }
+            
+            var receiveEvent = function(event) {
+                var data = JSON.parse(event.data)
+                
+                // Handle errors
+                if(data.error) {
+                    chatSocket.close()
+                    $("#onError span").text(data.error)
+                    $("#onError").show()
+                    return
+                } else {
+                    $("#onChat").show()
+                }
+                
+                // Create the message element
+                var el = $('<div class="message"><span></span><p></p></div>')
+                $("span", el).text(data.user)
+                $("p", el).text(data.message)
+                $(el).addClass(data.kind)
+                if(data.user == '@username') $(el).addClass('me')
+                $('#messages').append(el)
+                
+                // Update the members list
+                $("#members").html('') 
+                $(data.members).each(function() {
+                    $("#members").append('<li>' + this + '</li>')
+                })
+            }
+            
+            var handleReturnKey = function(e) {
+                if(e.charCode == 13) {
+                    e.preventDefault()
+                    sendMessage()
+                } 
+            }
+            
+            $("#talk").keypress(handleReturnKey)  
+            
+            chatSocket.onmessage = receiveEvent
             
         })
     
