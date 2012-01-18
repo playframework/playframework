@@ -1,0 +1,27 @@
+@(username: String)
+
+@main(Some(username)) {
+    
+    <h1>Room</h1>
+    
+    <input type="text" id="message" value='{"text": "Hello"}'> <button id="send">Send</button>
+    
+    <script type="text/javascript" charset="utf-8">
+    
+        $(function() {
+            
+            var chatSocket = new WebSocket("ws://127.0.0.1:9000@routes.Application.chat(username)")
+            
+            $("#send").click(function() {
+                chatSocket.send($("#message").val())
+            })  
+            
+            chatSocket.onmessage = function(msg) {
+                console.log(msg)
+            }
+            
+        })
+    
+    </script>
+    
+}
