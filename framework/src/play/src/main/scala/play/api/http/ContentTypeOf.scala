@@ -16,7 +16,7 @@ import scala.annotation._
  * @tparam A the content type
  * @param the default content type for `A`, if any
  */
-@implicitNotFound("Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]") 
+@implicitNotFound("Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]")
 case class ContentTypeOf[A](mimeType: Option[String])
 
 object ContentTypeOf extends DefaultContentTypeOfs

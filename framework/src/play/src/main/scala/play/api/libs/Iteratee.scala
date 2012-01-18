@@ -636,9 +636,9 @@ object Enumerator {
 
   import scalax.io.JavaConverters._
 
-  def callbackEnumerator[E](retriever:() => Promise[Option[E]],
-                            onComplete:() => Unit = () => (),
-                            onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => () ) = new Enumerator[E]{
+  def callbackEnumerator[E](retriever: () => Promise[Option[E]],
+    onComplete: () => Unit = () => (),
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
@@ -677,7 +677,7 @@ object Enumerator {
 
   def enumerateStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
 
-    callbackEnumerator ( () => {
+    callbackEnumerator(() => {
       val buffer = new Array[Byte](chunkSize)
       val chunk = input.read(buffer) match {
         case -1 => None

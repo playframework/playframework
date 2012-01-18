@@ -42,6 +42,25 @@ object ChatRoom {
     
     roomActor
   }
+
+  def join(username:String): (Iteratee[JsValue,_], Enumerator[JsValue]) = {
+
+    // Create an imperative enumerator to push messages into the socket                                        
+    val channel = new CallbackEnumerator[JsValue]
+
+    // Create an Iteratee to consume messages from the user and push them to the chatroom
+    val iteratee = Iteratee.foreach[JsValue] { event =>
+      default ! Talk(username, (event \ "text").as[String])
+    }.mapDone { _ =>
+      default ! Quit(username)
+    }
+
+    // Join this room
+    default ! Join(username, channel)
+
+    (iteratee,channel)
+
+  }
   
 }
 

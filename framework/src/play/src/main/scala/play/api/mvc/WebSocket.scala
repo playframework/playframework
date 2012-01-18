@@ -36,7 +36,7 @@ object WebSocket {
    * @param writeOut the outbound channel
    * @return a `WebSocket`
    */
-  def using[A](f: RequestHeader => (Iteratee[A, Unit], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]) = {
+  def using[A](f: RequestHeader => (Iteratee[A, _], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]) = {
     WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); e |>> readIn; writeOut |>> i })
   }
 
