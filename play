@@ -1,8 +1,16 @@
 #! /usr/bin/env sh
 
 if [ -f conf/application.conf ]; then
-  if test "$1" = "clean-ivy"; then
+  if test "$1" = "clean-all"; then
     `dirname $0`/framework/cleanIvyCache
+    `dirname $0`/framework/build clean
+    if [ $# -ne 1 ]
+    then  
+     shift
+    else
+      echo "[info] Done!"
+      exit 0
+    fi
   fi
   if test "$1" = "stop"; then
     if [ -f RUNNING_PID ]; then
