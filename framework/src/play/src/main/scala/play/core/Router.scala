@@ -1076,9 +1076,17 @@ object Router {
         }
       }
     }
+    
+    implicit def javaBytesWebSocket: HandlerInvoker[play.mvc.WebSocket[Array[Byte]]] = new HandlerInvoker[play.mvc.WebSocket[Array[Byte]]] {
+      def call(call: => play.mvc.WebSocket[Array[Byte]], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofBytes(call)
+    }
 
     implicit def javaStringWebSocket: HandlerInvoker[play.mvc.WebSocket[String]] = new HandlerInvoker[play.mvc.WebSocket[String]] {
       def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
+    }
+    
+    implicit def javaJsonWebSocket: HandlerInvoker[play.mvc.WebSocket[org.codehaus.jackson.JsonNode]] = new HandlerInvoker[play.mvc.WebSocket[org.codehaus.jackson.JsonNode]] {
+      def call(call: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofJson(call)
     }
 
   }

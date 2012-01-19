@@ -24,7 +24,7 @@ public class Http {
         public static Context current() {
             Context c = current.get();
             if(c == null) {
-                c = new Context();
+                throw new RuntimeException("There is no HTTP Context available from here.");
             }
             return c;
         }
