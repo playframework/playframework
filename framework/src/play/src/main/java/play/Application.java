@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
+import play.i18n.Messages;
 import play.libs.Scala;
 
 /**
@@ -33,6 +34,14 @@ public class Application {
     
     public Configuration configuration() {
         return new Configuration(application.configuration());
+    }
+
+    /**
+    * Returns the Messages-instance used to access the message API for the application
+    * @return a Messages instance
+    */
+    public Messages messages() {
+        return Messages.current();
     }
     
     /**
