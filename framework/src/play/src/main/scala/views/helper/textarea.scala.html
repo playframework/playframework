@@ -1,0 +1,19 @@
+@**
+ * Generate an HTML textarea.
+ *
+ * Example:
+ * {{{
+ * @textarea(field = myForm("name"), args = 'cols -> 40, 'rows -> 4)
+ * }}}
+ *
+ * @param field The form field.
+ * @param args Set of extra HTML attributes ('''id''' and '''label''' are 2 special arguments).
+ * @param handler The field constructor.
+ *@
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor)
+
+@defining(Utils.filter(args, 'id -> field.id, 'label -> field.name)) { args =>
+    @input(field, args._1('id), Some(args._1('label))) { (id,name,value) =>
+        <textarea id="@id" name="@name" @toHtmlArgs(args._2)>@value</textarea>
+    }(handler)
+}
