@@ -10,14 +10,15 @@
         
         <fieldset>
         
-            @inputText(computerForm("name"), 'label -> "Computer name")(twitterBootstrapInput)
-            @inputText(computerForm("introduced"), 'label -> "Introduced date")(twitterBootstrapInput)
-            @inputText(computerForm("discontinued"), 'label -> "Discontinued date")(twitterBootstrapInput)
+            @inputText(computerForm("name"), '_label -> "Computer name")(twitterBootstrapInput)
+            @inputText(computerForm("introduced"), '_label -> "Introduced date")(twitterBootstrapInput)
+            @inputText(computerForm("discontinued"), '_label -> "Discontinued date")(twitterBootstrapInput)
             
             @select(
                 computerForm("company"), 
                 Company.options, 
-                'label -> "Company", 'default -> "-- Choose a company --"
+                '_label -> "Company", '_default -> "-- Choose a company --",
+                '_showConstraints -> false
             )(twitterBootstrapInput)
         
         </fieldset>

@@ -135,8 +135,8 @@ object PlayMagic {
 
   /** Transforms a Play Java `Option` to a proper Scala `Option`. */
   implicit def javaOptionToScala[T](x: play.libs.F.Option[T]): Option[T] = x match {
-    case x: play.libs.F.Some[T] => Some(x.get)
-    case x: play.libs.F.None[T] => None
+    case x: play.libs.F.Some[_] => Some(x.get)
+    case x: play.libs.F.None[_] => None
   }
 
   /**
@@ -147,7 +147,7 @@ object PlayMagic {
    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
    * }}}
    */
-  def toHtmlArgs(args: Seq[(Symbol, Any)]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
+  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
 
   /** Transforms a Play Java form `Field` to a proper Scala form `Field`. */
   implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {

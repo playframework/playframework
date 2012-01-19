@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
  * handles a scala websocket in a Java Context
  */
 object JavaWebSocket extends JavaHelpers {
-  
+
   def webSocketWrapper[A](retrieveWebSocket: => play.mvc.WebSocket[A])(implicit frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = WebSocket[A] { request =>
     (in, out) =>
 
@@ -25,20 +25,20 @@ object JavaWebSocket extends JavaHelpers {
       val enumerator = new CallbackEnumerator[A]
 
       val socketOut = new play.mvc.WebSocket.Out[A] {
-        
+
         def write(frame: A) {
-            enumerator.push(frame)
+          enumerator.push(frame)
         }
 
         def close() {
-            enumerator.close()
+          enumerator.close()
         }
-        
+
       }
       val socketIn = new play.mvc.WebSocket.In[A]
 
       in |>> {
-        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).mapDone{ _ => 
+        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).mapDone { _ =>
           socketIn.closeCallbacks.asScala.foreach(_.invoke())
         }
       }
@@ -48,21 +48,20 @@ object JavaWebSocket extends JavaHelpers {
       javaWebSocket.onReady(socketIn, socketOut)
 
   }
-  
+
   // -- Bytes
-  
+
   def ofBytes(retrieveWebSocket: => play.mvc.WebSocket[Array[Byte]]) = webSocketWrapper[Array[Byte]](retrieveWebSocket)
-  
-  
+
   // -- String
 
   def ofString(retrieveWebSocket: => play.mvc.WebSocket[String]) = webSocketWrapper[String](retrieveWebSocket)
-  
+
   // -- Json (JsonNode)
-  
+
   implicit val jsonFrame = play.api.mvc.WebSocket.FrameFormatter.stringFrame.transform(
     play.libs.Json.stringify, play.libs.Json.parse
   )
-  
+
   def ofJson(retrieveWebSocket: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode]) = webSocketWrapper[org.codehaus.jackson.JsonNode](retrieveWebSocket)
 }

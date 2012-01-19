@@ -27,12 +27,12 @@ object Configuration {
   }
 
   /**
-   * Loads a new `Configuration` from either the classpath or from 
+   * Loads a new `Configuration` from either the classpath or from
    * `conf/application.conf` depending on the application's Mode
    *
    *
-   * @param mode that can be passed in if the application is not ready 
-   * yet, just like when calling this method from `play.api.Application`. 
+   * @param mode that can be passed in if the application is not ready
+   * yet, just like when calling this method from `play.api.Application`.
    * Defaults to Mode.Dev
    * @return a `Configuration` instance
    */
@@ -93,7 +93,7 @@ case class Configuration(underlying: Config) {
    *
    * This method supports an optional set of valid values:
    * {{{
-   * val config = Configuration.load() 
+   * val config = Configuration.load()
    * val mode = config.getString("engine.mode", Some(Set("dev","prod")))
    * }}}
    *
@@ -117,7 +117,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load() 
+   * val configuration = Configuration.load()
    * val poolSize = configuration.getInt("engine.pool.size")
    * }}}
    *
@@ -133,7 +133,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load() 
+   * val configuration = Configuration.load()
    * val isEnabled = configuration.getString("engine.isEnabled")
    * }}}
    *
@@ -154,7 +154,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load()     
+   * val configuration = Configuration.load()
    * val engineConfig = configuration.getSub("engine")
    * }}}
    *
@@ -170,7 +170,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load()     
+   * val configuration = Configuration.load()
    * val keys = configuration.keys
    * }}}
    *
@@ -183,7 +183,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load()     
+   * val configuration = Configuration.load()
    * val subKeys = configuration.subKeys
    * }}}
    * @return the set of direct sub-keys available in this configuration
@@ -195,7 +195,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load()  
+   * val configuration = Configuration.load()
    * throw configuration.reportError("engine.connectionUrl", "Cannot connect!")
    * }}}
    *
@@ -213,7 +213,7 @@ case class Configuration(underlying: Config) {
    *
    * For example:
    * {{{
-   * val configuration = Configuration.load()     
+   * val configuration = Configuration.load()
    * throw configuration.globalError("Missing configuration key: [yop.url]")
    * }}}
    *

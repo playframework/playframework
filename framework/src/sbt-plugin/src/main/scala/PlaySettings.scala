@@ -27,13 +27,13 @@ trait PlaySettings {
       "play.mvc.Http.Context.Implicit._",
 
       "views.%format%._"),
-      
+
     routesImport ++= Seq(
       "play.libs.F"
     ),
-    
+
     ebeanEnabled := true
-    
+
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
@@ -145,11 +145,11 @@ trait PlaySettings {
     resourceGenerators in Compile <+= JavascriptCompiler,
 
     minify := false,
-    
+
     ebeanEnabled := false,
-    
+
     logManager <<= extraLoggers(PlayLogManager.default),
-    
+
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
     playAssetsDirectories := Seq.empty[File],
@@ -157,7 +157,7 @@ trait PlaySettings {
     playAssetsDirectories <+= baseDirectory / "public",
 
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
-    
+
     routesImport := Seq.empty[String],
 
     templatesTypes := {

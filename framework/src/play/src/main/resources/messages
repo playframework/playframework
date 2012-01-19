@@ -4,7 +4,9 @@
 constraint.required=Required
 constraint.min=Minimum value: {0}
 constraint.max=Maximum value: {0}
-constraint.email=Email required
+constraint.minLength=Minimum length: {0}
+constraint.maxLength=Maximum lenght: {0}
+constraint.email=Email
 
 # --- Formats
 format.date=Date (''{0}'')
@@ -16,4 +18,6 @@ error.required=This field is required
 error.number=Numeric value expected
 error.min=Must be greater or equal to {0}
 error.max=Must be less or equal to {0}
+error.minLength=Minimum length is {0}
+error.maxLength=Maximum length is {0}
 error.email=Valid email required

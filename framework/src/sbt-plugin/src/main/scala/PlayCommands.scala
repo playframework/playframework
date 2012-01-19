@@ -389,7 +389,7 @@ trait PlayCommands {
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
 
     // EBean
-    if(ebean) {
+    if (ebean) {
       try {
 
         val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL

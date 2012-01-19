@@ -29,7 +29,7 @@
     
         $(function() {
             
-            var chatSocket = new WebSocket("@routes.Application.chat(username).webSocketURL()")
+            var chatSocket = new WebSocket("@routes.Application.chat(username).webSocketURL(request)")
             
             var sendMessage = function() {
                 chatSocket.send(JSON.stringify(

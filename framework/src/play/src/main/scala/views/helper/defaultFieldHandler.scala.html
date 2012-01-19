@@ -15,24 +15,13 @@
  *@
 @(elements: FieldElements)
 
-@errors = @{
-    elements.field.errors.map(e => play.api.i18n.Messages(e.message, e.args:_*))
-}
-
-@infos = @{
-    if(elements.showInfo) {
-        elements.field.constraints.map(c => play.api.i18n.Messages(c._1, c._2:_*)) ++ 
-        elements.field.format.map(f => play.api.i18n.Messages(f._1, f._2:_*))
-    } else Nil
-}
-
-<dl @if(errors.size > 0) { class="error" } id="@(elements.id)_field">
-    <dt><label for="@elements.id">@elements.label.getOrElse(elements.field.name)</label></dt>
+<dl @if(elements.hasErrors) { class="error" } id="@(elements.id)_field">
+    <dt><label for="@elements.id">@elements.label</label></dt>
     <dd>@elements.input</dd>
-    @errors.map { error =>
+    @elements.errors.map { error =>
         <dd class="error">@error</dd>
     }
-    @infos.map { info =>
+    @elements.infos.map { info =>
         <dd class="info">@info</dd>
     }
 </dl>

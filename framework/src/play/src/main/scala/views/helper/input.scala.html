@@ -1,27 +1,15 @@
 @**
  * Prepare a generic HTML input.
- *
- * Example:
- * {{{
- * @input(field = myForm("name"), id = "name", label = Some("Name")) { (id,name,value) =>
- *   <input type="text" id="@id" name="@name" value="@value">
- * }
- * }}}
- *
- * @param field The form field.
- * @param id The input id.
- * @param name The input name.
- * @param label Maybe a label (or use the field name).
- * @param showInfo Show additional informations (like constraints).
- * @param inputDef A function that really construct the input HTML.
- * @param handler The field constructor.
  *@
-@(field: play.api.data.Field, id: String, label: Option[String], showInfo: Boolean = true)(inputDef: (String,String,Option[String]) => Html)(implicit handler: FieldConstructor)
+@(field: play.api.data.Field, args: (Symbol, Any)* )(inputDef: (String, String, Option[String], Map[Symbol,Any]) => Html)(implicit handler: FieldConstructor)
 
-@handler(FieldElements(
-    id,
-    field,
-    inputDef(id, field.name, field.value),
-    label,
-    showInfo
-))
+@id = @{ args.toMap.get('id).map(_.toString).getOrElse(field.id) }
+
+@handler(
+    FieldElements(
+        id,
+        field,
+        inputDef(id, field.name, field.value, args.filter(!_._1.name.startsWith("_")).toMap),
+        args.toMap
+    )
+)

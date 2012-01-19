@@ -17,28 +17,12 @@ public abstract class Call {
      */
     public abstract String method();
     
-    public String absoluteURL() {
-        return absoluteURL(Http.Context.current().request());
-    }
-    
-    public String absoluteURL(boolean secure) {
-        return absoluteURL(Http.Context.current().request(), secure);
-    }
-    
     public String absoluteURL(Http.Request request) {
         return absoluteURL(request, false);
     }
     
     public String absoluteURL(Http.Request request, boolean secure) {
         return "http" + (secure ? "s" : "") + "://" + request.host() + this.url();
-    }
-    
-    public String webSocketURL() {
-        return webSocketURL(Http.Context.current().request());
-    }
-    
-    public String webSocketURL(boolean secure) {
-        return webSocketURL(Http.Context.current().request(), secure);
     }
     
     public String webSocketURL(Http.Request request) {

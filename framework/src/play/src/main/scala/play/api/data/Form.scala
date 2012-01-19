@@ -150,6 +150,10 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /** Returns `true` if there is an error related to this form. */
   def hasErrors = !errors.isEmpty
 
+  def error(key: String): Option[FormError] = errors.find(_.key == key)
+
+  def errors(key: String): Seq[FormError] = errors.filter(_.key == key)
+
   /** Returns `true` if there is a global error related to this form. */
   def hasGlobalErrors = !globalErrors.isEmpty
 
@@ -246,7 +250,11 @@ object Form {
  * @param message The form message (often a simple message key needing to be translated).
  * @param args Arguments used to format the message.
  */
-case class FormError(key: String, message: String, args: Seq[Any] = Nil)
+case class FormError(key: String, message: String, args: Seq[Any] = Nil) {
+
+  def withMessage(message: String) = FormError(key, message)
+
+}
 
 /** A mapping is a two-way binder to handle a form field. */
 trait Mapping[T] {

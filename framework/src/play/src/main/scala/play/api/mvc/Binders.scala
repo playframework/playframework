@@ -120,7 +120,7 @@ object QueryStringBindable {
     }
     def unbind(key: String, value: Option[T]) = value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
   }
-  
+
   implicit def bindableJavaOption[T: QueryStringBindable] = new QueryStringBindable[play.libs.F.Option[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(
@@ -129,19 +129,19 @@ object QueryStringBindable {
           .getOrElse(Right(play.libs.F.Option.None.asInstanceOf[play.libs.F.Option[T]])))
     }
     def unbind(key: String, value: play.libs.F.Option[T]) = {
-      if(value.isDefined) {
+      if (value.isDefined) {
         implicitly[QueryStringBindable[T]].unbind(key, value.get)
       } else {
         ""
       }
     }
   }
-  
+
   implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit m: Manifest[T]) = new QueryStringBindable[T] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       try {
         val o = m.erasure.newInstance.asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
-        if(o.isDefined) {
+        if (o.isDefined) {
           Some(Right(o.get))
         } else {
           None
@@ -218,7 +218,7 @@ object PathBindable {
     }
     def unbind(key: String, value: Option[T]) = value.map(v => implicitly[PathBindable[T]].unbind(key, v)).getOrElse("")
   }
-  
+
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit m: Manifest[T]) = new PathBindable[T] {
     def bind(key: String, value: String) = {
       try {
