@@ -203,13 +203,16 @@ object PlayBuild extends Build {
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test"
         )
 
-        val sbtDependencies = Seq(            
+        val sbtDependencies = Seq(      
+          "com.typesafe.config"               %%   "config"                   %   "0.1.6",
+      
           "rhino"                               %    "js"                       %   "1.7R2",
           "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
           "org.avaje"                           %    "ebean"                    %   "2.7.3",
           "com.h2database"                      %    "h2"                       %   "1.3.158",
           "javassist"                           %    "javassist"                %   "3.12.1.GA"
+
         )
 
         val consoleDependencies = Seq(
