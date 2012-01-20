@@ -567,6 +567,12 @@ object Enumeratee {
 }
 object Enumerator {
 
+  def flatten[E](eventuallyEnum: Promise[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
+
+    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = eventuallyEnum.flatMap(_.apply(it))
+
+  }
+
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] =
       i.fold((a, e) => Promise.pure(i),
@@ -717,7 +723,8 @@ object Enumerator {
 
 }
 
-class CallbackEnumerator[E](
+class PushEnumerator[E](
+    onStart: => Unit = () => (),
     onComplete: => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] {
 
@@ -725,6 +732,7 @@ class CallbackEnumerator[E](
   var promise: Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
 
   def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    onStart
     iteratee = it.asInstanceOf[Iteratee[E, _]]
     val newPromise = new STMPromise[Iteratee[E, A]]()
     promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]

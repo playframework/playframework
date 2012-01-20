@@ -7,6 +7,7 @@ import play.api._
 import play.api.libs.json._
 import play.api.libs.akka._
 import play.api.libs.iteratee._
+import play.api.libs.concurrent.Promise
 
 import play.api.Play.current
 
@@ -17,14 +18,12 @@ object Robot {
     // Create an Iteratee that log all messages to the console.
     val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))
     
-    // Create an Enemurator for the Robot. 
-    val robotChannel = new CallbackEnumerator[JsValue]
-    
-    // Apply this Enumerator on the logger.
-    robotChannel |>> loggerIteratee
-    
     // Make the robot join the room
-    chatRoom ! Join("Robot", robotChannel)
+    chatRoom ? (Join("Robot"), 1 seconds) map {
+      case Connected(robotChannel) => 
+        // Apply this Enumerator on the logger.
+        robotChannel |>> loggerIteratee
+    }
     
     // Make the robot talk every 30 seconds
     Akka.system.scheduler.schedule(
@@ -47,23 +46,53 @@ object ChatRoom {
     
     roomActor
   }
+
+  def join(username:String):Promise[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+    (default ? (Join(username), 1 second)).asPromise.map {
+      
+      case Connected(enumerator) => 
+      
+        // Create an Iteratee to consume the feed
+        val iteratee = Iteratee.foreach[JsValue] { event =>
+          default ! Talk(username, (event \ "text").as[String])
+        }.mapDone { _ =>
+          default ! Quit(username)
+        }
+
+        (iteratee,enumerator)
+        
+      case CannotConnect(error) => 
+      
+        // Connection error
+        (Done((),Input.EOF),
+         Enumerator[JsValue](JsObject(Seq("error" -> JsString(error))))
+           .andThen(Enumerator.enumInput(Input.EOF) ) )      
+    }
+
+  }
   
 }
 
 class ChatRoom extends Actor {
   
-  var members = Map.empty[String, CallbackEnumerator[JsValue]]
+  var members = Map.empty[String, PushEnumerator[JsValue]]
   
   def receive = {
     
-    case Join(username, channel) => {
+    case Join(username) => {
+      // Create an Enumerator to write to this socket
+      val channel = new PushEnumerator[JsValue]( onStart = ChatRoom.default ! NotifyJoin(username))
       if(members.contains(username)) {
         sender ! CannotConnect("This username is already used")
       } else {
         members = members + (username -> channel)
-        notifyAll("join", username, "has entered the room")
-        sender ! Connected()
+        
+        sender ! Connected(channel)
       }
+    }
+
+    case NotifyJoin(username) => {
+      notifyAll("join", username, "has entered the room")
     }
     
     case Talk(username, text) => {
@@ -95,9 +124,10 @@ class ChatRoom extends Actor {
   
 }
 
-case class Join(username: String, channel: CallbackEnumerator[JsValue])
+case class Join(username: String)
 case class Quit(username: String)
 case class Talk(username: String, text: String)
+case class NotifyJoin(username: String)
 
-case class Connected()
+case class Connected(enumerator:Enumerator[JsValue])
 case class CannotConnect(msg: String)

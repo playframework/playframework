@@ -22,7 +22,7 @@ object JavaWebSocket extends JavaHelpers {
         JContext.current.remove()
       }
 
-      val enumerator = new CallbackEnumerator[A]
+      val enumerator = new PushEnumerator[A]
 
       val socketOut = new play.mvc.WebSocket.Out[A] {
 

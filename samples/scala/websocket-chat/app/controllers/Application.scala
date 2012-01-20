@@ -36,38 +36,9 @@ object Application extends Controller {
   /**
    * Handles the chat websocket.
    */
-  def chat(username: String) = WebSocket[JsValue] { request => (in, out) =>
-    
-    // Get a reference on the chat room
-    val chatRoom = ChatRoom.default
-    
-    // Create an Enumerator to write to this socket
-    val channel = new CallbackEnumerator[JsValue]
-    
-    // Apply this Enumerator on the socket out.
-    channel |>> out
-    
-    // Join this room
-    chatRoom ? (Join(username, channel), 1 second) map {
-      
-      case Connected() => 
-      
-        // Create an Iteratee to consume the feed
-        val iteratee = Iteratee.foreach[JsValue] { event =>
-          chatRoom ! Talk(username, (event \ "text").as[String])
-        }.mapDone { _ =>
-          chatRoom ! Quit(username)
-        }
+  def chat(username: String) = WebSocket.async[JsValue] { request  =>
 
-        // Forward socket events to the Iteratee
-        in |>> iteratee
-        
-      case CannotConnect(error) => 
-      
-        // Connection error
-        channel.push(JsObject(Seq("error" -> JsString(error))))
-      
-    }
+    ChatRoom.join(username)
     
   }
   
