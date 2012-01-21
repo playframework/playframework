@@ -5,7 +5,7 @@ constraint.required=Required
 constraint.min=Minimum value: {0}
 constraint.max=Maximum value: {0}
 constraint.minLength=Minimum length: {0}
-constraint.maxLength=Maximum lenght: {0}
+constraint.maxLength=Maximum length: {0}
 constraint.email=Email
 
 # --- Formats

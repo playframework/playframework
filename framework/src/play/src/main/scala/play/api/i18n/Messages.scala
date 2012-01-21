@@ -35,7 +35,7 @@ object Messages {
   }
 
   private def noMatch(key: String, args: Seq[Any]) = {
-    key + Option(args.map(_.toString).mkString(",")).filterNot(_.isEmpty).map("(" + _ + ")").getOrElse("")
+    key
   }
 
   /**

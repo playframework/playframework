@@ -76,6 +76,11 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    */
   def fill(value: T) = {
     val result = mapping.unbind(value)
+    this.copy(data = result._1, value = Some(value))
+  }
+
+  def fillAndValidate(value: T) = {
+    val result = mapping.unbind(value)
     this.copy(data = result._1, errors = result._2, value = Some(value))
   }
 
