@@ -12,6 +12,50 @@ object Security {
   lazy val username: String = Play.maybeApplication map (_.configuration.getString("session.username")) flatMap (e => e) getOrElse ("username")
 
   /**
+   * Wraps another action, allowing only authorized HTTP requests.
+   *
+   * The user is retrieved from the session cookie and, provided is passes authorization, passed to the action
+   * function as an argument
+   *
+   * For example:
+   * {{{
+   * Authorized(_.isAdmin) { user =>
+   *   Action { request =>
+   *     Ok(Hello " + user)
+   *   }
+   * }
+   * }}}
+   *
+   * @tparam A the type of the request body
+   * @tparam U the type of the user object
+   * @param authorizer function used to authorize the user
+   * @param user function used to retrieve the user from the request header - the default is to read username from session cookie
+   * @param onUnauthorized function used to generate alternative result if the user is not authenticated - the default is a simple 401 page
+   * @param action the action to wrap
+   */
+  def Authorized[A, U](authorizer: U => Boolean)(
+    user: RequestHeader => Option[U],
+    onUnauthorized: RequestHeader => Result)(action: U => Action[A]): Action[(Action[A], A)] = {
+
+    val authenticatedBodyParser = BodyParser { request =>
+      user(request).filter(authorizer).map { user =>
+        val innerAction = action(user)
+        innerAction.parser(request).mapDone { body =>
+          body.right.map(innerBody => (innerAction, innerBody))
+        }
+      }.getOrElse {
+        Done(Left(onUnauthorized(request)), Input.Empty)
+      }
+    }
+
+    Action(authenticatedBodyParser) { request =>
+      val (innerAction, innerBody) = request.body
+      innerAction(request.map(_ => innerBody))
+    }
+
+  }
+
+  /**
    * Wraps another action, allowing only authenticated HTTP requests.
    *
    * The user is retrieved from the session cookie and passed to the action
@@ -34,25 +78,8 @@ object Security {
    */
   def Authenticated[A, U](
     user: RequestHeader => Option[U],
-    onUnauthorized: RequestHeader => Result)(action: U => Action[A]): Action[(Action[A], A)] = {
-
-    val authenticatedBodyParser = BodyParser { request =>
-      user(request).map { user =>
-        val innerAction = action(user)
-        innerAction.parser(request).mapDone { body =>
-          body.right.map(innerBody => (innerAction, innerBody))
-        }
-      }.getOrElse {
-        Done(Left(onUnauthorized(request)), Input.Empty)
-      }
-    }
-
-    Action(authenticatedBodyParser) { request =>
-      val (innerAction, innerBody) = request.body
-      innerAction(request.map(_ => innerBody))
-    }
-
-  }
+    onUnauthorized: RequestHeader => Result)(action: U => Action[A]): Action[(Action[A], A)] =
+    Authorized((u: U) => true)(user, onUnauthorized)(action)
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
