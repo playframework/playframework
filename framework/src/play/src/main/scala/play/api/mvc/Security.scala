@@ -96,6 +96,32 @@ trait Security[User] {
   def Authenticated[A](onUnauthorized: RequestHeader => Result = this.onUnauthorized)(action: User => Action[A]): Action[(Action[A], A)] =
     Authorized(_ => true, onUnauthorized)(action)
 
+  /**
+   * Wraps another action, providing Option[User] as an argument.
+   *
+   * For example:
+   * {{{
+   * MaybeAuthenticated { user =>
+   *   Action { request =>
+   *     Ok("Hello " + user.getOrElse("Anonymous"))
+   *   }
+   * }
+   * }}}
+   */
+  def MaybeAuthenticated[A](action: Option[User] => Action[A]): Action[(Action[A], A)] = {
+    val maybeAuthenticatedBodyParser = BodyParser { request =>
+      val innerAction = action(getUser(request))
+      innerAction.parser(request).mapDone { body =>
+        body.right.map(innerBody => (innerAction, innerBody))
+      }
+    }
+
+    Action(maybeAuthenticatedBodyParser) { request =>
+      val (innerAction, innerBody) = request.body
+      innerAction(request.map(_ => innerBody))
+    }
+  }
+
 }
 
 /** Simple specialization of Security trait, getting User as a String stored in the session */
