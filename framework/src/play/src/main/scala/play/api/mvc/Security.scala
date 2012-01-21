@@ -14,7 +14,7 @@ object Security {
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
    *
-   * The user name is retrieved from the session cookie and passed to the action
+   * The user is retrieved from the session cookie and passed to the action
    * function as an argument
    *
    * For example:
@@ -27,16 +27,17 @@ object Security {
    * }}}
    *
    * @tparam A the type of the request body
-   * @param username function used to retrieve the user name from the request header - the default is to read from session cookie
+   * @tparam U the type of the user object
+   * @param user function used to retrieve the user from the request header - the default is to read username from session cookie
    * @param onUnauthorized function used to generate alternative result if the user is not authenticated - the default is a simple 401 page
    * @param action the action to wrap
    */
-  def Authenticated[A](
-    username: RequestHeader => Option[String],
-    onUnauthorized: RequestHeader => Result)(action: String => Action[A]): Action[(Action[A], A)] = {
+  def Authenticated[A, U](
+    user: RequestHeader => Option[U],
+    onUnauthorized: RequestHeader => Result)(action: U => Action[A]): Action[(Action[A], A)] = {
 
     val authenticatedBodyParser = BodyParser { request =>
-      username(request).map { user =>
+      user(request).map { user =>
         val innerAction = action(user)
         innerAction.parser(request).mapDone { body =>
           body.right.map(innerBody => (innerAction, innerBody))
