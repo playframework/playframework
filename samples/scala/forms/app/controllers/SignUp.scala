@@ -49,7 +49,7 @@ object SignUp extends Controller {
     // The mapping signature doesn't match the User case class signature,
     // so we have to define custom binding/unbinding functions
     {
-      // Binding: Create a User from the mapping result (ignore the sedonc password and the accept field)
+      // Binding: Create a User from the mapping result (ignore the second password and the accept field)
       (username, email, passwords, profile, _) => User(username, passwords._1, email, profile) 
     } 
     {

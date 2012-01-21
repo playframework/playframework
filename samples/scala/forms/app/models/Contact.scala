@@ -4,7 +4,7 @@ case class Contact(
   firstname: String,
   lastname: String,
   company: Option[String],
-  informations: List[ContactInformation]
+  informations: Seq[ContactInformation]
 )
 
 case class ContactInformation(

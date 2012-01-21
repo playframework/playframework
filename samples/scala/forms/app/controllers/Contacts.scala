@@ -24,7 +24,7 @@ object Contacts extends Controller {
       "company" -> optional(text),
       
       // Defines a repeated mapping
-      "informations" -> list(
+      "informations" -> seq(
         mapping(
           "label" -> nonEmptyText,
           "email" -> optional(email),
