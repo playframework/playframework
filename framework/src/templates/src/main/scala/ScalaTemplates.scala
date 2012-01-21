@@ -470,13 +470,13 @@ package play.templates {
       }
     }
 
-    def templateCode(template: Template): Seq[Any] = {
+    def templateCode(template: Template, resultType: String): Seq[Any] = {
 
       val defs = (template.sub ++ template.defs).map { i =>
         i match {
-          case t: Template if t.name == "" => templateCode(t)
+          case t: Template if t.name == "" => templateCode(t, resultType)
           case t: Template => {
-            Nil :+ """def """ :+ Source(t.name.str, t.name.pos) :+ Source(t.params.str, t.params.pos) :+ " = {_display_(" :+ templateCode(t) :+ ")};"
+            Nil :+ """def """ :+ Source(t.name.str, t.name.pos) :+ Source(t.params.str, t.params.pos) :+ ":" :+ resultType :+ " = {_display_(" :+ templateCode(t, resultType) :+ ")};"
           }
           case Def(name, params, block) => {
             Nil :+ """def """ :+ Source(name.str, name.pos) :+ Source(params.str, params.pos) :+ " = {" :+ block.code :+ "};"
@@ -508,7 +508,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     /*""" :+ root.comment.map(_.msg).getOrElse("") :+ """*/
     def apply""" :+ Source(root.params.str, root.params.pos) :+ """:""" :+ resultType :+ """ = {
-        _display_ {""" :+ templateCode(root) :+ """}
+        _display_ {""" :+ templateCode(root, resultType) :+ """}
     }
     
     """ :+ extra._1 :+ """
