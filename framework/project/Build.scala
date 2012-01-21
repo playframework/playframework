@@ -178,7 +178,7 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0-M2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0-M2",
-            "com.typesafe.config"               %%   "config"                   %   "0.1.6",
+            "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "org.avaje"                         %    "ebean"                    %   "2.7.3" notTransitive(),
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
@@ -203,9 +203,8 @@ object PlayBuild extends Build {
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test"
         )
 
-        val sbtDependencies = Seq(      
-          "com.typesafe.config"               %%   "config"                   %   "0.1.6",
-      
+        val sbtDependencies = Seq(
+          "com.typesafe.config"                 %    "config"                   %   "0.2.1",
           "rhino"                               %    "js"                       %   "1.7R2",
           "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
