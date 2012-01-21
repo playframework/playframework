@@ -14,14 +14,14 @@ object Security {
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
    *
-   * The user name is retrieved from the session cookie, and added to the HTTP request’s
-   * `username` attribute.
+   * The user name is retrieved from the session cookie and passed to the action
+   * function as an argument
    *
    * For example:
    * {{{
    * Authenticated {
-   *   Action { request =>
-   *     Ok(request.username.map("Hello " + _))
+   *   user => Action { request =>
+   *     Ok(Hello " + user)
    *   }
    * }
    * }}}
@@ -56,14 +56,14 @@ object Security {
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
    *
-   * The user name is retrieved from the session cookie, and added to the HTTP request’s
-   * `username` attribute.
+   * The user name is retrieved from the session cookie and passed to the action
+   * function as an argument.
    *
    * For example:
    * {{{
    * Authenticated {
-   *   Action { request =>
-   *     Ok(request.username.map("Hello " + _))
+   *   user => Action { request =>
+   *     Ok("Hello " + user)
    *   }
    * }
    * }}}
