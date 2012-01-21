@@ -67,48 +67,46 @@ object Application extends Controller {
 /**
  * Provide security features
  */
-trait Secured {
+trait Secured extends Security[String] {
   
   /**
    * Retrieve the connected user email.
    */
-  private def username(request: RequestHeader) = request.session.get("email")
+  override def getUser(request: RequestHeader) = request.session.get("email")
 
   /**
    * Redirect to login if the user in not authorized.
    */
-  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+  override def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+
+  /**
+   * Show Forbidden page if the user is forbidden to access.
+   */
+  override def onForbidden(request: RequestHeader) = Results.Forbidden
   
   // --
   
   /** 
    * Action for authenticated users.
    */
-  def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
+  def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Authenticated() { user =>
     Action(request => f(user)(request))
   }
 
   /**
    * Check if the connected user is a member of this project.
    */
-  def IsMemberOf(project: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
-    if(Project.isMember(project, user)) {
-      f(user)(request)
-    } else {
-      Results.Forbidden
+  def IsMemberOf(project: Long)(f: => String => Request[AnyContent] => Result) =
+    Authorized(user => Project.isMember(project, user)) { user =>
+      Action(request => f(user)(request))
     }
-  }
 
   /**
    * Check if the connected user is a owner of this task.
    */
-  def IsOwnerOf(task: Long)(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
-    if(Task.isOwner(task, user)) {
-      f(user)(request)
-    } else {
-      Results.Forbidden
+  def IsOwnerOf(task: Long)(f: => String => Request[AnyContent] => Result) =
+    Authorized(user => Task.isOwner(task, user)) { user =>
+      Action(request => f(user)(request))
     }
-  }
-
 }
 
