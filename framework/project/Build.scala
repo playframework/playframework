@@ -124,8 +124,7 @@ object PlayBuild extends Build {
             distTask,
             generateAPIDocsTask,
             publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => },
-            libraryDependencies += "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
+            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
      .dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
@@ -200,7 +199,8 @@ object PlayBuild extends Build {
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test"
+            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
+            "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
         )
 
         val sbtDependencies = Seq(
