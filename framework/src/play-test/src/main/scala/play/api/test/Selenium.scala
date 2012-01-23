@@ -13,38 +13,38 @@ import fr.javafreelance.fluentlenium.core._
 import collection.JavaConverters._
 
 case class TestBrowser(webDriver: WebDriver) extends Fluent(webDriver) {
-    
-    def goTo(url: String) {
-        getDriver.get(url)
-    }
-    
-    /**
-     * @return url
-     */
-    override def url = super.url
-    
-    /**
-     * @return current page's source
-     */
-    override def pageSource = super.pageSource
-    
-    /**
-     * @return cookies 
-     */
-    def getCookies() =  getDriver().manage().getCookies().asScala
-    
-    /**
-     * @param name
-     */
-    def getCookieNamed(name: String) = getDriver().manage().getCookieNamed(name)
-    
-    /**
-     * quits the browser
-     */
-    def quit() {
-        getDriver.quit()
-    }
-    
+
+  def goTo(url: String) {
+    getDriver.get(url)
+  }
+
+  /**
+   * @return url
+   */
+  override def url = super.url
+
+  /**
+   * @return current page's source
+   */
+  override def pageSource = super.pageSource
+
+  /**
+   * @return cookies
+   */
+  def getCookies() = getDriver().manage().getCookies().asScala
+
+  /**
+   * @param name
+   */
+  def getCookieNamed(name: String) = getDriver().manage().getCookieNamed(name)
+
+  /**
+   * quits the browser
+   */
+  def quit() {
+    getDriver.quit()
+  }
+
 }
 
 object TestBrowser {

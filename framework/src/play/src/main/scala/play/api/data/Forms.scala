@@ -497,7 +497,7 @@ object Forms {
   def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
 
   def list[A](mapping: Mapping[A]): Mapping[List[A]] = RepeatedMapping(mapping)
-  
+
   def seq[A](mapping: Mapping[A]): Mapping[Seq[A]] = RepeatedMapping(mapping).transform(_.toSeq, _.toList)
 
   /**

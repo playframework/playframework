@@ -353,7 +353,7 @@ trait Mapping[T] {
       if (constraint(t)) Valid else Invalid(Seq(ValidationError(error)))
     })
   }
-  
+
   def transform[B](f1: T => B, f2: B => T): Mapping[B] = WrappedMapping(this, f1, f2)
 
   // Internal utilities
@@ -376,8 +376,8 @@ trait Mapping[T] {
 
 }
 
-case class WrappedMapping[A,B](wrapped: Mapping[A], f1: A => B, f2: B => A, val additionalConstraints: Seq[Constraint[B]] = Nil) extends Mapping[B] {
-  
+case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val additionalConstraints: Seq[Constraint[B]] = Nil) extends Mapping[B] {
+
   val key = wrapped.key
   val mappings = wrapped.mappings
   override val format = wrapped.format
@@ -388,21 +388,21 @@ case class WrappedMapping[A,B](wrapped: Mapping[A], f1: A => B, f2: B => A, val 
       constraintOfT(f2(b))
     }
   } ++ additionalConstraints
-  
+
   def bind(data: Map[String, String]): Either[Seq[FormError], B] = {
     wrapped.bind(data).right.map(t => f1(t))
   }
-  
+
   def unbind(value: B): (Map[String, String], Seq[FormError]) = {
     wrapped.unbind(f2(value))
   }
-  
+
   def withPrefix(prefix: String): Mapping[B] = {
     copy(wrapped = wrapped.withPrefix(prefix))
   }
-  
+
   def verifying(constraints: Constraint[B]*): Mapping[B] = copy(additionalConstraints = additionalConstraints ++ constraints)
-  
+
 }
 
 object RepeatedMapping {
