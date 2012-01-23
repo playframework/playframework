@@ -304,13 +304,12 @@ trait Results {
         Enumerator(content))
     }
 
-    def sendFile(content: java.io.File, fileName: java.io.File => String = _.getName): SimpleResult[Array[Byte]] = {
+    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName): SimpleResult[Array[Byte]] = {
       SimpleResult(
         header = ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
-          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY),
-          CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))
-        )),
+          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
+        ) ++ (if(inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))))),
         Enumerator.enumerateFile(content)
       )
     }

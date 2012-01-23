@@ -60,6 +60,7 @@ trait SBTLink {
   def forceReload()
   def definedTests: Seq[String]
   def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean]
+  def markdownToHtml(markdown: String, link: String => (String, String)): String
 }
 
 class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
@@ -128,72 +129,122 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
   }
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
+    
     import play.api.mvc.Results._
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
-
-    //val testPath = """/@tests""".r
-    //val runTestPath = """/@run-test""".r
-    //val runTestSuit = """/@run-all-tests""".r
-    //val testReport = "/@test-report".r
+    val documentation = """/@documentation""".r
+    val apiDoc = """/@documentation/api/(.*)""".r
+    val wikiResource = """/@documentation/resources/(.*)""".r
+    val wikiPage = """/@documentation/([^/]*)""".r
+    
+    val documentationHome = Option(System.getProperty("play.home")).map(ph => new java.io.File(ph + "/../documentation"))
 
     request.path match {
 
       case applyEvolutions(db) => {
+        
         import play.api.db._
         import play.api.db.evolutions._
 
-        OfflineEvolutions.applyScript(path, Play.current.classloader, db)
-
-        sbtLink.forceReload()
-
-        Some(Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")))
-      }
-
-      /*
-      
-      Waiting next release
-      
-      case testPath() => {
-
-        val r = <p>
-                  <a href="/@run-all-tests">Run all tests</a><br/>
-                  Or run a specific test:
-                  <ul>
-                    {
-                      sbtLink.definedTests.map(name => <li><a href={ "/@run-test?className=" + name }>{ name }</a></li>)
-                    }
-                  </ul>
-                </p>
-
-        Some(Ok(r).as("text/html"))
-
-      }
-
-      case runTestPath() => {
-
-        val classNames = request.queryString.get("className").getOrElse(Seq.empty)
-
-        Some({
-          sbtLink.runTests(classNames, _ => ()).fold(
-            msg => InternalServerError("Test failed... " + msg),
-            _ => Ok("Test successful!"))
-        })
-
-      }
-      case runTestSuit() => {
-        implicit def dispatcher = system.dispatcher
-
-        Future {
-          sbtLink.runTask("test-result-reporter-reset")
-          sbtLink.runTests(Nil, _ => ())
+        Some {
+          OfflineEvolutions.applyScript(path, Play.current.classloader, db)
+          sbtLink.forceReload()
+          Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }
-        Some(Redirect("/@test-report"))
-
       }
-      case testReport() => {
-        Some(Ok(sbtLink.runTask("test-result-reporter").map(report => report.asInstanceOf[List[_]].mkString("")).getOrElse("...")).as("text/html"))
-      }*/
+      
+      case documentation() => {
+        
+        Some {
+          Redirect("/@documentation/Home")
+        }
+        
+      }
+      
+      case apiDoc(page) => {
+        
+        Some {
+          documentationHome.flatMap { home =>
+            Option(new java.io.File(home, "api/" + page)).filter(f => f.exists && f.isFile)
+          }.map { file =>
+            Ok.sendFile(file, inline = true)
+          }.getOrElse(NotFound("Documentation page not found(" + page + ")"))
+        }
+  
+      }
+      
+      case wikiResource(path) => {
+        
+        Some {
+          documentationHome.flatMap { home =>
+            Option(new java.io.File(home, path)).filter(_.exists)
+          }.map { file =>
+            Ok.sendFile(file, inline = true)
+          }.getOrElse(NotFound("Resource not found [" + path + "]"))
+        }
+        
+      }
+      
+      case wikiPage(page) => {
+        
+        import scalax.file._
+        
+        Some {
+        
+          val pageWithSidebar = documentationHome.flatMap { home =>
+            (home: Path).descendants().find(_.name == page + ".md").map { pageSource =>
+
+              // Recursively search for Sidebar
+              lazy val findSideBar:(Option[Path] => Option[Path]) = _ match {
+                case None => None
+                case Some(parent) => {
+                  val maybeSideBar = parent \ "_Sidebar.md"
+                  if(maybeSideBar.exists) {
+                    Some(maybeSideBar)
+                  } else {
+                    findSideBar(parent.parent)
+                  }
+                } 
+              }
+
+              pageSource -> findSideBar(pageSource.parent)
+            }
+          }
+        
+          pageWithSidebar.map {
+            case (pageSource, maybeSidebar) => {
+
+              val linkRender:(String => (String, String)) = _ match {
+                case link if link.contains("|") => {
+                  val parts = link.split('|')
+                  (parts.tail.head, parts.head)
+                }
+                case image if image.endsWith(".png") => {
+                  val link = image match {
+                    case absolute if absolute.startsWith("/") => "resources/manual" + absolute
+                    case relative => "resources/" + pageSource.parent.get.relativize(documentationHome.get).path + "/" + relative
+                  }
+                  (link, """<img src="""" + link + """"/>""")
+                }
+                case link => {
+                  (link, link)
+                }
+              }
+
+              Ok(
+                views.html.play20.manual(
+                  page,
+                  sbtLink.markdownToHtml(pageSource.slurpString, linkRender),
+                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.slurpString, linkRender))
+                )
+              )
+            }
+          }.getOrElse(NotFound("Documentation page not found [" + page + "]"))
+        
+        }
+        
+      }
 
       case _ => None
 
