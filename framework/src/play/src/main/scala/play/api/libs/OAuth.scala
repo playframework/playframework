@@ -94,14 +94,14 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
 
   class WSRequestAdapter(request: WSRequest) extends HttpRequest {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     override def unwrap() = request
 
     override def getAllHeaders(): java.util.Map[String, String] =
       request.allHeaders.map { entry => (entry._1, entry._2.headOption) }
         .filter { entry => entry._2.isDefined }
-        .map { entry => (entry._1, entry._2.get) }
+        .map { entry => (entry._1, entry._2.get) }.asJava
 
     override def getHeader(name: String): String = request.header(name).getOrElse("")
 

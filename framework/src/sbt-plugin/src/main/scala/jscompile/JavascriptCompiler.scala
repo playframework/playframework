@@ -6,7 +6,6 @@ import java.io._
 import play.api._
 
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 
 import scalax.file._
 

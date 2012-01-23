@@ -32,7 +32,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public String get(String key, Object... args) {
-        Buffer scalaArgs = scala.collection.JavaConversions.asScalaBuffer( Arrays.asList(args));
+        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter( Arrays.asList(args)).asScala();
         return play.api.i18n.Messages.apply(key, scalaArgs);
     }
 }
