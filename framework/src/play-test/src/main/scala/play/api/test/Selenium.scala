@@ -8,7 +8,23 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
-case class TestBrowser(webDriver: WebDriver) extends play.test.TestBrowser(webDriver)
+import fr.javafreelance.fluentlenium.core._
+
+case class TestBrowser(webDriver: WebDriver) extends Fluent(webDriver) {
+    
+    def goTo(url: String) {
+        getDriver.get(url)
+    }
+    
+    override def url = super.url
+    
+    override def pageSource = super.pageSource
+    
+    def quit() {
+        getDriver.quit()
+    }
+    
+}
 
 object TestBrowser {
 

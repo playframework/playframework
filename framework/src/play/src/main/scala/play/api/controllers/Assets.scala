@@ -13,7 +13,7 @@ import scalax.io.{ Resource }
 /**
  * Controller that serves static resources.
  *
- * You can use this controller in any application, just be declaring the appropriate route. For example:
+ * You can use this controller in any application, just by declaring the appropriate route. For example:
  * {{{
  * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
  * }}}

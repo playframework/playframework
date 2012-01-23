@@ -52,6 +52,11 @@ object Helpers extends Status with HeaderNames {
       testServer.stop()
     }
   }
+  /**
+   * running evolution for the given db
+   * @param dbName
+   */
+  def evolutionFor(dbName: String) = play.api.db.evolutions.OfflineEvolutions.applyScript(new java.io.File("."), this.getClass.getClassLoader, dbName)
 
   def contentType(of: Content): String = of.contentType
 

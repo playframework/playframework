@@ -124,7 +124,8 @@ object PlayBuild extends Build {
             distTask,
             generateAPIDocsTask,
             publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
+            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => },
+            libraryDependencies += "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
      .dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
@@ -190,7 +191,6 @@ object PlayBuild extends Build {
             "org.springframework"               %    "spring-core"              %   "3.1.0.RELEASE"   notTransitive(),
             "org.springframework"               %    "spring-beans"             %   "3.1.0.RELEASE"   notTransitive(),
             "joda-time"                         %    "joda-time"                %   "2.0",
-            "mysql"                             %    "mysql-connector-java"     %   "5.1.18",
             "org.javassist"                     %    "javassist"                %   "3.15.0-GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
             "com.ning"                          %    "async-http-client"        %   "1.7.0",
@@ -203,7 +203,7 @@ object PlayBuild extends Build {
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test"
         )
 
-        val sbtDependencies = Seq(            
+        val sbtDependencies = Seq(
           "com.typesafe.config"                 %    "config"                   %   "0.2.1",
           "rhino"                               %    "js"                       %   "1.7R2",
           "com.google.javascript"               %    "closure-compiler"         %   "r1592",           //notTransitive(),
@@ -290,16 +290,20 @@ object PlayBuild extends Build {
         // ----- Generate API docs
 
         val generateAPIDocs = TaskKey[Unit]("api-docs")
-        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Compile, compilers, streams) map { (classpath, cs, s) => 
+        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Test, compilers, streams) map { (classpath, cs, s) => 
 
           IO.delete(file("../documentation/api"))
 
           // Scaladoc
-          val sourceFiles = (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ (file("src/play/src/main/scala/views") ** "*.scala").get ++ (file("play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
+          val sourceFiles = 
+            (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ 
+            (file("src/play-test/src/main/scala") ** "*.scala").get ++ 
+            (file("src/play/src/main/scala/views") ** "*.scala").get ++ 
+            (file("src/play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc
-          val javaSources = file("src/play/src/main/java")
+          val javaSources = Seq(file("src/play/src/main/java"), file("src/play-test/src/main/java")).mkString(":")
           val javaApiTarget = file("../documentation/api/java")
           val javaClasspath = classpath.map(_.data).mkString(":")
           """javadoc -windowtitle playframework -doctitle Play&nbsp;2.0&nbsp;Java&nbsp;API  -sourcepath %s -d %s -subpackages play -exclude play.api:play.core -classpath %s""".format(javaSources, javaApiTarget, javaClasspath) ! s.log

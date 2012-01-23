@@ -42,7 +42,14 @@ public class Form<T> {
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
     private final Option<T> value;
-    private final T blankInstance;
+    
+    private T blankInstance() {
+        try {
+            return backedType.newInstance();
+        } catch(Exception e) {
+            throw new RuntimeException("Cannot instantiate " + backedType + ". It must have a default constructor", e);
+        }
+    }
     
     /**
      * Creates a new <code>Form</code>.
@@ -71,11 +78,6 @@ public class Form<T> {
         this.data = data;
         this.errors = errors;
         this.value = value;
-        try {
-            blankInstance = backedType.newInstance();
-        } catch(Exception e) {
-            throw new RuntimeException("Cannot instantiate " + clazz + ". It must have a default constructor", e);
-        }
     }
     
     protected Map<String,String> requestData() {
@@ -138,9 +140,9 @@ public class Form<T> {
         DataBinder dataBinder = null;
         Map<String, String> objectData = data;
         if(rootName == null) {
-            dataBinder = new DataBinder(blankInstance);
+            dataBinder = new DataBinder(blankInstance());
         } else {
-            dataBinder = new DataBinder(blankInstance, rootName);
+            dataBinder = new DataBinder(blankInstance(), rootName);
             objectData = new HashMap<String,String>();
             for(String key: data.keySet()) {
                 if(key.startsWith(rootName + ".")) {
@@ -188,7 +190,7 @@ public class Form<T> {
                 errors.get("").add(new ValidationError("", globalError, new ArrayList()));
                 return new Form(rootName, backedType, data, errors, None());
             }
-            return new Form(rootName, backedType, data, errors, Some((T)result.getTarget()));
+            return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()));
         }
     }
     
@@ -273,6 +275,15 @@ public class Form<T> {
         return errors;
     }
     
+    public ValidationError error(String key) {
+        List<ValidationError> err = errors.get(key);
+        if(err == null || err.isEmpty()) {
+            return null;
+        } else {
+            return err.get(0);
+        }
+    }
+    
     /**
      * Gets the concrete value if the submission was a success.
      */
@@ -352,23 +363,23 @@ public class Form<T> {
         
         // Value
         String fieldValue = null;
-        if(value.isDefined()) {
-            BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
-            beanWrapper.setAutoGrowNestedPaths(true);
-            String objectKey = key;
-            if(rootName != null && key.startsWith(rootName + ".")) {
-                objectKey = key.substring(rootName.length() + 1);
-            }
-            if(beanWrapper.isReadableProperty(objectKey)) {
-                Object oValue = beanWrapper.getPropertyValue(objectKey);
-                if(oValue != null) {
-                    fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKey), oValue);
+        if(data.containsKey(key)) {
+            fieldValue = data.get(key);
+        } else {
+            if(value.isDefined()) {
+                BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
+                beanWrapper.setAutoGrowNestedPaths(true);
+                String objectKey = key;
+                if(rootName != null && key.startsWith(rootName + ".")) {
+                    objectKey = key.substring(rootName.length() + 1);
+                }
+                if(beanWrapper.isReadableProperty(objectKey)) {
+                    Object oValue = beanWrapper.getPropertyValue(objectKey);
+                    if(oValue != null) {
+                        fieldValue = play.data.format.Formatters.print(beanWrapper.getPropertyTypeDescriptor(objectKey), oValue);
+                    }
                 }
             }
-        } else {
-            if(data.containsKey(key)) {
-                fieldValue = data.get(key);
-            } 
         }
         
         // Error
@@ -379,7 +390,7 @@ public class Form<T> {
         
         // Format
         Tuple<String,List<Object>> format = null;
-        BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance);
+        BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
         beanWrapper.setAutoGrowNestedPaths(true);
         try {
             for(Annotation a: beanWrapper.getPropertyTypeDescriptor(key).getAnnotations()) {
@@ -461,6 +472,13 @@ public class Form<T> {
          * @return The field value, if defined.
          */
         public String value() {
+            return value;
+        }
+        
+        public String valueOr(String or) {
+            if(value == null) {
+                return or;
+            }
             return value;
         }
         
