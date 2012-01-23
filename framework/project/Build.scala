@@ -190,6 +190,7 @@ object PlayBuild extends Build {
             "org.springframework"               %    "spring-core"              %   "3.0.7.RELEASE"   notTransitive(),
             "org.springframework"               %    "spring-beans"             %   "3.0.7.RELEASE"   notTransitive(),
             "joda-time"                         %    "joda-time"                %   "2.0",
+            "org.joda"                          %    "joda-convert"             %   "1.1",
             "mysql"                             %    "mysql-connector-java"     %   "5.1.17",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
