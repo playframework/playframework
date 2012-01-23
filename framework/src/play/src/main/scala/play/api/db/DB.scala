@@ -322,11 +322,7 @@ class DBPlugin(app: Application) extends Plugin {
         bone.shutdown()
       } catch { case _ => }
     }
-    val drivers = DriverManager.getDrivers()
-    while(drivers.hasMoreElements) {
-      val driver = drivers.nextElement
-      DriverManager.deregisterDriver(driver)
-    }
+    
   }
 
 }
