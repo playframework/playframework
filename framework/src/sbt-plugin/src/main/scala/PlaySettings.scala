@@ -8,6 +8,11 @@ trait PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
+    testRunner := Some("play.api.test.JunitRunner","Test"),
+
+    testFrameworkCommandOptions <<= (fullClasspath in Test, target) map generateJVMCommandOptions,
+
+
     templatesImport ++= Seq(
       "models._",
       "controllers._",
@@ -37,6 +42,8 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
+    testRunner := Some("play.api.test.SpecRunner","Spec"),
+    testFrameworkCommandOptions <<= (fullClasspath in Test, target) map generateJVMCommandOptions,
 
     templatesImport ++= Seq(
       "models._",
@@ -50,6 +57,15 @@ trait PlaySettings {
       "views.%format%._"))
 
   lazy val defaultSettings = Seq[Setting[_]](
+    javaRunner <<= javaHome map { javaCommand(_, "java") },
+    runWith <<= (javaRunner, scalaInstance) map RunWith,
+    testJvmOptions := Seq.empty,
+    testRunner := None,
+    testFrameworkCommandOptions := { (j,s) => Seq.empty },
+    testNames <<= collectTestNames triggeredBy (compile in Test ),
+    testAllJvmOptions <<= (testJvmOptions, testFrameworkCommandOptions) map JVMOptions,
+    test <<= testTask,
+    testOnly <<= testOnlyTask,
 
     resolvers ++= Seq(
       Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),

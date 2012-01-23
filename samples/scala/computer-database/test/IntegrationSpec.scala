@@ -7,7 +7,7 @@ import play.api.test.Helpers._
 
 import fr.javafreelance.fluentlenium.core.filter.FilterConstructor._
 
-object IntegrationSpec extends Specification {
+class IntegrationSpec extends Specification {
   
   "Application" should {
     

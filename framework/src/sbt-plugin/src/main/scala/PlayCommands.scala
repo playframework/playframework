@@ -2,6 +2,10 @@ package sbt
 
 import Keys._
 import CommandSupport.{ ClearOnFailure, FailureWall }
+import complete.Parser
+import Parser._
+import Cache.seqFormat
+import sbinary.DefaultProtocol.StringFormat
 
 import play.api._
 import play.core._
@@ -13,7 +17,7 @@ import PlayKeys._
 
 import scala.annotation.tailrec
 
-trait PlayCommands {
+trait PlayCommands extends PlayJvm{
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -44,7 +48,7 @@ trait PlayCommands {
     waitEOF()
     consoleReader.getTerminal.enableEcho()
   }
-
+  
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     inAllProjects(Dag.topologicalSort(base)(deps), key, data)
@@ -113,6 +117,51 @@ trait PlayCommands {
     assetsMapping
   }
 
+  val javaRunner = TaskKey[File]("java-runner")
+  val runWith = TaskKey[RunWith]("run-with")
+
+  // --- Test Runner
+  val testRunner = TaskKey[Option[(String, String)]]("test-runner")
+  val testFrameworkCommandOptions = TaskKey[(String,Option[String]) => Seq[String]]("test-framework-command-options")
+  val testJvmOptions = SettingKey[Seq[String]]("test-jvm-options")
+  val testNames = TaskKey[Seq[String]]("test-names")
+  val testAllJvmOptions = TaskKey[JVMOptions]("test-jvm-all-options")
+
+  def generateJVMCommandOptions(fullClasspath: Classpath, target: File) = {  
+     val classpathFiles = (fullClasspath.files ++ (target * "scala-*" * "*classes").get).absString
+    (runner: String, args: Option[String]) => 
+      Seq("-cp", classpathFiles, runner) ++ args.map(_.split(" ").toSeq).getOrElse(Nil) 
+  } 
+
+  
+  
+  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name)}
+
+
+  def testTask = (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams) map {
+    (tests, testRunner, runWith, testAllJvmOptions, srcDir, s) => {
+      testRunner.map {runner =>
+        val availableTests = tests.filter(_.endsWith(runner._2))
+        if (availableTests.isEmpty) 
+          s.log.info("No tests to run.")
+        else 
+          fork("Fork JVM for test",runner._1, Some(availableTests.mkString(" ")), runWith, testAllJvmOptions, srcDir,  s.log)
+      }.getOrElse(s.log.warn("test runner was not configured"))
+    }
+  }
+  
+  def testOnlyTask = InputTask(loadForParser(testNames)((s, i) => Defaults.testOnlyParser(s, i getOrElse Nil))) { result =>
+    (testRunner,runWith, testAllJvmOptions,sourceDirectory, streams, result) map {
+      case (testRunner,runWith, testAllJvmOptions, srcDir, s, (testsPassedIn, _)) => 
+          testRunner.map {runner =>
+            if (testsPassedIn.isEmpty) 
+              s.log.info("No tests to run.")
+            else 
+              fork("Fork JVM for test-only",runner._1,Some(testsPassedIn.mkString(" ")),runWith, testAllJvmOptions, srcDir,  s.log)
+          }.getOrElse(s.log.warn("test runner was not configured"))    
+    }
+  }
+
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>
     analysises.reduceLeft(_ ++ _)
@@ -177,6 +226,10 @@ trait PlayCommands {
       EclipseKeys.preTasks := Seq(compile in Compile),
       EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
   }
+
+  
+  
+  // -- Intellij
 
   val playIntellij = TaskKey[Unit]("idea")
   val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
