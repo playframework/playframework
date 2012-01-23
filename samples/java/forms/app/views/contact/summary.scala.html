@@ -1,0 +1,45 @@
+@(contact: Contact) 
+
+@main(Html("Contact created!"), nav = "contact") {
+    
+    <h2>@contact.firstname @contact.lastname</h2>
+    
+    <h6>Company</h6>
+    
+    <p>
+        @if(contact.company == null || contact.company == "") {
+            <em>Not specified</em>
+        } else {
+            @contact.company
+        }
+    </p>
+    
+    @contact.informations.map { information =>
+        
+        <h3>@information.label:</h3>
+        
+        <h6>Email</h6>
+
+        <p>
+            @if(information.email == null || information.email == "") {
+                <em>Not specified</em>
+            } else {
+                @information.email
+            }
+        </p>
+        
+        @if(information.phones!= null && information.phones.size > 0) {
+            
+            <h6>Phones</h6>
+            
+            <ul>
+                @information.phones.map { phone =>
+                    <li>@phone.number</li>
+                }
+            </ul>
+            
+        }
+        
+    }
+    
+}

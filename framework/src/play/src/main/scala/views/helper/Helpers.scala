@@ -73,6 +73,7 @@ package views.html.helper {
     def apply(options: Map[String, String]) = options.toSeq
     def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
     def apply(options: List[String]) = options.map(v => v -> v)
+    def apply(options: java.util.List[String]) = options.asScala.map(v => v -> v)
 
   }
 
