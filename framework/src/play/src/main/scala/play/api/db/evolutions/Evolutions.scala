@@ -57,24 +57,6 @@ case class DownScript(evolution: Evolution, sql: String) extends Script
 /** Defines Evolutions utilities functions. */
 object Evolutions {
 
-  /** Updates a local (file-based) evolution script. */
-  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
-    import play.api.libs._
-
-    val evolutions = application.getFile("db/evolutions/" + db + "/" + revision + ".sql");
-    Files.createDirectory(application.getFile("db/evolutions/" + db));
-    Files.writeFileIfChanged(evolutions,
-      """|# --- %s
-               |
-               |# --- !Ups
-               |%s
-               |
-               |# --- !Downs
-               |%s
-               |
-               |""".stripMargin.format(comment, ups, downs));
-  }
-
   // --
 
   private def evolutionsDirectory(applicationPath: File, db: String): Option[File] = {
@@ -325,44 +307,16 @@ object Evolutions {
   def applicationEvolutions(applicationPath: File, db: String) = {
     evolutionsDirectory(applicationPath, db).map { dir =>
 
-      val evolutionScript = """^([0-9]+)[.]sql$""".r
-      val upsMarker = """^#.*!Ups.*$""".r
-      val downsMarker = """^#.*!Downs.*$""".r
-
-      val UPS = "UPS"
-      val DOWNS = "DOWNS"
-      val UNKNOWN = "UNKNOWN"
-
-      val mapUpsAndDowns: PartialFunction[String, String] = {
-        case upsMarker() => UPS
-        case downsMarker() => DOWNS
-        case _ => UNKNOWN
-      }
-
-      val isMarker: PartialFunction[String, Boolean] = {
-        case upsMarker() => true
-        case downsMarker() => true
-        case _ => false
-      }
+      val upEvolutionScript = """^([0-9]+)-up[.]sql$""".r
 
       Path(dir).children().toSeq.map(f => f.name -> f).collect {
-        case (evolutionScript(revision), script) => Integer.parseInt(revision) -> script.slurpString
+        case (upEvolutionScript(revision), script) => Integer.parseInt(revision) -> script
       }.toList.sortBy(_._1).map {
-        case (revision, script) => {
-
-          val parsed = Collections.unfoldLeft(("", script.split('\n').toList.map(_.trim))) {
-            case (_, Nil) => None
-            case (context, lines) => {
-              val (some, next) = lines.span(l => !isMarker(l))
-              Some((next.headOption.map(c => (mapUpsAndDowns(c), next.tail)).getOrElse("" -> Nil),
-                context -> some.mkString("\n")))
-            }
-          }.reverse.drop(1).groupBy(i => i._1).mapValues { _.map(_._2).mkString("\n").trim }
-
+        case (revision, upScript) => {
           Evolution(
             revision,
-            parsed.get(UPS).getOrElse(""),
-            parsed.get(DOWNS).getOrElse(""))
+            upScript.slurpString,
+            scalax.io.Resource.fromFile(upScript.path.replace("up", "down")).slurpString)
         }
       }.reverse
 
