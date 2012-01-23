@@ -121,7 +121,7 @@ trait PlayCommands extends PlayJvm{
   val runWith = TaskKey[RunWith]("run-with")
 
   // --- Test Runner
-  val testRunner = TaskKey[Option[(String, String)]]("test-runner")
+  val testRunner = TaskKey[Map[String, String]]("test-runner")
   val testFrameworkCommandOptions = TaskKey[(String,Option[String]) => Seq[String]]("test-framework-command-options")
   val testJvmOptions = SettingKey[Seq[String]]("test-jvm-options")
   val testNames = TaskKey[Seq[String]]("test-names")
@@ -135,32 +135,37 @@ trait PlayCommands extends PlayJvm{
 
   
   
-  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name)}
+  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name.toString)}
 
+  private def selectTestsFor(testNames: Seq[String]) = if (testNames.size > 0) Some(testNames.mkString(" ")) else None
 
   def testTask = (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams) map {
-    (tests, testRunner, runWith, testAllJvmOptions, srcDir, s) => {
-      testRunner.map {runner =>
-        val availableTests = tests.filter(_.endsWith(runner._2))
-        if (availableTests.isEmpty) 
+    (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s) => {
+        if (testNames.isEmpty) 
           s.log.info("No tests to run.")
         else 
-          fork("Fork JVM for test",runner._1, Some(availableTests.mkString(" ")), runWith, testAllJvmOptions, srcDir,  s.log)
-      }.getOrElse(s.log.warn("test runner was not configured"))
+           testRunner.keys.foreach { testType =>
+            val current = testNames.filter(_.endsWith(testType))
+            selectTestsFor(current).map{arg => fork("Fork JVM for test, filter: *"+testType,testRunner(testType),Some(arg),runWith, testAllJvmOptions, srcDir,  s.log)}.getOrElse(Unit)
+          }
     }
   }
   
   def testOnlyTask = InputTask(loadForParser(testNames)((s, i) => Defaults.testOnlyParser(s, i getOrElse Nil))) { result =>
     (testRunner,runWith, testAllJvmOptions,sourceDirectory, streams, result) map {
       case (testRunner,runWith, testAllJvmOptions, srcDir, s, (testsPassedIn, _)) => 
-          testRunner.map {runner =>
-            if (testsPassedIn.isEmpty) 
-              s.log.info("No tests to run.")
-            else 
-              fork("Fork JVM for test-only",runner._1,Some(testsPassedIn.mkString(" ")),runWith, testAllJvmOptions, srcDir,  s.log)
-          }.getOrElse(s.log.warn("test runner was not configured"))    
+        if (testsPassedIn.isEmpty) 
+          s.log.info("No tests to run.")
+        else {
+          testRunner.keys.foreach { testType =>
+            val current = testsPassedIn.filter(_.endsWith(testType))
+            selectTestsFor(current).map(arg => fork("Fork JVM for test "+ arg,testRunner(testType),Some(arg),runWith, testAllJvmOptions, srcDir,  s.log)).getOrElse(Unit)
+          }
+        }
     }
   }
+
+    
 
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>

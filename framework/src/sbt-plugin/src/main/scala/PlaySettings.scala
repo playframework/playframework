@@ -8,11 +8,6 @@ trait PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    testRunner := Some("play.api.test.JunitRunner","Test"),
-
-    testFrameworkCommandOptions <<= (fullClasspath in Test, target) map generateJVMCommandOptions,
-
-
     templatesImport ++= Seq(
       "models._",
       "controllers._",
@@ -42,8 +37,7 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-    testRunner := Some("play.api.test.SpecRunner","Spec"),
-    testFrameworkCommandOptions <<= (fullClasspath in Test, target) map generateJVMCommandOptions,
+    
 
     templatesImport ++= Seq(
       "models._",
@@ -57,11 +51,12 @@ trait PlaySettings {
       "views.%format%._"))
 
   lazy val defaultSettings = Seq[Setting[_]](
+    testRunner := Map("Test" -> "play.api.test.JunitRunner", 
+                      "Spec" -> "play.api.test.SpecRunner"),
+    testFrameworkCommandOptions <<= (fullClasspath in Test, target) map generateJVMCommandOptions,
     javaRunner <<= javaHome map { javaCommand(_, "java") },
     runWith <<= (javaRunner, scalaInstance) map RunWith,
     testJvmOptions := Seq.empty,
-    testRunner := None,
-    testFrameworkCommandOptions := { (j,s) => Seq.empty },
     testNames <<= collectTestNames triggeredBy (compile in Test ),
     testAllJvmOptions <<= (testJvmOptions, testFrameworkCommandOptions) map JVMOptions,
     test <<= testTask,
