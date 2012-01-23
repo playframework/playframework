@@ -317,9 +317,15 @@ class DBPlugin(app: Application) extends Plugin {
   override def onStop() {
     db.datasources.values.foreach {
       case (ds, _) => try {
+        ds.close()
         val bone = new com.jolbox.bonecp.BoneCP(ds.getConfig)
         bone.shutdown()
       } catch { case _ => }
+    }
+    val drivers = DriverManager.getDrivers()
+    while(drivers.hasMoreElements) {
+      val driver = drivers.nextElement
+      DriverManager.deregisterDriver(driver)
     }
   }
 
