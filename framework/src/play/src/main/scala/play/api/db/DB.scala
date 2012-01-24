@@ -319,11 +319,13 @@ class DBPlugin(app: Application) extends Plugin {
   override def onStop() {
     db.datasources.values.foreach {
       case (ds, _) => try {
-        ds.close()
         val bone = new com.jolbox.bonecp.BoneCP(ds.getConfig)
         bone.shutdown()
+        ds.close()
       } catch { case _ => }
     }
+    //wait for the pool's threads to shut down
+    Thread.sleep(50)
     val drivers = DriverManager.getDrivers()
     while (drivers.hasMoreElements) {
       val driver = drivers.nextElement
