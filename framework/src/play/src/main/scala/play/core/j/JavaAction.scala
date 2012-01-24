@@ -38,14 +38,16 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     }
     
     // Wrap into user defined Global action
-    val baseAction = play.api.Play.current.global match {
-      case global: JavaGlobalSettingsAdapter => {
-        val action = global.underlying.onRequest(javaContext.request, method)
-        action.delegate = rootAction
-        action
+    val baseAction = play.api.Play.maybeApplication.map { app =>
+      app.global match {
+        case global: JavaGlobalSettingsAdapter => {
+          val action = global.underlying.onRequest(javaContext.request, method)
+          action.delegate = rootAction
+          action
+        }
+        case _ => rootAction
       }
-      case _ => rootAction
-    }
+    }.getOrElse(rootAction)
 
     val actionMixins = {
       (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations).collect {
