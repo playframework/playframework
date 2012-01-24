@@ -318,7 +318,7 @@ trait PlayCommands {
         // Delete previous generated files
         previousRelation._2s.foreach(IO.delete)
 
-        val generated = ((sourceFiles --- ((src / "assets") ** "_*")) x relativeTo(Seq(src / "assets"))).flatMap {
+        val generated = ((sourceFiles --- ((src / "assets") ** "_*" ***)) x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
             val (debug, min, dependencies) = compile(sourceFile)
             val out = new File(resources, "public/" + naming(name, false))
