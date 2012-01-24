@@ -159,7 +159,7 @@ trait PlayCommands extends PlayJvm{
         else {
           testRunner.keys.foreach { testType =>
             val current = testsPassedIn.filter(_.endsWith(testType))
-            selectTestsFor(current).map(arg => fork("Fork JVM for test "+ arg,testRunner(testType),Some(arg),runWith, testAllJvmOptions, srcDir,  s.log)).getOrElse(Unit)
+            selectTestsFor(current).map(arg => fork("Fork JVM for test: "+ arg,testRunner(testType),Some(arg),runWith, testAllJvmOptions, srcDir,  s.log)).getOrElse(Unit)
           }
         }
     }
