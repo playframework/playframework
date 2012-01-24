@@ -118,6 +118,7 @@ object PlayBuild extends Build {
         "Root",
         file("."),
         settings = buildSettings ++ Seq(
+            libraryDependencies := runtime,
             cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
             resetRepositoryTask,
             buildRepositoryTask,
@@ -294,7 +295,6 @@ object PlayBuild extends Build {
         val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Test, compilers, streams) map { (classpath, cs, s) => 
 
           IO.delete(file("../documentation/api"))
-
           // Scaladoc
           val sourceFiles = 
             (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ 
