@@ -433,7 +433,7 @@ package play.templates {
                 case i: Simple => (s._1 :+ i, s._2, s._3, s._4)
                 case d: Def => (s._1, s._2 :+ d, s._3, s._4)
                 case v: Template => (s._1, s._2, s._3 :+ v, s._4)
-                case c: Seq[TemplateTree] => (s._1, s._2, s._3, s._4 ++ c)
+                case c: Seq[_] => (s._1, s._2, s._3, s._4 ++ c.asInstanceOf[Seq[TemplateTree]])
               }
             }
           }
@@ -537,6 +537,12 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
         type Tree = PresentationCompiler.global.Tree
         type DefDef = PresentationCompiler.global.DefDef
         type TypeDef = PresentationCompiler.global.TypeDef
+        
+        def filterType(t: String) = t match {
+          case vararg if vararg.startsWith("_root_.scala.<repeated>") => vararg.replace("_root_.scala.<repeated>", "Array")
+          case synthetic if synthetic.contains("<synthetic>") => synthetic.replace("<synthetic>", "")
+          case t => t
+        }
 
         def findSignature(tree: Tree): Option[DefDef] = {
           tree match {
@@ -550,13 +556,13 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
         val functionType = "(" + params.map(group => "(" + group.map {
           case a if a.mods.isByNameParam => " => " + a.tpt.children(1).toString
-          case a => a.tpt.toString.replace("_root_.scala.<repeated>", "Array")
+          case a => filterType(a.tpt.toString)
         }.mkString(",") + ")").mkString(" => ") + " => " + returnType + ")"
 
         val renderCall = "def render%s = apply%s".format(
           "(" + params.flatten.map {
             case a if a.mods.isByNameParam => a.name.toString + ":" + a.tpt.children(1).toString
-            case a => a.name.toString + ":" + a.tpt.toString.replace("_root_.scala.<repeated>", "Array")
+            case a => a.name.toString + ":" + filterType(a.tpt.toString)
           }.mkString(",") + ")",
           params.map(group => "(" + group.map { p =>
             p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ":_*").getOrElse("")
@@ -566,7 +572,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
           params.flatten.size,
           params.flatten.map {
             case a if a.mods.isByNameParam => a.tpt.children(1).toString
-            case a => a.tpt.toString.replace("_root_.scala.<repeated>", "Array")
+            case a => filterType(a.tpt.toString)
           }.mkString(","),
           (if (params.flatten.isEmpty) "" else ",") + returnType)
 
@@ -717,9 +723,9 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
   case class BaseScalaTemplate[T <: Appendable[T], F <: Format[T]](format: F) {
 
-    def _display_(o: Any): T = {
+    def _display_(o: Any)(implicit m: Manifest[T]): T = {
       o match {
-        case escaped: T => escaped
+        case escaped if escaped.getClass == m.erasure => escaped.asInstanceOf[T]
         case () => format.raw("")
         case None => format.raw("")
         case Some(v) => _display_(v)
