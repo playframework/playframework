@@ -211,4 +211,202 @@ public class Constraints {
         return new MaxValidator(value);
     }
     
+    // --- MinLength
+    
+    /**
+     * Defines a minumum length for a string field.
+     */
+    @Target({FIELD})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = MinLengthValidator.class)
+    @play.data.Form.Display(name="constraint.minLength", attributes={"value"})
+    public static @interface MinLength {
+        String message() default MinLengthValidator.message;
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+        long value();
+    }
+    
+    /**
+     * Validator for <code>@MinLength</code> fields.
+     */
+    public static class MinLengthValidator extends Validator<String> implements ConstraintValidator<MinLength, String> {
+        
+        final static public String message = "error.minLength";
+        private long min;
+        
+        public MinLengthValidator() {}
+        
+        public MinLengthValidator(long value) {
+            this.min = value;
+        }
+        
+        public void initialize(MinLength constraintAnnotation) {
+            this.min = constraintAnnotation.value();
+        }
+        
+        public boolean isValid(String object) {
+            if(object == null || object.length() == 0) {
+                return true;
+            }
+            
+            return object.length() >= min;
+        }
+        
+    }
+    
+    /**
+     * Constructs a 'minLength' validator.
+     */
+    public static Validator<String> minLength(long value) {
+        return new MinLengthValidator(value);
+    }
+    
+    // --- MaxLength
+    
+    /**
+     * Defines a maxmimum length for a string field.
+     */
+    @Target({FIELD})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = MaxLengthValidator.class)
+    @play.data.Form.Display(name="constraint.maxLength", attributes={"value"})
+    public static @interface MaxLength {
+        String message() default MaxLengthValidator.message;
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+        long value();
+    }
+    
+    /**
+     * Validator for <code>@MaxLength</code> fields.
+     */
+    public static class MaxLengthValidator extends Validator<String> implements ConstraintValidator<MaxLength, String> {
+        
+        final static public String message = "error.maxLength";
+        private long max;
+        
+        public MaxLengthValidator() {}
+        
+        public MaxLengthValidator(long value) {
+            this.max = value;
+        }
+        
+        public void initialize(MaxLength constraintAnnotation) {
+            this.max = constraintAnnotation.value();
+        }
+        
+        public boolean isValid(String object) {
+            if(object == null || object.length() == 0) {
+                return true;
+            }
+            
+            return object.length() <= max;
+        }
+        
+    }
+    
+    /**
+     * Constructs a 'maxLength' validator.
+     */
+    public static Validator<String> maxLength(long value) {
+        return new MaxLengthValidator(value);
+    }
+    
+    // --- Email
+    
+    /**
+     * Defines a email constraint for a string field.
+     */
+    @Target({FIELD})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = EmailValidator.class)
+    @play.data.Form.Display(name="constraint.email", attributes={})
+    public static @interface Email {
+        String message() default EmailValidator.message;
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+    
+    /**
+     * Validator for <code>@Email</code> fields.
+     */
+    public static class EmailValidator extends Validator<String> implements ConstraintValidator<Email, String> {
+        
+        final static public String message = "error.email";
+        final static java.util.regex.Pattern regex = java.util.regex.Pattern.compile("\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}\\b");
+        
+        public EmailValidator() {}
+        
+        public void initialize(Email constraintAnnotation) {
+        }
+        
+        public boolean isValid(String object) {
+            if(object == null || object.length() == 0) {
+                return true;
+            }
+            
+            return regex.matcher(object).matches();
+        }
+        
+    }
+    
+    /**
+     * Constructs a 'email' validator.
+     */
+    public static Validator<String> email() {
+        return new EmailValidator();
+    }
+    
+    // --- Pattern
+    
+    /**
+     * Defines a pattern constraint for a string field.
+     */
+    @Target({FIELD})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = PatternValidator.class)
+    @play.data.Form.Display(name="constraint.pattern", attributes={})
+    public static @interface Pattern {
+        String message() default EmailValidator.message;
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+        String value();
+    }
+    
+    /**
+     * Validator for <code>@Pattern</code> fields.
+     */
+    public static class PatternValidator extends Validator<String> implements ConstraintValidator<Pattern, String> {
+        
+        final static public String message = "error.email";
+        java.util.regex.Pattern regex = null;
+        
+        public PatternValidator() {}
+        
+        public PatternValidator(String regex) {
+            this.regex = java.util.regex.Pattern.compile(regex);
+        }
+        
+        public void initialize(Pattern constraintAnnotation) {
+            regex = java.util.regex.Pattern.compile(constraintAnnotation.value());
+        }
+        
+        public boolean isValid(String object) {
+            if(object == null || object.length() == 0) {
+                return true;
+            }
+            
+            return regex.matcher(object).matches();
+        }
+        
+    }
+    
+    /**
+     * Constructs a 'pattern' validator.
+     */
+    public static Validator<String> pattern(String regex) {
+        return new PatternValidator();
+    }
+    
 }

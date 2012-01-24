@@ -24,7 +24,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
   def async(p: play.api.libs.concurrent.Promise[Result]) = AsyncResult(p)
-  def chunked[A] = new play.api.libs.iteratee.CallbackEnumerator[A]
+  def chunked[A] = new play.api.libs.iteratee.PushEnumerator[A]
   def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.enumerateStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.enumerateFile(file, chunkSize)
 }

@@ -63,26 +63,31 @@ object FormSpec extends Specification {
   "render form using field[Type] syntax" in {
     import play.api.data.validation.Constraints._
     import play.api.data._
+    import play.api.data.Forms._
     import format.Formats._
     case class User(name: String, age: Int)
 
     val userForm = Form(
-      of(User.apply _, User.unapply _)(
+      mapping(
         "name" -> of[String].verifying(nonEmpty),
-        "age" -> of[Int].verifying(min(0), max(100))))
+        "age" -> of[Int].verifying(min(0), max(100))
+      )(User.apply)(User.unapply)
+    )
     val loginForm = Form(
-      of(
+      tuple(
         "email" -> of[String],
-        "password" -> of[Int]))
+        "password" -> of[Int])
+      )
     val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
     loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
   }
 
   "render a form with max 18 fields" in {
     import play.api.data._
+    import play.api.data.Forms._
 
     val helloForm = Form(
-      of(
+      tuple(
         "name" -> nonEmptyText,
         "repeat" -> number(min = 1, max = 100),
         "color" -> optional(text),
@@ -100,7 +105,9 @@ object FormSpec extends Specification {
         "11" -> optional(text),
         "12" -> optional(text),
         "13" -> optional(text),
-        "14" -> optional(text)))
+        "14" -> optional(text)
+      )
+    )
     helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo("(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)")
   }
 

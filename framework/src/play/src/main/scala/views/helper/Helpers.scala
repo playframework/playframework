@@ -59,16 +59,6 @@ package views.html.helper {
 
   }
 
-  object Utils {
-
-    def filter(args: Seq[(Symbol, Any)], keysWithDefault: (Symbol, String)*) = {
-      val keys = keysWithDefault.map(_._1)
-      val (values, remainingArgs) = args.partition(a => keys.contains(a._1))
-      (keysWithDefault.toMap ++ values.map(e => e._1 -> e._2.toString).toMap) -> remainingArgs
-    }
-
-  }
-
   object repeat {
 
     def apply(field: play.api.data.Field, min: Int = 1)(f: play.api.data.Field => Html) = {
@@ -83,6 +73,7 @@ package views.html.helper {
     def apply(options: Map[String, String]) = options.toSeq
     def apply(options: java.util.Map[String, String]) = options.asScala.toSeq
     def apply(options: List[String]) = options.map(v => v -> v)
+    def apply(options: java.util.List[String]) = options.asScala.map(v => v -> v)
 
   }
 

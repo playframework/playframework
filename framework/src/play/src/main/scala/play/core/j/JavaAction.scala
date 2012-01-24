@@ -36,6 +36,16 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
         }
       }
     }
+    
+    // Wrap into user defined Global action
+    val baseAction = play.api.Play.current.global match {
+      case global: JavaGlobalSettingsAdapter => {
+        val action = global.underlying.onRequest(javaContext.request, method)
+        action.delegate = rootAction
+        action
+      }
+      case _ => rootAction
+    }
 
     val actionMixins = {
       (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations).collect {
@@ -44,7 +54,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       }.reverse
     }
 
-    val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](rootAction) {
+    val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
       case (delegate, (annotation, actionClass)) => {
         val action = actionClass.newInstance()
         action.configuration = annotation

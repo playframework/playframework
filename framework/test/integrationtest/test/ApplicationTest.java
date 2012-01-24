@@ -33,16 +33,20 @@ public class ApplicationTest {
 
     @Test
     public void interceptors() {
-        Interceptor.state = "";
-        Result result = callAction(controllers.routes.ref.JavaApi.notIntercepted());
-        assertThat(contentAsString(result)).isEqualTo("");
-        
-        Interceptor.state = "";
-        result = callAction(controllers.routes.ref.JavaApi.interceptedUsingWith());
-        assertThat(contentAsString(result)).isEqualTo("intercepted");
-        
-        Interceptor.state = "";
-        result = callAction(controllers.routes.ref.JavaApi.intercepted());
-        assertThat(contentAsString(result)).isEqualTo("intercepted");
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                Interceptor.state = "";
+                Result result = callAction(controllers.routes.ref.JavaApi.notIntercepted());
+                assertThat(contentAsString(result)).isEqualTo("");
+                
+                Interceptor.state = "";
+                result = callAction(controllers.routes.ref.JavaApi.interceptedUsingWith());
+                assertThat(contentAsString(result)).isEqualTo("intercepted");
+                
+                Interceptor.state = "";
+                result = callAction(controllers.routes.ref.JavaApi.intercepted());
+                assertThat(contentAsString(result)).isEqualTo("intercepted");
+      }});
+    
     }
 }

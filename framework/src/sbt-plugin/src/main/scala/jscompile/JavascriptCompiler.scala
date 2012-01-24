@@ -6,7 +6,6 @@ import java.io._
 import play.api._
 
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 
 import scalax.file._
 
@@ -16,6 +15,10 @@ object JavascriptCompiler {
 
   import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
 
+  /**
+   * Compile a JS file with its dependencies
+   * @return a triple containing the unminifed source code, the minified source code, the list of dependencies (including the input file)
+   */
   def compile(source: File): (String, Option[String], Seq[File]) = {
 
     val compiler = new Compiler()
@@ -26,10 +29,13 @@ object JavascriptCompiler {
     val file = Path(source)
     val jsCode = file.slurpString.replace("\r", "")
     val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
-    val input = tree.dependencies.map(file => JSSourceFile.fromCode(file.getName(), SourceTree.requireRe.replaceAllIn(Path(file).slurpString, ""))).toArray
+    // Excluding the current file
+    val deps = tree.dependencies.filterNot(_ == source)
+    val input = deps.map(file => JSSourceFile.fromCode(file.getName(), includeSource(file)))
+    val fullSource = requireSource + tree.dependencies.map(file => includeSource(file)).mkString("\n\n") + jsCode
 
-    compiler.compile(extern, input, options).success match {
-      case true => (tree.fullSource, Some(compiler.toSource()), tree.dependencies)
+    compiler.compile(extern, (headerSource +: input :+ JSSourceFile.fromCode(source.getName(), jsCode)).toArray, options).success match {
+      case true => (fullSource, Some(compiler.toSource()), tree.dependencies)
       case false => {
         val error = compiler.getErrors().head
         throw AssetCompilationException(Some(source), error.description, error.lineNumber, 0)
@@ -58,8 +64,58 @@ object JavascriptCompiler {
 
   }
 
+  val requireSource = """
+function require(p){
+    var path = require.resolve(p)
+      , mod = require.modules[path];
+    if (!mod) throw new Error('failed to require "' + p + '"');
+    if (!mod.exports) {
+      mod.exports = {};
+      mod.call(mod.exports, mod, mod.exports, require.relative(path));
+    }
+    return mod.exports;
+  }
+
+require.modules = {};
+
+require.resolve = function (path){
+    var orig = path, reg = path + '.js', index = path + '/index.js';
+    return require.modules[reg] && reg
+      || require.modules[index] && index
+      || orig;
+  };
+
+require.register = function (path, fn){
+    require.modules[path] = fn;
+  };
+
+require.relative = function (parent) {
+    return function(p){
+      if ('.' != p[0]) return require(p);
+      var path = parent.split('/')
+        , segs = p.split('/');
+      path.pop();
+      for (var i = 0; i < segs.length; i++) {
+        var seg = segs[i];
+        if ('..' == seg) path.pop();
+        else if ('.' != seg) path.push(seg);
+      }
+      return require(path.join('/'));
+    };
+  };
+
+"""
+
+  lazy val headerSource = JSSourceFile.fromCode("require", requireSource)
+
+  def includeSource(file: File) =
+    "require.register(\"" + file.getName() + "\", function(module, exports, require){\n" + Path(file).slurpString + "});\n"
+
 }
 
+/**
+ * This is used to resolve dependencies between source files
+ */
 case class SourceTree(node: File, ancestors: Set[File] = Set(), children: List[SourceTree] = List()) {
 
   override def toString = print()

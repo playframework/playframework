@@ -22,6 +22,7 @@ trait PlaySettings {
 
       "play.mvc._",
       "play.data._",
+      "play.api.data.Field",
       "com.avaje.ebean._",
 
       "play.mvc.Http.Context.Implicit._",

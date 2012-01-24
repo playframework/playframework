@@ -32,9 +32,11 @@ object TemplateCompilerSpec extends Specification {
       helper.compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must be_==(
         "<h1>It works</h1>")
 
-      helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim must be_==(
-        "<h1>Hello World!</h1>")
-
+      val hello = helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim
+      
+      hello must be_==(
+        "<h1>Hello World!</h1><h1>xml</h1>")
+          
       helper.compile[((collection.immutable.Set[String]) => Html)]("set.scala.html", "html.set")(Set("first","second","third")).toString.trim.replace("\n","").replaceAll("\\s+", "") must be_==("firstsecondthird")   
 
     }

@@ -61,7 +61,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     val data = (request.body match {
       case body: play.api.mvc.AnyContent if body.asUrlFormEncoded.isDefined => body.asUrlFormEncoded.get
       case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined => body.asMultipartFormData.get.asUrlFormEncoded
-      case body: Map[String, Seq[String]] => body
+      case body: Map[_, _] => body.asInstanceOf[Map[String, Seq[String]]]
       case body: play.api.mvc.MultipartFormData[_] => body.asUrlFormEncoded
       case _ => Map.empty[String, Seq[String]]
     }) ++ request.queryString
@@ -75,6 +75,11 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form filled with the new data
    */
   def fill(value: T) = {
+    val result = mapping.unbind(value)
+    this.copy(data = result._1, value = Some(value))
+  }
+
+  def fillAndValidate(value: T) = {
     val result = mapping.unbind(value)
     this.copy(data = result._1, errors = result._2, value = Some(value))
   }
@@ -258,6 +263,7 @@ case class FormError(key: String, message: String, args: Seq[Any] = Nil) {
 
 /** A mapping is a two-way binder to handle a form field. */
 trait Mapping[T] {
+  self =>
 
   /** The field key. */
   val key: String
@@ -348,6 +354,8 @@ trait Mapping[T] {
     })
   }
 
+  def transform[B](f1: T => B, f2: B => T): Mapping[B] = WrappedMapping(this, f1, f2)
+
   // Internal utilities
 
   protected def addPrefix(prefix: String) = {
@@ -365,6 +373,35 @@ trait Mapping[T] {
       case Invalid(errors) => errors.toSeq
     }.flatten.map(ve => FormError(key, ve.message, ve.args))
   }
+
+}
+
+case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val additionalConstraints: Seq[Constraint[B]] = Nil) extends Mapping[B] {
+
+  val key = wrapped.key
+  val mappings = wrapped.mappings
+  override val format = wrapped.format
+
+  // Transform constraints
+  val constraints: Seq[Constraint[B]] = wrapped.constraints.map { constraintOfT =>
+    Constraint[B](constraintOfT.name, constraintOfT.args) { b =>
+      constraintOfT(f2(b))
+    }
+  } ++ additionalConstraints
+
+  def bind(data: Map[String, String]): Either[Seq[FormError], B] = {
+    wrapped.bind(data).right.map(t => f1(t))
+  }
+
+  def unbind(value: B): (Map[String, String], Seq[FormError]) = {
+    wrapped.unbind(f2(value))
+  }
+
+  def withPrefix(prefix: String): Mapping[B] = {
+    copy(wrapped = wrapped.withPrefix(prefix))
+  }
+
+  def verifying(constraints: Constraint[B]*): Mapping[B] = copy(additionalConstraints = additionalConstraints ++ constraints)
 
 }
 

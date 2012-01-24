@@ -3,6 +3,7 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.api.data._
+import play.api.data.Forms._
 
 import views._
 
@@ -12,7 +13,7 @@ object Application extends Controller {
    * Describes the hello form.
    */
   val helloForm = Form(
-    of(
+    tuple(
       "name" -> nonEmptyText,
       "repeat" -> number(min = 1, max = 100),
       "color" -> optional(text)

@@ -178,7 +178,7 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0-M2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0-M2",
-            "com.typesafe.config"               %%   "config"                   %   "0.1.6",
+            "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "org.avaje"                         %    "ebean"                    %   "2.7.3" notTransitive(),
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
@@ -190,7 +190,6 @@ object PlayBuild extends Build {
             "org.springframework"               %    "spring-core"              %   "3.0.7.RELEASE"   notTransitive(),
             "org.springframework"               %    "spring-beans"             %   "3.0.7.RELEASE"   notTransitive(),
             "joda-time"                         %    "joda-time"                %   "2.0",
-            "mysql"                             %    "mysql-connector-java"     %   "5.1.17",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
             "com.ning"                          %    "async-http-client"        %   "1.7.0",
@@ -200,19 +199,19 @@ object PlayBuild extends Build {
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test"
+            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
+            "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
         )
 
-        val sbtDependencies = Seq(      
-          "com.typesafe.config"               %%   "config"                   %   "0.1.6",
-      
+        val sbtDependencies = Seq(
+          "com.typesafe.config"                 %    "config"                   %   "0.2.1",
           "rhino"                               %    "js"                       %   "1.7R2",
           "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
           "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
           "org.avaje"                           %    "ebean"                    %   "2.7.3",
           "com.h2database"                      %    "h2"                       %   "1.3.158",
-          "javassist"                           %    "javassist"                %   "3.12.1.GA"
-
+          "javassist"                           %    "javassist"                %   "3.12.1.GA",
+          "org.pegdown"                         %    "pegdown"                  %   "1.1.0"
         )
 
         val consoleDependencies = Seq(
@@ -292,16 +291,20 @@ object PlayBuild extends Build {
         // ----- Generate API docs
 
         val generateAPIDocs = TaskKey[Unit]("api-docs")
-        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Compile, compilers, streams) map { (classpath, cs, s) => 
+        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Test, compilers, streams) map { (classpath, cs, s) => 
 
           IO.delete(file("../documentation/api"))
 
           // Scaladoc
-          val sourceFiles = (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ (file("src/play/src/main/scala/views") ** "*.scala").get ++ (file("play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
+          val sourceFiles = 
+            (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ 
+            (file("src/play-test/src/main/scala") ** "*.scala").get ++ 
+            (file("src/play/src/main/scala/views") ** "*.scala").get ++ 
+            (file("src/play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc
-          val javaSources = file("src/play/src/main/java")
+          val javaSources = Seq(file("src/play/src/main/java"), file("src/play-test/src/main/java")).mkString(":")
           val javaApiTarget = file("../documentation/api/java")
           val javaClasspath = classpath.map(_.data).mkString(":")
           """javadoc -windowtitle playframework -doctitle Play&nbsp;2.0&nbsp;Java&nbsp;API  -sourcepath %s -d %s -subpackages play -exclude play.api:play.core -classpath %s""".format(javaSources, javaApiTarget, javaClasspath) ! s.log

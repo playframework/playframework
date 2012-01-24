@@ -42,8 +42,7 @@ object WS {
 
   class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
-    import scala.collection.JavaConversions
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     protected var calculator: Option[SignatureCalculator] = _calc
 
@@ -70,7 +69,7 @@ object WS {
      * Return the current headers of the request being constructed
      */
     def allHeaders: Map[String, Seq[String]] =
-      JavaConversions.mapAsScalaMap(request.getHeaders()).map { entry => (entry._1, entry._2.toSeq) }.toMap
+      mapAsScalaMapConverter(request.getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
     def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
 
@@ -79,10 +78,10 @@ object WS {
     def url: String = _url
 
     private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
-      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
+      mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
     private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
-      JavaConversions.mapAsScalaMap(headers).map { entry => (entry._1, entry._2.toSeq) }.toMap
+      mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
     private[libs] def execute: Promise[ws.Response] = {
       import com.ning.http.client.AsyncCompletionHandler

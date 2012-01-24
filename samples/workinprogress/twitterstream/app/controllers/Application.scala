@@ -12,8 +12,6 @@ import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import com.ning.http.client.Realm.AuthScheme
 
-import scala.collection.JavaConversions._
-
 object Application extends Controller {
 
   // Application

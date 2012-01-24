@@ -465,10 +465,10 @@ trait PlayCommands extends PlayJvm{
         //model definition only can come from bundled application.conf at this point and "conf" folder is not visible as a resource from this classloader, so
 
         val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
-       
-        val models = try{
+
+        val models = try {
           config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
-        } catch {case e: ConfigException.Missing => "models.*"}
+        } catch { case e: ConfigException.Missing => "models.*" }
         ft.process(models)
       } catch {
         case _ =>

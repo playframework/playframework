@@ -13,6 +13,5 @@ object ApplicationBuild extends Build {
 
     val main = PlayProject(appName, appVersion, appDependencies)
         .settings(defaultScalaSettings:_*)
-        .settings(com.typesafe.sbtscalariform.ScalariformPlugin.settings: _*)
 
 }

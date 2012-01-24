@@ -900,7 +900,7 @@ public class Results {
             this.ct = ct;
             f = new scala.runtime.AbstractFunction1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
-                    play.api.libs.iteratee.CallbackEnumerator<A> enumerator = play.core.j.JavaResults.chunked();
+                    play.api.libs.iteratee.PushEnumerator<A> enumerator = play.core.j.JavaResults.chunked();
                     enumerator.apply(iteratee);
                     Chunks.Out<A> chunked = new Chunks.Out<A>(enumerator);
                     self.onReady(chunked);
@@ -913,9 +913,9 @@ public class Results {
 
         public static class Out<A> {
 
-            final play.api.libs.iteratee.CallbackEnumerator<A> enumerator;
+            final play.api.libs.iteratee.PushEnumerator<A> enumerator;
 
-            public Out(play.api.libs.iteratee.CallbackEnumerator<A> enumerator) {
+            public Out(play.api.libs.iteratee.PushEnumerator<A> enumerator) {
                 this.enumerator = enumerator;
             }
 

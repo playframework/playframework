@@ -18,7 +18,7 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
   }
 
   override def toString = {
-    "HandlerMock[" + sym + ")]"
+    "HandlerRef[" + sym + ")]"
   }
 
 }

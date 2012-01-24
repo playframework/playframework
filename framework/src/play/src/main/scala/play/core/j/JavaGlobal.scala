@@ -4,19 +4,19 @@ import play.api._
 import play.api.mvc._
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
-class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends GlobalSettings {
-  require(javaGlobalSettings != null, "javaGlobalSettings cannot be null")
+class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings {
+  require(underlying != null, "underlying cannot be null")
 
   override def beforeStart(app: Application) {
-    javaGlobalSettings.beforeStart(new play.Application(app))
+    underlying.beforeStart(new play.Application(app))
   }
 
   override def onStart(app: Application) {
-    javaGlobalSettings.onStart(new play.Application(app))
+    underlying.onStart(new play.Application(app))
   }
 
   override def onStop(app: Application) {
-    javaGlobalSettings.onStop(new play.Application(app))
+    underlying.onStop(new play.Application(app))
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
@@ -24,15 +24,15 @@ class JavaGlobalSettingsAdapter(javaGlobalSettings: play.GlobalSettings) extends
   }
 
   override def onError(request: RequestHeader, ex: Throwable): Result = {
-    Option(javaGlobalSettings.onError(ex)).map(_.getWrappedResult).getOrElse(super.onError(request, ex))
+    Option(underlying.onError(ex)).map(_.getWrappedResult).getOrElse(super.onError(request, ex))
   }
 
   override def onHandlerNotFound(request: RequestHeader): Result = {
-    Option(javaGlobalSettings.onHandlerNotFound(request.path)).map(_.getWrappedResult).getOrElse(super.onHandlerNotFound(request))
+    Option(underlying.onHandlerNotFound(request.path)).map(_.getWrappedResult).getOrElse(super.onHandlerNotFound(request))
   }
 
   override def onBadRequest(request: RequestHeader, error: String): Result = {
-    Option(javaGlobalSettings.onBadRequest(request.path, error)).map(_.getWrappedResult).getOrElse(super.onBadRequest(request, error))
+    Option(underlying.onBadRequest(request.path, error)).map(_.getWrappedResult).getOrElse(super.onBadRequest(request, error))
   }
 
 }

@@ -3,7 +3,7 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.api.data._
-import play.api.data.validation.Constraints._
+import play.api.data.Forms._
 
 import anorm._
 
@@ -24,13 +24,13 @@ object Application extends Controller {
    * Describe the computer form (used in both edit and create screens).
    */ 
   val computerForm = Form(
-    of(Computer.apply _, Computer.unapply _)(
-      "id" -> ignored(NotAssigned),
+    mapping(
+      "id" -> ignored(NotAssigned:Pk[Long]),
       "name" -> nonEmptyText,
       "introduced" -> optional(date("yyyy-MM-dd")),
       "discontinued" -> optional(date("yyyy-MM-dd")),
       "company" -> optional(longNumber)
-    )
+    )(Computer.apply)(Computer.unapply)
   )
   
   // -- Actions
