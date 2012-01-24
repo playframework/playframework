@@ -5,14 +5,12 @@ object Colors {
   import scala.Console._
 
   lazy val isANSISupported = {
-    Option(System.getProperty("os.name"))
-      .map(_.toLowerCase)
-      .filterNot(_.contains("windows"))
-      .map(_ => true)
-      .getOrElse {
-        println("\nWindows, really? Ok, disabling colors.\n")
-        false
-      }
+    Option(System.getProperty("sbt.log.noformat")).map(_ != "true").orElse {
+      Option(System.getProperty("os.name"))
+        .map(_.toLowerCase)
+        .filter(_.contains("windows"))
+        .map(_ => false)
+    }.getOrElse(true)
   }
 
   def red(str: String) = if (isANSISupported) (RED + str + RESET) else str
