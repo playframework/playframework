@@ -6,11 +6,27 @@
         <link rel="stylesheet" media="screen" href="/@@documentation/resources/manual/utils/main.css">
     </head>
     <body>
-        <div id="main">
-            @Html(main)
-        </div>    
-        <div id="sidebar">
-            @sidebar.map(Html.apply)
+        <header>
+            <div class="wrapper">
+                <span id="version">@play.core.PlayVersion.current</span>
+                <ul>
+                    <li><a href="/@@documentation/api/scala/index.html">Scala API</a></li>
+                    <li><a href="/@@documentation/api/java/index.html">Java API</a></li>
+                </ul>
+            </div>
+        </header>
+        <div id="title" >
+            <div class="wrapper">
+                <h1><a href="/@@documentation">Manual, tutorials & references</a></h1>
+            </div>
+        </div>
+        <div id="manual" class="wrapper">
+            <div id="main">
+                @Html(main)
+            </div>    
+            <div id="sidebar">
+                @sidebar.map(Html.apply)
+            </div>
         </div>
     </body>
 <html>
