@@ -120,7 +120,7 @@ trait PlayCommands {
 
   val dist = TaskKey[File]("dist", "Build the standalone application package")
   val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
-
+    
     import sbt.NameFilter._
 
     val dist = root / "dist"
@@ -139,14 +139,26 @@ trait PlayCommands {
     }
 
     val start = target / "start"
+
+    val config = Option(System.getProperty("config.file"))
+
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/lib/*" play.core.server.NettyServer `dirname $0`""" /* */ )
+      """java "$@" -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=./application.conf ").getOrElse("")+"""play.core.server.NettyServer `dirname $0`""" /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
     val other = Seq((root / "README") -> (packageName + "/README"))
+    
+    val productionConfig = target / "application.conf"
 
-    IO.zip(libs ++ scripts ++ other, zip)
+    val prodApplicationConf = config.map { location =>
+
+      IO.copyFile(new File(location), productionConfig)
+      Seq( productionConfig -> (packageName + "/application.conf") )
+    }.getOrElse(Nil)
+
+    IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
     IO.delete(start)
+    IO.delete(productionConfig)
 
     println()
     println("Your application is ready in " + zip.getCanonicalPath)
@@ -504,7 +516,9 @@ trait PlayCommands {
 
   private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1))
+    // collect arguments plus config file property if present 
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq ++ 
+    Option(System.getProperty("config.file")).map(v => Seq("config.file" -> v)).getOrElse(Nil)
     val port = others.headOption.map { portString =>
       try {
         Integer.parseInt(portString)
