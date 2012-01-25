@@ -6,40 +6,61 @@ import play.api.mvc.Results._
 import play.api.libs.iteratee._
 
 /** Helpers to create secure actions. */
-object Security {
-
-  /** Key of the username attribute stored in session. */
-  lazy val username: String = Play.maybeApplication map (_.configuration.getString("session.username")) flatMap (e => e) getOrElse ("username")
+trait Security[User] {
 
   /**
-   * Wraps another action, allowing only authenticated HTTP requests.
+   * Get the User from the request
+   */
+  def getUser(request: RequestHeader): Option[User]
+
+  /**
+   * Default handler for unauthorized requests
+   */
+  def onUnauthorized(request: RequestHeader): Result =
+    Unauthorized(views.html.defaultpages.unauthorized())
+
+  /**
+   * Default handler for forbidden requests
+   */
+  def onForbidden(request: RequestHeader): Result =
+    Unauthorized(views.html.defaultpages.forbidden())
+
+  /**
+   * Wraps another action, allowing only authorized HTTP requests.
    *
-   * The user name is retrieved from the session cookie, and added to the HTTP request’s
-   * `username` attribute.
+   * The user is retrieved from the session cookie using getUser function.
+   * If user passes authorization test, the action is invoked with the user as an argument.
    *
    * For example:
    * {{{
-   * Authenticated {
+   * Authorized(_.isAdmin) { user =>
    *   Action { request =>
-   *     Ok(request.username.map("Hello " + _))
+   *     Ok("Hello " + user.name)
    *   }
    * }
    * }}}
    *
    * @tparam A the type of the request body
-   * @param username function used to retrieve the user name from the request header - the default is to read from session cookie
+   * @param authorized function used to authorize the user
    * @param onUnauthorized function used to generate alternative result if the user is not authenticated - the default is a simple 401 page
    * @param action the action to wrap
    */
-  def Authenticated[A](
-    username: RequestHeader => Option[String],
-    onUnauthorized: RequestHeader => Result)(action: String => Action[A]): Action[(Action[A], A)] = {
+  def Authorized[A](
+    authorized: User => Boolean,
+    onUnauthorized: RequestHeader => Result = this.onUnauthorized,
+    onForbidden: RequestHeader => Result = this.onForbidden
+    )(action: User => Action[A]): Action[(Action[A], A)] = {
 
     val authenticatedBodyParser = BodyParser { request =>
-      username(request).map { user =>
-        val innerAction = action(user)
-        innerAction.parser(request).mapDone { body =>
-          body.right.map(innerBody => (innerAction, innerBody))
+      getUser(request).map { user =>
+        if (authorized(user)) {
+          val innerAction = action(user)
+          innerAction.parser(request).mapDone { body =>
+            body.right.map(innerBody => (innerAction, innerBody))
+          }
+        } else {
+          Done(Left(onForbidden(request)),
+            Input.Empty.asInstanceOf[Input[Array[Byte]]])
         }
       }.getOrElse {
         Done(Left(onUnauthorized(request)), Input.Empty)
@@ -56,24 +77,62 @@ object Security {
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
    *
-   * The user name is retrieved from the session cookie, and added to the HTTP request’s
-   * `username` attribute.
+   * The user is retrieved from the session cookie and passed to the action
+   * function as an argument
    *
    * For example:
    * {{{
-   * Authenticated {
+   * Authenticated() { user =>
    *   Action { request =>
-   *     Ok(request.username.map("Hello " + _))
+   *     Ok("Hello " + user)
    *   }
    * }
    * }}}
    *
    * @tparam A the type of the request body
+   * @param onUnauthorized function used to generate alternative result if the user is not authenticated - the default is a simple 401 page
    * @param action the action to wrap
    */
-  def Authenticated[A](action: String => Action[A]): Action[(Action[A], A)] = Authenticated(
-    req => req.session.get(username),
-    _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
+  def Authenticated[A](onUnauthorized: RequestHeader => Result = this.onUnauthorized)(action: User => Action[A]): Action[(Action[A], A)] =
+    Authorized(_ => true, onUnauthorized)(action)
+
+  /**
+   * Wraps another action, providing Option[User] as an argument.
+   *
+   * For example:
+   * {{{
+   * MaybeAuthenticated { user =>
+   *   Action { request =>
+   *     Ok("Hello " + user.getOrElse("Anonymous"))
+   *   }
+   * }
+   * }}}
+   */
+  def MaybeAuthenticated[A](action: Option[User] => Action[A]): Action[(Action[A], A)] = {
+    val maybeAuthenticatedBodyParser = BodyParser { request =>
+      val innerAction = action(getUser(request))
+      innerAction.parser(request).mapDone { body =>
+        body.right.map(innerBody => (innerAction, innerBody))
+      }
+    }
+
+    Action(maybeAuthenticatedBodyParser) { request =>
+      val (innerAction, innerBody) = request.body
+      innerAction(request.map(_ => innerBody))
+    }
+  }
+
+}
+
+/** Simple specialization of Security trait, getting User as a String stored in the session */
+object Security extends Security[String] {
+
+  /** Key of the username attribute stored in session. */
+  lazy val username: String = Play.maybeApplication map (_.configuration.getString("session.username")) flatMap (e => e) getOrElse ("username")
+
+  /** Get username from the session */
+  override def getUser(request: RequestHeader): Option[String] =
+    request.session.get(username)
 
 }
 
