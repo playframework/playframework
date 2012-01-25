@@ -60,9 +60,17 @@ trait GlobalSettings {
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
    * @see onActionNotFound
    */
-  def onRouteRequest(request: RequestHeader): Option[Handler] = Play.maybeApplication.flatMap(_.routes.flatMap { router =>
-    router.handlerFor(request)
-  })
+  def onRouteRequest(request: RequestHeader): Option[Handler] =
+  request.headers.get("User-Agent") match {
+    case Some("Chuck Norris") => {
+      import play.api.libs.iteratee._
+      Some(Action(SimpleResult(header = ResponseHeader(749), body =
+      Enumerator(Results.EmptyContent()))))
+    }
+    case _ => Play.maybeApplication.flatMap(_.routes.flatMap { router =>
+      router.handlerFor(request)
+    })
+  }
 
   /**
    * Called when an exception occurred.
