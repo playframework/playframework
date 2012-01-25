@@ -169,7 +169,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
             Option(new java.io.File(home, "api/" + page)).filter(f => f.exists && f.isFile)
           }.map { file =>
             Ok.sendFile(file, inline = true)
-          }.getOrElse(NotFound("Documentation page not found(" + page + ")"))
+          }.getOrElse {
+            NotFound(views.html.play20.manual(page, None, None))
+          }
         }
   
       }
@@ -235,12 +237,14 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
               Ok(
                 views.html.play20.manual(
                   page,
-                  sbtLink.markdownToHtml(pageSource.slurpString, linkRender),
+                  Some(sbtLink.markdownToHtml(pageSource.slurpString, linkRender)),
                   maybeSidebar.map(s => sbtLink.markdownToHtml(s.slurpString, linkRender))
                 )
               )
             }
-          }.getOrElse(NotFound("Documentation page not found [" + page + "]"))
+          }.getOrElse {
+            NotFound(views.html.play20.manual(page, None, None))
+          }
         
         }
         

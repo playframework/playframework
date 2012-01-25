@@ -1,0 +1,153 @@
+html {
+    overflow-y: scroll;
+}
+
+html, body, pre {
+    margin: 0;
+    padding: 0;
+    font-family: Helvetica, Arial, Sans;
+    font-size: 14px;
+}
+
+.wrapper {
+    width: 900px;
+    margin: auto;
+    position: relative;
+}
+
+header {
+    display: block;
+    background: #333;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
+    border-top: 4px solid #2A2A2A;
+    color: #fff;
+    padding: 5px 0;
+    font-size: 12px;
+}
+
+header ul {
+    position: absolute;
+    right: 0;
+    top: -1px;
+    margin: 0;
+}
+
+header li {
+    display: inline-block;
+    padding-left: 15px;
+}
+
+header li a {
+    color: #fff;
+}
+
+header li:before {
+    content: '❉ ';
+}
+
+#version {
+    color: #ccc;
+}
+
+#version:before {
+    content: 'Play framework ';
+}
+
+#title {
+    background: #82DB80 url('/@documentation/resources/style/play20header.png') top center;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    border-top: 1px solid #000;
+    border-bottom: 4px solid #62BE60;
+}
+
+#title h1 {
+    margin: 0;
+}
+
+#title h1 a {
+    color: #1E4432;
+    text-shadow: rgba(255, 255, 255, 0.3) 1px 1px 0px;
+    font-weight: lighter;
+    font-size: 30px;
+    text-decoration: none;
+}
+
+#main {
+    width: 650px;
+    margin-bottom: 100px;
+}
+
+#main pre {
+    background-color: #F8F8F8;
+    border: 1px solid #CCC;
+    font-size: 13px;
+    line-height: 19px;
+    overflow: auto;
+    padding: 6px 10px;
+}
+
+#sidebar {
+    font-size: 13px;
+    background: #fff;
+    position: absolute;
+    right: 0px;
+    top: -75px;
+    width: 200px;
+    padding: 0 10px;
+    box-shadow: -1px -2px 2px rgba(0,0,0,.1);
+}
+
+#sidebar img {
+    display: none;
+}
+
+#manual #sidebar h1 {
+    font-size: 16px !important;
+    font-weight: normal !important;
+    color: #444;
+    margin-top: 10px !important;
+    border: none !important;
+}
+
+#sidebar ul {
+    margin: 0;
+    padding: 0;
+}
+
+blockquote {
+    background: #FFF9D8;
+    color: #000;
+    padding: 1px 10px;
+    margin: 0 0 30px 0;
+    border: 1px solid #C6B64A;
+}
+
+#manual h1,.wikistyle h2,.wikistyle h3,.wikistyle h4,.wikistyle h5,.wikistyle h6{border:0!important;text-shadow: #fff 1px 1px 0px;}
+#manual h1{font-weight:lighter;font-size:230%;border-top:4px solid #aaa!important;padding-top:.5em!important;margin-top:1.5em!important;}
+#manual h1:first-child{margin-top:0!important;padding-top:.25em!important;border-top:none!important;}
+#manual h2{font-weight:lighter;font-size:150%!important;margin-top:1.5em!important;border-top:4px solid #e0e0e0!important;padding-top:.5em!important;}
+#manual h3{font-weight:lighter;margin-top:1em!important;}
+#manual p{margin:1em 0!important;line-height:1.5em!important;}
+#manual ul{margin:1em 0 1em 2em!important; list-style: square; line-height: 24px;}
+#manual ol{margin:1em 0 1em 2em!important; list-style-position: outside; list-style-type: decimal; line-height: 24px;}
+#manual ul ul,.wikistyle ul ol,.wikistyle ol ol,.wikistyle ol ul{margin-top:0!important;margin-bottom:0!important;}
+#manual dt{font-weight:bold!important;margin-left:1em!important;}
+#manual dd{margin-left:2em!important;margin-bottom:1em!important;}
+#manual table{margin:1em 0!important;width:650px;}
+#manual table th{border-bottom:1px solid #bbb!important;padding:.2em 1em!important;}
+#manual table td{border-bottom:1px solid #ddd!important;padding:.2em 1em!important;}
+#manual table td:first-child{padding-left:0!important;}
+#manual table td:last-child{padding-right:0!important;}
+#manual pre{margin:1em 0 2em 0!important;font-size:90%!important;background-color:#f8f8ff!important;padding:.5em!important;line-height:1.5em!important;color:#444!important;overflow:auto!important;}
+#manual code{font-family:Consolas,"Andale Mono",monospace;font-size:90%;color:#444;background-color:#f8f8ff;border:1px solid #e0e0e0;padding:0 0.2em!important;}
+#manual pre code{display:block;padding:0!important;padding-left:10px!important;font-size:100%!important;border:none!important;}
+#manual pre.console{margin:1em 0!important;font-size:90%!important;background-color:black!important;padding:.5em!important;line-height:1.5em!important;color:white!important;}
+#manual pre.console code{padding:0!important;font-size:100%!important;background-color:black!important;border:none!important;color:white!important;}
+#manual pre.console span{color:#888!important;}
+#manual pre.console span.command{color:yellow!important;}
+#manual h1:after, .wikistyle h2:after, .wikistyle h3:after {content: '';}
+#manual a{color: #444;}
+#manual hr{height: 1px; border: none; background: #e0e0e0; margin: 30px 0;}
+#manual img {max-width: 650px; }
+#manual p.note {background:#FFF9D8!important; padding: 10px!important;color:#333!important;border-left:6px solid #F3E378!important;}

@@ -1,9 +1,9 @@
-@(title: String, main: String, sidebar: Option[String])
+@(title: String, main: Option[String], sidebar: Option[String])
 
 <html>
     <head>
         <title>@title</title>
-        <link rel="stylesheet" media="screen" href="/@@documentation/resources/manual/utils/main.css">
+        <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
     </head>
     <body>
         <header>
@@ -22,7 +22,11 @@
         </div>
         <div id="manual" class="wrapper">
             <div id="main">
-                @Html(main)
+                @main.map { html =>
+                    @Html(html)
+                }.getOrElse {
+                    <h1>Page not found [@title]</h1>
+                }
             </div>    
             <div id="sidebar">
                 @sidebar.map(Html.apply)
