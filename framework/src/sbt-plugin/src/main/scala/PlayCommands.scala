@@ -26,10 +26,6 @@ trait PlayCommands extends PlayJvm{
   val SCALA = "scala"
   val NONE = "none"
 
-  // ----- Create a Play project with default settings
-
-  private[sbt] lazy val testListener = new PlayTestListener
-
   // ----- We need this later
 
   private val consoleReader = new jline.ConsoleReader
@@ -893,7 +889,7 @@ trait PlayCommands extends PlayJvm{
     println(play.console.Console.logo)
     println("""
             |> Type "help" or "license" for more information.
-            |> Type "exit" or use Ctrl+D to leave this console.
+            |> Type "exit" or use Ctrl+C to leave this console.
             |""".stripMargin)
 
     state.copy(
@@ -957,17 +953,6 @@ trait PlayCommands extends PlayJvm{
       }
     }
 
-  }
-
-  // -- Dependencies
-  val testResultReporter = TaskKey[List[String]]("test-result-reporter")
-  val testResultReporterTask = (state, thisProjectRef) map { (s, r) =>
-    testListener.result.toList
-  }
-  // -- Dependencies
-  val testResultReporterReset = TaskKey[Unit]("test-result-reporter-reset")
-  val testResultReporterResetTask = (state, thisProjectRef) map { (s, r) =>
-    testListener.result.clear
   }
 
   val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")

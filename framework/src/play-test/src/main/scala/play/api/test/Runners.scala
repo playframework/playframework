@@ -2,6 +2,9 @@ package play.api.test
 
 import org.specs2.specification.SpecificationStructure
 
+/**
+ * Specs runner based on Specs2
+ */
 object SpecRunner{
    def main(args: Array[String]) {
         specs2.run(args.map{specName => 
@@ -16,6 +19,9 @@ object SpecRunner{
    }
 }
 
+/**
+ * JUnit test runner
+ */
 object JunitRunner{
    def main(args: Array[String]) {
         org.junit.runner.JUnitCore.main(args:_*)
