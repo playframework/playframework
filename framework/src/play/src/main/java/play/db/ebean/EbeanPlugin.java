@@ -78,47 +78,39 @@ public class EbeanPlugin extends Plugin {
                 servers.put(key, EbeanServerFactory.create(config));
                 
                 // DDL
-                boolean evolutionsEnabled = !"disabled".equals(application.configuration().getString("evolutions"));
-                if(evolutionsEnabled) {
-                    String evolutionScript = generateEvolutionScript(servers.get(key), config);
-                    if(evolutionScript != null) {
-                        File evolutions = application.getFile("db/evolutions/" + key + "/1.sql");
-                        if(!evolutions.exists() || Files.readFile(evolutions).startsWith("# --- Created by Ebean DDL")) {
-                            Files.createDirectory(application.getFile("db/evolutions/" + key));
-                            Files.writeFileIfChanged(evolutions, evolutionScript);
-                        }
-                    }
+                boolean evolutionsDisabled = "disabled".equals(application.configuration().getString("evolutions"));
+                if(evolutionsDisabled) {
+                    return;
                 }
-                
+                DdlGenerator ddl = new DdlGenerator((SpiEbeanServer) servers.get(key), config.getDatabasePlatform(), config);
+                String ups = ddl.generateCreateDdl();
+                String downs = ddl.generateDropDdl();
+
+                if(ups == null || ups.trim().isEmpty()) {
+                    return;
+                }
+
+                String upEvolutionScript =
+                    "# --- Created by Ebean DDL\n" +
+                    "# To stop Ebean DDL generation, remove this comment and start using Evolutions\n" +
+                    "\n" + 
+                    "# --- !Ups\n" +
+                    "\n" + 
+                    ups;
+                String downEvolutionScript =
+                    "# --- !Downs\n" +
+                    "\n" +
+                    downs;
+                File upEvolutions = application.getFile("db/evolutions/" + key + "/1-up.sql");
+                File downEvolutions = application.getFile("db/evolutions/" + key + "/1-down.sql");
+                if(!upEvolutions.exists() || Files.readFile(upEvolutions).startsWith("# --- Created by Ebean DDL")) {
+                    Files.createDirectory(application.getFile("db/evolutions/" + key));
+                    Files.writeFileIfChanged(upEvolutions, upEvolutionScript);
+                    Files.writeFileIfChanged(downEvolutions, downEvolutionScript);
+                }
             }
         }
         
-    }
-    
-    /**
-     * Helper method that generates the required evolution to properly run Ebean.
-     */
-    public static String generateEvolutionScript(EbeanServer server, ServerConfig config) {
-        DdlGenerator ddl = new DdlGenerator((SpiEbeanServer)server, config.getDatabasePlatform(), config);
-        String ups = ddl.generateCreateDdl();
-        String downs = ddl.generateDropDdl();
-        
-        if(ups == null || ups.trim().isEmpty()) {
-            return null;
-        }
-        
-        return (
-            "# --- Created by Ebean DDL\n" +
-            "# To stop Ebean DDL generation, remove this comment and start using Evolutions\n" +
-            "\n" + 
-            "# --- !Ups\n" +
-            "\n" + 
-            ups +
-            "\n" + 
-            "# --- !Downs\n" +
-            "\n" +
-            downs
-        );
     }
     
     /**
