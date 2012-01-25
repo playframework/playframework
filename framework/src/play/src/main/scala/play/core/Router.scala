@@ -914,7 +914,7 @@ object Router {
         }
       }
 
-      def httpVerb = namedError("GET" | "POST" | "PUT" | "HEAD" | "DELETE", "HTTP Verb expected") ^^ {
+      def httpVerb = namedError("GET" | "POST" | "PUT" | "HEAD" | "DELETE" | "any", "HTTP Verb expected or 'any'") ^^ {
         case v => HttpVerb(v)
       }
 
@@ -997,7 +997,7 @@ object Router {
     def apply(method: String, pathPattern: PathPattern) = new {
 
       def unapply(request: RequestHeader): Option[RouteParams] = {
-        if (method == request.method) {
+        if (method == request.method || method == "any") {
           pathPattern(request.path).map { groups =>
             RouteParams(groups, request.queryString)
           }
