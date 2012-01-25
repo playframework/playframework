@@ -11,7 +11,7 @@ import models._
 import models.Protocol._
 
 
-object FunctionalSpec extends Specification {
+class FunctionalSpec extends Specification {
 
   "an Application" should {
 

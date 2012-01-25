@@ -170,7 +170,7 @@ object PlayBuild extends Build {
     object Dependencies {
 
         val runtime = Seq(
-            "org.jboss.netty"                   %    "netty"                    %   "3.2.7.Final",
+            "io.netty"                   %    "netty"                    %   "3.3.0.Final",
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.2",
             "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.2",
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.2",
@@ -199,7 +199,7 @@ object PlayBuild extends Build {
             "org.reflections"                   %    "reflections"              %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
-            "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
+            "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
             "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
         )
@@ -221,7 +221,7 @@ object PlayBuild extends Build {
 
         val templatesDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
-            "org.specs2"                        %%   "specs2"                   %   "1.6.1"    %   "test",
+            "org.specs2"                        %%   "specs2"                   %   "1.7.1"    %   "test",
             "org.scala-lang"                    %    "scala-compiler"           %   buildScalaVersion
         )
 
@@ -230,7 +230,7 @@ object PlayBuild extends Build {
         )
         
         val testDependencies = Seq(
-            "org.specs2"                        %%   "specs2"                   %   "1.6.1",
+            "org.specs2"                        %%   "specs2"                   %   "1.7.1",
             "com.novocode"                      %    "junit-interface"          %   "0.7",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"
         )

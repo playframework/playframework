@@ -5,7 +5,7 @@ import play.api.test.Helpers._
 
 import org.specs2.mutable._
 
-object ApplicationSpec extends Specification {
+class ApplicationSpec extends Specification {
 
   "an Application" should {
   

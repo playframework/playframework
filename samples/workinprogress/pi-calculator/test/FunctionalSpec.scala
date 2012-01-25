@@ -5,7 +5,7 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 
-object FunctionalSpec extends Specification {
+class FunctionalSpec extends Specification {
 
   "an Application" should {
   
