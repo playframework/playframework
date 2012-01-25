@@ -94,6 +94,13 @@ trait DefaultReads {
     }
   }
 
+  /*implicit def mapStringReads[K <: String, V](implicit fmtv: Reads[V]): Reads[collection.immutable.Map[String, V]] = new Reads[collection.immutable.Map[String, V]] {
+    def reads(json: JsValue) = json match {
+      case JsObject(m) => m.map { case (k, v) => (k -> fromJson[V](v)(fmtv)) }.toMap
+      case _ => throw new RuntimeException("Map expected")
+    }
+  }*/
+
   implicit def mutableSetReads[T](implicit fmt: Reads[T]): Reads[mutable.Set[T]] =
     viaSeq((x: Seq[T]) => mutable.Set(x: _*))
 
