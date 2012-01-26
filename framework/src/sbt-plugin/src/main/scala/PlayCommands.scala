@@ -16,6 +16,7 @@ import PlayExceptions._
 import PlayKeys._
 
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 
 trait PlayCommands extends PlayJvm {
   this: PlayReloader =>
@@ -788,7 +789,7 @@ trait PlayCommands extends PlayJvm {
 
           import java.lang.{ ProcessBuilder => JProcessBuilder }
           val builder = new JProcessBuilder(Seq(
-            "java") ++ properties.map { case (key, value) => "-D" + key + "=" + value } ++ Seq("-Dhttp.port=" + port, "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
+            "java") ++ (properties ++ System.getProperties.asScala).map { case (key, value) => "-D" + key + "=" + value } ++ Seq("-Dhttp.port=" + port, "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
 
           new Thread {
             override def run {

@@ -105,4 +105,25 @@ public class Application {
         ).asJava();
     }
     
+    /**
+     * Returns `true` if the application is `DEV` mode.
+     */
+    public boolean isDev() {
+        return play.api.Play.isDev(application);
+    }
+    
+    /**
+     * Returns `true` if the application is `PROD` mode.
+     */
+    public boolean isProd() {
+        return play.api.Play.isProd(application);
+    }
+    
+    /**
+     * Returns `true` if the application is `TEST` mode.
+     */
+    public boolean isTest() {
+        return play.api.Play.isTest(application);
+    }
+    
 }

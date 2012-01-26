@@ -13,7 +13,7 @@ object Collections {
    * {{{
    * unfoldLeft(0) { state match
    *   case a if a > 100 => None
-   *   case a => a + 1
+   *   case a => (a + 1, a + 1)
    * }
    * }}}
    *
