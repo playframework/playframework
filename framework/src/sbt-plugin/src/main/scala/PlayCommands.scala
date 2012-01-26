@@ -17,7 +17,7 @@ import PlayKeys._
 
 import scala.annotation.tailrec
 
-trait PlayCommands extends PlayJvm{
+trait PlayCommands extends PlayJvm {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -44,7 +44,7 @@ trait PlayCommands extends PlayJvm{
     waitEOF()
     consoleReader.getTerminal.enableEcho()
   }
-  
+
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     inAllProjects(Dag.topologicalSort(base)(deps), key, data)
@@ -118,50 +118,53 @@ trait PlayCommands extends PlayJvm{
 
   // --- Test Runner
   val testRunner = TaskKey[Map[String, String]]("test-runner")
-  val testFrameworkCommandOptions = TaskKey[(String,Option[String]) => Seq[String]]("test-framework-command-options")
+  val testFrameworkCommandOptions = TaskKey[(String, Option[String]) => Seq[String]]("test-framework-command-options")
   val testJvmOptions = SettingKey[Seq[String]]("test-jvm-options")
   val testNames = TaskKey[Seq[String]]("test-names")
   val testAllJvmOptions = TaskKey[JVMOptions]("test-jvm-all-options")
 
-  def generateJVMCommandOptions(fullClasspath: Classpath, target: File) = {  
-     val classpathFiles = (fullClasspath.files ++ (target * "scala-*" * "*classes").get).absString
-    (runner: String, args: Option[String]) => 
-      Seq("-cp", classpathFiles, runner) ++ args.map(_.split(" ").toSeq).getOrElse(Nil) 
-  } 
+  def generateJVMCommandOptions(fullClasspath: Classpath, target: File) = {
+    val classpathFiles = (fullClasspath.files ++ (target * "scala-*" * "*classes").get).absString
+    (runner: String, args: Option[String]) =>
+      Seq("-cp", classpathFiles, runner) ++ args.map(_.split(" ").toSeq).getOrElse(Nil)
+  }
 
-  
-  
-  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name.toString)}
+  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name.toString) }
 
   private def selectTestsFor(testNames: Seq[String]) = if (testNames.size > 0) Some(testNames.mkString(" ")) else None
 
   def testTask = (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams) map {
-    (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s) => {
-        if (testNames.isEmpty) 
+    (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s) =>
+      {
+        if (testNames.isEmpty)
           s.log.info("No tests to run.")
-        else 
-           testRunner.keys.foreach { testType =>
+        else
+          testRunner.keys.foreach { testType =>
             val current = testNames.filter(_.endsWith(testType))
-            selectTestsFor(current).map{arg => fork("Fork JVM for test, filter: *"+testType,testRunner(testType),Some(arg),runWith, testAllJvmOptions, srcDir,  s.log)}.getOrElse(Unit)
+            selectTestsFor(current).map { arg => fork("Fork JVM for test, filter: *" + testType, testRunner(testType), Some(arg), runWith, testAllJvmOptions, srcDir, s.log) }.getOrElse(Unit)
           }
-    }
+      }
   }
-  
+
   def testOnlyTask = InputTask(loadForParser(testNames)((s, i) => Defaults.testOnlyParser(s, i getOrElse Nil))) { result =>
-    (testRunner,runWith, testAllJvmOptions,sourceDirectory, streams, result) map {
-      case (testRunner,runWith, testAllJvmOptions, srcDir, s, (testsPassedIn, _)) => 
-        if (testsPassedIn.isEmpty) 
+    (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams, result) map {
+      case (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s, (userDefinedTests, _)) =>
+        val testsPassedIn = userDefinedTests.map { i =>
+          if (i.contains("*"))
+            testNames.filter(_.endsWith(i.replace("*", "")))
+          else
+            testNames.filter(_ == i)
+        }.flatten
+        if (testsPassedIn.isEmpty)
           s.log.info("No tests to run.")
         else {
           testRunner.keys.foreach { testType =>
             val current = testsPassedIn.filter(_.endsWith(testType))
-            selectTestsFor(current).map(arg => fork("Fork JVM for test: "+ arg,testRunner(testType),Some(arg),runWith, testAllJvmOptions, srcDir,  s.log)).getOrElse(Unit)
+            selectTestsFor(current).map(arg => fork("Fork JVM for test, filter: " + arg, testRunner(testType), Some(arg), runWith, testAllJvmOptions, srcDir, s.log)).getOrElse(Unit)
           }
         }
     }
   }
-
-    
 
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>
@@ -170,7 +173,7 @@ trait PlayCommands extends PlayJvm{
 
   val dist = TaskKey[File]("dist", "Build the standalone application package")
   val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
-    
+
     import sbt.NameFilter._
 
     val dist = root / "dist"
@@ -193,17 +196,17 @@ trait PlayCommands extends PlayJvm{
     val config = Option(System.getProperty("config.file"))
 
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=./application.conf ").getOrElse("")+"""play.core.server.NettyServer `dirname $0`""" /* */ )
+      """java "$@" -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=./application.conf ").getOrElse("") + """play.core.server.NettyServer `dirname $0`""" /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
     val other = Seq((root / "README") -> (packageName + "/README"))
-    
+
     val productionConfig = target / "application.conf"
 
     val prodApplicationConf = config.map { location =>
 
       IO.copyFile(new File(location), productionConfig)
-      Seq( productionConfig -> (packageName + "/application.conf") )
+      Seq(productionConfig -> (packageName + "/application.conf"))
     }.getOrElse(Nil)
 
     IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
@@ -240,8 +243,6 @@ trait PlayCommands extends PlayJvm{
       EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
   }
 
-  
-  
   // -- Intellij
 
   val playIntellij = TaskKey[Unit]("idea")
@@ -571,8 +572,8 @@ trait PlayCommands extends PlayJvm{
   private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
     // collect arguments plus config file property if present 
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq ++ 
-    Option(System.getProperty("config.file")).map(v => Seq("config.file" -> v)).getOrElse(Nil)
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq ++
+      Option(System.getProperty("config.file")).map(v => Seq("config.file" -> v)).getOrElse(Nil)
     val port = others.headOption.map { portString =>
       try {
         Integer.parseInt(portString)
