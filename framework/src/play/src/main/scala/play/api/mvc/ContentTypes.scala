@@ -14,33 +14,54 @@ import play.api.libs.Files.{ TemporaryFile }
 import Results._
 import MultipartFormData._
 
+/**
+ * A request body that adapts automatically according the request Content-Type.
+ */
 sealed trait AnyContent {
 
-  def asUrlFormEncoded: Option[Map[String, Seq[String]]] = this match {
-    case AnyContentAsUrlFormEncoded(data) => Some(data)
+  /**
+   * application/form-url-encoded
+   */
+  def asFormUrlEncoded: Option[Map[String, Seq[String]]] = this match {
+    case AnyContentAsFormUrlEncoded(data) => Some(data)
     case _ => None
   }
 
+  /**
+   * text/plain
+   */
   def asText: Option[String] = this match {
     case AnyContentAsText(txt) => Some(txt)
     case _ => None
   }
 
+  /**
+   * text/xml
+   */
   def asXml: Option[NodeSeq] = this match {
     case AnyContentAsXml(xml) => Some(xml)
     case _ => None
   }
 
+  /**
+   * text/json or application/json
+   */
   def asJson: Option[JsValue] = this match {
     case AnyContentAsJson(json) => Some(json)
     case _ => None
   }
 
+  /**
+   * multipart/form-data
+   */
   def asMultipartFormData: Option[MultipartFormData[TemporaryFile]] = this match {
     case AnyContentAsMultipartFormData(mfd) => Some(mfd)
     case _ => None
   }
 
+  /**
+   * Used when no Content-Type matches
+   */
   def asRaw: Option[RawBuffer] = this match {
     case AnyContentAsRaw(raw) => Some(raw)
     case _ => None
@@ -48,28 +69,98 @@ sealed trait AnyContent {
 
 }
 
+/**
+ * AnyContent - Empty request body
+ */
 case object AnyContentAsEmpty extends AnyContent
+
+/**
+ * AnyContent - Text body
+ */
 case class AnyContentAsText(txt: String) extends AnyContent
-case class AnyContentAsUrlFormEncoded(data: Map[String, Seq[String]]) extends AnyContent
+
+/**
+ * AnyContent - Form url encoded body
+ */
+case class AnyContentAsFormUrlEncoded(data: Map[String, Seq[String]]) extends AnyContent
+
+/**
+ * AnyContent - Raw body (give access to the raw data as bytes).
+ */
 case class AnyContentAsRaw(raw: RawBuffer) extends AnyContent
+
+/**
+ * AnyContent - XML body
+ */
 case class AnyContentAsXml(xml: NodeSeq) extends AnyContent
+
+/**
+ * AnyContent - Json body
+ */
 case class AnyContentAsJson(json: JsValue) extends AnyContent
+
+/**
+ * AnyContent - Multipart form data body
+ */
 case class AnyContentAsMultipartFormData(mdf: MultipartFormData[TemporaryFile]) extends AnyContent
 
+/**
+ * Multipart form data body.
+ */
 case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart], missingFileParts: Seq[MissingFilePart]) {
-  def asUrlFormEncoded: Map[String, Seq[String]] = dataParts
+
+  /**
+   * Extract the data parts as Form url encoded.
+   */
+  def asFormUrlEncoded: Map[String, Seq[String]] = dataParts
+
+  /**
+   * Access a file part.
+   */
   def file(key: String): Option[FilePart[A]] = files.find(_.key == key)
 }
 
+/**
+ * Defines parts handled by Multipart form data.
+ */
 object MultipartFormData {
-  trait Part
+
+  /**
+   * A part.
+   */
+  sealed trait Part
+
+  /**
+   * A data part.
+   */
   case class DataPart(key: String, value: String) extends Part
+
+  /**
+   * A file part.
+   */
   case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part
+
+  /**
+   * A file part with no content provided.
+   */
   case class MissingFilePart(key: String) extends Part
+
+  /**
+   * A part that has not been properly parsed.
+   */
   case class BadPart(headers: Map[String, String]) extends Part
+
+  /**
+   * A data part that has excedeed the max size allowed.
+   */
   case class MaxDataPartSizeExcedeed(key: String) extends Part
 }
 
+/**
+ * Handle the request body a raw bytes data.
+ *
+ * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
+ */
 case class RawBuffer(memoryThreshold: Int) {
 
   import play.api.libs.Files._
@@ -103,10 +194,19 @@ case class RawBuffer(memoryThreshold: Int) {
     inMemory = null
   }
 
+  /**
+   * Buffer size.
+   */
   def size: Long = {
     if (inMemory != null) inMemory.size else backedByTemporaryFile.file.length
   }
 
+  /**
+   * Returns the buffer content as a bytes array.
+   *
+   * @param maxLength The max length allowed to be stored in memory.
+   * @return None if the content is too big to fit in memory.
+   */
   def asBytes(maxLength: Int = memoryThreshold): Option[Array[Byte]] = {
     if (size <= maxLength) {
       if (inMemory != null) {
@@ -126,6 +226,9 @@ case class RawBuffer(memoryThreshold: Int) {
     }
   }
 
+  /**
+   * Returns the buffer content as File.
+   */
   def asFile: File = {
     if (inMemory != null) {
       backToTemporaryFile()
@@ -140,37 +243,75 @@ case class RawBuffer(memoryThreshold: Int) {
 
 }
 
+/**
+ * Default body parsers.
+ */
 trait BodyParsers {
 
+  /**
+   * Default body parsers.
+   */
   object parse {
 
+    /**
+     * Unlimited size.
+     */
     val UNLIMITED: Int = Integer.MAX_VALUE
 
-    lazy val DEFAULT_MAX_TEXT_LENGTH = Play.maybeApplication.flatMap { app =>
-      app.configuration.getInt("parsers.text.maxLength")
+    /**
+     * Default max length allowed for text based body.
+     *
+     * You can configure it in application.conf:
+     *
+     * {{{
+     * parsers.text.maxLength = 512k
+     * }}}
+     */
+    lazy val DEFAULT_MAX_TEXT_LENGTH: Int = Play.maybeApplication.flatMap { app =>
+      app.configuration.getBytes("parsers.text.maxLength").map(_.toInt)
     }.getOrElse(1024 * 100)
 
     // -- Text parser
 
+    /**
+     * Parse the body as text without checking the Content-Type.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def tolerantText(maxLength: Int): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength)
         .transform(Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("utf-8"))))
         .flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
-
     }
 
+    /**
+     * Parse the body as text without checking the Content-Type.
+     */
     def tolerantText: BodyParser[String] = tolerantText(DEFAULT_MAX_TEXT_LENGTH)
 
+    /**
+     * Parse the body as text if the Content-Type is text/plain.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def text(maxLength: Int): BodyParser[String] = when(
       _.contentType.exists(_ == "text/plain"),
       tolerantText(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/plain body")).getOrElse(Results.BadRequest)
     )
 
+    /**
+     * Parse the body as text if the Content-Type is text/plain.
+     */
     def text: BodyParser[String] = text(DEFAULT_MAX_TEXT_LENGTH)
 
     // -- Raw parser
 
+    /**
+     * Store the body content in a RawBuffer.
+     *
+     * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
+     */
     def raw(memoryThreshold: Int): BodyParser[RawBuffer] = BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
       val buffer = RawBuffer(memoryThreshold)
       Iteratee.foreach[Array[Byte]](bytes => buffer.push(bytes)).mapDone { _ =>
@@ -179,10 +320,18 @@ trait BodyParsers {
       }
     }
 
+    /**
+     * Store the body content in a RawBuffer.
+     */
     def raw: BodyParser[RawBuffer] = raw(memoryThreshold = 100 * 1024)
 
     // -- JSON parser
 
+    /**
+     * Parse the body as Json without checking the Content-Type.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def tolerantJson(maxLength: Int): BodyParser[JsValue] = BodyParser("json, maxLength=" + maxLength) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
         scala.util.control.Exception.allCatch[JsValue].either {
@@ -200,24 +349,43 @@ trait BodyParsers {
         }
     }
 
+    /**
+     * Parse the body as Json without checking the Content-Type.
+     */
     def tolerantJson: BodyParser[JsValue] = tolerantJson(DEFAULT_MAX_TEXT_LENGTH)
 
+    /**
+     * Parse the body as Json if the Content-Type is text/json or application/json.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def json(maxLength: Int): BodyParser[JsValue] = when(
       _.contentType.exists(m => m == "text/json" || m == "application/json"),
       tolerantJson(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/json or application/json body")).getOrElse(Results.BadRequest)
     )
 
+    /**
+     * Parse the body as Json if the Content-Type is text/json or application/json.
+     */
     def json: BodyParser[JsValue] = json(DEFAULT_MAX_TEXT_LENGTH)
 
     // -- Empty parser
 
+    /**
+     * Don't parse the body content.
+     */
     def empty: BodyParser[None.type] = BodyParser("empty") { request =>
       Done(Right(None), Empty)
     }
 
     // -- XML parser
 
+    /**
+     * Parse the body as Xml without checking the Content-Type.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser("xml, maxLength=" + maxLength) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().mapDone { bytes =>
         scala.util.control.Exception.allCatch[NodeSeq].either {
@@ -235,18 +403,34 @@ trait BodyParsers {
         }
     }
 
+    /**
+     * Parse the body as Xml without checking the Content-Type.
+     */
     def tolerantXml: BodyParser[NodeSeq] = tolerantXml(DEFAULT_MAX_TEXT_LENGTH)
 
+    /**
+     * Parse the body as Xml if the Content-Type is text/xml.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def xml(maxLength: Int): BodyParser[NodeSeq] = when(
       _.contentType.exists(_.startsWith("text/xml")),
       tolerantXml(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/xml body")).getOrElse(Results.BadRequest)
     )
 
+    /**
+     * Parse the body as Xml if the Content-Type is text/xml.
+     */
     def xml: BodyParser[NodeSeq] = xml(DEFAULT_MAX_TEXT_LENGTH)
 
     // -- File parsers
 
+    /**
+     * Store the body content into a file.
+     *
+     * @param to The file used to store the content.
+     */
     def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
       Iteratee.fold[Array[Byte], FileOutputStream](new FileOutputStream(to)) { (os, data) =>
         os.write(data)
@@ -257,21 +441,29 @@ trait BodyParsers {
       }
     }
 
+    /**
+     * Store the body content into a temporary file.
+     */
     def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
       val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
       file(tempFile.file)(request).mapDone(_ => Right(tempFile))
     }
 
-    // -- UrlFormEncoded
+    // -- FormUrlEncoded
 
-    def tolerantUrlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = BodyParser("urlFormEncoded, maxLength=" + maxLength) { request =>
+    /**
+     * Parse the body as Form url encoded without checking the Content-Type.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
+    def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = BodyParser("urlFormEncoded, maxLength=" + maxLength) { request =>
 
       import play.core.parsers._
       import scala.collection.JavaConverters._
 
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().mapDone { c =>
         scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
-          UrlFormEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
+          FormUrlEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
         }.left.map { e =>
           Play.maybeApplication.map(_.global.onBadRequest(request, "Error parsing application/x-www-form-urlencoded")).getOrElse(Results.BadRequest)
         }
@@ -285,18 +477,32 @@ trait BodyParsers {
         }
     }
 
-    def tolerantUrlFormEncoded: BodyParser[Map[String, Seq[String]]] = tolerantUrlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
+    /**
+     * Parse the body as form url encoded without checking the Content-Type.
+     */
+    def tolerantFormUrlEncoded: BodyParser[Map[String, Seq[String]]] = tolerantFormUrlEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
+    /**
+     * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
+     *
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     */
     def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
       _.contentType.exists(_ == "application/x-www-form-urlencoded"),
-      tolerantUrlFormEncoded(maxLength),
+      tolerantFormUrlEncoded(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting application/x-www-form-urlencoded body")).getOrElse(Results.BadRequest)
     )
 
+    /**
+     * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
+     */
     def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = urlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
     // -- Magic any content
 
+    /**
+     * Guess the body content by checking the Content-Type header.
+     */
     def anyContent: BodyParser[AnyContent] = BodyParser("anyContent") { request =>
       request.contentType match {
         case _ if request.method == "GET" || request.method == "HEAD" => {
@@ -317,7 +523,7 @@ trait BodyParsers {
         }
         case Some("application/x-www-form-urlencoded") => {
           Logger("play").trace("Parsing AnyContent as urlFormEncoded")
-          urlFormEncoded(request).map(_.right.map(d => AnyContentAsUrlFormEncoded(d)))
+          urlFormEncoded(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
         }
         case Some("multipart/form-data") => {
           Logger("play").trace("Parsing AnyContent as multipartFormData")
@@ -332,8 +538,16 @@ trait BodyParsers {
 
     // -- Multipart
 
+    /**
+     * Parse the content as multipart/form-data
+     */
     def multipartFormData: BodyParser[MultipartFormData[TemporaryFile]] = multipartFormData(Multipart.handleFilePartAsTemporaryFile)
 
+    /**
+     * Parse the content as multipart/form-data
+     *
+     * @param filePartHandler Handles file parts.
+     */
     def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]]): BodyParser[MultipartFormData[A]] = BodyParser("multipartFormData") { request =>
       val handler: Multipart.PartHandler[Either[Part, FilePart[A]]] =
         Multipart.handleDataPart.andThen(_.map(Left(_)))
@@ -507,6 +721,12 @@ trait BodyParsers {
 
     // -- Parsing utilities
 
+    /**
+     * Wrap an existing BodyParser with a maxLength constraints.
+     *
+     * @param maxLength The max length allowed
+     * @param parser The BodyParser to wrap
+     */
     def maxLength[A](maxLength: Int, parser: BodyParser[A]): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength).transform(parser(request)).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
         case Right(Right(result)) => Right(Right(result))
@@ -515,14 +735,23 @@ trait BodyParsers {
       }
     }
 
+    /**
+     * A body parser that always returns an error.
+     */
     def error[A](result: Result): BodyParser[A] = BodyParser("error, result=" + result) { request =>
       Done(Left(result), Empty)
     }
 
+    /**
+     * Allow to choose the right BodyParser parser to use by examining the request headers.
+     */
     def using[A](f: RequestHeader => BodyParser[A]) = BodyParser { request =>
       f(request)(request)
     }
 
+    /**
+     * Create a conditional BodyParser.
+     */
     def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Result): BodyParser[A] = {
       BodyParser("conditional, wrapping=" + parser.toString) { request =>
         if (predicate(request)) {
@@ -537,6 +766,12 @@ trait BodyParsers {
 
 }
 
+/**
+ * Defaults BodyParsers.
+ */
 object BodyParsers extends BodyParsers
 
+/**
+ * Signal a max content size exceeded
+ */
 case class MaxSizeExceeded(length: Int)

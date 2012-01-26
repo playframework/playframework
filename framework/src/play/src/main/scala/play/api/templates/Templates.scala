@@ -11,14 +11,18 @@ import play.templates._
 case class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
   val buffer = new StringBuilder(text)
 
-  /** Appends this HTML fragment to another. */
+  /**
+   * Appends this HTML fragment to another.
+   */
   def +(other: Html) = {
     buffer.append(other.buffer)
     this
   }
   override def toString = buffer.toString
 
-  /** Content type of HTML (`text/html`). */
+  /**
+   * Content type of HTML (`text/html`).
+   */
   def contentType = "text/html"
 
   def body = toString
@@ -30,18 +34,26 @@ case class Html(text: String) extends Appendable[Html] with Content with play.mv
  */
 object Html {
 
-  /** Creates an empty HTML fragment. */
+  /**
+   * Creates an empty HTML fragment.
+   */
   def empty = Html("")
 
 }
 
-/** Formatter for HTML content. */
+/**
+ * Formatter for HTML content.
+ */
 object HtmlFormat extends Format[Html] {
 
-  /** Creates a raw (unescaped) HTML fragment. */
+  /**
+   * Creates a raw (unescaped) HTML fragment.
+   */
   def raw(text: String) = Html(text)
 
-  /** Creates a safe (escaped) HTML fragment. */
+  /**
+   * Creates a safe (escaped) HTML fragment.
+   */
   def escape(text: String) = Html(org.apache.commons.lang.StringEscapeUtils.escapeHtml(text))
 
 }
@@ -54,35 +66,50 @@ object HtmlFormat extends Format[Html] {
 case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
   val buffer = new StringBuilder(text)
 
-  /** Appends this text fragment to another. */
+  /**
+   * Appends this text fragment to another.
+   */
   def +(other: Txt) = {
     buffer.append(other.buffer)
     this
   }
+
   override def toString = buffer.toString
 
-  /** Content type of text (`text/plain`). */
+  /**
+   * Content type of text (`text/plain`).
+   */
   def contentType = "text/plain"
 
   def body = toString
 
 }
 
-/** Helper for utilities Txt methods. */
+/**
+ * Helper for utilities Txt methods.
+ */
 object Txt {
 
-  /** Creates an empty text fragment. */
+  /**
+   * Creates an empty text fragment.
+   */
   def empty = Txt("")
 
 }
 
-/** Formatter for text content. */
+/**
+ * Formatter for text content.
+ */
 object TxtFormat extends Format[Txt] {
 
-  /** Create a text fragment. */
+  /**
+   * Create a text fragment.
+   */
   def raw(text: String) = Txt(text)
 
-  /** No need for a safe (escaped) text fragment. */
+  /**
+   * No need for a safe (escaped) text fragment.
+   */
   def escape(text: String) = Txt(text)
 
 }
@@ -102,28 +129,40 @@ case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.
   }
   override def toString = buffer.toString
 
-  /** Content type of XML (`text/xml`). */
+  /**
+   * Content type of XML (`text/xml`).
+   */
   def contentType = "text/xml"
 
   def body = toString
 
 }
 
-/** Helper for XML utility methods. */
+/**
+ * Helper for XML utility methods.
+ */
 object Xml {
 
-  /** Create an empty XML fragment. */
+  /**
+   * Create an empty XML fragment.
+   */
   def empty = Xml("")
 
 }
 
-/** Formatter for XML content. */
+/**
+ * Formatter for XML content.
+ */
 object XmlFormat extends Format[Xml] {
 
-  /** Creates an XML fragment. */
+  /**
+   * Creates an XML fragment.
+   */
   def raw(text: String) = Xml(text)
 
-  /** Creates an escaped XML fragment. */
+  /**
+   * Creates an escaped XML fragment.
+   */
   def escape(text: String) = Xml(org.apache.commons.lang.StringEscapeUtils.escapeXml(text))
 
 }
@@ -149,7 +188,9 @@ object PlayMagic {
    */
   def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
 
-  /** Transforms a Play Java form `Field` to a proper Scala form `Field`. */
+  /**
+   * Implicit conversion of a Play Java form `Field` to a proper Scala form `Field`.
+   */
   implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {
 
     new play.api.data.Field(

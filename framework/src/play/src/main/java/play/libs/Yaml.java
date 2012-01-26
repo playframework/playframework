@@ -6,8 +6,14 @@ import java.util.*;
 import org.yaml.snakeyaml.*;
 import org.yaml.snakeyaml.constructor.*;
 
+/**
+ * Yaml utilities.
+ */
 public class Yaml {
     
+    /**
+     * Load a Yaml file from the classpath.
+     */
     public static Object load(String resourceName) {
         return load(
             play.Play.application().resourceAsStream(resourceName),
@@ -15,6 +21,11 @@ public class Yaml {
         );
     }
     
+    /** 
+     * Load the specified InputStream as Yaml.
+     *
+     * @param classloader The classloader to use to instantiate Java objects.
+     */
     public static Object load(InputStream is, ClassLoader classloader) {
         org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader));
         return yaml.load(is);

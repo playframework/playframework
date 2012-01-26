@@ -1,5 +1,10 @@
 package play.api.libs.json
 
+import Json._
+
+/**
+ * Generic Json formatters to handle Product types.
+ */
 object Generic {
 
   def productFormat2[S, T1, T2](lbl1: String, lbl2: String)(apply: (T1, T2) => S)(unapply: S => Option[Product2[T1, T2]])(implicit f1: Format[T1], f2: Format[T2]) = new Format[S] {

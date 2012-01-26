@@ -54,10 +54,14 @@ object Constraint {
 
 }
 
-/** Defines a set of built-in constraints. */
+/**
+ * Defines a set of built-in constraints.
+ */
 object Constraints extends Constraints
 
-/** Defines a set of built-in constraints. */
+/**
+ * Defines a set of built-in constraints.
+ */
 trait Constraints {
 
   /**
@@ -122,10 +126,14 @@ trait Constraints {
 
 }
 
-/** A validation result. */
-trait ValidationResult
+/**
+ * A validation result.
+ */
+sealed trait ValidationResult
 
-/** Validation was a success. */
+/**
+ * Validation was a success.
+ */
 case object Valid extends ValidationResult
 
 /**
@@ -144,7 +152,9 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
   def ++(other: Invalid) = Invalid(this.errors ++ other.errors)
 }
 
-/** This object provides helper methods to construct `Invalid` values. */
+/**
+ * This object provides helper methods to construct `Invalid` values.
+ */
 object Invalid {
 
   /**

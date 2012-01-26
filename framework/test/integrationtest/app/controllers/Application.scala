@@ -6,6 +6,7 @@ import play.api.Configuration
 
 import play.api.cache.Cache
 import play.api.libs.json._
+import play.api.libs.json.Json._
 
 import models._
 import models.Protocol._
@@ -16,10 +17,8 @@ object Application extends Controller {
 
   def index = Action {
     val conn = play.api.db.DB.getConnection("default")
-    Cache.set("hello","world")
-    val v2 = Cache.get[String]("peter","hello")
-    if (v2("peter") == "world" && v2("hello") == "world") throw new RuntimeException("scala cache API is not working")
-    Ok(views.html.index(Cache.get[String]("hello").getOrElse("oh noooz")))
+    Cache.set("hello", "world", 60)
+    Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
   def conf = Action {
@@ -45,13 +44,11 @@ object Application extends Controller {
 
   def index_java_cache = Action {
     import play.api.Play.current
-    JCache.set("hello","world")
-    JCache.set("peter","world")
+    JCache.set("hello","world", 60)
+    JCache.set("peter","world", 60)
     val v = JCache.get("hello")
     if (v != "world") throw new RuntimeException("java cache API is not working")
-    val v2 = Cache.get[String]("peter","hello")
-    if (v2("peter") == "world" && v2("hello") == "world") throw new RuntimeException("scala cache API is not working")
-    Ok(views.html.index(Cache.get[String]("hello").getOrElse("oh noooz")))
+    Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
 }

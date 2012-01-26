@@ -7,10 +7,16 @@ import java.util.*;
 
 import javax.persistence.*;
 
+/**
+ * JPA Helpers.
+ */
 public class JPA {
     
     static ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
     
+    /**
+     * Get the EntityManager for specified persistence unit for this thread.
+     */
     public static EntityManager em(String key) {
         Application app = Play.application();
         if(app == null) {
@@ -30,6 +36,9 @@ public class JPA {
         return em;
     } 
     
+    /**
+     * Get the default EntityManager for this thread.
+     */
     public static EntityManager em() {
         EntityManager em = currentEntityManager.get();
         if(em == null) {
@@ -38,14 +47,27 @@ public class JPA {
         return em;
     }
     
+    /**
+     * Bind an EntityManager to the current thread.
+     */
     public static void bindForCurrentThread(EntityManager em) {
         currentEntityManager.set(em);
     }
     
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute.
+     */
     public static <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
         return withTransaction("default", false, block);
     }
     
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute.
+     */
     public static void withTransaction(final play.libs.F.Callback0 block) {
         try {
             withTransaction("default", false, new play.libs.F.Function0<Void>() {
@@ -59,6 +81,13 @@ public class JPA {
         }
     }
     
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute.
+     */
     public static <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
         EntityManager em = null;
         EntityTransaction tx = null;

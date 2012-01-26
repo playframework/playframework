@@ -2,27 +2,44 @@ package play.api
 
 import org.slf4j.{ LoggerFactory, Logger => Slf4jLogger }
 
-/** Typical logger interface. */
+/**
+ * Typical logger interface.
+ */
 trait LoggerLike {
 
-  /** The underlying SLF4J Logger. */
+  /**
+   * The underlying SLF4J Logger.
+   */
   val logger: Slf4jLogger
-
+  
+  /**
+   * The underlying SLF4J Logger.
+   */
   lazy val underlyingLogger = logger
 
-  /** `true` if the logger instance is enabled for the `TRACE` level. */
+  /**
+   * `true` if the logger instance is enabled for the `TRACE` level.
+   */
   lazy val isTraceEnabled = logger.isTraceEnabled
 
-  /** `true` if the logger instance is enabled for the `DEBUG` level. */
+  /**
+   * `true` if the logger instance is enabled for the `DEBUG` level.
+   */
   lazy val isDebugEnabled = logger.isDebugEnabled
 
-  /** `true` if the logger instance is enabled for the `INFO` level. */
+  /**
+   * `true` if the logger instance is enabled for the `INFO` level.
+   */
   lazy val isInfoEnabled = logger.isInfoEnabled
 
-  /** `true` if the logger instance is enabled for the `WARN` level. */
+  /**
+   * `true` if the logger instance is enabled for the `WARN` level.
+   */
   lazy val isWarnEnabled = logger.isWarnEnabled
 
-  /** `true` if the logger instance is enabled for the `ERROR` level. */
+  /**
+   * `true` if the logger instance is enabled for the `ERROR` level.
+   */
   lazy val isErrorEnabled = logger.isWarnEnabled
 
   /**
@@ -145,6 +162,9 @@ class Logger(val logger: Slf4jLogger) extends LoggerLike
  */
 object Logger extends LoggerLike {
 
+  /**
+   * Initialize the Logger in a brut way.
+   */
   def init(home: java.io.File) {
     Logger.configure(
       Map("application.home" -> home.getAbsolutePath),
@@ -246,6 +266,9 @@ object Logger extends LoggerLike {
 
   }
 
+  /**
+   * Shutdown the logger infrastructure.
+   */
   def shutdown() {
     import ch.qos.logback.classic.joran._
     import ch.qos.logback.core.util._

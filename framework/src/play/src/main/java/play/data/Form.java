@@ -83,13 +83,13 @@ public class Form<T> {
     protected Map<String,String> requestData() {
         
         Map<String,String[]> urlFormEncoded = new HashMap<String,String[]>();
-        if(play.mvc.Controller.request().body().asUrlFormEncoded() != null) {
-            urlFormEncoded = play.mvc.Controller.request().body().asUrlFormEncoded();
+        if(play.mvc.Controller.request().body().asFormUrlEncoded() != null) {
+            urlFormEncoded = play.mvc.Controller.request().body().asFormUrlEncoded();
         }
         
         Map<String,String[]> multipartFormData = new HashMap<String,String[]>();
         if(play.mvc.Controller.request().body().asMultipartFormData() != null) {
-            multipartFormData = play.mvc.Controller.request().body().asMultipartFormData().asUrlFormEncoded();
+            multipartFormData = play.mvc.Controller.request().body().asMultipartFormData().asFormUrlEncoded();
         }
         
         Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
@@ -509,6 +509,9 @@ public class Form<T> {
             return format;
         }
         
+        /**
+         * Return the indexes available for this field (for repeated fields ad List)
+         */
         public List<Integer> indexes() {
             List<Integer> result = new ArrayList<Integer>();
             if(form.value().isDefined()) {
@@ -538,6 +541,9 @@ public class Form<T> {
             return result;
         }
         
+        /**
+         * Get a sub-field, with a key relative to the current field.
+         */
         public Field sub(String key) {
             String subKey = null;
             if(key.startsWith("[")) {

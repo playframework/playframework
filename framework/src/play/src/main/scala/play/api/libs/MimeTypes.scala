@@ -1,6 +1,8 @@
 package play.api.libs
 
-/** MIME type utilities. */
+/**
+ * MIME type utilities.
+ */
 object MimeTypes {
 
   /**

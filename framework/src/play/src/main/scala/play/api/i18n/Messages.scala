@@ -10,7 +10,7 @@ import scala.util.parsing.combinator._
 import scala.util.matching._
 
 /**
- * High-level internationalisation API.
+ * High-level internationalisation API (not available yet).
  *
  * For example:
  * {{{
@@ -48,7 +48,9 @@ object Messages {
    */
   case class Message(key: String, pattern: String, input: scalax.io.Input, sourceName: String) extends Positional
 
-  /** Message file parser. */
+  /**
+   * Message file Parser.
+   */
   class MessagesParser(messageInput: scalax.io.Input, messageSourceName: String) extends RegexParsers {
 
     case class Comment(msg: String)
@@ -116,7 +118,9 @@ object Messages {
 
 }
 
-/** The internationalisation API. */
+/**
+ * The internationalisation API.
+ */
 case class MessagesApi(messages: Map[String, String]) {
 
   import java.text._
@@ -138,7 +142,9 @@ case class MessagesApi(messages: Map[String, String]) {
 
 }
 
-/** Play Plugin for internationalisation. */
+/**
+ * Play Plugin for internationalisation.
+ */
 class MessagesPlugin(app: Application) extends Plugin {
 
   import scala.collection.JavaConverters._
@@ -156,10 +162,14 @@ class MessagesPlugin(app: Application) extends Plugin {
     }
   }
 
-  /** The underlying internationalisation API. */
+  /**
+   * The underlying internationalisation API.
+   */
   def api = messages
 
-  /** Loads all configuration and message files defined in the classpath. */
+  /**
+   * Loads all configuration and message files defined in the classpath.
+   */
   override def onStart() {
     messages
   }

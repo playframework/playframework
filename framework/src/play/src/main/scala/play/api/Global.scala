@@ -114,20 +114,29 @@ trait GlobalSettings {
 
 }
 
-/** The default global settings if not defined in the application. */
+/**
+ * The default global settings if not defined in the application.
+ */
 object DefaultGlobal extends GlobalSettings
 
-/** Global plugin executes application's `globalSettings` `onStart` and `onStop`. */
+/**
+ * The Global plugin executes application's `globalSettings` `onStart` and `onStop`.
+ */
 class GlobalPlugin(app: Application) extends Plugin {
 
+  // Call before start now
   app.global.beforeStart(app)
 
-  /** Called when the application starts. */
+  /**
+   * Called when the application starts.
+   */
   override def onStart() {
     app.global.onStart(app)
   }
 
-  /** Called when the application stops. */
+  /**
+   * Called when the application stops.
+   */
   override def onStop() {
     app.global.onStop(app)
   }

@@ -187,9 +187,9 @@ object PlayBuild extends Build {
             "com.jolbox"                        %    "bonecp"                   %   "0.7.1.RELEASE",
             "org.yaml"                          %    "snakeyaml"                %   "1.9",
             "org.hibernate"                     %    "hibernate-validator"      %   "4.2.0.Final",
-            "org.springframework"               %    "spring-context"           %   "3.0.7.RELEASE"   notTransitive(),
-            "org.springframework"               %    "spring-core"              %   "3.0.7.RELEASE"   notTransitive(),
-            "org.springframework"               %    "spring-beans"             %   "3.0.7.RELEASE"   notTransitive(),
+            "org.springframework"               %    "spring-context"           %   "3.0.7.RELEASE" notTransitive(),
+            "org.springframework"               %    "spring-core"              %   "3.0.7.RELEASE" notTransitive(),
+            "org.springframework"               %    "spring-beans"             %   "3.0.7.RELEASE" notTransitive(),
             "joda-time"                         %    "joda-time"                %   "2.0",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
@@ -198,10 +198,12 @@ object PlayBuild extends Build {
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
             "org.reflections"                   %    "reflections"              %   "0.9.5",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
+            "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
+            "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
-            "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
+            "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
         )
 
         val sbtDependencies = Seq(
@@ -300,7 +302,7 @@ object PlayBuild extends Build {
             (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ 
             (file("src/play-test/src/main/scala") ** "*.scala").get ++ 
             (file("src/play/src/main/scala/views") ** "*.scala").get ++ 
-            (file("src/play/target/scala-2.9.1/src_managed/main/views") ** "*.scala").get
+            (file("src/play/target/scala-2.9.1/src_managed/main/views/html/helper") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc

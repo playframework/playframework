@@ -6,16 +6,47 @@ import play.api.templates._
 
 import org.apache.commons.lang.{ StringEscapeUtils }
 
+/**
+ * Helper function to produce a Comet Enumeratee.
+ *
+ * Example:
+ * {{{
+ * val cometStream = Enumerator("A", "B", "C") &> Comet(callback = "console.log")
+ * }}}
+ *
+ */
 object Comet {
 
+  /**
+   * Typeclass for Comet message. Transform each value to a JavaScript message.
+   */
   case class CometMessage[A](toJavascriptMessage: A => String)
 
+  /**
+   * Default typeclasses for CometMessage.
+   */
   object CometMessage {
+
+    /**
+     * String messages.
+     */
     implicit val stringMessages = CometMessage[String](str => "'" + StringEscapeUtils.escapeJavaScript(str) + "'")
+
+    /**
+     * Json messages.
+     */
     implicit val jsonMessages = CometMessage[play.api.libs.json.JsValue](json => json.toString())
+
   }
 
-  def apply[E](callback: String, initialChunk: Html = Html(Array.fill[Char](5000)(' ').mkString + "<html><body>"))(implicit encoder: CometMessage[E]) = new Enumeratee[E, Html] {
+  /**
+   * Create a Comet Enumeratee.
+   *
+   * @tparam E Type of messages handled by this comet stream.
+   * @param callback Javascript function to call on the browser for each message.
+   * @param initialChunk Initial chunk of data to send for browser compatibility (default to send 5Kb of blank data)
+   */
+  def apply[E](callback: String, initialChunk: Html = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>"))(implicit encoder: CometMessage[E]) = new Enumeratee[E, Html] {
 
     def applyOn[A](inner: Iteratee[Html, A]): Iteratee[E, Iteratee[Html, A]] = {
 

@@ -10,13 +10,44 @@ trait ContentTypes {
 
   import play.api.mvc.Codec
 
+  /**
+   * Content-Type of text according the implicit codec value.
+   */
   def TEXT(implicit codec: Codec) = ("text/plain; charset=" + codec.charset)
+
+  /**
+   * Content-Type of html according the implicit codec value.
+   */
   def HTML(implicit codec: Codec) = ("text/html; charset=" + codec.charset)
+
+  /**
+   * Content-Type of json according the implicit codec value.
+   */
   def JSON(implicit codec: Codec) = ("application/json; charset=" + codec.charset)
+
+  /**
+   * Content-Type of xml according the implicit codec value.
+   */
   def XML(implicit codec: Codec) = ("text/xml; charset=" + codec.charset)
+
+  /**
+   * Content-Type of css according the implicit codec value.
+   */
   def CSS(implicit codec: Codec) = ("text/css; charset=" + codec.charset)
+
+  /**
+   * Content-Type of javascript according the implicit codec value.
+   */
   def JAVASCRIPT(implicit codec: Codec) = ("text/javascript; charset=" + codec.charset)
+
+  /**
+   * Content-Type of form-urlencoded according the implicit codec value.
+   */
   def FORM(implicit codec: Codec) = ("application/x-www-form-urlencoded; charset=" + codec.charset)
+
+  /**
+   * Content-Type of binary data.
+   */
   val BINARY = "application/octet-stream"
 
 }
@@ -26,7 +57,9 @@ trait ContentTypes {
  */
 object Status extends Status
 
-/** Defines all standard HTTP status codes. */
+/**
+ * Defines all standard HTTP status codes.
+ */
 trait Status {
 
   val CONTINUE = 100

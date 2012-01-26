@@ -6,21 +6,8 @@ import java.util.Arrays;
 
 /**
  * High-level internationalisation API.
- *
- * For example:
- * {{{
- * String msgString = Messages.current().get("items.found", items.size)
- * }}}
  */
 public class Messages {
-
-    /**
-     * Returns the Messages-instance used to access the message API for the application
-     * @return a Messages instance
-     */
-    public static Messages current() {
-        return new Messages();
-    }
 
     /**
     * Translates a message.
@@ -31,8 +18,8 @@ public class Messages {
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
     */
-    public String get(String key, Object... args) {
-        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter( Arrays.asList(args)).asScala();
+    public static String get(String key, Object... args) {
+        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
         return play.api.i18n.Messages.apply(key, scalaArgs);
     }
 }

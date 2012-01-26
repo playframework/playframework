@@ -14,7 +14,9 @@ import annotation.implicitNotFound
 /**
  * A Play application.
  *
- * Application creation is handled by the framework engine. If you need to create an ad-hoc application,
+ * Application creation is handled by the framework engine.
+ *
+ * If you need to create an ad-hoc application,
  * for example in case of unit testing, you can easily achieve this using:
  * {{{
  * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
@@ -57,7 +59,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   }
 
   /**
-   * The global settings used by this application.
+   * The global settings object used by this application.
    *
    * @see play.api.GlobalSettings
    */
@@ -82,7 +84,9 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    */
   def configuration = fullConfiguration
 
-  /** The router used by this application. */
+  /**
+   * The router used by this application (if defined).
+   */
   val routes: Option[Router.Routes] = try {
     Some(classloader.loadClass("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes])
   } catch {
@@ -133,9 +137,24 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   /**
    * The plugins list used by this application.
    *
+   * Plugin classes must extend play.api.Plugin and are automatically discovered
+   * by searching for all play.plugins files in the classpath.
+   *
+   * A play.plugins file contains a list of plugin classes to be loaded, and sorted by priority:
+   *
+   * {{{
+   * 100:play.api.i18n.MessagesPlugin
+   * 200:play.api.db.DBPlugin
+   * 250:play.api.cache.BasicCachePlugin
+   * 300:play.db.ebean.EbeanPlugin
+   * 400:play.db.jpa.JPAPlugin
+   * 500:play.api.db.evolutions.EvolutionsPlugin
+   * 1000:play.api.libs.akka.AkkaPlugin
+   * 10000:play.api.GlobalPlugin
+   * }}}
+   *
    * @see play.api.Plugin
    */
-
   val plugins: Seq[Plugin] = Threads.withContextClassLoader(classloader) {
 
     pluginClasses.map { className =>
@@ -170,7 +189,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    *
    * For example, to retrieve the DBPlugin instance:
    * {{{
-   * val dbPlugin = application.plugin[DBPlugin].map(_.api).getOrElse(throw new exception("problem with the plugin"))
+   * val dbPlugin = application.plugin[DBPlugin].map(_.api).getOrElse(sys.error("problem with the plugin"))
    * }}}
    *
    * @tparam T the plugin type
@@ -210,6 +229,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
 
   /**
    * Retrieves a file relative to the application root path.
+   * This method returns an Option[File], using None if the file was not found.
    *
    * For example, to retrieve a configuration file:
    * {{{

@@ -888,6 +888,9 @@ public class Results {
 
     // -- Definitions
 
+    /**
+     * A Chunked result.
+     */
     public abstract static class Chunks<A> {
 
         final scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit> f;
@@ -909,8 +912,16 @@ public class Results {
             };
         }
 
+        /**
+         * Called when the Chunked stream is ready.
+         *
+         * @param out The out stream.
+         */
         public abstract void onReady(Chunks.Out<A> out);
 
+        /**
+         * A Chunked stream.
+         */
         public static class Out<A> {
 
             final play.api.libs.iteratee.PushEnumerator<A> enumerator;
@@ -919,10 +930,16 @@ public class Results {
                 this.enumerator = enumerator;
             }
 
+            /**
+             * Write a Chunk.
+             */
             public void write(A chunk) {
                 enumerator.push(chunk);
             }
 
+            /**
+             * Closes the stream.
+             */
             public void close() {
                 enumerator.close();
             }
@@ -931,6 +948,9 @@ public class Results {
 
     }
 
+    /**
+     * Chunked result based on String chunks.
+     */
     public abstract static class StringChunks extends Chunks<String> {
 
         public StringChunks() {
@@ -950,6 +970,9 @@ public class Results {
 
     }
 
+    /**
+     * Chunked result based on byte[] chunks.
+     */
     public abstract static class ByteChunks extends Chunks<byte[]> {
 
         public ByteChunks() {

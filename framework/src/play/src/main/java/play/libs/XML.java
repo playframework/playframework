@@ -13,8 +13,14 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+/**
+ * XML utilities.
+ */
 public class XML {
     
+    /**
+     * Parse an XML string as DOM.
+     */ 
     public static Document fromString(String xml) {
         try {
             return fromInputStream(
@@ -26,6 +32,9 @@ public class XML {
         }
     }
 
+    /**
+     * Parse an InputStream as DOM.
+     */
     public static Document fromInputStream(InputStream in, String encoding) {
        DocumentBuilderFactory factory = null;
        DocumentBuilder builder = null;

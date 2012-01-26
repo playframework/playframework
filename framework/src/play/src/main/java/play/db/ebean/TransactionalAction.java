@@ -6,7 +6,7 @@ import play.mvc.Http.*;
 import com.avaje.ebean.*;
 
 /**
- * Wraps an action in am Ebean transaction.
+ * Wraps an action in an Ebean transaction.
  */
 public class TransactionalAction extends Action<Transactional> {
     

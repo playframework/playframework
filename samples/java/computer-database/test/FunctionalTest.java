@@ -62,7 +62,7 @@ public class FunctionalTest {
                 
                 result = callAction(
                     controllers.routes.ref.Application.save(), 
-                    fakeRequest().withUrlFormEncodedBody(data)
+                    fakeRequest().withFormUrlEncodedBody(data)
                 );
                 
                 assertThat(status(result)).isEqualTo(BAD_REQUEST);
@@ -74,7 +74,7 @@ public class FunctionalTest {
                 
                 result = callAction(
                     controllers.routes.ref.Application.save(), 
-                    fakeRequest().withUrlFormEncodedBody(data)
+                    fakeRequest().withFormUrlEncodedBody(data)
                 );
                 
                 assertThat(status(result)).isEqualTo(SEE_OTHER);

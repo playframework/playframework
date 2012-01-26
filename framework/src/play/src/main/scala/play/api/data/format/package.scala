@@ -1,7 +1,7 @@
 package play.api.data
 
 /**
- * Contains the format API used by `Form`.
+ * Contains the Format API used by `Form`.
  *
  * For example, to define a custom formatter:
  * {{{

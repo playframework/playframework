@@ -28,11 +28,11 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
-      
+
       def markdownToHtml(markdown: String, link: String => (String, String)) = {
         import org.pegdown._
         import org.pegdown.ast._
-        
+
         val processor = new PegDownProcessor(Extensions.ALL)
         val links = new LinkRenderer {
           override def render(node: WikiLinkNode) = {
@@ -40,7 +40,7 @@ trait PlayReloader {
             new LinkRenderer.Rendering(href, text)
           }
         }
-        
+
         processor.markdownToHtml(markdown, links)
       }
 

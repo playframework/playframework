@@ -27,7 +27,7 @@ import scala.collection.JavaConverters._
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    //e.getCause.printStackTrace()
+    Logger.trace("Exception caught in Netty", e.getCause)
     e.getChannel.close()
   }
 

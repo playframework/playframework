@@ -11,7 +11,7 @@ import data.validation._
  * import play.api.data.Forms._
  *
  * val taskForm = Form(
- *   of(Task.apply _, Task.unapply _)(
+ *   tuple(
  *     "name" -> text(minLength = 3),
  *     "dueDate" -> date("yyyy-MM-dd"),
  *     "done" -> boolean
@@ -20,6 +20,4 @@ import data.validation._
  * }}}
  *
  */
-package object data {
-
-}
+package object data

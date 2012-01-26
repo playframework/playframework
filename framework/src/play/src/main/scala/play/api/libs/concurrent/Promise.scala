@@ -6,11 +6,7 @@ import play.api._
 import akka.actor._
 import akka.actor.Actor._
 
-import java.util.concurrent.TimeUnit
-
-object `package` {
-  type RedeemablePromise[A] = Promise[A] with Redeemable[A]
-}
+import java.util.concurrent.{ TimeUnit }
 
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }

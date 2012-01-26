@@ -12,34 +12,55 @@ import play.api.libs.concurrent._
  */
 case class WebSocket[A](f: RequestHeader => (Enumerator[A], Iteratee[A, Unit]) => Unit)(implicit val frameFormatter: WebSocket.FrameFormatter[A]) extends Handler
 
-/** Helper utilities to generate WebSocket results. */
+/**
+ * Helper utilities to generate WebSocket results.
+ */
 object WebSocket {
 
+  /**
+   * Typeclass to handle WebSocket frames format.
+   */
   trait FrameFormatter[A] {
 
+    /**
+     * Transform a FrameFormatter[A] to a FrameFormatter[B]
+     */
     def transform[B](fba: B => A, fab: A => B): FrameFormatter[B]
 
   }
 
+  /**
+   * Defaults frame formatters.
+   */
   object FrameFormatter {
 
+    /**
+     * String WebSocket frames.
+     */
     implicit val stringFrame: FrameFormatter[String] = play.core.server.websocket.Frames.textFrame
+
+    /**
+     * Array[Byte] WebSocket frames.
+     */
     implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = play.core.server.websocket.Frames.binaryFrame
+
+    /**
+     * Json WebSocket frames.
+     */
     implicit val jsonFrame: FrameFormatter[JsValue] = stringFrame.transform(Json.stringify, Json.parse)
 
   }
 
   /**
    * Creates a WebSocket result from inbound and outbound channels.
-   *
-   * @param readIn the inboud channel
-   * @param writeOut the outbound channel
-   * @return a `WebSocket`
    */
   def using[A](f: RequestHeader => (Iteratee[A, _], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
     WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); e |>> readIn; writeOut |>> i })
   }
 
+  /**
+   * Creates a WebSocket result from inbound and outbound channels retrieved asynchronously.
+   */
   def async[A](f: RequestHeader => Promise[(Iteratee[A, _], Enumerator[A])])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
     using { rh =>
       val p = f(rh)

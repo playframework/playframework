@@ -7,26 +7,14 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.node.*;
 
 /**
- * provides helpers to deal with JSON
+ * Helper functions to handle JsonNode values.
  */
- 
 public class Json {
 
     /**
-     * provides a simple way to serialize into JSON.
+     * Convert an object to JsonNode.
      *
-     * usage (in a controller):
-     *
-     * {{{
-     * public static Result index() {
-     * Map<String,String> d = new HashMap<String,String>();
-     * d.put("peter","foo");
-     * d.put("yay","value");
-     *     return ok(toJson(d));
-     * }
-     * }}}
-     *
-     * @param data to be serialized 
+     * @param data Value to convert in Json.
      */
     public static JsonNode toJson(final Object data) {
         try {
@@ -36,6 +24,12 @@ public class Json {
         }
     }
    
+    /**
+     * Convert a JsonNode to a Java value
+     *
+     * @param json Json value to convert.
+     * @param clazz Expected Java value type.
+     */
     public static <A> A fromJson(JsonNode json, Class<A> clazz) {
         try {
             return new ObjectMapper().treeToValue(json, clazz);
@@ -44,14 +38,23 @@ public class Json {
         }
     }
     
+    /**
+     * Creates a new empty ObjectNode.
+     */ 
     public static ObjectNode newObject() {
         return new ObjectMapper().createObjectNode();
     }
     
+    /**
+     * Convert a JsonNode to its string representation.
+     */
     public static String stringify(JsonNode json) {
         return json.toString();
     }
     
+    /**
+     * Parse a String representing a json, and return it as a JsonNode.
+     */
     public static JsonNode parse(String src) {
         try {
             return new ObjectMapper().readValue(src, JsonNode.class);

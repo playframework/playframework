@@ -32,25 +32,17 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
- * Asynchronous API to to query web services, as an http client
+ * Asynchronous API to to query web services, as an http client.
  *
- * Usage example:
- * import play.libs.WS;
- * WS.url("http://example.com/feed").get()
- * WS.url("http://mysite.com/post")
- *                         .setHeader("Content-Type","application/x-www-form-urlencoded")
- *                         .post("param1=foo")
- *
- * The value returned is a Promise<Response>,
- * and you should use Play's asynchronous mechanisms to use this response.
- *
+ * The value returned is a Promise<Response>, and you should use Play's asynchronous mechanisms to use this response.
  */
 public class WS {
 
-    private static AsyncHttpClient client = play.api.libs.WS.client();
+    private static AsyncHttpClient client = play.api.libs.ws.WS.client();
 
     /**
      * Prepare a new request. You can then construct it by chaining calls.
+     *
      * @param url the URL to request
      */
     public static WSRequestHolder url(String url) {
@@ -58,7 +50,7 @@ public class WS {
     }
 
     /**
-     * provides the bridge between Play and the underlying ning request
+     * Provides the bridge between Play and the underlying ning request
      */
     public static class WSRequest extends RequestBuilderBase<WSRequest> {
 
@@ -101,8 +93,9 @@ public class WS {
             return new Promise(scalaPromise);
         }
     }
+    
     /**
-     * provides the user facing API for WS
+     * provides the User facing API for building WS request.
      */
     public static class WSRequestHolder {
 
@@ -119,7 +112,8 @@ public class WS {
         }
 
         /**
-         * sets a header with the given name, this can be called repeatedly 
+         * Sets a header with the given name, this can be called repeatedly 
+         *
          * @param name
          * @param value
          */
@@ -136,7 +130,8 @@ public class WS {
         }
 
         /**
-         * sets a query parameter with the given name,this can be called repeatedly
+         * Sets a query parameter with the given name,this can be called repeatedly
+         *
          * @param name
          * @param value
          */
@@ -152,8 +147,9 @@ public class WS {
             return this;
         }
 
-         /**
-         * sets the authentication header for the current request
+        /**
+         * Sets the authentication header for the current request.
+         *
          * @param username
          * @param password
          * @param scheme authentication scheme
@@ -174,6 +170,7 @@ public class WS {
 
         /**
          * Perform a POST on the request asynchronously.
+         *
          * @param body represented as String
          */
         public Promise<Response> post(String body) {
@@ -182,7 +179,8 @@ public class WS {
 
         /**
          * Perform a PUT on the request asynchronously.
-          * @param body represented as String
+         *
+         * @param body represented as String
          */
         public Promise<Response> put(String body) {
             return executeString("PUT", body);
@@ -190,6 +188,7 @@ public class WS {
 
         /**
          * Perform a POST on the request asynchronously.
+         *
          * @param body represented as an InputStream
          */
         public Promise<Response> post(InputStream body) {
@@ -198,6 +197,7 @@ public class WS {
 
         /**
          * Perform a PUT on the request asynchronously.
+         *
          * @param body represented as an InputStream
          */
         public Promise<Response> put(InputStream body) {
@@ -206,6 +206,7 @@ public class WS {
 
         /**
          * Perform a POST on the request asynchronously.
+         *
          * @param body represented as a File
          */
         public Promise<Response> post(File body) {
@@ -214,6 +215,7 @@ public class WS {
 
         /**
          * Perform a PUT on the request asynchronously.
+         *
          * @param body represented as a File
          */
         public Promise<Response> put(File body) {
@@ -282,8 +284,9 @@ public class WS {
 
 
     }
+    
     /**
-     * provides Response for all WS.url calls
+     * A WS response.
      */
     public static class Response {
 

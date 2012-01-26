@@ -7,19 +7,22 @@ import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
 
 import play.api.libs.ws._
-import play.api.libs.WS.WSRequest
+import play.api.libs.ws.WS.WSRequest
 
 /**
  * Library to access ressources protected by OAuth 1.0a.
- *
  */
 case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
-  private val provider = new DefaultOAuthProvider(info.requestTokenURL, info.accessTokenURL, info.authorizationURL)
-  provider.setOAuth10a(use10a)
+  private val provider = {
+    val p = new DefaultOAuthProvider(info.requestTokenURL, info.accessTokenURL, info.authorizationURL)
+    p.setOAuth10a(use10a)
+    p
+  }
 
   /**
    * Request the request token and secret.
+   *
    * @param callbackURL the URL where the provider should redirect to (usually a URL on the current app)
    * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
    */
@@ -35,6 +38,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
   /**
    * Exchange a request token for an access token.
+   *
    * @param the token/secret pair obtained from a previous call
    * @param verifier a string you got through your user, with redirection
    * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
@@ -51,33 +55,42 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
   }
 
   /**
-   * The URL where the user needs to be redirected to grant authorization to your application
+   * The URL where the user needs to be redirected to grant authorization to your application.
+   *
    * @param token request token
    */
-  def redirectUrl(token: String): String =
-    _root_.oauth.signpost.OAuth.addQueryParameters(provider.getAuthorizationWebsiteUrl(),
-      _root_.oauth.signpost.OAuth.OAUTH_TOKEN, token);
+  def redirectUrl(token: String): String = {
+    _root_.oauth.signpost.OAuth.addQueryParameters(
+      provider.getAuthorizationWebsiteUrl(),
+      _root_.oauth.signpost.OAuth.OAUTH_TOKEN,
+      token
+    );
+  }
 
 }
 
 /**
- * A consumer key / consumer secret pair that the OAuth provider gave you, to identify your application
+ * A consumer key / consumer secret pair that the OAuth provider gave you, to identify your application.
  */
 case class ConsumerKey(key: String, secret: String)
 
 /**
- * A request token / token secret pair, to be used for a specific user
+ * A request token / token secret pair, to be used for a specific user.
  */
 case class RequestToken(token: String, secret: String)
 
 /**
- * The information identifying a oauth provider: URLs and the consumer key / consumer secret pair
+ * The information identifying a oauth provider: URLs and the consumer key / consumer secret pair.
  */
 case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authorizationURL: String, key: ConsumerKey)
 
 /**
- * A signature calculator for the Play WS API. Example:
+ * A signature calculator for the Play WS API.
+ *
+ * Example:
+ * {{{
  * WS.url("http://example.com/protected").sign(OAuthCalculator(service, tokens)).get()
+ * }}}
  */
 case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extends AbstractOAuthConsumer(consumerKey.key, consumerKey.secret) with SignatureCalculator {
 

@@ -4,11 +4,17 @@ import play.api.data._
 
 import annotation.implicitNotFound
 
-/** Handles field binding and unbinding. */
-@implicitNotFound(msg = "Cannot find Formatter type class for ${T}. Perhaps you will need to import play.api.data.format.Formats._ ")
+/**
+ * Handles field binding and unbinding.
+ */
+@implicitNotFound(
+  msg = "Cannot find Formatter type class for ${T}. Perhaps you will need to import play.api.data.format.Formats._ "
+)
 trait Formatter[T] {
 
-  /** The expected format of `Any`. */
+  /**
+   * The expected format of `Any`.
+   */
   val format: Option[(String, Seq[Any])] = None
 
   /**
@@ -43,13 +49,17 @@ object Formats {
     def unbind(key: String, value: A) = Map.empty
   }
 
-  /** Default formatter for the `String` type. */
+  /**
+   * Default formatter for the `String` type.
+   */
   implicit def stringFormat = new Formatter[String] {
     def bind(key: String, data: Map[String, String]) = data.get(key).toRight(Seq(FormError(key, "error.required", Nil)))
     def unbind(key: String, value: String) = Map(key -> value)
   }
 
-  /** Default formatter for the `Long` type. */
+  /**
+   * Default formatter for the `Long` type.
+   */
   implicit def longFormat = new Formatter[Long] {
 
     override val format = Some("format.numeric", Nil)
@@ -65,7 +75,9 @@ object Formats {
     def unbind(key: String, value: Long) = Map(key -> value.toString)
   }
 
-  /** Default formatter for the `Int` type. */
+  /**
+   * Default formatter for the `Int` type.
+   */
   implicit def intFormat = new Formatter[Int] {
 
     override val format = Some("format.numeric", Nil)
@@ -81,7 +93,9 @@ object Formats {
     def unbind(key: String, value: Int) = Map(key -> value.toString)
   }
 
-  /** Default formatter for the `Boolean` type. */
+  /**
+   * Default formatter for the `Boolean` type.
+   */
   implicit def booleanFormat = new Formatter[Boolean] {
 
     override val format = Some("format.boolean", Nil)

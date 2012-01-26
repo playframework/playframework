@@ -23,7 +23,7 @@ object JavaParsers extends BodyParsers {
       multipart: Option[MultipartFormData[TemporaryFile]] = None,
       override val isMaxSizeExcedeed: Boolean = false) extends RequestBody {
 
-    override lazy val asUrlFormEncoded = {
+    override lazy val asFormUrlEncoded = {
       urlFormEncoded.map(_.mapValues(_.toArray).asJava).orNull
     }
 
@@ -63,8 +63,8 @@ object JavaParsers extends BodyParsers {
 
         new play.mvc.Http.MultipartFormData {
 
-          lazy val asUrlFormEncoded = {
-            multipart.asUrlFormEncoded.mapValues(_.toArray).asJava
+          lazy val asFormUrlEncoded = {
+            multipart.asFormUrlEncoded.mapValues(_.toArray).asJava
           }
 
           lazy val getFiles = {
@@ -86,7 +86,7 @@ object JavaParsers extends BodyParsers {
       .left.map(_ => DefaultRequestBody(isMaxSizeExcedeed = true))
       .right.map { anyContent =>
         DefaultRequestBody(
-          anyContent.asUrlFormEncoded,
+          anyContent.asFormUrlEncoded,
           anyContent.asRaw,
           anyContent.asText,
           anyContent.asJson,
@@ -143,7 +143,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def urlFormEncoded(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.urlFormEncoded).map { body =>
+  def formUrlEncoded(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.urlFormEncoded).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExcedeed = true))
       .right.map { urlFormEncoded =>

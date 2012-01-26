@@ -5,10 +5,14 @@ import play.api.mvc.Results._
 
 import play.api.libs.iteratee._
 
-/** Helpers to create secure actions. */
+/**
+ * Helpers to create secure actions.
+ */
 object Security {
 
-  /** Key of the username attribute stored in session. */
+  /**
+   * Key of the username attribute stored in session.
+   */
   lazy val username: String = Play.maybeApplication map (_.configuration.getString("session.username")) flatMap (e => e) getOrElse ("username")
 
   /**

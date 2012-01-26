@@ -2,12 +2,6 @@ package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
 
-object `package` {
-
-  type K[E, A] = Input[E] => Iteratee[E, A]
-
-}
-
 object Iteratee {
 
   def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {

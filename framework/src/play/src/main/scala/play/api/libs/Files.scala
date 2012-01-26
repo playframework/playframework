@@ -5,7 +5,9 @@ import scalax.file._
 
 import java.io._
 
-/** Files utilities. */
+/**
+ * FileSystem utilities.
+ */
 object Files {
 
   /**
@@ -21,6 +23,9 @@ object Files {
       file.delete()
     }
 
+    /**
+     * Delete this file on garbage collection.
+     */
     override def finalize {
       clean()
     }
@@ -50,10 +55,16 @@ object Files {
 
   }
 
+  /**
+   * Copy a file.
+   */
   def copyFile(from: File, to: File, copyAttributes: Boolean = true, replaceExisting: Boolean = true) = {
     Path(from).copyTo(target = Path(to), copyAttributes = copyAttributes, replaceExisting = replaceExisting)
   }
 
+  /**
+   * Rename a file.
+   */
   def moveFile(from: File, to: File, replace: Boolean = true, atomicMove: Boolean = true) = {
     Path(from).moveTo(target = Path(to), replace = replace, atomicMove = atomicMove)
   }

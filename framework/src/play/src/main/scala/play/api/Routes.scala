@@ -1,6 +1,8 @@
 package play.api {
 
-  /** Helper utilities related to `Router`. */
+  /**
+   * Helper utilities related to `Router`.
+   */
   object Routes {
 
     import play.core.Router._

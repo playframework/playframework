@@ -14,6 +14,8 @@ import scala.collection.JavaConverters._
  * val config = Configuration.load()
  * val foo = config.getString("foo").getOrElse("boo")
  * }}}
+ *
+ * The underlying implementation is provided by https://github.com/typesafehub/config.
  */
 object Configuration {
 
@@ -21,19 +23,20 @@ object Configuration {
    * loads `Configuration` from 'conf/application.conf' in Dev mode
    * @return  configuration to be used
    */
-
   private[play] def loadDev = {
     ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
   }
 
   /**
-   * Loads a new `Configuration` from either the classpath or from
-   * `conf/application.conf` depending on the application's Mode
+   * Loads a new `Configuration` either from the classpath or from
+   * `conf/application.conf` depending on the application's Mode.
    *
-   *
-   * @param mode that can be passed in if the application is not ready
+   * The provieded mode is used if the application is not ready
    * yet, just like when calling this method from `play.api.Application`.
+   *
    * Defaults to Mode.Dev
+   *
+   * @param mode Application mode.
    * @return a `Configuration` instance
    */
   def load(mode: Mode.Mode = Mode.Dev) = {
@@ -45,8 +48,14 @@ object Configuration {
     }
   }
 
+  /**
+   * Returns an empty Configuration object.
+   */
   def empty = Configuration(ConfigFactory.empty())
 
+  /**
+   * Create a ConfigFactory object from the data passed as a Map.
+   */
   def from(data: Map[String, String]) = {
     Configuration(ConfigFactory.parseMap(data.asJava))
   }
@@ -67,6 +76,7 @@ object Configuration {
 /**
  * A full configuration set.
  *
+ * The underlying implementation is provided by https://github.com/typesafehub/config.
  *
  * @param underlying the underlying Config implementation
  */
@@ -79,6 +89,10 @@ case class Configuration(underlying: Config) {
     Configuration(other.underlying.withFallback(underlying))
   }
 
+  /**
+   * Read a value from the underlying implementation,
+   * catching Errors and wrapping it in an Option value.
+   */
   private def readValue[T](path: String, v: => T): Option[T] = {
     try {
       Option(v)
@@ -145,8 +159,38 @@ case class Configuration(underlying: Config) {
    */
   def getBoolean(path: String): Option[Boolean] = readValue(path, underlying.getBoolean(path))
 
+  /**
+   * Retrieves a configuration value as `Milliseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeout = configuration.getString("engine.timeout")
+   * }}}
+   *
+   * The configuratioon must be provided as:
+   *
+   * {{{
+   * engine.timeout = 1 second
+   * }}}
+   */
   def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))
 
+  /**
+   * Retrieves a configuration value as `Bytes`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSize = configuration.getString("engine.maxSize")
+   * }}}
+   *
+   * The configuratioon must be provided as:
+   *
+   * {{{
+   * engine.maxSize = 512k
+   * }}}
+   */
   def getBytes(path: String): Option[Long] = readValue(path, underlying.getBytes(path))
 
   /**

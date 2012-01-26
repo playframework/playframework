@@ -1,6 +1,6 @@
 package play.core.parsers
 
-object UrlFormEncodedParser {
+object FormUrlEncodedParser {
 
   def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
 

@@ -56,7 +56,7 @@ class ApplicationSpec extends Specification {
         status(badResult) must equalTo(BAD_REQUEST)
         
         val badDateFormat = controllers.Application.save(
-          FakeRequest().withUrlFormEncodedBody("name" -> "FooBar", "introduced" -> "badbadbad", "company" -> "1")
+          FakeRequest().withFormUrlEncodedBody("name" -> "FooBar", "introduced" -> "badbadbad", "company" -> "1")
         )
         
         status(badDateFormat) must equalTo(BAD_REQUEST)
@@ -65,7 +65,7 @@ class ApplicationSpec extends Specification {
         contentAsString(badDateFormat) must contain("""<input type="text" id="name" name="name" value="FooBar" >""")
         
         val result = controllers.Application.save(
-          FakeRequest().withUrlFormEncodedBody("name" -> "FooBar", "introduced" -> "2011-12-24", "company" -> "1")
+          FakeRequest().withFormUrlEncodedBody("name" -> "FooBar", "introduced" -> "2011-12-24", "company" -> "1")
         )
         
         status(result) must equalTo(SEE_OTHER)

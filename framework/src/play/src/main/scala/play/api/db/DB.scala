@@ -102,7 +102,9 @@ case class DBApi(datasources: Map[String, (BoneCPDataSource, Configuration)]) {
 
 }
 
-/** Helper methods for creating data sources managed by `DBApi`. */
+/**
+ * Helper methods for creating data sources managed by `DBApi`.
+ */
 object DBApi {
 
   /**
@@ -289,14 +291,25 @@ class DBPlugin(app: Application) extends Plugin {
     }.getOrElse(Map.empty))
   }
 
-  private val pluginDisabled = app.configuration.getString("dbplugin").filter(_ == "disabled").isDefined
+  /**
+   * Is this plugin enabled.
+   *
+   * {{{
+   * dbplugin.disabled=true
+   * }}}
+   */
+  override lazy val enabled = {
+    !app.configuration.getString("dbplugin").filter(_ == "disabled").isDefined
+  }
 
-  override def enabled = pluginDisabled == false
-
-  /** Retrieves the underlying `DBApi` managing the data sources. */
+  /**
+   * Retrieves the underlying `DBApi` managing the data sources.
+   */
   def api = db
 
-  /** Reads the configuration and connects to every data source. */
+  /**
+   * Reads the configuration and connects to every data source.
+   */
   override def onStart() {
     db.datasources.map {
       case (name, (ds, config)) => {
@@ -315,7 +328,9 @@ class DBPlugin(app: Application) extends Plugin {
     }
   }
 
-  /** Closes all data sources. */
+  /**
+   * Closes all data sources.
+   */
   override def onStop() {
     db.datasources.values.foreach {
       case (ds, _) => try {
@@ -325,7 +340,7 @@ class DBPlugin(app: Application) extends Plugin {
       } catch { case _ => }
     }
     //wait for the pool's threads to shut down
-    Thread.sleep(50)
+    Thread.sleep(100)
     val drivers = DriverManager.getDrivers()
     while (drivers.hasMoreElements) {
       val driver = drivers.nextElement

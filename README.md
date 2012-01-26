@@ -1,15 +1,15 @@
-_( Please [read this page] (https://github.com/playframework/Play20/wiki/Pullrequests) before sending pull requests )_
+# Play 2.0 
 
-# Play 2.0 RC1
+Play 2.0 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. It is based on a lightweight stateless Web friendly architecture and features predictable and minimal resources consumption (CPU, Memory, Threads) for highly scalable applications thanks to its reactive model based on Iteratee IO.
 
-Play 2.0 is a Java and Scala Web application framework (http://www.playframework.org/2.0).
+http://www.playframework.org/2.0
 
 ## Installing
 
 For convenience, you should add the framework installation directory to your system PATH. On UNIX systems will be something like:
 
 ```bash
-export PATH=$PATH:/path/to/play20
+export PATH=$PATH:/path/to/play2.0
 ```
 
 On windows systems you'll need to set it in the global environment variables.
@@ -20,21 +20,21 @@ On windows systems you'll need to set it in the global environment variables.
 
 Enter any existing Play 2.0 application directory and use the `play` command to launch the development console:
 
-```bash
+```
 $ cd ~/workspace/myApplication
 $ play
 ```
 
 You can also directly use `play run` to run the application:
 
-```bash
+```
 $ cd ~/workspace/myApplication
 $ play run
 ```
 
 Use `play new yourNewApplication` to create a new application:
 
-```bash
+```
 $ cd ~/workspace
 $ play new myNewApplication
 ```
@@ -48,17 +48,17 @@ $ play
 
 ## Running the sample applications
 
-There are several samples applications included in the `samples/` directory. For example, to run the included ZenTask sample application:
+There are several samples applications included in the `samples/` directory. For example, to run the included Scala Hello World application:
 
-```bash
-$ cd ~/workspace/play2/samples/scala/zentasks/
+```
+$ cd ~/workspace/play2.0/samples/scala/helloworld/
 $ play run
 ```
-> The application will be available on port 9000. On first run, it will notify you that database evolutions are required. Click "Apply this script now" and you're away! 
+> The application will be available on port 9000.
 
 ## Documentation
 
-The temporary documentation is available at https://github.com/playframework/Play20/wiki.
+The edge documentation is available at https://github.com/playframework/Play20/wiki.
 
 ## Contributors
 
@@ -68,7 +68,7 @@ Check for all contributors at https://github.com/playframework/Play20/contributo
 
 This software is licensed under the Apache 2 license, quoted below.
 
-Copyright 2011 Zenexity (http://www.zenexity.com).
+Copyright 2012 Typesafe (http://www.typesafe.com).
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 

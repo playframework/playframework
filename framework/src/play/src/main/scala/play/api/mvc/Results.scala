@@ -22,11 +22,23 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 
 }
 
-/** Any Action result. */
+/**
+ * Any Action result.
+ */
 sealed trait Result
 
+/**
+ * Helper utilities for Result values.
+ */
 object Result {
 
+  /**
+   * Extractor:
+   *
+   * {{{
+   * case Result(status, headers) => ...
+   * }}}
+   */
   def unapply(result: Result): Option[(Int, Map[String, String])] = result match {
     case r: PlainResult => Some(r.header.status, r.header.headers)
     case _ => None
@@ -34,6 +46,9 @@ object Result {
 
 }
 
+/**
+ * A plain HTTP result.
+ */
 trait PlainResult extends Result {
 
   /**
@@ -304,12 +319,19 @@ trait Results {
         Enumerator(content))
     }
 
+    /**
+     * Send a file.
+     *
+     * @param content The file to send
+     * @param inline Use Content-Disposition inline or attachment.
+     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
+     */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName): SimpleResult[Array[Byte]] = {
       SimpleResult(
         header = ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
-        ) ++ (if(inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))))),
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))))),
         Enumerator.enumerateFile(content)
       )
     }

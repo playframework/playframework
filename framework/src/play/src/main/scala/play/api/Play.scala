@@ -30,7 +30,9 @@ object Play {
    */
   def unsafeApplication = _currentApp
 
-  /** Optionally returns the current running application. */
+  /**
+   * Optionally returns the current running application.
+   */
   def maybeApplication = Option(_currentApp)
 
   /**
@@ -64,7 +66,9 @@ object Play {
 
   }
 
-  /** Stops the current application. */
+  /**
+   * Stops the current application.
+   */
   def stop() {
     Option(_currentApp).map {
       _.plugins.foreach { p =>
@@ -134,31 +138,49 @@ object Play {
     app.getExistingFile(relativePath)
   }
 
-  /** Returns the current application. */
+  /**
+   * Returns the current application.
+   */
   def application(implicit app: Application) = app
 
-  /** Returns the current application classloader. */
+  /**
+   * Returns the current application classloader.
+   */
   def classloader(implicit app: Application) = app.classloader
 
-  /** Returns the current application configuration. */
+  /**
+   * Returns the current application configuration.
+   */
   def configuration(implicit app: Application) = app.configuration
 
-  /** Returns the current application router. */
+  /**
+   * Returns the current application router.
+   */
   def routes(implicit app: Application) = app.routes
 
-  /** Returns the current application global settings. */
+  /**
+   * Returns the current application global settings.
+   */
   def global(implicit app: Application) = app.global
 
-  /** Returns the current application mode. */
+  /**
+   * Returns the current application mode.
+   */
   def mode(implicit app: Application) = app.mode
 
-  /** Returns `true` if the current application is `DEV` mode. */
+  /**
+   * Returns `true` if the current application is `DEV` mode.
+   */
   def isDev(implicit app: Application) = (app.mode == Mode.Dev)
 
-  /** Returns `true` if the current application is `PROD` mode. */
+  /**
+   * Returns `true` if the current application is `PROD` mode.
+   */
   def isProd(implicit app: Application) = (app.mode == Mode.Prod)
 
-  /** Returns `true` if the current application is `TEST` mode. */
+  /**
+   * Returns `true` if the current application is `TEST` mode.
+   */
   def isTest(implicit app: Application) = (app.mode == Mode.Test)
 
 }

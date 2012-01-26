@@ -1,4 +1,4 @@
 /**
- * Provides the validation API used by <code>Form</code> classes.
+ * Provides the JSR 303 validation constraints.
  */
 package play.data.validation;

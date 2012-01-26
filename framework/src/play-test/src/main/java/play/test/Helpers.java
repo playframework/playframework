@@ -11,6 +11,9 @@ import org.openqa.selenium.htmlunit.*;
 
 import java.util.*;
 
+/**
+ * Helper functions to run tests.
+ */
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {
     
     public static String GET = "GET";
@@ -19,14 +22,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static String DELETE = "DELETE";
     public static String HEAD = "HEAD";
     
-    //
+    // --
     
     public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
     
-    public static Result callAction(HandlerRef actionReference) {
-        return callAction(actionReference, fakeRequest());
-    }
+    // --
     
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest) {
         if(handler instanceof play.core.j.JavaAction) {
@@ -48,61 +49,112 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    // --
+    
+    /**
+     * Call an action method while decorating it with the right @With interceptors.
+     */
+    public static Result callAction(HandlerRef actionReference) {
+        return callAction(actionReference, fakeRequest());
+    }
+    
+    /**
+     * Call an action method while decorating it with the right @With interceptors.
+     */
     public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest) {
         play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
         return invokeHandler(handlerRef.handler(), fakeRequest);
     }
     
+    /**
+     * Build a new GET / fake request.
+     */
     public static FakeRequest fakeRequest() {
         return new FakeRequest();
     }
     
+    /**
+     * Build a new fake request.
+     */
     public static FakeRequest fakeRequest(String method, String uri) {
         return new FakeRequest(method, uri);
     }
     
+    /**
+     * Build a new fake application.
+     */
     public static FakeApplication fakeApplication() {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,String>());
     }
     
+    /**
+     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     */
     public static Map<String,String> inMemoryDatabase() {
         return inMemoryDatabase("default");
     }
     
+    /**
+     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     */
     public static Map<String,String> inMemoryDatabase(String name) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name));
     }
     
+    /**
+     * Build a new fake application.
+     */
     public static FakeApplication fakeApplication(Map<String,String> additionalConfiguration) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
     }
     
+    /**
+     * Extracts the Status code of this Result value.
+     */
     public static int status(Result result) {
         return play.core.j.JavaResultExtractor.getStatus(result);
     }
     
+    /**
+     * Extracts the Location header of this Result value if this Result is a Redirect.
+     */
     public static String redirectLocation(Result result) {
         return header(LOCATION, result);
     }
     
+    /**
+     * Extracts the Flash values of this Result value.
+     */
     public static play.mvc.Http.Flash flash(Result result) {
         return new play.mvc.Http.Flash(
             Scala.asJava(play.api.test.Helpers.flash(result.getWrappedResult()).data())
         );
     }
     
+    /**
+     * Extracts an Header value of this Result value.
+     */
     public static String header(String header, Result result) {
         return play.core.j.JavaResultExtractor.getHeaders(result).get(header);
     }
     
+    /**
+     * Extracts all Headers of this Result value.
+     */
     public static Map<String,String> headers(Result result) {
         return play.core.j.JavaResultExtractor.getHeaders(result);
     }
     
+    /**
+     * Extracts the Content-Type of this Content value.
+     */
     public static String contentType(Content content) {
         return content.contentType();
     }
     
+    /**
+     * Extracts the Content-Type of this Result value.
+     */
     public static String contentType(Result result) {
         String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
@@ -113,6 +165,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Extracts the Charset of this Result value.
+     */
     public static String charset(Result result) {
         String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
@@ -123,18 +178,30 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Extracts the content as bytes.
+     */
     public static byte[] contentAsBytes(Result result) {
         return play.core.j.JavaResultExtractor.getBody(result);
     }
     
+    /**
+     * Extracts the content as bytes.
+     */
     public static byte[] contentAsBytes(Content content) {
         return content.body().getBytes();
     }
     
+    /**
+     * Extracts the content as String.
+     */
     public static String contentAsString(Content content) {
         return content.body();
     }
     
+    /**
+     * Extracts the content as String.
+     */
     public static String contentAsString(Result result) {
         try {
             String charset = charset(result);
@@ -149,6 +216,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Use the Router to determine the Action to call for this request and executes it.
+     */
     public static Result routeAndCall(FakeRequest fakeRequest) {
         try {
             return routeAndCall((Class<? extends play.core.Router.Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest);
@@ -159,6 +229,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Use the Router to determine the Action to call for this request and executes it.
+     */
     public static Result routeAndCall(Class<? extends play.core.Router.Routes> router, FakeRequest fakeRequest) {
         try {
             play.core.Router.Routes routes = (play.core.Router.Routes)router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
@@ -174,14 +247,23 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         } 
     }
     
+    /**
+     * Starts a new application.
+     */
     public static void start(FakeApplication fakeApplication) {
         play.api.Play.start(fakeApplication.getWrappedApplication());
     }
     
+    /**
+     * Stops an application.
+     */
     public static void stop(FakeApplication fakeApplication) {
         play.api.Play.stop();
     }
     
+    /**
+     * Executes a block of code in a running application.
+     */
     public static void running(FakeApplication fakeApplication, final Runnable block) {
         try {
             start(fakeApplication);
@@ -191,22 +273,37 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Creates a new Test server.
+     */
     public static TestServer testServer(int port) {
         return new TestServer(port, fakeApplication());
     }
     
+    /**
+     * Creates a new Test server.
+     */
     public static TestServer testServer(int port, FakeApplication app) {
         return new TestServer(port, app);
     }
     
+    /**
+     * Starts a Test server.
+     */
     public static void start(TestServer server) {
         server.start();
     }
     
+    /**
+     * Stops a Test server.
+     */
     public static void stop(TestServer server) {
         server.stop();
     }
     
+    /**
+     * Executes a block of code in a running server.
+     */
     public static void running(TestServer server, final Runnable block) {
         try {
             start(server);
@@ -216,6 +313,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Executes a block of code in a running server, with a test browser.
+     */
     public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
         TestBrowser browser = null;
         try {
@@ -232,10 +332,16 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser() {
         return new TestBrowser(new HtmlUnitDriver());
     }
     
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
         try {
             return new TestBrowser(webDriver);
@@ -246,6 +352,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
     
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser(WebDriver of) {
         return new TestBrowser(of);
     }

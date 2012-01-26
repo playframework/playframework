@@ -9,60 +9,148 @@ import scala.annotation._
 
 import scala.collection.JavaConverters._
 
-@implicitNotFound("No QueryString binder found for type ${A}. Try to implement an implicit QueryStringBindable for this type.")
+/**
+ * Binder for query string parameters.
+ */
+@implicitNotFound(
+  "No QueryString binder found for type ${A}. Try to implement an implicit QueryStringBindable for this type."
+)
 trait QueryStringBindable[A] {
+
+  /**
+   * Bind a query string parameter.
+   *
+   * @param key Parameter key
+   * @param params QueryString data
+   */
   def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]]
+
+  /**
+   * Unbind a query string parameter.
+   *
+   * @param key Parameter key
+   * @param value Parameter value.
+   */
   def unbind(key: String, value: A): String
+
+  /**
+   * Javascript function to unbind in the Javascript router.
+   */
   def javascriptUnbind: String = """function(k,v) {return k+'='+v}"""
+
 }
 
-@implicitNotFound("No URL path binder found for type ${A}. Try to implement an implicit PathBindable for this type.")
+/**
+ * Binder for URL path parameters.
+ */
+@implicitNotFound(
+  "No URL path binder found for type ${A}. Try to implement an implicit PathBindable for this type."
+)
 trait PathBindable[A] {
+
+  /**
+   * Bind an URL path parameter.
+   *
+   * @param key Parameter key
+   * @param value The value as String (extracted from the URL path)
+   */
   def bind(key: String, value: String): Either[String, A]
+
+  /**
+   * Unbind a URL path  parameter.
+   *
+   * @param key Parameter key
+   * @param value Parameter value.
+   */
   def unbind(key: String, value: A): String
+
+  /**
+   * Javascript function to unbind in the Javascript router.
+   */
   def javascriptUnbind: String = """function(k,v) {return v}"""
+
 }
 
-@implicitNotFound("No JavaScript litteral binder found for type ${A}. Try to implement an implicit JavascriptLitteral for this type.")
+/**
+ * Transform a value to a Javascript literal.
+ */
+@implicitNotFound(
+  "No JavaScript litteral binder found for type ${A}. Try to implement an implicit JavascriptLitteral for this type."
+)
 trait JavascriptLitteral[A] {
+
+  /**
+   * Convert a value of A to a JavaScript literal.
+   */
   def to(value: A): String
+
 }
 
+/**
+ * Default JavaScript literals converters.
+ */
 object JavascriptLitteral {
 
+  /**
+   * Convert a Scala String to Javascript String
+   */
   implicit def litteralString = new JavascriptLitteral[String] {
     def to(value: String) = "\"" + value + "\""
   }
 
+  /**
+   * Convert a Scala Int to Javascript number
+   */
   implicit def litteralInt = new JavascriptLitteral[Int] {
     def to(value: Int) = value.toString
   }
 
+  /**
+   * Convert a Java Integer to Javascript number
+   */
   implicit def litteralInteger = new JavascriptLitteral[java.lang.Integer] {
     def to(value: java.lang.Integer) = value.toString
   }
 
+  /**
+   * Convert a Scala Long to Javascript Long
+   */
   implicit def litteralLong = new JavascriptLitteral[Long] {
     def to(value: Long) = value.toString
   }
 
+  /**
+   * Convert a Scala Boolean to Javascript boolean
+   */
   implicit def litteralBoolean = new JavascriptLitteral[Boolean] {
     def to(value: Boolean) = value.toString
   }
 
+  /**
+   * Convert a Scala Option to Javascript literal (use null for None)
+   */
   implicit def litteralOption[T](implicit jsl: JavascriptLitteral[T]) = new JavascriptLitteral[Option[T]] {
     def to(value: Option[T]) = value.map(jsl.to(_)).getOrElse("null")
   }
 
 }
 
+/**
+ * Default binders for Query String
+ */
 object QueryStringBindable {
 
+  /**
+   * QueryString binder for String.
+   */
   implicit def bindableString = new QueryStringBindable[String] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(v => Right(URLDecoder.decode(v, "utf-8")))
     def unbind(key: String, value: String) = key + "=" + (URLEncoder.encode(value, "utf-8"))
   }
 
+  /**
+   * QueryString binder for Int.
+   */
   implicit def bindableInt = new QueryStringBindable[Int] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
@@ -74,6 +162,9 @@ object QueryStringBindable {
     def unbind(key: String, value: Int) = key + "=" + value.toString
   }
 
+  /**
+   * QueryString binder for Long.
+   */
   implicit def bindableLong = new QueryStringBindable[Long] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
@@ -85,6 +176,9 @@ object QueryStringBindable {
     def unbind(key: String, value: Long) = key + "=" + value.toString
   }
 
+  /**
+   * QueryString binder for Integer.
+   */
   implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
@@ -96,6 +190,9 @@ object QueryStringBindable {
     def unbind(key: String, value: java.lang.Integer) = key + "=" + value.toString
   }
 
+  /**
+   * QueryString binder for Boolean.
+   */
   implicit def bindableBoolean = new QueryStringBindable[Boolean] {
     def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
       try {
@@ -111,6 +208,9 @@ object QueryStringBindable {
     def unbind(key: String, value: Boolean) = key + "=" + (if (value) "1" else "0")
   }
 
+  /**
+   * QueryString binder for Option.
+   */
   implicit def bindableOption[T: QueryStringBindable] = new QueryStringBindable[Option[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(
@@ -121,6 +221,9 @@ object QueryStringBindable {
     def unbind(key: String, value: Option[T]) = value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
   }
 
+  /**
+   * QueryString binder for Java Option.
+   */
   implicit def bindableJavaOption[T: QueryStringBindable] = new QueryStringBindable[play.libs.F.Option[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(
@@ -137,6 +240,9 @@ object QueryStringBindable {
     }
   }
 
+  /**
+   * QueryString binder for QueryStringBindable.
+   */
   implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit m: Manifest[T]) = new QueryStringBindable[T] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       try {
@@ -157,13 +263,22 @@ object QueryStringBindable {
 
 }
 
+/**
+ * Default binders for URL path part.
+ */
 object PathBindable {
 
+  /**
+   * Path binder for String.
+   */
   implicit def bindableString = new PathBindable[String] {
     def bind(key: String, value: String) = Right(URLDecoder.decode(value, "utf-8"))
     def unbind(key: String, value: String) = value
   }
 
+  /**
+   * Path binder for Int.
+   */
   implicit def bindableInt = new PathBindable[Int] {
     def bind(key: String, value: String) = {
       try {
@@ -175,6 +290,9 @@ object PathBindable {
     def unbind(key: String, value: Int) = value.toString
   }
 
+  /**
+   * Path binder for Long.
+   */
   implicit def bindableLong = new PathBindable[Long] {
     def bind(key: String, value: String) = {
       try {
@@ -186,6 +304,9 @@ object PathBindable {
     def unbind(key: String, value: Long) = value.toString
   }
 
+  /**
+   * Path binder for Integer.
+   */
   implicit def bindableInteger = new PathBindable[java.lang.Integer] {
     def bind(key: String, value: String) = {
       try {
@@ -197,6 +318,9 @@ object PathBindable {
     def unbind(key: String, value: java.lang.Integer) = value.toString
   }
 
+  /**
+   * Path binder for Boolean.
+   */
   implicit def bindableBoolean = new PathBindable[Boolean] {
     def bind(key: String, value: String) = {
       try {
@@ -212,6 +336,9 @@ object PathBindable {
     def unbind(key: String, value: Boolean) = key + "=" + (if (value) "1" else "0")
   }
 
+  /**
+   * Path binder for Option.
+   */
   implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {
     def bind(key: String, value: String) = {
       implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
@@ -219,6 +346,9 @@ object PathBindable {
     def unbind(key: String, value: Option[T]) = value.map(v => implicitly[PathBindable[T]].unbind(key, v)).getOrElse("")
   }
 
+  /**
+   * Path binder for Java Option.
+   */
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit m: Manifest[T]) = new PathBindable[T] {
     def bind(key: String, value: String) = {
       try {

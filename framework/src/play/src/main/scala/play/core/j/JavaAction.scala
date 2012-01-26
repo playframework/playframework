@@ -36,7 +36,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
         }
       }
     }
-    
+
     // Wrap into user defined Global action
     val baseAction = play.api.Play.maybeApplication.map { app =>
       app.global match {

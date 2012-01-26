@@ -17,5 +17,11 @@ public class Plugin implements play.api.Plugin {
     public void onStop() {
     }
     
-    public boolean enabled() { return true;}
+    /**
+     * Is this plugin enabled.
+     */ 
+    public boolean enabled() { 
+        return true;
+    }
+    
 }

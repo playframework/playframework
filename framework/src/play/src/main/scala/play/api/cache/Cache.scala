@@ -1,111 +1,120 @@
 package play.api.cache
 
-import scala.collection.mutable.{ Map => MMap, SynchronizedMap, HashMap }
-import collection.JavaConverters._
-import java.util.Calendar
-import play.api.Application
-import util.control.Exception.handling
+import play.api._
 
-/** Internal cache interface. */
+/**
+ * API for a Cache plugin.
+ */
 trait CacheAPI {
+
+  /**
+   * Set a value into the cache.
+   *
+   * @param key Item key.
+   * @param value Item value.
+   * @param expiration Expiration time in seconds.
+   */
   def set(key: String, value: Any, expiration: Int)
-  def set(key: String, value: Any)
-  def get[T](key: String)(implicit m: Manifest[T]): Option[T]
-  def get[T](keys: String*)(implicit m: Manifest[T]): Map[String, Option[T]]
-  def getAsJava(keys: String*): java.util.Map[String, AnyRef]
-  def getAsJava(key: String): AnyRef
+
+  /**
+   * Retrieve a value from the cache.
+   *
+   * @param key Item key.
+   */
+  def get(key: String): Option[Any]
+
 }
 
-/** Basic internal implementation of the Cache API. */
-class BasicCache extends CacheAPI {
-
-  /** http://www.scala-lang.org/docu/files/collections-api/collections_11.html */
-  private def makeMap: MMap[String, Tuple2[java.util.Date, Any]] =
-    new HashMap[String, Tuple2[java.util.Date, Any]] with SynchronizedMap[String, Tuple2[java.util.Date, Any]]
-
-  private lazy val cache = makeMap
-
-  def set(key: String, value: Any) = set(key, value, 1800)
-
-  def set(key: String, value: Any, expiration: Int) {
-    if (value == null)
-      cache -= key
-    else {
-      val cal = Calendar.getInstance()
-      cal.add(Calendar.SECOND, expiration)
-      cache += key -> (cal.getTime, value)
-    }
-  }
-
-  def get[T](key: String)(implicit m: Manifest[T]): Option[T] = {
-    val cal = Calendar.getInstance()
-    val value = cache.get(key).filter(_._1.compareTo(cal.getTime) >= 0).headOption
-    //delete a key only if it's expired
-    if (value.isDefined) {
-      val unboxed = value.get._2
-      if (m.erasure.isAssignableFrom(unboxed.getClass)) Some(unboxed.asInstanceOf[T]) else None
-    } else {
-      cache -= key
-      None
-    }
-  }
-
-  def get[T](keys: String*)(implicit m: Manifest[T]): Map[String, Option[T]] = {
-    keys.map(key => key -> get[T](key)).toMap[String, Option[T]]
-  }
-
-  def getAsJava(keys: String*): java.util.Map[String, AnyRef] = keys.map(key => key -> getAsJava(key)).toMap.asJava
-
-  def getAsJava(key: String): AnyRef = {
-    val cal = Calendar.getInstance()
-    cache.get(key).filter(_._1.compareTo(cal.getTime) >= 0).map(_._2.asInstanceOf[AnyRef]) getOrElse {
-      cache -= key
-      null
-    }
-  }
-}
-
-/** Developer-facing Cache API, implementation is received from plugin. */
+/**
+ * Public Cache API.
+ *
+ * The underlying Cache implementation is received from plugin.
+ */
 object Cache {
 
-  /** The exception we are throwing in case of plugin issues. */
-  private def error = throw new Exception("looks like the cache plugin was not properly registered. Make sure at least one CachePlugin implementation is enabled, otherwise these calls won't work")
+  private def error = throw new Exception(
+    "There is no cache plugin registered. Make sure at least one CachePlugin implementation is enabled."
+  )
 
   /**
    * Sets a value with expiration.
    *
-   * @param expiration expiration period in seconds
+   * @param expiration expiration period in seconds.
    */
-  def set(key: String, value: AnyRef, expiration: Int)(implicit app: Application) = app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
-
-  /** Sets a value with a default expiration of 1800 seconds, i.e. 30 minutes. */
-  def set(key: String, value: AnyRef)(implicit app: Application) = app.plugin[CachePlugin].map(_.api.set(key, value)).getOrElse(error)
-
-  /** Retrieves a key in a type-safe way. */
-  def get[T](key: String)(implicit m: Manifest[T], app: Application): Option[T] = app.plugin[CachePlugin].map(_.api.get[T](key).asInstanceOf[Option[T]]).getOrElse(error)
+  def set(key: String, value: Any, expiration: Int)(implicit app: Application) = {
+    app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
+  }
 
   /**
-   * Retrieves multiple keys from the same type.
+   * Retrieve a value from the cache.
    *
-   * @param keys varargs
-   * @return cache key-value pairs from homogeneous type
+   * @param key Item key.
    */
-  def get[T](keys: String*)(implicit m: Manifest[T], app: Application): Map[String, Option[T]] = app.plugin[CachePlugin].map(_.api.get[T](keys: _*).asInstanceOf[Map[String, Option[T]]]).getOrElse(error)
+  def get(key: String)(implicit app: Application): Option[Any] = {
+    app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
+  }
+
+}
+
+/**
+ * A Cache Plugin provides an implementation of the Cache API.
+ */
+abstract class CachePlugin extends Plugin {
 
   /**
-   * Retrieves multiple values in an unsafe way for Java interoperability.
-   *
-   * This method takes an array instead of varargs to avoid ambiguous method calls in the case of varargs plus an implicit `app` parameter.
-   *
-   * @param keys a Java array of string of keys
-   * @return java.util.Map[String,java.langObject]
+   * Implementation of the the Cache plugin
+   * provided by this plugin.
    */
-  def getAsJava(keys: Array[String])(implicit app: Application): java.util.Map[String, AnyRef] = app.plugin[CachePlugin].map(_.api.getAsJava(keys: _*)).getOrElse(error)
+  def api: CacheAPI
 
+}
+
+/**
+ * EhCache implementation.
+ */
+class EhCachePlugin(app: Application) extends CachePlugin {
+  
+  import net.sf.ehcache._
+  
+  lazy val (manager, cache) = {
+    val manager = CacheManager.create()
+    manager.addCache("play")
+    (manager, manager.getCache("play"))
+  }
+  
   /**
-   * Retrieves a value in an unsafe way for Java interoperability.
+   * Is this plugin enabled.
    *
-   * @return a Java object
+   * {{{
+   * ehcacheplugin.disabled=true
+   * }}}
    */
-  def getAsJava(key: String)(implicit app: Application): AnyRef = app.plugin[CachePlugin].map(_.api.getAsJava(key)).getOrElse(error)
+  override lazy val enabled = {
+    !app.configuration.getString("ehcacheplugin").filter(_ == "disabled").isDefined
+  }
+  
+  override def onStart() {
+    cache
+  }
+  
+  override def onStop() {
+    manager.shutdown()
+  }
+  
+  lazy val api = new CacheAPI {
+    
+    def set(key: String, value: Any, expiration: Int) {
+      val element = new Element(key, value)
+      element.setTimeToLive(expiration)
+      cache.put(element)
+    }
+
+    def get(key: String): Option[Any] = {
+      Option(cache.get(key)).map(_.getObjectValue)
+    }
+    
+  }
+  
+  
+  
 }

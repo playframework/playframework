@@ -5,11 +5,17 @@ import play.api._
 import javax.naming._
 import javax.naming.Context._
 
+/**
+ * JNDI Helpers.
+ */
 object JNDI {
 
   private val IN_MEMORY_JNDI = "tyrex.naming.MemoryContextFactory"
   private val IN_MEMORY_URL = "/"
 
+  /**
+   * An in memory JNDI implementation.
+   */
   lazy val initialContext = {
 
     val env = new java.util.Hashtable[String, String]

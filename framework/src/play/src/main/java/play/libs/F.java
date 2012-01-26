@@ -22,34 +22,58 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class F {
 
+    /**
+     * A Callback with no arguments.
+     */
     public static interface Callback0 {
         public void invoke() throws Throwable;
     }
 
+    /**
+     * A Callback with a single argument.
+     */
     public static interface Callback<A> {
         public void invoke(A a) throws Throwable;
     }
 
+    /**
+     * A Callback with 2 arguments.
+     */
     public static interface Callback2<A,B> {
         public void invoke(A a, B b) throws Throwable;
     }
 
+    /**
+     * A Callback with 3 arguments.
+     */
     public static interface Callback3<A,B,C> {
         public void invoke(A a, B b, C c) throws Throwable;
     }
     
+    /**
+     * A Function with no arguments.
+     */
     public static interface Function0<R> {
         public R apply() throws Throwable;
     }
 
+    /**
+     * A Function with a single argument.
+     */
     public static interface Function<A,R> {
         public R apply(A a) throws Throwable;
     }
 
+    /**
+     * A Function with 2 arguments.
+     */
     public static interface Function2<A,B,R> {
         public R apply(A a, B b) throws Throwable;
     }
 
+    /**
+     * A Function with 3 arguments.
+     */
     public static interface Function3<A,B,C,R> {
         public R apply(A a, B b, C c) throws Throwable;
     }

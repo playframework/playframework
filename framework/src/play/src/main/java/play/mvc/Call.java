@@ -17,18 +17,30 @@ public abstract class Call {
      */
     public abstract String method();
     
+    /**
+     * Transform this call to an absolute URL.
+     */
     public String absoluteURL(Http.Request request) {
         return absoluteURL(request, false);
     }
     
+    /**
+     * Transform this call to an absolute URL.
+     */
     public String absoluteURL(Http.Request request, boolean secure) {
         return "http" + (secure ? "s" : "") + "://" + request.host() + this.url();
     }
     
+    /**
+     * Transform this call to an WebSocket URL.
+     */
     public String webSocketURL(Http.Request request) {
         return webSocketURL(request, false);
     }
     
+    /**
+     * Transform this call to an WebSocket URL.
+     */
     public String webSocketURL(Http.Request request, boolean secure) {
       return "ws" + (secure ? "s" : "") + "://" + request.host() + this.url();
     }

@@ -129,7 +129,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
   }
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-    
+
     import play.api.mvc.Results._
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
@@ -137,13 +137,13 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
     val apiDoc = """/@documentation/api/(.*)""".r
     val wikiResource = """/@documentation/resources/(.*)""".r
     val wikiPage = """/@documentation/([^/]*)""".r
-    
+
     val documentationHome = Option(System.getProperty("play.home")).map(ph => new java.io.File(ph + "/../documentation"))
 
     request.path match {
 
       case applyEvolutions(db) => {
-        
+
         import play.api.db._
         import play.api.db.evolutions._
 
@@ -153,17 +153,17 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
           Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }
       }
-      
+
       case documentation() => {
-        
+
         Some {
           Redirect("/@documentation/Home")
         }
-        
+
       }
-      
+
       case apiDoc(page) => {
-        
+
         Some {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, "api/" + page)).filter(f => f.exists && f.isFile)
@@ -173,11 +173,11 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
             NotFound(views.html.play20.manual(page, None, None))
           }
         }
-  
+
       }
-      
+
       case wikiResource(path) => {
-        
+
         Some {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, path)).filter(_.exists)
@@ -185,39 +185,39 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
             Ok.sendFile(file, inline = true)
           }.getOrElse(NotFound("Resource not found [" + path + "]"))
         }
-        
+
       }
-      
+
       case wikiPage(page) => {
-        
+
         import scalax.file._
-        
+
         Some {
-        
+
           val pageWithSidebar = documentationHome.flatMap { home =>
             (home: Path).descendants().find(_.name == page + ".md").map { pageSource =>
 
               // Recursively search for Sidebar
-              lazy val findSideBar:(Option[Path] => Option[Path]) = _ match {
+              lazy val findSideBar: (Option[Path] => Option[Path]) = _ match {
                 case None => None
                 case Some(parent) => {
                   val maybeSideBar = parent \ "_Sidebar.md"
-                  if(maybeSideBar.exists) {
+                  if (maybeSideBar.exists) {
                     Some(maybeSideBar)
                   } else {
                     findSideBar(parent.parent)
                   }
-                } 
+                }
               }
 
               pageSource -> findSideBar(pageSource.parent)
             }
           }
-        
+
           pageWithSidebar.map {
             case (pageSource, maybeSidebar) => {
 
-              val linkRender:(String => (String, String)) = _ match {
+              val linkRender: (String => (String, String)) = _ match {
                 case link if link.contains("|") => {
                   val parts = link.split('|')
                   (parts.tail.head, parts.head)
@@ -245,9 +245,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
           }.getOrElse {
             NotFound(views.html.play20.manual(page, None, None))
           }
-        
+
         }
-        
+
       }
 
       case _ => None

@@ -1,12 +1,18 @@
 package play.api.libs.json
 
 /**
- * Json formatter: write an implicit to define both a serializer and a deserializer for any type
+ * Json formatter: write an implicit to define both a serializer and a deserializer for any type.
  */
 trait Format[T] extends Writes[T] with Reads[T]
 
+/**
+ * Default Json formatters.
+ */
 object Format extends DefaultFormat
 
+/**
+ * Default Json formatters.
+ */
 trait DefaultFormat {
 
   implicit def GenericFormat[T](implicit fjs: Reads[T], tjs: Writes[T]) = {

@@ -1,43 +1,36 @@
 package play.api.libs.akka
 
+import play.api._
+import play.api.libs.concurrent._
+
 import akka.dispatch.{ Future, Await }
 import akka.actor.ActorSystem
 
-import play.api.libs.concurrent._
-import java.util.concurrent.TimeUnit
-import play.api.{ Mode, Configuration }
-import com.typesafe.config.ConfigFactory
-import play.api._
+import java.util.concurrent.{ TimeUnit }
 
-/**
- * Defines convenient helpers to work with Akka from Play.
- */
-object `package` {
-  implicit def akkaToPlay[A](future: Future[A]) = new AkkaFuture(future)
-}
+import com.typesafe.config._
 
 /**
  * Wrapper used to transform an Akka Future to Play Promise
  */
 class AkkaFuture[A](future: Future[A]) {
+
+  /**
+   * Transform this Akka future to a Play Promise.
+   */
   def asPromise: Promise[A] = new AkkaPromise(future)
+
 }
 
 /**
- * a promise impelemantation based on Akka's Future
+ * A promise implemantation based on Akka's Future
  */
 class AkkaPromise[A](future: Future[A]) extends Promise[A] {
 
-  /**
-   * call back hook
-   */
   def onRedeem(k: A => Unit) {
     future.onComplete { _.fold(Thrown(_), k) }
   }
 
-  /*
-   * extend @param k 
-   */
   def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
     val p = Promise[B]()
     future.onSuccess { case a => p.redeem(k(this)) }
@@ -45,9 +38,6 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
     p
   }
 
-  /*
-   * it's time to retrieve the future value
-   */
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
     try {
       Redeemed(Await.result(future, akka.util.Duration(timeout, unit)))
@@ -56,21 +46,12 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
     }
   }
 
-  /*
-   * filtering akka based future and rewrapping the result in an AkkaPromise
-   */
-  def filter(p: A => Boolean): Promise[A] =
+  def filter(p: A => Boolean): Promise[A] = {
     new AkkaPromise[A](future.filter(p.asInstanceOf[(Any => Boolean)]).asInstanceOf[Future[A]])
+  }
 
-  /*
-   * mapping @param f function to AkkaPromise 
-   *
-   */
   def map[B](f: A => B): Promise[B] = new AkkaPromise[B](future.map(f))
 
-  /**
-   * provides a means to flatten Akka based promises
-   */
   def flatMap[B](f: A => Promise[B]): Promise[B] = {
     val result = Promise[B]()
     future.onSuccess {
@@ -82,10 +63,23 @@ class AkkaPromise[A](future: Future[A]) extends Promise[A] {
     future.onFailure { case e => result.throwing(e) }
     result
   }
+
 }
 
+/**
+ * Helper to access the application defined Akka Actor system.
+ */
 object Akka {
 
+  /**
+   * Retrieve the application Akka Actor system.
+   *
+   * Example:
+   *
+   * {{{
+   * val newActor = Akka.system.actorOf[Props[MyActor]]
+   * }}}
+   */
   def system(implicit app: Application) = {
     app.plugin[AkkaPlugin].map(_.applicationSystem).getOrElse {
       sys.error("Akka plugin is not registered.")
@@ -94,6 +88,9 @@ object Akka {
 
 }
 
+/**
+ * Plugin managing the application Akka Actor System.
+ */
 class AkkaPlugin(app: Application) extends Plugin {
 
   private[akka] var applicationSystemEnabled = false

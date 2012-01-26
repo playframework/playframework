@@ -1,4 +1,4 @@
 /**
- * Provides testing support
+ * Contains test helpers.
  */
 package play.test;

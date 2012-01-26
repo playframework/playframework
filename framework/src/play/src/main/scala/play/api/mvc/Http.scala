@@ -6,44 +6,70 @@ package play.api.mvc {
 
   import scala.annotation._
 
-  /** The HTTP request header. Note that it doesn’t contain the request body yet. */
+  /**
+   * The HTTP request header. Note that it doesn’t contain the request body yet.
+   */
   @implicitNotFound("Cannot find any HTTP Request Header here")
   trait RequestHeader {
 
-    /** The complete request URI, containing both path and query string. */
+    /**
+     * The complete request URI, containing both path and query string.
+     */
     def uri: String
 
-    /** The HTTP host (domain, optionally port) */
-    def host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("") // The server will return 400 Bad Request if the Host header is missing, but the RequestHeader is constructed before this response so we can't assume that HOST is present at this time.
-
-    /** The URI path. */
+    /**
+     * The URI path.
+     */
     def path: String
 
-    /** The HTTP method. */
+    /**
+     * The HTTP method.
+     */
     def method: String
 
-    /** The parsed query string. */
+    /**
+     * The parsed query string.
+     */
     def queryString: Map[String, Seq[String]]
 
-    /** The HTTP headers. */
+    /**
+     * The HTTP headers.
+     */
     def headers: Headers
 
-    /** The HTTP cookies. */
+    /**
+     * The HTTP host (domain, optionally port)
+     */
+    lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
+
+    /**
+     * The HTTP cookies.
+     */
     lazy val cookies: Cookies = Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
 
-    /** Parses the `Session` cookie and returns the `Session` data. */
+    /**
+     * Parses the `Session` cookie and returns the `Session` data.
+     */
     lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
 
-    /** Parses the `Flash` cookie and returns the `Flash` data. */
+    /**
+     * Parses the `Flash` cookie and returns the `Flash` data.
+     */
     lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
 
-    /** Returns the raw query string. */
+    /**
+     * Returns the raw query string.
+     */
     lazy val rawQueryString: String = uri.split('?').drop(1).mkString("?")
 
-    /** Returns the value of the Content-Type header (without the ;charset= part if exists) **/
+    /**
+     * Returns the value of the Content-Type header (without the ;charset= part if exists)
+     */
     lazy val contentType: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').headOption).map(_.toLowerCase)
 
-    /** Returns the charset of the request for text-based body **/
+    /**
+     * Returns the charset of the request for text-based body
+     */
     lazy val charset: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').tail.headOption).map(_.toLowerCase.trim).filter(_.startsWith("charset=")).flatMap(_.split('=').tail.headOption)
 
     override def toString = {
@@ -61,9 +87,14 @@ package play.api.mvc {
   trait Request[+A] extends RequestHeader {
     self =>
 
-    /** The body content. */
+    /**
+     * The body content.
+     */
     def body: A
 
+    /**
+     * Transform the request body.
+     */
     def map[B](f: A => B): Request[B] = new Request[B] {
       def uri = self.uri
       def path = self.path
@@ -75,6 +106,9 @@ package play.api.mvc {
 
   }
 
+  /**
+   * Wrap an existing request. Useful to extend a request.
+   */
   class WrappedRequest[A](request: Request[A]) extends Request[A] {
     def body = request.body
     def headers = request.headers
@@ -84,7 +118,9 @@ package play.api.mvc {
     def method = request.method
   }
 
-  /** The HTTP response. */
+  /**
+   * The HTTP response.
+   */
   @implicitNotFound("Cannot find any HTTP Response here")
   trait Response {
 
@@ -107,10 +143,16 @@ package play.api.mvc {
    */
   case class Call(method: String, url: String) extends play.mvc.Call {
 
+    /**
+     * Transform this call to an absolute URL.
+     */
     def absoluteURL(secure: Boolean = false)(implicit request: RequestHeader) = {
       "http" + (if (secure) "s" else "") + "://" + request.host + this.url
     }
 
+    /**
+     * Transform this call to an WebSocket URL.
+     */
     def webSocketURL(secure: Boolean = false)(implicit request: RequestHeader) = {
       "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
     }
@@ -119,44 +161,70 @@ package play.api.mvc {
 
   }
 
-  /** The HTTP headers set. */
+  /**
+   * The HTTP headers set.
+   */
   trait Headers {
 
-    /** Optionally returns the first header value associated with a key. */
+    /**
+     * Optionally returns the first header value associated with a key.
+     */
     def get(key: String): Option[String] = getAll(key).headOption
 
-    /** Retrieves the first header value which is associated with the given key. */
+    /**
+     * Retrieves the first header value which is associated with the given key.
+     */
     def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
 
-    /** Retrieve all header values associated with the given key. */
+    /**
+     * Retrieve all header values associated with the given key.
+     */
     def getAll(key: String): Seq[String]
 
-    /** Retrieve all header keys **/
+    /**
+     * Retrieve all header keys
+     */
     def keys: Set[String]
 
+    /**
+     * Transform the Headers to a Map
+     */
     def toMap: Map[String, Seq[String]] = keys.map { headerKey =>
       (headerKey, getAll(headerKey))
     }.toMap
 
+    /**
+     * Transform the Headers to a Map by ignoring multiple values.
+     */
     def toSimpleMap: Map[String, String] = keys.map { headerKey =>
       (headerKey, apply(headerKey))
     }.toMap
 
   }
 
-  /** Trait that should be extended by the Cookie helpers. */
+  /**
+   * Trait that should be extended by the Cookie helpers.
+   */
   trait CookieBaker[T <: AnyRef] {
 
-    /** The cookie name. */
+    /**
+     * The cookie name.
+     */
     val COOKIE_NAME: String
 
-    /** Default cookie, returned in case of error or if missing in the HTTP headers. */
+    /**
+     * Default cookie, returned in case of error or if missing in the HTTP headers.
+     */
     val emptyCookie: T
 
-    /** `true` if the Cookie is signed. Defaults to false. */
+    /**
+     * `true` if the Cookie is signed. Defaults to false.
+     */
     val isSigned: Boolean = false
 
-    /** Encodes the data as a `String`. */
+    /**
+     * Encodes the data as a `String`.
+     */
     def encode(data: Map[String, String]): String = {
       val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"), "UTF-8")
       if (isSigned)
@@ -165,7 +233,9 @@ package play.api.mvc {
         encoded
     }
 
-    /** Decodes from an encoded `String`. */
+    /**
+     * Decodes from an encoded `String`.
+     */
     def decode(data: String): Map[String, String] = {
 
       def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
@@ -185,13 +255,17 @@ package play.api.mvc {
       }
     }
 
-    /** Encodes the data as a `Cookie`. */
+    /**
+     * Encodes the data as a `Cookie`.
+     */
     def encodeAsCookie(data: T): Cookie = {
       val cookie = encode(serialize(data))
       Cookie(COOKIE_NAME, cookie)
     }
 
-    /** Decodes the data from a `Cookie`. */
+    /**
+     * Decodes the data from a `Cookie`.
+     */
     def decodeFromCookie(cookie: Option[Cookie]): T = {
       cookie.filter(_.name == COOKIE_NAME).map(c => deserialize(decode(c.value))).getOrElse(emptyCookie)
     }
@@ -211,6 +285,7 @@ package play.api.mvc {
      * @return a new `Map` storing the key-value pairs for the given cookie
      */
     protected def serialize(cookie: T): Map[String, String]
+
   }
 
   /**
@@ -220,10 +295,14 @@ package play.api.mvc {
    */
   case class Session(data: Map[String, String] = Map.empty[String, String]) {
 
-    /** Optionally returns the session value associated with a key. */
+    /**
+     * Optionally returns the session value associated with a key.
+     */
     def get(key: String) = data.get(key)
 
-    /** Returns `true` if this session is empty. */
+    /**
+     * Returns `true` if this session is empty.
+     */
     def isEmpty: Boolean = data.isEmpty
 
     /**
@@ -252,12 +331,16 @@ package play.api.mvc {
      */
     def -(key: String) = copy(data - key)
 
-    /** Retrieves the session value which is associated with the given key. */
+    /**
+     * Retrieves the session value which is associated with the given key.
+     */
     def apply(key: String) = data(key)
 
   }
 
-  /** Helper utilities to manage the Session cookie. */
+  /**
+   * Helper utilities to manage the Session cookie.
+   */
   object Session extends CookieBaker[Session] {
     val COOKIE_NAME = "PLAY_SESSION"
     val emptyCookie = new Session
@@ -275,10 +358,14 @@ package play.api.mvc {
    */
   case class Flash(data: Map[String, String] = Map.empty[String, String]) {
 
-    /** Optionally returns the flash value associated with a key. */
+    /**
+     * Optionally returns the flash value associated with a key.
+     */
     def get(key: String) = data.get(key)
 
-    /** Returns `true` if this flash scope is empty. */
+    /**
+     * Returns `true` if this flash scope is empty.
+     */
     def isEmpty: Boolean = data.isEmpty
 
     /**
@@ -307,13 +394,18 @@ package play.api.mvc {
      */
     def -(key: String) = copy(data - key)
 
-    /** Retrieves the flash value that is associated with the given key. */
+    /**
+     * Retrieves the flash value that is associated with the given key.
+     */
     def apply(key: String) = data(key)
 
   }
 
-  /** Helper utilities to manage the Flash cookie. */
+  /**
+   * Helper utilities to manage the Flash cookie.
+   */
   object Flash extends CookieBaker[Flash] {
+
     val COOKIE_NAME = "PLAY_FLASH"
     val emptyCookie = new Flash
 
@@ -336,18 +428,26 @@ package play.api.mvc {
    */
   case class Cookie(name: String, value: String, maxAge: Int = -1, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
 
-  /** The HTTP cookies set. */
+  /**
+   * The HTTP cookies set.
+   */
   trait Cookies {
 
-    /** Optionally returns the cookie associated with a key. */
+    /**
+     * Optionally returns the cookie associated with a key.
+     */
     def get(name: String): Option[Cookie]
 
-    /** Retrieves the cookie that is associated with the given key. */
+    /**
+     * Retrieves the cookie that is associated with the given key.
+     */
     def apply(name: String): Cookie = get(name).getOrElse(scala.sys.error("Cookie doesn't exist"))
 
   }
 
-  /** Helper utilities to encode Cookies. */
+  /**
+   * Helper utilities to encode Cookies.
+   */
   object Cookies {
 
     import scala.collection.JavaConverters._
@@ -355,6 +455,9 @@ package play.api.mvc {
     // We use netty here but just as an API to handle cookies encoding
     import org.jboss.netty.handler.codec.http.{ CookieEncoder, CookieDecoder, DefaultCookie }
 
+    /**
+     * Extract cookies from the Set-Cookie header.
+     */
     def apply(header: Option[String]) = new Cookies {
 
       lazy val cookies: Map[String, Cookie] = header.map(Cookies.decode(_)).getOrElse(Seq.empty).groupBy(_.name).mapValues(_.head)

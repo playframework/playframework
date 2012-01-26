@@ -59,10 +59,22 @@ public class Configuration {
         return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
     }
     
+    /**
+     * Retrieves a configuration value as a <code>Milliseconds</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
+     */
     public Long getMilliseconds(String key) {
         return (Long)Scala.orNull(conf.getMilliseconds(key));
     }
     
+    /**
+     * Retrieves a configuration value as a <code>Bytes</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
+     */
     public Long getBytes(String key) {
         return (Long)Scala.orNull(conf.getBytes(key));
     }

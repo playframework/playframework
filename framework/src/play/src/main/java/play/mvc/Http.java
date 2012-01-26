@@ -138,7 +138,6 @@ public class Http {
          */
         public abstract String method();
         
-    
         /**
          * The request host.
          */
@@ -164,12 +163,15 @@ public class Http {
         public abstract Cookies cookies(); // FIXME Provide a “Cookie cookie(String name)” function instead of this one?
         
         /**
-         * get headers
+         * Retrieves all headers.
          *
          * @return headers
          */
         public abstract java.util.Map<String,String[]> headers();
         
+        /**
+         * Retrieves a single header.
+         */
         public String getHeader(String headerName) {
             String[] headers = null;
             for(String h: headers().keySet()) {
@@ -205,17 +207,44 @@ public class Http {
         
     }
     
+    /**
+     * Handle the request body a raw bytes data.
+     */
     public abstract static class RawBuffer {
         
+        /**
+         * Buffer size.
+         */
         public abstract Long size();
+        
+        /**
+         * Returns the buffer content as a bytes array.
+         *
+         * @param maxLength The max length allowed to be stored in memory.
+         * @return null if the content is too big to fit in memory.
+         */
         public abstract byte[] asBytes(int maxLength);
+        
+        /**
+         * Returns the buffer content as a bytes array.
+         */
         public abstract byte[] asBytes();
+        
+        /**
+         * Returns the buffer content as File.
+         */
         public abstract File asFile();
         
     }
     
+    /**
+     * Multipart form data body.
+     */
     public abstract static class MultipartFormData {
         
+        /**
+         * A file part.
+         */ 
         public static class FilePart {
             
             final String key;
@@ -230,28 +259,49 @@ public class Http {
                 this.file = file;
             }
             
+            /**
+             * The part name.
+             */
             public String getKey() {
                 return key;
             }
             
+            /**
+             * The file name.
+             */ 
             public String getFilename() {
                 return filename;
             }
             
+            /**
+             * The file Content-Type
+             */
             public String getContentType() {
                 return contentType;
             }
             
+            /**
+             * The File.
+             */
             public File getFile() {
                 return file;
             }
             
         }
         
-        public abstract Map<String,String[]> asUrlFormEncoded();
+        /**
+         * Extract the data parts as Form url encoded.
+         */
+        public abstract Map<String,String[]> asFormUrlEncoded();
         
+        /**
+         * Retrieves all file parts.
+         */
         public abstract List<FilePart> getFiles();
         
+        /**
+         * Access a file part.
+         */
         public FilePart getFile(String key) {
             for(FilePart filePart: getFiles()) {
                 if(filePart.getKey().equals(key)) {
@@ -272,6 +322,9 @@ public class Http {
             return false;
         }
         
+        /**
+         * The request content parsed as multipart form data.
+         */
         public MultipartFormData asMultipartFormData() {
             return null;
         }
@@ -279,7 +332,7 @@ public class Http {
         /**
          * The request content parsed as URL form-encoded.
          */
-        public Map<String,String[]> asUrlFormEncoded() {
+        public Map<String,String[]> asFormUrlEncoded() {
             return null;
         }
         
@@ -377,7 +430,6 @@ public class Http {
           setCookie(name, value, maxAge, "/");
         }
 
-        
         /**
          * Set a new cookie
          * @param name Cookie name
@@ -388,7 +440,6 @@ public class Http {
         public void setCookie(String name, String value, int maxAge, String path) {
           setCookie(name, value, maxAge, path, null);
         }
-
         
         /**
          * Set a new cookie
@@ -402,7 +453,6 @@ public class Http {
           setCookie(name, value, maxAge, path, domain, false, false);
         }
 
-        
         /**
          * Set a new cookie
          * @param name Cookie name
@@ -437,6 +487,7 @@ public class Http {
         public Iterable<String> discardedCookies() {
           return discardedCookies;
         }
+        
     }
     
     /**
@@ -612,17 +663,20 @@ public class Http {
         public boolean httpOnly() {
           return httpOnly;
         }
+        
     }
     
     /**
      * HTTP Cookies set
      */
     public interface Cookies {
+        
         /**
          * @param name Name of the cookie to retrieve
          * @return the cookie that is associated with the given name, or null if there is no such cookie
          */
         public Cookie get(String name);
+        
     }
     
     

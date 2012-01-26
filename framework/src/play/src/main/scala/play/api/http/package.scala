@@ -1,4 +1,6 @@
 package play.api
 
-/** Contains standard HTTP constants. */
+/**
+ * Contains standard HTTP constants.
+ */
 package object http

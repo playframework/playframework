@@ -19,6 +19,7 @@ sealed trait JsValue {
 
   /**
    * Return the property corresponding to the fieldName, supposing we have a JsObject.
+   *
    * @param fieldName the name of the property to lookup
    * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
    */
@@ -26,6 +27,7 @@ sealed trait JsValue {
 
   /**
    * Return the element at a given index, supposing we have a JsArray.
+   *
    * @param idx the index to lookup
    * @param the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
    */
@@ -33,12 +35,14 @@ sealed trait JsValue {
 
   /**
    * Lookup for fieldName in the current object and all descendants.
+   *
    * @return the list of matching nodes
    */
   def \\(fieldName: String): Seq[JsValue] = Nil
 
   /**
    * Tries to convert the node into a T. An implicit Reads[T] must be defined.
+   *
    * @return Some[T] if it succeeds, None if it fails.
    */
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this))
@@ -52,46 +56,89 @@ sealed trait JsValue {
 
 }
 
+/**
+ * Represent a Json null value.
+ */
 case object JsNull extends JsValue
 
+/**
+ * Represent a missing Json value.
+ */
 case class JsUndefined(error: String) extends JsValue
 
+/**
+ * Represent a Json boolean value.
+ */
 case class JsBoolean(value: Boolean) extends JsValue
 
+/**
+ * Represent a Json number value.
+ */
 case class JsNumber(value: BigDecimal) extends JsValue
 
+/**
+ * Represent a Json string value.
+ */
 case class JsString(value: String) extends JsValue
 
+/**
+ * Represent a Json arayy value.
+ */
 case class JsArray(value: List[JsValue] = List()) extends JsValue {
 
-  override def apply(index: Int): JsValue =
+  /**
+   * Access a value of this array.
+   *
+   * @param index Element index.
+   */
+  override def apply(index: Int): JsValue = {
     value.lift(index).getOrElse(JsUndefined("Array index out of bounds in " + this))
+  }
 
+  /**
+   * Lookup for fieldName in the current object and all descendants.
+   *
+   * @return the list of matching nodes
+   */
   override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
 
   /**
-   * Concatenates this array with the elements of an other array
+   * Concatenates this array with the elements of an other array.
    */
   def ++(other: JsArray): JsArray = JsArray(value ++ other.value)
 
   /**
-   * Adds an element to the end of the array
+   * Append an element to this array.
    */
   def :+(el: JsValue): JsArray = JsArray(value :+ el)
 
   /**
-   * Adds an element to the beggining of the array
+   * Prepend an element to this array.
    */
   def +:(el: JsValue): JsArray = JsArray(el +: value)
 
 }
 
+/**
+ * Represent a Json object value.
+ */
 case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
   lazy val value: Map[String, JsValue] = fields.toMap
 
+  /**
+   * Return the property corresponding to the fieldName, supposing we have a JsObject.
+   *
+   * @param fieldName the name of the property to lookup
+   * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
+   */
   override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
 
+  /**
+   * Lookup for fieldName in the current object and all descendants.
+   *
+   * @return the list of matching nodes
+   */
   override def \\(fieldName: String): Seq[JsValue] = {
     value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
       case (key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
@@ -116,8 +163,10 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
 }
 
+// -- Serializers.
+
 @JsonCachable
-private class JsValueSerializer extends JsonSerializer[JsValue] {
+private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
 
   def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
@@ -142,23 +191,23 @@ private class JsValueSerializer extends JsonSerializer[JsValue] {
   }
 }
 
-sealed trait DeserializerContext {
+private[json] sealed trait DeserializerContext {
   def addValue(value: JsValue): DeserializerContext
 }
 
-case class ReadingList(content: List[JsValue]) extends DeserializerContext {
+private[json] case class ReadingList(content: List[JsValue]) extends DeserializerContext {
   override def addValue(value: JsValue): DeserializerContext = {
     ReadingList(content :+ value)
   }
 }
 
 // Context for reading an Object
-case class KeyRead(content: List[(String, JsValue)], fieldName: String) extends DeserializerContext {
+private[json] case class KeyRead(content: List[(String, JsValue)], fieldName: String) extends DeserializerContext {
   def addValue(value: JsValue): DeserializerContext = ReadingMap(content :+ (fieldName -> value))
 }
 
 // Context for reading one item of an Object (we already red fieldName)
-case class ReadingMap(content: List[(String, JsValue)]) extends DeserializerContext {
+private[json] case class ReadingMap(content: List[(String, JsValue)]) extends DeserializerContext {
 
   def setField(fieldName: String) = KeyRead(content, fieldName)
   def addValue(value: JsValue): DeserializerContext = throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
@@ -166,7 +215,7 @@ case class ReadingMap(content: List[(String, JsValue)]) extends DeserializerCont
 }
 
 @JsonCachable
-private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
+private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
   def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsValue = {
     val value = deserialize(jp, ctxt, List())
 
@@ -238,7 +287,7 @@ private class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends
   }
 }
 
-private class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
+private[json] class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
   override def findBeanDeserializer(javaType: JavaType, config: DeserializationConfig,
     provider: DeserializerProvider, beanDesc: BeanDescription,
     property: BeanProperty) = {
@@ -250,7 +299,7 @@ private class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.
 
 }
 
-private class PlaySerializers extends Serializers.Base {
+private[json] class PlaySerializers extends Serializers.Base {
   override def findSerializer(config: SerializationConfig, javaType: JavaType, beanDesc: BeanDescription, beanProp: BeanProperty) = {
     val ser: Object = if (classOf[JsValue].isAssignableFrom(beanDesc.getBeanClass)) {
       new JsValueSerializer
@@ -261,7 +310,7 @@ private class PlaySerializers extends Serializers.Base {
   }
 }
 
-private object JerksonJson extends com.codahale.jerkson.Json {
+private[json] object JerksonJson extends com.codahale.jerkson.Json {
   import org.codehaus.jackson.Version
   import org.codehaus.jackson.map.module.SimpleModule
   import org.codehaus.jackson.map.Module.SetupContext

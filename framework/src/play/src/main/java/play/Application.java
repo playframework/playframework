@@ -32,16 +32,13 @@ public class Application {
         return application.path();
     }
     
+    /**
+     * Retrieves the application configuration/
+     * <p>
+     * @return the application path
+     */
     public Configuration configuration() {
         return new Configuration(application.configuration());
-    }
-
-    /**
-    * Returns the Messages-instance used to access the message API for the application
-    * @return a Messages instance
-    */
-    public Messages messages() {
-        return Messages.current();
     }
     
     /**
@@ -83,6 +80,9 @@ public class Application {
         return Scala.orNull(application.resourceAsStream(relativePath));
     }
     
+    /**
+     * Retrieve the plugin instance for the class.
+     */
     public <T> T plugin(Class<T> pluginClass) {
         return Scala.orNull(application.plugin(pluginClass));
     }

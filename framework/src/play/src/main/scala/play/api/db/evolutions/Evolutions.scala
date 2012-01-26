@@ -22,19 +22,28 @@ import play.api.libs.Codecs._
  * @param sql_up the SQL statements for UP application
  * @param sql_down the SQL statements for DOWN application
  */
-case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
+private[evolutions] case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
 
-  /** Revision hash, automatically computed from the SQL content. */
+  /**
+   * Revision hash, automatically computed from the SQL content.
+   */
   val hash = sha1(sql_down + sql_up)
+
 }
 
-/** A Script to run on the database. */
-trait Script {
+/**
+ * A Script to run on the database.
+ */
+private[evolutions] trait Script {
 
-  /** Original evolution. */
+  /**
+   * Original evolution.
+   */
   val evolution: Evolution
 
-  /** SQL to be run. */
+  /**
+   * SQL to be run.
+   */
   val sql: String
 }
 
@@ -44,7 +53,7 @@ trait Script {
  * @param evolution the original evolution
  * @param sql the SQL to be run
  */
-case class UpScript(evolution: Evolution, sql: String) extends Script
+private[evolutions] case class UpScript(evolution: Evolution, sql: String) extends Script
 
 /**
  * A DOWN Script to run on the database.
@@ -52,12 +61,16 @@ case class UpScript(evolution: Evolution, sql: String) extends Script
  * @param evolution the original evolution
  * @param sql the SQL to be run
  */
-case class DownScript(evolution: Evolution, sql: String) extends Script
+private[evolutions] case class DownScript(evolution: Evolution, sql: String) extends Script
 
-/** Defines Evolutions utilities functions. */
+/**
+ * Defines Evolutions utilities functions.
+ */
 object Evolutions {
 
-  /** Updates a local (file-based) evolution script. */
+  /**
+   * Updates a local (file-based) evolution script.
+   */
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
     import play.api.libs._
 
@@ -371,16 +384,27 @@ object Evolutions {
 
 }
 
-/** Play Evolutions plugin. */
+/**
+ * Play Evolutions plugin.
+ */
 class EvolutionsPlugin(app: Application) extends Plugin {
 
   import Evolutions._
 
-  private val pluginDisabled = app.configuration.getString("evolutionplugin").filter(_ == "disabled").isDefined
+  /**
+   * Is this plugin enabled.
+   *
+   * {{{
+   * evolutionplugin = disabled
+   * }}}
+   */
+  override lazy val enabled = app.configuration.getConfig("db").isDefined && {
+    !app.configuration.getString("evolutionplugin").filter(_ == "disabled").isDefined
+  }
 
-  override def enabled = app.configuration.getConfig("db").isDefined && pluginDisabled == false
-
-  /** Checks the evolutions state. */
+  /**
+   * Checks the evolutions state.
+   */
   override def onStart() {
     val api = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
 
@@ -399,7 +423,9 @@ class EvolutionsPlugin(app: Application) extends Plugin {
 
 }
 
-/** Can be used to run off-line evolutions, i.e. outside a running application. */
+/**
+ * Can be used to run off-line evolutions, i.e. outside a running application.
+ */
 object OfflineEvolutions {
 
   /**

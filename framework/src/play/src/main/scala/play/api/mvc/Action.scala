@@ -7,12 +7,21 @@ import play.api.libs.iteratee._
  */
 trait Handler
 
+/**
+ * Reference to an Handler.
+ */
 class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(implicit handlerInvoker: play.core.Router.HandlerInvoker[T]) extends play.mvc.HandlerRef {
 
+  /**
+   * Retrieve a real handler behind this ref.
+   */
   def handler: play.api.mvc.Handler = {
     handlerInvoker.call(callValue, handlerDef)
   }
 
+  /**
+   * String representation of this Handler.
+   */
   lazy val sym = {
     handlerDef.controller + "." + handlerDef.method + "(" + handlerDef.parameterTypes.map(_.getName).mkString(", ") + ")"
   }
@@ -38,7 +47,9 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
  */
 trait Action[A] extends (Request[A] => Result) with Handler {
 
-  /** Type of the request body. */
+  /**
+   * Type of the request body.
+   */
   type BODY_CONTENT = A
 
   /**
@@ -77,6 +88,9 @@ trait Action[A] extends (Request[A] => Result) with Handler {
 trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, A]]] {
   self =>
 
+  /**
+   * Transform this BodyParser[A] to a BodyParser[B]
+   */
   def map[B](f: A => B): BodyParser[B] = new BodyParser[B] { request =>
     def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))
     override def toString = self.toString
@@ -84,13 +98,35 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
 
 }
 
-/** Helper object to construct `BodyParser` values. */
+/**
+ * Helper object to construct `BodyParser` values.
+ */
 object BodyParser {
 
+  /**
+   * Create an anonymous BodyParser
+   *
+   * Example:
+   * {{{
+   * val bodySize = BodyParser { request =>
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   * }
+   * }}}
+   */
   def apply[T](f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]): BodyParser[T] = {
     apply("(no name)")(f)
   }
 
+  /**
+   * Create a BodyParser
+   *
+   * Example:
+   * {{{
+   * val bodySize = BodyParser("Body size") { request =>
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   * }
+   * }}}
+   */
   def apply[T](debugName: String)(f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
     override def toString = "BodyParser(" + debugName + ")"
@@ -98,7 +134,9 @@ object BodyParser {
 
 }
 
-/** Helper object to create `Action` values. */
+/**
+ * Helper object to create `Action` values.
+ */
 object Action {
 
   /**
