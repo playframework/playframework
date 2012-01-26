@@ -11,7 +11,7 @@ public class Cache {
    * @return object
    */
   public static Object get(String key) {
-      return play.api.cache.Cache.get(key,play.api.Play.unsafeApplication());
+      return play.libs.Scala.orNull(play.api.cache.Cache.get(key,play.api.Play.unsafeApplication()));
   }
 
   /**
