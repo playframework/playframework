@@ -30,7 +30,9 @@ object JunitRunner {
     val junit = new org.junit.runner.JUnitCore
     val classes = args.map(name => Class.forName(name))
     val consoleOutput = new org.junit.internal.TextListener(System.out)
+    val xmlOutput = new play.api.test.JUnitXmlTestsListener("target")
     junit.addListener(consoleOutput)
+    junit.addListener(xmlOutput)
     junit.run(classes: _*)
     System.exit(0)
   }
