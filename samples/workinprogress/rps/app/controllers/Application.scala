@@ -12,7 +12,7 @@ object Application extends Controller {
   
   def index = Action {
     SpeedOMeter.countRequest()
-    Ok("ok")
+    Ok("from your shell ab -k -c 100 -n 1000000 http://localhost:9000/")
   }
 
   def monitor = Action {
