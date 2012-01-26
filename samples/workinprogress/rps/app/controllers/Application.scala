@@ -22,6 +22,7 @@ object Application extends Controller {
   def speedMeter = Action {
    Ok.stream( 
      Streams.getRequestsPerSecond >-
+     Streams.getCPU >-
      Streams.getHeap &>
      Comet( callback = "parent.message"))
   }
@@ -45,6 +46,14 @@ object Streams {
     Promise.timeout( 
       Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024*1024) + ":memory"),
       100, TimeUnit.MILLISECONDS) 
+  }
+
+  val cpu = new models.CPU()
+
+  val getCPU = Enumerator.callbackEnumerator{ () =>
+    Promise.timeout( 
+      Some((cpu.getCpuUsage()*1000).round / 10.0 + ":cpu"),
+      100, TimeUnit.MILLISECONDS)
   }
 
 }

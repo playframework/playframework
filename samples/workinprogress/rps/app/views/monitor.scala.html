@@ -4,6 +4,7 @@
     
   <div id="chart_rps"></div>
   <div id="chart_memory"></div>
+  <div id="chart_cpu"></div>
   <div id="data"></div>
   <button id="gc">GC!</button>
   <script type='text/javascript'>
@@ -12,8 +13,8 @@
 
     var memoryOptions  = {
       width: 400, height: 120,
-      redFrom: 10000, redTo: 20000, max:@totalMemory,
-      yellowFrom:5000, yellowTo: 10000,
+      redFrom: @(totalMemory - totalMemory/10), redTo: @totalMemory, max:@totalMemory,
+      yellowFrom: @(totalMemory - totalMemory/5), yellowTo:  @(totalMemory - totalMemory/10),
       minorTicks: 5
     };
 
@@ -21,6 +22,13 @@
      width: 400, height: 120,
      redFrom: 10000, redTo: 20000, max:20000,
      yellowFrom:5000, yellowTo: 10000,
+     minorTicks: 5
+   };
+
+   var cpuOptions = {
+     width: 400, height: 120,
+     redFrom: 80, redTo: 100, max:100,
+     yellowFrom:70, yellowTo: 80,
      minorTicks: 5
    };
 
@@ -46,6 +54,17 @@
      return chart
    }
 
+   function drawCPU() {
+     var data = new google.visualization.DataTable();
+     data.addColumn('string', 'Label');
+     data.addColumn('number', 'Value');
+     data.addRows([ ['CPU', 0] ]);
+
+     var chart = new google.visualization.Gauge(document.getElementById('chart_cpu'));
+     chart.draw(data, cpuOptions);
+     return chart
+   }
+
    function makeData(label,i){
      var data = new google.visualization.DataTable();
      data.addColumn('string', 'Label');
@@ -61,19 +80,25 @@
 
        });
      });
-     var cpu = drawRPS();
+     var rps = drawRPS();
      var memory = drawMemory();
+     var cpu = drawCPU();
 
      window.message = function(msg){
        var something = msg.split(":")
        if(something[1]=="rps"){
          var d = makeData("RPS",something[0])
-         cpu.draw(d,rpsOptions);
+         rps.draw(d,rpsOptions);
        }
 
        if(something[1]=="memory"){
          var d = makeData("MEMORY",something[0])
          memory.draw(d,memoryOptions);
+       }
+
+       if(something[1]=="cpu"){
+         var d = makeData("CPU",something[0])
+         cpu.draw(d,cpuOptions);
        }
      }
 
