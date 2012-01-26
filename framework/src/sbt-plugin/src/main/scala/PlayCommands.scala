@@ -350,7 +350,7 @@ trait PlayCommands extends PlayJvm {
     IO.write(start,
       """|#! /usr/bin/env sh
          |
-         |java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |exec java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
          |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
