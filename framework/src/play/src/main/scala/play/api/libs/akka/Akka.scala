@@ -85,7 +85,6 @@ object Akka {
       sys.error("Akka plugin is not registered.")
     }
   }
-
 }
 
 /**

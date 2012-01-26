@@ -634,6 +634,70 @@ object Enumerator {
 
   }
 
+  trait Pushee[E] {
+
+    def push(item: E): Boolean
+
+    def close()
+
+  }
+
+  def pushEnumerator[E](
+    onStart: Pushee[E] => Unit,
+    onComplete: => Unit = () => (),
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
+
+    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+      var iteratee: Iteratee[E, A] = it
+      var promise: Promise[Iteratee[E, A]] with Redeemable[Iteratee[E, A]] = new STMPromise[Iteratee[E, A]]()
+
+      val pushee = new Pushee[E] {
+        def close() {
+          if (iteratee != null) {
+            iteratee.feed(Input.EOF).map(result => promise.redeem(result))
+            iteratee = null
+            promise = null
+          }
+        }
+        def push(item: E): Boolean = {
+          if (iteratee != null) {
+            iteratee = iteratee.pureFlatFold[E, A](
+
+              // DONE
+              (a, in) => {
+                onComplete
+                Done(a, in)
+              },
+
+              // CONTINUE
+              k => {
+                val next = k(Input.El(item))
+                next.pureFlatFold(
+                  (a, in) => {
+                    onComplete
+                    next
+                  },
+                  _ => next,
+                  (_, _) => next)
+              },
+
+              // ERROR
+              (e, in) => {
+                onError(e, in)
+                Error(e, in)
+              })
+            true
+          } else {
+            false
+          }
+        }
+      }
+      onStart(pushee)
+      promise
+    }
+
+  }
+
   import scalax.io.JavaConverters._
 
   def callbackEnumerator[E](retriever: () => Promise[Option[E]],

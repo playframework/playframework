@@ -248,14 +248,9 @@ object Promise {
 
   def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
 
-  def timeout[A](message: A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
-    import java.util.{ Timer, TimerTask }
+  def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
     val p = Promise[A]()
-    new Timer("Promise.Timeout", true).schedule(new TimerTask {
-      def run {
-        p.redeem(message)
-      }
-    }, unit.toMillis(duration))
+    play.core.Invoker.system.scheduler.scheduleOnce(akka.util.Duration(duration, unit))(p.redeem(message))
     p
   }
 
