@@ -914,7 +914,7 @@ object Router {
         }
       }
 
-      def httpVerb = namedError("GET" | "POST" | "PUT" | "HEAD" | "DELETE", "HTTP Verb expected") ^^ {
+      def httpVerb = namedError("GET" | "POST" | "PUT" | "HEAD" | "DELETE" | "OPTIONS", "HTTP Verb expected") ^^ {
         case v => HttpVerb(v)
       }
 
