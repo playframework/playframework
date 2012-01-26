@@ -197,7 +197,7 @@ trait PlayCommands extends PlayJvm {
     val config = Option(System.getProperty("config.file"))
 
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=./application.conf ").getOrElse("") + """play.core.server.NettyServer `dirname $0`""" /* */ )
+      """java "$@" -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirname $0`/application.conf ").getOrElse("") + """play.core.server.NettyServer `dirname $0`""" /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
     val other = Seq((root / "README") -> (packageName + "/README"))
