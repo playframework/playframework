@@ -1,0 +1,87 @@
+@(totalMemory: Long)
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+@main("Welcome to Play 2.0 RC1") {
+    
+  @play20.welcome("")
+  <div id="chart_rps"></div>
+  <div id="chart_memory"></div>
+  <div id="data"></div>
+  <button id="gc">GC!</button>
+  <script type='text/javascript'>
+
+    google.load('visualization', '1', {packages:['gauge']});
+
+    var memoryOptions  = {
+      width: 400, height: 120,
+      redFrom: 10000, redTo: 20000, max:@totalMemory,
+      yellowFrom:5000, yellowTo: 10000,
+      minorTicks: 5
+    };
+
+   var rpsOptions = {
+     width: 400, height: 120,
+     redFrom: 10000, redTo: 20000, max:20000,
+     yellowFrom:5000, yellowTo: 10000,
+     minorTicks: 5
+   };
+
+   function drawRPS() {
+     var data = new google.visualization.DataTable();
+     data.addColumn('string', 'Label');
+     data.addColumn('number', 'Value');
+     data.addRows([ ['RPS', 0] ]);
+
+     var chart = new google.visualization.Gauge(document.getElementById('chart_rps'));
+     chart.draw(data, rpsOptions);
+     return chart
+   }
+
+   function drawMemory() {
+     var data = new google.visualization.DataTable();
+     data.addColumn('string', 'Label');
+     data.addColumn('number', 'Value');
+     data.addRows([ ['Memory', 0] ]);
+
+     var chart = new google.visualization.Gauge(document.getElementById('chart_memory'));
+     chart.draw(data, memoryOptions);
+     return chart
+   }
+
+   function makeData(label,i){
+     var data = new google.visualization.DataTable();
+     data.addColumn('string', 'Label');
+     data.addColumn('number', 'Value');
+     data.addRows([[label, Number(i)]]);
+     return data;
+   }
+
+   google.setOnLoadCallback(function(){
+
+     $("#gc").click(function() {
+       $.post('gc!', function(data) {
+
+       });
+     });
+     var cpu = drawRPS();
+     var memory = drawMemory();
+
+     window.message = function(msg){
+       var something = msg.split(":")
+       if(something[1]=="rps"){
+         var d = makeData("RPS",something[0])
+         cpu.draw(d,rpsOptions);
+       }
+
+       if(something[1]=="memory"){
+         var d = makeData("MEMORY",something[0])
+         memory.draw(d,memoryOptions);
+       }
+     }
+
+     $("#data").append(" <iframe src='speed-meter' style='display:none'></iframe> ");
+
+  });
+
+    </script>
+ 
+}
