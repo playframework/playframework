@@ -2,7 +2,7 @@ package play.api.cache
 
 import play.api._
 
-import reflect.Manifest
+import reflect.ClassManifest
 /**
  * API for a Cache plugin.
  */
@@ -69,10 +69,10 @@ object Cache {
    * @param key Item key.
    * @return result as Option[T]
    */
-  def get[T](key: String)(implicit app: Application, m: Manifest[T]): Option[T] = {
-    app.plugin[CachePlugin].map(_.api.get(key)).map { item =>
-      if (item.isInstanceOf[T]) Some(item.asInstanceOf[T]) else None
-    }.getOrElse(error)
+  def getAs[T](key: String)(implicit app: Application, m: ClassManifest[T]): Option[T] = {
+    get(key)(app).map { item =>
+      if (m.erasure.isAssignableFrom(item.getClass)) Some(item.asInstanceOf[T]) else None
+    }.getOrElse(None)
   }
 
 }
