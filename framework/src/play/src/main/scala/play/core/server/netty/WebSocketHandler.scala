@@ -10,16 +10,11 @@ import org.jboss.netty.handler.stream._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder
-
+import org.jboss.netty.handler.codec.http.websocketx._
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
-
 import play.core._
-import play.core.server.websocket._
+import play.core.server.websocket.WebSocketHandshake
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
@@ -67,11 +62,11 @@ private[server] trait WebSocketHandler {
 
         override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
           e.getMessage match {
-            case frame: Frame if nettyFrameFormatter.fromFrame.isDefinedAt(frame) => {
+            case frame: WebSocketFrame if nettyFrameFormatter.fromFrame.isDefinedAt(frame) => {
               enumerator.frameReceived(ctx, El(nettyFrameFormatter.fromFrame(frame)))
             }
-            case frame: CloseFrame => { ctx.getChannel().disconnect(); enumerator.frameReceived(ctx, EOF) }
-            case frame: Frame => //
+            case frame: CloseWebSocketFrame => { ctx.getChannel().disconnect(); enumerator.frameReceived(ctx, EOF) }
+            case frame: WebSocketFrame => //
             case _ => //
           }
         }
