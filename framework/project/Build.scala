@@ -180,7 +180,7 @@ object PlayBuild extends Build {
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0-M2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0-M2",
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
-            "org.avaje"                         %    "ebean"                    %   "2.7.3" notTransitive(),
+            "org.avaje"                         %    "ebean"                    %   "2.7.4" notTransitive(),
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             "org.scala-tools"                   %%   "scala-stm"                %   "0.4",

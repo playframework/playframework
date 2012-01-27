@@ -428,17 +428,17 @@ public class Model {
         }
 
         /**
+         * Returns the total hits matched for a lucene text search query.
+         */
+        public int getTotalHits() {
+            return query().getTotalHits();
+        }
+
+        /**
          * Returns the <code>RawSql</code> that was set to use for this query.
          */
         public RawSql getRawSql() {
             return query().getRawSql();
-        }
-
-        /**
-         * Returns the type of query (List, Set, Map, Bean, rowCount etc).
-         */
-        public Query.Type getType() {
-            return query().getType();
         }
         
         public UseIndex getUseIndex() {
