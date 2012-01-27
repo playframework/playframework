@@ -21,7 +21,7 @@ case class TestBrowser(webDriver: WebDriver) extends Fluent(webDriver) {
 
   /**
    * Open an URL.
-   */ 
+   */
   def goTo(url: String) {
     getDriver.get(url)
   }
@@ -64,12 +64,12 @@ object TestBrowser {
    * Creates an in-memory WebBrowser (using HtmlUnit)
    */
   def default() = TestBrowser(new HtmlUnitDriver)
-  
+
   /**
    * Creates a firefox WebBrowser.
    */
   def firefox() = TestBrowser(new FirefoxDriver)
-  
+
   /**
    * Creates a WebBrowser of the specified class name.
    */

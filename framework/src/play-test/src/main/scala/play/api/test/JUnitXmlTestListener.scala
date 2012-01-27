@@ -65,15 +65,15 @@ class JUnitXmlTestsListener(val outputDir: String, suiteName: String = "play.api
 
     val totalTime = elapsedTimeAsString(result.getRunTime())
     val xmlContent = <testsuite name={ suiteName } failures={ failures.toString } tests={ tests.toString } hostname={ hostname } time={ totalTime }>
-        { properties }
-        {
-          testStarted.toList.map { t =>
-            <testcase classname={ t._1 } name={ t._2 } time="0.0">{testFailed.get(t._1).map { f: Tuple3[String, String, String] => <failure message={ f._1 } type={ f._2 }>{ f._3 }</failure>}.getOrElse(<failure></failure>)}</testcase>
-          }
-        }
-        <system-out><![CDATA[]]></system-out>
-        <system-err><![CDATA[]]></system-err>
-      </testsuite>
+                       { properties }
+                       {
+                         testStarted.toList.map { t =>
+                           <testcase classname={ t._1 } name={ t._2 } time="0.0">{ testFailed.get(t._1).map { f: Tuple3[String, String, String] => <failure message={ f._1 } type={ f._2 }>{ f._3 }</failure> }.getOrElse(<failure></failure>) }</testcase>
+                         }
+                       }
+                       <system-out><![CDATA[]]></system-out>
+                       <system-err><![CDATA[]]></system-err>
+                     </testsuite>
 
     val file = new File(targetDir, targetFile)
     if (!file.exists) {
@@ -88,19 +88,19 @@ class JUnitXmlTestsListener(val outputDir: String, suiteName: String = "play.api
   override def testStarted(description: Description) {
     tests = tests + 1
     val entry = getKey(description)
-    testStarted.append( entry )
+    testStarted.append(entry)
   }
 
-  private def getKey(description: Description ): (String, String) = {
+  private def getKey(description: Description): (String, String) = {
     val TestPattern = "(.*)\\((.*)\\)".r
     description.getDisplayName match {
       case TestPattern(description, clazz) => (clazz, description)
       case _ => throw new RuntimeException("could not find test")
-    }    
+    }
   }
 
   override def testFailure(failure: Failure) {
-    failures += failures +1
+    failures += failures + 1
     val (clazz, description) = getKey(failure.getDescription)
     val entry = (failure.getMessage, failure.getException.toString, failure.getTrace)
     testFailed += clazz -> entry

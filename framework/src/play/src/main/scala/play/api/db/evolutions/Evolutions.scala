@@ -351,7 +351,7 @@ object Evolutions {
       case downsMarker() => true
       case _ => false
     }
-    
+
     Collections.unfoldLeft(1) { revision =>
       Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql")).map { stream =>
         (revision + 1, (revision, stream.asInput.slurpString))
@@ -413,7 +413,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
             case Mode.Prod => {
               Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
               Logger("play").warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
-              
+
               throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
             }
             case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(script))

@@ -304,11 +304,11 @@ object WS {
      */
     def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
 
-    def postStream[A](bodySize:Long)(implicit wrt: Writeable[A], ct: ContentTypeOf[A]):Iteratee[A,Response] = {
+    def postStream[A](bodySize: Long)(implicit wrt: Writeable[A], ct: ContentTypeOf[A]): Iteratee[A, Response] = {
 
-      val (it,bodyGenerator) = getBodyGenerator(bodySize)
-      val p =prepare("POST", bodyGenerator)(ct).execute
-      it.map(_ => p).flatMap(p => Iteratee.flatten(p.map(Done(_,Input.Empty))))
+      val (it, bodyGenerator) = getBodyGenerator(bodySize)
+      val p = prepare("POST", bodyGenerator)(ct).execute
+      it.map(_ => p).flatMap(p => Iteratee.flatten(p.map(Done(_, Input.Empty))))
 
     }
 
@@ -323,11 +323,11 @@ object WS {
      */
     def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
 
-    def putStream[A](bodySize:Long)(implicit wrt: Writeable[A], ct: ContentTypeOf[A]):Iteratee[A,Response] = {
+    def putStream[A](bodySize: Long)(implicit wrt: Writeable[A], ct: ContentTypeOf[A]): Iteratee[A, Response] = {
 
-      val (it,bodyGenerator) = getBodyGenerator(bodySize)
-      val p =prepare("PUT", bodyGenerator)(ct).execute
-      it.map(_ => p).flatMap(p => Iteratee.flatten(p.map(Done(_,Input.Empty))))
+      val (it, bodyGenerator) = getBodyGenerator(bodySize)
+      val p = prepare("PUT", bodyGenerator)(ct).execute
+      it.map(_ => p).flatMap(p => Iteratee.flatten(p.map(Done(_, Input.Empty))))
 
     }
 
@@ -363,7 +363,7 @@ object WS {
         .setQueryString(queryString)
         .setBody(body)
 
-    private def getBodyGenerator[E](bodySize:Long)(implicit wrt: Writeable[E]): (Iteratee[E,Unit],com.ning.http.client.BodyGenerator) = {
+    private def getBodyGenerator[E](bodySize: Long)(implicit wrt: Writeable[E]): (Iteratee[E, Unit], com.ning.http.client.BodyGenerator) = {
 
       import scala.concurrent.stm._
 
@@ -429,7 +429,7 @@ object WS {
 
         }
       }
-      (it,bodyGenerator)
+      (it, bodyGenerator)
 
     }
   }
@@ -439,7 +439,7 @@ object WS {
  * A WS HTTP response.
  */
 case class Response(ahcResponse: AHCResponse) {
-  
+
   import scala.xml._
   import play.api.libs.json._
 
@@ -484,12 +484,11 @@ case class ResponseHeaders(status: Int, headers: Map[String, Seq[String]])
  * Sign a WS call.
  */
 trait SignatureCalculator {
-  
+
   /**
    * Sign it.
    */
   def sign(request: WS.WSRequest)
-  
-}
 
+}
 

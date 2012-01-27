@@ -16,5 +16,5 @@ package object akka {
    * Implicit conversion of Future to AkkaFuture, supporting the asPromise operation.
    */
   implicit def akkaToPlay[A](future: Future[A]) = new AkkaFuture(future)
-  
+
 }

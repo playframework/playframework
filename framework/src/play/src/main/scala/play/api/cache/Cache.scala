@@ -46,7 +46,7 @@ object Cache {
     app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
   }
 
- /**
+  /**
    * Sets a value without expiration
    *
    * @param expiration expiration period in seconds.
@@ -63,16 +63,16 @@ object Cache {
     app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
   }
 
-   /**
+  /**
    * Retrieve a value from the cache for the given type
    *
    * @param key Item key.
-   * @return result as T
+   * @return result as Option[T]
    */
   def get[T](key: String)(implicit app: Application, m: Manifest[T]): Option[T] = {
-    app.plugin[CachePlugin].map(_.api.get(key)).map{ item =>
-       if (item.isInstanceOf[T]) Some(item.asInstanceOf[T]) else None
-      }.getOrElse(error)
+    app.plugin[CachePlugin].map(_.api.get(key)).map { item =>
+      if (item.isInstanceOf[T]) Some(item.asInstanceOf[T]) else None
+    }.getOrElse(error)
   }
 
 }
@@ -94,15 +94,15 @@ abstract class CachePlugin extends Plugin {
  * EhCache implementation.
  */
 class EhCachePlugin(app: Application) extends CachePlugin {
-  
+
   import net.sf.ehcache._
-  
+
   lazy val (manager, cache) = {
     val manager = CacheManager.create()
     manager.addCache("play")
     (manager, manager.getCache("play"))
   }
-  
+
   /**
    * Is this plugin enabled.
    *
@@ -113,17 +113,17 @@ class EhCachePlugin(app: Application) extends CachePlugin {
   override lazy val enabled = {
     !app.configuration.getString("ehcacheplugin").filter(_ == "disabled").isDefined
   }
-  
+
   override def onStart() {
     cache
   }
-  
+
   override def onStop() {
     manager.shutdown()
   }
-  
+
   lazy val api = new CacheAPI {
-    
+
     def set(key: String, value: Any, expiration: Int) {
       val element = new Element(key, value)
       element.setTimeToLive(expiration)
@@ -133,9 +133,7 @@ class EhCachePlugin(app: Application) extends CachePlugin {
     def get(key: String): Option[Any] = {
       Option(cache.get(key)).map(_.getObjectValue)
     }
-    
+
   }
-  
-  
-  
+
 }
