@@ -4,5 +4,5 @@
 400:play.db.jpa.JPAPlugin
 500:play.api.db.evolutions.EvolutionsPlugin
 600:play.api.cache.EhCachePlugin
-1000:play.api.libs.akka.AkkaPlugin
+1000:play.api.libs.concurrent.AkkaPlugin
 10000:play.api.GlobalPlugin

@@ -7,7 +7,6 @@ import play.api.libs._
 
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-import play.api.libs.akka._
 
 import actors._
 import actors.ChatRoomActor._

@@ -1,4 +1,4 @@
-package play.api.libs.akka
+package play.api.libs.concurrent
 
 import play.api._
 import play.api.libs.concurrent._
@@ -75,7 +75,6 @@ object Akka {
    * Retrieve the application Akka Actor system.
    *
    * Example:
-   *
    * {{{
    * val newActor = Akka.system.actorOf[Props[MyActor]]
    * }}}
@@ -85,6 +84,21 @@ object Akka {
       sys.error("Akka plugin is not registered.")
     }
   }
+
+  /**
+   * Executes a block of code asynchronously in the application Akka Actor system.
+   *
+   * Example:
+   * {{{
+   * val promiseOfResult = Akka.future {
+   *    intensiveComputing()
+   * }
+   * }}}
+   */
+  def future[T](body: => T)(implicit app: Application): Promise[T] = {
+    akka.dispatch.Future(body)(system.dispatcher).asPromise
+  }
+
 }
 
 /**
@@ -92,7 +106,7 @@ object Akka {
  */
 class AkkaPlugin(app: Application) extends Plugin {
 
-  private[akka] var applicationSystemEnabled = false
+  private var applicationSystemEnabled = false
 
   lazy val applicationSystem: ActorSystem = {
     applicationSystemEnabled = true

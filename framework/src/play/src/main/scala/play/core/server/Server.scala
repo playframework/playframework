@@ -4,7 +4,6 @@ import play.api._
 import play.core._
 import play.api.mvc._
 import play.api.libs.iteratee._
-import play.api.libs.akka._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._

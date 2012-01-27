@@ -15,6 +15,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes
   def writeEmptyContent: Writeable[Results.EmptyContent] = writeableOf_EmptyContent
   def contentTypeOfString(codec: Codec): ContentTypeOf[String] = contentTypeOf_String(codec)
+  def contentTypeOfHtml(implicit codec: Codec): ContentTypeOf[String] = ContentTypeOf(Some(play.api.http.ContentTypes.HTML))
   def contentTypeOfJson(implicit codec: Codec): ContentTypeOf[String] = ContentTypeOf(Some(play.api.http.ContentTypes.JSON))
   def contentTypeOf(mimeType: String): ContentTypeOf[Content] = ContentTypeOf(Option(mimeType))
   def contentTypeOfEmptyContent: ContentTypeOf[Results.EmptyContent] = contentTypeOf_EmptyContent
@@ -24,7 +25,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
   def async(p: play.api.libs.concurrent.Promise[Result]) = AsyncResult(p)
-  def chunked[A] = new play.api.libs.iteratee.PushEnumerator[A]
+  def chunked[A](onDisconnected: () => Unit) = new play.api.libs.iteratee.PushEnumerator[A](onComplete = { onDisconnected() })
   def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.enumerateStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.enumerateFile(file, chunkSize)
 }

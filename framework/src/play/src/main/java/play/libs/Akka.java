@@ -16,7 +16,7 @@ public class Akka {
      */
     public static <A> Promise<A> asPromise(Future<A> akkaFuture) {
         return new Promise<A>(
-            new play.api.libs.akka.AkkaPromise<A>(akkaFuture)
+            new play.api.libs.concurrent.AkkaPromise<A>(akkaFuture)
         );
     }
     
@@ -24,7 +24,14 @@ public class Akka {
      * Retrieve the application Akka Actor system.
      */
     public static ActorSystem system() {
-        return play.api.libs.akka.Akka.system(Play.current());
+        return play.api.libs.concurrent.Akka.system(Play.current());
+    }
+    
+    /**
+     * Executes a block of code asynchronously in the application Akka Actor system.
+     */
+    public static <T> Promise<T> future(java.util.concurrent.Callable<T> callable) {
+        return asPromise(akka.dispatch.Futures.future(callable, system().dispatcher()));
     }
     
 }
