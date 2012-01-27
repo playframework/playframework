@@ -247,6 +247,10 @@ object Promise {
   def pure[A](a: A) = PurePromise(a)
 
   def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
+  
+  def timeout[A](message: A, duration: akka.util.Duration): Promise[A] = {
+    timeout(message, duration.toMillis)
+  }
 
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
     val p = Promise[A]()
