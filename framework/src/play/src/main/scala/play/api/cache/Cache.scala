@@ -2,6 +2,7 @@ package play.api.cache
 
 import play.api._
 
+import reflect.Manifest
 /**
  * API for a Cache plugin.
  */
@@ -45,6 +46,14 @@ object Cache {
     app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
   }
 
+ /**
+   * Sets a value without expiration
+   *
+   * @param expiration expiration period in seconds.
+   */
+  def set(key: String, value: Any)(implicit app: Application) = {
+    app.plugin[CachePlugin].map(_.api.set(key, value, 0)).getOrElse(error)
+  }
   /**
    * Retrieve a value from the cache.
    *
@@ -52,6 +61,18 @@ object Cache {
    */
   def get(key: String)(implicit app: Application): Option[Any] = {
     app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
+  }
+
+   /**
+   * Retrieve a value from the cache for the given type
+   *
+   * @param key Item key.
+   * @return result as T
+   */
+  def get[T](key: String)(implicit app: Application, m: Manifest[T]): Option[T] = {
+    app.plugin[CachePlugin].map(_.api.get(key)).map{ item =>
+       if (item.isInstanceOf[T]) Some(item.asInstanceOf[T]) else None
+      }.getOrElse(error)
   }
 
 }
