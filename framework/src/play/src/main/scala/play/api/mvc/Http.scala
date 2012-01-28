@@ -41,6 +41,24 @@ package play.api.mvc {
      * The HTTP host (domain, optionally port)
      */
     lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
+    
+    /**
+     * The HTTP domain
+     */
+    lazy val domain: String = host.split(':').head
+    
+    /**
+     * The Request Langs, extracted from the Accept-Language header.
+     */
+    lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
+      try {
+        headers.get(play.api.http.HeaderNames.ACCEPT_LANGUAGE).map { acceptLanguage =>
+          acceptLanguage.split(",").map(l => play.api.i18n.Lang(l.split(";").head)).toSeq
+        }.getOrElse(Nil)
+      } catch {
+        case e => e.printStackTrace(); Nil
+      }
+    }
 
     /**
      * The HTTP cookies.

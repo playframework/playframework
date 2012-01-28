@@ -10,6 +10,82 @@ import scala.util.parsing.combinator._
 import scala.util.matching._
 
 /**
+ * A Lang supported by the application.
+ *
+ * @param language a valid ISO Language Code.
+ * @param country a valid ISO Country Code.
+ */
+case class Lang(language: String, country: String = "") {
+  
+  /**
+   * Convert to a Java Locale value.
+   */
+  def toLocale = {
+    Option(country).filterNot(_.isEmpty).map(c => new java.util.Locale(language, c)).getOrElse(new java.util.Locale(language))
+  }
+  
+  /**
+   * The Lang code (such as fr or en-US).
+   */
+  lazy val code = language + Option(country).filterNot(_.isEmpty).map("-" + _).getOrElse("")
+  
+}
+
+/**
+ * Utilities related to Lang values.
+ */
+object Lang {
+  
+  /**
+   * The default Lang to use if nothing matches (platform default)
+   */
+  implicit lazy val defaultLang = {
+    val defaultLocale = java.util.Locale.getDefault
+    Lang(defaultLocale.getLanguage, defaultLocale.getCountry)
+  }
+  
+  private val SimpleLocale = """([a-zA-Z]{2})""".r
+  private val CountryLocale = """([a-zA-Z]{2})-([a-zA-Z]{2})""".r
+  
+  /**
+   * Create a Lang value from a code (such as fr or en-US).
+   */
+  def apply(code: String): Lang = {
+    code match {
+      case SimpleLocale(language) => Lang(language, "")
+      case CountryLocale(language, country) => Lang(language, country)
+    }
+  }
+  
+  /**
+   * Retrieve Lang availables from the application configuration.
+   *
+   * {{{
+   * application.langs="fr,en,de"
+   * }}}
+   */
+  def availables(implicit app: Application): Seq[Lang] = {
+    app.configuration.getString("application.langs").map { langs =>
+      langs.split(",").map(_.trim).map { lang =>
+        try { Lang(lang) } catch {
+          case e => throw app.configuration.reportError("application.langs", "Invalid language code [" + lang + "]", Some(e))
+        }
+      }.toSeq
+    }.getOrElse(Nil)
+  }
+  
+  /**
+   * Guess the preferred lang in the langs set passed as argument.
+   * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.
+   */
+  def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
+    val all = availables
+    langs.find(all.contains(_)).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
+  }
+  
+}
+
+/**
  * High-level internationalisation API (not available yet).
  *
  * For example:
@@ -28,30 +104,27 @@ object Messages {
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
-  def apply(key: String, args: Any*) = {
+  def apply(key: String, args: Any*)(implicit lang: Lang): String = {
     Play.maybeApplication.flatMap { app =>
       app.plugin[MessagesPlugin].map(_.api.translate(key, args)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
     }.getOrElse(noMatch(key, args))
   }
-
-  private def noMatch(key: String, args: Seq[Any]) = {
-    key
+  
+  /**
+   * Retrieves all messages defined in this application.
+   */
+  def messages(implicit app: Application): Map[String, Map[String, String]] = {
+    app.plugin[MessagesPlugin].map(_.api.messages).getOrElse(throw new Exception("this plugin was not registered or disabled"))    
   }
 
-  /**
-   * An internationalised message.
-   *
-   * @param key the message key
-   * @param pattern the message pattern
-   * @param input the source from which this message was read
-   * @param sourceName the source name from which this message was read
-   */
-  case class Message(key: String, pattern: String, input: scalax.io.Input, sourceName: String) extends Positional
+  private def noMatch(key: String, args: Seq[Any]) = key
+
+  private[i18n] case class Message(key: String, pattern: String, input: scalax.io.Input, sourceName: String) extends Positional
 
   /**
    * Message file Parser.
    */
-  class MessagesParser(messageInput: scalax.io.Input, messageSourceName: String) extends RegexParsers {
+  private[i18n] class MessagesParser(messageInput: scalax.io.Input, messageSourceName: String) extends RegexParsers {
 
     case class Comment(msg: String)
 
@@ -121,7 +194,7 @@ object Messages {
 /**
  * The internationalisation API.
  */
-case class MessagesApi(messages: Map[String, String]) {
+case class MessagesApi(messages: Map[String, Map[String, String]]) {
 
   import java.text._
 
@@ -134,8 +207,8 @@ case class MessagesApi(messages: Map[String, String]) {
    * @param args the message arguments
    * @return the formatted message, if this key was defined
    */
-  def translate(key: String, args: Seq[Any]): Option[String] = {
-    messages.get(key).map { pattern =>
+  def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
+    messages.get(lang.code).flatMap(_.get(key)).orElse(messages.get("default").flatMap(_.get(key))).map { pattern =>
       MessageFormat.format(pattern, args.map(_.asInstanceOf[java.lang.Object]): _*)
     }
   }
@@ -151,14 +224,20 @@ class MessagesPlugin(app: Application) extends Plugin {
 
   import scalax.file._
   import scalax.io.JavaConverters._
+  
+  private def loadMessages(file: String): Map[String, String] = {
+    app.classloader.getResources(file).asScala.map { messageFile =>
+      new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
+        message.key -> message.pattern
+      }.toMap
+    }.foldLeft(Map.empty[String, String]) { _ ++ _ }
+  }
 
   private lazy val messages = {
     MessagesApi {
-      app.classloader.getResources("messages").asScala.map { messageFile =>
-        new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
-          message.key -> message.pattern
-        }.toMap
-      }.foldLeft(Map.empty[String, String]) { _ ++ _ }
+      Lang.availables(app).map(_.code).map { lang =>
+        (lang, loadMessages("messages." + lang))
+      }.toMap + ("default" -> loadMessages("messages"))
     }
   }
 

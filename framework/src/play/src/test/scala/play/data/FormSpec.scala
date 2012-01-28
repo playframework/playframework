@@ -10,6 +10,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def method() = "GET"
   def path() = "test"
   def host() = "localhost"
+  def acceptLanguages = new java.util.ArrayList[play.i18n.Lang]
   def headers() = new java.util.HashMap[String, Array[String]]()
   def body() = new Http.RequestBody {
     override def asFormUrlEncoded = data.asJava

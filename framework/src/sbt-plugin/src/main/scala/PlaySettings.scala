@@ -18,7 +18,8 @@ trait PlaySettings {
       "scala.collection.JavaConversions._",
       "scala.collection.JavaConverters._",
 
-      "play.api.i18n.Messages",
+      "play.api.i18n._",
+      "play.api.templates.PlayMagicForJava._",
 
       "play.mvc._",
       "play.data._",
@@ -43,7 +44,7 @@ trait PlaySettings {
       "models._",
       "controllers._",
 
-      "play.api.i18n.Messages",
+      "play.api.i18n._",
 
       "play.api.mvc._",
       "play.api.data._",

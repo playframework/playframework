@@ -95,6 +95,10 @@ trait PlayCommands extends PlayJvm {
     val cacheFile = c / "copy-assets"
     val mappings = (r.map(_ ***).reduceLeft(_ +++ _) x rebase(b, t)) ++ (resources x rebase(resourcesDirectories, t))
 
+    /*
+    Disable GZIP Generation for this release.
+    -----
+     
     val toZip = mappings.collect { case (resource, _) if resource.isFile && !resource.getName.endsWith(".gz") => resource } x relativeTo(Seq(b, resourcesDirectories))
 
     val gzipped = toZip.map {
@@ -106,7 +110,9 @@ trait PlayCommands extends PlayJvm {
       }
     }
 
-    val assetsMapping = mappings ++ gzipped
+    val assetsMapping = mappings ++ gzipped*/
+    
+    val assetsMapping = mappings
 
     s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
 

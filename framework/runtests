@@ -68,6 +68,14 @@ $PLAY "$@" clean test
 cd $CURRENT
 
 echo "[info]"
+echo "[info] ---- TESTING JAVA/COMPUTER-DATABASE-JPA"
+echo "[info]"
+
+cd ../samples/java/computer-database-jpa
+$PLAY "$@" clean test
+cd $CURRENT
+
+echo "[info]"
 echo "[info] ---- TESTING JAVA/COMET-CLOCK"
 echo "[info]"
 

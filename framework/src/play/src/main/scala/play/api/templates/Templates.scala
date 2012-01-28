@@ -170,14 +170,6 @@ object XmlFormat extends Format[Xml] {
 /** Defines a magic helper for Play templates. */
 object PlayMagic {
 
-  import scala.collection.JavaConverters._
-
-  /** Transforms a Play Java `Option` to a proper Scala `Option`. */
-  implicit def javaOptionToScala[T](x: play.libs.F.Option[T]): Option[T] = x match {
-    case x: play.libs.F.Some[_] => Some(x.get)
-    case x: play.libs.F.None[_] => None
-  }
-
   /**
    * Generates a set of valid HTML attributes.
    *
@@ -187,6 +179,27 @@ object PlayMagic {
    * }}}
    */
   def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
+
+}
+
+/** Defines a magic helper for Play templates in a Java context. */
+object PlayMagicForJava {
+  
+  import scala.collection.JavaConverters._
+
+  /** Transforms a Play Java `Option` to a proper Scala `Option`. */
+  implicit def javaOptionToScala[T](x: play.libs.F.Option[T]): Option[T] = x match {
+    case x: play.libs.F.Some[_] => Some(x.get)
+    case x: play.libs.F.None[_] => None
+  }
+  
+  implicit def implicitJavaLang: play.api.i18n.Lang = {
+    try {
+      play.mvc.Http.Context.Implicit.lang.asInstanceOf[play.api.i18n.Lang]
+    } catch {
+      case _ => play.api.i18n.Lang.defaultLang
+    }
+  }
 
   /**
    * Implicit conversion of a Play Java form `Field` to a proper Scala form `Field`.
@@ -216,5 +229,5 @@ object PlayMagic {
 
     }
   }
-
+  
 }

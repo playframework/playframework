@@ -14,12 +14,28 @@ public class Messages {
     *
     * Uses `java.text.MessageFormat` internally to format the message.
     *
+    * @param lang the message lang
+    * @param key the message key
+    * @param args the message arguments
+    * @return the formatted message or a default rendering if the key wasn't defined
+    */
+    public static String get(Lang lang, String key, Object... args) {
+        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)lang);
+    }
+    
+    /**
+    * Translates a message.
+    *
+    * Uses `java.text.MessageFormat` internally to format the message.
+    *
     * @param key the message key
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(String key, Object... args) {
         Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
-        return play.api.i18n.Messages.apply(key, scalaArgs);
+        return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)play.mvc.Http.Context.Implicit.lang());
     }
+    
 }
