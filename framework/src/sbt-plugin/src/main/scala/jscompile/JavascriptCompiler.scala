@@ -32,10 +32,9 @@ object JavascriptCompiler {
     // Excluding the current file
     val deps = tree.dependencies.filterNot(_ == source)
     val input = deps.map(file => JSSourceFile.fromCode(file.getName(), includeSource(file)))
-    val fullSource = requireSource + tree.dependencies.map(file => includeSource(file)).mkString("\n\n") + jsCode
 
     compiler.compile(extern, (headerSource +: input :+ JSSourceFile.fromCode(source.getName(), jsCode)).toArray, options).success match {
-      case true => (fullSource, Some(compiler.toSource()), tree.dependencies)
+      case true => (tree.fullSource, Some(compiler.toSource()), tree.dependencies)
       case false => {
         val error = compiler.getErrors().head
         throw AssetCompilationException(Some(source), error.description, error.lineNumber, 0)
@@ -126,7 +125,10 @@ case class SourceTree(node: File, ancestors: Set[File] = Set(), children: List[S
 
   lazy val dependencies: List[File] = flatDependencies.reverse.distinct
 
-  lazy val fullSource = dependencies.map(Path(_).slurpString).mkString("\n")
+  def fullSource = if (children.size == 0)
+    Path(node).slurpString.replace("\r", "")
+  else
+    JavascriptCompiler.requireSource + dependencies.dropRight(1).map(file => JavascriptCompiler.includeSource(file)).mkString("\n\n") + Path(node).slurpString.replace("\r", "")
 
 }
 
