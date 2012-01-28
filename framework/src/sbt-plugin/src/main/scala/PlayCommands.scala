@@ -579,8 +579,7 @@ trait PlayCommands extends PlayJvm {
   private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
     // collect arguments plus config file property if present 
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq ++
-      Option(System.getProperty("config.file")).map(v => Seq("config.file" -> v)).getOrElse(Nil)
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq 
     val port = others.headOption.map { portString =>
       try {
         Integer.parseInt(portString)
