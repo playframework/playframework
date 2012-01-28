@@ -404,7 +404,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
     val api = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
 
     api.datasources.foreach {
-      case (db, (ds, _)) => {
+      case (ds, db) => {
         val script = evolutionScript(api, app.classloader, db)
         if (!script.isEmpty) {
           app.mode match {
@@ -441,16 +441,16 @@ object OfflineEvolutions {
 
     import play.api._
 
-    val api = DBApi(
-      Map(dbName -> DBApi.createDataSource(
-        Configuration.load().getConfig("db." + dbName).get, classloader)))
-    val script = Evolutions.evolutionScript(api, classloader, dbName)
+    val c = Configuration.load().getConfig("db").get
+
+    val dbApi = new BoneCPApi(c, classloader)
+
+    val script = Evolutions.evolutionScript(dbApi, classloader, dbName)
 
     if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
       Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
-
-    Evolutions.applyScript(api, dbName, script)
+    Evolutions.applyScript(dbApi, dbName, script)
 
   }
 
