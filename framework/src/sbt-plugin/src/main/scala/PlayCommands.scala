@@ -197,9 +197,6 @@ trait PlayCommands extends PlayJvm {
     import com.typesafe.sbteclipse.core._
     import com.typesafe.sbteclipse.core.EclipsePlugin._
     def transformerFactory =
-      if (mainLang == SCALA)
-        EclipseClasspathEntryTransformerFactory.Default
-      else
         new EclipseClasspathEntryTransformerFactory {
           override def createTransformer(ref: ProjectRef, state: State) =
             setting(crossTarget in ref)(state) map (ct =>
