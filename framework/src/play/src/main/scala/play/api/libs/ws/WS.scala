@@ -304,14 +304,6 @@ object WS {
      */
     def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
 
-    def postStream[A](bodySize: Long)(implicit wrt: Writeable[A], ct: ContentTypeOf[A]): Iteratee[A, Response] = {
-
-      val (it, bodyGenerator) = getBodyGenerator(bodySize)
-      val p = prepare("POST", bodyGenerator)(ct).execute
-      it.map(_ => p).flatMap(p => Iteratee.flatten(p.map(Done(_, Input.Empty))))
-
-    }
-
     /**
      * Perform a PUT on the request asynchronously.
      */
@@ -322,14 +314,6 @@ object WS {
      * @param consumer that's handling the response
      */
     def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
-
-    def putStream[A](bodySize: Long)(implicit wrt: Writeable[A], ct: ContentTypeOf[A]): Iteratee[A, Response] = {
-
-      val (it, bodyGenerator) = getBodyGenerator(bodySize)
-      val p = prepare("PUT", bodyGenerator)(ct).execute
-      it.map(_ => p).flatMap(p => Iteratee.flatten(p.map(Done(_, Input.Empty))))
-
-    }
 
     /**
      * Perform a DELETE on the request asynchronously.
@@ -357,81 +341,6 @@ object WS {
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
 
-    private def prepare[T](method: String, body: com.ning.http.client.BodyGenerator)(ct: ContentTypeOf[_]) =
-      new WSRequest(method, auth, calc).setUrl(url)
-        .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
-        .setQueryString(queryString)
-        .setBody(body)
-
-    private def getBodyGenerator[E](bodySize: Long)(implicit wrt: Writeable[E]): (Iteratee[E, Unit], com.ning.http.client.BodyGenerator) = {
-
-      import scala.concurrent.stm._
-
-      val currentChunk: Ref[Option[Input[E]]] = Ref(None)
-
-      val promise: Ref[Option[RedeemablePromise[Boolean]]] = Ref(None)
-
-      def step(in: Input[E]): Iteratee[E, Unit] = {
-
-        val p = atomic { implicit txn =>
-          if (!currentChunk().isDefined && !promise().isDefined) {
-            val next = Promise[Boolean]()
-            currentChunk() = Some(in)
-            promise() = Some(next)
-            next
-          } else {
-            throw new Exception()
-          }
-        }
-
-        in match {
-          case Input.EOF => Done((), EOF)
-          case _ => Iteratee.flatten(p.map(close => if (!close) Cont(step) else Done((), in)))
-        }
-      }
-      val it = Cont(step)
-
-      val bodyGenerator = new com.ning.http.client.BodyGenerator {
-
-        def createBody() = new com.ning.http.client.Body {
-
-          def getContentLength(): Long = bodySize
-
-          def read(buffer: java.nio.ByteBuffer): Long = {
-            val (in, p) = atomic { implicit txn =>
-              (currentChunk(), promise()) match {
-                case (Some(in), Some(p)) =>
-                  currentChunk() = None
-                  promise() = None
-                  (in, p)
-                case _ => retry
-              }
-            }
-
-            in match {
-              case Input.El(e) =>
-                val bytes = wrt.transform(e)
-                buffer.put(bytes)
-                bytes.length
-
-              case Input.Empty =>
-                p.redeem(false)
-                0
-              case Input.EOF =>
-                p.redeem(true)
-                -1
-            }
-          }
-
-          def close() {
-            promise.single().foreach(_.redeem(false))
-          }
-
-        }
-      }
-      (it, bodyGenerator)
-
-    }
   }
 }
 
