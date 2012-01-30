@@ -27,6 +27,7 @@ trait PlayCommands extends PlayJvm {
   val SCALA = "scala"
   val NONE = "none"
 
+ 
   // ----- We need this later
 
   private val consoleReader = new jline.ConsoleReader
@@ -61,6 +62,8 @@ trait PlayCommands extends PlayJvm {
   }
 
   // ----- Play specific tasks
+
+ 
 
   private[this] var commonClassLoader: ClassLoader = _
 
@@ -120,64 +123,23 @@ trait PlayCommands extends PlayJvm {
     assetsMapping
   }
 
-  val javaRunner = TaskKey[File]("java-runner")
-  val runWith = TaskKey[RunWith]("run-with")
+  //- test reporter
+  private[sbt] lazy val testListener = new PlayTestListener
 
-  // --- Test Runner
-  val testRunner = TaskKey[Map[String, String]]("test-runner")
-  val testFrameworkCommandOptions = TaskKey[(String, Option[String]) => Seq[String]]("test-framework-command-options")
-  val testJvmOptions = SettingKey[Seq[String]]("test-jvm-options")
-  val testNames = TaskKey[Seq[String]]("test-names")
-  val testAllJvmOptions = TaskKey[JVMOptions]("test-jvm-all-options")
-
-  def generateJVMCommandOptions(fullClasspath: Classpath, target: File) = {
-    val classpathFiles = (fullClasspath.files ++ (target * "scala-*" * "*classes").get).absString
-    (runner: String, args: Option[String]) =>
-      Seq("-cp", classpathFiles, runner) ++ args.map(_.split(" ").toSeq).getOrElse(Nil)
+  val testResultReporter = TaskKey[List[String]]("test-result-reporter")
+  val testResultReporterTask = (state, thisProjectRef) map { (s, r) =>
+    testListener.result.toList
   }
-
-  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name.toString) }
-
-  private def selectTestsFor(testNames: Seq[String]) = if (testNames.size > 0) Some(testNames.mkString(" ")) else None
-
-  def testTask = (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams) map {
-    (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s) =>
-      {
-        if (testNames.isEmpty)
-          s.log.info("No tests to run.")
-        else
-          testRunner.keys.foreach { testType =>
-            val current = testNames.filter(_.endsWith(testType))
-            selectTestsFor(current).map { arg => fork("Fork JVM for test, filter: *" + testType, testRunner(testType), Some(arg), runWith, testAllJvmOptions, srcDir, s.log) }.getOrElse(Unit)
-          }
-      }
+  val testResultReporterReset = TaskKey[Unit]("test-result-reporter-reset")
+  val testResultReporterResetTask = (state, thisProjectRef) map { (s, r) =>
+    testListener.result.clear
   }
-
-  def testOnlyTask = InputTask(loadForParser(testNames)((s, i) => Defaults.testOnlyParser(s, i getOrElse Nil))) { result =>
-    (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams, result) map {
-      case (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s, (userDefinedTests, _)) =>
-        val testsPassedIn = userDefinedTests.map { i =>
-          if (i.contains("*"))
-            testNames.filter(_.endsWith(i.replace("*", "")))
-          else
-            testNames.filter(_ == i)
-        }.flatten
-        if (testsPassedIn.isEmpty)
-          s.log.info("No tests to run.")
-        else {
-          testRunner.keys.foreach { testType =>
-            val current = testsPassedIn.filter(_.endsWith(testType))
-            selectTestsFor(current).map(arg => fork("Fork JVM for test, filter: " + arg, testRunner(testType), Some(arg), runWith, testAllJvmOptions, srcDir, s.log)).getOrElse(Unit)
-          }
-        }
-    }
-  }
-
+  
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>
     analysises.reduceLeft(_ ++ _)
   }
-
+  
   val dist = TaskKey[File]("dist", "Build the standalone application package")
   val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
 
