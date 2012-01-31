@@ -290,7 +290,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     }
 
     val autocommit = conf.getBoolean("autocommit").getOrElse(true)
-    val isolation = conf.getString("isolation").getOrElse("READ_COMMITTED") match {
+    val isolation = conf.getString("isolation").map {
       case "NONE" => Connection.TRANSACTION_NONE
       case "READ_COMMITTED" => Connection.TRANSACTION_READ_COMMITTED
       case "READ_UNCOMMITTED " => Connection.TRANSACTION_READ_UNCOMMITTED
@@ -316,7 +316,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
       override def onCheckOut(connection: ConnectionHandle) {
         connection.setAutoCommit(autocommit)
-        connection.setTransactionIsolation(isolation)
+        isolation.map(connection.setTransactionIsolation(_))
         connection.setReadOnly(readOnly)
         catalog.map(connection.setCatalog(_))
         if (logger.isTraceEnabled) {
@@ -336,16 +336,17 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     conf.getString("password").map(datasource.setPassword(_))
 
     // Pool configuration
-    datasource.setPartitionCount(conf.getInt("partitionCount").getOrElse(2))
-    datasource.setMaxConnectionsPerPartition(conf.getInt("maxConnectionsPerPartition").getOrElse(15))
+    datasource.setPartitionCount(conf.getInt("partitionCount").getOrElse(1))
+    datasource.setMaxConnectionsPerPartition(conf.getInt("maxConnectionsPerPartition").getOrElse(30))
     datasource.setMinConnectionsPerPartition(conf.getInt("minConnectionsPerPartition").getOrElse(5))
     datasource.setAcquireIncrement(conf.getInt("acquireIncrement").getOrElse(1))
     datasource.setAcquireRetryAttempts(conf.getInt("acquireRetryAttempts").getOrElse(10))
     datasource.setAcquireRetryDelayInMs(conf.getMilliseconds("acquireRetryDelay").getOrElse(1000))
     datasource.setConnectionTimeoutInMs(conf.getMilliseconds("connectionTimeout").getOrElse(1000))
-    datasource.setIdleMaxAge(conf.getMilliseconds("idleMaxAge").getOrElse(1000 * 60 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
+    datasource.setIdleMaxAge(conf.getMilliseconds("idleMaxAge").getOrElse(1000 * 60 * 10), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setMaxConnectionAge(conf.getMilliseconds("maxConnectionAge").getOrElse(1000 * 60 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setDisableJMX(conf.getBoolean("disableJMX").getOrElse(true))
+    datasource.setIdleConnectionTestPeriod(conf.getMilliseconds("idleConnectionTestPeriod").getOrElse(1000 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
 
     conf.getString("initSQL").map(datasource.setInitSQL(_))
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
