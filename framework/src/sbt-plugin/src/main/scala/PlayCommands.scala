@@ -17,8 +17,9 @@ import PlayKeys._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import java.lang.{ ProcessBuilder => JProcessBuilder }
 
-trait PlayCommands extends PlayJvm {
+trait PlayCommands {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -27,7 +28,6 @@ trait PlayCommands extends PlayJvm {
   val SCALA = "scala"
   val NONE = "none"
 
- 
   // ----- We need this later
 
   private val consoleReader = new jline.ConsoleReader
@@ -62,8 +62,6 @@ trait PlayCommands extends PlayJvm {
   }
 
   // ----- Play specific tasks
-
- 
 
   private[this] var commonClassLoader: ClassLoader = _
 
@@ -114,7 +112,7 @@ trait PlayCommands extends PlayJvm {
     }
 
     val assetsMapping = mappings ++ gzipped*/
-    
+
     val assetsMapping = mappings
 
     s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
@@ -134,12 +132,12 @@ trait PlayCommands extends PlayJvm {
   val testResultReporterResetTask = (state, thisProjectRef) map { (s, r) =>
     testListener.result.clear
   }
-  
+
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>
     analysises.reduceLeft(_ ++ _)
   }
-  
+
   val dist = TaskKey[File]("dist", "Build the standalone application package")
   val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
 
@@ -197,12 +195,12 @@ trait PlayCommands extends PlayJvm {
     import com.typesafe.sbteclipse.core._
     import com.typesafe.sbteclipse.core.EclipsePlugin._
     def transformerFactory =
-        new EclipseClasspathEntryTransformerFactory {
-          override def createTransformer(ref: ProjectRef, state: State) =
-            setting(crossTarget in ref)(state) map (ct =>
-              (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
-            )
-        }
+      new EclipseClasspathEntryTransformerFactory {
+        override def createTransformer(ref: ProjectRef, state: State) =
+          setting(crossTarget in ref)(state) map (ct =>
+            (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
+          )
+      }
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.preTasks := Seq(compile in Compile),
@@ -535,10 +533,23 @@ trait PlayCommands extends PlayJvm {
 
   // ----- Play commands
 
+  private def fork(args: Seq[String]) = {
+    val builder = new JProcessBuilder(args: _*)
+    Process(builder).run(JvmIO(new JvmLogger(), false))
+  }
+
+  val shCommand = Command.args("sh", "<shell command>") { (state: State, args: Seq[String]) =>
+    if (args.isEmpty)
+      println("sh <command to run>")
+    else
+      fork(args)
+    state
+  }
+
   private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
     // collect arguments plus config file property if present 
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq 
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
     val port = others.headOption.map { portString =>
       try {
         Integer.parseInt(portString)
@@ -802,6 +813,7 @@ trait PlayCommands extends PlayJvm {
                 |h2-browser                 Launch the H2 Web browser.
                 |license                    Display licensing informations.
                 |package                    Package your application as a JAR.
+                |sh <command to run>        Execute a shell command
                 |publish                    Publish your application in a remote repository.
                 |publish-local              Publish your application in the local repository.
                 |reload                     Reload the current application build file.
