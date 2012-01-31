@@ -281,8 +281,21 @@ trait PlayCommands {
     s.log.info("...about to generate an Intellij project module(" + mainLang + ") called " + target.getName)
     if (target.exists) s.log.warn(target.toString + " will be overwritten")
     IO.delete(target)
-
-    IO.copyFile(new File(System.getProperty("play.home") + sl + "skeletons" + sl + "intellij-skel" + sl + "template.iml"), target)
+    IO.write(target, 
+      """|<?xml version="1.0" encoding="UTF-8"?>
+         |<module type="JAVA_MODULE" version="4"> 
+         | %SCALA_FACET% 
+         |  <component name="NewModuleRootManager" inherit-compiler-output="true">
+         |     <exclude-output />
+         |     <content url="file://$MODULE_DIR$">
+         |      %SOURCE%
+         |     </content>
+         |     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
+         |     <orderEntry type="sourceFolder" forTests="false" />
+         |     %JARS%
+         |  </component>
+         |</module>
+         |""".stripMargin)
 
     play.console.Console.replace(target, "SCALA_FACET" -> scalaFacet.getOrElse(""))
     play.console.Console.replace(target, "SCALA_VERSION" -> scalaVersion)
