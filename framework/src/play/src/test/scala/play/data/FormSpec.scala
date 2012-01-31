@@ -43,7 +43,7 @@ object FormSpec extends Specification {
       val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
       myForm hasErrors () must beEqualTo(false)
     }
-    "have an error due to baldy formatted date" in {
+    "have an error due to badly formatted date" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11/11")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
