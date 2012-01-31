@@ -41,12 +41,12 @@ package play.api.mvc {
      * The HTTP host (domain, optionally port)
      */
     lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
-    
+
     /**
      * The HTTP domain
      */
     lazy val domain: String = host.split(':').head
-    
+
     /**
      * The Request Langs, extracted from the Accept-Language header.
      */

@@ -51,7 +51,7 @@ object WebSocketHandshake {
       pipeline.remove(classOf[HttpChunkAggregator])
     } catch {
       case ex: NoSuchElementException =>
-         // this is what we're expecting, since handshake removed it
+      // this is what we're expecting, since handshake removed it
     }
   }
 

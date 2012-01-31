@@ -184,7 +184,7 @@ object PlayMagic {
 
 /** Defines a magic helper for Play templates in a Java context. */
 object PlayMagicForJava {
-  
+
   import scala.collection.JavaConverters._
 
   /** Transforms a Play Java `Option` to a proper Scala `Option`. */
@@ -192,7 +192,7 @@ object PlayMagicForJava {
     case x: play.libs.F.Some[_] => Some(x.get)
     case x: play.libs.F.None[_] => None
   }
-  
+
   implicit def implicitJavaLang: play.api.i18n.Lang = {
     try {
       play.mvc.Http.Context.Implicit.lang.asInstanceOf[play.api.i18n.Lang]
@@ -229,5 +229,5 @@ object PlayMagicForJava {
 
     }
   }
-  
+
 }

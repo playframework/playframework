@@ -93,13 +93,13 @@ trait PlaySettings {
     testOptions in Test += Tests.Argument("junitxml", "console"),
 
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
-    
+
     testResultReporter <<= testResultReporterTask,
-    
+
     testResultReporterReset <<= testResultReporterResetTask,
 
-    sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles, 
-    
+    sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
+
     // Adds config/routes to continious triggers
     watchSources <+= confDirectory map { _ / "routes" },
 
@@ -108,7 +108,7 @@ trait PlaySettings {
     // Adds views template to continious triggers
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*.scala.*").get },
 
-    commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     shellPrompt := playPrompt,
 

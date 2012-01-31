@@ -16,26 +16,26 @@ import scala.util.matching._
  * @param country a valid ISO Country Code.
  */
 case class Lang(language: String, country: String = "") {
-  
+
   /**
    * Convert to a Java Locale value.
    */
   def toLocale = {
     Option(country).filterNot(_.isEmpty).map(c => new java.util.Locale(language, c)).getOrElse(new java.util.Locale(language))
   }
-  
+
   /**
    * The Lang code (such as fr or en-US).
    */
   lazy val code = language + Option(country).filterNot(_.isEmpty).map("-" + _).getOrElse("")
-  
+
 }
 
 /**
  * Utilities related to Lang values.
  */
 object Lang {
-  
+
   /**
    * The default Lang to use if nothing matches (platform default)
    */
@@ -43,10 +43,10 @@ object Lang {
     val defaultLocale = java.util.Locale.getDefault
     Lang(defaultLocale.getLanguage, defaultLocale.getCountry)
   }
-  
+
   private val SimpleLocale = """([a-zA-Z]{2})""".r
   private val CountryLocale = """([a-zA-Z]{2})-([a-zA-Z]{2})""".r
-  
+
   /**
    * Create a Lang value from a code (such as fr or en-US).
    */
@@ -56,7 +56,7 @@ object Lang {
       case CountryLocale(language, country) => Lang(language, country)
     }
   }
-  
+
   /**
    * Retrieve Lang availables from the application configuration.
    *
@@ -73,7 +73,7 @@ object Lang {
       }.toSeq
     }.getOrElse(Nil)
   }
-  
+
   /**
    * Guess the preferred lang in the langs set passed as argument.
    * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.
@@ -82,7 +82,7 @@ object Lang {
     val all = availables
     langs.find(all.contains(_)).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
   }
-  
+
 }
 
 /**
@@ -109,12 +109,12 @@ object Messages {
       app.plugin[MessagesPlugin].map(_.api.translate(key, args)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
     }.getOrElse(noMatch(key, args))
   }
-  
+
   /**
    * Retrieves all messages defined in this application.
    */
   def messages(implicit app: Application): Map[String, Map[String, String]] = {
-    app.plugin[MessagesPlugin].map(_.api.messages).getOrElse(throw new Exception("this plugin was not registered or disabled"))    
+    app.plugin[MessagesPlugin].map(_.api.messages).getOrElse(throw new Exception("this plugin was not registered or disabled"))
   }
 
   private def noMatch(key: String, args: Seq[Any]) = key
@@ -224,7 +224,7 @@ class MessagesPlugin(app: Application) extends Plugin {
 
   import scalax.file._
   import scalax.io.JavaConverters._
-  
+
   private def loadMessages(file: String): Map[String, String] = {
     app.classloader.getResources(file).asScala.map { messageFile =>
       new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>

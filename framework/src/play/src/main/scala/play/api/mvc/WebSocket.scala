@@ -43,7 +43,7 @@ object WebSocket {
      * Array[Byte] WebSocket frames.
      */
     implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = play.core.server.websocket.Frames.binaryFrame
-    
+
     /**
      * Either String or Array[Byte] WebSocket frames.
      */

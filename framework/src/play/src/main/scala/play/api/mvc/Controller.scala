@@ -55,7 +55,7 @@ trait Controller extends Results with BodyParsers with Status with HeaderNames w
    * }}}
    */
   implicit def flash(implicit request: RequestHeader) = request.flash
-  
+
   implicit def lang(implicit request: RequestHeader) = {
     play.api.Play.maybeApplication.map { implicit app =>
       play.api.i18n.Lang.preferred(request.acceptLanguages)

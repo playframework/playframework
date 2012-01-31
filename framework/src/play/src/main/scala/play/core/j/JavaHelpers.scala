@@ -63,7 +63,7 @@ trait JavaHelpers {
       def body = null
 
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
-      
+
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
       def queryString = {

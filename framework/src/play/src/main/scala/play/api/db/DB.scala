@@ -19,12 +19,12 @@ import com.jolbox.bonecp.hooks._
 trait DBApi {
 
   val datasources: List[Tuple2[DataSource, String]]
-  
+
   /**
    * Shutdown pool for given datasource
    */
   def shutdownPool(ds: DataSource)
-  
+
   /**
    * Retrieves a JDBC connection, with auto-commit set to `true`.
    *
@@ -34,7 +34,7 @@ trait DBApi {
    * @return a JDBC connection
    * @throws an error if the required data source is not registered
    */
-  def getDataSource(name: String): DataSource 
+  def getDataSource(name: String): DataSource
 
   /**
    * Retrieves the JDBC connection URL for a particular data source.
@@ -47,7 +47,7 @@ trait DBApi {
     val ds = getDataSource(name)
     ds.getConnection.getMetaData.getURL
   }
-  
+
   /**
    * Retrieves a JDBC connection.
    *
@@ -63,7 +63,7 @@ trait DBApi {
     connection.setAutoCommit(autocommit)
     connection
   }
-  
+
   /**
    * Execute a block of code, providing a JDBC connection. The connection is
    * automatically released.
@@ -199,17 +199,17 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
   private def error = throw new Exception("db keys are missing from application.conf")
 
   lazy val dbConfig = app.configuration.getConfig("db").getOrElse(Configuration.empty)
-  
+
   // should be accessed in onStart first
   private lazy val dbApi: DBApi = new BoneCPApi(dbConfig, app.classloader)
-  
+
   /**
    * plugin is disabled if either configuration is missing or the plugin is explicitly disabled
    */
   private lazy val isDisabled = {
     app.configuration.getString("dbplugin").filter(_ == "disabled").isDefined || dbConfig.subKeys.isEmpty
   }
-  
+
   /**
    * Is this plugin enabled.
    *
@@ -234,11 +234,11 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
         ds._1.getConnection.close()
         app.mode match {
           case Mode.Test =>
-          case mode => Logger("play").info("database [" + ds._2 + "] connected at " + ds._1.getConnection.getMetaData.getURL )
+          case mode => Logger("play").info("database [" + ds._2 + "] connected at " + ds._1.getConnection.getMetaData.getURL)
         }
       } catch {
         case e => {
-          throw dbConfig.reportError("url", "Cannot connect to database at [" + ds._1.getConnection.getMetaData.getURL  + "]", Some(e.getCause))
+          throw dbConfig.reportError("url", "Cannot connect to database at [" + ds._1.getConnection.getMetaData.getURL + "]", Some(e.getCause))
         }
       }
     }
@@ -249,7 +249,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    */
   override def onStop() {
     dbApi.datasources.foreach {
-      case (ds,_) => try {
+      case (ds, _) => try {
         dbApi.shutdownPool(ds)
       } catch { case _ => }
     }
@@ -265,7 +265,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
 private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoader) extends DBApi {
 
   private def error(m: String = "") = throw new Exception("Invalid DB configuration " + m)
-  
+
   private val dbNames = configuration.subKeys
 
   private def register(driver: String, c: Configuration) {
@@ -277,7 +277,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
   }
 
   private def createDataSource(dbName: String, url: String, driver: String, conf: Configuration): DataSource = {
-    
+
     val datasource = new BoneCPDataSource
 
     // Try to load the driver
@@ -355,19 +355,19 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
       JNDI.initialContext.rebind(name, datasource)
       Logger("play").info("datasource [" + conf.getString("url").get + "] bound to JNDI as " + name)
     }
-    
+
     datasource
-                
+
   }
-  
+
   //register either a specific connection or all of them 
   val datasources: List[Tuple2[DataSource, String]] = dbNames.map { dbName =>
-      val url = configuration.getString(dbName + ".url").getOrElse(error("- could not determine url for " + dbName + ".url")) 
-      val driver = configuration.getString(dbName + ".driver").getOrElse(error("- could not determine driver for " + dbName + ".driver"))    
-      val extraConfig = configuration.getConfig(dbName).getOrElse(error("- could not find extra configs")) 
-      register(driver, extraConfig)
-      createDataSource(dbName, url, driver, extraConfig) -> dbName
-    }.toList
+    val url = configuration.getString(dbName + ".url").getOrElse(error("- could not determine url for " + dbName + ".url"))
+    val driver = configuration.getString(dbName + ".driver").getOrElse(error("- could not determine driver for " + dbName + ".driver"))
+    val extraConfig = configuration.getConfig(dbName).getOrElse(error("- could not find extra configs"))
+    register(driver, extraConfig)
+    createDataSource(dbName, url, driver, extraConfig) -> dbName
+  }.toList
 
   def shutdownPool(ds: DataSource) = ds match {
     case ds: BoneCPDataSource => ds.close()
@@ -384,7 +384,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
    * @throws an error if the required data source is not registered
    */
   def getDataSource(name: String): DataSource = {
-    datasources.filter(_._2 == name).headOption.map(e => e._1).getOrElse(error(" - could not find datasource for "+name))
+    datasources.filter(_._2 == name).headOption.map(e => e._1).getOrElse(error(" - could not find datasource for " + name))
   }
 
 }
