@@ -32,10 +32,11 @@ if [ -f conf/application.conf ]; then
     fi
   fi
   
-  if [ -z "${JPDA_PORT}" ]; then
+  if test "$1" = "debug"; then
     JPDA_PORT="9999"
+    shift      
   fi
-  
+
   if [ -n "$1" ]; then
     JPDA_PORT="${JPDA_PORT}" `dirname $0`/framework/build "$@"
   else
