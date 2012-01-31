@@ -108,7 +108,7 @@ trait PlaySettings {
     // Adds views template to continious triggers
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*.scala.*").get },
 
-    commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     shellPrompt := playPrompt,
 

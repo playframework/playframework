@@ -1,293 +1,302 @@
 @(message: String, style: String = "Scala")
 
-<link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
-<header>
-    <div class="wrapper">
-        <span id="version">@play.core.PlayVersion.current</span>
-        <ul>
-            <li><a href="/@@documentation/api/scala/index.html">Scala API</a></li>
-            <li><a href="/@@documentation/api/java/index.html">Java API</a></li>
-        </ul>
-    </div>
-</header>
-<div id="title" >
-    <div class="wrapper">
-        <h1><a href="/@@documentation">@message</a></h1>
-    </div>
-</div>
-<div id="manual" class="wrapper">
+@play.api.Play.maybeApplication.filterNot(_.mode != play.api.Mode.Dev).map { _ =>
     
-    @if(style == "Scala") {
-        
-        <div id="main">
-
-            <h1>Welcome to Play 2.0</h1>
-
-            <p>
-                Congratulation, you've just created a new Play application. This page will help you in the few next steps.
-            </p>
-
-            <blockquote>
-                <p>
-                    Your are using Play @play.core.PlayVersion.current
-                </p>
-            </blockquote>
-
-            <h2>Why do you see this page?</h2>
-
-            <p>
-                The <code>conf/routes</code> file defines a route that tell Play to invoke the <code>Application.index</code> action when a browser requests the / URI using the GET method:
-            </p>
-
-<pre><code># Home page
-GET     /               controllers.Application.index</code></pre>
-
-            <p>
-                So Play has invoked the <code>controllers.Application.index</code> method to obtain the <code>Action</code> to execute:
-            </p>
-
-<pre><code>def index = Action {
-  Ok(views.html.index("Your new application is ready!"))
-}</code></pre>
-
-            <p>
-                An action is a function handling the incoming HTTP request, and returning the HTTP result to send back to the Web client. 
-                Here we send a <code>200 OK</code> response, using a template the fill it's content.
-            </p>
-
-            <p>
-                The template is defined in the <code>app/views/index.scala.html</code> file and compiled as a Scala function.
-            </p>
-
-<pre><code>@@(message: String)
-
-@@main("Welcome to Play 2.0") {
-
-    @@play20.welcome(message)
-
-}</code></pre>
-
-            <p>
-                The first line of the template defines the function signature. Here it just takes a single <code>String</code> parameter. 
-                Then this template call another function defined in <code>app/views/main.scala.html</code> which display the HTML layout, and another
-                function displaying this welcome message. You can freely add any HTML fragment mixed with Scala code in this file.
-            </p>
-
-            <h2>This is your first time?</h2>
-
-            <p>
-                You can continue by trying the <a href="#">Hello world tutorial</a> that will guide you on the basics of creating a Play 2.0 application.
-            </p>
-
-            <h2>Need to set up a IDE?</h2>
-
-            <p>
-                You can start right now to hack your application using any text editor. Any changes will be automatically realoaded at the next page refresh, 
-                including modifications made to Scala sources files.
-            </p>
-
-            <p>
-                If you want to set up your application in <strong>Eclipse</strong> or any other Scala IDE, check the 
-                <a href="#">Setting up your preferred IDE</a> page.
-            </p>
-
-            <h2>Need to connect to a database?</h2>
-
-            <p>
-                You can quickly set up a developement database (either in memory or written to the filesystem), 
-                by adding these lines to the <code>conf/application.conf</code> file:
-            </p>
-
-<pre><code>db.default.driver=org.h2.Driver
-db.default.url="jdbc:h2:mem:play"</code></pre>
-
-            <p>
-                If you need to connect to another JDBC compliant database, first add the corresponding driver library 
-                to your application dependencies:
-            </p>
-
-<pre><code>val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.18"
-)</code></pre>
-
-            <p>
-                And then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
-            </p>
-
-<pre><code>db.url=jdbc:mysql:database_name
-db.driver=org.mysql.Driver
-db.user=root
-db.pass=secret</code></pre>
-
-            <h2>Need more help?</h2>
-
-            <p>
-                When your application is run from the Play console, you can access directly the current documentation at 
-                the <a href="/@@documentation">/@@documentation</a> URL or go to <a href="http://www.playframework.org">http://www.playframework.org</a>.
-            </p>
-
-            <p>
-                The <a href="http://groups.google.com/group/play-framework">Play Google Group</a> is where Play users come to seek help, announce projects, and discuss. If you don't have any google account, you can still join the mailing list sending an email to 
-                <strong>play-framework+subscribe@@googlegroups.com</strong>.
-            </p>
-
-        </div>    
-        <div id="sidebar">
-            <h1>Browse</h1>
+    <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
+    <header>
+        <div class="wrapper">
+            <span id="version">@play.core.PlayVersion.current</span>
             <ul>
-                <li><a href="/@@documentation">Local documentation</li>
-                <li><a href="/@@documentation/api/scala/index.html">Browse the Scala API</a></li>
+                <li><a href="/@@documentation/api/scala/index.html">Scala API</a></li>
+                <li><a href="/@@documentation/api/java/index.html">Java API</a></li>
             </ul>
-            <h1>Start here</h1>
-            <ul>
-                <li><a href="/@@documentation">Use the Play console</li>
-                <li><a href="/@@documentation">The Hello World tutorial</a></li>
-                <li><a href="/@@documentation">Setting up your preferred IDE</a></li>
-            </ul>
-            <h1>Search</h1>
-            <p>Get help with google</p>
-            <div id="searchBox"><form action="http://www.google.com/cse" id="cse-search-box"><div><input type="hidden" name="cx" value="002614023023983855063:jn1mu_7bof0" /><input type="hidden" name="ie" value="UTF-8" /><input type="text" name="q" size="28" style="font-size:14px"/></div></form><script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script></div>
         </div>
-        
-    } else {
-        
-        <div id="main">
-
-            <h1>Welcome to Play 2.0</h1>
-
-            <p>
-                Congratulation, you've just created a new Play application. This page will help you in the few next steps.
-            </p>
-
-            <blockquote>
-                <p>
-                    Your are using Play @play.core.PlayVersion.current
-                </p>
-            </blockquote>
-
-            <h2>Why do you see this page?</h2>
-
-            <p>
-                The <code>conf/routes</code> file defines a route that tell Play to invoke the <code>Application.index</code> action when a browser requests the / URI using the GET method:
-            </p>
-
-<pre><code># Home page
-GET     /               controllers.Application.index()</code></pre>
-
-            <p>
-                So Play has invoked the <code>controllers.Application.index</code> method:
-            </p>
-
-<pre><code>public static Result index() = {
-  return ok(index.render("Your new application is ready."));
-}</code></pre>
-
-            <p>
-                An action method is handles the incoming HTTP request, and returns the HTTP result to send back to the Web client. 
-                Here we send a <code>200 OK</code> response, using a template the fill it's content.
-            </p>
-
-            <p>
-                The template is defined in the <code>app/views/index.scala.html</code> file and compiled as a standard Java class.
-            </p>
-
-<pre><code>@@(message: String)
-
-@@main("Welcome to Play 2.0") {
-
-    @@play20.welcome(message, style = "Java")
-
-}</code></pre>
-
-            <p>
-                The first line of the template defines the function signature. Here it just takes a single <code>String</code> parameter. 
-                Then this template call another function defined in <code>app/views/main.scala.html</code> which display the HTML layout, and another
-                function displaying this welcome message. You can freely add any HTML fragment mixed with Scala code in this file.
-            </p>
-            
-            <blockquote>
-                <p>
-                    <strong>Note</strong> that Scala is fully compatible with Java, so if you don't know Scala don't panic, a Scala statement is very close to a Java one. 
-                </p>
-            </blockquote>
-
-            <h2>This is your first time?</h2>
-
-            <p>
-                You can continue by trying the <a href="#">Hello world tutorial</a> that will guide you on the basics of creating a Play 2.0 application.
-            </p>
-
-            <h2>Need to set up a IDE?</h2>
-
-            <p>
-                You can start right now to hack your application using any text editor. Any changes will be automatically realoaded at the next page refresh, 
-                including modifications made to Scala sources files.
-            </p>
-
-            <p>
-                If you want to set up your application in <strong>Eclipse</strong> or any other Java IDE, check the 
-                <a href="#">Setting up your preferred IDE</a> page.
-            </p>
-
-            <h2>Need to connect to a database?</h2>
-
-            <p>
-                You can quickly set up a developement database (either in memory or written to the filesystem), 
-                by adding these lines to the <code>conf/application.conf</code> file:
-            </p>
-
-<pre><code>db.default.driver=org.h2.Driver
-db.default.url="jdbc:h2:mem:play"</code></pre>
-
-            <p>
-                If you need to connect to another JDBC compliant database, first add the corresponding driver library 
-                to your application dependencies:
-            </p>
-
-<pre><code>val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.18"
-)</code></pre>
-
-            <p>
-                And then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
-            </p>
-
-<pre><code>db.url=jdbc:mysql:database_name
-db.driver=org.mysql.Driver
-db.user=root
-db.pass=secret</code></pre>
-
-            <h2>Need more help?</h2>
-
-            <p>
-                When your application is run from the Play console, you can access directly the current documentation at 
-                the <a href="/@@documentation">/@@documentation</a> URL or go to <a href="http://www.playframework.org">http://www.playframework.org</a>.
-            </p>
-
-            <p>
-                The <a href="http://groups.google.com/group/play-framework">Play Google Group</a> is where Play users come to seek help, announce projects, and discuss. If you don't have any google account, you can still join the mailing list sending an email to 
-                <strong>play-framework+subscribe@@googlegroups.com</strong>.
-            </p>
-
-        </div>    
-        <div id="sidebar">
-            <h1>Browse</h1>
-            <ul>
-                <li><a href="/@@documentation">Local documentation</li>
-                <li><a href="/@@documentation/api/java/index.html">Browse the Java API</a></li>
-            </ul>
-            <h1>Start here</h1>
-            <ul>
-                <li><a href="/@@documentation">Use the Play console</li>
-                <li><a href="/@@documentation">The Hello World tutorial</a></li>
-                <li><a href="/@@documentation">Setting up your preferred IDE</a></li>
-            </ul>
-            <h1>Search</h1>
-            <p>Get help with google</p>
-            <div id="searchBox"><form action="http://www.google.com/cse" id="cse-search-box"><div><input type="hidden" name="cx" value="002614023023983855063:jn1mu_7bof0" /><input type="hidden" name="ie" value="UTF-8" /><input type="text" name="q" size="28" style="font-size:14px"/></div></form><script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script></div>
+    </header>
+    <div id="title" >
+        <div class="wrapper">
+            <h1><a href="/@@documentation">@message</a></h1>
         </div>
+    </div>
+    <div id="manual" class="wrapper">
 
-    }
+        @if(style == "Scala") {
+
+            <div id="main">
+
+                <h1>Welcome to Play 2.0</h1>
+
+                <p>
+                    Congratulation, you've just created a new Play application. This page will help you in the few next steps.
+                </p>
+
+                <blockquote>
+                    <p>
+                        Your are using Play @play.core.PlayVersion.current
+                    </p>
+                </blockquote>
+
+                <h2>Why do you see this page?</h2>
+
+                <p>
+                    The <code>conf/routes</code> file defines a route that tell Play to invoke the <code>Application.index</code> action when a browser requests the / URI using the GET method:
+                </p>
+
+    <pre><code># Home page
+    GET     /               controllers.Application.index</code></pre>
+
+                <p>
+                    So Play has invoked the <code>controllers.Application.index</code> method to obtain the <code>Action</code> to execute:
+                </p>
+
+    <pre><code>def index = Action {
+      Ok(views.html.index("Your new application is ready!"))
+    }</code></pre>
+
+                <p>
+                    An action is a function handling the incoming HTTP request, and returning the HTTP result to send back to the Web client. 
+                    Here we send a <code>200 OK</code> response, using a template the fill it's content.
+                </p>
+
+                <p>
+                    The template is defined in the <code>app/views/index.scala.html</code> file and compiled as a Scala function.
+                </p>
+
+    <pre><code>@@(message: String)
+
+    @@main("Welcome to Play 2.0") {
+
+        @@play20.welcome(message)
+
+    }</code></pre>
+
+                <p>
+                    The first line of the template defines the function signature. Here it just takes a single <code>String</code> parameter. 
+                    Then this template call another function defined in <code>app/views/main.scala.html</code> which display the HTML layout, and another
+                    function displaying this welcome message. You can freely add any HTML fragment mixed with Scala code in this file.
+                </p>
+
+                <h2>This is your first time?</h2>
+
+                <p>
+                    You can continue by trying the <a href="#">Hello world tutorial</a> that will guide you on the basics of creating a Play 2.0 application.
+                </p>
+
+                <h2>Need to set up a IDE?</h2>
+
+                <p>
+                    You can start right now to hack your application using any text editor. Any changes will be automatically realoaded at the next page refresh, 
+                    including modifications made to Scala sources files.
+                </p>
+
+                <p>
+                    If you want to set up your application in <strong>Eclipse</strong> or any other Scala IDE, check the 
+                    <a href="#">Setting up your preferred IDE</a> page.
+                </p>
+
+                <h2>Need to connect to a database?</h2>
+
+                <p>
+                    You can quickly set up a developement database (either in memory or written to the filesystem), 
+                    by adding these lines to the <code>conf/application.conf</code> file:
+                </p>
+
+    <pre><code>db.default.driver=org.h2.Driver
+    db.default.url="jdbc:h2:mem:play"</code></pre>
+
+                <p>
+                    If you need to connect to another JDBC compliant database, first add the corresponding driver library 
+                    to your application dependencies:
+                </p>
+
+    <pre><code>val appDependencies = Seq(
+      "mysql" % "mysql-connector-java" % "5.1.18"
+    )</code></pre>
+
+                <p>
+                    And then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
+                </p>
+
+    <pre><code>db.url=jdbc:mysql:database_name
+    db.driver=org.mysql.Driver
+    db.user=root
+    db.pass=secret</code></pre>
+
+                <h2>Need more help?</h2>
+
+                <p>
+                    When your application is run from the Play console, you can access directly the current documentation at 
+                    the <a href="/@@documentation">/@@documentation</a> URL or go to <a href="http://www.playframework.org">http://www.playframework.org</a>.
+                </p>
+
+                <p>
+                    The <a href="http://groups.google.com/group/play-framework">Play Google Group</a> is where Play users come to seek help, announce projects, and discuss. If you don't have any google account, you can still join the mailing list sending an email to 
+                    <strong>play-framework+subscribe@@googlegroups.com</strong>.
+                </p>
+
+            </div>    
+            <div id="sidebar">
+                <h1>Browse</h1>
+                <ul>
+                    <li><a href="/@@documentation">Local documentation</li>
+                    <li><a href="/@@documentation/api/scala/index.html">Browse the Scala API</a></li>
+                </ul>
+                <h1>Start here</h1>
+                <ul>
+                    <li><a href="/@@documentation">Use the Play console</li>
+                    <li><a href="/@@documentation">The Hello World tutorial</a></li>
+                    <li><a href="/@@documentation">Setting up your preferred IDE</a></li>
+                </ul>
+                <h1>Search</h1>
+                <p>Get help with google</p>
+                <div id="searchBox"><form action="http://www.google.com/cse" id="cse-search-box"><div><input type="hidden" name="cx" value="002614023023983855063:jn1mu_7bof0" /><input type="hidden" name="ie" value="UTF-8" /><input type="text" name="q" size="28" style="font-size:14px"/></div></form><script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script></div>
+            </div>
+
+        } else {
+
+            <div id="main">
+
+                <h1>Welcome to Play 2.0</h1>
+
+                <p>
+                    Congratulation, you've just created a new Play application. This page will help you in the few next steps.
+                </p>
+
+                <blockquote>
+                    <p>
+                        Your are using Play @play.core.PlayVersion.current
+                    </p>
+                </blockquote>
+
+                <h2>Why do you see this page?</h2>
+
+                <p>
+                    The <code>conf/routes</code> file defines a route that tell Play to invoke the <code>Application.index</code> action when a browser requests the / URI using the GET method:
+                </p>
+
+    <pre><code># Home page
+    GET     /               controllers.Application.index()</code></pre>
+
+                <p>
+                    So Play has invoked the <code>controllers.Application.index</code> method:
+                </p>
+
+    <pre><code>public static Result index() = {
+      return ok(index.render("Your new application is ready."));
+    }</code></pre>
+
+                <p>
+                    An action method is handles the incoming HTTP request, and returns the HTTP result to send back to the Web client. 
+                    Here we send a <code>200 OK</code> response, using a template the fill it's content.
+                </p>
+
+                <p>
+                    The template is defined in the <code>app/views/index.scala.html</code> file and compiled as a standard Java class.
+                </p>
+
+    <pre><code>@@(message: String)
+
+    @@main("Welcome to Play 2.0") {
+
+        @@play20.welcome(message, style = "Java")
+
+    }</code></pre>
+
+                <p>
+                    The first line of the template defines the function signature. Here it just takes a single <code>String</code> parameter. 
+                    Then this template call another function defined in <code>app/views/main.scala.html</code> which display the HTML layout, and another
+                    function displaying this welcome message. You can freely add any HTML fragment mixed with Scala code in this file.
+                </p>
+
+                <blockquote>
+                    <p>
+                        <strong>Note</strong> that Scala is fully compatible with Java, so if you don't know Scala don't panic, a Scala statement is very close to a Java one. 
+                    </p>
+                </blockquote>
+
+                <h2>This is your first time?</h2>
+
+                <p>
+                    You can continue by trying the <a href="#">Hello world tutorial</a> that will guide you on the basics of creating a Play 2.0 application.
+                </p>
+
+                <h2>Need to set up a IDE?</h2>
+
+                <p>
+                    You can start right now to hack your application using any text editor. Any changes will be automatically realoaded at the next page refresh, 
+                    including modifications made to Scala sources files.
+                </p>
+
+                <p>
+                    If you want to set up your application in <strong>Eclipse</strong> or any other Java IDE, check the 
+                    <a href="#">Setting up your preferred IDE</a> page.
+                </p>
+
+                <h2>Need to connect to a database?</h2>
+
+                <p>
+                    You can quickly set up a developement database (either in memory or written to the filesystem), 
+                    by adding these lines to the <code>conf/application.conf</code> file:
+                </p>
+
+    <pre><code>db.default.driver=org.h2.Driver
+    db.default.url="jdbc:h2:mem:play"</code></pre>
+
+                <p>
+                    If you need to connect to another JDBC compliant database, first add the corresponding driver library 
+                    to your application dependencies:
+                </p>
+
+    <pre><code>val appDependencies = Seq(
+      "mysql" % "mysql-connector-java" % "5.1.18"
+    )</code></pre>
+
+                <p>
+                    And then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
+                </p>
+
+    <pre><code>db.url=jdbc:mysql:database_name
+    db.driver=org.mysql.Driver
+    db.user=root
+    db.pass=secret</code></pre>
+
+                <h2>Need more help?</h2>
+
+                <p>
+                    When your application is run from the Play console, you can access directly the current documentation at 
+                    the <a href="/@@documentation">/@@documentation</a> URL or go to <a href="http://www.playframework.org">http://www.playframework.org</a>.
+                </p>
+
+                <p>
+                    The <a href="http://groups.google.com/group/play-framework">Play Google Group</a> is where Play users come to seek help, announce projects, and discuss. If you don't have any google account, you can still join the mailing list sending an email to 
+                    <strong>play-framework+subscribe@@googlegroups.com</strong>.
+                </p>
+
+            </div>    
+            <div id="sidebar">
+                <h1>Browse</h1>
+                <ul>
+                    <li><a href="/@@documentation">Local documentation</li>
+                    <li><a href="/@@documentation/api/java/index.html">Browse the Java API</a></li>
+                </ul>
+                <h1>Start here</h1>
+                <ul>
+                    <li><a href="/@@documentation">Use the Play console</li>
+                    <li><a href="/@@documentation">The Hello World tutorial</a></li>
+                    <li><a href="/@@documentation">Setting up your preferred IDE</a></li>
+                </ul>
+                <h1>Search</h1>
+                <p>Get help with google</p>
+                <div id="searchBox"><form action="http://www.google.com/cse" id="cse-search-box"><div><input type="hidden" name="cx" value="002614023023983855063:jn1mu_7bof0" /><input type="hidden" name="ie" value="UTF-8" /><input type="text" name="q" size="28" style="font-size:14px"/></div></form><script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script></div>
+            </div>
+
+        }
+
+
+    </div>
     
+}.getOrElse {
+    
+    <h1>@message</h1>
+    
+}
 
-</div>

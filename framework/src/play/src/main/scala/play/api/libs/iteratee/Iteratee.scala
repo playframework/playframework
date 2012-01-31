@@ -479,10 +479,10 @@ object Enumeratee {
 
     def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
 
-      case in @ Input.El(e) if predicate(e)  =>
+      case in @ Input.El(e) if predicate(e) =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
 
-      case in @ Input.El(e) =>  Cont(step(k))
+      case in @ Input.El(e) => Cont(step(k))
 
       case in @ Input.Empty =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
@@ -497,14 +497,14 @@ object Enumeratee {
 
   def collect[From] = new {
 
-    def apply[To](transformer: PartialFunction[From,To]): Enumeratee[From, To] = new CheckDone[From, To] {
+    def apply[To](transformer: PartialFunction[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
 
-        case in @ Input.El(e) if transformer.isDefinedAt(e)  =>
+        case in @ Input.El(e) if transformer.isDefinedAt(e) =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in.map(transformer))
 
-        case in @ Input.El(e) =>  Cont(step(k))
+        case in @ Input.El(e) => Cont(step(k))
 
         case in @ Input.Empty =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
@@ -517,8 +517,6 @@ object Enumeratee {
 
     }
   }
-
-
 
   def drop[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 

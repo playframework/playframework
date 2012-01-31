@@ -145,11 +145,14 @@ object Evolutions {
           case "applying_up" => problem.getString("apply_script")
           case _ => problem.getString("revert_script")
         }
+        val error = problem.getString("last_problem")
 
-        // script = "# --- Rev:" + revision + "," + (state.equals("applying_up") ? "Ups" : "Downs") + " - " + hash + "\n\n" + script;
-        // String error = rs.getString("last_problem");
+        println(script)
+        println(error)
 
-        throw InconsistentDatabase(db)
+        val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script;
+
+        throw InconsistentDatabase(db, humanScript, error, revision)
       }
 
     } catch {
@@ -433,7 +436,6 @@ object OfflineEvolutions {
   /**
    * Computes and applies an evolutions script.
    *
-   * @param applicationPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
@@ -451,6 +453,27 @@ object OfflineEvolutions {
       Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
     Evolutions.applyScript(dbApi, dbName, script)
+
+  }
+
+  /**
+   * Resolve an inconsistent evolution..
+   *
+   * @param classloader the classloader used to load the driver
+   * @param dbName the database name
+   */
+  def resolve(classloader: ClassLoader, dbName: String, revision: Int) {
+
+    import play.api._
+
+    val c = Configuration.load().getConfig("db").get
+
+    val dbApi = new BoneCPApi(c, classloader)
+
+    if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+      Logger("play").warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
+    }
+    Evolutions.resolve(dbApi, dbName, revision)
 
   }
 
@@ -488,7 +511,23 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
  *
  * @param db the database name
  */
-case class InconsistentDatabase(db: String) extends PlayException(
+case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException(
   "Database '" + db + "' is in inconsistent state!",
-  "An evolution has not been applied properly. Please check the problem and resolve it manually before making it as resolved.",
-  None)
+  "An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved.",
+  None) with PlayException.ExceptionAttachment with PlayException.RichDescription {
+
+  def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
+  def content = script
+
+  private val javascript = """
+        document.location = '/@evolutions/resolve/%s/%s?redirect=' + encodeURIComponent(location)
+    """.format(db, rev).trim
+
+  def htmlDescription = {
+
+    <span>An evolution has not been applied properly. Please check the problem and resolve it manually before making it as resolved -</span>
+    <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>
+
+  }.map(_.toString).mkString
+
+}

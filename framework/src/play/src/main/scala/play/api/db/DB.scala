@@ -18,7 +18,7 @@ import com.jolbox.bonecp.hooks._
  */
 trait DBApi {
 
-  val datasources: List[Tuple2[DataSource, String]]
+  val datasources: List[(DataSource, String)]
 
   /**
    * Shutdown pool for given datasource
@@ -228,7 +228,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    * Reads the configuration and connects to every data source.
    */
   override def onStart() {
-    //try to connect to each, this should be the first access to dbApi
+    // Try to connect to each, this should be the first access to dbApi
     dbApi.datasources.map { ds =>
       try {
         ds._1.getConnection.close()
@@ -238,7 +238,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
         }
       } catch {
         case e => {
-          throw dbConfig.reportError("url", "Cannot connect to database at [" + ds._1.getConnection.getMetaData.getURL + "]", Some(e.getCause))
+          throw dbConfig.reportError(ds._2 + ".url", "Cannot connect to database [" + ds._2 + "]", Some(e.getCause))
         }
       }
     }
@@ -336,18 +336,19 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     conf.getString("password").map(datasource.setPassword(_))
 
     // Pool configuration
-    conf.getInt("partitionCount").map(datasource.setPartitionCount(_))
-    conf.getInt("maxConnectionsPerPartition").map(datasource.setMaxConnectionsPerPartition(_))
-    conf.getInt("minConnectionsPerPartition").map(datasource.setMinConnectionsPerPartition(_))
-    conf.getInt("acquireIncrement").map(datasource.setAcquireIncrement(_))
-    conf.getInt("acquireRetryAttempts").map(datasource.setAcquireRetryAttempts(_))
-    conf.getMilliseconds("acquireRetryDelay").map(datasource.setAcquireRetryDelayInMs(_))
-    conf.getMilliseconds("connectionTimeout").map(datasource.setConnectionTimeoutInMs(_))
-    conf.getMilliseconds("idleMaxAge").map(datasource.setIdleMaxAgeInSeconds(_))
+    datasource.setPartitionCount(conf.getInt("partitionCount").getOrElse(2))
+    datasource.setMaxConnectionsPerPartition(conf.getInt("maxConnectionsPerPartition").getOrElse(15))
+    datasource.setMinConnectionsPerPartition(conf.getInt("minConnectionsPerPartition").getOrElse(5))
+    datasource.setAcquireIncrement(conf.getInt("acquireIncrement").getOrElse(1))
+    datasource.setAcquireRetryAttempts(conf.getInt("acquireRetryAttempts").getOrElse(10))
+    datasource.setAcquireRetryDelayInMs(conf.getMilliseconds("acquireRetryDelay").getOrElse(1000))
+    datasource.setConnectionTimeoutInMs(conf.getMilliseconds("connectionTimeout").getOrElse(1000))
+    datasource.setIdleMaxAge(conf.getMilliseconds("idleMaxAge").getOrElse(1000 * 60 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
+    datasource.setMaxConnectionAge(conf.getMilliseconds("maxConnectionAge").getOrElse(1000 * 60 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
+    datasource.setDisableJMX(conf.getBoolean("disableJMX").getOrElse(true))
+
     conf.getString("initSQL").map(datasource.setInitSQL(_))
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
-    conf.getMilliseconds("maxConnectionAge").map(datasource.setMaxConnectionAge(_, java.util.concurrent.TimeUnit.MILLISECONDS))
-    conf.getBoolean("disableJMX").orElse(Some(true)).map(datasource.setDisableJMX(_))
     conf.getString("connectionTestStatement").map(datasource.setConnectionTestStatement(_))
 
     // Bind in JNDI
@@ -360,7 +361,6 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
   }
 
-  //register either a specific connection or all of them 
   val datasources: List[Tuple2[DataSource, String]] = dbNames.map { dbName =>
     val url = configuration.getString(dbName + ".url").getOrElse(error("- could not determine url for " + dbName + ".url"))
     val driver = configuration.getString(dbName + ".driver").getOrElse(error("- could not determine driver for " + dbName + ".driver"))
@@ -369,9 +369,11 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     createDataSource(dbName, url, driver, extraConfig) -> dbName
   }.toList
 
-  def shutdownPool(ds: DataSource) = ds match {
-    case ds: BoneCPDataSource => ds.close()
-    case _ => error(" - could not recognize DataSource, therefore unable to shutdown this pool")
+  def shutdownPool(ds: DataSource) = {
+    ds match {
+      case ds: BoneCPDataSource => ds.close()
+      case _ => error(" - could not recognize DataSource, therefore unable to shutdown this pool")
+    }
   }
 
   /**
