@@ -126,6 +126,7 @@ class EhCachePlugin(app: Application) extends CachePlugin {
 
     def set(key: String, value: Any, expiration: Int) {
       val element = new Element(key, value)
+      if (expiration == 0) element.setEternal(true)
       element.setTimeToLive(expiration)
       cache.put(element)
     }

@@ -17,7 +17,7 @@ object Application extends Controller {
 
   def index = Action {
     val conn = play.api.db.DB.getConnection("default")
-    Cache.set("hello", "world", 60)
+    Cache.set("hello", "world")
     Ok(views.html.index(Cache.getAs[String]("hello").getOrElse("oh noooz")))
   }
 
