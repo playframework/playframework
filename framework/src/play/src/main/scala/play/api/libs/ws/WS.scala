@@ -58,7 +58,7 @@ object WS {
 
     protected var _url: String = null
 
-    //this will do a java mutable set hence the {} repsonse
+    //this will do a java mutable set hence the {} response
     _auth.map(data => auth(data._1, data._2, data._3)).getOrElse({})
 
     /**
