@@ -30,11 +30,11 @@ object JavascriptCompiler {
     val jsCode = file.slurpString.replace("\r", "")
     val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
     // Excluding the current file
-    val deps = tree.dependencies.filterNot(_ == source)
-    val input = deps.map(file => JSSourceFile.fromCode(file.getName(), includeSource(file)))
+    val deps = tree.dependencies.filterNot(_.file == source)
+    val input = deps.map(file => JSSourceFile.fromCode(file.key, includeSource(file)))
 
     compiler.compile(extern, (headerSource +: input :+ JSSourceFile.fromCode(source.getName(), jsCode)).toArray, options).success match {
-      case true => (tree.fullSource, Some(compiler.toSource()), tree.dependencies)
+      case true => (tree.fullSource, Some(compiler.toSource()), tree.dependencies.map(_.file))
       case false => {
         val error = compiler.getErrors().head
         throw AssetCompilationException(Some(source), error.description, error.lineNumber, 0)
@@ -107,53 +107,60 @@ require.relative = function (parent) {
 
   lazy val headerSource = JSSourceFile.fromCode("require", requireSource)
 
-  def includeSource(file: File) =
-    "require.register(\"" + file.getName() + "\", function(module, exports, require){\n" + Path(file).slurpString + "});\n"
+  def includeSource(res: Resource) =
+    "require.register(\"" + res.key + "\", function(module, exports, require){\n" + Path(res.file).slurpString + "});\n"
 
 }
+
+case class Resource(key: String, file: File)
 
 /**
  * This is used to resolve dependencies between source files
  */
-case class SourceTree(node: File, ancestors: Set[File] = Set(), children: List[SourceTree] = List()) {
+case class SourceTree(node: Resource, ancestors: Set[File] = Set(), children: List[SourceTree] = List()) {
 
   override def toString = print()
 
-  def print(indent: String = ""): String = (indent + node.getName() + "\n" + children.mkString("\n"))
+  def print(indent: String = ""): String = (indent + node.key + "\n" + children.mkString("\n"))
 
-  private lazy val flatDependencies: List[File] = node +: children.flatMap(_.flatDependencies)
+  private lazy val flatDependencies: List[Resource] = node +: children.flatMap(_.flatDependencies)
 
-  lazy val dependencies: List[File] = flatDependencies.reverse.distinct
+  lazy val dependencies: List[Resource] = flatDependencies.reverse.distinct
 
   def fullSource = if (children.size == 0)
-    Path(node).slurpString.replace("\r", "")
+    Path(node.file).slurpString.replace("\r", "")
   else
-    JavascriptCompiler.requireSource + dependencies.dropRight(1).map(file => JavascriptCompiler.includeSource(file)).mkString("\n\n") + Path(node).slurpString.replace("\r", "")
+    JavascriptCompiler.requireSource + dependencies.dropRight(1).map(res => JavascriptCompiler.includeSource(res)).mkString("\n\n") + Path(node.file).slurpString.replace("\r", "")
 
 }
 
 object SourceTree {
 
-  def build(root: File, ancestors: Set[File] = Set()): SourceTree = {
-    SourceTree(root, ancestors, depsFor(root).map(pair => {
-      val node = pair._1
-      val lineNo = pair._2
+  def build(root: File): SourceTree = build(Resource(root.getName(), root))
+
+  def build(root: Resource, ancestors: Set[File] = Set()): SourceTree = {
+    SourceTree(root, ancestors, depsFor(root.file).map(pair => {
+      val key = pair._1
+      val node = pair._2
+      val lineNo = pair._3
       // Check for cycles
-      if (ancestors.contains(root)) throw new AssetCompilationException(Some(node), "Cycle detected in require instruction", lineNo, 0)
-      SourceTree.build(node, ancestors + root)
+      if (ancestors.contains(node))
+        throw new AssetCompilationException(Some(node), "Cycle detected in require instruction", lineNo, 0)
+      SourceTree.build(Resource(key, node), ancestors + root.file)
     }).toList)
   }
 
-  val requireRe = """require\(["']([\w\-\.]+)["']\)""".r
+  val requireRe = """require\(["']([\w\-\./_]+)["']\)""".r
 
-  def depsFor(input: File): Iterator[(File, Int)] =
+  // Iterator of key, file and line number where we found it
+  def depsFor(input: File): Iterator[(String, File, Int)] =
     requireRe.findAllIn(Path(input).slurpString).matchData
       .map(m => (m.before.toString.count(s => (s == '\n')) + 1, m.group(1)))
       .map(pair => { // (lineNo, filename)
         val require = new File(input.getParentFile(), pair._2 + ".js")
         if (!require.canRead || !require.isFile)
           throw new AssetCompilationException(Some(input), "Unable to find file " + pair._2 + ".js", pair._1, 0)
-        (require, pair._1)
+        (pair._2, require, pair._1)
       })
 
 }
