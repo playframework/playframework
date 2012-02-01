@@ -209,7 +209,7 @@ object PlayBuild extends Build {
         val sbtDependencies = Seq(
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "rhino"                             %    "js"                       %   "1.7R2",
-            "com.google.javascript"             %    "closure-compiler"         %   "r1459",
+            "com.google.javascript"             %    "closure-compiler"         %   "r1741",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "org.avaje"                         %    "ebean"                    %   "2.7.3",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
@@ -230,7 +230,7 @@ object PlayBuild extends Build {
         val anormDependencies = Seq(
             "org.scala-lang"                    %    "scalap"                   %   buildScalaVersion 
         )
-        
+
         val testDependencies = Seq(
             "org.specs2"                        %%   "specs2"                   %   "1.7.1",
             "com.novocode"                      %    "junit-interface"          %   "0.7",
