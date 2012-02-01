@@ -484,7 +484,7 @@ package anorm {
       val rsMetaData = metaData(rs)
       val columns = List.range(1, rsMetaData.columnCount + 1)
       def data(rs: java.sql.ResultSet) = columns.map(nb => rs.getObject(nb))
-      Useful.unfold(rs)(rs => if (!rs.next()) { rs.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
+      Useful.unfold(rs)(rs => if (!rs.next()) { rs.getStatement.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
     }
 
     import SqlParser._

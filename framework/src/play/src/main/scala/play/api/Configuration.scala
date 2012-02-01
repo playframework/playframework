@@ -24,7 +24,11 @@ object Configuration {
    * @return  configuration to be used
    */
   private[play] def loadDev = {
-    ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
+    try {
+      ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
+    } catch {
+      case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
+    }
   }
 
   /**
@@ -45,6 +49,7 @@ object Configuration {
       if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev)
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
+      case e => throw e
     }
   }
 
