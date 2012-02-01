@@ -37,7 +37,7 @@ object JavascriptCompiler {
       case true => (tree.fullSource, Some(compiler.toSource()), tree.dependencies.map(_.file))
       case false => {
         val error = compiler.getErrors().head
-        throw AssetCompilationException(Some(source), error.description, error.lineNumber, 0)
+        throw AssetCompilationException(tree.findSource(error.sourceName).map(_.file), error.description, error.lineNumber, 0)
       }
     }
   }
@@ -108,7 +108,7 @@ require.relative = function (parent) {
   lazy val headerSource = JSSourceFile.fromCode("require", requireSource)
 
   def includeSource(res: Resource) =
-    "require.register(\"" + res.key + "\", function(module, exports, require){\n" + Path(res.file).slurpString + "});\n"
+    "require.register(\"" + res.key + "\", function(module, exports, require){ " + Path(res.file).slurpString + "});\n"
 
 }
 
@@ -126,6 +126,13 @@ case class SourceTree(node: Resource, ancestors: Set[File] = Set(), children: Li
   private lazy val flatDependencies: List[Resource] = node +: children.flatMap(_.flatDependencies)
 
   lazy val dependencies: List[Resource] = flatDependencies.reverse.distinct
+
+  def findSource(key: String): Option[Resource] = (node, children) match {
+    case (Resource(k, _), _) if k == key => Some(node)
+    case (_, Nil) => None
+    case (_, children) => children.find(_.findSource(key).isDefined).flatMap(_.findSource(key))
+    case _ => None
+  }
 
   def fullSource = if (children.size == 0)
     Path(node.file).slurpString.replace("\r", "")
