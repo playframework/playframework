@@ -145,5 +145,16 @@ trait DefaultWrites {
     def writes(o: JsObject) = o
   }
 
+  /**
+   * Serializer for Option.
+   */
+  implicit def OptionWrites[T](implicit fmt: Writes[T]): Writes[Option[T]] = new Writes[Option[T]] {
+    import scala.util.control.Exception._
+    def writes(o: Option[T]) = o match {
+      case Some(value) => fmt.writes(value)
+      case None => JsNull
+    }
+  }
+
 }
 
