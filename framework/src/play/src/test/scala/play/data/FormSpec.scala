@@ -1,5 +1,6 @@
 package play.data
 
+import java.util.GregorianCalendar
 import org.specs2.mutable._
 import play.mvc._
 import play.mvc.Http.Context
@@ -35,6 +36,7 @@ object FormSpec extends Specification {
 
       val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
       myForm hasErrors () must beEqualTo(false)
+      myForm.value().getOrElse(null).dueDate must beEqualTo(new GregorianCalendar(2009, 11, 15).getTime())
     }
     "be valid with mandatory params passed" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
@@ -42,14 +44,15 @@ object FormSpec extends Specification {
 
       val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
       myForm hasErrors () must beEqualTo(false)
+      myForm.value().getOrElse(null).dueDate must beEqualTo(new GregorianCalendar(2009, 11, 15).getTime())
     }
-    "have an error due to baldy formatted date" in {
+    "be valid with year-first date format" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11/11")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
-      myForm hasErrors () must beEqualTo(true)
-
+      myForm hasErrors () must beEqualTo(false)
+      myForm.value().getOrElse(null).dueDate must beEqualTo(new GregorianCalendar(2009, 10, 11).getTime())
     }
     "have an error due to bad value in Id field" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
