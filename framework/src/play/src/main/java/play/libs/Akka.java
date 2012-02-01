@@ -33,5 +33,12 @@ public class Akka {
     public static <T> Promise<T> future(java.util.concurrent.Callable<T> callable) {
         return asPromise(akka.dispatch.Futures.future(callable, system().dispatcher()));
     }
+
+    /**
+     * Returns a Promise which is redeemed after a period of time.
+     */
+    public static <T> Promise<T> timeout(java.util.concurrent.Callable<T> callable, Long duration, java.util.concurrent.TimeUnit unit) {
+        return new Promise(play.utils.Conversions.timeout(callable,duration,unit));
+    }
     
 }
