@@ -63,6 +63,10 @@ object WebSocket {
     WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); e |>> readIn; writeOut |>> i })
   }
 
+  def adapter[A](f: RequestHeader => Enumeratee[A,A])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
+    WebSocket[A](h => (in, out) => {  in &> f(h) |>> out })
+  }
+
   /**
    * Creates a WebSocket result from inbound and outbound channels retrieved asynchronously.
    */

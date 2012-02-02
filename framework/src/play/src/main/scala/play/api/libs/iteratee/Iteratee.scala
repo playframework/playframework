@@ -309,6 +309,8 @@ trait Enumerator[E] {
 
   }
 
+  def through[To](enumeratee: Enumeratee[E, To]): Enumerator[To] = &>(enumeratee)
+
   /**
    * Alias for `andThen`
    */
@@ -472,6 +474,25 @@ object Enumeratee {
     }
 
     def continue[A](k: K[E, A]) = Cont(step(count)(k))
+
+  }
+
+  def grouped[From,To](folder: Iteratee[From,To]):Enumeratee[From,To] = new CheckDone[From,To] {
+
+    def step[A](f: Iteratee[From,To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
+
+        case in @ (Input.El(_) | Input.Empty) =>
+
+          Iteratee.flatten(f.feed(in)).pureFlatFold(
+            (a,_) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(folder)(k)) } &> k(Input.El(a)),
+            kF => Cont(step(Cont(kF))(k)),
+            (msg,e) => Error(msg,in))
+
+        case Input.EOF => Done(k(Input.EOF), Input.EOF)
+
+      }
+
+      def continue[A](k: K[To, A]) = Cont(step(folder)(k))
 
   }
 

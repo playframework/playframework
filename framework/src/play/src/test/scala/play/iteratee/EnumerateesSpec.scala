@@ -108,4 +108,24 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.grouped" should {
+
+    "group input elements according to a folder iteratee" in {
+      val folderIteratee = 
+        Enumeratee.mapInput[String]{ 
+          case Input.El("Concat") => Input.EOF;
+          case other => other } &>>
+        Iteratee.fold("")((s,e) => s + e)
+
+      val result = 
+        Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat") &>
+        Enumeratee.grouped(folderIteratee) ><>
+        Enumeratee.map(List(_)) |>>
+        Iteratee.consume()
+      result.flatMap(_.run).value.get must equalTo(List("Hello","World"))
+
+    }
+
+  }
+
 }
