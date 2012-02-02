@@ -182,7 +182,7 @@ object PlayBuild extends Build {
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "org.avaje"                         %    "ebean"                    %   "2.7.4" notTransitive(),
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
-            "com.h2database"                    %    "h2"                       %   "1.3.158",
+            "com.h2database"                    %    "h2"                       %   "1.3.163",
             "org.scala-tools"                   %%   "scala-stm"                %   "0.4",
             "com.jolbox"                        %    "bonecp"                   %   "0.7.1.RELEASE",
             "org.yaml"                          %    "snakeyaml"                %   "1.9",
@@ -191,7 +191,7 @@ object PlayBuild extends Build {
             "org.springframework"               %    "spring-core"              %   "3.0.7.RELEASE" notTransitive(),
             "org.springframework"               %    "spring-beans"             %   "3.0.7.RELEASE" notTransitive(),
             "joda-time"                         %    "joda-time"                %   "2.0",
-            "javassist"                         %    "javassist"                %   "3.12.1.GA",
+            "org.javassist"                     %    "javassist"                %   "3.15.0-GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
             "com.ning"                          %    "async-http-client"        %   "1.7.0",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
@@ -212,8 +212,8 @@ object PlayBuild extends Build {
             "com.google.javascript"             %    "closure-compiler"         %   "r1741",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "org.avaje"                         %    "ebean"                    %   "2.7.3",
-            "com.h2database"                    %    "h2"                       %   "1.3.158",
-            "javassist"                         %    "javassist"                %   "3.12.1.GA",
+            "com.h2database"                    %    "h2"                       %   "1.3.163",
+            "org.javassist"                     %    "javassist"                %   "3.15.0-GA",
             "org.pegdown"                       %    "pegdown"                  %   "1.1.0"
         )
 
