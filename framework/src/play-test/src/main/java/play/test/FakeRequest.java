@@ -32,6 +32,14 @@ public class FakeRequest {
         fake = fake.withHeaders(Scala.varargs(Scala.Tuple(name, value)));
         return this;
     }
+
+    /**
+     * Add addtional session to this request.
+     */
+    public FakeRequest withSession(String name, String value) {
+        fake = fake.withSession(Scala.varargs(Scala.Tuple(name, value)));
+        return this;
+    }
     
     /**
      * Set a Form url encoded body to this request.
