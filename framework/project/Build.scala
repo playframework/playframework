@@ -171,11 +171,11 @@ object PlayBuild extends Build {
 
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.3.0.Final",
-            "org.slf4j"                         %    "slf4j-api"                %   "1.6.2",
-            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.2",
-            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.2",
-            "ch.qos.logback"                    %    "logback-core"             %   "0.9.30",
-            "ch.qos.logback"                    %    "logback-classic"          %   "0.9.30",
+            "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
+            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.4",
+            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
+            "ch.qos.logback"                    %    "logback-core"             %   "1.0.0",
+            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.0",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0-M2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0-M2",
@@ -196,13 +196,13 @@ object PlayBuild extends Build {
             "com.ning"                          %    "async-http-client"        %   "1.7.0",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
-            "org.reflections"                   %    "reflections"              %   "0.9.5",
+            "org.reflections"                   %    "reflections"              %   "0.9.6",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
-            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
         )
 
@@ -233,7 +233,7 @@ object PlayBuild extends Build {
 
         val testDependencies = Seq(
             "org.specs2"                        %%   "specs2"                   %   "1.7.1",
-            "com.novocode"                      %    "junit-interface"          %   "0.7",
+            "com.novocode"                      %    "junit-interface"          %   "0.8",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"
         )
 
