@@ -103,7 +103,7 @@ object Helper {
 
       val compiler = new Global(settings, new ConsoleReporter(settings) {
         override def printMessage(pos: Position, msg: String) = {
-          throw CompilationError(msg, pos.line, pos.offset.get)
+          throw CompilationError(msg, pos.line, pos.point)
         }
       })
 

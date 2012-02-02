@@ -16,12 +16,12 @@
 @(elements: FieldElements)
 
 <dl class="@elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
-    <dt><label for="@elements.id">@elements.label</label></dt>
+    <dt><label for="@elements.id">@elements.label(elements.lang)</label></dt>
     <dd>@elements.input</dd>
-    @elements.errors.map { error =>
+    @elements.errors(elements.lang).map { error =>
         <dd class="error">@error</dd>
     }
-    @elements.infos.map { info =>
+    @elements.infos(elements.lang).map { info =>
         <dd class="info">@info</dd>
     }
 </dl>

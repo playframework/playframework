@@ -4,9 +4,9 @@ import scala.collection.JavaConverters._
 
 package views.html.helper {
 
-  case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any]) {
+  case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], lang: play.api.i18n.Lang) {
 
-    def infos: Seq[String] = {
+    def infos(implicit lang: play.api.i18n.Lang): Seq[String] = {
       args.get('_help).map(m => Seq(m.toString)).getOrElse {
         (if (args.get('_showConstraints) match {
           case Some(false) => false
@@ -18,7 +18,7 @@ package views.html.helper {
       }
     }
 
-    def errors: Seq[String] = {
+    def errors(implicit lang: play.api.i18n.Lang): Seq[String] = {
       (args.get('_error) match {
         case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(play.api.i18n.Messages(message, args: _*)))
         case _ => None
@@ -36,8 +36,8 @@ package views.html.helper {
       !errors.isEmpty
     }
 
-    def label: Any = {
-      args.get('_label).getOrElse(field.name)
+    def label(implicit lang: play.api.i18n.Lang): Any = {
+      args.get('_label).getOrElse(play.api.i18n.Messages(field.name))
     }
 
   }
@@ -50,7 +50,7 @@ package views.html.helper {
 
     implicit val defaultField = FieldConstructor(views.html.helper.defaultFieldHandler.f)
 
-    def apply(f: (FieldElements) => Html): FieldConstructor = new FieldConstructor {
+    def apply(f: FieldElements => Html): FieldConstructor = new FieldConstructor {
       def apply(elts: FieldElements) = f(elts)
     }
 

@@ -126,7 +126,12 @@ object Formats {
     def bind(key: String, data: Map[String, String]) = {
       stringFormat.bind(key, data).right.flatMap { s =>
         scala.util.control.Exception.allCatch[Date]
-          .either(new SimpleDateFormat(pattern).parse(s))
+          .either({
+            val sdf = new SimpleDateFormat(pattern)
+            sdf.setLenient(false)
+            sdf.parse(s) 
+          }
+          )
           .left.map(e => Seq(FormError(key, "error.date", Nil)))
       }
     }

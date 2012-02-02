@@ -1,6 +1,5 @@
 package play.test;
 
-import play.*;
 import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;

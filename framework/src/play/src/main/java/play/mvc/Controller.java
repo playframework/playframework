@@ -29,6 +29,13 @@ public abstract class Controller extends Results implements Status, HeaderNames 
     }
     
     /**
+     * Returns the current lang.
+     */
+    public static play.i18n.Lang lang() {
+        return play.i18n.Lang.preferred(Context.current().request().acceptLanguages());
+    }
+    
+    /**
      * Returns the current HTTP response.
      */
     public static Response response() {

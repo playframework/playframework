@@ -17,8 +17,9 @@ import PlayKeys._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import java.lang.{ ProcessBuilder => JProcessBuilder }
 
-trait PlayCommands extends PlayJvm {
+trait PlayCommands {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -95,6 +96,10 @@ trait PlayCommands extends PlayJvm {
     val cacheFile = c / "copy-assets"
     val mappings = (r.map(_ ***).reduceLeft(_ +++ _) x rebase(b, t)) ++ (resources x rebase(resourcesDirectories, t))
 
+    /*
+    Disable GZIP Generation for this release.
+    -----
+     
     val toZip = mappings.collect { case (resource, _) if resource.isFile && !resource.getName.endsWith(".gz") => resource } x relativeTo(Seq(b, resourcesDirectories))
 
     val gzipped = toZip.map {
@@ -106,7 +111,9 @@ trait PlayCommands extends PlayJvm {
       }
     }
 
-    val assetsMapping = mappings ++ gzipped
+    val assetsMapping = mappings ++ gzipped*/
+
+    val assetsMapping = mappings
 
     s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
 
@@ -114,57 +121,16 @@ trait PlayCommands extends PlayJvm {
     assetsMapping
   }
 
-  val javaRunner = TaskKey[File]("java-runner")
-  val runWith = TaskKey[RunWith]("run-with")
+  //- test reporter
+  private[sbt] lazy val testListener = new PlayTestListener
 
-  // --- Test Runner
-  val testRunner = TaskKey[Map[String, String]]("test-runner")
-  val testFrameworkCommandOptions = TaskKey[(String, Option[String]) => Seq[String]]("test-framework-command-options")
-  val testJvmOptions = SettingKey[Seq[String]]("test-jvm-options")
-  val testNames = TaskKey[Seq[String]]("test-names")
-  val testAllJvmOptions = TaskKey[JVMOptions]("test-jvm-all-options")
-
-  def generateJVMCommandOptions(fullClasspath: Classpath, target: File) = {
-    val classpathFiles = (fullClasspath.files ++ (target * "scala-*" * "*classes").get).absString
-    (runner: String, args: Option[String]) =>
-      Seq("-cp", classpathFiles, runner) ++ args.map(_.split(" ").toSeq).getOrElse(Nil)
+  val testResultReporter = TaskKey[List[String]]("test-result-reporter")
+  val testResultReporterTask = (state, thisProjectRef) map { (s, r) =>
+    testListener.result.toList
   }
-
-  def collectTestNames = (definedTests in Test) map { tests => tests.toSeq.map(_.name.toString) }
-
-  private def selectTestsFor(testNames: Seq[String]) = if (testNames.size > 0) Some(testNames.mkString(" ")) else None
-
-  def testTask = (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams) map {
-    (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s) =>
-      {
-        if (testNames.isEmpty)
-          s.log.info("No tests to run.")
-        else
-          testRunner.keys.foreach { testType =>
-            val current = testNames.filter(_.endsWith(testType))
-            selectTestsFor(current).map { arg => fork("Fork JVM for test, filter: *" + testType, testRunner(testType), Some(arg), runWith, testAllJvmOptions, srcDir, s.log) }.getOrElse(Unit)
-          }
-      }
-  }
-
-  def testOnlyTask = InputTask(loadForParser(testNames)((s, i) => Defaults.testOnlyParser(s, i getOrElse Nil))) { result =>
-    (testNames, testRunner, runWith, testAllJvmOptions, sourceDirectory, streams, result) map {
-      case (testNames, testRunner, runWith, testAllJvmOptions, srcDir, s, (userDefinedTests, _)) =>
-        val testsPassedIn = userDefinedTests.map { i =>
-          if (i.contains("*"))
-            testNames.filter(_.endsWith(i.replace("*", "")))
-          else
-            testNames.filter(_ == i)
-        }.flatten
-        if (testsPassedIn.isEmpty)
-          s.log.info("No tests to run.")
-        else {
-          testRunner.keys.foreach { testType =>
-            val current = testsPassedIn.filter(_.endsWith(testType))
-            selectTestsFor(current).map(arg => fork("Fork JVM for test, filter: " + arg, testRunner(testType), Some(arg), runWith, testAllJvmOptions, srcDir, s.log)).getOrElse(Unit)
-          }
-        }
-    }
+  val testResultReporterReset = TaskKey[Unit]("test-result-reporter-reset")
+  val testResultReporterResetTask = (state, thisProjectRef) map { (s, r) =>
+    testListener.result.clear
   }
 
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
@@ -229,15 +195,12 @@ trait PlayCommands extends PlayJvm {
     import com.typesafe.sbteclipse.core._
     import com.typesafe.sbteclipse.core.EclipsePlugin._
     def transformerFactory =
-      if (mainLang == SCALA)
-        EclipseClasspathEntryTransformerFactory.Default
-      else
-        new EclipseClasspathEntryTransformerFactory {
-          override def createTransformer(ref: ProjectRef, state: State) =
-            setting(crossTarget in ref)(state) map (ct =>
-              (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
-            )
-        }
+      new EclipseClasspathEntryTransformerFactory {
+        override def createTransformer(ref: ProjectRef, state: State) =
+          setting(crossTarget in ref)(state) map (ct =>
+            (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
+          )
+      }
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.preTasks := Seq(compile in Compile),
@@ -318,8 +281,21 @@ trait PlayCommands extends PlayJvm {
     s.log.info("...about to generate an Intellij project module(" + mainLang + ") called " + target.getName)
     if (target.exists) s.log.warn(target.toString + " will be overwritten")
     IO.delete(target)
-
-    IO.copyFile(new File(System.getProperty("play.home") + sl + "skeletons" + sl + "intellij-skel" + sl + "template.iml"), target)
+    IO.write(target,
+      """|<?xml version="1.0" encoding="UTF-8"?>
+         |<module type="JAVA_MODULE" version="4"> 
+         | %SCALA_FACET% 
+         |  <component name="NewModuleRootManager" inherit-compiler-output="true">
+         |     <exclude-output />
+         |     <content url="file://$MODULE_DIR$">
+         |      %SOURCE%
+         |     </content>
+         |     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
+         |     <orderEntry type="sourceFolder" forTests="false" />
+         |     %JARS%
+         |  </component>
+         |</module>
+         |""".stripMargin)
 
     play.console.Console.replace(target, "SCALA_FACET" -> scalaFacet.getOrElse(""))
     play.console.Console.replace(target, "SCALA_VERSION" -> scalaVersion)
@@ -570,11 +546,23 @@ trait PlayCommands extends PlayJvm {
 
   // ----- Play commands
 
+  private def fork(args: Seq[String]) = {
+    val builder = new JProcessBuilder(args: _*)
+    Process(builder).run(JvmIO(new JvmLogger(), false))
+  }
+
+  val shCommand = Command.args("sh", "<shell command>") { (state: State, args: Seq[String]) =>
+    if (args.isEmpty)
+      println("sh <command to run>")
+    else
+      fork(args)
+    state
+  }
+
   private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
     // collect arguments plus config file property if present 
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq ++
-      Option(System.getProperty("config.file")).map(v => Seq("config.file" -> v)).getOrElse(Nil)
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
     val port = others.headOption.map { portString =>
       try {
         Integer.parseInt(portString)
@@ -820,69 +808,35 @@ trait PlayCommands extends PlayJvm {
 
   }
 
-  val playHelpCommand = Command.command("help") { state: State =>
-
-    println(
-      """
-                |Welcome to Play 2.0!
-                |
-                |These commands are available:
-                |-----------------------------
-                |classpath                  Display the project classpath.
-                |clean                      Clean all generated files.
-                |compile                    Compile the current application.
-                |console                    Launch the interactive Scala console (use :quit to exit).
-                |dependencies               Display the dependencies summary.
-                |dist                       Construct standalone application package.
-                |exit                       Exit the console.
-                |h2-browser                 Launch the H2 Web browser.
-                |license                    Display licensing informations.
-                |package                    Package your application as a JAR.
-                |publish                    Publish your application in a remote repository.
-                |publish-local              Publish your application in the local repository.
-                |reload                     Reload the current application build file.
-                |run <port>                 Run the current application in DEV mode.
-                |test                       Run Junit tests and/or Specs from the command line
-                |idea                       generate intellij IDEA project file
-                |eclipsify                  generate eclipse project file
-                |start <port>               Start the current application in another JVM in PROD mode.
-                |update                     Update application dependencies.
-                |
-                |You can also use any sbt feature:
-                |---------------------------------
-                |about                      Displays basic information about sbt and the build.
-                |reboot [full]              Reboots sbt and then executes the remaining commands.
-                |< file*                    Reads command lines from the provided files.
-                |!!                         Execute the last command again
-                |!:                         Show all previous commands
-                |!:n                        Show the last n commands
-                |!n                         Execute the command with index n, as shown by the !: command
-                |!-n                        Execute the nth command before this one
-                |!string                    Execute the most recent command starting with 'string'
-                |!?string                   Execute the most recent command containing 'string'
-                |~ <action>                 Executes the specified command whenever source files change.
-                |projects                   Displays the names of available projects.
-                |project [project]          Displays the current project or changes to the provided `project`.
-                |- command                  Registers 'command' to run if a command fails.
-                |iflast command             If there are no more commands after this one, 'command' is run.
-                |( ; command )+             Runs the provided semicolon-separated commands.
-                |set <setting-expression>   Evaluates the given Setting and applies to the current project.
-                |tasks                      Displays the tasks defined for the current project.
-                |inspect <key>              Prints the value for 'key', the defining scope, delegates, related definitions, and dependencies.
-                |eval <expression>          Evaluates the given Scala expression and prints the result and type.
-                |alias                      Adds, removes, or prints command aliases.
-                |append command             Appends `command` to list of commands to run.
-                |last <key>                 Prints the last output associated with 'key'.
-                |last-grep <pattern> <key>  Shows lines from the last output for 'key' that match 'pattern'.
-                |session ...                Manipulates session settings.  For details, run 'help session'..
-                |
-                |Browse the complete documentation at http://www.playframework.org.
-                |""".stripMargin)
-
-    state
-  }
-
-  val playCommand = Command.command("play") { state: State =>
+  val playCommand = Command.command("play", Help("play", ("play", "Enter the play console"), """
+        |Welcome to Play 2.0!
+        |
+        |These commands are available:
+        |-----------------------------
+        |classpath                  Display the project classpath.
+        |clean                      Clean all generated files.
+        |compile                    Compile the current application.
+        |console                    Launch the interactive Scala console (use :quit to exit).
+        |dependencies               Display the dependencies summary.
+        |dist                       Construct standalone application package.
+        |exit                       Exit the console.
+        |h2-browser                 Launch the H2 Web browser.
+        |license                    Display licensing informations.
+        |package                    Package your application as a JAR.
+        |play-version               Display the Play version.
+        |publish                    Publish your application in a remote repository.
+        |publish-local              Publish your application in the local repository.
+        |reload                     Reload the current application build file.
+        |run <port>                 Run the current application in DEV mode.
+        |test                       Run Junit tests and/or Specs from the command line
+        |eclipsify                  generate eclipse project file
+        |idea                       generate Intellij IDEA project file
+        |sh <command to run>        execute a shell command 
+        |start <port>               Start the current application in another JVM in PROD mode.
+        |update                     Update application dependencies.
+        |
+        |Type `help` to get the standard sbt help.
+        |""".stripMargin)) { state: State =>
 
     val extracted = Project.extract(state)
     import extracted._
@@ -890,7 +844,7 @@ trait PlayCommands extends PlayJvm {
     // Display logo
     println(play.console.Console.logo)
     println("""
-            |> Type "help" or "license" for more information.
+            |> Type "help play" or "license" for more information.
             |> Type "exit" or use Ctrl+C to leave this console.
             |""".stripMargin)
 
@@ -915,7 +869,7 @@ trait PlayCommands extends PlayJvm {
       """
       |This software is licensed under the Apache 2 license, quoted below.
       |
-      |Copyright 2011 Zenexity <http://www.zenexity.com>
+      |Copyright 2012 Typesafe <http://www.typesafe.com>
       |
       |Licensed under the Apache License, Version 2.0 (the "License"); you may not
       |use this file except in compliance with the License. You may obtain a copy of

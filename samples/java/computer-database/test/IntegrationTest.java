@@ -33,6 +33,12 @@ public class IntegrationTest {
 
                 assertThat(browser.$("section h1").first().getText()).isEqualTo("Edit computer");
 
+                browser.$("#discontinued").text("10-10-2001");
+                browser.$("input.primary").click();
+
+                assertThat(browser.$("div.error").size()).isEqualTo(1);
+                assertThat(browser.$("div.error label").first().getText()).isEqualTo("Discontinued date");
+
                 browser.$("#discontinued").text("xxx");
                 browser.$("input.primary").click();
 

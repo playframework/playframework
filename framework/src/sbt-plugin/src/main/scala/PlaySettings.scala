@@ -18,7 +18,8 @@ trait PlaySettings {
       "scala.collection.JavaConversions._",
       "scala.collection.JavaConverters._",
 
-      "play.api.i18n.Messages",
+      "play.api.i18n._",
+      "play.api.templates.PlayMagicForJava._",
 
       "play.mvc._",
       "play.data._",
@@ -43,7 +44,7 @@ trait PlaySettings {
       "models._",
       "controllers._",
 
-      "play.api.i18n.Messages",
+      "play.api.i18n._",
 
       "play.api.mvc._",
       "play.api.data._",
@@ -51,16 +52,6 @@ trait PlaySettings {
       "views.%format%._"))
 
   lazy val defaultSettings = Seq[Setting[_]](
-    testRunner := Map("Test" -> "play.api.test.JunitRunner",
-      "Spec" -> "play.api.test.SpecRunner"),
-    testFrameworkCommandOptions <<= (fullClasspath in Test, target) map generateJVMCommandOptions,
-    javaRunner <<= javaHome map { javaCommand(_, "java") },
-    runWith <<= (javaRunner, scalaInstance) map RunWith,
-    testJvmOptions := Seq.empty,
-    testNames <<= collectTestNames triggeredBy (compile in Test),
-    testAllJvmOptions <<= (testJvmOptions, testFrameworkCommandOptions) map JVMOptions,
-    test <<= testTask,
-    testOnly <<= testOnlyTask,
 
     resolvers ++= Seq(
       Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),
@@ -101,6 +92,12 @@ trait PlaySettings {
 
     testOptions in Test += Tests.Argument("junitxml", "console"),
 
+    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
+
+    testResultReporter <<= testResultReporterTask,
+
+    testResultReporterReset <<= testResultReporterResetTask,
+
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
     // Adds config/routes to continious triggers
@@ -111,7 +108,7 @@ trait PlaySettings {
     // Adds views template to continious triggers
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*.scala.*").get },
 
-    commands ++= Seq(playCommand, playRunCommand, playStartCommand, playHelpCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     shellPrompt := playPrompt,
 

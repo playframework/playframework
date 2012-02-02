@@ -64,7 +64,7 @@ object Helpers extends Status with HeaderNames {
       testServer.stop()
     }
   }
-  
+
   /**
    * Apply pending evolutions for the given DB.
    */

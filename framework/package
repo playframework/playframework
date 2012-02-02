@@ -1,19 +1,22 @@
 #! /usr/bin/env sh
 
+if [ -z "${VERSION}" ]; then
+  VERSION="2.0-RC1-SNAPSHOT"
+fi
+
 `dirname $0`/cleanEverything
-`dirname $0`/build build-repository
-`dirname $0`/build api-docs
+`dirname $0`/build -Dversion=${VERSION} build-repository api-docs
 
-rm -rf /tmp/play-2.0-RC1-SNAPSHOT*
+rm -rf /tmp/play-*
 
-echo "[info] Copying to /tmp/play-2.0-RC1-SNAPSHOT..."
-cp -rf `dirname $0`/.. /tmp/play-2.0-RC1-SNAPSHOT
+echo "[info] Copying to /tmp/play-${VERSION}..."
+cp -rf `dirname $0`/.. /tmp/play-${VERSION}
 
 cd /tmp
 
 echo "[info] zipping..."
-zip -9 -r play-2.0-RC1-SNAPSHOT.zip play-2.0-RC1-SNAPSHOT -x '*.git/*' '*.lock' '*.history' 'play-2.0-RC1-SNAPSHOT/.gitmodules' 'play-2.0-RC1-SNAPSHOT/.gitignore' '*.DS_Store' 'play-2.0-RC1-SNAPSHOT/dist/*' '*/target/*' 'play-2.0-RC1-SNAPSHOT/framework/sbt/boot/*' 'play-2.0-RC1-SNAPSHOT/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
+zip -9 -r play-${VERSION}.zip play-${VERSION} -x '*.git/*' '*.lock' '*.history' 'play-${VERSION}/.gitmodules' 'play-${VERSION}/.gitignore' '*.DS_Store' 'play-${VERSION}/dist/*' '*/target/*' 'play-${VERSION}/framework/sbt/boot/*' 'play-${VERSION}/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
 
-rm -rf /tmp/play-2.0-RC1-SNAPSHOT
+rm -rf /tmp/play-${VERSION}
 
-echo "[info] Package is available at /tmp/play-2.0-RC1-SNAPSHOT.zip"
+echo "[info] Package is available at /tmp/play-${VERSION}.zip"

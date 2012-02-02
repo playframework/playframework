@@ -5,9 +5,8 @@ import akka.util.duration._
 
 import play.api._
 import play.api.libs.json._
-import play.api.libs.akka._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent.Promise
+import play.api.libs.concurrent._
 
 import play.api.Play.current
 

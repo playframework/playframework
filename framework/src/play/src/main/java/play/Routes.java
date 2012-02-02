@@ -1,7 +1,5 @@
 package play;
 
-import java.util.*;
-
 import play.libs.Scala;
 
 /**

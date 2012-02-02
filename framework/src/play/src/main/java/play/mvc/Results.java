@@ -8,6 +8,7 @@ import play.libs.*;
 import play.libs.F.*;
 
 import java.io.*;
+import java.util.*;
 
 import org.codehaus.jackson.*;
 
@@ -29,7 +30,7 @@ public class Results {
     /**
      * Handles an Asynchronous result.
      */
-    public static Result async(play.libs.F.Promise<Result> p) {
+    public static AsyncResult async(play.libs.F.Promise<Result> p) {
         return new AsyncResult(p);
     }
     
@@ -38,91 +39,91 @@ public class Results {
     /**
      * Generates a simple result.
      */
-    public static Result status(int status) {
+    public static Status status(int status) {
         return new Status(play.core.j.JavaResults.Status(status));
     }
 
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, Content content) {
+    public static Status status(int status, Content content) {
         return new Status(play.core.j.JavaResults.Status(status), content, utf8);
     }
 
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, Content content, String charset) {
+    public static Status status(int status, Content content, String charset) {
         return new Status(play.core.j.JavaResults.Status(status), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, String content) {
+    public static Status status(int status, String content) {
         return new Status(play.core.j.JavaResults.Status(status), content, utf8);
     }
     
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, String content, String charset) {
+    public static Status status(int status, String content, String charset) {
         return new Status(play.core.j.JavaResults.Status(status), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, JsonNode content) {
+    public static Status status(int status, JsonNode content) {
         return new Status(play.core.j.JavaResults.Status(status), content, utf8);
     }
     
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, JsonNode content, String charset) {
+    public static Status status(int status, JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.Status(status), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, byte[] content) {
+    public static Status status(int status, byte[] content) {
         return new Status(play.core.j.JavaResults.Status(status), content);
     }
     
     /**
      * Generates a chunked result.
      */
-    public static Result status(int status, InputStream content) {
+    public static Status status(int status, InputStream content) {
         return status(status, content, defaultChunkSize);
     }
     
     /**
      * Generates a chunked result.
      */
-    public static Result status(int status, InputStream content, int chunkSize) {
+    public static Status status(int status, InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Status(status), content, chunkSize);
     }
     
     /**
      * Generates a chunked result.
      */
-    public static Result status(int status, File content) {
+    public static Status status(int status, File content) {
         return status(status, content, defaultChunkSize);
     }
     
     /**
      * Generates a simple result.
      */
-    public static Result status(int status, File content, int chunkSize) {
+    public static Status status(int status, File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Status(status), content, chunkSize);
     }
 
     /**
      * Generates a chunked result.
      */
-    public static Result status(int status, Chunks<?> chunks) {
+    public static Status status(int status, Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.Status(status), chunks);
     }
     
@@ -131,91 +132,91 @@ public class Results {
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok() {
+    public static Status ok() {
         return new Status(play.core.j.JavaResults.Ok());
     }
 
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(Content content) {
+    public static Status ok(Content content) {
         return new Status(play.core.j.JavaResults.Ok(), content, utf8);
     }
 
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(Content content, String charset) {
+    public static Status ok(Content content, String charset) {
         return new Status(play.core.j.JavaResults.Ok(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(String content) {
+    public static Status ok(String content) {
         return new Status(play.core.j.JavaResults.Ok(), content, utf8);
     }
     
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(String content, String charset) {
+    public static Status ok(String content, String charset) {
         return new Status(play.core.j.JavaResults.Ok(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(JsonNode content) {
+    public static Status ok(JsonNode content) {
         return new Status(play.core.j.JavaResults.Ok(), content, utf8);
     }
     
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(JsonNode content, String charset) {
+    public static Status ok(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.Ok(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(byte[] content) {
+    public static Status ok(byte[] content) {
         return new Status(play.core.j.JavaResults.Ok(), content);
     }
     
     /**
      * Generates a 200 OK chunked result.
      */
-    public static Result ok(InputStream content) {
+    public static Status ok(InputStream content) {
         return ok(content, defaultChunkSize);
     }
     
     /**
      * Generates a 200 OK chunked result.
      */
-    public static Result ok(InputStream content, int chunkSize) {
+    public static Status ok(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Ok(), content, chunkSize);
     }
     
     /**
      * Generates a 200 OK chunked result.
      */
-    public static Result ok(File content) {
+    public static Status ok(File content) {
         return ok(content, defaultChunkSize);
     }
     
     /**
      * Generates a 200 OK simple result.
      */
-    public static Result ok(File content, int chunkSize) {
+    public static Status ok(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Ok(), content, chunkSize);
     }
 
     /**
      * Generates a 200 OK chunked result.
      */
-    public static Result ok(Chunks<?> chunks) {
+    public static Status ok(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.Ok(), chunks);
     }
     
@@ -224,91 +225,91 @@ public class Results {
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created() {
+    public static Status created() {
         return new Status(play.core.j.JavaResults.Created());
     }
 
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(Content content) {
+    public static Status created(Content content) {
         return new Status(play.core.j.JavaResults.Created(), content, utf8);
     }
 
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(Content content, String charset) {
+    public static Status created(Content content, String charset) {
         return new Status(play.core.j.JavaResults.Created(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(String content) {
+    public static Status created(String content) {
         return new Status(play.core.j.JavaResults.Created(), content, utf8);
     }
     
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(String content, String charset) {
+    public static Status created(String content, String charset) {
         return new Status(play.core.j.JavaResults.Created(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(JsonNode content) {
+    public static Status created(JsonNode content) {
         return new Status(play.core.j.JavaResults.Created(), content, utf8);
     }
     
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(JsonNode content, String charset) {
+    public static Status created(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.Created(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(byte[] content) {
+    public static Status created(byte[] content) {
         return new Status(play.core.j.JavaResults.Created(), content);
     }
     
     /**
      * Generates a 201 CREATED chunked result.
      */
-    public static Result created(InputStream content) {
+    public static Status created(InputStream content) {
         return created(content, defaultChunkSize);
     }
     
     /**
      * Generates a 201 CREATED chunked result.
      */
-    public static Result created(InputStream content, int chunkSize) {
+    public static Status created(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Created(), content, chunkSize);
     }
     
     /**
      * Generates a 201 CREATED chunked result.
      */
-    public static Result created(File content) {
+    public static Status created(File content) {
         return created(content, defaultChunkSize);
     }
     
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Result created(File content, int chunkSize) {
+    public static Status created(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Created(), content, chunkSize);
     }
 
     /**
      * Generates a 201 CREATED chunked result.
      */
-    public static Result created(Chunks<?> chunks) {
+    public static Status created(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.Created(), chunks);
     }
     
@@ -317,7 +318,7 @@ public class Results {
     /**
      * Generates a 204 NO_CONTENT simple result.
      */
-    public static Result noContent() {
+    public static Status noContent() {
         return new Status(play.core.j.JavaResults.Status(204));
     }
     
@@ -326,91 +327,91 @@ public class Results {
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError() {
+    public static Status internalServerError() {
         return new Status(play.core.j.JavaResults.InternalServerError());
     }
 
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(Content content) {
+    public static Status internalServerError(Content content) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, utf8);
     }
 
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(Content content, String charset) {
+    public static Status internalServerError(Content content, String charset) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(String content) {
+    public static Status internalServerError(String content) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, utf8);
     }
 
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(String content, String charset) {
+    public static Status internalServerError(String content, String charset) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(JsonNode content) {
+    public static Status internalServerError(JsonNode content) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, utf8);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(JsonNode content, String charset) {
+    public static Status internalServerError(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(byte[] content) {
+    public static Status internalServerError(byte[] content) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
      */
-    public static Result internalServerError(InputStream content) {
+    public static Status internalServerError(InputStream content) {
         return internalServerError(content, defaultChunkSize);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
      */
-    public static Result internalServerError(InputStream content, int chunkSize) {
+    public static Status internalServerError(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, chunkSize);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
      */
-    public static Result internalServerError(File content) {
+    public static Status internalServerError(File content) {
         return internalServerError(content, defaultChunkSize);
     }
     
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Result internalServerError(File content, int chunkSize) {
+    public static Status internalServerError(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, chunkSize);
     }
 
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
      */
-    public static Result internalServerError(Chunks<?> chunks) {
+    public static Status internalServerError(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.InternalServerError(), chunks);
     }
     
@@ -419,91 +420,91 @@ public class Results {
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound() {
+    public static Status notFound() {
         return new Status(play.core.j.JavaResults.NotFound());
     }
 
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(Content content) {
+    public static Status notFound(Content content) {
         return new Status(play.core.j.JavaResults.NotFound(), content, utf8);
     }
 
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(Content content, String charset) {
+    public static Status notFound(Content content, String charset) {
         return new Status(play.core.j.JavaResults.NotFound(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(String content) {
+    public static Status notFound(String content) {
         return new Status(play.core.j.JavaResults.NotFound(), content, utf8);
     }
 
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(String content, String charset) {
+    public static Status notFound(String content, String charset) {
         return new Status(play.core.j.JavaResults.NotFound(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(JsonNode content) {
+    public static Status notFound(JsonNode content) {
         return new Status(play.core.j.JavaResults.NotFound(), content, utf8);
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(JsonNode content, String charset) {
+    public static Status notFound(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.NotFound(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(byte[] content) {
+    public static Status notFound(byte[] content) {
         return new Status(play.core.j.JavaResults.NotFound(), content);
     }
     
     /**
      * Generates a 404 NOT_FOUND chunked result.
      */
-    public static Result notFound(InputStream content) {
+    public static Status notFound(InputStream content) {
         return notFound(content, defaultChunkSize);
     }
     
     /**
      * Generates a 404 NOT_FOUND chunked result.
      */
-    public static Result notFound(InputStream content, int chunkSize) {
+    public static Status notFound(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.NotFound(), content, chunkSize);
     }
     
     /**
      * Generates a 404 NOT_FOUND chunked result.
      */
-    public static Result notFound(File content) {
+    public static Status notFound(File content) {
         return notFound(content, defaultChunkSize);
     }
     
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Result notFound(File content, int chunkSize) {
+    public static Status notFound(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.NotFound(), content, chunkSize);
     }
 
     /**
      * Generates a 404 NOT_FOUND chunked result.
      */
-    public static Result notFound(Chunks<?> chunks) {
+    public static Status notFound(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.NotFound(), chunks);
     }
     
@@ -512,91 +513,91 @@ public class Results {
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden() {
+    public static Status forbidden() {
         return new Status(play.core.j.JavaResults.Forbidden());
     }
 
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(Content content) {
+    public static Status forbidden(Content content) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, utf8);
     }
 
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(Content content, String charset) {
+    public static Status forbidden(Content content, String charset) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(String content) {
+    public static Status forbidden(String content) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, utf8);
     }
 
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(String content, String charset) {
+    public static Status forbidden(String content, String charset) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(JsonNode content) {
+    public static Status forbidden(JsonNode content) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, utf8);
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(JsonNode content, String charset) {
+    public static Status forbidden(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(byte[] content) {
+    public static Status forbidden(byte[] content) {
         return new Status(play.core.j.JavaResults.Forbidden(), content);
     }
     
     /**
      * Generates a 403 FORBIDDEN chunked result.
      */
-    public static Result forbidden(InputStream content) {
+    public static Status forbidden(InputStream content) {
         return forbidden(content, defaultChunkSize);
     }
     
     /**
      * Generates a 403 FORBIDDEN chunked result.
      */
-    public static Result forbidden(InputStream content, int chunkSize) {
+    public static Status forbidden(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, chunkSize);
     }
     
     /**
      * Generates a 403 FORBIDDEN chunked result.
      */
-    public static Result forbidden(File content) {
+    public static Status forbidden(File content) {
         return forbidden(content, defaultChunkSize);
     }
     
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Result forbidden(File content, int chunkSize) {
+    public static Status forbidden(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, chunkSize);
     }
 
     /**
      * Generates a 403 FORBIDDEN chunked result.
      */
-    public static Result forbidden(Chunks<?> chunks) {
+    public static Status forbidden(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.Forbidden(), chunks);
     }
     
@@ -605,91 +606,91 @@ public class Results {
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized() {
+    public static Status unauthorized() {
         return new Status(play.core.j.JavaResults.Unauthorized());
     }
 
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(Content content) {
+    public static Status unauthorized(Content content) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, utf8);
     }
 
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(Content content, String charset) {
+    public static Status unauthorized(Content content, String charset) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(String content) {
+    public static Status unauthorized(String content) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, utf8);
     }
 
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(String content, String charset) {
+    public static Status unauthorized(String content, String charset) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(JsonNode content) {
+    public static Status unauthorized(JsonNode content) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, utf8);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(JsonNode content, String charset) {
+    public static Status unauthorized(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(byte[] content) {
+    public static Status unauthorized(byte[] content) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED chunked result.
      */
-    public static Result unauthorized(InputStream content) {
+    public static Status unauthorized(InputStream content) {
         return unauthorized(content, defaultChunkSize);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED chunked result.
      */
-    public static Result unauthorized(InputStream content, int chunkSize) {
+    public static Status unauthorized(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, chunkSize);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED chunked result.
      */
-    public static Result unauthorized(File content) {
+    public static Status unauthorized(File content) {
         return unauthorized(content, defaultChunkSize);
     }
     
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Result unauthorized(File content, int chunkSize) {
+    public static Status unauthorized(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, chunkSize);
     }
 
     /**
      * Generates a 401 UNAUTHORIZED chunked result.
      */
-    public static Result unauthorized(Chunks<?> chunks) {
+    public static Status unauthorized(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.Unauthorized(), chunks);
     }
     
@@ -698,91 +699,91 @@ public class Results {
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest() {
+    public static Status badRequest() {
         return new Status(play.core.j.JavaResults.BadRequest());
     }
 
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(Content content) {
+    public static Status badRequest(Content content) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, utf8);
     }
 
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(Content content, String charset) {
+    public static Status badRequest(Content content, String charset) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, Codec.javaSupported(charset));
     }
 
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(String content) {
+    public static Status badRequest(String content) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, utf8);
     }
 
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(String content, String charset) {
+    public static Status badRequest(String content, String charset) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(JsonNode content) {
+    public static Status badRequest(JsonNode content) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, utf8);
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(JsonNode content, String charset) {
+    public static Status badRequest(JsonNode content, String charset) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, Codec.javaSupported(charset));
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(byte[] content) {
+    public static Status badRequest(byte[] content) {
         return new Status(play.core.j.JavaResults.BadRequest(), content);
     }
     
     /**
      * Generates a 400 BAD_REQUEST chunked result.
      */
-    public static Result badRequest(InputStream content) {
+    public static Status badRequest(InputStream content) {
         return badRequest(content, defaultChunkSize);
     }
     
     /**
      * Generates a 400 BAD_REQUEST chunked result.
      */
-    public static Result badRequest(InputStream content, int chunkSize) {
+    public static Status badRequest(InputStream content, int chunkSize) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, chunkSize);
     }
     
     /**
      * Generates a 400 BAD_REQUEST chunked result.
      */
-    public static Result badRequest(File content) {
+    public static Status badRequest(File content) {
         return badRequest(content, defaultChunkSize);
     }
     
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Result badRequest(File content, int chunkSize) {
+    public static Status badRequest(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, chunkSize);
     }
 
     /**
      * Generates a 400 BAD_REQUEST chunked result.
      */
-    public static Result badRequest(Chunks<?> chunks) {
+    public static Status badRequest(Chunks<?> chunks) {
         return new Status(play.core.j.JavaResults.BadRequest(), chunks);
     }
     
@@ -903,9 +904,23 @@ public class Results {
             this.ct = ct;
             f = new scala.runtime.AbstractFunction1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
-                    play.api.libs.iteratee.PushEnumerator<A> enumerator = play.core.j.JavaResults.chunked();
+                    final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
+                    play.api.libs.iteratee.PushEnumerator<A> enumerator = play.core.j.JavaResults.chunked(
+                        new scala.runtime.AbstractFunction0<scala.runtime.BoxedUnit>() {
+                            public scala.runtime.BoxedUnit apply() {
+                                for(Callback0 callback: disconnectedCallbacks) {
+                                    try {
+                                        callback.invoke();
+                                    } catch(Throwable e) {
+                                        play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
+                                    }
+                                }
+                                return null;
+                            }
+                        }
+                    );
                     enumerator.apply(iteratee);
-                    Chunks.Out<A> chunked = new Chunks.Out<A>(enumerator);
+                    Chunks.Out<A> chunked = new Chunks.Out<A>(enumerator, disconnectedCallbacks);
                     self.onReady(chunked);
                     return null;
                 }
@@ -924,10 +939,12 @@ public class Results {
          */
         public static class Out<A> {
 
+            final List<Callback0> disconnectedCallbacks;
             final play.api.libs.iteratee.PushEnumerator<A> enumerator;
 
-            public Out(play.api.libs.iteratee.PushEnumerator<A> enumerator) {
+            public Out(play.api.libs.iteratee.PushEnumerator<A> enumerator, List<Callback0> disconnectedCallbacks) {
                 this.enumerator = enumerator;
+                this.disconnectedCallbacks = disconnectedCallbacks;
             }
 
             /**
@@ -935,6 +952,13 @@ public class Results {
              */
             public void write(A chunk) {
                 enumerator.push(chunk);
+            }
+            
+            /**
+             * Called when the socket is disconnected.
+             */
+            public void onDisconnected(Callback0 callback) {
+                disconnectedCallbacks.add(callback);
             }
 
             /**
@@ -1029,11 +1053,11 @@ public class Results {
     }
 
     /**
-     * A 200 OK simple result.
+     * A simple result.
      */
     public static class Status implements Result {
 
-        final private play.api.mvc.Result wrappedResult;
+       private play.api.mvc.PlainResult wrappedResult;
 
        public Status(play.api.mvc.Results.Status status) {
             wrappedResult = status.apply(
@@ -1118,6 +1142,14 @@ public class Results {
 
         public play.api.mvc.Result getWrappedResult() {
             return wrappedResult;
+        }
+        
+        /**
+         * Change the Content-Type header for this result.
+         */
+        public Status as(String contentType) {
+            wrappedResult = wrappedResult.as(contentType);
+            return this;
         }
         
         public String toString() {

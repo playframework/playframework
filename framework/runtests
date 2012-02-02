@@ -68,6 +68,30 @@ $PLAY "$@" clean test
 cd $CURRENT
 
 echo "[info]"
+echo "[info] ---- TESTING JAVA/COMPUTER-DATABASE-JPA"
+echo "[info]"
+
+cd ../samples/java/computer-database-jpa
+$PLAY "$@" clean test
+cd $CURRENT
+
+echo "[info]"
+echo "[info] ---- TESTING JAVA/COMET-CLOCK"
+echo "[info]"
+
+cd ../samples/java/comet-clock
+$PLAY "$@" clean test
+cd $CURRENT
+
+echo "[info]"
+echo "[info] ---- TESTING JAVA/WEBSOCKET-CHAT"
+echo "[info]"
+
+cd ../samples/java/websocket-chat
+$PLAY "$@" clean test
+cd $CURRENT
+
+echo "[info]"
 echo "[info] ---- TESTING JAVA/ZENTASK"
 echo "[info]"
 
@@ -92,6 +116,22 @@ $PLAY "$@" clean test
 cd $CURRENT
 
 echo "[info]"
+echo "[info] ---- TESTING SCALA/COMET-CLOCK"
+echo "[info]"
+
+cd ../samples/scala/comet-clock
+$PLAY "$@" clean test
+cd $CURRENT
+
+echo "[info]"
+echo "[info] ---- TESTING SCALA/WEBSOCKET-CHAT"
+echo "[info]"
+
+cd ../samples/scala/websocket-chat
+$PLAY "$@" clean test
+cd $CURRENT
+
+echo "[info]"
 echo "[info] ---- TESTING SCALA/ZENTASK"
 echo "[info]"
 
@@ -106,3 +146,8 @@ echo "[info]"
 cd ../samples/workinprogress/pi-calculator
 $PLAY "$@" clean test
 cd $CURRENT
+
+echo
+echo "[info]"
+echo "[info] ALL TESTS PASSED"
+echo "[info]"

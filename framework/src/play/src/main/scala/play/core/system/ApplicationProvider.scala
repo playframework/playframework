@@ -133,6 +133,8 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
     import play.api.mvc.Results._
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
+    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
+
     val documentation = """/@documentation""".r
     val apiDoc = """/@documentation/api/(.*)""".r
     val wikiResource = """/@documentation/resources/(.*)""".r
@@ -149,6 +151,18 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
         Some {
           OfflineEvolutions.applyScript(Play.current.classloader, db)
+          sbtLink.forceReload()
+          Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+        }
+      }
+
+      case resolveEvolutions(db, rev) => {
+
+        import play.api.db._
+        import play.api.db.evolutions._
+
+        Some {
+          OfflineEvolutions.resolve(Play.current.classloader, db, rev.toInt)
           sbtLink.forceReload()
           Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }
@@ -224,6 +238,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 }
                 case image if image.endsWith(".png") => {
                   val link = image match {
+                    case full if full.startsWith("http://") => full
                     case absolute if absolute.startsWith("/") => "resources/manual" + absolute
                     case relative => "resources/" + pageSource.parent.get.relativize(documentationHome.get).path + "/" + relative
                   }

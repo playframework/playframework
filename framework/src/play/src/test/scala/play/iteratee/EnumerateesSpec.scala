@@ -84,4 +84,48 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.filter" should {
+
+    "ignore input that doesn't satisfy the predicate" in {
+      
+      val takesOnlyStringsWithLessThan4Chars = Enumeratee.filter[String](_.length < 4) &>>  Iteratee.consume()
+      val enumerator = Enumerator("One","Two","Three","Four", "Five", "Six")  
+      (enumerator |>> takesOnlyStringsWithLessThan4Chars).flatMap(_.run).value.get must equalTo("OneTwoSix")
+
+    }
+
+  }
+
+  "Enumeratee.collect" should {
+
+    "ignores input that doesn't satisfy the predicate and transform the input when matches" in {
+      
+      val takesOnlyStringsWithLessThan4Chars = Enumeratee.collect[String]{ case e@("One" | "Two" | "Six") => e.toUpperCase } &>>  Iteratee.consume()
+      val enumerator = Enumerator("One","Two","Three","Four", "Five", "Six")  
+      (enumerator |>> takesOnlyStringsWithLessThan4Chars).flatMap(_.run).value.get must equalTo("ONETWOSIX")
+
+    }
+
+  }
+
+  "Enumeratee.grouped" should {
+
+    "group input elements according to a folder iteratee" in {
+      val folderIteratee = 
+        Enumeratee.mapInput[String]{ 
+          case Input.El("Concat") => Input.EOF;
+          case other => other } &>>
+        Iteratee.fold("")((s,e) => s + e)
+
+      val result = 
+        Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat") &>
+        Enumeratee.grouped(folderIteratee) ><>
+        Enumeratee.map(List(_)) |>>
+        Iteratee.consume()
+      result.flatMap(_.run).value.get must equalTo(List("Hello","World"))
+
+    }
+
+  }
+
 }

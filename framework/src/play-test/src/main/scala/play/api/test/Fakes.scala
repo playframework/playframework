@@ -8,17 +8,17 @@ import play.api.mvc._
  * @param data Headers data.
  */
 case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Headers {
-  
+
   /**
    * All header keys.
    */
   lazy val keys = data.keySet
-  
+
   /**
    * Get all header values defined for this key.
    */
   def getAll(key: String): Seq[String] = data.get(key).getOrElse(Seq.empty)
-  
+
 }
 
 /**
@@ -36,7 +36,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * The request path.
    */
   lazy val path = uri.split('?').take(1).mkString
-  
+
   /**
    * The request query String
    */

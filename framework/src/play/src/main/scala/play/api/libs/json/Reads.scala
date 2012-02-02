@@ -1,8 +1,8 @@
 package play.api.libs.json
 
-import Json._
-
 import scala.collection._
+
+import Json._
 
 /**
  * Json deserializer: write an implicit to define a deserializer for any type.
@@ -182,6 +182,11 @@ trait DefaultReads {
       case o @ JsObject(_) => o
       case _ => throw new RuntimeException("JsObject expected")
     }
+  }
+
+  implicit def OptionReads[T](implicit fmt: Reads[T]): Reads[Option[T]] = new Reads[Option[T]] {
+    import scala.util.control.Exception._
+    def reads(json: JsValue) = catching(classOf[RuntimeException]).opt(fmt.reads(json))
   }
 
 }
