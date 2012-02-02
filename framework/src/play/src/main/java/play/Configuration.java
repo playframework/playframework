@@ -4,7 +4,6 @@ import java.util.*;
 import scala.collection.JavaConverters;
 
 import play.libs.Scala;
-import com.typesafe.config.Config;
 
 /**
  * The current application configuration.

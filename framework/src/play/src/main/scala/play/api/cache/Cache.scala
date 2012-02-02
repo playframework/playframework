@@ -2,6 +2,7 @@ package play.api.cache
 
 import play.api._
 
+import reflect.ClassManifest
 /**
  * API for a Cache plugin.
  */
@@ -46,12 +47,32 @@ object Cache {
   }
 
   /**
+   * Sets a value without expiration
+   *
+   * @param expiration expiration period in seconds.
+   */
+  def set(key: String, value: Any)(implicit app: Application) = {
+    app.plugin[CachePlugin].map(_.api.set(key, value, 0)).getOrElse(error)
+  }
+  /**
    * Retrieve a value from the cache.
    *
    * @param key Item key.
    */
   def get(key: String)(implicit app: Application): Option[Any] = {
     app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
+  }
+
+  /**
+   * Retrieve a value from the cache for the given type
+   *
+   * @param key Item key.
+   * @return result as Option[T]
+   */
+  def getAs[T](key: String)(implicit app: Application, m: ClassManifest[T]): Option[T] = {
+    get(key)(app).map { item =>
+      if (m.erasure.isAssignableFrom(item.getClass)) Some(item.asInstanceOf[T]) else None
+    }.getOrElse(None)
   }
 
 }
@@ -73,15 +94,15 @@ abstract class CachePlugin extends Plugin {
  * EhCache implementation.
  */
 class EhCachePlugin(app: Application) extends CachePlugin {
-  
+
   import net.sf.ehcache._
-  
+
   lazy val (manager, cache) = {
     val manager = CacheManager.create()
     manager.addCache("play")
     (manager, manager.getCache("play"))
   }
-  
+
   /**
    * Is this plugin enabled.
    *
@@ -92,19 +113,20 @@ class EhCachePlugin(app: Application) extends CachePlugin {
   override lazy val enabled = {
     !app.configuration.getString("ehcacheplugin").filter(_ == "disabled").isDefined
   }
-  
+
   override def onStart() {
     cache
   }
-  
+
   override def onStop() {
     manager.shutdown()
   }
-  
+
   lazy val api = new CacheAPI {
-    
+
     def set(key: String, value: Any, expiration: Int) {
       val element = new Element(key, value)
+      if (expiration == 0) element.setEternal(true)
       element.setTimeToLive(expiration)
       cache.put(element)
     }
@@ -112,9 +134,7 @@ class EhCachePlugin(app: Application) extends CachePlugin {
     def get(key: String): Option[Any] = {
       Option(cache.get(key)).map(_.getObjectValue)
     }
-    
+
   }
-  
-  
-  
+
 }

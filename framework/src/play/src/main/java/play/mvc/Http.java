@@ -119,6 +119,13 @@ public class Http {
                 return Context.current().session();
             }
             
+            /**
+             * Returns the current lang.
+             */
+            public static play.i18n.Lang lang() {
+                return play.i18n.Lang.preferred(Context.current().request().acceptLanguages());
+            }
+            
         }
         
     }
@@ -146,6 +153,11 @@ public class Http {
          * The URI path.
          */
         public abstract String path();
+        
+        /**
+         * The Request Langs, extracted from the Accept-Language header.
+         */
+        public abstract List<play.i18n.Lang> acceptLanguages();
         
         /**
          * The query string content.

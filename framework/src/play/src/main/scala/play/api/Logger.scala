@@ -11,7 +11,7 @@ trait LoggerLike {
    * The underlying SLF4J Logger.
    */
   val logger: Slf4jLogger
-  
+
   /**
    * The underlying SLF4J Logger.
    */

@@ -22,5 +22,13 @@ public class Cache {
   public static void set(String key, Object value, int expiration) {
       play.api.cache.Cache.set(key,value,expiration, play.api.Play.unsafeApplication());
   }
+    /**
+   * Sets a value without expiration.
+   * 
+   * @param expiration expiration in seconds
+   */
+  public static void set(String key, Object value) {
+      play.api.cache.Cache.set(key,value, 0, play.api.Play.unsafeApplication());
+  }
 
 }

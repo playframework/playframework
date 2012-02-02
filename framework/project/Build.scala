@@ -133,7 +133,7 @@ object PlayBuild extends Build {
     object BuildSettings {
 
         val buildOrganization = "play"
-        val buildVersion      = "2.0-RC1-SNAPSHOT"
+        val buildVersion      = Option(System.getProperty("version")).getOrElse("2.0-RC1-SNAPSHOT")
         val buildScalaVersion = "2.9.1"
         val buildSbtVersion   = "0.11.2"
 
@@ -170,12 +170,12 @@ object PlayBuild extends Build {
     object Dependencies {
 
         val runtime = Seq(
-            "io.netty"                   %    "netty"                    %   "3.3.0.Final",
-            "org.slf4j"                         %    "slf4j-api"                %   "1.6.2",
-            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.2",
-            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.2",
-            "ch.qos.logback"                    %    "logback-core"             %   "0.9.30",
-            "ch.qos.logback"                    %    "logback-classic"          %   "0.9.30",
+            "io.netty"                          %    "netty"                    %   "3.3.0.Final",
+            "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
+            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.4",
+            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
+            "ch.qos.logback"                    %    "logback-core"             %   "1.0.0",
+            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.0",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0-M2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0-M2",
@@ -196,29 +196,29 @@ object PlayBuild extends Build {
             "com.ning"                          %    "async-http-client"        %   "1.7.0",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
-            "org.reflections"                   %    "reflections"              %   "0.9.5",
+            "org.reflections"                   %    "reflections"              %   "0.9.6",
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
-            "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
         )
 
         val sbtDependencies = Seq(
-          "com.typesafe.config"                 %    "config"                   %   "0.2.1",
-          "rhino"                               %    "js"                       %   "1.7R2",
-          "com.google.javascript"               %    "closure-compiler"         %   "r1459",           //notTransitive(),
-          "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0",
-          "org.avaje"                           %    "ebean"                    %   "2.7.3",
-          "com.h2database"                      %    "h2"                       %   "1.3.158",
-          "javassist"                           %    "javassist"                %   "3.12.1.GA",
-          "org.pegdown"                         %    "pegdown"                  %   "1.1.0"
+            "com.typesafe.config"               %    "config"                   %   "0.2.1",
+            "rhino"                             %    "js"                       %   "1.7R2",
+            "com.google.javascript"             %    "closure-compiler"         %   "r1741",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
+            "org.avaje"                         %    "ebean"                    %   "2.7.3",
+            "com.h2database"                    %    "h2"                       %   "1.3.158",
+            "javassist"                         %    "javassist"                %   "3.12.1.GA",
+            "org.pegdown"                       %    "pegdown"                  %   "1.1.0"
         )
 
         val consoleDependencies = Seq(
-          "com.github.scala-incubator.io"       %%   "scala-io-file"            %   "0.2.0"
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0"
         )
 
         val templatesDependencies = Seq(
@@ -230,10 +230,10 @@ object PlayBuild extends Build {
         val anormDependencies = Seq(
             "org.scala-lang"                    %    "scalap"                   %   buildScalaVersion 
         )
-        
+
         val testDependencies = Seq(
             "org.specs2"                        %%   "specs2"                   %   "1.7.1",
-            "com.novocode"                      %    "junit-interface"          %   "0.7",
+            "com.novocode"                      %    "junit-interface"          %   "0.8",
             "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"
         )
 

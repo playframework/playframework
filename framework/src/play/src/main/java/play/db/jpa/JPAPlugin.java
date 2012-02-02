@@ -38,6 +38,16 @@ public class JPAPlugin extends Plugin {
         
     }
     
+    private boolean isPluginDisabled() {
+        String status =  application.configuration().getString("jpaplugin");
+        return status != null && status.equals("disabled");
+    }   
+
+    @Override
+    public boolean enabled() { 
+        return isPluginDisabled() == false;
+    }
+     
     public void onStop() {
         
         for(EntityManagerFactory emf: emfs.values()) {

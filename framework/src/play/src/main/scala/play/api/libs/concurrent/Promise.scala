@@ -248,6 +248,10 @@ object Promise {
 
   def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
 
+  def timeout[A](message: A, duration: akka.util.Duration): Promise[A] = {
+    timeout(message, duration.toMillis)
+  }
+
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
     val p = Promise[A]()
     play.core.Invoker.system.scheduler.scheduleOnce(akka.util.Duration(duration, unit))(p.redeem(message))

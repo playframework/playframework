@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
-import play.i18n.Messages;
 import play.libs.Scala;
 
 /**

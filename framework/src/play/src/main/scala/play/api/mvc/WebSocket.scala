@@ -45,6 +45,11 @@ object WebSocket {
     implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = play.core.server.websocket.Frames.binaryFrame
 
     /**
+     * Either String or Array[Byte] WebSocket frames.
+     */
+    implicit val mixedFrame: FrameFormatter[Either[String, Array[Byte]]] = play.core.server.websocket.Frames.mixedFrame
+
+    /**
      * Json WebSocket frames.
      */
     implicit val jsonFrame: FrameFormatter[JsValue] = stringFrame.transform(Json.stringify, Json.parse)
@@ -56,6 +61,10 @@ object WebSocket {
    */
   def using[A](f: RequestHeader => (Iteratee[A, _], Enumerator[A]))(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
     WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); e |>> readIn; writeOut |>> i })
+  }
+
+  def adapter[A](f: RequestHeader => Enumeratee[A,A])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
+    WebSocket[A](h => (in, out) => {  in &> f(h) |>> out })
   }
 
   /**

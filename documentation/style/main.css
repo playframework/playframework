@@ -102,11 +102,11 @@ header li:before {
     display: none;
 }
 
-#manual #sidebar h1 {
+#manual #sidebar h3 {
     font-size: 16px !important;
     font-weight: normal !important;
     color: #444;
-    margin-top: 10px !important;
+    margin: 15px 0 10px 0 !important;
     border: none !important;
 }
 
