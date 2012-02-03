@@ -128,4 +128,19 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.scanLeft" should {
+
+    "transform elements using a sate" in {
+      val result = 
+        Enumerator(1,2,3,4) &> 
+        Enumeratee.scanLeft[Int](0)(_ + _) ><>
+        Enumeratee.map(List(_)) |>>
+        Iteratee.consume()
+
+      result.flatMap(_.run).value.get must equalTo(List(1,3,6,10))
+
+    }
+
+  }
+
 }
