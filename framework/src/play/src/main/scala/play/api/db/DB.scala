@@ -330,12 +330,12 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
     conf.getString("url").get match {
       case PostgresFullUrl(username, password, host, dbname) => {
-        datasource.setJdbcUrl("jdbc:postgresql://" + host + "/" + dbname)
+        datasource.setJdbcUrl("jdbc:postgresql://%s/%s".format(host, dbname))
         datasource.setUsername(username)
         datasource.setPassword(password)
       }
       case MysqlFullUrl(username, password, host, dbname) => {
-        datasource.setJdbcUrl("jdbc:mysql://" + host + "/" + dbname + "?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci")
+        datasource.setJdbcUrl("jdbc:mysql://%s/%s?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci".format(host, dbname))
         datasource.setUsername(username)
         datasource.setPassword(password)
       }
@@ -343,7 +343,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         datasource.setJdbcUrl(s)
       }
       case _ => {
-        throw conf.globalError("Missing url configuration for database [" + conf + "]")
+        throw conf.globalError("Missing url configuration for database [%s]".format(conf))
       }
     }
 
