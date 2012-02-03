@@ -1,12 +1,15 @@
 package play.api.libs.json
 
 import Json._
-
 import scala.collection._
+import scala.annotation.implicitNotFound
 
 /**
  * Json serializer: write an implicit to define a serializer for any type
  */
+@implicitNotFound(
+  "No Json deserializer found for type ${T}. Try to implement an implicit Writes or Format for this type."
+)
 trait Writes[T] {
 
   /**
