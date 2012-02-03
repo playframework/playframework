@@ -13,6 +13,7 @@ import com.avaje.ebean.*;
  * User entity managed by Ebean
  */
 @Entity 
+@Table(name="account")
 public class User extends Model {
 
     @Id
