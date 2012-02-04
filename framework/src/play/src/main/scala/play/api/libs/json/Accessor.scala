@@ -43,4 +43,3 @@ case class ArrayAccessor(index: Int) extends Accessor {
 }
 
 
-// vim: set ts=2 sw=2 ft=scala et:
