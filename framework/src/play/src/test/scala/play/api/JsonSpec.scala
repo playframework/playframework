@@ -221,6 +221,7 @@ object JsonModifierSpec extends Specification {
           )
         )
     }
+
     "JsonModifier can use callbacks" in {
       globalJson.replace(ObjectAccessor("title"), ((old: JsValue) => old match {
         case JsString(content) => JsString(content.toUpperCase)
@@ -241,6 +242,40 @@ object JsonModifierSpec extends Specification {
               List[JsValue](
                 JsString("Awesome article"),
                 JsString("Must read"),
+                JsString("Playframework"),
+                JsString("Rocks")
+                )
+              )
+            )
+          )
+        )
+    }
+
+    "JsonModifier can use callbacks and modify again inside" in {
+      globalJson.replace(ObjectAccessor("tags"), ((old: JsValue) => old match {
+        case o: JsArray => o.replace(
+            ArrayAccessor(0), 
+            JsString("First")
+          ).replace(
+            ArrayAccessor(1), 
+            JsString("Second"))
+        case _ => JsUndefined("not found")
+        })
+      ) must
+        equalTo(
+        JsObject(
+          List(
+            "title" -> JsString("Acme"),
+            "author" -> JsObject(
+              List(
+                "firstname" -> JsString("Bugs"),
+                "lastname" -> JsString("Bunny")
+                )
+              ),
+            "tags" -> JsArray(
+              List[JsValue](
+                JsString("First"),
+                JsString("Second"),
                 JsString("Playframework"),
                 JsString("Rocks")
                 )
