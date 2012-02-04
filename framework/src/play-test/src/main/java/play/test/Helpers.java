@@ -129,6 +129,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             Scala.asJava(play.api.test.Helpers.flash(result.getWrappedResult()).data())
         );
     }
+
+    /**
+     * Extracts the Session of this Result value.
+     */
+    public static play.mvc.Http.Session session(Result result) {
+        return new play.mvc.Http.Session(
+                Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
+        );
+    }
     
     /**
      * Extracts an Header value of this Result value.
