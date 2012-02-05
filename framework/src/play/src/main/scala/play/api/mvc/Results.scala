@@ -332,7 +332,7 @@ trait Results {
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
         ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))))),
-        Enumerator.enumerateFile(content)
+        Enumerator.fromFile(content)
       )
     }
 

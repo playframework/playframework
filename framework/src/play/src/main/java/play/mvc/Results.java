@@ -940,7 +940,7 @@ public class Results {
         public static class Out<A> {
 
             final List<Callback0> disconnectedCallbacks;
-            final play.api.libs.iteratee.PushEnumerator<A> enumerator;
+            final play.api.libs.iteratee.PushEnumerator<A>  enumerator;
 
             public Out(play.api.libs.iteratee.PushEnumerator<A> enumerator, List<Callback0> disconnectedCallbacks) {
                 this.enumerator = enumerator;

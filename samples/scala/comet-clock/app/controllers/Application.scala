@@ -22,7 +22,7 @@ object Application extends Controller {
     
     val dateFormat = new SimpleDateFormat("HH mm ss")
     
-    Enumerator.callbackEnumerator { () =>
+    Enumerator.fromCallback { () =>
       Promise.timeout(Some(dateFormat.format(new Date)), 100 milliseconds)
     }
   }

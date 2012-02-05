@@ -57,7 +57,7 @@ object Assets extends Controller {
 
           lazy val (length, resourceData) = {
             val stream = url.openStream()
-            (stream.available, Enumerator.enumerateStream(stream))
+            (stream.available, Enumerator.fromStream(stream))
           }
 
           request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {

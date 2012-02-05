@@ -729,7 +729,12 @@ object Enumerator {
 
   }
 
-  def pushEnumerator[E](
+  def imperative[E](
+    onStart: => Unit = () => (),
+    onComplete: => Unit = () => (),
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)
+
+  def pushee[E](
     onStart: Pushee[E] => Unit,
     onComplete: => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
@@ -788,7 +793,7 @@ object Enumerator {
   import scalax.io.JavaConverters._
 
 
-  def callback1[E](retriever: Boolean => Promise[Option[E]],
+  def fromCallback1[E](retriever: Boolean => Promise[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
@@ -828,7 +833,7 @@ object Enumerator {
   }
 
 
-  def callbackEnumerator[E](retriever: () => Promise[Option[E]],
+  def fromCallback[E](retriever: () => Promise[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
@@ -867,9 +872,9 @@ object Enumerator {
     }
   }
 
-  def enumerateStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
+  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
 
-    callbackEnumerator(() => {
+    fromCallback(() => {
       val buffer = new Array[Byte](chunkSize)
       val chunk = input.read(buffer) match {
         case -1 => None
@@ -882,10 +887,10 @@ object Enumerator {
     }, input.close)
   }
 
-  def enumerateFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = enumerateStream(new java.io.FileInputStream(file), chunkSize)
+  def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = fromStream(new java.io.FileInputStream(file), chunkSize)
 
-  def empty[A] = enumInput[A](Input.EOF)
-
+  def eof[A] = enumInput[A](Input.EOF)
+  
   /**
    * Create an Enumerator from a set of values
    *
@@ -900,7 +905,7 @@ object Enumerator {
 
   }
 
-  def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
+  private def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
       i.map(it => it.pureFlatFold((_, _) => it,
         k => k(Input.El(e)),
@@ -909,10 +914,10 @@ object Enumerator {
 
 }
 
-class PushEnumerator[E](
+class PushEnumerator[E] private[iteratee](
     onStart: => Unit = () => (),
     onComplete: => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {
 
   var iteratee: Iteratee[E, _] = _
   var promise: Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
