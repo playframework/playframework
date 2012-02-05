@@ -24,6 +24,21 @@ trait CacheAPI {
    */
   def get(key: String): Option[Any]
 
+  /**
+   * Retrieve a value from cache or compute it if not available.
+   * 
+   * @param key Item key.
+   * @param value Item value evaluated if key doesn't exists.
+   * @param expiration Expiration in seconds.
+   */
+  def getOrElse[T](key: String,  value: => T, expiration: Int):T = {
+    get(key).getOrElse {
+      val result = value
+      set(key, result, expiration)
+      result
+    }.asInstanceOf[T]
+  }
+
 }
 
 /**
@@ -75,6 +90,20 @@ object Cache {
     }.getOrElse(None)
   }
 
+  /**
+   * Retrieve a value from cache or compute it if not available.
+   *
+   * @param key Item key.
+   * @param value Item value evaluated if key doesn't exists.
+   * @param expiration Expiration in seconds.
+   */
+  def getOrElse[T](key: String,  value: => T, expiration: Int)(implicit app: Application):T = {
+    get(key).getOrElse {
+      val result = value
+      set(key, result, expiration)
+      result
+    }.asInstanceOf[T]
+  }
 }
 
 /**
