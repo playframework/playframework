@@ -12,12 +12,12 @@ class ChatRoomActor extends Actor {
   
   import ChatRoomActor._
   
-  var members = Seq.empty[CallbackEnumerator[String]]
-  
+  var members = Seq.empty[PushEnumerator[String]]
+
   def receive = {
     
     case Join() => {
-      lazy val channel:CallbackEnumerator[String] = new CallbackEnumerator[String](
+      lazy val channel: PushEnumerator[String] =  Enumerator.imperative[String](
         onComplete = self ! Quit(channel)
       )
       members = members :+ channel
@@ -43,7 +43,7 @@ object ChatRoomActor {
   
   trait Event
   case class Join() extends Event
-  case class Quit(channel: CallbackEnumerator[String]) extends Event
+  case class Quit(channel: PushEnumerator[String]) extends Event
   case class Message(msg: String) extends Event
   lazy val system = ActorSystem("chatroom")
   lazy val ref = system.actorOf(Props[ChatRoomActor])

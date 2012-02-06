@@ -4,7 +4,7 @@ import PlayProject._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "chatroom"
+    val appName         = "akka-chat"
     val appVersion      = "1.0"
 
     val appDependencies = Seq(

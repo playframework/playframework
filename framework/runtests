@@ -147,6 +147,14 @@ cd ../samples/workinprogress/pi-calculator
 $PLAY "$@" clean test
 cd $CURRENT
 
+echo "[info]"
+echo "[info] ---- TESTING SCALA/AKKA-CHAT"
+echo "[info]"
+
+cd ../samples/workinprogress/akka-chat
+$PLAY "$@" clean test
+cd $CURRENT
+
 echo
 echo "[info]"
 echo "[info] ALL TESTS PASSED"
