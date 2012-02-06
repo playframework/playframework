@@ -24,7 +24,7 @@ class IntegrationSpec extends Specification {
         
         browser.$("#pagination li.current").first.getText must equalTo("Displaying 11 to 20 of 574")
         browser.$("#searchbox").text("Apple")
-        browser.$("#searchsubmit").foreach(_.click())
+        browser.$("#searchsubmit").click()
         
         browser.$("section h1").first.getText must equalTo("13 computers found")
         browser.$("a", withText("Apple II")).click()
