@@ -465,5 +465,12 @@ private class AutoCleanConnection(connection: Connection) extends Connection {
   def setTypeMap(map: java.util.Map[String, Class[_]]) { connection.setTypeMap(map) }
   def isWrapperFor(iface: Class[_]) = connection.isWrapperFor(iface)
   def unwrap[T](iface: Class[T]) = connection.unwrap(iface)
+
+  // JDBC 4.1
+  def getSchema() = connection.getSchema()
+  def setSchema(schema: String) { connection.setSchema(schema) }
+  def getNetworkTimeout() = connection.getNetworkTimeout()
+  def setNetworkTimeout(executor: java.util.concurrent.Executor, milliseconds: Int) { connection.setNetworkTimeout(executor, milliseconds) } 
   
+  def abort(executor: java.util.concurrent.Executor) { connection.abort(executor) }
 }
