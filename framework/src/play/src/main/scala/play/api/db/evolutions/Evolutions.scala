@@ -405,13 +405,13 @@ class EvolutionsPlugin(app: Application) extends Plugin {
    */
   override def onStart() {
     val api = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
-
     api.datasources.foreach {
       case (ds, db) => {
         val script = evolutionScript(api, app.classloader, db)
         if (!script.isEmpty) {
           app.mode match {
             case Mode.Test => Evolutions.applyScript(api, db, script)
+            case Mode.Dev if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
             case Mode.Prod if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
             case Mode.Prod => {
               Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
