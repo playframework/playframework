@@ -347,8 +347,9 @@ trait PlayCommands {
   def AssetsCompiler(name: String,
     files: (File) => PathFinder,
     naming: (String, Boolean) => String,
-    compile: (File) => (String, Option[String], Seq[File])) =
-    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, minify) map { (src, resources, cache, min) =>
+    compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
+    optionsSettings: sbt.SettingKey[Seq[String]]) =
+    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings) map { (src, resources, cache, options) =>
 
       import java.io._
 
@@ -364,7 +365,7 @@ trait PlayCommands {
 
         val generated = ((sourceFiles --- ((src / "assets") ** "_*")) x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
-            val (debug, min, dependencies) = compile(sourceFile)
+            val (debug, min, dependencies) = compile(sourceFile, options)
             val out = new File(resources, "public/" + naming(name, false))
             val outMin = new File(resources, "public/" + naming(name, true))
             IO.write(out, debug)
@@ -394,19 +395,21 @@ trait PlayCommands {
   val LessCompiler = AssetsCompiler("less",
     { assets => (assets ** "*.less") },
     { (name, min) => name.replace(".less", if (min) ".min.css" else ".css") },
-    { lessFile => play.core.less.LessCompiler.compile(lessFile) }
+    { (lessFile, options) => play.core.less.LessCompiler.compile(lessFile) },
+    lessOptions
   )
 
   val JavascriptCompiler = AssetsCompiler("javascripts",
     { assets => (assets ** "*.js") },
     { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { jsFile => play.core.jscompile.JavascriptCompiler.compile(jsFile) }
+    { (jsFile:File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
+    closureCompilerOptions
   )
 
   val CoffeescriptCompiler = AssetsCompiler("coffeescript",
     { assets => (assets ** "*.coffee") },
     { (name, min) => name.replace(".coffee", if (min) ".min.js" else ".js") },
-    { coffeeFile =>
+    { (coffeeFile, options) =>
       import scala.util.control.Exception._
       val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile)
       // Any error here would be because of CoffeeScript, not the developer;
@@ -414,7 +417,8 @@ trait PlayCommands {
       val minified = catching(classOf[CompilationException])
         .opt(play.core.jscompile.JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
       (jsSource, minified, Seq(coffeeFile))
-    }
+    },
+    coffeeScriptOptions
   )
 
   // ----- Post compile (need to be refactored and fully configurable)

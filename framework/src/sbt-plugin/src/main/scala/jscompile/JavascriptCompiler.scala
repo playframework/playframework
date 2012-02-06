@@ -11,13 +11,15 @@ import scala.io.Source
 
 object JavascriptCompiler {
 
-  import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
+  import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile, CompilationLevel }
 
   /**
    * Compile a JS file with its dependencies
    * @return a triple containing the original source code, the minified source code, the list of dependencies (including the input file)
    */
-  def compile(source: File): (String, Option[String], Seq[File]) = {
+  def compile(source: File, coptions: Seq[String]): (String, Option[String], Seq[File]) = {
+    import scala.util.control.Exception._
+
     val origin = Path(source).slurpString
 
     val options = new CompilerOptions()
@@ -25,18 +27,30 @@ object JavascriptCompiler {
     options.setProcessCommonJSModules(true)
     options.setCommonJSModulePathPrefix(source.getParent() + "/")
     options.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+    coptions.foreach(_ match {
+      case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
+      case "checkCaja" => options.setCheckCaja(true)
+      case "checkControlStructures" => options.setCheckControlStructures(true)
+      case "checkTypes" => options.setCheckTypes(true)
+      case "checkSymbols" => options.setCheckSymbols(true)
+      case _ => Unit // Unkown option
+    })
 
     val compiler = new Compiler()
     val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
     val all = allSiblings(source)
     val input = all.map(f => JSSourceFile.fromFile(f)).toArray
 
-    compiler.compile(extern, input, options).success match {
-      case true => (origin, Some(compiler.toSource()), all)
-      case false => {
+    catching(classOf[Exception]).either(compiler.compile(extern, input, options).success) match {
+      case Right(true) => (origin, Some(compiler.toSource()), all)
+      case Right(false) => {
         val error = compiler.getErrors().head
-        throw AssetCompilationException(Some(source), error.description, error.lineNumber, 0)
+        val errorFile = all.find(f => f.getAbsolutePath() == error.sourceName)
+        throw AssetCompilationException(errorFile, error.description, error.lineNumber, 0)
       }
+      case Left(exception) =>
+        exception.printStackTrace()
+        throw AssetCompilationException(Some(source), "Internal Closure Compiler error (see logs)", 0, 0)
     }
   }
 

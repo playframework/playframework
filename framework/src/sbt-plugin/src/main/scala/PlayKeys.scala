@@ -16,7 +16,11 @@ trait PlayKeys {
 
   val templatesTypes = SettingKey[PartialFunction[String, (String, String)]]("play-templates-formats")
 
-  val minify = SettingKey[Boolean]("play-minify", "Whether assets (Javascript and CSS) should be minified or not")
+  val closureCompilerOptions = SettingKey[Seq[String]]("play-closure-compiler-options")
+
+  val lessOptions = SettingKey[Seq[String]]("play-less-options")
+
+  val coffeeScriptOptions = SettingKey[Seq[String]]("play-coffeescript-options")
 
 }
 object PlayKeys extends PlayKeys

@@ -146,9 +146,13 @@ trait PlaySettings {
 
     resourceGenerators in Compile <+= JavascriptCompiler,
 
-    minify := false,
-
     ebeanEnabled := false,
+
+    closureCompilerOptions := Seq.empty[String],
+
+    lessOptions := Seq.empty[String],
+
+    coffeeScriptOptions := Seq.empty[String],
 
     logManager <<= extraLoggers(PlayLogManager.default),
 
