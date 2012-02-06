@@ -314,7 +314,7 @@ package anorm {
           case Some(o) => stmt.setObject(index, o)
           case None => stmt.setObject(index, null)
           case bd: java.math.BigDecimal => stmt.setBigDecimal(index, bd)
-          case date: java.util.Date => stmt.setDate(index, new java.sql.Date(date.getTime()))
+          case date: java.util.Date => stmt.setTimestamp(index, new java.sql.Timestamp(date.getTime()))
           case o => stmt.setObject(index, o)
         }
         stmt
@@ -324,7 +324,7 @@ package anorm {
     }
 
     implicit val dateToStatement = new ToStatement[java.util.Date] {
-      def set(s: java.sql.PreparedStatement, index: Int, aValue: java.util.Date): Unit = s.setDate(index, new java.sql.Date(aValue.getTime()))
+      def set(s: java.sql.PreparedStatement, index: Int, aValue: java.util.Date): Unit = s.setTimestamp(index, new java.sql.Timestamp(aValue.getTime()))
 
     }
 
