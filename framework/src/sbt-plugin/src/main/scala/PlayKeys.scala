@@ -20,7 +20,13 @@ trait PlayKeys {
 
   val lessOptions = SettingKey[Seq[String]]("play-less-options")
 
-  val coffeeScriptOptions = SettingKey[Seq[String]]("play-coffeescript-options")
+  val coffeescriptOptions = SettingKey[Seq[String]]("play-coffeescript-options")
+
+  val lessEntryPoints = SettingKey[Seq[File]]("play-less-entry-points")
+
+  val coffeescriptEntryPoints = SettingKey[Seq[File]]("play-coffeescript-entry-points")
+
+  val javascriptEntryPoints = SettingKey[Seq[File]]("play-javascript-entry-points")
 
 }
 object PlayKeys extends PlayKeys
