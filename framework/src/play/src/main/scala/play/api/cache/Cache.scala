@@ -38,22 +38,16 @@ object Cache {
   )
 
   /**
-   * Sets a value with expiration.
-   *
-   * @param expiration expiration period in seconds.
-   */
-  def set(key: String, value: Any, expiration: Int)(implicit app: Application) = {
-    app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
-  }
-
-  /**
    * Sets a value without expiration
    *
+   * @param key Item key.
+   * @param value Item value.
    * @param expiration expiration period in seconds.
    */
-  def set(key: String, value: Any)(implicit app: Application) = {
-    app.plugin[CachePlugin].map(_.api.set(key, value, 0)).getOrElse(error)
+  def set(key: String, value: Any, expiration: Int = 0)(implicit app: Application) = {
+    app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
   }
+  
   /**
    * Retrieve a value from the cache.
    *
@@ -61,6 +55,21 @@ object Cache {
    */
   def get(key: String)(implicit app: Application): Option[Any] = {
     app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
+  }
+  
+  /**
+   * Retrieve a value from the cache, or set it from a default function.
+   * 
+   * @param key Item key.
+   * @param expiration expiration period in seconds.
+   * @param orElse The default function to invoke if the value was found in cache.
+   */
+  def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, m: ClassManifest[A]): A = {
+    getAs[A](key).getOrElse {
+      val value = orElse
+      set(key, value, expiration)
+      value
+    }
   }
 
   /**

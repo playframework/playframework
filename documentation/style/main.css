@@ -87,6 +87,25 @@ header li:before {
     padding: 6px 10px;
 }
 
+#manual #main pre code {
+    padding-left: 0 !important;
+}
+
+#main ul ul {
+    margin-left: 0;
+    padding-left: 10px;
+}
+
+#main blockquote code {
+    background: #F5FFEC;
+    border: 1px solid #E6EEDD;
+}
+
+#main blockquote pre {
+    background: #F5FFEC !important;
+    border: 1px solid #E6EEDD !important; 
+}
+
 #sidebar {
     font-size: 13px;
     background: #fff;

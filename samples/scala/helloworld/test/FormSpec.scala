@@ -70,7 +70,6 @@ class FormSpec extends Specification {
       
       form.hasErrors must beFalse
       
-      
       form.data must havePair("color" -> "red")
       form.data must havePair("repeat" -> "10")
       form.data must havePair("name" -> "Bob")

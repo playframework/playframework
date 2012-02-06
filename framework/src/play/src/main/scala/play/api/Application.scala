@@ -51,9 +51,9 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   lazy private val scalaGlobal: GlobalSettings = try {
     classloader.loadClass(globalClass + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
   } catch {
-    case e: ClassNotFoundException if !initialConfiguration.getString("global").isDefined => DefaultGlobal
-    case e if initialConfiguration.getString("global").isDefined => {
-      throw initialConfiguration.reportError("global", "Cannot init the Global object (%s)".format(e.getMessage))
+    case e: ClassNotFoundException if !initialConfiguration.getString("application.global").isDefined => DefaultGlobal
+    case e if initialConfiguration.getString("application.global").isDefined => {
+      throw initialConfiguration.reportError("application.global", "Cannot init the Global object (%s)".format(e.getMessage))
     }
     case e => throw e
   }

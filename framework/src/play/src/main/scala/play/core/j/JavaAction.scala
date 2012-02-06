@@ -49,11 +49,17 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       }
     }.getOrElse(rootAction)
 
+    val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
+      clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
+    }.flatten
+
     val actionMixins = {
-      (method.getDeclaredAnnotations ++ controller.getDeclaredAnnotations).collect {
-        case a: play.mvc.With => a -> a.value()
-        case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) => a -> a.annotationType.getAnnotation(classOf[play.mvc.With]).value()
-      }.reverse
+      (method.getDeclaredAnnotations ++ controllerAnnotations).collect {
+        case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
+        case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) => {
+          a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
+        }
+      }.flatten.reverse
     }
 
     val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {

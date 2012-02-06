@@ -17,6 +17,6 @@ package object helper {
    * </dl>
    * }}}
    */
-  val defaultField = defaultFieldHandler.f
+  val defaultField = defaultFieldConstructor.f
 
 }

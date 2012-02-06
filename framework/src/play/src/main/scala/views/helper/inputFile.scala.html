@@ -1,0 +1,17 @@
+@**
+ * Generate an HTML input file.
+ *
+ * Example:
+ * {{{
+ * @inputFile(field = myForm("name"), args = 'size -> 10)
+ * }}}
+ *
+ * @param field The form field.
+ * @param args Set of extra attributes.
+ * @param handler The field constructor.
+ *@
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
+
+@input(field, args:_*) { (id, name, value, htmlArgs) =>
+    <input type="file" id="@id" name="@name" @toHtmlArgs(htmlArgs)>
+}

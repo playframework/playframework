@@ -72,4 +72,11 @@ public abstract class Comet extends Chunks<String> {
         out.onDisconnected(callback);
     }
     
+    /**
+     * Close the channel
+     */
+    public void close() {
+        out.close();
+    }
+    
 }

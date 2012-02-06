@@ -31,11 +31,9 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Constraints associated with this form, indexed by field name.
    */
-  val constraints: Map[String, List[(String, Seq[Any])]] = mapping.mappings.map { m =>
-    m.key -> m.constraints.collect { case Constraint(Some(name), args) => name -> args }.toSeq
-  }.collect {
-    case (k, c @ List(_, _*)) => k -> c
-  }.toMap
+  val constraints: Map[String, Seq[(String, Seq[Any])]] = mapping.mappings.map { m =>
+    m.key -> m.constraints.collect { case Constraint(Some(name), args) => name -> args }
+  }.filterNot(_._2.isEmpty).toMap
 
   /**
    * Formats associated to this form, indexed by field name. *

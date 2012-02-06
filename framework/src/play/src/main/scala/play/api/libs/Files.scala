@@ -22,6 +22,13 @@ object Files {
     def clean(): Boolean = {
       file.delete()
     }
+    
+    /**
+     * Move the file. 
+     */
+    def moveTo(to: File, replace: Boolean = false) {
+      Files.moveFile(file, to, replace = replace)
+    }
 
     /**
      * Delete this file on garbage collection.

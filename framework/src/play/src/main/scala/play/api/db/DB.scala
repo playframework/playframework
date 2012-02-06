@@ -466,4 +466,25 @@ private class AutoCleanConnection(connection: Connection) extends Connection {
   def isWrapperFor(iface: Class[_]) = connection.isWrapperFor(iface)
   def unwrap[T](iface: Class[T]) = connection.unwrap(iface)
   
+  // JDBC 4.1
+  def getSchema() = {
+    connection.asInstanceOf[{ def getSchema(): String }].getSchema()
+  }
+  
+  def setSchema(schema: String) { 
+    connection.asInstanceOf[{ def setSchema(schema: String): Unit }].setSchema(schema) 
+  }
+  
+  def getNetworkTimeout() = {
+    connection.asInstanceOf[{ def getNetworkTimeout(): Int }].getNetworkTimeout()
+  }
+  
+  def setNetworkTimeout(executor: java.util.concurrent.Executor, milliseconds: Int) { 
+    connection.asInstanceOf[{ def setNetworkTimeout(executor: java.util.concurrent.Executor, milliseconds: Int): Unit }].setNetworkTimeout(executor, milliseconds) 
+  }
+   
+  def abort(executor: java.util.concurrent.Executor) { 
+    connection.asInstanceOf[{ def abort(executor: java.util.concurrent.Executor): Unit }].abort(executor) 
+  }
+  
 }

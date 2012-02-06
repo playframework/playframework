@@ -5,7 +5,16 @@ import play.api.libs.iteratee._
 /**
  * An Handler handles a request.
  */
-trait Handler
+trait Handler {
+  
+  /**
+   * Returns itself, for better support in the routes file.
+   *
+   * @return itself
+   */
+  def apply() = this
+  
+}
 
 /**
  * Reference to an Handler.
@@ -67,13 +76,6 @@ trait Action[A] extends (Request[A] => Result) with Handler {
    */
   def apply(request: Request[A]): Result
 
-  /**
-   * Returns itself, for better support in the routes file.
-   *
-   * @return itself
-   */
-  def apply() = this
-
   override def toString = {
     "Action(parser=" + parser + ")"
   }
@@ -91,8 +93,19 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
   /**
    * Transform this BodyParser[A] to a BodyParser[B]
    */
-  def map[B](f: A => B): BodyParser[B] = new BodyParser[B] { request =>
+  def map[B](f: A => B): BodyParser[B] = new BodyParser[B] {
     def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))
+    override def toString = self.toString
+  }
+  
+  /**
+   * Transform this BodyParser[A] to a BodyParser[B]
+   */
+  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] = new BodyParser[B] {
+    def apply(request: RequestHeader) = self(request).flatMap {
+      case Left(e) => Done(Left(e), Input.Empty) 
+      case Right(a) => f(a)(request)
+    }
     override def toString = self.toString
   }
 
