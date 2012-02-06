@@ -1,0 +1,101 @@
+body {
+    background:url(/assets/images/background.png);
+    font-family:"Myriad Pro", Helvetica, Arial, Serif;
+    font-size:8px;
+    color:black;
+    text-shadow: 0px 1px 1px rgba(255,255,255,0.1);
+    height:480px;
+    width:320px;
+    padding-top:2px;
+}
+
+.monitor {
+    margin: 10px auto;
+    width:302px;
+    height:123px;
+    background-size: 302px 123px;
+    background:url(/assets/images/monitor.png);
+    position:relative;
+    .title {
+        color:black;
+        position: absolute;
+        top: 8px;
+        left: 221px;
+    }
+    .screen {
+        position: absolute;
+        font-size: 19px;
+        color:#60656b;
+        text-shadow:0 0 1px rgba(1,1,1,0.5);
+        background: black;
+        border-radius: 5px;
+        width: 60px;
+        padding: 0 5px;
+        margin-top: 4px;
+        text-align:right;
+        background-image: -webkit-gradient(linear, 0 0, 100% 100%, from(rgba(255, 255, 255, 0.1)), to(rgba(255, 255, 255, 0)));
+        box-shadow: inset 0px -1px 1px rgba(255, 255, 255, 0.2);
+        &.current {
+            top: 28px;
+            left: 214px;
+        }
+        &.max {
+            top:55px;
+            left: 214px;
+        }
+    }
+}
+
+.wheel {
+    position:absolute;
+    width:13px;
+    height:13px;
+    top: 97px;
+    left: 99px;
+    background:url(/assets/images/wheel.png);
+    background-size: 13px 13px;
+}
+
+.needle {
+    -webkit-transform-origin:50% 98%;
+    position:absolute;
+    top: 29px;
+    left: 103px;
+    width:5px;
+    height:76px;
+    background:url(/assets/images/needle.png);
+    background-size: 5px 76px;
+}
+
+button.gc {
+    display:block;
+    width: 296px;
+    margin: 14px auto;
+    background: #424A4E;
+    border-radius: 8px;
+    border-width: 0px;
+    -webkit-box-shadow: inset 0 -3px 6px #424A4E, inset 0 0px 3px white, 0 0 2px rgba(1,1,1,0.5);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#424A4E), to(#3a4245));
+    height: 40px;
+    -webkit-font-smoothing: antialiased;
+    font-size: 20px;
+    font-weight: bold;
+    color: #1F2125;
+    text-shadow: 0px 0px 1px rgba(255, 255,255, 0.3);
+}
+
+div.light {
+    width:7px;
+    height:7px;
+    position: absolute;
+    top:11px;
+    left: 211px;
+    &.green {
+        background:url(/assets/images/green-light.png);
+        background-size: 7px 7px;
+    }
+    &.red {
+        background:url(/assets/images/red-light.png);
+        background-size: 7px 7px;
+    }
+}
