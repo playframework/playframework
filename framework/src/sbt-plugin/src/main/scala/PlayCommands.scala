@@ -411,7 +411,7 @@ trait PlayCommands {
     { (name, min) => name.replace(".coffee", if (min) ".min.js" else ".js") },
     { (coffeeFile, options) =>
       import scala.util.control.Exception._
-      val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile)
+      val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile, options)
       // Any error here would be because of CoffeeScript, not the developer;
       // so we don't want compilation to fail.
       val minified = catching(classOf[CompilationException])

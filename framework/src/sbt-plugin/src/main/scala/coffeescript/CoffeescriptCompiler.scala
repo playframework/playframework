@@ -30,16 +30,18 @@ object CoffeescriptCompiler {
 
     Context.exit
 
-    (source: File) => {
+    (source: File, bare: Boolean) => {
       val coffeeCode = Path(source).slurpString.replace("\r", "")
-      Context.call(null, compilerFunction, scope, scope, Array(coffeeCode)).asInstanceOf[String]
+      val options = ctx.newObject(scope)
+      options.put("bare", options, bare)
+      Context.call(null, compilerFunction, scope, scope, Array(coffeeCode, options)).asInstanceOf[String]
     }
 
   }
 
-  def compile(source: File): String = {
+  def compile(source: File, options: Seq[String]): String = {
     try {
-      compiler(source)
+      compiler(source, options.contains("bare"))
     } catch {
       case e: JavaScriptException => {
 
