@@ -7,7 +7,8 @@ import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-
+import akka.util.Timeout
+import akka.pattern.ask
 import play.api.Play.current
 
 object Robot {
@@ -17,8 +18,9 @@ object Robot {
     // Create an Iteratee that log all messages to the console.
     val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))
     
+    implicit val timeout = Timeout(1 second)
     // Make the robot join the room
-    chatRoom ? (Join("Robot"), 1 seconds) map {
+    chatRoom ? (Join("Robot")) map {
       case Connected(robotChannel) => 
         // Apply this Enumerator on the logger.
         robotChannel |>> loggerIteratee
@@ -47,7 +49,8 @@ object ChatRoom {
   }
 
   def join(username:String):Promise[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
-    (default ? (Join(username), 1 second)).asPromise.map {
+    implicit val timeout = Timeout (1 second)
+    (default ? Join(username)).asPromise.map {
       
       case Connected(enumerator) => 
       

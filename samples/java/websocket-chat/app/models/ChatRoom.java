@@ -7,6 +7,7 @@ import play.libs.F.*;
 import akka.util.*;
 import akka.actor.*;
 import akka.dispatch.*;
+import static akka.pattern.Patterns.ask;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.node.*;
@@ -34,7 +35,7 @@ public class ChatRoom extends UntypedActor {
     public static void join(final String username, WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out) {
         
         // Send the Join message to the room
-        String result = (String)Await.result(defaultRoom.ask(new Join(username, out), 1000), Duration.create(1, SECONDS));
+        String result = (String)Await.result(ask(defaultRoom,new Join(username, out), 1000), Duration.create(1, SECONDS));
         
         if("OK".equals(result)) {
             
