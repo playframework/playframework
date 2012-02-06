@@ -68,7 +68,7 @@ object Helpers extends Status with HeaderNames {
   /**
    * Apply pending evolutions for the given DB.
    */
-  def evolutionFor(dbName: String) = play.api.db.evolutions.OfflineEvolutions.applyScript(this.getClass.getClassLoader, dbName)
+  def evolutionFor(dbName: String): Unit = play.api.db.evolutions.OfflineEvolutions.applyScript(this.getClass.getClassLoader, dbName)
 
   /**
    * Extracts the Content-Type of this Content value.
@@ -184,7 +184,7 @@ object Helpers extends Status with HeaderNames {
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
    */
-  def inMemoryDatabase(name: String = "default") = {
+  def inMemoryDatabase(name: String = "default"): Map[String, String] = {
     Map(
       ("db." + name + ".driver") -> "org.h2.Driver",
       ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt)

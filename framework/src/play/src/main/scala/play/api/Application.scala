@@ -82,7 +82,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    *
    * @see play.api.Configuration
    */
-  def configuration = fullConfiguration
+  def configuration: Configuration = fullConfiguration
 
   /**
    * The router used by this application (if defined).

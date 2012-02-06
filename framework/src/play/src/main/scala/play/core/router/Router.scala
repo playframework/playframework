@@ -33,7 +33,7 @@ object Router {
       }.get
     }
 
-    def apply(path: String) = {
+    def apply(path: String): Option[Map[String, String]] = {
       val matcher = regex.matcher(path)
       if (matcher.matches) {
         Some(groups.map {
@@ -44,7 +44,7 @@ object Router {
       }
     }
 
-    def has(key: String) = parts.exists {
+    def has(key: String): Boolean = parts.exists {
       case DynamicPart(name, _) if name == key => true
       case _ => false
     }
@@ -60,7 +60,7 @@ object Router {
 
     object Hash {
 
-      def apply(bytes: Array[Byte]) = {
+      def apply(bytes: Array[Byte]): String = {
         import java.security.MessageDigest
         val digest = MessageDigest.getInstance("SHA-1")
         digest.reset()
@@ -80,20 +80,20 @@ object Router {
       val lines = if (file.exists) Path(file).slurpString.split('\n').toList else Nil
       val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path(m.trim.drop(11)))
 
-      def isGenerated = source.isDefined
+      def isGenerated: Boolean = source.isDefined
 
-      def sync() = {
+      def sync(): Boolean = {
         if (!source.get.exists) file.delete() else false
       }
 
-      def needsRecompilation = {
+      def needsRecompilation: Boolean = {
         val hash = lines.find(_.startsWith("// @HASH:")).map(m => m.trim.drop(9)).getOrElse("")
         source.filter(_.exists).map { p =>
           Hash(p.byteArray) != hash
         }.getOrElse(true)
       }
 
-      def mapLine(generatedLine: Int) = {
+      def mapLine(generatedLine: Int): Option[Int] = {
         lines.take(generatedLine).reverse.collect {
           case l if l.startsWith("// @LINE:") => Integer.parseInt(l.trim.drop(9))
         }.headOption
@@ -103,7 +103,7 @@ object Router {
 
     object MaybeGeneratedSource {
 
-      def unapply(source: File) = {
+      def unapply(source: File): Option[GeneratedSource] = {
         val generated = GeneratedSource(source)
         if (generated.isGenerated) {
           Some(generated)
@@ -185,7 +185,7 @@ object Router {
       }
     }
 
-    private def markLines(routes: Route*) = {
+    private def markLines(routes: Route*): String = {
       routes.map("// @LINE:" + _.pos.line).reverse.mkString("\n")
     }
 
@@ -311,7 +311,7 @@ object Router {
     /**
      * Generate the reverse routing operations
      */
-    def javaScriptReverseRouting(routes: List[Route]) = {
+    def javaScriptReverseRouting(routes: List[Route]): String = {
 
       routes.groupBy(_.call.packageName).map {
         case (packageName, routes) => {
@@ -486,7 +486,7 @@ object Router {
     /**
      * Generate the routing refs
      */
-    def refReverseRouting(routes: List[Route]) = {
+    def refReverseRouting(routes: List[Route]): String = {
 
       routes.groupBy(_.call.packageName).map {
         case (packageName, routes) => {
@@ -568,7 +568,7 @@ object Router {
     /**
      * Generate the reverse routing operations
      */
-    def reverseRouting(routes: List[Route]) = {
+    def reverseRouting(routes: List[Route]): String = {
 
       routes.groupBy(_.call.packageName).map {
         case (packageName, routes) => {
@@ -740,7 +740,7 @@ object Router {
     /**
      * Generate the routes definitions
      */
-    def routeDefinitions(routes: List[Route]) = {
+    def routeDefinitions(routes: List[Route]): String = {
       routes.zipWithIndex.map {
         case (r, i) =>
           """
@@ -762,7 +762,7 @@ object Router {
     /**
      * Generate the routing stuff
      */
-    def routing(routes: List[Route]) = {
+    def routing(routes: List[Route]): String = {
       Option(routes.zipWithIndex.map {
         case (r, i) =>
           """
@@ -849,9 +849,9 @@ object Router {
         }
       }
 
-      def EOF = "\\z".r
+      def EOF: util.matching.Regex = "\\z".r
 
-      def namedError[A](p: Parser[A], msg: String) = Parser[A] { i =>
+      def namedError[A](p: Parser[A], msg: String): Parser[A] = Parser[A] { i =>
         p(i) match {
           case Failure(_, in) => Failure(msg, in)
           case o => o
@@ -874,28 +874,28 @@ object Router {
         continue(in)
       }
 
-      def separator = namedError(whiteSpace, "Whitespace expected")
+      def separator: Parser[String] = namedError(whiteSpace, "Whitespace expected")
 
-      def ignoreWhiteSpace = opt(whiteSpace)
+      def ignoreWhiteSpace: Parser[Option[String]] = opt(whiteSpace)
 
-      def identifier = namedError(ident, "Identifier expected")
+      def identifier: Parser[String] = namedError(ident, "Identifier expected")
 
-      def end = """\s*""".r
+      def end: util.matching.Regex = """\s*""".r
 
-      def comment = "#" <~ ".*".r ^^ {
+      def comment: Parser[Comment] = "#" <~ ".*".r ^^ {
         case c => Comment(c)
       }
 
-      def newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
+      def newLine: Parser[String] = namedError((("\r"?) ~> "\n"), "End of line expected")
 
-      def blankLine = ignoreWhiteSpace ~> newLine ^^ { case _ => Comment("") }
+      def blankLine: Parser[Comment] = ignoreWhiteSpace ~> newLine ^^ { case _ => Comment("") }
 
       def parentheses: Parser[String] = {
         "(" ~ (several((parentheses | not(")") ~> """.""".r))) ~ commit(")") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
         }
-      }
-
+      } 
+      
       def brackets: Parser[String] = {
         "[" ~ (several((parentheses | not("]") ~> """.""".r))) ~ commit("]") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
@@ -914,53 +914,53 @@ object Router {
         }
       }
 
-      def httpVerb = namedError("GET" | "POST" | "PUT" | "HEAD" | "DELETE", "HTTP Verb expected") ^^ {
+      def httpVerb: Parser[HttpVerb] = namedError("GET" | "POST" | "PUT" | "HEAD" | "DELETE", "HTTP Verb expected") ^^ {
         case v => HttpVerb(v)
       }
 
-      def singleComponentPathPart = (":" ~> identifier) ^^ {
+      def singleComponentPathPart: Parser[DynamicPart] = (":" ~> identifier) ^^ {
         case name => DynamicPart(name, """[^/]+""")
       }
 
-      def multipleComponentsPathPart = ("*" ~> identifier) ^^ {
+      def multipleComponentsPathPart: Parser[DynamicPart] = ("*" ~> identifier) ^^ {
         case name => DynamicPart(name, """.+""")
       }
 
-      def regexComponentPathPart = "$" ~> identifier ~ ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
+      def regexComponentPathPart: Parser[DynamicPart] = "$" ~> identifier ~ ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
         case name ~ regex => DynamicPart(name, regex)
       }
 
-      def staticPathPart = (not(":") ~> not("*") ~> not("$") ~> """[^\s]""".r +) ^^ {
+      def staticPathPart: Parser[StaticPart] = (not(":") ~> not("*") ~> not("$") ~> """[^\s]""".r +) ^^ {
         case chars => StaticPart(chars.mkString)
       }
 
-      def path = ((positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(regexComponentPathPart) | staticPathPart) +) ^^ {
+      def path: Parser[PathPattern] = ((positioned(singleComponentPathPart) | positioned(multipleComponentsPathPart) | positioned(regexComponentPathPart) | staticPathPart) +) ^^ {
         case parts => PathPattern(parts)
       }
 
-      def parameterType = ":" ~> ignoreWhiteSpace ~> rep1sep(identifier, ".") ~ opt(brackets) ^^ {
+      def parameterType: Parser[String] = ":" ~> ignoreWhiteSpace ~> rep1sep(identifier, ".") ~ opt(brackets) ^^ {
         case t ~ g => t.mkString(".") + g.getOrElse("")
       }
 
-      def expression = (multiString | string | parentheses | brackets | """[^),?=\n]""".r +) ^^ {
+      def expression: Parser[String] = (multiString | string | parentheses | brackets | """[^),?=\n]""".r +) ^^ {
         case p => p.mkString
       }
 
-      def parameterFixedValue = "=" ~ ignoreWhiteSpace ~ expression ^^ {
+      def parameterFixedValue: Parser[String] = "=" ~ ignoreWhiteSpace ~ expression ^^ {
         case a ~ _ ~ b => a + b
       }
 
-      def parameterDefaultValue = "?=" ~ ignoreWhiteSpace ~ expression ^^ {
+      def parameterDefaultValue: Parser[String] = "?=" ~ ignoreWhiteSpace ~ expression ^^ {
         case a ~ _ ~ b => a + b
       }
 
-      def parameter = (identifier <~ ignoreWhiteSpace) ~ opt(parameterType) ~ (ignoreWhiteSpace ~> opt(parameterDefaultValue | parameterFixedValue)) ^^ {
+      def parameter: Parser[Parameter] = (identifier <~ ignoreWhiteSpace) ~ opt(parameterType) ~ (ignoreWhiteSpace ~> opt(parameterDefaultValue | parameterFixedValue)) ^^ {
         case name ~ t ~ d => Parameter(name, t.getOrElse("String"), d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
       }
 
-      def parameters = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
+      def parameters:Parser[List[Parameter]]  = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def call = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
+      def call: Parser[HandlerCall]  = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
         case handler ~ parameters =>
           {
             val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")
@@ -976,7 +976,7 @@ object Router {
         case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
       }
 
-      def sentence = (comment | positioned(route)) <~ (newLine | EOF)
+      def sentence: Parser[Product with Serializable] = (comment | positioned(route)) <~ (newLine | EOF)
 
       def parser: Parser[List[Route]] = phrase((blankLine | sentence *) <~ end) ^^ {
         case routes => routes.collect {
@@ -984,10 +984,9 @@ object Router {
         }
       }
 
-      def parse(text: String) = {
+      def parse(text: String): ParseResult[List[Route]] = {
         parser(new CharSequenceReader(text))
       }
-
     }
 
   }

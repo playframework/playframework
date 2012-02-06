@@ -39,12 +39,12 @@ case class TestBrowser(webDriver: WebDriver) extends Fluent(webDriver) {
   /**
    * Retrieves all cookies.
    */
-  def getCookies() = getDriver().manage().getCookies().asScala
+  def getCookies(): Set[Cookie] = getDriver().manage().getCookies().asScala.toSet
 
   /**
    * Retrieves a cookie.
    */
-  def getCookieNamed(name: String) = getDriver().manage().getCookieNamed(name)
+  def getCookieNamed(name: String): Cookie = getDriver().manage().getCookieNamed(name)
 
   /**
    * Quits the browser

@@ -375,7 +375,7 @@ trait BodyParsers {
     /**
      * Don't parse the body content.
      */
-    def empty: BodyParser[None.type] = BodyParser("empty") { request =>
+    def empty: BodyParser[Option[Any]] = BodyParser("empty") { request =>
       Done(Right(None), Empty)
     }
 

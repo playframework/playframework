@@ -28,7 +28,7 @@ object TypeWrangler {
   val JBooleanClass = classOf[jl.Boolean]
 
   // Manifest.classType(x) will return a Manifest  
-  def manifestOf(c: Class[_]) = c match {
+  def manifestOf(c: Class[_]): Manifest[_] = c match {
     case JByteClass | jl.Byte.TYPE | ByteClass => Manifest.Byte
     case JShortClass | jl.Short.TYPE | ShortClass => Manifest.Short
     case JCharClass | jl.Character.TYPE | CharClass => Manifest.Char

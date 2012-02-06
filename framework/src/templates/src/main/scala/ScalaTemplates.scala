@@ -34,7 +34,7 @@ package play.templates {
 
   object Hash {
 
-    def apply(bytes: Array[Byte]) = {
+    def apply(bytes: Array[Byte]): String = {
       import java.security.MessageDigest
       val digest = MessageDigest.getInstance("SHA-1")
       digest.reset()
@@ -48,7 +48,7 @@ package play.templates {
 
   object MaybeGeneratedSource {
 
-    def unapply(source: File) = {
+    def unapply(source: File): Option[GeneratedSource] = {
       val generated = GeneratedSource(source)
       if (generated.meta.isDefinedAt("SOURCE")) {
         Some(generated)
@@ -97,13 +97,13 @@ package play.templates {
       }
     }
 
-    def needRecompilation = (!file.exists ||
+    def needRecompilation: Boolean = (!file.exists ||
       // A generated source already exist but
       source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
         (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
     )
 
-    def mapPosition(generatedPosition: Int) = {
+    def mapPosition(generatedPosition: Int): Int = {
       matrix.indexWhere(p => p._1 > generatedPosition) match {
         case 0 => 0
         case i if i > 0 => {
@@ -117,7 +117,7 @@ package play.templates {
       }
     }
 
-    def mapLine(generatedLine: Int) = {
+    def mapLine(generatedLine: Int): Int = {
       lines.indexWhere(p => p._1 > generatedLine) match {
         case 0 => 0
         case i if i > 0 => {
@@ -489,7 +489,7 @@ package play.templates {
       Nil :+ imports :+ "\n" :+ defs :+ "\n" :+ "Seq(" :+ visit(template.content, Nil) :+ ")"
     }
 
-    def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String) = {
+    def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
 
       val extra = TemplateAsFunctionCompiler.getFunctionMapping(
         root.params.str,
@@ -532,7 +532,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
       import scala.tools.nsc.Settings
       import scala.tools.nsc.reporters.ConsoleReporter
 
-      def getFunctionMapping(signature: String, returnType: String) = {
+      def getFunctionMapping(signature: String, returnType: String): (String, String, String) = {
 
         type Tree = PresentationCompiler.global.Tree
         type DefDef = PresentationCompiler.global.DefDef
@@ -670,7 +670,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     import scala.collection.mutable.ListBuffer
 
-    def finalSource(template: File, generatedTokens: Seq[Any]) = {
+    def finalSource(template: File, generatedTokens: Seq[Any]): String = {
       val scalaCode = new StringBuilder
       val positions = ListBuffer.empty[(Int, Int)]
       val lines = ListBuffer.empty[(Int, Int)]

@@ -28,7 +28,7 @@ object Console {
     }
   }
 
-  def newCommand(args: Array[String]) = {
+  def newCommand(args: Array[String]): String = {
 
     val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
 
@@ -98,7 +98,7 @@ object Console {
 
   }
 
-  def helpCommand(args: Array[String]) = {
+  def helpCommand(args: Array[String]): String = {
     """
             |Welcome to Play 2.0!
             |
@@ -132,7 +132,7 @@ object Console {
 
 class Console extends xsbti.AppMain {
 
-  def run(app: xsbti.AppConfiguration) = {
+  def run(app: xsbti.AppConfiguration): Exit = {
     Console.main(app.arguments)
     Exit(0)
   }

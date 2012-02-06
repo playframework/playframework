@@ -19,7 +19,7 @@ object Files {
     /**
      * Clean this temporary file now.
      */
-    def clean() = {
+    def clean(): Boolean = {
       file.delete()
     }
 
@@ -49,7 +49,7 @@ object Files {
      * @param suffix The suffix used for the temporary file name.
      * @return A temporary file instance.
      */
-    def apply(prefix: String = "", suffix: String = "") = {
+    def apply(prefix: String = "", suffix: String = ""): TemporaryFile = {
       new TemporaryFile(File.createTempFile(prefix, suffix))
     }
 
@@ -58,14 +58,14 @@ object Files {
   /**
    * Copy a file.
    */
-  def copyFile(from: File, to: File, copyAttributes: Boolean = true, replaceExisting: Boolean = true) = {
+  def copyFile(from: File, to: File, copyAttributes: Boolean = true, replaceExisting: Boolean = true): Path = {
     Path(from).copyTo(target = Path(to), copyAttributes = copyAttributes, replaceExisting = replaceExisting)
   }
 
   /**
    * Rename a file.
    */
-  def moveFile(from: File, to: File, replace: Boolean = true, atomicMove: Boolean = true) = {
+  def moveFile(from: File, to: File, replace: Boolean = true, atomicMove: Boolean = true): Path = {
     Path(from).moveTo(target = Path(to), replace = replace, atomicMove = atomicMove)
   }
 
@@ -83,14 +83,14 @@ object Files {
    * @param path the file to write to
    * @param content the contents to write
    */
-  def writeFile(path: File, content: String) = Path(path).write(content)
+  def writeFile(path: File, content: String): Unit = Path(path).write(content)
 
   /**
    * Creates a directory.
    *
    * @param path the directory to create
    */
-  def createDirectory(path: File) = Path(path).createDirectory(failIfExists = false)
+  def createDirectory(path: File): Path = Path(path).createDirectory(failIfExists = false)
 
   /**
    * Writes a file’s content as String, only touching the file if the actual file content is different.

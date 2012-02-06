@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
  */
 object JavaWebSocket extends JavaHelpers {
 
-  def webSocketWrapper[A](retrieveWebSocket: => play.mvc.WebSocket[A])(implicit frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = WebSocket[A] { request =>
+  def webSocketWrapper[A](retrieveWebSocket: => play.mvc.WebSocket[A])(implicit frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): WebSocket[A] = WebSocket[A] { request =>
     (in, out) =>
 
       import play.api.libs.iteratee._
@@ -51,11 +51,11 @@ object JavaWebSocket extends JavaHelpers {
 
   // -- Bytes
 
-  def ofBytes(retrieveWebSocket: => play.mvc.WebSocket[Array[Byte]]) = webSocketWrapper[Array[Byte]](retrieveWebSocket)
+  def ofBytes(retrieveWebSocket: => play.mvc.WebSocket[Array[Byte]]): Handler = webSocketWrapper[Array[Byte]](retrieveWebSocket)
 
   // -- String
 
-  def ofString(retrieveWebSocket: => play.mvc.WebSocket[String]) = webSocketWrapper[String](retrieveWebSocket)
+  def ofString(retrieveWebSocket: => play.mvc.WebSocket[String]): Handler = webSocketWrapper[String](retrieveWebSocket)
 
   // -- Json (JsonNode)
 
@@ -63,5 +63,5 @@ object JavaWebSocket extends JavaHelpers {
     play.libs.Json.stringify, play.libs.Json.parse
   )
 
-  def ofJson(retrieveWebSocket: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode]) = webSocketWrapper[org.codehaus.jackson.JsonNode](retrieveWebSocket)
+  def ofJson(retrieveWebSocket: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode]): Handler = webSocketWrapper[org.codehaus.jackson.JsonNode](retrieveWebSocket)
 }

@@ -70,7 +70,7 @@ trait Constraints {
    * '''name'''[constraint.required]
    * '''error'''[error.required]
    */
-  def nonEmpty = Constraint[String]("constraint.required") { o =>
+  def nonEmpty: Constraint[String] = Constraint[String]("constraint.required") { o =>
     if (o.isEmpty) Invalid(ValidationError("error.required")) else Valid
   }
 
@@ -80,7 +80,7 @@ trait Constraints {
    * '''name'''[constraint.min(minValue)]
    * '''error'''[error.min(minValue)]
    */
-  def min(minValue: Int) = Constraint[Int]("constraint.min", minValue) { o =>
+  def min(minValue: Int): Constraint[Int] = Constraint[Int]("constraint.min", minValue) { o =>
     if (o >= minValue) Valid else Invalid(ValidationError("error.min", minValue))
   }
 
@@ -90,7 +90,7 @@ trait Constraints {
    * '''name'''[constraint.max(maxValue)]
    * '''error'''[error.max(maxValue)]
    */
-  def max(maxValue: Int) = Constraint[Int]("constraint.max", maxValue) { o =>
+  def max(maxValue: Int): Constraint[Int] = Constraint[Int]("constraint.max", maxValue) { o =>
     if (o <= maxValue) Valid else Invalid(ValidationError("error.max", maxValue))
   }
 
@@ -100,7 +100,7 @@ trait Constraints {
    * '''name'''[constraint.minLength(length)]
    * '''error'''[error.minLength(length)]
    */
-  def minLength(length: Int) = Constraint[String]("constraint.minLength", length) { o =>
+  def minLength(length: Int): Constraint[String] = Constraint[String]("constraint.minLength", length) { o =>
     if (o.size >= length) Valid else Invalid(ValidationError("error.minLength", length))
   }
 
@@ -110,7 +110,7 @@ trait Constraints {
    * '''name'''[constraint.maxLength(length)]
    * '''error'''[error.maxLength(length)]
    */
-  def maxLength(length: Int) = Constraint[String]("constraint.maxLength", length) { o =>
+  def maxLength(length: Int): Constraint[String] = Constraint[String]("constraint.maxLength", length) { o =>
     if (o.size <= length) Valid else Invalid(ValidationError("error.maxLength", length))
   }
 
@@ -120,7 +120,7 @@ trait Constraints {
    * '''name'''[constraint.pattern(regex)] or defined by the name parameter.
    * '''error'''[error.pattern(regex)] or defined by the error parameter.
    */
-  def pattern(regex: scala.util.matching.Regex, name: String = "constraint.pattern", error: String = "error.pattern") = Constraint[String](name, regex) { o =>
+  def pattern(regex: scala.util.matching.Regex, name: String = "constraint.pattern", error: String = "error.pattern"): Constraint[String] = Constraint[String](name, regex) { o =>
     regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
   }
 
@@ -149,7 +149,7 @@ case class Invalid(errors: Seq[ValidationError]) extends ValidationResult {
    * @param another validation failure
    * @return a new merged `Invalid`
    */
-  def ++(other: Invalid) = Invalid(this.errors ++ other.errors)
+  def ++(other: Invalid): Invalid = Invalid(this.errors ++ other.errors)
 }
 
 /**

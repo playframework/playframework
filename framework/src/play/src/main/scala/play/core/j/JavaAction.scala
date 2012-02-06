@@ -9,7 +9,7 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
  */
 trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
-  def parser = {
+  def parser: BodyParser[play.mvc.Http.RequestBody] = {
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
       .filterNot(_ == null)
       .headOption.map { bodyParserOf =>

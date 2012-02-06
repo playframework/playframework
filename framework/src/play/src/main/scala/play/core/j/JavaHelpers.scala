@@ -21,7 +21,7 @@ trait JavaHelpers {
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: play.mvc.Result) = javaResult.getWrappedResult match {
+  def createResult(javaContext: JContext, javaResult: play.mvc.Result): Result = javaResult.getWrappedResult match {
     case result: PlainResult => {
       val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
         .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
@@ -49,7 +49,7 @@ trait JavaHelpers {
    * creates a java context from a scala RequestHeader
    * @param request
    */
-  def createJavaContext(req: RequestHeader) = {
+  def createJavaContext(req: RequestHeader): JContext = {
     new JContext(new JRequest {
 
       def uri = req.uri
@@ -86,7 +86,7 @@ trait JavaHelpers {
    * creates a java context from a scala Request[RequestBody]
    * @param request
    */
-  def createJavaContext(req: Request[RequestBody]) = {
+  def createJavaContext(req: Request[RequestBody]): JContext = {
     new JContext(new JRequest {
 
       def uri = req.uri

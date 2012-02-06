@@ -78,7 +78,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param value an existing value of type `T`, used to fill this form
    * @return a copy of this form filled with the new data
    */
-  def fill(value: T) = {
+  def fill(value: T): Form[T] = {
     val result = mapping.unbind(value)
     this.copy(data = result._1, value = Some(value))
   }
@@ -89,7 +89,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param value an existing value of type `T`, used to fill this form
    * @return a copy of this form filled with the new data
    */
-  def fillAndValidate(value: T) = {
+  def fillAndValidate(value: T): Form[T] = {
     val result = mapping.unbind(value)
     this.copy(data = result._1, errors = result._2, value = Some(value))
   }
@@ -111,7 +111,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param success a function to handle form submission success
    * @return a result `R`.
    */
-  def fold[R](hasErrors: Form[T] => R, success: T => R) = value.map(success(_)).getOrElse(hasErrors(this))
+  def fold[R](hasErrors: Form[T] => R, success: T => R): R = value.map(success(_)).getOrElse(hasErrors(this))
 
   /**
    * Retrieves a field.
@@ -165,7 +165,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns `true` if there is an error related to this form.
    */
-  def hasErrors = !errors.isEmpty
+  def hasErrors: Boolean = !errors.isEmpty
 
   /**
    * Retrieve the first error for this key.
@@ -184,14 +184,14 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns `true` if there is a global error related to this form.
    */
-  def hasGlobalErrors = !globalErrors.isEmpty
+  def hasGlobalErrors: Boolean = !globalErrors.isEmpty
 
   /**
    * Returns the concrete value, if the submission was a success.
    *
    * Note that this method fails with an Exception if this form as errors.
    */
-  def get = value.get
+  def get: T = value.get
 
 }
 
@@ -302,7 +302,7 @@ case class FormError(key: String, message: String, args: Seq[Any] = Nil) {
    *
    * @param message The new message.
    */
-  def withMessage(message: String) = FormError(key, message)
+  def withMessage(message: String): FormError = FormError(key, message)
 
 }
 

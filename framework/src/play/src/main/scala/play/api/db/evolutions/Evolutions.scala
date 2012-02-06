@@ -260,7 +260,7 @@ object Evolutions {
    * @param scripts the script
    * @return a formatted script
    */
-  def toHumanReadableScript(script: Seq[Script]) = {
+  def toHumanReadableScript(script: Seq[Script]): String = {
     val txt = script.map {
       case UpScript(ev, sql) => "# --- Rev:" + ev.revision + ",Ups - " + ev.hash.take(7) + "\n" + sql + "\n"
       case DownScript(ev, sql) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + sql + "\n"
@@ -279,7 +279,7 @@ object Evolutions {
    * @param applicationPath the application path
    * @param db the database name
    */
-  def evolutionScript(api: DBApi, applicationClassloader: ClassLoader, db: String) = {
+  def evolutionScript(api: DBApi, applicationClassloader: ClassLoader, db: String): Seq[Product with Serializable with Script] = {
     val application = applicationEvolutions(applicationClassloader, db)
     val database = databaseEvolutions(api, db)
 
@@ -302,7 +302,7 @@ object Evolutions {
    * @param api the `DBApi` to use
    * @param db the database name
    */
-  def databaseEvolutions(api: DBApi, db: String) = {
+  def databaseEvolutions(api: DBApi, db: String): Seq[Evolution] = {
     implicit val connection = api.getConnection(db, autocommit = true)
 
     checkEvolutionsState(api, db)
@@ -334,7 +334,7 @@ object Evolutions {
    *
    * @param db the database name
    */
-  def applicationEvolutions(applicationClassloader: ClassLoader, db: String) = {
+  def applicationEvolutions(applicationClassloader: ClassLoader, db: String): Seq[Evolution] = {
 
     val upsMarker = """^#.*!Ups.*$""".r
     val downsMarker = """^#.*!Downs.*$""".r
@@ -523,7 +523,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
         document.location = '/@evolutions/resolve/%s/%s?redirect=' + encodeURIComponent(location)
     """.format(db, rev).trim
 
-  def htmlDescription = {
+  def htmlDescription: String = {
 
     <span>An evolution has not been applied properly. Please check the problem and resolve it manually before making it as resolved -</span>
     <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>

@@ -52,7 +52,7 @@ object Formats {
   /**
    * Default formatter for the `String` type.
    */
-  implicit def stringFormat = new Formatter[String] {
+  implicit def stringFormat: Formatter[String] = new Formatter[String] {
     def bind(key: String, data: Map[String, String]) = data.get(key).toRight(Seq(FormError(key, "error.required", Nil)))
     def unbind(key: String, value: String) = Map(key -> value)
   }
@@ -60,7 +60,7 @@ object Formats {
   /**
    * Default formatter for the `Long` type.
    */
-  implicit def longFormat = new Formatter[Long] {
+  implicit def longFormat: Formatter[Long] = new Formatter[Long] {
 
     override val format = Some("format.numeric", Nil)
 
@@ -78,7 +78,7 @@ object Formats {
   /**
    * Default formatter for the `Int` type.
    */
-  implicit def intFormat = new Formatter[Int] {
+  implicit def intFormat: Formatter[Int] = new Formatter[Int] {
 
     override val format = Some("format.numeric", Nil)
 
@@ -96,7 +96,7 @@ object Formats {
   /**
    * Default formatter for the `Boolean` type.
    */
-  implicit def booleanFormat = new Formatter[Boolean] {
+  implicit def booleanFormat: Formatter[Boolean] = new Formatter[Boolean] {
 
     override val format = Some("format.boolean", Nil)
 

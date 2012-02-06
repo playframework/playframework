@@ -54,7 +54,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   /**
    * Set a Form url encoded body to this request.
    */
-  def withFormUrlEncodedBody(data: (String, String)*) = {
+  def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
     copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 

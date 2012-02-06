@@ -9,15 +9,15 @@ object SqlStatementParser extends JavaTokenParsers {
     (r.flatMap(_._1).mkString, (r.flatMap(_._2)))
   }
 
-  def instr = rep(literal | variable | other)
+  def instr: Parser[List[(String, Option[String])]] = rep(literal | variable | other)
 
-  def literal = (stringLiteral | simpleQuotes) ^^ { case s => (s, None) }
+  def literal: Parser[(String, Option[String])] = (stringLiteral | simpleQuotes) ^^ { case s => (s, None) }
 
   def variable = "{" ~> (ident ~ (("." ~> ident)?)) <~ "}" ^^ {
     case i1 ~ i2 => ("?": String, Some(i1 + i2.map("." + _).getOrElse("")))
   }
 
-  def other = """.""".r ^^ {
+  def other: Parser[(String, Option[String])] = """.""".r ^^ {
     case element => (element, None)
   }
 

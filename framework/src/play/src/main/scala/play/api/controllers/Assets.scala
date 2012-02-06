@@ -9,6 +9,7 @@ import Play.current
 
 import java.io._
 import scalax.io.{ Resource }
+import java.text.SimpleDateFormat
 
 /**
  * Controller that serves static resources.
@@ -37,7 +38,7 @@ object Assets extends Controller {
    * @param path the root folder for searching the static resource files, such as `"/public"`
    * @param file the file part extracted from the URL
    */
-  def at(path: String, file: String) = Action { request =>
+  def at(path: String, file: String): Action[AnyContent] = Action { request =>
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
@@ -104,7 +105,7 @@ object Assets extends Controller {
   // -- LastModified handling
 
   private val dateFormatter = {
-    val formatter = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+    val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
     formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
     formatter
   }

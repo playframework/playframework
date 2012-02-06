@@ -28,12 +28,12 @@ object Play {
   /**
    * Returns the currently running application, or `null` if not defined.
    */
-  def unsafeApplication = _currentApp
+  def unsafeApplication: Application = _currentApp
 
   /**
    * Optionally returns the current running application.
    */
-  def maybeApplication = Option(_currentApp)
+  def maybeApplication: Option[Application] = Option(_currentApp)
 
   /**
    * Implicitly import the current running application in the context.
@@ -41,7 +41,7 @@ object Play {
    * Note that by relying on this, your code will only work properly in
    * the context of a running application.
    */
-  implicit def current = maybeApplication.getOrElse(sys.error("There is no started application"))
+  implicit def current: Application = maybeApplication.getOrElse(sys.error("There is no started application"))
 
   private[play] var _currentApp: Application = _
 
@@ -119,7 +119,7 @@ object Play {
    * @param relativePath the relative path of the file to fetch
    * @return a file instance; it is not guaranteed that the file exists
    */
-  def getFile(relativePath: String)(implicit app: Application) = {
+  def getFile(relativePath: String)(implicit app: Application): File = {
     app.getFile(relativePath)
   }
 
@@ -141,46 +141,46 @@ object Play {
   /**
    * Returns the current application.
    */
-  def application(implicit app: Application) = app
+  def application(implicit app: Application): Application = app
 
   /**
    * Returns the current application classloader.
    */
-  def classloader(implicit app: Application) = app.classloader
+  def classloader(implicit app: Application): ClassLoader = app.classloader
 
   /**
    * Returns the current application configuration.
    */
-  def configuration(implicit app: Application) = app.configuration
+  def configuration(implicit app: Application): Configuration = app.configuration
 
   /**
    * Returns the current application router.
    */
-  def routes(implicit app: Application) = app.routes
+  def routes(implicit app: Application): Option[play.core.Router.Routes] = app.routes
 
   /**
    * Returns the current application global settings.
    */
-  def global(implicit app: Application) = app.global
+  def global(implicit app: Application): GlobalSettings = app.global
 
   /**
    * Returns the current application mode.
    */
-  def mode(implicit app: Application) = app.mode
+  def mode(implicit app: Application): Mode.Mode = app.mode
 
   /**
    * Returns `true` if the current application is `DEV` mode.
    */
-  def isDev(implicit app: Application) = (app.mode == Mode.Dev)
+  def isDev(implicit app: Application): Boolean = (app.mode == Mode.Dev)
 
   /**
    * Returns `true` if the current application is `PROD` mode.
    */
-  def isProd(implicit app: Application) = (app.mode == Mode.Prod)
+  def isProd(implicit app: Application): Boolean = (app.mode == Mode.Prod)
 
   /**
    * Returns `true` if the current application is `TEST` mode.
    */
-  def isTest(implicit app: Application) = (app.mode == Mode.Test)
+  def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
 }

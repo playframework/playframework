@@ -13,37 +13,37 @@ trait ContentTypes {
   /**
    * Content-Type of text according the implicit codec value.
    */
-  def TEXT(implicit codec: Codec) = ("text/plain; charset=" + codec.charset)
+  def TEXT(implicit codec: Codec): String = ("text/plain; charset=" + codec.charset)
 
   /**
    * Content-Type of html according the implicit codec value.
    */
-  def HTML(implicit codec: Codec) = ("text/html; charset=" + codec.charset)
+  def HTML(implicit codec: Codec): String = ("text/html; charset=" + codec.charset)
 
   /**
    * Content-Type of json according the implicit codec value.
    */
-  def JSON(implicit codec: Codec) = ("application/json; charset=" + codec.charset)
+  def JSON(implicit codec: Codec): String = ("application/json; charset=" + codec.charset)
 
   /**
    * Content-Type of xml according the implicit codec value.
    */
-  def XML(implicit codec: Codec) = ("text/xml; charset=" + codec.charset)
+  def XML(implicit codec: Codec): String = ("text/xml; charset=" + codec.charset)
 
   /**
    * Content-Type of css according the implicit codec value.
    */
-  def CSS(implicit codec: Codec) = ("text/css; charset=" + codec.charset)
+  def CSS(implicit codec: Codec): String = ("text/css; charset=" + codec.charset)
 
   /**
    * Content-Type of javascript according the implicit codec value.
    */
-  def JAVASCRIPT(implicit codec: Codec) = ("text/javascript; charset=" + codec.charset)
+  def JAVASCRIPT(implicit codec: Codec): String = ("text/javascript; charset=" + codec.charset)
 
   /**
    * Content-Type of form-urlencoded according the implicit codec value.
    */
-  def FORM(implicit codec: Codec) = ("application/x-www-form-urlencoded; charset=" + codec.charset)
+  def FORM(implicit codec: Codec): String = ("application/x-www-form-urlencoded; charset=" + codec.charset)
 
   /**
    * Content-Type of binary data.

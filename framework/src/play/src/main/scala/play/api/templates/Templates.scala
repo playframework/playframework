@@ -14,7 +14,7 @@ case class Html(text: String) extends Appendable[Html] with Content with play.mv
   /**
    * Appends this HTML fragment to another.
    */
-  def +(other: Html) = {
+  def +(other: Html): Html = {
     buffer.append(other.buffer)
     this
   }
@@ -23,9 +23,9 @@ case class Html(text: String) extends Appendable[Html] with Content with play.mv
   /**
    * Content type of HTML (`text/html`).
    */
-  def contentType = "text/html"
+  def contentType: String = "text/html"
 
-  def body = toString
+  def body: String = toString
 
 }
 
@@ -37,7 +37,7 @@ object Html {
   /**
    * Creates an empty HTML fragment.
    */
-  def empty = Html("")
+  def empty: Html = Html("")
 
 }
 
@@ -49,12 +49,12 @@ object HtmlFormat extends Format[Html] {
   /**
    * Creates a raw (unescaped) HTML fragment.
    */
-  def raw(text: String) = Html(text)
+  def raw(text: String): Html = Html(text)
 
   /**
    * Creates a safe (escaped) HTML fragment.
    */
-  def escape(text: String) = Html(org.apache.commons.lang.StringEscapeUtils.escapeHtml(text))
+  def escape(text: String): Html = Html(org.apache.commons.lang.StringEscapeUtils.escapeHtml(text))
 
 }
 
@@ -69,7 +69,7 @@ case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.
   /**
    * Appends this text fragment to another.
    */
-  def +(other: Txt) = {
+  def +(other: Txt): this.type = {
     buffer.append(other.buffer)
     this
   }

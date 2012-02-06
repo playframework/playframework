@@ -35,7 +35,7 @@ object Forms {
    * @tparam T the mapping type
    * @return a mapping for a simple field
    */
-  def of[T](implicit binder: Formatter[T]) = FieldMapping[T]()(binder)
+  def of[T](implicit binder: Formatter[T]): FieldMapping[T] = FieldMapping[T]()(binder)
 
   /**
    * Creates a Mapping of type `T`.

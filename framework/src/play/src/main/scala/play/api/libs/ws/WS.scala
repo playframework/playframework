@@ -43,7 +43,7 @@ object WS {
    *
    * @param url the URL to request
    */
-  def url(url: String) = WSRequestHolder(url, Map(), Map(), None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None)
 
   /**
    * A WS Request.
@@ -64,7 +64,7 @@ object WS {
     /**
      * Add http auth headers
      */
-    private def auth(username: String, password: String, scheme: AuthScheme) = {
+    private def auth(username: String, password: String, scheme: AuthScheme): WSRequest = {
       this.setRealm((new RealmBuilder())
         .setScheme(scheme)
         .setPrincipal(username)
@@ -253,20 +253,20 @@ object WS {
      * sets the signature calculator for the request
      * @param calc
      */
-    def sign(calc: SignatureCalculator) = this.copy(calc = Some(calc))
+    def sign(calc: SignatureCalculator): WSRequestHolder = this.copy(calc = Some(calc))
 
     /**
      * sets the authentication realm
      * @param calc
      */
-    def withAuth(username: String, password: String, scheme: AuthScheme) =
+    def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
       this.copy(auth = Some((username, password, scheme)))
 
     /**
      * adds any number of HTTP headers
      * @param hdrs
      */
-    def withHeaders(hdrs: (String, String)*) = {
+    def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
       val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
         if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
         else (m + (hdr._1 -> Seq(hdr._2)))
@@ -277,7 +277,7 @@ object WS {
     /**
      * adds any number of query string parameters to the
      */
-    def withQueryString(parameters: (String, String)*) =
+    def withQueryString(parameters: (String, String)*): WSRequestHolder =
       this.copy(queryString = parameters.foldLeft(queryString)((m, param) => m + param))
 
     /**
@@ -360,12 +360,12 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response status code.
    */
-  def status = ahcResponse.getStatusCode();
+  def status: Int = ahcResponse.getStatusCode();
 
   /**
    * Get a response header.
    */
-  def header(key: String) = ahcResponse.getHeader(key)
+  def header(key: String): String = ahcResponse.getHeader(key)
 
   /**
    * The response body as String.
