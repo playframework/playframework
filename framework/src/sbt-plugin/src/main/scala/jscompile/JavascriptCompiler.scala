@@ -27,11 +27,10 @@ object JavascriptCompiler {
     options.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
 
     val compiler = new Compiler()
-    val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
     val all = allSiblings(source)
     val input = all.map(f => JSSourceFile.fromFile(f)).toArray
 
-    compiler.compile(extern, input, options).success match {
+    compiler.compile(Array[JSSourceFile](), input, options).success match {
       case true => (origin, Some(compiler.toSource()), all)
       case false => {
         val error = compiler.getErrors().head
@@ -44,14 +43,12 @@ object JavascriptCompiler {
    * Minify a Javascript string
    */
   def minify(source: String, name: Option[String]): String = {
-
     val compiler = new Compiler()
-    val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
     val options = new CompilerOptions()
 
-    val input = JSSourceFile.fromCode(name.getOrElse("unknown"), source)
+    val input = Array[JSSourceFile](JSSourceFile.fromCode(name.getOrElse("unknown"), source))
 
-    compiler.compile(extern, input, options).success match {
+    compiler.compile(Array[JSSourceFile](), input, options).success match {
       case true => compiler.toSource()
       case false => {
         val error = compiler.getErrors().head
