@@ -1,5 +1,7 @@
 package play.cache;
 
+import java.util.concurrent.Callable;
+
 /**
  * Provides an access point for Play's cache service.
  */
@@ -14,6 +16,24 @@ public class Cache {
       return play.libs.Scala.orNull(play.api.cache.Cache.get(key,play.api.Play.unsafeApplication()));
   }
 
+  /**
+   * Retrieve a value from the cache, or set it from a default Callable function.
+   * 
+   * @param key Item key.
+   * @param value to set if key does not exist
+   * @param expiration expiration period in seconds.
+   * @return value 
+   */
+  public static <T> T getOrElse(String key, Callable<T> block, int expiration) throws Exception{
+     Object r = play.libs.Scala.orNull(play.api.cache.Cache.get(key,play.api.Play.unsafeApplication()));
+     if (r == null) {
+         T value = block.call();
+         set(key,value,expiration);
+         return value;
+     } else return (T)r;
+     
+  }
+  
   /**
    * Sets a value with expiration.
    * 
@@ -30,5 +50,6 @@ public class Cache {
   public static void set(String key, Object value) {
       play.api.cache.Cache.set(key,value, 0, play.api.Play.unsafeApplication());
   }
+
 
 }
