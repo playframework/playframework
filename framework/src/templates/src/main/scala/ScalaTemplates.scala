@@ -212,19 +212,23 @@ package play.templates {
     }
 
     def generatedFile(template: File, sourceDirectory: File, generatedDirectory: File) = {
-      val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head).split('.')
+      val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head)
       templateName -> GeneratedSource(new File(generatedDirectory, templateName.mkString("/") + ".template.scala"))
     }
 
-    @tailrec
-    def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = ""): String = {
+    def source2TemplateName(f: File, sourceDirectory: File, Ext: String): Seq[String] = {
+      val canonicalSource = sourceDirectory.getCanonicalFile
+
+      def parentDirs(cur: File): List[String] =
+        if (cur == canonicalSource)
+          Nil
+        else
+          cur.getName :: parentDirs(cur.getParentFile)
+
+      val parents = parentDirs(f.getCanonicalFile.getParentFile).reverse
       val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
-      (f, f.getName) match {
-        case (f, Name(name, _)) if f.isFile && f.getParentFile == sourceDirectory => ext + "." + name
-        case (f, Name(name, _)) if f.isFile => source2TemplateName(f.getParentFile, sourceDirectory, ext, name)
-        case (f, name) if f.getParentFile == sourceDirectory => name + "." + ext + "." + suffix
-        case (f, name) => source2TemplateName(f.getParentFile, sourceDirectory, ext, name + "." + suffix)
-      }
+      val Name(name, Ext) = f.getName
+      parents :+ Ext :+ name
     }
 
     val templateParser = new JavaTokenParsers {
