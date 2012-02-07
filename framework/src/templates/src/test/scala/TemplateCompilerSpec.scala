@@ -71,7 +71,7 @@ object Helper {
   case class CompilationError(message: String, line: Int, column: Int) extends RuntimeException(message)
 
   class CompilerHelper(sourceDir: File, generatedDir: File, generatedClasses: File) {
-    import scala.tools.nsc.interactive.{ Response, Global }
+    import scala.tools.nsc.Global
     import scala.tools.nsc.io.AbstractFile
     import scala.tools.nsc.util.{ SourceFile, Position, BatchSourceFile }
     import scala.tools.nsc.Settings
