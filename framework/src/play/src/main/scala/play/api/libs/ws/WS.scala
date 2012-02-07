@@ -365,7 +365,7 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * Get a response header.
    */
-  def header(key: String): String = ahcResponse.getHeader(key)
+  def header(key: String): Option[String] = Option(ahcResponse.getHeader(key))
 
   /**
    * The response body as String.
@@ -375,12 +375,12 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as Xml.
    */
-  lazy val xml = XML.loadString(body)
+  lazy val xml: Elem = XML.loadString(body)
 
   /**
    * The response body as Json.
    */
-  lazy val json = Json.parse(body)
+  lazy val json: JsValue = Json.parse(body)
 
 }
 
