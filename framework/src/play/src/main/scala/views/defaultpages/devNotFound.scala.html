@@ -38,11 +38,11 @@
 		    h2 {
 		        margin: 0;
 		        padding: 5px 45px;
-		        font-size: 12px;
-		        background: #333;
-		        color: #fff;
-		        text-shadow: 1px 1px 1px rgba(0,0,0,.3);
-		        border-top: 4px solid #2a2a2a;
+		        font-size: 18px;
+		        font-family: monospace;
+		        background: #fff;
+		        color: #666;
+		        border-top: 4px solid #cdcdcd;
 		    }
 			pre {
 				margin: 0;
@@ -107,11 +107,11 @@
 		<p id="detail">
 			For request '@request'
 		</p>
-		
+
 		@router match {
 
 			case Some(routes) => {
-			    
+
 			    <h2>
         			These routes have been tried, in this order:
         		</h2>
@@ -129,7 +129,7 @@
         			No router defined.
         		</h2>
 			}
-		
+
         }
 
 	</body>
