@@ -5,16 +5,7 @@ import play.api.libs.iteratee._
 /**
  * An Handler handles a request.
  */
-trait Handler {
-  
-  /**
-   * Returns itself, for better support in the routes file.
-   *
-   * @return itself
-   */
-  def apply() = this
-  
-}
+trait Handler
 
 /**
  * Reference to an Handler.
@@ -75,6 +66,13 @@ trait Action[A] extends (Request[A] => Result) with Handler {
    * @return the result to be sent to the client
    */
   def apply(request: Request[A]): Result
+  
+  /**
+   * Returns itself, for better support in the routes file.
+   *
+   * @return itself
+   */
+  def apply() = this
 
   override def toString = {
     "Action(parser=" + parser + ")"

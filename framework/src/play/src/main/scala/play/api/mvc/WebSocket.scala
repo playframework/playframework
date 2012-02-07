@@ -10,7 +10,16 @@ import play.api.libs.concurrent._
  * @tparam A the socket messages type
  * @param f the socket messages generator
  */
-case class WebSocket[A](f: RequestHeader => (Enumerator[A], Iteratee[A, Unit]) => Unit)(implicit val frameFormatter: WebSocket.FrameFormatter[A]) extends Handler
+case class WebSocket[A](f: RequestHeader => (Enumerator[A], Iteratee[A, Unit]) => Unit)(implicit val frameFormatter: WebSocket.FrameFormatter[A]) extends Handler {
+  
+  /**
+   * Returns itself, for better support in the routes file.
+   *
+   * @return itself
+   */
+  def apply() = this
+  
+}
 
 /**
  * Helper utilities to generate WebSocket results.
