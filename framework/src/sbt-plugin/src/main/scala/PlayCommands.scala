@@ -380,7 +380,7 @@ trait PlayCommands {
           currentInfos)(FileInfo.lastModified.format)
 
         // Return new files
-        generated.toMap.values.toSeq
+        generated.map(_._2).distinct.toList
 
       } else {
 
