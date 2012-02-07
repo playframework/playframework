@@ -51,8 +51,8 @@ object LessCompiler {
       "browser.js",
       1, null)
     ctx.evaluateReader(scope, new InputStreamReader(
-      this.getClass.getClassLoader.getResource("less-1.1.4.js").openConnection().getInputStream()),
-      "less-1.1.4.js",
+      this.getClass.getClassLoader.getResource("less-1.2.0.js").openConnection().getInputStream()),
+      "less-1.2.0.js",
       1, null)
     ctx.evaluateString(scope,
       """
@@ -61,19 +61,28 @@ object LessCompiler {
                     var compiled;
                     var dependencies = [source]
 
-                    window.less.Parser.importer = function(path, paths, fn) {
-                        var imported = LessCompiler.resolve(source, path)
+                    window.less.Parser.importer = function(file, paths, callback) {
+                        var imported = LessCompiler.resolve(source, file)
                         dependencies.push(imported)
-                        new(window.less.Parser)({optimization:3, filename:String(imported.getCanonicalPath())}).parse(String(LessCompiler.readContent(imported)), function (e,root) {
-                            fn(root)
+                        var data = String(LessCompiler.readContent(imported))
+                        new(window.less.Parser)({
+                            optimization:3,
+                            filename:String(imported.getCanonicalPath())
+                        }).parse(data, function (e,root) {
+                            callback(e, root, data)
                             if(e instanceof Object) {
                                 throw e
                             }
                         })
                     }
 
-                    new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
-                        compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
+                    new(window.less.Parser)({
+                        optimization:3,
+                        filename:String(source.getCanonicalPath())
+                    }).parse(String(LessCompiler.readContent(source)), function (e,root) {
+                        if(root instanceof Object) {
+                            compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
+                        }
                         if(e instanceof Object) {
                             throw e
                         }
