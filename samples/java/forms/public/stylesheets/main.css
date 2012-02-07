@@ -8,7 +8,7 @@ body {
     text-align: center; /* center align it with the container */
 }
 .container {
-    width: 820px; /* downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16. */
+    width: 780px; /* downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16. */
 }
 
 /* The white background content wrapper */
@@ -45,15 +45,8 @@ body {
     border-left: 1px solid #eee;
 }
 
-.topbar .btn {
-    border: 0;
-}
-
-.topbar p {
-    color: #888;
-}
-
 .profile {
+    margin-top: 15px;
     margin-left: 32px;
 }
 
