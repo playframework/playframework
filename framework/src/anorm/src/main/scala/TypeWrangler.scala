@@ -5,7 +5,7 @@ import java.lang.reflect.{ Type => JType, Array => _, _ }
 import scala.reflect.Manifest
 import scala.reflect.Manifest.{ classType, intersectionType, arrayType, wildcardType }
 
-object TypeWrangler {
+private[anorm] object TypeWrangler {
 
   val ByteClass = classOf[scala.Byte]
   val ShortClass = classOf[scala.Short]

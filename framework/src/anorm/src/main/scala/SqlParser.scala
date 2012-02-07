@@ -48,18 +48,18 @@ object SqlParser {
 
 case class ~[+A, +B](_1: A, _2: B)
 
-trait Result[+A] {
+trait SqlResult[+A] {
 
   self =>
 
-  def flatMap[B](k: A => Result[B]): Result[B] = self match {
+  def flatMap[B](k: A => SqlResult[B]): SqlResult[B] = self match {
 
     case Success(a) => k(a)
     case e @ Error(_) => e
 
   }
 
-  def map[B](f: A => B): Result[B] = self match {
+  def map[B](f: A => B): SqlResult[B] = self match {
 
     case Success(a) => Success(f(a))
     case e @ Error(_) => e
@@ -68,21 +68,21 @@ trait Result[+A] {
 
 }
 
-case class Success[A](a: A) extends Result[A]
+case class Success[A](a: A) extends SqlResult[A]
 
-case class Error(msg: SqlRequestError) extends Result[Nothing]
+case class Error(msg: SqlRequestError) extends SqlResult[Nothing]
 
 object RowParser {
 
-  def apply[A](f: Row => Result[A]): RowParser[A] = new RowParser[A] {
+  def apply[A](f: Row => SqlResult[A]): RowParser[A] = new RowParser[A] {
 
-    def apply(row: Row): Result[A] = f(row)
+    def apply(row: Row): SqlResult[A] = f(row)
 
   }
 
 }
 
-trait RowParser[+A] extends (Row => Result[A]) {
+trait RowParser[+A] extends (Row => SqlResult[A]) {
 
   parent =>
 
@@ -127,7 +127,7 @@ trait RowParser[+A] extends (Row => Result[A]) {
 
 }
 
-trait ResultSetParser[+A] extends (ResultSet => Result[A]) {
+trait ResultSetParser[+A] extends (ResultSet => SqlResult[A]) {
   parent =>
 
   def map[B](f: A => B): ResultSetParser[B] = ResultSetParser(rs => parent(rs).map(f))
@@ -136,16 +136,16 @@ trait ResultSetParser[+A] extends (ResultSet => Result[A]) {
 
 object ResultSetParser {
 
-  def apply[A](f: ResultSet => Result[A]): ResultSetParser[A] = new ResultSetParser[A] { rows =>
+  def apply[A](f: ResultSet => SqlResult[A]): ResultSetParser[A] = new ResultSetParser[A] { rows =>
 
-    def apply(rows: ResultSet): Result[A] = f(rows)
+    def apply(rows: ResultSet): SqlResult[A] = f(rows)
 
   }
 
   def list[A](p: RowParser[A]): ResultSetParser[List[A]] = {
 
     @scala.annotation.tailrec
-    def sequence(results: Result[List[A]], rows: Stream[Row]): Result[List[A]] = {
+    def sequence(results: SqlResult[List[A]], rows: Stream[Row]): SqlResult[List[A]] = {
 
       (results, rows) match {
 

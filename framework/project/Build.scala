@@ -231,7 +231,6 @@ object PlayBuild extends Build {
         )
 
         val anormDependencies = Seq(
-            "org.scala-lang"                    %    "scalap"                   %   buildScalaVersion 
         )
 
         val testDependencies = Seq(
@@ -305,6 +304,7 @@ object PlayBuild extends Build {
             (file("src/play/src/main/scala/play/api") ** "*.scala").get ++ 
             (file("src/play-test/src/main/scala") ** "*.scala").get ++ 
             (file("src/play/src/main/scala/views") ** "*.scala").get ++ 
+            (file("src/anorm/src/main/scala") ** "*.scala").get ++ 
             (file("src/play/target/scala-2.9.1/src_managed/main/views/html/helper") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play 2.0 Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
 
