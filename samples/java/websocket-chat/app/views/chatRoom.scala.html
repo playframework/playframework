@@ -28,8 +28,8 @@
     <script type="text/javascript" charset="utf-8">
     
         $(function() {
-            
-            var chatSocket = new WebSocket("@routes.Application.chat(username).webSocketURL(request)")
+            var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
+	        var chatSocket = new WS("@routes.Application.chat(username).webSocketURL(request)")
             
             var sendMessage = function() {
                 chatSocket.send(JSON.stringify(
