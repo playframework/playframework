@@ -59,6 +59,7 @@ public class EbeanPlugin extends Plugin {
                     load = load.trim();
                     if(load.endsWith(".*")) {
                         classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length()-2), javax.persistence.Entity.class));
+                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length()-2), javax.persistence.Embeddable.class));
                     } else {
                         classes.add(load);
                     }
