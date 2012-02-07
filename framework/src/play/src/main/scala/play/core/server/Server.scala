@@ -12,7 +12,7 @@ import akka.actor._
 import akka.actor.Actor._
 import akka.routing._
 import akka.config._
-import akka.pattern.ask
+import akka.pattern.Patterns.ask
 import akka.util.Timeout
 
 trait WebSocketable {
@@ -108,8 +108,8 @@ trait Server {
   import play.api.libs.concurrent._
 
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    implicit val timeout: Timeout = bodyParserTimeout
-    (invoker ? Invoker.GetBodyParser(requestHeaders, bodyFunction)).asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
+    val future = ask(invoker, Invoker.GetBodyParser(requestHeaders, bodyFunction),bodyParserTimeout)
+    future.asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
   }
 
   def applicationProvider: ApplicationProvider
