@@ -1,22 +1,20 @@
 @()(implicit flash: Flash)
 
 @main(None) {
-    
+
     @flash.get("error").map { errorMessage =>
-        
-        <div class="alert-message error">
-            <p>
-                <strong>Oops!</strong> @errorMessage
-            </p>
+
+        <div class="alert alert-message alert-error">
+            <strong>Oops!</strong> @errorMessage
         </div>
-        
+
     }
-        
-    <div class="alert-message block-message info">
+
+    <div class="alert alert-block alert-info">
         <p>
-            <strong>This is the Play 2.0 Websocket sample application!</strong> 
+            <strong>This is the Play 2.0 Websocket sample application!</strong>
             To start, choose a username and sign in using the top right form.
         </p>
     </div>
-    
+
 }

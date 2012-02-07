@@ -5,18 +5,18 @@
 <html>
     <head>
         <title>Websocket Chat-Room</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
     </head>
     <body>
-        
+
         <div class="topbar">
             <div class="fill">
                 <div class="container">
                     <a class="brand" href="@routes.Application.index()">Websocket Chat-Room</a>
-                    
+
                     @connected.map { username =>
                         <p class="pull-right">
                             Logged in as @username —
@@ -28,7 +28,7 @@
                             <button class="btn" type="submit">Sign in</button>
                         </form>
                     }
-                    
+
                 </div>
             </div>
         </div>
@@ -46,6 +46,6 @@
             </footer>
 
         </div>
-        
+
     </body>
 </html>
