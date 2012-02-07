@@ -88,11 +88,16 @@ object OpenID {
       val serverUrl:Option[String] = providerRegex.findFirstIn(response.body)
           .orElse(serverRegex.findFirstIn(response.body))
           .flatMap(extractHref(_))
-      serverUrl.map(url => {
+      val fromHtml = serverUrl.map(url => {
         val delegate:Option[String] = localidRegex.findFirstIn(response.body)
           .orElse(delegateRegex.findFirstIn(response.body)).flatMap(extractHref(_))
         OpenIDServer(url, delegate)
-      }).getOrElse(throw Errors.NETWORK_ERROR)
+      })
+      // Try XRD
+      val fromXRD = response.header(HeaderNames.CONTENT_TYPE).filter(_.contains("application/xrds+xml")).map(_ =>
+        OpenIDServer((response.xml \\ "URI").text, None)
+      )
+      fromHtml.orElse(fromXRD).getOrElse(throw Errors.NETWORK_ERROR)
     })
   }
 
