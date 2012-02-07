@@ -345,7 +345,7 @@ trait PlayCommands {
   // naming: how to name the generated file from the original file and whether it should be minified or not
   // compile: compile the file and return the compiled sources, the minified source (if relevant) and the list of dependencies
   def AssetsCompiler(name: String,
-    filesSetting: sbt.SettingKey[Seq[File]],
+    filesSetting: sbt.SettingKey[PathFinder],
     naming: (String, Boolean) => String,
     compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
     optionsSettings: sbt.SettingKey[Seq[String]]) =

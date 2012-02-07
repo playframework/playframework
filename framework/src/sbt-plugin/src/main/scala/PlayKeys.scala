@@ -22,11 +22,11 @@ trait PlayKeys {
 
   val coffeescriptOptions = SettingKey[Seq[String]]("play-coffeescript-options")
 
-  val lessEntryPoints = SettingKey[Seq[File]]("play-less-entry-points")
+  val lessEntryPoints = SettingKey[PathFinder]("play-less-entry-points")
 
-  val coffeescriptEntryPoints = SettingKey[Seq[File]]("play-coffeescript-entry-points")
+  val coffeescriptEntryPoints = SettingKey[PathFinder]("play-coffeescript-entry-points")
 
-  val javascriptEntryPoints = SettingKey[Seq[File]]("play-javascript-entry-points")
+  val javascriptEntryPoints = SettingKey[PathFinder]("play-javascript-entry-points")
 
 }
 object PlayKeys extends PlayKeys
