@@ -3,15 +3,15 @@
 @import play.api.i18n._
 @import views.html.helper._
 
-@**************************************************
-* Generate input according twitter bootsrap rules *
-**************************************************@
+@*******************************************************
+* Generate input according Twitter Bootstrap 2.0 rules *
+*******************************************************@
 
-<div class="clearfix @elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
-    <label for="@elements.id">@elements.label(elements.lang)</label>
-    <div class="input">
+<div class="control-group @elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
+    <label class="control-label" for="@elements.id">@elements.label(elements.lang)</label>
+    <div class="controls">
         @elements.input
         <span class="help-inline">@elements.errors(elements.lang).mkString(", ")</span>
-        <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span> 
+        <p class="help-block">@elements.infos(elements.lang).mkString(", ")</p>
     </div>
 </div>

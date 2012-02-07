@@ -5,15 +5,15 @@
 <html>
     <head>
         <title>Form samples</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
     </head>
     <body>
-        
-        <div class="topbar">
-            <div class="fill">
+
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
                 <div class="container">
                     <a class="brand" href="@routes.Application.index()">Forms</a>
                     <ul class="nav">
@@ -31,17 +31,17 @@
         <div class="container">
 
             <div class="content">
-                
+
                 <div class="page-header">
                     <h1>@title</h1>
                 </div>
 
                 <div class="row">
-                    <div class="span14">
+                    <div class="span10">
                         @content
                     </div>
                 </div>
-                
+
             </div>
 
             <footer>
@@ -51,6 +51,6 @@
             </footer>
 
         </div>
-        
+
     </body>
 </html>

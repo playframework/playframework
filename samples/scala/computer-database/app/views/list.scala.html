@@ -7,7 +7,7 @@
     routes.Application.list(newPage, newOrderBy.map { orderBy =>
         if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
     }.getOrElse(currentOrderBy), currentFilter)
-    
+
 }
 
 @**********************************
@@ -20,29 +20,29 @@
 }
 
 @main {
-    
+
     <h1>@Messages("computers.list.title", currentPage.total)</h1>
 
     @flash.get("success").map { message =>
-        <div class="alert-message warning">
+        <div class="alert alert-message alert-warning">
             <strong>Done!</strong> @message
         </div>
     }
 
     <div id="actions">
-        
+
         @helper.form(action=routes.Application.list()) {
             <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by computer name...">
-            <input type="submit" id="searchsubmit" value="Filter by name" class="btn primary">
+            <input type="submit" id="searchsubmit" value="Filter by name" class="btn btn-primary">
         }
-        
-        <a class="btn success" id="add" href="@routes.Application.create()">Add a new computer</a>
-        
+
+        <a class="btn btn-success" id="add" href="@routes.Application.create()">Add a new computer</a>
+
     </div>
-    
+
     @Option(currentPage.items).filterNot(_.isEmpty).map { computers =>
-        
-        <table class="computers zebra-striped">
+
+        <table class="computers table table-bordered table-striped">
             <thead>
                 <tr>
                     @header(2, "Computer name")
@@ -53,7 +53,7 @@
             </thead>
             <tbody>
 
-                @computers.map { 
+                @computers.map {
                     case (computer, company) => {
                         <tr>
                             <td><a href="@routes.Application.edit(computer.id.get)">@computer.name</a></td>
@@ -78,7 +78,7 @@
                 @currentPage.prev.map { page =>
                     <li class="prev">
                         <a href="@link(page)">&larr; Previous</a>
-                    </li> 
+                    </li>
                 }.getOrElse {
                     <li class="prev disabled">
                         <a>&larr; Previous</a>
@@ -90,7 +90,7 @@
                 @currentPage.next.map { page =>
                     <li class="next">
                         <a href="@link(page)">Next &rarr;</a>
-                    </li> 
+                    </li>
                 }.getOrElse {
                     <li class="next disabled">
                         <a>Next &rarr;</a>
@@ -98,16 +98,15 @@
                 }
             </ul>
         </div>
-        
+
     }.getOrElse {
-        
+
         <div class="well">
             <em>Nothing to display</em>
         </div>
-        
+
     }
 
-        
+
 }
 
-            
