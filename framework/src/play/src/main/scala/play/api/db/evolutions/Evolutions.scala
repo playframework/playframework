@@ -69,26 +69,6 @@ private[evolutions] case class DownScript(evolution: Evolution, sql: String) ext
  */
 object Evolutions {
 
-  /**
-   * Updates a local (file-based) evolution script.
-   */
-  def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
-    import play.api.libs._
-
-    val evolutions = application.getFile("conf/evolutions/" + db + "/" + revision + ".sql");
-    Files.createDirectory(application.getFile("conf/evolutions/" + db));
-    Files.writeFileIfChanged(evolutions,
-      """|# --- %s
-               |
-               |# --- !Ups
-               |%s
-               |
-               |# --- !Downs
-               |%s
-               |
-               |""".stripMargin.format(comment, ups, downs));
-  }
-
   // --
 
   private def executeQuery(sql: String)(implicit c: Connection) = {
