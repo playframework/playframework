@@ -51,31 +51,34 @@ object LessCompiler {
       "browser.js",
       1, null)
     ctx.evaluateReader(scope, new InputStreamReader(
-      this.getClass.getClassLoader.getResource("less-1.1.4.js").openConnection().getInputStream()),
-      "less-1.1.4.js",
+      this.getClass.getClassLoader.getResource("less-1.2.0.js").openConnection().getInputStream()),
+      "less-1.2.0.js",
       1, null)
     ctx.evaluateString(scope,
       """
                 var compile = function(source) {
 
                     var compiled;
-                    var dependencies = [source]
+                    var dependencies = [source];
 
-                    window.less.Parser.importer = function(path, paths, fn) {
-                        var imported = LessCompiler.resolve(source, path)
+                    window.less.Parser.importer = function(path, paths, fn, env) {
+                        var imported = LessCompiler.resolve(source, path);
                         dependencies.push(imported)
-                        new(window.less.Parser)({optimization:3, filename:String(imported.getCanonicalPath())}).parse(String(LessCompiler.readContent(imported)), function (e,root) {
-                            fn(root)
+                        new(window.less.Parser)({
+                            optimization:3,
+                            filename:String(imported.getCanonicalPath())
+                        }).parse(String(LessCompiler.readContent(imported)), function (e, root) {
+                            fn(e, root);
                             if(e instanceof Object) {
-                                throw e
+                                throw e;
                             }
-                        })
+                        });
                     }
 
                     new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
                         compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
                         if(e instanceof Object) {
-                            throw e
+                            throw e;
                         }
                     })
 

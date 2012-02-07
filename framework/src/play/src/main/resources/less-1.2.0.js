@@ -1,5 +1,5 @@
 //
-// LESS - Leaner CSS v1.2.1
+// LESS - Leaner CSS v1.2.0
 // http://lesscss.org
 // 
 // Copyright (c) 2009-2011, Alexis Sellier
@@ -208,7 +208,6 @@ less.Parser = function Parser(env) {
         paths: env && env.paths || [],  // Search paths, when importing
         queue: [],                      // Files which haven't been imported yet
         files: {},                      // Holds the imported parse trees
-        contents: {},                   // Holds the imported file contents
         mime:  env && env.mime,         // MIME type of .less files
         error: null,                    // Error in parsing/evaluating an import
         push: function (path, callback) {
@@ -218,10 +217,9 @@ less.Parser = function Parser(env) {
             //
             // Import a file asynchronously
             //
-            less.Parser.importer(path, this.paths, function (e, root, contents) {
+            less.Parser.importer(path, this.paths, function (e, root) {
                 that.queue.splice(that.queue.indexOf(path), 1); // Remove the path from the queue
                 that.files[path] = root;                        // Store the root
-                that.contents[path] = contents;
 
                 if (e && !that.error) { that.error = e }
                 callback(e, root);
@@ -326,37 +324,28 @@ less.Parser = function Parser(env) {
         }
     }
 
-    function getInput(e, env) {
-        if (e.filename && env.filename && (e.filename !== env.filename)) {
-            return parser.imports.contents[e.filename];
-        } else {
-            return input;
-        }
-    }
-
-    function getLocation(index, input) {
+    function getLocation(index) {
         for (var n = index, column = -1;
                  n >= 0 && input.charAt(n) !== '\n';
                  n--) { column++ }
 
-        return { line:   typeof(index) === 'number' ? (input.slice(0, index).match(/\n/g) || "").length : null,
+        return { line:   index ? (input.slice(0, index).match(/\n/g) || "").length : null,
                  column: column };
     }
 
     function LessError(e, env) {
-        var input = getInput(e, env),
-            loc = getLocation(e.index, input),
+        var lines = input.split('\n'),
+            loc = getLocation(e.index),
             line = loc.line,
-            col  = loc.column,
-            lines = input.split('\n');
+            col  = loc.column;
 
-        this.type = e.type || 'Syntax';
+        this.type = e.type || 'SyntaxError';
         this.message = e.message;
         this.filename = e.filename || env.filename;
         this.index = e.index;
         this.line = typeof(line) === 'number' ? line + 1 : null;
-        this.callLine = e.call && (getLocation(e.call, input) + 1);
-        this.callExtract = lines[getLocation(e.call, input)];
+        this.callLine = e.call && (getLocation(e.call) + 1);
+        this.callExtract = lines[getLocation(e.call)];
         this.stack = e.stack;
         this.column = col;
         this.extract = [
@@ -476,7 +465,7 @@ less.Parser = function Parser(env) {
                 var line, lines, column;
 
                 return function (options, variables) {
-                    var frames = [], importError;
+                    var frames = [];
 
                     options = options || {};
                     //
@@ -514,10 +503,7 @@ less.Parser = function Parser(env) {
                         throw new(LessError)(e, env);
                     }
 
-                    if ((importError = parser.imports.error)) { // Check if there was an error during importing
-                        if (importError instanceof LessError) throw importError;
-                        else                                  throw new(LessError)(importError, env);
-                    }
+                    if (parser.imports.error) { throw parser.imports.error }
 
                     if (options.yuicompress && less.mode === 'node') {
                         return require('./cssmin').compressor.cssmin(css);
@@ -705,7 +691,7 @@ less.Parser = function Parser(env) {
 
                     if (! $(')')) return;
 
-                    if (name) { return new(tree.Call)(name, args, index, env.filename) }
+                    if (name) { return new(tree.Call)(name, args, index) }
                 },
                 arguments: function () {
                     var args = [], arg;
@@ -781,7 +767,7 @@ less.Parser = function Parser(env) {
                     var name, index = i;
 
                     if (input.charAt(i) === '@' && (name = $(/^@@?[\w-]+/))) {
-                        return new(tree.Variable)(name, index, env.filename);
+                        return new(tree.Variable)(name, index);
                     }
                 },
 
@@ -892,7 +878,7 @@ less.Parser = function Parser(env) {
                     }
 
                     if (elements.length > 0 && ($(';') || peek('}'))) {
-                        return new(tree.mixin.Call)(elements, args, index, env.filename, important);
+                        return new(tree.mixin.Call)(elements, args, index, important);
                     }
                 },
 
@@ -1166,12 +1152,12 @@ less.Parser = function Parser(env) {
             // stored in `import`, which we pass to the Import constructor.
             //
             "import": function () {
-                var path, features, index = i;
+                var path, features;
                 if ($(/^@import\s+/) &&
                     (path = $(this.entities.quoted) || $(this.entities.url))) {
                     features = $(this.mediaFeatures);
                     if ($(';')) {
-                        return new(tree.Import)(path, imports, features, index);
+                        return new(tree.Import)(path, imports, features);
                     }
                 }
             },
@@ -1836,11 +1822,10 @@ tree.Assignment.prototype = {
 //
 // A function call node.
 //
-tree.Call = function (name, args, index, filename) {
+tree.Call = function (name, args, index) {
     this.name = name;
     this.args = args;
     this.index = index;
-    this.filename = filename;
 };
 tree.Call.prototype = {
     //
@@ -1865,7 +1850,7 @@ tree.Call.prototype = {
                 throw { type: e.type || "Runtime",
                         message: "error evaluating function `" + this.name + "`" +
                                  (e.message ? ': ' + e.message : ''),
-                        index: this.index, filename: this.filename };
+                        index: this.index };
             }
         } else { // 2.
             return new(tree.Anonymous)(this.name +
@@ -2208,10 +2193,9 @@ tree.Expression.prototype = {
 // `import,push`, we also pass it a callback, which it'll call once
 // the file has been fetched, and parsed.
 //
-tree.Import = function (path, imports, features, index) {
+tree.Import = function (path, imports, features) {
     var that = this;
 
-    this.index = index;
     this._path = path;
     this.features = features && new(tree.Value)(features);
 
@@ -2227,8 +2211,7 @@ tree.Import = function (path, imports, features, index) {
     // Only pre-compile .less files
     if (! this.css) {
         imports.push(this.path, function (e, root) {
-            if (e) { e.index = index }
-            that.root = root || new(tree.Ruleset)([], []);
+            that.root = root;
         });
     }
 };
@@ -2347,11 +2330,10 @@ tree.False = new(tree.Keyword)('false');
 (function (tree) {
 
 tree.mixin = {};
-tree.mixin.Call = function (elements, args, index, filename, important) {
+tree.mixin.Call = function (elements, args, index, important) {
     this.selector = new(tree.Selector)(elements);
     this.arguments = args;
     this.index = index;
-    this.filename = filename;
     this.important = important;
 };
 tree.mixin.Call.prototype = {
@@ -2368,7 +2350,7 @@ tree.mixin.Call.prototype = {
                                   rules, mixins[m].eval(env, this.arguments, this.important).rules);
                             match = true;
                         } catch (e) {
-                            throw { message: e.message, index: e.index, filename: this.filename, stack: e.stack, call: this.index };
+                            throw { message: e.message, index: e.index, stack: e.stack, call: this.index };
                         }
                     }
                 }
@@ -2381,13 +2363,13 @@ tree.mixin.Call.prototype = {
                                       this.arguments.map(function (a) {
                                           return a.toCSS();
                                       }).join(', ') + ")`",
-                            index:   this.index, filename: this.filename };
+                            index:   this.index };
                 }
             }
         }
         throw { type: 'Name',
                 message: this.selector.toCSS().trim() + " is undefined",
-                index: this.index, filename: this.filename };
+                index: this.index };
     }
 };
 
@@ -2894,7 +2876,7 @@ tree.Value.prototype = {
 })(require('../tree'));
 (function (tree) {
 
-tree.Variable = function (name, index, file) { this.name = name, this.index = index, this.file = file };
+tree.Variable = function (name, index) { this.name = name, this.index = index };
 tree.Variable.prototype = {
     eval: function (env) {
         var variable, v, name = this.name;
@@ -2909,9 +2891,7 @@ tree.Variable.prototype = {
             }
         })) { return variable }
         else {
-            throw { type: 'Name',
-                    message: "variable " + name + " is undefined",
-                    filename: this.file,
+            throw { message: "variable " + name + " is undefined",
                     index: this.index };
         }
     }
@@ -2976,7 +2956,7 @@ if (less.env === 'development') {
     }
     less.watchTimer = setInterval(function () {
         if (less.watchMode) {
-            loadStyleSheets(function (e, root, _, sheet, env) {
+            loadStyleSheets(function (root, sheet, env) {
                 if (root) {
                     createCSS(root.toCSS(), sheet, env.lastModified);
                 }
@@ -3015,7 +2995,7 @@ less.refresh = function (reload) {
     var startTime, endTime;
     startTime = endTime = new(Date);
 
-    loadStyleSheets(function (e, root, _, sheet, env) {
+    loadStyleSheets(function (root, sheet, env) {
         if (env.local) {
             log("loading " + sheet.href + " from cache.");
         } else {
@@ -3072,7 +3052,6 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
             href = url.slice(0, url.lastIndexOf('/') + 1) + href;
         }
     }
-    var filename = href.match(/([^\/]+)$/)[1];
 
     xhr(sheet.href, sheet.type, function (data, lastModified) {
         if (!reload && styles && lastModified &&
@@ -3087,12 +3066,11 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
                 new(less.Parser)({
                     optimization: less.optimization,
                     paths: [href.replace(/[\w\.-]+$/, '')],
-                    mime: sheet.type,
-                    filename: filename
+                    mime: sheet.type
                 }).parse(data, function (e, root) {
                     if (e) { return error(e, href) }
                     try {
-                        callback(e, root, data, sheet, { local: false, lastModified: lastModified, remaining: remaining });
+                        callback(root, sheet, { local: false, lastModified: lastModified, remaining: remaining });
                         removeNode(document.getElementById('less-error-message:' + extractId(href)));
                     } catch (e) {
                         error(e, href);
@@ -3220,32 +3198,29 @@ function log(str) {
 
 function error(e, href) {
     var id = 'less-error-message:' + extractId(href);
-    var template = '<li><label>{line}</label><pre class="{class}">{content}</pre></li>';
-    var elem = document.createElement('div'), timer, content, error = [];
-    var filename = e.filename || href;
+
+    var template = ['<ul>',
+                        '<li><label>[-1]</label><pre class="ctx">{0}</pre></li>',
+                        '<li><label>[0]</label><pre>{current}</pre></li>',
+                        '<li><label>[1]</label><pre class="ctx">{2}</pre></li>',
+                    '</ul>'].join('\n');
+
+    var elem = document.createElement('div'), timer, content;
 
     elem.id        = id;
     elem.className = "less-error-message";
 
     content = '<h3>'  + (e.message || 'There is an error in your .less file') +
-              '</h3>' + '<p>in <a href="' + filename   + '">' + filename + "</a> ";
+              '</h3>' + '<p><a href="' + href   + '">' + href + "</a> ";
 
-    var errorline = function (e, i, classname) {
-        if (e.extract[i]) {
-            error.push(template.replace(/\{line\}/, parseInt(e.line) + (i - 1))
-                               .replace(/\{class\}/, classname)
-                               .replace(/\{content\}/, e.extract[i]));
-        }
-    };
-
-    if (e.stack) {
-        content += '<br/>' + e.stack.split('\n').slice(1).join('<br/>');
-    } else if (e.extract) {
-        errorline(e, 0, '');
-        errorline(e, 1, 'line');
-        errorline(e, 2, '');
+    if (e.extract) {
         content += 'on line ' + e.line + ', column ' + (e.column + 1) + ':</p>' +
-                    '<ul>' + error.join('') + '</ul>';
+            template.replace(/\[(-?\d)\]/g, function (_, i) {
+                return (parseInt(e.line) + parseInt(i)) || '';
+            }).replace(/\{(\d)\}/g, function (_, i) {
+                return e.extract[parseInt(i)] || '';
+            }).replace(/\{current\}/, e.extract[1].slice(0, e.column) + '<span class="error">' +
+                                      e.extract[1].slice(e.column)    + '</span>');
     }
     elem.innerHTML = content;
 
@@ -3264,13 +3239,13 @@ function error(e, href) {
             'color: #cc7777;',
         '}',
         '.less-error-message pre {',
-            'color: #dd6666;',
+            'color: #ee4444;',
             'padding: 4px 0;',
             'margin: 0;',
             'display: inline-block;',
         '}',
-        '.less-error-message pre.line {',
-            'color: #ff0000;',
+        '.less-error-message pre.ctx {',
+            'color: #dd4444;',
         '}',
         '.less-error-message h3 {',
             'font-size: 20px;',
