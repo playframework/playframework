@@ -35,14 +35,14 @@ object Application extends Controller {
 
 object Streams {
 
-  val getRequestsPerSecond = Enumerator.callbackEnumerator{ () =>
+  val getRequestsPerSecond = Enumerator.fromCallback{ () =>
     Promise.timeout( { 
       val currentMillis = java.lang.System.currentTimeMillis()      
       Some(SpeedOMeter.getSpeed +":rps") },
       100, TimeUnit.MILLISECONDS )
     }
 
-  val getHeap = Enumerator.callbackEnumerator{ () =>
+  val getHeap = Enumerator.fromCallback{ () =>
     Promise.timeout( 
       Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024*1024) + ":memory"),
       100, TimeUnit.MILLISECONDS) 
@@ -50,7 +50,7 @@ object Streams {
 
   val cpu = new models.CPU()
 
-  val getCPU = Enumerator.callbackEnumerator{ () =>
+  val getCPU = Enumerator.fromCallback{ () =>
     Promise.timeout( 
       Some((cpu.getCpuUsage()*1000).round / 10.0 + ":cpu"),
       100, TimeUnit.MILLISECONDS)

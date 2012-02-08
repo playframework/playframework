@@ -155,7 +155,15 @@ cd ../samples/workinprogress/akka-chat
 $PLAY "$@" clean test
 cd $CURRENT
 
+echo "[info]"
+echo "[info] ---- TESTING SCALA/RPS"
+echo "[info]"
+
+cd ../samples/workinprogress/rps/
+$PLAY "$@" clean test
+cd $CURRENT
 echo
+
 echo "[info]"
 echo "[info] ALL TESTS PASSED"
 echo "[info]"
