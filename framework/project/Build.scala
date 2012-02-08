@@ -15,7 +15,6 @@ object PlayBuild extends Build {
         file("src/templates"),
         settings = buildSettings ++ Seq(
             libraryDependencies := templatesDependencies,
-            publishMavenStyle := false,
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
@@ -30,7 +29,6 @@ object PlayBuild extends Build {
         file("src/anorm"),
         settings = buildSettings ++ Seq(
             libraryDependencies := anormDependencies,
-            publishMavenStyle := false,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "utf8"),
             javacOptions ++= Seq("-encoding", "utf8"),
@@ -45,7 +43,6 @@ object PlayBuild extends Build {
         settings = buildSettings ++ Seq(
             libraryDependencies := runtime,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-            publishMavenStyle := false,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
             javacOptions ++= Seq("-encoding", "utf8"),
@@ -62,7 +59,6 @@ object PlayBuild extends Build {
       file("src/play-test"),
       settings = buildSettings ++ Seq(
         libraryDependencies := testDependencies,
-        publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
         javacOptions ++= Seq("-encoding", "utf8"),
@@ -80,7 +76,6 @@ object PlayBuild extends Build {
         libraryDependencies := sbtDependencies,
         addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-RC1"),
         unmanagedJars in Compile  ++=  sbtJars,
-        publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
         javacOptions ++= Seq("-encoding", "utf8"),
@@ -101,7 +96,6 @@ object PlayBuild extends Build {
       settings = buildSettings ++ Seq(
         libraryDependencies := consoleDependencies,
         unmanagedJars in Compile  ++=  sbtJars,
-        publishMavenStyle := false,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
         javacOptions ++= Seq("-encoding", "utf8"),
@@ -161,7 +155,6 @@ object PlayBuild extends Build {
 
     object Resolvers {
         import BuildSettings._
-        val playTempRepository = Resolver.ssh("Play Repository", "a41.zenexity.com", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")  
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns) 
         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
         val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/ivy-snapshots/"

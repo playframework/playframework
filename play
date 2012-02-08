@@ -8,8 +8,12 @@ dir=`dirname $PRG`
 
 if [ -f conf/application.conf ]; then
   if test "$1" = "clean-all"; then
-    $dir/framework/cleanIvyCache
-    $dir/framework/build clean
+    rm -rf target
+    rm -rf tmp
+    rm -rf logs
+    rm -rf dist
+    rm -rf project/project
+    rm -rf project/target
     if [ $# -ne 1 ]
     then  
      shift

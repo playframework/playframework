@@ -1,5 +1,0 @@
-#! /usr/bin/env sh
-
-echo "[info] Clean Ivy cache."
-
-rm -rf `dirname $0`/../repository/cache/*.xml `dirname $0`/../repository/cache/*.properties `dirname $0`/../repository/cache/play*
