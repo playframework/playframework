@@ -1,15 +1,16 @@
 #! /usr/bin/env sh
 
 if [ $# -ne 1 ]; then  
-    echo "Usage: package VERSION"
+    echo "[\033[31merror\033[0m] Usage: package VERSION"
     exit -1
 else
     export PLAY_VERSION=$1
 fi
     
-#`dirname $0`/cleanEverything
-#`dirname $0`/build -Dplay.version=${PLAY_VERSION} build-repository api-docs
+`dirname $0`/cleanEverything
+`dirname $0`/build -Dplay.version=${PLAY_VERSION} clean build-repository api-docs
 
+echo "[info] Cleaning previous package"
 rm -rf /tmp/play-*
 
 echo "[info] Copying to /tmp/play-${PLAY_VERSION}..."
