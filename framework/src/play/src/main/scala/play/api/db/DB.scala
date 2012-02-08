@@ -325,9 +325,22 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
     })
 
-    // url is required
-    conf.getString("url").map(datasource.setJdbcUrl(_)).orElse {
-      throw conf.globalError("Missing url configuration for database [" + conf + "]")
+    val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
+    val MysqlFullUrl = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
+
+    conf.getString("url") match {
+      case Some(PostgresFullUrl(username, password, host, dbname)) => 
+        datasource.setJdbcUrl("jdbc:postgresql://%s/%s".format(host, dbname))
+        datasource.setUsername(username)
+        datasource.setPassword(password)
+      case Some(MysqlFullUrl(username, password, host, dbname)) =>
+        datasource.setJdbcUrl("jdbc:mysql://%s/%s?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci".format(host, dbname))
+        datasource.setUsername(username)
+        datasource.setPassword(password)
+      case Some(s: String) =>
+        datasource.setJdbcUrl(s)
+      case _ =>
+        throw conf.globalError("Missing url configuration for database [%s]".format(conf))
     }
 
     conf.getString("user").map(datasource.setUsername(_))
