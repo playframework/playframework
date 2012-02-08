@@ -591,9 +591,9 @@ trait PlayCommands {
     println()
 
     val sbtLoader = this.getClass.getClassLoader
-    val commonLoader = Project.evaluateTask(playCommonClassloader, state).get.toEither.right.get
+    val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
 
-    val maybeNewState = Project.evaluateTask(dependencyClasspath in Compile, state).get.toEither.right.map { dependencies =>
+    val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       val classpath = dependencies.map(_.data.toURI.toURL).toArray
 
@@ -694,7 +694,7 @@ trait PlayCommands {
           //Then launch compile
           PlayProject.synchronized {
             val start = System.currentTimeMillis
-            Project.evaluateTask(compile in Compile, newState).get.toEither.right.map { _ =>
+            Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
               val duration = System.currentTimeMillis - start
               val formatted = duration match {
                 case ms if ms < 1000 => ms + "ms"
@@ -767,7 +767,7 @@ trait PlayCommands {
 
     val extracted = Project.extract(state)
 
-    Project.evaluateTask(compile in Compile, state).get.toEither match {
+    Project.runTask(compile in Compile, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot start with errors.")
@@ -776,7 +776,7 @@ trait PlayCommands {
       }
       case Right(_) => {
 
-        Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.map { dependencies =>
+        Project.runTask(dependencyClasspath in Runtime, state).get._2.toEither.right.map { dependencies =>
 
           val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
 
@@ -860,7 +860,7 @@ trait PlayCommands {
 
   val h2Command = Command.command("h2-browser") { state: State =>
     try {
-      val commonLoader = Project.evaluateTask(playCommonClassloader, state).get.toEither.right.get
+      val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
       val h2ServerClass = commonLoader.loadClass(classOf[org.h2.tools.Server].getName)
       h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
@@ -895,7 +895,7 @@ trait PlayCommands {
 
     val extracted = Project.extract(state)
 
-    Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither match {
+    Project.runTask(dependencyClasspath in Runtime, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot compute the classpath")
@@ -951,7 +951,7 @@ trait PlayCommands {
 
     val extracted = Project.extract(state)
 
-    Project.evaluateTask(computeDependencies, state).get.toEither match {
+    Project.runTask(computeDependencies, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot compute dependencies")
