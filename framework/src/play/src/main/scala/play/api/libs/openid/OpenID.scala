@@ -38,31 +38,34 @@ object OpenID {
   /**
    * From a request corresponding to the callback from the OpenID server, check the identity of the current user
    */
-  def verifiedId(implicit request: Request[_]): Promise[UserInfo] = {
-    Form(of(
-      "openid.mode" -> text,
-      "openid.claimed_id" -> optional(text),
-      "openid.identity" -> optional(text),
-      "openid.op_endpoint" -> optional(text)
-    )).bindFromRequest.fold(
-        error => PurePromise(throw Errors.MISSING_PARAMETERS),
-        {
-          case ("id_res", claimedId, identity, endPoint) => {
-            claimedId.orElse(identity).map( id => {
-              val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
-              server.flatMap( url => {
-                val fields = request.queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication"))
-                WS.url(url).post(fields).map(response => {
-                  if (response.status == 200 && response.body.contains("is_valid:true"))
-                    UserInfo(id)
-                  else
-                    throw Errors.AUTH_ERROR
-                })
-              })
-            }).getOrElse(PurePromise(throw Errors.BAD_RESPONSE))
-          }
-        }
-    )
+  def verifiedId(implicit request: Request[_]): Promise[UserInfo] = verifiedId(request.queryString)
+
+  /**
+   * For internal use
+   */
+  def verifiedId(queryString: java.util.Map[String, Array[String]]): Promise[UserInfo] = {
+    import scala.collection.JavaConversions._
+    verifiedId(queryString.toMap.mapValues(_.toSeq))
+  }
+
+  private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
+    (queryString("openid.mode").headOption,
+     queryString("openid.claimedId").headOption.orElse(queryString("openid.identity").headOption),
+     queryString("openid.op_endpoint").headOption) match {
+      case (Some("id_res"), Some(id), endPoint) => {
+        val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
+        server.flatMap( url => {
+          val fields = queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication"))
+          WS.url(url).post(fields).map(response => {
+            if (response.status == 200 && response.body.contains("is_valid:true"))
+              UserInfo(id)
+            else
+              throw Errors.AUTH_ERROR
+            })
+          })
+      }
+      case _ => PurePromise(throw Errors.BAD_RESPONSE)
+    }
   }
 
   private def normalize(openID: String): String = {
