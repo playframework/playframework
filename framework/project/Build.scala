@@ -195,6 +195,7 @@ object PlayBuild extends Build {
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
+            "jaxen"                             %    "jaxen"                    %   "1.1.3" notTransitive(),
             "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
