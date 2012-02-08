@@ -16,7 +16,9 @@ trait PlayKeys {
 
   val templatesTypes = SettingKey[PartialFunction[String, (String, String)]]("play-templates-formats")
 
-  val closureCompilerOptions = SettingKey[Seq[String]]("play-closure-compiler-options")
+  val javascriptCompilerOptions = SettingKey[Seq[String]]("play-javascript-compiler-options")
+
+  val closureCompilerOptions = SettingKey[com.google.javascript.jscomp.CompilerOptions]("play-closure-compiler-options")
 
   val lessOptions = SettingKey[Seq[String]]("play-less-options")
 

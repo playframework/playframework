@@ -9,6 +9,7 @@ import sbinary.DefaultProtocol.StringFormat
 
 import play.api._
 import play.core._
+import play.core.jscompile.JavascriptCompiler
 
 import play.utils.Colors
 
@@ -400,11 +401,11 @@ trait PlayCommands {
     lessOptions
   )
 
-  val JavascriptCompiler = AssetsCompiler("javascripts",
+  val JsCompiler = AssetsCompiler("javascripts",
     javascriptEntryPoints,
     { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { (jsFile:File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
-    closureCompilerOptions
+    { (jsFile:File, options) => new JavascriptCompiler(closureCompilerOptions).compile(jsFile, options) },
+    javascriptCompilerOptions
   )
 
   val CoffeescriptCompiler = AssetsCompiler("coffeescript",
@@ -416,7 +417,7 @@ trait PlayCommands {
       // Any error here would be because of CoffeeScript, not the developer;
       // so we don't want compilation to fail.
       val minified = catching(classOf[CompilationException])
-        .opt(play.core.jscompile.JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
+        .opt(JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
       (jsSource, minified, Seq(coffeeFile))
     },
     coffeescriptOptions
