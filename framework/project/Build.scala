@@ -188,7 +188,7 @@ object PlayBuild extends Build {
             "org.joda"                          %    "joda-convert"             %   "1.1",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
-            "com.ning"                          %    "async-http-client"        %   "1.7.0",
+            "com.ning"                          %    "async-http-client"        %   "1.7.0" notTransitive(),
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
             "org.reflections"                   %    "reflections"              %   "0.9.6",

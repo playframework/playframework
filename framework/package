@@ -6,9 +6,12 @@ if [ $# -ne 1 ]; then
 else
     export PLAY_VERSION=$1
 fi
-    
-#`dirname $0`/cleanEverything
-#`dirname $0`/build -Dplay.version=${PLAY_VERSION} clean 
+
+if test "$1" != "test"; then
+    `dirname $0`/cleanEverything
+    `dirname $0`/build clean 
+fi
+
 `dirname $0`/build -Dplay.version=${PLAY_VERSION} build-repository api-docs
 
 echo "[info] Cleaning previous package"
