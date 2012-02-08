@@ -13,14 +13,31 @@ import play.api.mvc.Request
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
-case class UserInfo(id: String)
+case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
+
+object UserInfo {
+
+  def apply(queryString: Map[String, Seq[String]]):UserInfo = {
+    val axAttribute = new Regex("^openid[.].+[.]value[.]([^.]+)([.]\\d+)?$")
+    val id = queryString.get("openid.claimedId").flatMap(_.headOption)
+             .orElse(queryString.get("openid.identity").flatMap(_.headOption))
+             .getOrElse(throw Errors.BAD_RESPONSE)
+    val attributes = queryString.toSeq.map(pair => (axAttribute.findFirstMatchIn(pair._1).map(_.group(1)), pair._2.headOption))
+                                .collect({ case (Some(key), Some(value)) => (key, value) }).toMap
+    new UserInfo(id, attributes)
+  }
+
+}
 
 object OpenID {
 
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
    */
-  def redirectURL(openID: String, callbackURL: String): Promise[String] = {
+  def redirectURL(openID: String,
+                  callbackURL: String,
+                  axRequired: Seq[(String, String)] = Seq.empty,
+                  axOptional: Seq[(String, String)] = Seq.empty): Promise[String] = {
     val claimedId = normalize(openID)
     discoverServer(claimedId).map( server => {
       val parameters = Seq(
@@ -29,7 +46,7 @@ object OpenID {
         "openid.claimed_id" -> claimedId,
         "openid.identity" -> server.delegate.getOrElse(claimedId),
         "openid.return_to" -> callbackURL
-      )
+      ) ++ axParameters(axRequired, axOptional)
       val separator = if (server.url.contains("?")) "&" else "?"
       server.url + separator + parameters.map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8")).mkString("&")
     })
@@ -49,22 +66,38 @@ object OpenID {
   }
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
-    (queryString("openid.mode").headOption,
-     queryString("openid.claimedId").headOption.orElse(queryString("openid.identity").headOption),
-     queryString("openid.op_endpoint").headOption) match {
+    (queryString.get("openid.mode").flatMap(_.headOption),
+     queryString.get("openid.claimedId").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
+     queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
       case (Some("id_res"), Some(id), endPoint) => {
         val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
         server.flatMap( url => {
           val fields = queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication"))
           WS.url(url).post(fields).map(response => {
-            if (response.status == 200 && response.body.contains("is_valid:true"))
-              UserInfo(id)
-            else
-              throw Errors.AUTH_ERROR
+            if (response.status == 200 && response.body.contains("is_valid:true")) {
+              UserInfo(queryString)
+            } else throw Errors.AUTH_ERROR
             })
           })
       }
       case _ => PurePromise(throw Errors.BAD_RESPONSE)
+    }
+  }
+
+  private def axParameters(axRequired: Seq[(String, String)],
+                           axOptional: Seq[(String, String)]):Seq[(String, String)] = {
+    if (axRequired.length == 0 && axOptional.length ==0)
+      Nil
+    else {
+      val axRequiredParams = if (axRequired.size == 0) Nil
+      else Seq("openid.ax.required" -> axRequired.map(_._1).mkString(","))
+
+      val axOptionalParams = if (axOptional.size == 0) Nil
+      else Seq("openid.ax.if_available" -> axOptional.map(_._1).mkString(","))
+
+      val definitions = (axRequired ++ axOptional).map(attribute => ("openid.ax.type." + attribute._1 -> attribute._2))
+
+      Seq("openid.ns.ax" -> "http://openid.net/srv/ax/1.0", "openid.ax.mode" -> "fetch_request") ++ axRequiredParams ++ axOptionalParams ++ definitions
     }
   }
 
@@ -108,3 +141,4 @@ object OpenID {
     new Regex("""href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim)
 
 }
+
