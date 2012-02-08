@@ -456,6 +456,10 @@ package anorm {
 
     def executeUpdate()(implicit connection: java.sql.Connection): Int =
       getFilledStatement(connection).executeUpdate()
+      
+    def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: java.sql.Connection): A = {
+      Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
+    }
 
   }
 
