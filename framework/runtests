@@ -9,7 +9,6 @@ export SCRIPT=`dirname $0`
 cd $SCRIPT
 export PLAY=`pwd`/../play
 
-./cleanIvyCache
 ./build "$@" publish-local
 
 echo "[info]"
