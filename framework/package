@@ -1,22 +1,32 @@
 #! /usr/bin/env sh
 
-if [ -z "${VERSION}" ]; then
-  VERSION="2.0-RC1-SNAPSHOT"
+if [ $# -ne 1 ]; then  
+    echo "Usage: package VERSION"
+    exit -1
+else
+    export PLAY_VERSION=$1
 fi
-
-`dirname $0`/cleanEverything
-`dirname $0`/build -Dversion=${VERSION} build-repository api-docs
+    
+#`dirname $0`/cleanEverything
+#`dirname $0`/build -Dplay.version=${PLAY_VERSION} build-repository api-docs
 
 rm -rf /tmp/play-*
 
-echo "[info] Copying to /tmp/play-${VERSION}..."
-cp -rf `dirname $0`/.. /tmp/play-${VERSION}
+echo "[info] Copying to /tmp/play-${PLAY_VERSION}..."
+cp -rf `dirname $0`/.. /tmp/play-${PLAY_VERSION}
 
 cd /tmp
 
+# Small patch (this is the only way for now)
+echo "[info] fixing version"
+sed -i '' -e '7s/version: .*/version: '$PLAY_VERSION'/' play-${PLAY_VERSION}/framework/sbt/play.boot.properties
+sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSION}/framework/build
+
 echo "[info] zipping..."
-zip -9 -r play-${VERSION}.zip play-${VERSION} -x '*.git/*' '*.lock' '*.history' 'play-${VERSION}/.gitmodules' 'play-${VERSION}/.gitignore' '*.DS_Store' 'play-${VERSION}/dist/*' '*/target/*' 'play-${VERSION}/framework/sbt/boot/*' 'play-${VERSION}/repository/cache/*' '*/logs/*' '*/project/project/*' '*.log'
+zip -9 -r play-${PLAY_VERSION}.zip play-${PLAY_VERSION} -x '*.git/*' '*.lock' '*.history' '*.gitmodules' 'play-'${PLAY_VERSION}'/.gitignore' '*.DS_Store' 'play-'${PLAY_VERSION}'/dist/*' '*/target/*' 'play-'${PLAY_VERSION}'/framework/sbt/boot/*' 'play-'${PLAY_VERSION}'/repository/cache/*' 'play-'${PLAY_VERSION}'/samples/workinprogress/*' '*/logs/*' '*/tmp/*' '*/project/project/*' '*.log'
 
-rm -rf /tmp/play-${VERSION}
+rm -rf /tmp/play-${PLAY_VERSION}
 
-echo "[info] Package is available at /tmp/play-${VERSION}.zip"
+echo "[info] Package is available at /tmp/play-${PLAY_VERSION}.zip"
+    
+

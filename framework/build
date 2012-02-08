@@ -1,9 +1,11 @@
 #! /usr/bin/env sh
 
+PLAY_VERSION="2.0-RC1-SNAPSHOT"
+
 if [ -z "${JPDA_PORT}" ]; then
   DEBUG_PARAM=""
 else
   DEBUG_PARAM="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${JPDA_PORT}"
 fi
-java ${DEBUG_PARAM} -Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=384M -Dfile.encoding=UTF8 -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties -jar `dirname $0`/sbt/sbt-launch.jar "$@"
 
+java ${DEBUG_PARAM} -Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=384M -Dfile.encoding=UTF8 -Dplay.version="${PLAY_VERSION}" -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties -jar `dirname $0`/sbt/sbt-launch.jar "$@"

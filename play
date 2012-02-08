@@ -1,9 +1,15 @@
 #! /usr/bin/env sh
 
+PRG="$0"
+while [ -h "$PRG" ] ; do
+    PRG=`readlink "$PRG"`
+done
+dir=`dirname $PRG`
+
 if [ -f conf/application.conf ]; then
   if test "$1" = "clean-all"; then
-    `dirname $0`/framework/cleanIvyCache
-    `dirname $0`/framework/build clean
+    $dir/framework/cleanIvyCache
+    $dir/framework/build clean
     if [ $# -ne 1 ]
     then  
      shift
@@ -38,11 +44,11 @@ if [ -f conf/application.conf ]; then
   fi
 
   if [ -n "$1" ]; then
-    JPDA_PORT="${JPDA_PORT}" `dirname $0`/framework/build "$@"
+    JPDA_PORT="${JPDA_PORT}" $dir/framework/build "$@"
   else
-    JPDA_PORT="${JPDA_PORT}" `dirname $0`/framework/build play
+    JPDA_PORT="${JPDA_PORT}" $dir/framework/build play
   fi
   
 else
-  java -Dsbt.ivy.home=`dirname $0`/repository -Dplay.home=`dirname $0`/framework -Dsbt.boot.properties=`dirname $0`/framework/sbt/play.boot.properties -jar `dirname $0`/framework/sbt/sbt-launch.jar "$@"
+  java -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch.jar "$@"
 fi

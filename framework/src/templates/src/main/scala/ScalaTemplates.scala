@@ -217,13 +217,18 @@ package play.templates {
     }
 
     @tailrec
-    def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = ""): String = {
+    def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = "", topDirectory: String = "views", setExt: Boolean = true): String = {
       val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
       (f, f.getName) match {
-        case (f, Name(name, _)) if f.isFile && f.getParentFile == sourceDirectory => ext + "." + name
-        case (f, Name(name, _)) if f.isFile => source2TemplateName(f.getParentFile, sourceDirectory, ext, name)
-        case (f, name) if f.getParentFile == sourceDirectory => name + "." + ext + "." + suffix
-        case (f, name) => source2TemplateName(f.getParentFile, sourceDirectory, ext, name + "." + suffix)
+        case (f, _) if f == sourceDirectory => {
+          if(setExt) {
+            val parts = suffix.split('.')
+            Option(parts.dropRight(1).mkString(".")).filterNot(_.isEmpty).map(_ + ".").getOrElse("") + ext + "." + parts.takeRight(1).mkString
+          } else suffix
+        }
+        case (f, name) if name == topDirectory => source2TemplateName(f.getParentFile, sourceDirectory, ext, name + "." + ext + "." + suffix, topDirectory, false)
+        case (f, Name(name, _)) if f.isFile => source2TemplateName(f.getParentFile, sourceDirectory, ext, name, topDirectory, setExt)
+        case (f, name) => source2TemplateName(f.getParentFile, sourceDirectory, ext, name + "." + suffix, topDirectory, setExt)
       }
     }
 

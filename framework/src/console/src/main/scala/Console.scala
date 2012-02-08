@@ -87,6 +87,8 @@ object Console {
 
       replace(new File(path, "project/Build.scala"),
         "APPLICATION_NAME" -> name)
+      replace(new File(path, "project/plugins.sbt"),
+        "PLAY_VERSION" -> play.core.PlayVersion.current)
       replace(new File(path, "conf/application.conf"),
         "APPLICATION_SECRET" -> newSecret)
 
