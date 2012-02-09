@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.stm._
 
 object Application extends Controller {
-  
+
   def index = Action {
     SpeedOMeter.countRequest()
     Ok("from your shell ab -k -c 100 -n 1000000 http://localhost:9000/")
@@ -20,7 +20,7 @@ object Application extends Controller {
   }
 
   def speedMeter = Action {
-   Ok.stream( 
+   Ok.stream(
      Streams.getRequestsPerSecond >-
      Streams.getCPU >-
      Streams.getHeap &>
@@ -36,22 +36,22 @@ object Application extends Controller {
 object Streams {
 
   val getRequestsPerSecond = Enumerator.fromCallback{ () =>
-    Promise.timeout( { 
-      val currentMillis = java.lang.System.currentTimeMillis()      
+    Promise.timeout( {
+      val currentMillis = java.lang.System.currentTimeMillis()
       Some(SpeedOMeter.getSpeed +":rps") },
       100, TimeUnit.MILLISECONDS )
     }
 
   val getHeap = Enumerator.fromCallback{ () =>
-    Promise.timeout( 
+    Promise.timeout(
       Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024*1024) + ":memory"),
-      100, TimeUnit.MILLISECONDS) 
+      100, TimeUnit.MILLISECONDS)
   }
 
   val cpu = new models.CPU()
 
   val getCPU = Enumerator.fromCallback{ () =>
-    Promise.timeout( 
+    Promise.timeout(
       Some((cpu.getCpuUsage()*1000).round / 10.0 + ":cpu"),
       100, TimeUnit.MILLISECONDS)
   }
@@ -71,7 +71,7 @@ object SpeedOMeter {
       case (precedent,(count,millis)) if current > millis + (unit/2) => (count, (1, current))
       case (precedent,(count,millis))  => (precedent,(count + 1, millis))
     }
-  } 
+  }
 
 
   def getSpeed = {
@@ -83,5 +83,3 @@ object SpeedOMeter {
   }
 
 }
-
-
