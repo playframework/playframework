@@ -80,7 +80,7 @@ public class EbeanPlugin extends Plugin {
                 
                 // DDL
                 if(!application.isProd()) {
-                    boolean evolutionsEnabled = !"disabled".equals(application.configuration().getString("evolutions"));
+                    boolean evolutionsEnabled = !"disabled".equals(application.configuration().getString("evolutionplugin"));
                     if(evolutionsEnabled) {
                         String evolutionScript = generateEvolutionScript(servers.get(key), config);
                         if(evolutionScript != null) {
