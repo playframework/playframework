@@ -3,9 +3,9 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index()
-GET     /speed-meter                controllers.Application.speedMeter
-GET     /monitor                    controllers.Application.monitor
+GET     /                           controllers.Application.index
+GET     /load                       controllers.Application.load
+GET     /monitoring                 controllers.Application.monitoring
 POST    /gc!                        controllers.Application.gc
 
 # Map static resources from the /public folder to the /assets URL path

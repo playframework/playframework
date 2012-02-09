@@ -4,7 +4,7 @@ import PlayProject._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "cpu"
+    val appName         = "comet-live-monitoring"
     val appVersion      = "1.0"
 
     val appDependencies = Seq(

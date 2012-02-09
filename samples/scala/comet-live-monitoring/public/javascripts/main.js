@@ -87,7 +87,7 @@
 
         var button = $("button");
         button.className = "gc";
-        button.innerHTML = "GARBAGE RESET";
+        button.innerHTML = "GARBAGE COLLECT";
 
         button.addEventListener("click", function (evt){
             evt.target.className += " touch";
@@ -105,7 +105,7 @@
         document.body.appendChild(button);
 
         var iframe = $("iframe");
-        iframe.src = "/speed-meter";
+        iframe.src = "/monitoring";
         iframe.style.display = "none";
 
         window.message = function (msg) {

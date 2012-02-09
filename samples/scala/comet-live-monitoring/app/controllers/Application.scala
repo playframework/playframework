@@ -10,16 +10,16 @@ import scala.concurrent.stm._
 
 object Application extends Controller {
 
-  def index = Action {
+  def load = Action {
     SpeedOMeter.countRequest()
-    Ok("from your shell ab -k -c 100 -n 1000000 http://localhost:9000/")
+    Ok("from your shell ab -k -c 100 -n 1000000 http://localhost:9000/load")
   }
 
-  def monitor = Action {
+  def index = Action {
     Ok(views.html.monitor(Runtime.getRuntime().totalMemory()/(1024*1024)))
   }
 
-  def speedMeter = Action {
+  def monitoring = Action {
    Ok.stream(
      Streams.getRequestsPerSecond >-
      Streams.getCPU >-
@@ -29,7 +29,7 @@ object Application extends Controller {
 
   def gc = Action {
     Runtime.getRuntime().gc()
-    Ok("ok")
+    Ok("Done")
   }
 }
 
@@ -72,7 +72,6 @@ object SpeedOMeter {
       case (precedent,(count,millis))  => (precedent,(count + 1, millis))
     }
   }
-
 
   def getSpeed = {
     val current = java.lang.System.currentTimeMillis()
