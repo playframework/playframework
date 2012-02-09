@@ -484,7 +484,15 @@ trait Results {
    *
    * @param url the URL to redirect to
    */
-  def Redirect(url: String, status: Int = SEE_OTHER): SimpleResult[Results.EmptyContent] = Status(status).withHeaders(LOCATION -> url)
+  def Redirect(url: String, status: Int): SimpleResult[Results.EmptyContent] = Redirect(url, Map.empty, status)
+
+  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
+    import java.net.URLEncoder
+    val fullUrl = url + "?" + queryString.toSeq
+                                         .flatMap(pair => pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8"))))
+                                         .mkString("&")
+    Status(status).withHeaders(LOCATION -> fullUrl)
+  }
 
   /**
    * Generates a redirect simple result.
