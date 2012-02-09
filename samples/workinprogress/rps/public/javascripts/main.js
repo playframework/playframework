@@ -11,18 +11,18 @@
         this.elt.className = "monitor";
 
         var title = $("span");
-        title.innerText = this.name;
+        title.innerHTML = this.name;
         title.className = 'title';
         this.elt.appendChild(title);
 
         this.screenCurrent = $("span");
         this.screenCurrent.className = 'screen current';
-        this.screenCurrent.innerText = "current";
+        this.screenCurrent.innerHTML = "current";
         this.elt.appendChild(this.screenCurrent);
 
         this.screenMax = $("span");
         this.screenMax.className = 'screen max';
-        this.screenMax.innerText = this.maxVal + this.unit;
+        this.screenMax.innerHTML = this.maxVal + this.unit;
         this.elt.appendChild(this.screenMax);
 
         this.needle = $("div");
@@ -49,18 +49,14 @@
     };
 
     SpeedOMeter.prototype.update = function (val) {
-        if (val > this.maxVal) {
-            this.maxVal = val;
-            this.screenMax.innerText = val + this.unit;
-        }
         Zanimo.transition(
             this.needle,
             "transform",
-            "rotate(" + (val * 170 / this.maxVal) + "deg)",
+            "rotate(" + (val > this.maxVal ? 175 : val * 170 / this.maxVal) + "deg)",
             500,
             "ease-in"
         );
-        this.screenCurrent.innerText = val + this.unit;
+        this.screenCurrent.innerHTML = val + this.unit;
     }
 
     function init() {
@@ -91,7 +87,7 @@
 
         var button = $("button");
         button.className = "gc";
-        button.innerText = "GARBAGE RESET";
+        button.innerHTML = "GARBAGE RESET";
 
         button.addEventListener("click", function (evt){
             evt.target.className += " touch";
