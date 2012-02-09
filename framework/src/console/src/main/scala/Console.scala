@@ -28,7 +28,7 @@ object Console {
     }
   }
 
-  def newCommand(args: Array[String]): String = {
+  def newCommand(args: Array[String]): (String, Int) = {
 
     val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
 
@@ -39,7 +39,7 @@ object Console {
     println()
 
     if (path.exists) {
-      Colors.red("The directory already exists, cannot create a new application here.")
+      (Colors.red("The directory already exists, cannot create a new application here."), -1)
     } else {
       consoleReader.printString("What is the application name? ")
       consoleReader.printNewline
@@ -92,16 +92,16 @@ object Console {
       replace(new File(path, "conf/application.conf"),
         "APPLICATION_SECRET" -> newSecret)
 
-      """|OK, application %s is created.
+      ("""|OK, application %s is created.
          |
          |Have fun!
-         |""".stripMargin.format(name).trim
+         |""".stripMargin.format(name).trim, 0)
     }
 
   }
 
-  def helpCommand(args: Array[String]): String = {
-    """
+  def helpCommand(args: Array[String]): (String, Int) = {
+    ("""
             |Welcome to Play 2.0!
             |
             |These commands are available:
@@ -109,25 +109,30 @@ object Console {
             |license        Display licensing informations.
             |new            Create a new Play application in the current directory.
             |
-            |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin
+            |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin, 0)
   }
 
   def main(args: Array[String]) {
     println(logo)
-    println(
-      args.headOption.collect {
-        case "new" => newCommand _
-        case "help" => helpCommand _
-      }.map { command =>
-        command(args.drop(1))
-      }.getOrElse {
-        Colors.red("\nThis is not a play application!\n") + ("""|
-             |Use `play new` to create a new Play application in the current directory, 
-             |or go to an existing application and launch the development console using `play`.
-             |
-             |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin)
-      })
+    
+    val (text, status) = args.headOption.collect {
+      case "new" => newCommand _
+      case "help" => helpCommand _
+    }.map { command =>
+      command(args.drop(1))
+    }.getOrElse {
+      (Colors.red("\nThis is not a play application!\n") + ("""|
+           |Use `play new` to create a new Play application in the current directory, 
+           |or go to an existing application and launch the development console using `play`.
+           |
+           |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin)
+      ,-1)
+    }
+      
+    println(text)
     println()
+    
+    System.exit(status)
   }
 
 }

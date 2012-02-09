@@ -11,3 +11,4 @@ rm -rf `dirname $0`/src/play/target
 rm -rf `dirname $0`/src/templates/target
 rm -rf `dirname $0`/src/sbt-plugin/target
 rm -rf `dirname $0`/src/console/target
+rm -rf `dirname $0`/sbt/boot/scala-2.9.1/play

@@ -19,7 +19,6 @@ echo "[info]"
 
 rm -rf ./logs
 
-
 cd ./test/integrationtest
 
 echo "[info]"
@@ -59,6 +58,6 @@ do
   echo "[info] ---- TESTING ${i/app/}"
   echo "[info]"
   cd ${i/app/}
-  PLAY "$@" clean test
+  $PLAY "$@" clean test
   cd $CURRENT
 done
