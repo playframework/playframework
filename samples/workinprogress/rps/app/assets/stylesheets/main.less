@@ -1,5 +1,9 @@
 body {
     background:url(/assets/images/background.png);
+    @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+        background:url(/assets/images/background@2x.png);
+        background-size: 320px 480px;
+    }
     font-family:"Myriad Pro", Helvetica, Arial, Serif;
     font-size:8px;
     color:black;
@@ -7,14 +11,18 @@ body {
     height:480px;
     width:320px;
     padding-top:2px;
+    margin:auto;
 }
 
 .monitor {
     margin: 10px auto;
     width:302px;
     height:123px;
-    background-size: 302px 123px;
     background:url(/assets/images/monitor.png);
+    @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+        background:url(/assets/images/monitor@2x.png);
+        background-size: 302px 123px;
+    }
     position:relative;
     .title {
         color:black;
@@ -53,24 +61,30 @@ body {
     top: 97px;
     left: 99px;
     background:url(/assets/images/wheel.png);
-    background-size: 13px 13px;
+    @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+        background:url(/assets/images/wheel@2x.png);
+        background-size: 13px 13px;
+    }
 }
 
 .needle {
-    -webkit-transform-origin:50% 98%;
+    -webkit-transform-origin:100% 50%;
     position:absolute;
-    top: 29px;
-    left: 103px;
-    width:5px;
-    height:76px;
+    top: 101px;
+    left: 30px;
+    height:5px;
+    width:76px;
     background:url(/assets/images/needle.png);
-    background-size: 5px 76px;
+    @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+        background:url(/assets/images/needle@2x.png);
+        background-size: 76px 5px;
+    }
 }
 
 button.gc {
     display:block;
     width: 296px;
-    margin: 14px auto;
+    margin: 10px auto;
     background: #424A4E;
     border-radius: 8px;
     border-width: 0px;
@@ -82,6 +96,10 @@ button.gc {
     font-weight: bold;
     color: #1F2125;
     text-shadow: 0px 0px 1px rgba(255, 255,255, 0.3);
+    &.touch {
+        box-shadow:inset 0px 0px 38px black;
+        color:rgba(255, 255, 255, 0.5);
+    }
 }
 
 div.light {
@@ -92,10 +110,16 @@ div.light {
     left: 211px;
     &.green {
         background:url(/assets/images/green-light.png);
-        background-size: 7px 7px;
+        @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+            background:url(/assets/images/green-light@2x.png);
+            background-size: 7px 7px;
+        }
     }
     &.red {
         background:url(/assets/images/red-light.png);
-        background-size: 7px 7px;
+        @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+           background:url(/assets/images/red-light@2x.png);
+           background-size: 7px 7px;
+        }
     }
 }

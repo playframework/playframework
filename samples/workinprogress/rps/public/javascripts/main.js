@@ -1,42 +1,43 @@
 (function (app) {
 
+    function $(elt) { return document.createElement(elt); }
+
     function SpeedOMeter (config) {
-        try {
-            this.maxVal = config.maxVal || 40000;
-            this.name = config.name;
-            this.container = config.container;
-            this.elt = document.createElement("div");
-            this.elt.className = "monitor";
+        this.maxVal = config.maxVal;
+        this.unit = config.unit ? config.unit + " " : "";
+        this.name = config.name;
+        this.container = config.container;
+        this.elt = $("div");
+        this.elt.className = "monitor";
 
-            var title = document.createElement("span");
-            title.innerText = this.name;
-            title.className = 'title';
-            this.elt.appendChild(title);
+        var title = $("span");
+        title.innerText = this.name;
+        title.className = 'title';
+        this.elt.appendChild(title);
 
-            this.screenCurrent = document.createElement("span");
-            this.screenCurrent.className = 'screen current';
-            this.screenCurrent.innerText = "current";
-            this.elt.appendChild(this.screenCurrent);
+        this.screenCurrent = $("span");
+        this.screenCurrent.className = 'screen current';
+        this.screenCurrent.innerText = "current";
+        this.elt.appendChild(this.screenCurrent);
 
-            this.screenMax = document.createElement("span");
-            this.screenMax.className = 'screen max';
-            this.screenMax.innerText = "max";
-            this.elt.appendChild(this.screenMax);
+        this.screenMax = $("span");
+        this.screenMax.className = 'screen max';
+        this.screenMax.innerText = this.maxVal + this.unit;
+        this.elt.appendChild(this.screenMax);
 
-            this.needle = document.createElement("div");
-            this.needle.className = "needle";
-            this.elt.appendChild(this.needle);
+        this.needle = $("div");
+        this.needle.className = "needle";
+        this.elt.appendChild(this.needle);
 
-            this.light = document.createElement("div");
-            this.light.className = "green light";
-            this.elt.appendChild(this.light);
+        this.light = $("div");
+        this.light.className = "green light";
+        this.elt.appendChild(this.light);
 
-            var wheel = document.createElement("div");
-            wheel.className = "wheel";
-            this.elt.appendChild(wheel);
-        }
-        catch(err) {
-        }
+        var wheel = $("div");
+        wheel.className = "wheel";
+        this.elt.appendChild(wheel);
+
+        this.container.appendChild(this.elt);
     }
 
     SpeedOMeter.prototype.red = function () {
@@ -47,25 +48,19 @@
         this.light.className = "red green";
     };
 
-    SpeedOMeter.prototype.start = function () {
-        var that = this;
-        try {
-            that.container.appendChild(that.elt);
-            setTimeout(function () {
-                Zanimo.transition(that.needle, "transform", "rotate(-90deg)", 1000, "ease-in");
-            }, 100);
+    SpeedOMeter.prototype.update = function (val) {
+        if (val > this.maxVal) {
+            this.maxVal = val;
+            this.screenMax.innerText = val + this.unit;
         }
-        catch(err) {
-        }
-    }
-
-    SpeedOMeter.prototype.change = function (angle) {
-        var that = this;
-        try {
-            Zanimo.transition(that.needle, "transform", "rotate(" + (angle - 90) + "deg)", 1000, "ease-in");
-        }
-        catch(err) {
-        }
+        Zanimo.transition(
+            this.needle,
+            "transform",
+            "rotate(" + (val * 170 / this.maxVal) + "deg)",
+            500,
+            "ease-in"
+        );
+        this.screenCurrent.innerText = val + this.unit;
     }
 
     function init() {
@@ -75,86 +70,54 @@
         }, false);
 
         app.rps = new SpeedOMeter({
-                name : "RPS",
-                container : document.body
+            name : "RPS",
+            maxVal : 40000,
+            container : document.body
         });
+
         app.memory = new SpeedOMeter({
-                name : "MEM",
-                container : document.body
+            name : "MEMORY",
+            maxVal : app.totalMemory,
+            unit : "MB",
+            container : document.body
         });
+
         app.cpu = new SpeedOMeter({
-                name : "CPU",
-                container : document.body
+            name : "CPU",
+            maxVal : 100,
+            unit : "%",
+            container : document.body
         });
 
-        app.rps.start();
-        app.memory.start();
-        app.cpu.start();
-
-        var button = document.createElement("button");
+        var button = $("button");
         button.className = "gc";
         button.innerText = "GARBAGE RESET";
 
-        button.addEventListener("click", function () {
+        button.addEventListener("click", function (evt){
+            evt.target.className += " touch";
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/gc!", true);
-            xhr.onreadystatechange = function () {
+            xhr.onreadystatechange = function (){
                 if(xhr.readyState == 4) {
-                    if (xhr.status == 200) {
-                        console.log(xhr.responseText);
-                    }
-                    else {
-                        console.log(xhr.status);
-                    }
+                    evt.target.className = "gc";
+                    xhr.status == 200 ? console.log(xhr.responseText) : console.log(xhr.status);
                 }
             };
-
             xhr.send();
         }, false);
 
         document.body.appendChild(button);
 
-        var iframe = document.createElement("iframe");
+        var iframe = $("iframe");
         iframe.src = "/speed-meter";
         iframe.style.display = "none";
 
-        app.data = {
-            cpu: {
-                max : 0,
-                current :0
-            },
-            memory : {
-                max : 0,
-                current :0
-            },
-            rps : {
-                max : 0,
-                current :0
-            }
-        };
-
-        function update (item) {
-            try {
-                app.lastCall = (new Date()).getTime();
-                var v = app.data[item].max == 0 ? 0 : app.data[item].current * 180 / app.data[item].max;
-                app[item].change(v > 180 ? 180 : v);
-                setTimeout(function () {
-                    app[item].screenCurrent.innerHTML = app.data[item].current;
-                    app[item].screenMax.innerHTML = app.data[item].max;
-                }, 100);
-
-            } catch(err) {
-                console.log(err);
-            }
-        }
-
         window.message = function (msg) {
             var d = msg.split(":");
-            app.data[d[1]].current = d[0];
-            if (d[0] >= app.data[d[1]].max) {
-                app.data[d[1]].max = d[0];
+            app.lastCall = (new Date()).getTime();
+            if (d.length == 2) {
+                app[d[1]].update(d[0]);
             }
-            update(d[1]);
         }
 
         setTimeout(function () {
@@ -163,7 +126,7 @@
         }, 100);
 
         setInterval(function () {
-            if ((new Date()).getTime() - app.lastCall > 1000) {
+            if ((new Date()).getTime() - app.lastCall > 5000) {
                 app.rps.red();
                 app.memory.red();
                 app.cpu.red();
@@ -172,4 +135,5 @@
     }
 
     window.document.addEventListener("DOMContentLoaded", init, false);
-})(App = {});
+
+})(window.App);
