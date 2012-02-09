@@ -1,0 +1,24 @@
+body {
+    background:url(/assets/images/background@2x.png);
+    background-size: 320px 480px;
+}
+div.monitor {
+    background:url(/assets/images/monitor@2x.png);
+    background-size: 302px 123px;
+}
+div.wheel {
+    background:url(/assets/images/wheel@2x.png);
+    background-size: 13px 13px;
+}
+div.needle {
+    background:url(/assets/images/needle@2x.png);
+    background-size: 76px 5px;
+}
+div.light.green {
+    background:url(/assets/images/green-light@2x.png);
+    background-size: 7px 7px;
+}
+div.light.red {
+    background:url(/assets/images/red-light@2x.png);
+    background-size: 7px 7px;
+}
