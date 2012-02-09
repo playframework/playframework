@@ -13,12 +13,22 @@ import models.Protocol._
 
 import play.cache.{Cache=>JCache}
 
+
 object Application extends Controller {
 
   def index = Action {
     val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello", "world")
     Ok(views.html.index(Cache.getAs[String]("hello").getOrElse("oh noooz")))
+  }
+
+
+  def submitForm = Action{
+   Ok("ok")
+  }
+
+  def form = Action{
+    Ok(views.html.form(Contacts.form));
   }
 
   def conf = Action {

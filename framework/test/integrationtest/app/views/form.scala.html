@@ -1,0 +1,25 @@
+@(contactForm: play.api.data.Form[models.Contact])
+
+@import helper._
+@import controllers._
+@import play.api.mvc._
+
+@helper.form(action = (new ReverseApplication).submitForm() ) {
+ <fieldset>
+         <legend>General informations</legend>
+         @inputText(
+             contactForm("name"), 
+             '_label -> "name")
+
+        @inputRadioGroup(
+            contactForm("gender"), 
+            options = options("M"->"Male","F"->"Female"),
+            '_checked -> "M",
+            '_label -> "Gender",
+            '_error -> contactForm("gender").error.map(_.withMessage("Please select your gender"))
+        )
+      </fieldset>  
+<div class="actions">
+            <input type="submit" class="btn primary" value="submit">
+</div>      
+}

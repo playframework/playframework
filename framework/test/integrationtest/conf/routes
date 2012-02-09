@@ -4,6 +4,8 @@
 
 GET     /                       controllers.Application.index()
 POST    /post                   controllers.Application.post()
+POST    /submitForm             controllers.Application.submitForm()
+GET     /form                   controllers.Application.form()
 GET     /json_java              controllers.JavaApi.index()
 GET     /headers                controllers.JavaApi.headers()
 GET     /cookie                 controllers.JavaApi.setCookie()

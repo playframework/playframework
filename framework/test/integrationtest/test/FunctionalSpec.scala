@@ -33,6 +33,9 @@ class FunctionalSpec extends Specification {
         contentJava must contain ("AnyContentAsFormUrlEncoded")
         contentJava must contain ("foo")
 
+        browser.goTo("http://localhost:9001/form")
+        browser.pageSource must contain("input type=\"radio\" id=\"gender_M\" name=\"gender\" value=\"M\" checked")
+
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Hello world")
 
