@@ -19,6 +19,7 @@ echo "[info]"
 
 rm -rf ./logs
 
+
 cd ./test/integrationtest
 
 echo "[info]"
@@ -44,125 +45,20 @@ echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
 echo "[info]"
 
 $PLAY "$@" clean test
+
 cd $CURRENT
 
 echo "[info]"
 echo "[info] ---- TESTING SAMPLE APPLICATIONS"
 echo "[info]"
 
-echo "[info]"
-echo "[info] ---- TESTING JAVA/HELLOWORLD"
-echo "[info]"
-
-cd ../samples/java/helloworld
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING JAVA/COMPUTER-DATABASE"
-echo "[info]"
-
-cd ../samples/java/computer-database
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING JAVA/COMPUTER-DATABASE-JPA"
-echo "[info]"
-
-cd ../samples/java/computer-database-jpa
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING JAVA/COMET-CLOCK"
-echo "[info]"
-
-cd ../samples/java/comet-clock
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING JAVA/WEBSOCKET-CHAT"
-echo "[info]"
-
-cd ../samples/java/websocket-chat
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING JAVA/ZENTASK"
-echo "[info]"
-
-cd ../samples/java/zentasks
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/HELLOWORLD"
-echo "[info]"
-
-cd ../samples/scala/helloworld
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/COMPUTER-DATABASE"
-echo "[info]"
-
-cd ../samples/scala/computer-database
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/COMET-CLOCK"
-echo "[info]"
-
-cd ../samples/scala/comet-clock
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/WEBSOCKET-CHAT"
-echo "[info]"
-
-cd ../samples/scala/websocket-chat
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/ZENTASK"
-echo "[info]"
-
-cd ../samples/scala/zentasks
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/PI-CALCULATOR"
-echo "[info]"
-
-cd ../samples/workinprogress/pi-calculator
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/AKKA-CHAT"
-echo "[info]"
-
-cd ../samples/workinprogress/akka-chat
-$PLAY "$@" clean test
-cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SCALA/RPS"
-echo "[info]"
-
-cd ../samples/workinprogress/rps/
-$PLAY "$@" clean test
-cd $CURRENT
-echo
-
-echo "[info]"
-echo "[info] ALL TESTS PASSED"
-echo "[info]"
+x=`find ../samples -name app`
+for i in $(echo $x | tr ";" "\n")
+do
+  echo "[info]"
+  echo "[info] ---- TESTING ${i/app/}"
+  echo "[info]"
+  cd ${i/app/}
+  PLAY "$@" clean test
+  cd $CURRENT
+done
