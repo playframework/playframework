@@ -6,8 +6,9 @@
         <meta name="viewport" content="width=device-width, user-scalable=no" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")" />
+        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/retina.css")" media="only screen and (-webkit-min-device-pixel-ratio: 2)">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")" />
-        <script src="@routes.Assets.at("javascripts/vendor/zanimo.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/vendor/zanimo.min.js")" type="text/javascript"></script>
     </head>
     <body>
         @content
