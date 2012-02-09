@@ -28,7 +28,7 @@ object Application extends Controller {
   }
 
   def form = Action{
-    Ok(views.html.form(Contacts.form));
+    Ok(views.html.form(Contacts.form.fill(Contact("","M"))));
   }
 
   def conf = Action {

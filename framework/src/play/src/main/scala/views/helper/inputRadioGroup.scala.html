@@ -5,8 +5,7 @@
  * {{{
  * @inputRadioGroup(
  *           contactForm("gender"),·
- *           options = options("M"->"Male","F"->"Female"),
- *           '_checked -> "M",
+ *           options = options("M"->"Male","F"->"Female")
  *           '_label -> "Gender",
  *           '_error -> contactForm("gender").error.map(_.withMessage("select gender"))
  *
@@ -21,7 +20,7 @@
 @input(field, args:_*) { (id, name, value, htmlArgs) =>
   <span class="buttonset" id="@id">
     @options.map { v =>
-      <input type="radio" id="@(id)_@v._1" name="@name" value="@v._1" @(if(args.toMap.get('_checked) == Some(v._1)) "checked" else "") @toHtmlArgs(htmlArgs)>
+      <input type="radio" id="@(id)_@v._1" name="@name" value="@v._1" @(if(value == Some(v._1)) "checked" else "") @toHtmlArgs(htmlArgs)>
       <label for="@(id)_@v._1">@v._2</label>
     }
   </span>

@@ -14,7 +14,6 @@
         @inputRadioGroup(
             contactForm("gender"), 
             options = options("M"->"Male","F"->"Female"),
-            '_checked -> "M",
             '_label -> "Gender",
             '_error -> contactForm("gender").error.map(_.withMessage("Please select your gender"))
         )
