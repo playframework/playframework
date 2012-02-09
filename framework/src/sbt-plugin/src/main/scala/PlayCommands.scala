@@ -850,7 +850,7 @@ trait PlayCommands {
     println(play.console.Console.logo)
     println("""
             |> Type "help play" or "license" for more information.
-            |> Type "exit" or use Ctrl+C to leave this console.
+            |> Type "exit" or use Ctrl+D to leave this console.
             |""".stripMargin)
 
     state.copy(

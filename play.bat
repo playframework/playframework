@@ -1,8 +1,11 @@
 :begin
 @echo off
 
+setlocal
+
 set p=%~dp0
 set p=%p:\=/%
+set buildScript=%~dp0framework\build.bat
 
 if exist "conf\application.conf" goto existingApplication
 
@@ -12,19 +15,43 @@ java -Dsbt.ivy.home=%~dp0repository -Dplay.home=%~dp0framework -Dsbt.boot.proper
 goto end
 
 :existingApplication
-if not "%1" == "clean" goto runCommand
+if not "%1" == "clean-all" goto runCommand
 
 :cleanCache
-call %~dp0framework\cleanIvyCache.bat
+if exist "target" rmdir /s /q target
+if exist "tmp" rmdir /s /q tmp
+if exist "logs" rmdir /s /q logs
+if exist "project\target" rmdir /s /q project\target
+if exist "project\project" rmdir /s /q project\project
+if exist "dist" rmdir /s /q dist
+
+shift
+if "%1" == "" goto endWithMessage
 
 :runCommand
 if "%1" == "" goto enterConsole
 
-call %~dp0framework\build.bat %*
+if "%1" == "debug" goto setDebug
+goto enterConsoleWithCommands
+
+:setDebug
+set JPDA_PORT=9999
+shift
+
+if "%1" == "" goto enterConsole
+
+:enterConsoleWithCommands
+
+call %buildScript% %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :enterConsole
 
-call %~dp0framework\build.bat play 
+call %buildScript% play 
+goto end
+
+:endWithMessage
+echo [info] Done!
 
 :end
+endlocal
