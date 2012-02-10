@@ -326,7 +326,7 @@ trait PlayCommands {
 
     val start = target / "start"
     IO.write(start,
-      """|#! /usr/bin/env sh
+      """|#!/usr/bin/env sh
          |
          |exec java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
          |""".stripMargin)
