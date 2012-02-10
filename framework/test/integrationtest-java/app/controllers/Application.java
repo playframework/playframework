@@ -8,7 +8,9 @@ import views.html.*;
 public class Application extends Controller {
   
     public static Result index(String name) {
-        return ok(index.render(name));
+        request().args.put("name",name);
+        String n = (String)request().args.get("name");
+        return ok(index.render(n));
     }
     
     public static Result key() {
