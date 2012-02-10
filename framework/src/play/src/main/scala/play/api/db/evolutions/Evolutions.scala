@@ -356,7 +356,9 @@ object Evolutions {
     }
 
     Collections.unfoldLeft(1) { revision =>
-      Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql")).map { stream =>
+      Option(new File("conf/evolutions/" + db + "/" + revision + ".sql")).filter(_.exists).map(new FileInputStream(_)).orElse {
+        Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql"))
+      }.map { stream =>
         (revision + 1, (revision, stream.asInput.slurpString))
       }
     }.sortBy(_._1).map {
