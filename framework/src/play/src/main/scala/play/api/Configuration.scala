@@ -25,7 +25,8 @@ object Configuration {
    */
   private[play] def loadDev = {
     try {
-      ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
+      val file = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File("conf/application.conf"))
+      ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
