@@ -406,13 +406,14 @@ package anorm {
       val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
       else connection.prepareStatement(sql.query)
       params.foldLeft(statement)((s, ps) => {
-        s.addBatch()
         val argsMap = Map(ps: _*)
-        sql.argsInitialOrder
+        val ret = sql.argsInitialOrder
           .map(argsMap)
           .zipWithIndex
           .map(_.swap)
           .foldLeft(s)((s, e) => { e._2.set(s, e._1 + 1); s })
+        s.addBatch()
+        ret
       })
     }
 
