@@ -1,39 +1,38 @@
 (function (app) {
 
-    function $(elt) { return document.createElement(elt); }
+    function create(elt) { return window.document.createElement(elt); }
 
     function SpeedOMeter (config) {
         this.maxVal = config.maxVal;
         this.unit = config.unit ? config.unit + " " : "";
         this.name = config.name;
         this.container = config.container;
-        this.elt = $("div");
+        this.elt = create("div");
         this.elt.className = "monitor";
 
-        var title = $("span");
+        var title = create("span");
         title.innerHTML = this.name;
         title.className = 'title';
         this.elt.appendChild(title);
 
-        this.screenCurrent = $("span");
+        this.screenCurrent = create("span");
         this.screenCurrent.className = 'screen current';
-        this.screenCurrent.innerHTML = "current";
         this.elt.appendChild(this.screenCurrent);
 
-        this.screenMax = $("span");
+        this.screenMax = create("span");
         this.screenMax.className = 'screen max';
         this.screenMax.innerHTML = this.maxVal + this.unit;
         this.elt.appendChild(this.screenMax);
 
-        this.needle = $("div");
+        this.needle = create("div");
         this.needle.className = "needle";
         this.elt.appendChild(this.needle);
 
-        this.light = $("div");
+        this.light = create("div");
         this.light.className = "green light";
         this.elt.appendChild(this.light);
 
-        var wheel = $("div");
+        var wheel = create("div");
         wheel.className = "wheel";
         this.elt.appendChild(wheel);
 
@@ -61,50 +60,54 @@
 
     function init() {
 
-        document.addEventListener('touchmove', function (evt) {
+        window.document.addEventListener('touchmove', function (evt) {
             evt.preventDefault();
         }, false);
 
         app.rps = new SpeedOMeter({
             name : "RPS",
             maxVal : 40000,
-            container : document.body
+            container : window.document.body
         });
 
         app.memory = new SpeedOMeter({
             name : "MEMORY",
             maxVal : app.totalMemory,
             unit : "MB",
-            container : document.body
+            container : window.document.body
         });
 
         app.cpu = new SpeedOMeter({
             name : "CPU",
             maxVal : 100,
             unit : "%",
-            container : document.body
+            container : window.document.body
         });
 
-        var button = $("button");
+        var button = create("button");
         button.className = "gc";
         button.innerHTML = "GARBAGE COLLECT";
 
-        button.addEventListener("click", function (evt){
-            evt.target.className += " touch";
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/gc!", true);
-            xhr.onreadystatechange = function (){
-                if(xhr.readyState == 4) {
-                    evt.target.className = "gc";
-                    xhr.status == 200 ? console.log(xhr.responseText) : console.log(xhr.status);
-                }
-            };
-            xhr.send();
-        }, false);
+        button.addEventListener(
+            button.ontouchstart === null ? "touchstart" : "click",
+            function (evt){
+                evt.target.className += " touch";
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/gc!", true);
+                xhr.onreadystatechange = function (){
+                    if(xhr.readyState == 4) {
+                        evt.target.className = "gc";
+                        xhr.status == 200 ? console.log(xhr.responseText) : console.log(xhr.status);
+                    }
+                };
+                xhr.send();
+            },
+            false
+        );
 
-        document.body.appendChild(button);
+        window.document.body.appendChild(button);
 
-        var iframe = $("iframe");
+        var iframe = create("iframe");
         iframe.src = "/monitoring";
         iframe.style.display = "none";
 
