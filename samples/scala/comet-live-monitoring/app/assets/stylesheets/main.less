@@ -27,7 +27,7 @@ body {
         position: absolute;
         font-size: 14px;
         color:#454a4e;
-        text-shadow:0 1px 0px rgba(0,0,0.1;
+        text-shadow:0 1px 0px rgba(0,0,0,1);
         background: black;
         border-radius: 4px;
         width: 60px;
@@ -35,6 +35,8 @@ body {
         padding: 1px 5px 2px 5px;
         margin-top: 4px;
         text-align:center;
+        background-image: -moz-linear-gradient(top left, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+        background-image: -o-linear-gradient(top left, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
         background-image: -webkit-gradient(linear, 0 0, 100% 100%, from(rgba(255, 255, 255, 0.1)), to(rgba(255, 255, 255, 0)));
         box-shadow: 0px 1px 1px #494e54,inset 0px 1px 2px rgba(0,0,0, 0.6);
         &.current {
@@ -77,15 +79,25 @@ button.gc {
     border-radius: 8px;
     border-width: 0px;
     -webkit-box-shadow: inset 0 1px 1px #707a81, 0 2px 3px rgba(0, 0, 0, 0.7);
+    -moz-box-shadow: inset 0 1px 1px #707a81, 0 2px 3px rgba(0, 0, 0, 0.7);
+    -o-box-shadow: inset 0 1px 1px #707a81, 0 2px 3px rgba(0, 0, 0, 0.7);
+    box-shadow: inset 0 1px 1px #707a81, 0 2px 3px rgba(0, 0, 0, 0.7);
     background-image: -webkit-gradient(linear, left top, left bottom, from(#484d53), to(#2e3436));
+    background-image: -moz-linear-gradient(top, #484d53, #2e3436);
+    background-image: -o-linear-gradient(top, #484d53, #2e3436);
     height: 40px;
     -webkit-font-smoothing: antialiased;
     font-size: 18px;
     color: #202126;
     text-shadow: 0px 1px 0px rgba(255, 255,255, 0.1);
     &.touch {
+        -webkit-box-shadow:inset 0px 2px 2px black,0 1px 1px #707a81;
+        -moz-box-shadow:inset 0px 2px 2px black,0 1px 1px #707a81;
+        -o-box-shadow:inset 0px 2px 2px black,0 1px 1px #707a81;
         box-shadow:inset 0px 2px 2px black,0 1px 1px #707a81;
         background-image: -webkit-gradient(linear, left top, left bottom, from(#2e3436), to(#484d53));
+        background-image: -moz-linear-gradient(top, #2e3436, #484d53);
+        background-image: -o-linear-gradient(top, #2e3436, #484d53);
     }
 }
 
