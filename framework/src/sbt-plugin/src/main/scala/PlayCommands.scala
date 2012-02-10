@@ -165,7 +165,10 @@ trait PlayCommands {
     val config = Option(System.getProperty("config.file"))
 
     IO.write(start,
-      """java "$@" -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirname $0`/application.conf ").getOrElse("") + """play.core.server.NettyServer `dirname $0`""" /* */ )
+      """#!/usr/bin/env sh
+
+exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirname $0`/application.conf ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+""" /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
     val other = Seq((root / "README") -> (packageName + "/README"))
@@ -328,7 +331,7 @@ trait PlayCommands {
     IO.write(start,
       """|#!/usr/bin/env sh
          |
-         |exec java "$@" -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |exec java $@ -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
          |""".stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
