@@ -258,5 +258,8 @@ object Promise {
     p
   }
 
+  def sequence[A](promises: Seq[Promise[A]]): Promise[Seq[A]] = {
+    promises.foldLeft(Promise.pure(Seq[A]()))((s,p) => s.flatMap(s => p.map(a => s :+ a)))
+  }
 }
 
