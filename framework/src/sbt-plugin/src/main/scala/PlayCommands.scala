@@ -7,6 +7,8 @@ import Parser._
 import Cache.seqFormat
 import sbinary.DefaultProtocol.StringFormat
 
+import com.google.javascript.jscomp.CompilerOptions
+
 import play.api._
 import play.core._
 import play.core.jscompile.JavascriptCompiler
@@ -347,12 +349,13 @@ trait PlayCommands {
   // files: the function to find files to compile from the assets directory
   // naming: how to name the generated file from the original file and whether it should be minified or not
   // compile: compile the file and return the compiled sources, the minified source (if relevant) and the list of dependencies
-  def AssetsCompiler(name: String,
-    filesSetting: sbt.SettingKey[PathFinder],
-    naming: (String, Boolean) => String,
-    compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
-    optionsSettings: sbt.SettingKey[Seq[String]]) =
-    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting) map { (src, resources, cache, options, files) =>
+  def AssetsCompiler(
+      name: String,
+      filesSetting: sbt.SettingKey[PathFinder],
+      naming: (String, Boolean) => String,
+      compile: (File, CompilerOptions, Seq[String]) => (String, Option[String], Seq[File]),
+      optionsSettings: sbt.SettingKey[Seq[String]]) =
+    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, closureCompilerOptions, optionsSettings, filesSetting) map { (src, resources, cache, closureOptions, options, files) =>
 
       import java.io._
 
@@ -367,7 +370,7 @@ trait PlayCommands {
 
         val generated = (files x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
-            val (debug, min, dependencies) = compile(sourceFile, options)
+            val (debug, min, dependencies) = compile(sourceFile, closureOptions, options)
             val out = new File(resources, "public/" + naming(name, false))
             val outMin = new File(resources, "public/" + naming(name, true))
             IO.write(out, debug)
@@ -391,27 +394,28 @@ trait PlayCommands {
         previousRelation._2s.toSeq
 
       }
+  }
 
-    }
 
   val LessCompiler = AssetsCompiler("less",
     lessEntryPoints,
     { (name, min) => name.replace(".less", if (min) ".min.css" else ".css") },
-    { (lessFile, options) => play.core.less.LessCompiler.compile(lessFile) },
+    { (lessFile, closureOptions, options) => play.core.less.LessCompiler.compile(lessFile) },
     lessOptions
   )
 
-  val JsCompiler = AssetsCompiler("javascripts",
+  val JsCompiler = AssetsCompiler(
+    "javascripts",
     javascriptEntryPoints,
     { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { (jsFile:File, options) => new JavascriptCompiler(closureCompilerOptions).compile(jsFile, options) },
+    { (jsFile:File, closureOptions, options) => new JavascriptCompiler(closureOptions).compile(jsFile, options) },
     javascriptCompilerOptions
   )
 
   val CoffeescriptCompiler = AssetsCompiler("coffeescript",
     coffeescriptEntryPoints,
     { (name, min) => name.replace(".coffee", if (min) ".min.js" else ".js") },
-    { (coffeeFile, options) =>
+    { (coffeeFile, closureOptions, options) =>
       import scala.util.control.Exception._
       val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile, options)
       // Any error here would be because of CoffeeScript, not the developer;
