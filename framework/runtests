@@ -61,3 +61,7 @@ do
   $PLAY "$@" clean test
   cd $CURRENT
 done
+
+echo "[info]"
+echo "[info] ALL TESTS PASSED"
+echo "[info]"

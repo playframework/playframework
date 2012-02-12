@@ -161,16 +161,16 @@ object MultipartFormData {
  *
  * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
  */
-case class RawBuffer(memoryThreshold: Int) {
+case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empty[Byte]) {
 
   import play.api.libs.Files._
   import scala.collection.mutable._
 
-  private var inMemory = new ArrayBuffer[Byte]
+  private var inMemory = new ArrayBuffer[Byte] ++= initialData
   private var backedByTemporaryFile: TemporaryFile = _
   private var outStream: OutputStream = _
 
-  private[mvc] def push(chunk: Array[Byte]) {
+  private[play] def push(chunk: Array[Byte]) {
     if (inMemory != null) {
       inMemory ++= chunk
       if (inMemory.size > memoryThreshold) {
@@ -181,13 +181,13 @@ case class RawBuffer(memoryThreshold: Int) {
     }
   }
 
-  private[mvc] def close() {
+  private[play] def close() {
     if (outStream != null) {
       outStream.close()
     }
   }
 
-  private[mvc] def backToTemporaryFile() {
+  private[play] def backToTemporaryFile() {
     backedByTemporaryFile = TemporaryFile("requestBody", "asRaw")
     outStream = new FileOutputStream(backedByTemporaryFile.file)
     outStream.write(inMemory.toArray)
