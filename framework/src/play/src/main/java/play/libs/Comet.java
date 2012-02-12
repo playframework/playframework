@@ -50,7 +50,7 @@ public abstract class Comet extends Chunks<String> {
      * Send a message on this socket (will be received as String in the Javascript callback method).
      */
     public void sendMessage(String message) {
-        out.write("<script type=\"text/javascript\">" + callbackMethod + "('" + org.apache.commons.lang.StringEscapeUtils.escapeJavaScript(message) + "');</script>");
+        out.write("<script type=\"text/javascript\">" + callbackMethod + "('" + org.apache.commons.lang3.StringEscapeUtils.escapeEcmaScript(message) + "');</script>");
     }
     
     /**

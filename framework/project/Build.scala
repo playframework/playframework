@@ -192,7 +192,7 @@ object PlayBuild extends Build {
             "org.springframework"               %    "spring-beans"             %   "3.0.7.RELEASE" notTransitive(),
             "joda-time"                         %    "joda-time"                %   "2.0",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
-            "commons-lang"                      %    "commons-lang"             %   "2.6",
+            "org.apache.commons"                %    "commons-lang3"            %   "3.1",
             "com.ning"                          %    "async-http-client"        %   "1.7.0",
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
