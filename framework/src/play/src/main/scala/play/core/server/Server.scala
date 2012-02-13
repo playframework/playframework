@@ -20,6 +20,9 @@ trait WebSocketable {
   def check: Boolean
 }
 
+/**
+ * provides generic server behaviour for Play applications
+ */
 trait Server {
 
   def mode: Mode.Mode

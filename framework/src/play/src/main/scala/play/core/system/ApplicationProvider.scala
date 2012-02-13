@@ -10,6 +10,9 @@ import akka.util.duration._
 import play.api._
 import play.api.mvc._
 
+/**
+ * provides source code to be displayed on error pages
+ */
 trait SourceMapper {
 
   def sourceOf(className: String): Option[File]
@@ -28,12 +31,19 @@ trait SourceMapper {
 
 }
 
+/**
+ * generic layout for initialized Applications
+ */
 trait ApplicationProvider {
   def path: File
   def get: Either[Throwable, Application]
   def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 
+/**
+ * creates and initializes an Application 
+ * @param applicationPath location of an Application
+ */
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
 
   val application = new Application(applicationPath, this.getClass.getClassLoader, None, Mode.Prod)
@@ -44,6 +54,10 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
   def path = applicationPath
 }
 
+/**
+ * wraps and starts a fake application (used in tests)
+ * @param application fake Application
+ */
 class TestApplication(application: Application) extends ApplicationProvider {
 
   Play.start(application)
@@ -52,6 +66,10 @@ class TestApplication(application: Application) extends ApplicationProvider {
   def path = application.path
 }
 
+/**
+ * generic interface that helps the communication between a Play Application 
+ * and the underlying SBT infrastructre
+ */
 trait SBTLink {
   def reload: Either[Throwable, Option[ClassLoader]]
   def findSource(className: String): Option[File]
@@ -63,6 +81,9 @@ trait SBTLink {
   def markdownToHtml(markdown: String, link: String => (String, String)): String
 }
 
+/**
+ * represents an application that can be reloaded in Dev Mode
+ */
 class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   lazy val path = sbtLink.projectPath

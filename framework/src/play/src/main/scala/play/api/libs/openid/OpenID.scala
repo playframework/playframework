@@ -11,10 +11,14 @@ import play.api.data.Form
 import play.api.data.Forms.{of, text, optional}
 import play.api.mvc.Request
 
+
 case class OpenIDServer(url: String, delegate: Option[String])
 
 case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
 
+/**
+ * provides user information for a verified user
+ */
 object UserInfo {
 
   def apply(queryString: Map[String, Seq[String]]):UserInfo = {
@@ -28,7 +32,9 @@ object UserInfo {
   }
 
 }
-
+/**
+ * provides OpenID support
+ */
 object OpenID {
 
   /**

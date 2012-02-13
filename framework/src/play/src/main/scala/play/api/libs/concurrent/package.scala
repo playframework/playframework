@@ -4,6 +4,11 @@ import akka.dispatch.{ Future }
 
 /**
  * Utility classes commonly useful in concurrent programming, such as Promise and Akka helpers.
+ * For example:
+ * {{{
+ *   val promise1 = akka.dispatch.Future{"hello"}.asPromise
+ *   val promise2 = Promise.pure(mylongRunningJob)
+ * }}}
  */
 package object concurrent {
 

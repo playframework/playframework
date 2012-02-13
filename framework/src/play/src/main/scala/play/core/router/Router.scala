@@ -3,12 +3,18 @@ package play.core
 import play.api.mvc._
 import play.api.mvc.Results._
 
+/**
+ * provides Play's router implementation
+ */
 object Router {
 
   import scala.util.parsing.input._
   import scala.util.parsing.combinator._
   import scala.util.matching._
 
+  /**
+   * captures URL parts
+   */
   trait PathPart
   case class DynamicPart(name: String, constraint: String) extends PathPart with Positional {
     override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\")"
@@ -56,6 +62,9 @@ object Router {
 
   }
 
+  /**
+   * provides a compiler for routes
+   */
   object RoutesCompiler {
 
     object Hash {

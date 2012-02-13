@@ -5,6 +5,9 @@ import java.io._
 import scalax.file._
 import play.utils._
 
+/**
+ * provides the console infrastructure for all play apps
+ */
 object Console {
 
   val consoleReader = new jline.ConsoleReader
@@ -137,6 +140,9 @@ object Console {
 
 }
 
+/**
+ * this is the SBT entry point for Play's console implementation
+ */
 class Console extends xsbti.AppMain {
 
   def run(app: xsbti.AppConfiguration): Exit = {

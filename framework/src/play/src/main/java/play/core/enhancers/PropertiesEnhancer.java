@@ -14,20 +14,39 @@ import static java.lang.annotation.RetentionPolicy.*;
 import java.lang.annotation.Target;
 import java.lang.annotation.Retention;
 
+/**
+ * provides property support for Java classes via byte code enchancement  
+ */
 public class PropertiesEnhancer {
     
+    /**
+     * Marks the given method, field or type as one with both a generated setter and getter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedAccessor {}
     
+    /**
+     * Marks the given method, field or type as one with a generated getter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedGetAccessor {}
     
+    /**
+     * Marks the given method, field or type as one with a generated setter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedSetAccessor {}
     
+     /**
+     * Marks the given method, field or type as one with a rewritten setter and getter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface RewrittenAccessor {}

@@ -14,6 +14,9 @@ import play.api.http.HeaderNames._
 
 import play.utils._
 
+/**
+ * provides Play's internal actor system and the corresponding actor instances 
+ */
 object Invoker {
 
   case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
@@ -35,6 +38,9 @@ object Invoker {
 
 }
 
+/**
+ * an Akka actor responsible for dispatching Actions.
+ */
 class ActionInvoker extends Actor {
 
   def receive = {
