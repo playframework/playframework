@@ -2,7 +2,9 @@
 
 PRG="$0"
 while [ -h "$PRG" ] ; do
-    PRG=`readlink "$PRG"`
+    LINK=`readlink "$PRG"`
+    BASE_DIR=`dirname "$PRG"`
+    PRG="$BASE_DIR/$LINK"
 done
 dir=`dirname $PRG`
 

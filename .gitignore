@@ -18,3 +18,4 @@ RUNNING_PID
 .settings/
 .cache
 *.iml
+documentation/*.pdf

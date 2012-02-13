@@ -136,6 +136,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
 
     val documentation = """/@documentation""".r
+    val book = """/@documentation/Book""".r
     val apiDoc = """/@documentation/api/(.*)""".r
     val wikiResource = """/@documentation/resources/(.*)""".r
     val wikiPage = """/@documentation/([^/]*)""".r
@@ -172,6 +173,21 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
         Some {
           Redirect("/@documentation/Home")
+        }
+
+      }
+      
+      case book() => {
+        
+        import scalax.file._
+
+        Some {
+           documentationHome.flatMap { home =>
+              Option(new java.io.File(home, "manual/book/Book")).filter(_.exists)
+            }.map { book =>
+              val pages = (book:Path).slurpString.split('\n').toSeq.map(_.trim)
+              Ok(views.html.play20.book(pages))
+            }.getOrElse(NotFound("Resource not found [Book]"))
         }
 
       }
