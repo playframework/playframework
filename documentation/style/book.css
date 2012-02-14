@@ -9,6 +9,7 @@ a {
 
 img {
     max-height: 500px;
+    background: #fff;
 }
 
 #manual ol li {
