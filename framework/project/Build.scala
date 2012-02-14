@@ -156,7 +156,7 @@ object PlayBuild extends Build {
     object Resolvers {
         import BuildSettings._
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns) 
-        val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+        val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/ivy-releases/"
         val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/ivy-snapshots/"
         val playRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeSnapshot else typesafe
     }
