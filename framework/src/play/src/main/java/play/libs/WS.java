@@ -304,6 +304,13 @@ public class WS {
         }
 
         /**
+         * Get the HTTP status text of the response
+         */
+        public String getStatusText() {
+            return ahcResponse.getStatusText();
+        }
+
+        /**
          * Get the given HTTP header of the response
          */
         public String getHeader(String key) {
