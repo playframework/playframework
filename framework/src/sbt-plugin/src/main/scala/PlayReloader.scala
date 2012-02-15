@@ -17,8 +17,8 @@ trait PlayReloader {
 
       def projectPath = extracted.currentProject.base
 
-      val watchFiles = {
-        ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "*").get
+      def watchFiles = {
+        ((extracted.currentProject.base / "conf") ** "*").get
       }
 
       // ----- Internal state used for reloading is kept here
