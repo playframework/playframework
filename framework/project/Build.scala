@@ -18,6 +18,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
+            publishMavenStyle := false,
             scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
             javacOptions ++= Seq("-encoding", "utf8"),
             resolvers ++= Seq(DefaultMavenRepository, typesafe)
@@ -33,7 +34,8 @@ object PlayBuild extends Build {
             scalacOptions ++= Seq("-encoding", "utf8"),
             javacOptions ++= Seq("-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
-            publishArtifact in (Compile, packageSrc) := false
+            publishArtifact in (Compile, packageSrc) := false,
+            publishMavenStyle := false
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -48,6 +50,7 @@ object PlayBuild extends Build {
             javacOptions ++= Seq("-encoding", "utf8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
+            publishMavenStyle := false,
             resolvers ++= Seq(DefaultMavenRepository, typesafe),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
@@ -64,6 +67,7 @@ object PlayBuild extends Build {
         javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
+        publishMavenStyle := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe)
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
@@ -81,6 +85,7 @@ object PlayBuild extends Build {
         javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
+        publishMavenStyle := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
         projectDependencies := Seq(
           "play" %% "play" % buildVersion notTransitive(),
@@ -101,6 +106,7 @@ object PlayBuild extends Build {
         javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
+        publishMavenStyle := false,
         resolvers ++= Seq(DefaultMavenRepository, typesafe),
         projectDependencies := Seq("play" %% "play" % buildVersion notTransitive()) 
       )
@@ -125,7 +131,7 @@ object PlayBuild extends Build {
     object BuildSettings {
 
         val buildOrganization = "play"
-        val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-xxx")
+        val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
         val buildScalaVersion = "2.9.1"
         val buildSbtVersion   = "0.11.2"
 
@@ -157,8 +163,8 @@ object PlayBuild extends Build {
         import BuildSettings._
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns) 
         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-        val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/ivy-releases/"
-        val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/ivy-snapshots/"
+        val typesafeReleases = Resolver.url("Typesafe Releases Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
+        val typesafeSnapshot = Resolver.url("Typesafe Snapshots Repository", url("http://repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
         val playRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeSnapshot else typesafeReleases
     }
 
