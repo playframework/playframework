@@ -691,7 +691,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    * @return either a concrete value of type `T` or a set of error if the binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], Option[T]] = {
-    data.keys.filter(_.startsWith(key)).map(k => data.get(k).filterNot(_.isEmpty)).collect { case Some(v) => v }.headOption.map { _ =>
+    data.keys.filter(p => p == key || p.startsWith(key + ".") || p.startsWith(key + "[")).map(k => data.get(k).filterNot(_.isEmpty)).collect { case Some(v) => v }.headOption.map { _ =>
       wrapped.bind(data).right.map(Some(_))
     }.getOrElse {
       Right(None)
