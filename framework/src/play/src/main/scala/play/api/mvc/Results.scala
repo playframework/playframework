@@ -25,7 +25,7 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
-sealed trait Result
+sealed trait Result extends NotNull
 
 /**
  * Helper utilities for Result values.
