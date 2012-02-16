@@ -120,7 +120,7 @@ trait Constraints {
    * '''name'''[constraint.pattern(regex)] or defined by the name parameter.
    * '''error'''[error.pattern(regex)] or defined by the error parameter.
    */
-  def pattern(regex: scala.util.matching.Regex, name: String = "constraint.pattern", error: String = "error.pattern"): Constraint[String] = Constraint[String](name, regex) { o =>
+  def pattern(regex: => scala.util.matching.Regex, name: String = "constraint.pattern", error: String = "error.pattern"): Constraint[String] = Constraint[String](name, () => regex) { o =>
     regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
   }
 
