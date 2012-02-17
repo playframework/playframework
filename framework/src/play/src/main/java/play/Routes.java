@@ -19,7 +19,7 @@ public class Routes {
      */
     public static String javascriptRouter(String name, String ajaxMethod, play.core.Router.JavascriptReverseRoute... routes) {
         return play.api.Routes.javascriptRouter(
-            name, Scala.Option(ajaxMethod), Scala.toSeq(routes)
+            name, Scala.Option(ajaxMethod), play.mvc.Http.Context.current().request().host(), Scala.toSeq(routes)
         );
     }
 
