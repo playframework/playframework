@@ -89,7 +89,7 @@ trait Promise[+A] {
 
 }
 
-trait Redeemable[A] {
+trait Redeemable[-A] {
   def redeem(a: => A): Unit
   def throwing(t: Throwable): Unit
 }

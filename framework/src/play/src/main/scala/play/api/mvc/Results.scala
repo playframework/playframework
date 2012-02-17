@@ -349,6 +349,13 @@ trait Results {
         iteratee => content |>> iteratee)
     }
 
+ 
+    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): SimpleResult[C] = {
+      SimpleResult(
+        header = ResponseHeader(status, Map( CONTENT_LENGTH -> "-1")),
+        body = content)
+    }
+
     /**
      * Set the result's content as chunked.
      *
