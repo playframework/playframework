@@ -598,7 +598,8 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
 
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
-      val classpath = dependencies.map(_.data.toURI.toURL).toArray
+      // All jar dependencies. They will not been reloaded and must be part of this top classloader
+      val classpath = dependencies.map(_.data.toURI.toURL).filter(_.toString.endsWith(".jar")).toArray
 
       /**
        * Create a temporary classloader to run the application.
