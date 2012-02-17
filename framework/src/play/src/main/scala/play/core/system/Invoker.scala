@@ -22,19 +22,26 @@ object Invoker {
   case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
   case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
   
+  // --
+  
+  // Call init to register an Actor System properly configured from 
+  // this applicationProvider. Otherwise a default ActorSystem will be created.
   def init(applicationProvider: ApplicationProvider) {
     val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
       ConfigFactory.load()).getOrElse(Configuration.loadDev(applicationProvider.path))
-    _system = ActorSystem("play", conf.getConfig("play"))
+    configuredSystem = ActorSystem("play", conf.getConfig("play"))
     promiseInvoker
     actionInvoker
   }
   
-  private var _system: ActorSystem = _ 
+  private var configuredSystem: ActorSystem = _ 
+  
+  // --
 
-  def system = {
-    Option(_system).getOrElse {
-      sys.error("Invoker System not initialized")
+  lazy val system = {
+    Option(configuredSystem).getOrElse {
+      Logger.warn("Missing configuration for Play ActorSystem. Starting a default one.")
+      ActorSystem("play")
     }
   }
 
