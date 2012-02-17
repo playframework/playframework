@@ -3,6 +3,8 @@ package play.api.db.evolutions
 import java.io._
 import java.sql.{ Date, Connection, SQLException }
 
+import scala.collection.JavaConversions._
+
 import scalax.file._
 import scalax.io.JavaConverters._
 
@@ -217,7 +219,7 @@ object Evolutions {
         }
 
         // Execute script
-        s.sql.split(";").map(_.trim).foreach {
+        (new utils.SQLSplitter(s.sql)).map(_.toString().trim).foreach {
           case "" =>
           case statement => execute(statement)
         }
