@@ -279,8 +279,8 @@ object Evolutions {
    * @param applicationPath the application path
    * @param db the database name
    */
-  def evolutionScript(api: DBApi, applicationClassloader: ClassLoader, db: String): Seq[Product with Serializable with Script] = {
-    val application = applicationEvolutions(applicationClassloader, db)
+  def evolutionScript(api: DBApi, path: File, applicationClassloader: ClassLoader, db: String): Seq[Product with Serializable with Script] = {
+    val application = applicationEvolutions(path, applicationClassloader, db)
     val database = databaseEvolutions(api, db)
 
     val (nonConflictingDowns, dRest) = database.span(e => !application.headOption.exists(e.revision <= _.revision))
@@ -334,7 +334,7 @@ object Evolutions {
    *
    * @param db the database name
    */
-  def applicationEvolutions(applicationClassloader: ClassLoader, db: String): Seq[Evolution] = {
+  def applicationEvolutions(path: File, applicationClassloader: ClassLoader, db: String): Seq[Evolution] = {
 
     val upsMarker = """^#.*!Ups.*$""".r
     val downsMarker = """^#.*!Downs.*$""".r
@@ -356,7 +356,7 @@ object Evolutions {
     }
 
     Collections.unfoldLeft(1) { revision =>
-      Option(new File("conf/evolutions/" + db + "/" + revision + ".sql")).filter(_.exists).map(new FileInputStream(_)).orElse {
+      Option(new File(path, "conf/evolutions/" + db + "/" + revision + ".sql")).filter(_.exists).map(new FileInputStream(_)).orElse {
         Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql"))
       }.map { stream =>
         (revision + 1, (revision, stream.asInput.slurpString))
@@ -409,7 +409,7 @@ class EvolutionsPlugin(app: Application) extends Plugin {
     val api = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
     api.datasources.foreach {
       case (ds, db) => {
-        val script = evolutionScript(api, app.classloader, db)
+        val script = evolutionScript(api, app.path, app.classloader, db)
         if (!script.isEmpty) {
           app.mode match {
             case Mode.Test => Evolutions.applyScript(api, db, script)
@@ -441,15 +441,15 @@ object OfflineEvolutions {
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
-  def applyScript(classloader: ClassLoader, dbName: String) {
+  def applyScript(appPath: File, classloader: ClassLoader, dbName: String) {
 
     import play.api._
 
-    val c = Configuration.load().getConfig("db").get
+    val c = Configuration.load(appPath).getConfig("db").get
 
     val dbApi = new BoneCPApi(c, classloader)
 
-    val script = Evolutions.evolutionScript(dbApi, classloader, dbName)
+    val script = Evolutions.evolutionScript(dbApi, appPath, classloader, dbName)
 
     if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
       Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
@@ -464,11 +464,11 @@ object OfflineEvolutions {
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
-  def resolve(classloader: ClassLoader, dbName: String, revision: Int) {
+  def resolve(appPath: File, classloader: ClassLoader, dbName: String, revision: Int) {
 
     import play.api._
 
-    val c = Configuration.load().getConfig("db").get
+    val c = Configuration.load(appPath).getConfig("db").get
 
     val dbApi = new BoneCPApi(c, classloader)
 

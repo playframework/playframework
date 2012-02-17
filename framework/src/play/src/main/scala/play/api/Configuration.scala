@@ -23,9 +23,9 @@ object Configuration {
    * loads `Configuration` from 'conf/application.conf' in Dev mode
    * @return  configuration to be used
    */
-  private[play] def loadDev = {
+  private[play] def loadDev(appPath: File) = {
     try {
-      val file = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File("conf/application.conf"))
+      val file = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
       ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
@@ -44,10 +44,10 @@ object Configuration {
    * @param mode Application mode.
    * @return a `Configuration` instance
    */
-  def load(mode: Mode.Mode = Mode.Dev) = {
+  def load(appPath: File, mode: Mode.Mode = Mode.Dev) = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev)
+      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev(appPath))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
       case e => throw e

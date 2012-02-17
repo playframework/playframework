@@ -68,7 +68,7 @@ object Helpers extends Status with HeaderNames {
   /**
    * Apply pending evolutions for the given DB.
    */
-  def evolutionFor(dbName: String): Unit = play.api.db.evolutions.OfflineEvolutions.applyScript(this.getClass.getClassLoader, dbName)
+  def evolutionFor(dbName: String, path: java.io.File = new java.io.File(".")): Unit = play.api.db.evolutions.OfflineEvolutions.applyScript(path, this.getClass.getClassLoader, dbName)
 
   /**
    * Extracts the Content-Type of this Content value.

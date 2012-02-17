@@ -172,7 +172,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         import play.api.db.evolutions._
 
         Some {
-          OfflineEvolutions.applyScript(Play.current.classloader, db)
+          OfflineEvolutions.applyScript(path, Play.current.classloader, db)
           sbtLink.forceReload()
           Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }
@@ -184,7 +184,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         import play.api.db.evolutions._
 
         Some {
-          OfflineEvolutions.resolve(Play.current.classloader, db, rev.toInt)
+          OfflineEvolutions.resolve(path, Play.current.classloader, db, rev.toInt)
           sbtLink.forceReload()
           Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }

@@ -21,18 +21,28 @@ object Invoker {
 
   case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
   case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
-
-  val system = {
+  
+  def init(applicationProvider: ApplicationProvider) {
     val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
-      ConfigFactory.load()).getOrElse(Configuration.loadDev)
-    ActorSystem("play", conf.getConfig("play"))
+      ConfigFactory.load()).getOrElse(Configuration.loadDev(applicationProvider.path))
+    _system = ActorSystem("play", conf.getConfig("play"))
+    promiseInvoker
+    actionInvoker
+  }
+  
+  private var _system: ActorSystem = _ 
+
+  def system = {
+    Option(_system).getOrElse {
+      sys.error("Invoker System not initialized")
+    }
   }
 
-  val promiseInvoker = {
+  lazy val promiseInvoker = {
     system.actorOf(Props[play.api.libs.concurrent.STMPromise.PromiseInvoker].withDispatcher("akka.actor.promises-dispatcher").withRouter(RoundRobinRouter(100)), name = "promises")
   }
 
-  val actionInvoker = {
+  lazy val actionInvoker = {
     system.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
   }
 
