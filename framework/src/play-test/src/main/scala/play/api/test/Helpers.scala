@@ -21,8 +21,8 @@ object Helpers extends Status with HeaderNames {
   val DELETE = "DELETE"
   val HEAD = "HEAD"
 
-  val HTMLUNIT = classOf[HtmlUnitDriver]
-  val FIREFOX = classOf[FirefoxDriver]
+  def HTMLUNIT() = SeleniumDrivers.htmlunit()
+  def FIREFOX() = SeleniumDrivers.firefox()
 
   /**
    * Executes a block of code in a running application.
@@ -51,11 +51,11 @@ object Helpers extends Status with HeaderNames {
   /**
    * Executes a block of code in a running server, with a test browser.
    */
-  def running[T, WEBDRIVER <: WebDriver](testServer: TestServer, webDriver: Class[WEBDRIVER])(block: TestBrowser => T): T = {
+  def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
     try {
       testServer.start()
-      browser = TestBrowser.of(webDriver)
+      browser = TestBrowser(webDriver)
       block(browser)
     } finally {
       if (browser != null) {
@@ -64,7 +64,7 @@ object Helpers extends Status with HeaderNames {
       testServer.stop()
     }
   }
-
+  
   /**
    * Apply pending evolutions for the given DB.
    */

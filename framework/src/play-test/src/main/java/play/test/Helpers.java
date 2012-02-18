@@ -23,8 +23,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     
     // --
     
-    public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
-    public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
+    public static WebDriver HTMLUNIT() {
+        HtmlUnitDriver driver = new HtmlUnitDriver();
+        driver.setJavascriptEnabled(true);
+        return driver;
+    }
+    public static WebDriver FIREFOX() {
+        return new FirefoxDriver();
+    }
     
     // --
     
@@ -315,7 +321,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server, with a test browser.
      */
-    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
+    public static void running(TestServer server, WebDriver webDriver, final Callback<TestBrowser> block) {
         TestBrowser browser = null;
         try {
             start(server);
@@ -335,22 +341,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Creates a Test Browser.
      */
     public static TestBrowser testBrowser() {
-        return new TestBrowser(new HtmlUnitDriver());
+        return new TestBrowser(HTMLUNIT());
     }
-    
-    /**
-     * Creates a Test Browser.
-     */
-    public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
-        try {
-            return new TestBrowser(webDriver);
-        } catch(RuntimeException e) {
-            throw e;
-        } catch(Throwable t) {
-            throw new RuntimeException(t);
-        }
-    }
-    
+
     /**
      * Creates a Test Browser.
      */

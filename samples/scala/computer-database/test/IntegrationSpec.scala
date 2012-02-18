@@ -12,7 +12,7 @@ class IntegrationSpec extends Specification {
   "Application" should {
     
     "work from within a browser" in {
-      running(TestServer(3333), HTMLUNIT) { browser =>
+      running(TestServer(3333), HTMLUNIT()) { browser =>
         browser.goTo("http://localhost:3333/")
         
         browser.$("header h1").first.getText must equalTo("Play 2.0 sample application — Computer database")

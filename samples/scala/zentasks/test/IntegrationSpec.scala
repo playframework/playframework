@@ -10,7 +10,7 @@ class IntegrationSpec extends Specification {
   "Application" should {
     
     "work from within a browser" in {
-      running(TestServer(3333), HTMLUNIT) { browser =>
+      running(TestServer(3333), HTMLUNIT()) { browser =>
         browser.goTo("http://localhost:3333/")
         browser.$("header a").first.getText must equalTo("Zentasks")
         browser.$("#email").text("guillaume@sample.com")

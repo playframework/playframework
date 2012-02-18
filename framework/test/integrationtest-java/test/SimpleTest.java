@@ -63,7 +63,7 @@ public class SimpleTest {
     
     @Test
     public void inServer() {
-        running(testServer(3333), HTMLUNIT, new Callback<TestBrowser>() {
+        running(testServer(3333), HTMLUNIT(), new Callback<TestBrowser>() {
             public void invoke(TestBrowser browser) {
                browser.goTo("http://localhost:3333"); 
                assertThat(browser.$("#title").getTexts().get(0)).isEqualTo("Hello Guest");
