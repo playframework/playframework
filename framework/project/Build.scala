@@ -433,7 +433,42 @@ object PlayBuild extends Build {
                 (Seq(descriptor -> ivy) ++ jars.zip(artifacts)).foreach(copyWithChecksums)
               }
             }
+            
+            // Special sbt plugins
+            val pluginIvyFiles = ((repository / "../cache/scala_%s/sbt_%s".format(buildScalaVersion, buildSbtVersion) * "*").filter { d => 
+              d.isDirectory && d.getName != "play"
+            } ** "ivy-*.xml").get
+            
+            // From the ivy files, deduct the dependencies
+            val pluginDependencies = pluginIvyFiles.map { descriptor =>
+              val organization = descriptor.getParentFile.getParentFile.getName
+              val name = descriptor.getParentFile.getName
+              val version = descriptor.getName.drop(4).dropRight(4)
+              descriptor -> (organization, name, version)
+            }
+            
+            // Resolve artifacts for these dependencies (only jars)
+            val pluginDependenciesWithArtifacts = pluginDependencies.map {
+              case (descriptor, (organization, name, version)) => {
+                var jars = (descriptor.getParentFile ** ("*-" + version + ".jar")).get
+                s.log.info("Found dependency %s::%s::%s -> %s".format(
+                  organization, name, version, jars.map(_.getName).mkString(", ")
+                ))
+                (descriptor, jars, (organization, name, version))
+              }
+            }
+            
+            // Build the local repository from these informations
+            pluginDependenciesWithArtifacts.foreach { 
+              case (descriptor, jars, (organization, name, version)) => {
+                val dependencyDir = repository / organization / name / "scala_%s".format(buildScalaVersion) / "sbt_%s".format(buildSbtVersion) / version
+                val artifacts = jars.map(j => dependencyDir / j.getParentFile.getName / (j.getName.dropRight(5 + version.size) + ".jar"))
+                val ivy = dependencyDir / "ivys/ivy.xml"
 
+                (Seq(descriptor -> ivy) ++ jars.zip(artifacts)).foreach(copyWithChecksums)
+              }
+            }
+            
         }
 
         // ----- Dist package
