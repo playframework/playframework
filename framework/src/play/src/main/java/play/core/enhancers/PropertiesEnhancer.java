@@ -226,26 +226,14 @@ public class PropertiesEnhancer {
      * Test if a class has the provided annotation 
      */
     static boolean hasAnnotation(CtClass ctClass, Class<? extends java.lang.annotation.Annotation> annotationType) throws ClassNotFoundException {
-        for (Object object : ctClass.getAvailableAnnotations()) {
-            java.lang.annotation.Annotation ann = (java.lang.annotation.Annotation) object;
-            if (ann.annotationType().getName().equals(annotationType.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return getAnnotations(ctClass).getAnnotation(annotationType.getName()) != null;
     }
 
     /**
      * Test if a field has the provided annotation 
      */    
     static boolean hasAnnotation(CtField ctField, Class<? extends java.lang.annotation.Annotation> annotationType) throws ClassNotFoundException {
-        for (Object object : ctField.getAvailableAnnotations()) {
-            java.lang.annotation.Annotation ann = (java.lang.annotation.Annotation) object;
-            if (ann.annotationType().getName().equals(annotationType.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return getAnnotations(ctField).getAnnotation(annotationType.getName()) != null;
     }
     
     /**
