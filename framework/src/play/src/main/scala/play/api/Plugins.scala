@@ -12,7 +12,7 @@ import play.api.mvc._
  *
  * The plugin class must be declared in a play.plugins file available in the classpath root:
  * {{{
- * myapp.MyPlugin:1000
+ * 1000:myapp.MyPlugin
  * }}}
  * The associated int defines the plugin priority.
  */
