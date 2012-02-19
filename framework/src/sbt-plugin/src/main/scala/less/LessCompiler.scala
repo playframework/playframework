@@ -1,5 +1,6 @@
 package play.core.less
 
+import sbt.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 
@@ -51,8 +52,8 @@ object LessCompiler {
       "browser.js",
       1, null)
     ctx.evaluateReader(scope, new InputStreamReader(
-      this.getClass.getClassLoader.getResource("less-1.2.0.js").openConnection().getInputStream()),
-      "less-1.2.0.js",
+      this.getClass.getClassLoader.getResource("less-1.2.1.js").openConnection().getInputStream()),
+      "less-1.2.1.js",
       1, null)
     ctx.evaluateString(scope,
       """
@@ -63,23 +64,24 @@ object LessCompiler {
 
                     window.less.Parser.importer = function(path, paths, fn, env) {
                         var imported = LessCompiler.resolve(source, path);
+                        var input = String(LessCompiler.readContent(imported)); 
                         dependencies.push(imported)
                         new(window.less.Parser)({
                             optimization:3,
-                            filename:String(imported.getCanonicalPath())
-                        }).parse(String(LessCompiler.readContent(imported)), function (e, root) {
-                            fn(e, root);
+                            filename:path
+                        }).parse(input, function (e, root) {
                             if(e instanceof Object) {
                                 throw e;
                             }
+                            fn(e, root, input);
                         });
                     }
 
                     new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
-                        compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
                         if(e instanceof Object) {
                             throw e;
                         }
+                        compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
                     })
 
                     return {css:compiled, dependencies:dependencies}
@@ -116,13 +118,11 @@ object LessCompiler {
       case e: JavaScriptException => {
 
         val error = e.getValue.asInstanceOf[Scriptable]
-
-        throw CompilationException(
+        val file = resolve(source, ScriptableObject.getProperty(error, "filename").asInstanceOf[String])
+        throw AssetCompilationException(Some(file),
           ScriptableObject.getProperty(error, "message").asInstanceOf[String],
-          new File(ScriptableObject.getProperty(error, "filename").asInstanceOf[String]),
           ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue,
           ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue)
-
       }
     }
   }
@@ -131,12 +131,3 @@ object LessCompiler {
   def resolve(originalSource: File, imported: String) = new File(originalSource.getParentFile, imported)
 
 }
-
-case class CompilationException(message: String, lessFile: File, atLine: Int, atColumn: Int) extends PlayException(
-  "Compilation error", message) with PlayException.ExceptionSource {
-  def line = Some(atLine)
-  def position = Some(atColumn)
-  def input = Some(scalax.file.Path(lessFile))
-  def sourceName = Some(lessFile.getAbsolutePath)
-}
-
