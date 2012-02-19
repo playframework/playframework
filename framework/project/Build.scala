@@ -285,6 +285,7 @@ object PlayBuild extends Build {
         )
 
         val anormDependencies = Seq(
+            "postgresql"                        %    "postgresql"               %   "8.4-702.jdbc4"
         )
 
         val testDependencies = Seq(

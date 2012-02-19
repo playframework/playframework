@@ -487,11 +487,22 @@ package anorm {
     import java.sql._
     import java.sql.ResultSetMetaData._
 
+    import org.postgresql.PGResultSetMetaData
+
+    /*
+     * On Postgresql, ResultSetMetaData.getTableName() always return the empty string.
+     * Call PGResultSetMetaData.getBaseTableName() instead when using the Postgresql driver.
+     */
+    private[this] def portableGetTableName(meta :ResultSetMetaData, index :Int) = meta match {
+      case pgMeta : PGResultSetMetaData => pgMeta.getBaseTableName(index)
+      case otherMeta : ResultSetMetaData => otherMeta.getTableName(index)
+    }
+
     def metaData(rs: java.sql.ResultSet) = {
       val meta = rs.getMetaData()
       val nbColumns = meta.getColumnCount()
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = (meta.getTableName(i) + "." + meta.getColumnName(i)),
+        MetaDataItem(column = (portableGetTableName(meta,i) + "." + meta.getColumnName(i)),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }
