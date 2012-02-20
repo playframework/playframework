@@ -16,6 +16,7 @@ RUNNING_PID
 .classpath
 .project
 .settings/
+.target/
 .cache
 *.iml
 documentation/*.pdf
