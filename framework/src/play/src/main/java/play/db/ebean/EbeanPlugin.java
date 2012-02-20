@@ -33,13 +33,15 @@ public class EbeanPlugin extends Plugin {
      */
     public void onStart() {
 
-        Configuration ebeanConf = Configuration.root().getConfig("ebean");
+        EbeanListener ebeanListener = new EbeanListener();
+        Configuration ebeanConf     = Configuration.root().getConfig("ebean");
         
         if(ebeanConf != null) {
             for(String key: ebeanConf.keys()) {
-                
+
                 ServerConfig config = new ServerConfig();
                 config.setName(key);
+                config.add(ebeanListener);
                 try {
                     config.setDataSource(new WrappingDatasource(DB.getDataSource(key)));
                 } catch(Exception e) {
