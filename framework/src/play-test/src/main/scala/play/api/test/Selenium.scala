@@ -63,18 +63,35 @@ object TestBrowser {
   /**
    * Creates an in-memory WebBrowser (using HtmlUnit)
    */
-  def default() = TestBrowser(new HtmlUnitDriver)
+  def default() = of(classOf[HtmlUnitDriver])
 
   /**
    * Creates a firefox WebBrowser.
    */
-  def firefox() = TestBrowser(new FirefoxDriver)
+  def firefox() = of(classOf[FirefoxDriver])
 
   /**
    * Creates a WebBrowser of the specified class name.
    */
-  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER]) = TestBrowser(webDriver.newInstance)
+  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER]) = TestBrowser(WebDriverFactory(webDriver))
 
+}
+
+object WebDriverFactory {
+  /**
+   * Creates a Selenium Web Driver and configures it
+   * @param clazz Type of driver to create
+   * @return The driver instance
+   */
+  def apply[D <: WebDriver](clazz: Class[D]): WebDriver = {
+    val driver = clazz.newInstance
+    // Driver-specific configuration
+    driver match {
+      case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
+      case _ =>
+    }
+    driver
+  }
 }
 
 /**
