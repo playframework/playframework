@@ -327,14 +327,7 @@ less.Parser = function Parser(env) {
     }
 
     function getInput(e, env) {
-        for (var i in e)
-            java.lang.System.out.println("getInput " + i + ": " + e[i]);
         if (e.filename && env.filename && (e.filename !== env.filename)) {
-            java.lang.System.out.println("ALLIMPORTS");
-            for (var i in parser.imports.contents) {
-                java.lang.System.out.println("import = " + i);
-                java.lang.System.out.println("content = " + parser.imports.contents[i]);
-            }
             return parser.imports.contents[e.filename];
         } else {
             return input;
