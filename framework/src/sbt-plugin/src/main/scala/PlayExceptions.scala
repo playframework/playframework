@@ -41,7 +41,7 @@ trait PlayExceptions {
     "Compilation error", message) with PlayException.ExceptionSource {
     def line = Some(atLine)
     def position = Some(atColumn)
-    def input = source.map(scalax.file.Path(_))
+    def input = source.filter(_.exists()).map(scalax.file.Path(_))
     def sourceName = source.map(_.getAbsolutePath)
   }
 
