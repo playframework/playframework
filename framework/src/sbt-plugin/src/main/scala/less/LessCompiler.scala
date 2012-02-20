@@ -118,7 +118,8 @@ object LessCompiler {
       case e: JavaScriptException => {
 
         val error = e.getValue.asInstanceOf[Scriptable]
-        val file = new File(ScriptableObject.getProperty(error, "filename").asInstanceOf[String])
+        val filename = ScriptableObject.getProperty(error, "filename").asInstanceOf[String]
+        val file = if (filename == source.getAbsolutePath()) source else resolve(source, filename)
         throw AssetCompilationException(Some(file),
           ScriptableObject.getProperty(error, "message").asInstanceOf[String],
           ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue,
