@@ -342,6 +342,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
 
     ()
   }
+  
+  val playHash = TaskKey[String]("play-hash")
+  val playHashTask = (baseDirectory) map { base =>
+    ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")).get.map(_.lastModified).mkString(",").hashCode.toString
+  }
 
   // ----- Assets
 
