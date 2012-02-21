@@ -6,40 +6,29 @@ import play.api._
 import scala.collection.JavaConverters._
 import scalax.file._
 import com.google.javascript.rhino.Node
-import com.google.javascript.jscomp.ProcessCommonJSModules
+import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile, CompilationLevel, ProcessCommonJSModules }
 import scala.io.Source
 
-object JavascriptCompiler {
-
-  import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile, CompilationLevel }
+class JavascriptCompiler(options: CompilerOptions) {
 
   /**
    * Compile a JS file with its dependencies
    * @return a triple containing the original source code, the minified source code, the list of dependencies (including the input file)
    */
-  def compile(source: File, coptions: Seq[String]): (String, Option[String], Seq[File]) = {
+  def compile(source: File, jsoptions: Seq[String]): (String, Option[String], Seq[File]) = {
     import scala.util.control.Exception._
 
-    val origin = Path(source).slurpString
-
-    val options = new CompilerOptions()
-    options.closurePass = true
-    options.setProcessCommonJSModules(true)
-    options.setCommonJSModulePathPrefix(source.getParent() + "/")
-    options.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
-    coptions.foreach(_ match {
-      case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
-      case "checkCaja" => options.setCheckCaja(true)
-      case "checkControlStructures" => options.setCheckControlStructures(true)
-      case "checkTypes" => options.setCheckTypes(true)
-      case "checkSymbols" => options.setCheckSymbols(true)
-      case _ => Unit // Unkown option
+    jsoptions.foreach(_ match {
+      case "processCommonJS"        => options.setCommonJSModulePathPrefix(source.getParent() + "/")
+                                       options.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+      case _                        => Unit // Unkown option
     })
 
     val compiler = new Compiler()
     val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
     val all = allSiblings(source)
     val input = all.map(f => JSSourceFile.fromFile(f)).toArray
+    val origin = Path(source).slurpString
 
     catching(classOf[Exception]).either(compiler.compile(extern, input, options).success) match {
       case Right(true) => (origin, Some(compiler.toSource()), all)
@@ -51,26 +40,6 @@ object JavascriptCompiler {
       case Left(exception) =>
         exception.printStackTrace()
         throw AssetCompilationException(Some(source), "Internal Closure Compiler error (see logs)", 0, 0)
-    }
-  }
-
-  /**
-   * Minify a Javascript string
-   */
-  def minify(source: String, name: Option[String]): String = {
-
-    val compiler = new Compiler()
-    val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
-    val options = new CompilerOptions()
-
-    val input = JSSourceFile.fromCode(name.getOrElse("unknown"), source)
-
-    compiler.compile(extern, input, options).success match {
-      case true => compiler.toSource()
-      case false => {
-        val error = compiler.getErrors().head
-        throw AssetCompilationException(None, error.description, error.lineNumber, 0)
-      }
     }
   }
 
@@ -98,6 +67,37 @@ object JavascriptCompiler {
    */
   private def toModuleName(filename: String) = {
     "module$" + filename.replaceAll("^\\./", "").replaceAll("/", "\\$").replaceAll("\\.js$", "").replaceAll("-", "_");
+  }
+
+}
+
+object JavascriptCompiler {
+
+  def createDefaultOptions():CompilerOptions = {
+    val options = new CompilerOptions()
+    options.closurePass = true
+    options.setProcessCommonJSModules(true)
+    options
+  }
+
+  /**
+   * Minify a Javascript string
+   */
+  def minify(source: String, name: Option[String]): String = {
+
+    val compiler = new Compiler()
+    val extern = JSSourceFile.fromCode("externs.js", "function alert(x) {}")
+    val options = new CompilerOptions()
+
+    val input = JSSourceFile.fromCode(name.getOrElse("unknown"), source)
+
+    compiler.compile(extern, input, options).success match {
+      case true => compiler.toSource()
+      case false => {
+        val error = compiler.getErrors().head
+        throw AssetCompilationException(None, error.description, error.lineNumber, 0)
+      }
+    }
   }
 
 }

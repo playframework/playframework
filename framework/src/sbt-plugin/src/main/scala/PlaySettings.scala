@@ -159,7 +159,7 @@ trait PlaySettings {
 
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= CoffeescriptCompiler,
-    resourceGenerators in Compile <+= JavascriptCompiler,
+    resourceGenerators in Compile <+= JsCompiler,
 
     lessEntryPoints <<= (sourceDirectory in Compile)(base => ((base / "assets" ** "*.less") --- base / "assets" ** "_*")),
     coffeescriptEntryPoints <<= (sourceDirectory in Compile)(base => base / "assets" ** "*.coffee"),
@@ -167,7 +167,8 @@ trait PlaySettings {
 
     lessOptions := Seq.empty[String],
     coffeescriptOptions := Seq.empty[String],
-    closureCompilerOptions := Seq.empty[String],
+    javascriptCompilerOptions := Seq.empty[String],
+    closureCompilerOptions := play.core.jscompile.JavascriptCompiler.createDefaultOptions(),
 
     // Templates
 
