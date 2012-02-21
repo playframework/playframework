@@ -6,7 +6,8 @@ import Keys._
 import PlayExceptions._
 
 trait PlayReloader {
-
+  this: PlayCommands =>
+  
   // ----- Reloader
 
   def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], baseLoader: ClassLoader) = {
@@ -28,6 +29,7 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
+      var lastHash = Option.empty[String]
 
       def markdownToHtml(markdown: String, link: String => (String, String)) = {
         import org.pegdown._
@@ -202,30 +204,40 @@ trait PlayReloader {
         loader
       }
 
-      def reload = {
+      def reload: Either[Throwable, Option[ClassLoader]] = {
 
         PlayProject.synchronized {
-
-          val r = Project.evaluateTask(playReload, state).get.toEither
-            .left.map { incomplete =>
-              Incomplete.allExceptions(incomplete).headOption.map {
-                case e: PlayException => e
-                case e: xsbti.CompileFailed => {
-                  getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                    UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
+          
+          val hash = Project.evaluateTask(playHash, state).get.toEither.right.get
+          
+          lastHash.filter(_ == hash).map { _ => Right(None) }.getOrElse {
+            
+            lastHash = Some(hash)
+            
+            val r = Project.evaluateTask(playReload, state).get.toEither
+              .left.map { incomplete =>
+                Incomplete.allExceptions(incomplete).headOption.map {
+                  case e: PlayException => e
+                  case e: xsbti.CompileFailed => {
+                    getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
+                      UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
+                    }
                   }
+                  case e => UnexpectedException(unexpected = Some(e))
+                }.getOrElse {
+                  UnexpectedException(Some("Compilation task failed without any exception!?"))
                 }
-                case e => UnexpectedException(unexpected = Some(e))
-              }.getOrElse(
-                UnexpectedException(Some("Compilation task failed without any exception!?")))
-            }
-            .right.map { compilationResult =>
-              updateAnalysis(compilationResult).map { _ =>
-                newClassLoader
               }
-            }
+              .right.map { compilationResult =>
+                updateAnalysis(compilationResult).map { _ =>
+                  newClassLoader
+                }
+              }
 
-          r
+            r
+            
+          }
+
         }
 
       }
