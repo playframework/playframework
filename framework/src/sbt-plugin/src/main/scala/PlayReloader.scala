@@ -216,6 +216,7 @@ trait PlayReloader {
             
             val r = Project.evaluateTask(playReload, state).get.toEither
               .left.map { incomplete =>
+                lastHash = None
                 Incomplete.allExceptions(incomplete).headOption.map {
                   case e: PlayException => e
                   case e: xsbti.CompileFailed => {
