@@ -33,7 +33,7 @@ object Application extends Controller {
 
   def conf = Action {
     val config = play.api.Play.configuration
-    val overrideConfig =  play.api.Configuration.load().getInt("playcore.invoker.max.try").get
+    val overrideConfig =  play.api.Configuration.load(new java.io.File(".")).getInt("playcore.invoker.max.try").get
 
     val s = config.getString("complex-app.something").getOrElse("boooooo")
     val c = config.getString("nokey").getOrElse("None")

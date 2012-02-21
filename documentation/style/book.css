@@ -1,0 +1,78 @@
+body {
+    text-align: justify;
+}
+
+a {
+    text-decoration: none;
+    color: #000 !important;
+}
+
+img {
+    max-height: 500px;
+    background: #fff;
+}
+
+#manual ol li {
+    font-size: 14px;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 18px;
+}
+
+ol ol li {
+}
+
+#manual ol ol {
+    margin: 0 0 0 3em!important;
+    padding: 0;
+}
+
+blockquote {
+    background: none;
+    border: none;
+    border-left: 6px solid #eee !important;
+    padding-top: 0;
+    padding-bottom: 0;
+    color: #666;
+}
+
+#manual pre {
+    background: none !important;
+    border: 1px solid #888 !important;
+}
+
+#manual code {
+    background: none !important;
+} 
+
+@page {
+    margin-top: .5in;
+    margin-bottom: .5in;
+    margin-left: .5in;
+    margin-right: 1in;
+}
+
+h1 {
+    page-break-before: always;
+}
+
+h1 {
+    page-break-before: always;
+}
+
+div:first-child > h1 {
+    page-break-before: avoid;
+}
+
+#manual h1, #manual h2, #manual h3, #manual h4, #manual h5, #manual h6 {
+    page-break-after:avoid;
+    margin-top : 2em !important;
+}
+
+code, pre, blockquote, ul, li, p {
+    page-break-inside: avoid
+}
+
+#Samples h2 {
+    page-break-before: always;
+}

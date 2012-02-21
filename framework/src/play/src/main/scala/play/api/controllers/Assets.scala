@@ -79,11 +79,8 @@ object Assets extends Controller {
               response
             }
 
-            // Add Last-Modified if we are able to compute it
-            val lastModifiedResponse = lastModifiedFor(url).map(date => gzippedResponse.withHeaders(LAST_MODIFIED -> date)).getOrElse(gzippedResponse)
-
             // Add Etag if we are able to compute it
-            val taggedResponse = etagFor(url).map(etag => lastModifiedResponse.withHeaders(ETAG -> etag)).getOrElse(lastModifiedResponse)
+            val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
 
             // Add Cache directive if configured
             val cachedResponse = Play.configuration.getString("\"assets.cache." + resourceName + "\"").map { cacheControl =>

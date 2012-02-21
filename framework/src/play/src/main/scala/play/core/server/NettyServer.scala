@@ -25,10 +25,16 @@ import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 import netty._
 
+/**
+ * provides a stopable Server
+ */
 trait ServerWithStop {
   def stop(): Unit
 }
 
+/**
+ * creates a Server implementation based Netty
+ */
 class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   def applicationProvider = appProvider
@@ -87,11 +93,18 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
 
 }
 
+/**
+ * bootstraps Play application with a NettyServer backened
+ */
 object NettyServer {
 
   import java.io._
   import java.net._
 
+  /**
+   * creates a NettyServer based on the application represented by applicationPath
+   * @param applicationPath path to application
+   */
   def createServer(applicationPath: File): Option[NettyServer] = {
 
     // Manage RUNNING_PID file
@@ -129,6 +142,11 @@ object NettyServer {
 
   }
 
+  /**
+   * attempts to create a NettyServer based on either
+   * passed in argument or `user.dir` System property or current directory
+   * @param args 
+   */
   def main(args: Array[String]) {
     args.headOption.orElse(
       Option(System.getProperty("user.dir"))).map(new File(_)).filter(p => p.exists && p.isDirectory).map { applicationPath =>
@@ -138,6 +156,9 @@ object NettyServer {
       }
   }
 
+  /**
+   * provides a NettyServer for the dev environment
+   */
   def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {

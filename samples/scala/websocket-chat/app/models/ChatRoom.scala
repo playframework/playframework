@@ -7,8 +7,10 @@ import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
+
 import akka.util.Timeout
 import akka.pattern.ask
+
 import play.api.Play.current
 
 object Robot {
@@ -39,6 +41,8 @@ object Robot {
 
 object ChatRoom {
   
+  implicit val timeout = Timeout(1 second)
+  
   lazy val default = {
     val roomActor = Akka.system.actorOf(Props[ChatRoom])
     
@@ -49,7 +53,6 @@ object ChatRoom {
   }
 
   def join(username:String):Promise[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
-    implicit val timeout = Timeout (1 second)
     (default ? Join(username)).asPromise.map {
       
       case Connected(enumerator) => 

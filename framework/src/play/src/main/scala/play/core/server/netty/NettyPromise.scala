@@ -5,6 +5,10 @@ import play.api.libs.concurrent._
 import java.util.concurrent.TimeUnit
 import org.jboss.netty.channel.ChannelFutureListener
 
+/**
+ * provides a play.api.libs.concurrent.Promise implementation based on Netty's 
+ * ChannelFuture
+ */
 object NettyPromise {
 
   def apply(channelPromise: ChannelFuture) = new play.api.libs.concurrent.Promise[Unit] {

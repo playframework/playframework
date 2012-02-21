@@ -6,7 +6,8 @@ import Keys._
 import PlayExceptions._
 
 trait PlayReloader {
-
+  this: PlayCommands =>
+  
   // ----- Reloader
 
   def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], baseLoader: ClassLoader) = {
@@ -17,8 +18,8 @@ trait PlayReloader {
 
       def projectPath = extracted.currentProject.base
 
-      val watchFiles = {
-        ((extracted.currentProject.base / "db" / "evolutions") ** "*.sql").get ++ ((extracted.currentProject.base / "conf") ** "*").get
+      def watchFiles = {
+        ((extracted.currentProject.base / "conf") ** "*").get
       }
 
       // ----- Internal state used for reloading is kept here
@@ -28,6 +29,7 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
+      var lastHash = Option.empty[String]
 
       def markdownToHtml(markdown: String, link: String => (String, String)) = {
         import org.pegdown._
@@ -181,39 +183,62 @@ trait PlayReloader {
           }
         }).map(remapProblemForGeneratedSources)
       }
+      
+      private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       private def newClassLoader = {
         val loader = new java.net.URLClassLoader(
           Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
-          baseLoader)
+          baseLoader) {
+            
+            val version = classLoaderVersion.incrementAndGet
+            
+            override def toString = {
+              "ReloadableClassLoader(v" + version + ") {" + {
+                getURLs.map(_.toString).mkString(", ")
+              } + "}"
+            }
+            
+          }
         currentApplicationClassLoader = Some(loader)
         loader
       }
 
-      def reload = {
+      def reload: Either[Throwable, Option[ClassLoader]] = {
 
         PlayProject.synchronized {
-
-          val r = Project.evaluateTask(playReload, state).get.toEither
-            .left.map { incomplete =>
-              Incomplete.allExceptions(incomplete).headOption.map {
-                case e: PlayException => e
-                case e: xsbti.CompileFailed => {
-                  getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                    UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
+          
+          val hash = Project.evaluateTask(playHash, state).get.toEither.right.get
+          
+          lastHash.filter(_ == hash).map { _ => Right(None) }.getOrElse {
+            
+            lastHash = Some(hash)
+            
+            val r = Project.evaluateTask(playReload, state).get.toEither
+              .left.map { incomplete =>
+                lastHash = None
+                Incomplete.allExceptions(incomplete).headOption.map {
+                  case e: PlayException => e
+                  case e: xsbti.CompileFailed => {
+                    getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
+                      UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
+                    }
                   }
+                  case e => UnexpectedException(unexpected = Some(e))
+                }.getOrElse {
+                  UnexpectedException(Some("Compilation task failed without any exception!?"))
                 }
-                case e => UnexpectedException(unexpected = Some(e))
-              }.getOrElse(
-                UnexpectedException(Some("Compilation task failed without any exception!?")))
-            }
-            .right.map { compilationResult =>
-              updateAnalysis(compilationResult).map { _ =>
-                newClassLoader
               }
-            }
+              .right.map { compilationResult =>
+                updateAnalysis(compilationResult).map { _ =>
+                  newClassLoader
+                }
+              }
 
-          r
+            r
+            
+          }
+
         }
 
       }

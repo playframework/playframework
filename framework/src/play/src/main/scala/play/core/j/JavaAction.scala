@@ -64,7 +64,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
     val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
       case (delegate, (annotation, actionClass)) => {
-        val action = actionClass.newInstance()
+        val action = actionClass.newInstance
         action.configuration = annotation
         action.delegate = delegate
         action

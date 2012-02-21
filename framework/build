@@ -1,6 +1,6 @@
 #! /usr/bin/env sh
 
-PLAY_VERSION="2.0-RC1-SNAPSHOT"
+PLAY_VERSION="2.0-RC3-SNAPSHOT"
 
 if [ -z "${JPDA_PORT}" ]; then
   DEBUG_PARAM=""

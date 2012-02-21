@@ -46,6 +46,11 @@ trait ContentTypes {
   def FORM(implicit codec: Codec): String = ("application/x-www-form-urlencoded; charset=" + codec.charset)
 
   /**
+   * Content-Type of server sent events according the implicit codec value
+   */
+  def EVENT_STREAM(implicit codec: Codec): String = ("text/event-stream; charset=" + codec.charset)
+
+  /**
    * Content-Type of binary data.
    */
   val BINARY = "application/octet-stream"

@@ -53,6 +53,14 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   def bind(data: Map[String, String]): Form[T] = mapping.bind(data).fold(
     errors => this.copy(data = data, errors = errors, value = None),
     value => this.copy(data = data, errors = Nil, value = Some(value)))
+    
+  /**
+   * Binds data to this form, i.e. handles form submission.
+   *
+   * @param data Json data to submit
+   * @return a copy of this form, filled with the new data
+   */
+  def bind(data: play.api.libs.json.JsValue): Form[T] = bind(FormUtils.fromJson(js = data))
 
   /**
    * Binds request data to this form, i.e. handles form submission.
@@ -63,8 +71,10 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
     val data = (request.body match {
       case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
       case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined => body.asMultipartFormData.get.asFormUrlEncoded
+      case body: play.api.mvc.AnyContent if body.asJson.isDefined => FormUtils.fromJson(js = body.asJson.get).mapValues(Seq(_))
       case body: Map[_, _] => body.asInstanceOf[Map[String, Seq[String]]]
       case body: play.api.mvc.MultipartFormData[_] => body.asFormUrlEncoded
+      case body: play.api.libs.json.JsValue => FormUtils.fromJson(js = body).mapValues(Seq(_))
       case _ => Map.empty[String, Seq[String]]
     }) ++ request.queryString
     bind(data.mapValues(_.headOption.getOrElse("")))
@@ -190,6 +200,21 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * Note that this method fails with an Exception if this form as errors.
    */
   def get: T = value.get
+  
+  /**
+   * Returns the form errors serialized as Json.
+   */
+  def errorsAsJson(implicit lang: play.api.i18n.Lang): play.api.libs.json.JsValue = {
+    
+    import play.api.libs.json._
+    
+    Json.toJson(
+      errors.groupBy(_.key).mapValues { errors =>
+        errors.map(e => play.api.i18n.Messages(e.message, e.args:_*))
+      }
+    )
+    
+  }
 
 }
 
@@ -284,6 +309,27 @@ object Form {
    * @return a form definition
    */
   def apply[T](mapping: (String, Mapping[T])): Form[T] = Form(mapping._2.withPrefix(mapping._1), Map.empty, Nil, None)
+  
+}
+
+private [data] object FormUtils {
+  
+  import play.api.libs.json._
+  
+  def fromJson(prefix: String = "", js: JsValue): Map[String, String] = js match {
+    case JsObject(fields) => {
+      fields.map { case (key, value) => fromJson(Option(prefix).filterNot(_.isEmpty).map(_ + ".").getOrElse("") + key, value) }.foldLeft(Map.empty[String,String])(_ ++ _)
+    }
+    case JsArray(values) => {
+      values.zipWithIndex.map { case (value, i) => fromJson(prefix + "[" + i + "]", value) }.foldLeft(Map.empty[String,String])(_ ++ _)
+    }
+    case JsNull => Map.empty
+    case JsUndefined(_) => Map.empty
+    case JsBoolean(value) => Map(prefix -> value.toString)
+    case JsNumber(value) => Map(prefix -> value.toString)
+    case JsString(value) => Map(prefix -> value.toString)
+  }
+  
 }
 
 /**
@@ -645,7 +691,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    * @return either a concrete value of type `T` or a set of error if the binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], Option[T]] = {
-    data.keys.filter(_.startsWith(key)).map(k => data.get(k).filterNot(_.isEmpty)).collect { case Some(v) => v }.headOption.map { _ =>
+    data.keys.filter(p => p == key || p.startsWith(key + ".") || p.startsWith(key + "[")).map(k => data.get(k).filterNot(_.isEmpty)).collect { case Some(v) => v }.headOption.map { _ =>
       wrapped.bind(data).right.map(Some(_))
     }.getOrElse {
       Right(None)

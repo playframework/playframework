@@ -18,7 +18,7 @@ import scala.annotation._
 @implicitNotFound(
   "Cannot guess the content type to use for ${A}. Try to define a ContentTypeOf[${A}]"
 )
-case class ContentTypeOf[A](mimeType: Option[String])
+case class ContentTypeOf[-A](mimeType: Option[String])
 
 /**
  * Default Content-Type typeclasses.

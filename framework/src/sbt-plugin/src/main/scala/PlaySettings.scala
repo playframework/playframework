@@ -54,8 +54,9 @@ trait PlaySettings {
   lazy val defaultSettings = Seq[Setting[_]](
 
     resolvers ++= Seq(
-      Resolver.url("Play Repository", url("http://download.playframework.org/ivy-releases/"))(Resolver.ivyStylePatterns),
-      "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"),
+      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
+      "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+    ),
 
     target <<= baseDirectory / "target",
 
@@ -147,6 +148,8 @@ trait PlaySettings {
     routesImport := Seq.empty[String],
 
     playIntellij <<= playIntellijTask,
+    
+    playHash <<= playHashTask,
 
     // Assets
 

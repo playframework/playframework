@@ -198,6 +198,11 @@ public class Http {
             return headers[0];
         }
         
+        /** 
+         * Free space to store your request specific data
+         */
+        public Map<String, Object> args = new HashMap<String, Object>(16);
+
         // -- username
 
         private String username = null;

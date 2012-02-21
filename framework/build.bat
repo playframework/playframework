@@ -1,6 +1,6 @@
 @echo off
 
-set PLAY_VERSION="2.0-RC1-SNAPSHOT"
+set PLAY_VERSION="2.0-RC3-SNAPSHOT"
 
 if defined JPDA_PORT set DEBUG_PARAM="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=%JPDA_PORT%"
 

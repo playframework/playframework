@@ -25,7 +25,7 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
-sealed trait Result
+sealed trait Result extends NotNull
 
 /**
  * Helper utilities for Result values.
@@ -347,6 +347,13 @@ trait Results {
       ChunkedResult(
         header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         iteratee => content |>> iteratee)
+    }
+
+ 
+    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult[C] = {
+      SimpleResult(
+        header = ResponseHeader(status, Map( CONTENT_LENGTH -> "-1")),
+        body = content)
     }
 
     /**

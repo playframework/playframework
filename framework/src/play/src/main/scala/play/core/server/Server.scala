@@ -13,6 +13,7 @@ import akka.actor.Actor._
 import akka.routing._
 import akka.config._
 import akka.pattern.Patterns.ask
+import akka.util.duration._
 import akka.util.Timeout
 
 trait WebSocketable {
@@ -20,10 +21,11 @@ trait WebSocketable {
   def check: Boolean
 }
 
+/**
+ * provides generic server behaviour for Play applications
+ */
 trait Server {
-
-  def mode: Mode.Mode
-
+  
   // First delete the default log file for a fresh start
   try {
     scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
@@ -35,6 +37,18 @@ trait Server {
   Logger.configure(
     Map("application.home" -> applicationProvider.path.getAbsolutePath),
     mode = mode)
+    
+  // Start the main Invoker
+  Invoker.init(applicationProvider)
+  
+  // Get a reference on the Action invoker
+  val invoker = Invoker.actionInvoker
+  
+  val bodyParserTimeout = {
+    Configuration(Invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
+  }
+
+  def mode: Mode.Mode
 
   def response(webSocketableRequest: WebSocketable)(otheResults: PartialFunction[Result, Unit]) = new Response {
 
@@ -52,8 +66,6 @@ trait Server {
 
     def handle(result: Result) = (asyncResult orElse websocketErrorResult orElse otheResults)(result)
   }
-
-  val invoker = Invoker.actionInvoker
 
   def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
 
@@ -99,13 +111,6 @@ trait Server {
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
     invoker ! Invoker.HandleAction(request, response, action, app)
   }
-
-  val bodyParserTimeout = {
-    import akka.util.duration._
-    Configuration(Invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
-  }
-
-  import play.api.libs.concurrent._
 
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
     val future = ask(invoker, Invoker.GetBodyParser(requestHeaders, bodyFunction),bodyParserTimeout)

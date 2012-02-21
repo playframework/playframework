@@ -14,20 +14,39 @@ import static java.lang.annotation.RetentionPolicy.*;
 import java.lang.annotation.Target;
 import java.lang.annotation.Retention;
 
+/**
+ * provides property support for Java classes via byte code enchancement  
+ */
 public class PropertiesEnhancer {
     
+    /**
+     * Marks the given method, field or type as one with both a generated setter and getter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedAccessor {}
     
+    /**
+     * Marks the given method, field or type as one with a generated getter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedGetAccessor {}
     
+    /**
+     * Marks the given method, field or type as one with a generated setter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface GeneratedSetAccessor {}
     
+     /**
+     * Marks the given method, field or type as one with a rewritten setter and getter.
+     * PropertiesEnhancer creates this annotation for the enchanced method, field or type.
+     */
     @Target({METHOD, FIELD, TYPE})
     @Retention(RUNTIME)
     public static @interface RewrittenAccessor {}
@@ -207,26 +226,14 @@ public class PropertiesEnhancer {
      * Test if a class has the provided annotation 
      */
     static boolean hasAnnotation(CtClass ctClass, Class<? extends java.lang.annotation.Annotation> annotationType) throws ClassNotFoundException {
-        for (Object object : ctClass.getAvailableAnnotations()) {
-            java.lang.annotation.Annotation ann = (java.lang.annotation.Annotation) object;
-            if (ann.annotationType().getName().equals(annotationType.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return getAnnotations(ctClass).getAnnotation(annotationType.getName()) != null;
     }
 
     /**
      * Test if a field has the provided annotation 
      */    
     static boolean hasAnnotation(CtField ctField, Class<? extends java.lang.annotation.Annotation> annotationType) throws ClassNotFoundException {
-        for (Object object : ctField.getAvailableAnnotations()) {
-            java.lang.annotation.Annotation ann = (java.lang.annotation.Annotation) object;
-            if (ann.annotationType().getName().equals(annotationType.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return getAnnotations(ctField).getAnnotation(annotationType.getName()) != null;
     }
     
     /**

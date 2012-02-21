@@ -263,7 +263,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
 
 private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoader) extends DBApi {
 
-  private def error(m: String = "") = throw new Exception("Invalid DB configuration " + m)
+  private def error(db: String, message: String = "") = throw configuration.reportError(db, message)
 
   private val dbNames = configuration.subKeys
 
@@ -375,9 +375,9 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
   }
 
   val datasources: List[Tuple2[DataSource, String]] = dbNames.map { dbName =>
-    val url = configuration.getString(dbName + ".url").getOrElse(error("- could not determine url for " + dbName + ".url"))
-    val driver = configuration.getString(dbName + ".driver").getOrElse(error("- could not determine driver for " + dbName + ".driver"))
-    val extraConfig = configuration.getConfig(dbName).getOrElse(error("- could not find extra configs"))
+    val url = configuration.getString(dbName + ".url").getOrElse(error(dbName, "Missing configuration [db." + dbName + ".url]"))
+    val driver = configuration.getString(dbName + ".driver").getOrElse(error(dbName, "Missing configuration [db." + dbName + ".driver]"))
+    val extraConfig = configuration.getConfig(dbName).getOrElse(error(dbName, "Missing configuration [db." + dbName + "]"))
     register(driver, extraConfig)
     createDataSource(dbName, url, driver, extraConfig) -> dbName
   }.toList

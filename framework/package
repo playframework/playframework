@@ -1,5 +1,7 @@
 #! /usr/bin/env sh
 
+set -e
+
 if [ $# -ne 1 ]; then  
     echo "[\033[31merror\033[0m] Usage: package VERSION"
     exit -1
@@ -26,6 +28,7 @@ cd /tmp
 echo "[info] fixing version"
 sed -i '' -e '7s/version: .*/version: '$PLAY_VERSION'/' play-${PLAY_VERSION}/framework/sbt/play.boot.properties
 sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSION}/framework/build
+sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSION}/framework/build.bat
 
 echo "[info] zipping..."
 zip -9 -r play-${PLAY_VERSION}.zip play-${PLAY_VERSION} -x '*.git/*' '*.lock' '*.history' '*.gitmodules' 'play-'${PLAY_VERSION}'/.gitignore' '*.DS_Store' 'play-'${PLAY_VERSION}'/dist/*' '*/target/*' 'play-'${PLAY_VERSION}'/framework/sbt/boot/*' 'play-'${PLAY_VERSION}'/repository/cache/*' 'play-'${PLAY_VERSION}'/samples/workinprogress/*' '*/logs/*' '*/tmp/*' '*/project/project/*' '*.log'

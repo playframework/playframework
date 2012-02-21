@@ -164,7 +164,9 @@ object ResultSetParser {
 
   def single[A](p: RowParser[A]): ResultSetParser[A] = ResultSetParser {
     case head #:: Stream.Empty => p(head)
+    case Stream.Empty => Error(SqlMappingError("No rows when expecting a single one"))
     case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+
   }
 
   def singleOpt[A](p: RowParser[A]): ResultSetParser[Option[A]] = ResultSetParser { rows =>

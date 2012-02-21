@@ -12,7 +12,9 @@ import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 
-
+/**
+ * provides support for OpenID
+ */
 public class OpenID {
 
     /**

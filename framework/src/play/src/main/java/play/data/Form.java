@@ -92,6 +92,17 @@ public class Form<T> {
             multipartFormData = play.mvc.Controller.request().body().asMultipartFormData().asFormUrlEncoded();
         }
         
+        Map<String,String> jsonData = new HashMap<String,String>();
+        if(play.mvc.Controller.request().body().asJson() != null) {
+            jsonData = play.libs.Scala.asJava(
+                play.api.data.FormUtils.fromJson("", 
+                    play.api.libs.json.Json.parse(
+                        play.libs.Json.stringify(play.mvc.Controller.request().body().asJson())
+                    )
+                )
+            );
+        }
+        
         Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
         
         Map<String,String> data = new HashMap<String,String>();
@@ -108,6 +119,10 @@ public class Form<T> {
             if(value.length > 0) {
                 data.put(key, value[0]);
             }
+        }
+        
+        for(String key: jsonData.keySet()) {
+            data.put(key, jsonData.get(key));
         }
         
         for(String key: queryString.keySet()) {
@@ -127,6 +142,24 @@ public class Form<T> {
      */
     public Form<T> bindFromRequest() {
         return bind(requestData());
+    }
+    
+    /**
+     * Binds Json data to this form - that is, handles form submission.
+     *
+     * @param data data to submit
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bind(org.codehaus.jackson.JsonNode data) {
+        return bind(
+            play.libs.Scala.asJava(
+                play.api.data.FormUtils.fromJson("", 
+                    play.api.libs.json.Json.parse(
+                        play.libs.Json.stringify(data)
+                    )
+                )
+            )
+        );
     }
     
     /**
@@ -275,6 +308,9 @@ public class Form<T> {
         return errors;
     }
     
+    /**
+     * Retrieve an error by key.
+     */
     public ValidationError error(String key) {
         List<ValidationError> err = errors.get(key);
         if(err == null || err.isEmpty()) {
@@ -282,6 +318,13 @@ public class Form<T> {
         } else {
             return err.get(0);
         }
+    }
+    
+    /**
+     * Returns the form errors serialized as Json.
+     */
+    public org.codehaus.jackson.JsonNode errorsAsJson() {
+        return null;
     }
     
     /**

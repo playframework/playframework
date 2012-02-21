@@ -6,6 +6,7 @@ setlocal
 set p=%~dp0
 set p=%p:\=/%
 set buildScript=%~dp0framework\build.bat
+set additionalArgs=%*
 
 if exist "conf\application.conf" goto existingApplication
 
@@ -26,6 +27,7 @@ if exist "project\project" rmdir /s /q project\project
 if exist "dist" rmdir /s /q dist
 
 shift
+set additionalArgs=%additionalArgs:*clean-all=%
 if "%1" == "" goto endWithMessage
 
 :runCommand
@@ -37,12 +39,13 @@ goto enterConsoleWithCommands
 :setDebug
 set JPDA_PORT=9999
 shift
+set additionalArgs=%additionalArgs:*debug=%
 
 if "%1" == "" goto enterConsole
 
 :enterConsoleWithCommands
 
-call %buildScript% %1 %2 %3 %4 %5 %6 %7 %8 %9
+call %buildScript% %additionalArgs%
 goto end
 
 :enterConsole
