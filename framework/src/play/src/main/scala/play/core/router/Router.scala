@@ -159,6 +159,14 @@ object Router {
             Some(route.call.pos.line),
             Some(route.call.pos.column))
         }
+        
+        if (route.call.controller.isEmpty) {
+          throw RoutesCompilationError(
+            file,
+            "Missing Controller",
+            Some(route.call.pos.line),
+            Some(route.call.pos.column))
+        }
 
         route.path.parts.collect {
           case part @ DynamicPart(name, regex) => {
@@ -973,7 +981,7 @@ object Router {
         case handler ~ parameters =>
           {
             val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")
-            val className = handler(packageName.split('.').size)
+            val className = try { handler(packageName.split('.').size) } catch { case _ => "" }
             val rest = handler.drop(packageName.split('.').size + 1)
             val field = Option(rest.dropRight(1).mkString(".")).filterNot(_.isEmpty)
             val methodName = rest.takeRight(1).mkString
