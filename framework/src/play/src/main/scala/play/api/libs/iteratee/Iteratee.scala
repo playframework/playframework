@@ -4,7 +4,7 @@ import play.api.libs.concurrent._
 
 object Iteratee {
 
-   /**
+  /**
    * flatten a [[play.api.libs.concurrent.Promise]] of [[play.api.libs.iteratee.Iteratee]]] into an Iteratee
    *
    * @param i a promise of iteratee
@@ -41,7 +41,7 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic. 
+   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
@@ -60,7 +60,7 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic. 
+   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
@@ -80,7 +80,7 @@ object Iteratee {
    * }}}
    *
    * Chunks type should be viewable as TraversableOnce
-   * 
+   *
    */
   def consume[E] = new {
     def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
@@ -125,7 +125,6 @@ object Iteratee {
    * @param f the function that should be executed for every chunk
    */
   def foreach[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))
-
 
   /**
    *
@@ -180,11 +179,11 @@ object Input {
 trait Iteratee[E, +A] {
   self =>
 
- /**
-  * Extracts the computed result of the Iteratee pushing an Input.EOF if necessary
-  *
-  *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
-  */
+  /**
+   * Extracts the computed result of the Iteratee pushing an Input.EOF if necessary
+   *
+   *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
+   */
   def run[AA >: A]: Promise[AA] = fold((a, _) => Promise.pure(a),
     k => k(Input.EOF).fold((a1, _) => Promise.pure(a1),
       _ => sys.error("diverging iteratee after Input.EOF"),
@@ -195,23 +194,23 @@ trait Iteratee[E, +A] {
     Enumerator.enumInput(in) |>> this
   }
 
- /**
-  *
-  * This method provides the means to check on the state of the Iteratee and eventually extract a value in a Promise
-  * @param done a function that will be called if the Iteratee is a Done
-  * @param cont a function that will be called if the Iteratee is a Cont
-  * @param error a function that will be called if the Iteratee is an Error
-  * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
-  */
+  /**
+   *
+   * This method provides the means to check on the state of the Iteratee and eventually extract a value in a Promise
+   * @param done a function that will be called if the Iteratee is a Done
+   * @param cont a function that will be called if the Iteratee is a Cont
+   * @param error a function that will be called if the Iteratee is an Error
+   * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
+   */
   def fold[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B]
 
- /**
-  * Like fold but taking functions returning pure values (not in promises)
-  *
-  * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
-  */ 
+  /**
+   * Like fold but taking functions returning pure values (not in promises)
+   *
+   * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
+   */
   def pureFold[B](done: (A, Input[E]) => B,
     cont: (Input[E] => Iteratee[E, A]) => B,
     error: (String, Input[E]) => B): Promise[B] =
@@ -220,11 +219,11 @@ trait Iteratee[E, +A] {
       k => Promise.pure(cont(k)),
       (msg, e) => Promise.pure(error(msg, e)))
 
- /**
-  * Like pureFold, except taking functions that return an Iteratee
-  *
-  * @return an Iteratee extracted by calling the appropriate provided function
-  */
+  /**
+   * Like pureFold, except taking functions that return an Iteratee
+   *
+   * @return an Iteratee extracted by calling the appropriate provided function
+   */
   def pureFlatFold[B, C](done: (A, Input[E]) => Iteratee[B, C],
     cont: (Input[E] => Iteratee[E, A]) => Iteratee[B, C],
     error: (String, Input[E]) => Iteratee[B, C]): Iteratee[B, C] =
@@ -239,20 +238,19 @@ trait Iteratee[E, +A] {
       k => Cont((in: Input[E]) => k(in).mapDone(f)),
       (err, e) => Error(err, e))
 
- /**
-  *
-  * Uses the provided function to transform the Iteratee's computed result when the Iteratee is done.
-  *
-  * @param f a function for tranforming the computed result
-  */
+  /**
+   *
+   * Uses the provided function to transform the Iteratee's computed result when the Iteratee is done.
+   *
+   * @param f a function for tranforming the computed result
+   */
   def map[B](f: A => B): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))
 
-
- /**
-  * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input
-  *
-  * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
-  */
+  /**
+   * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input
+   *
+   * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
+   */
   def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(
     {
       case (a, Input.Empty) => f(a)
@@ -264,9 +262,9 @@ trait Iteratee[E, +A] {
     k => Cont(in => k(in).flatMap(f)),
     (msg, e) => Error(msg, e))
 
- /**
-  * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.
-  */
+  /**
+   * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.
+   */
   def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold(
     {
       case (a, Input.Empty) => f(a)
@@ -463,7 +461,7 @@ trait Enumeratee[From, To] {
 
 }
 
-object Enumeratee{
+object Enumeratee {
 
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
@@ -570,16 +568,16 @@ object Enumeratee{
 
   def scanLeft[From] = new {
 
-    def apply[To](seed:To)(f:(To,From) => To):Enumeratee[From,To] = new CheckDone[From,To] {
+    def apply[To](seed: To)(f: (To, From) => To): Enumeratee[From, To] = new CheckDone[From, To] {
 
-      def step[A](lastTo: To )(k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](lastTo: To)(k: K[To, A]): K[From, Iteratee[To, A]] = {
 
         case in @ Input.El(e) =>
-          val next = f(lastTo,e)
+          val next = f(lastTo, e)
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(next)(k)) } &> k(Input.El(next))
 
-        case in@Input.Empty => 
-           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
+        case in @ Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
 
         case Input.EOF => Done(k(Input.EOF), Input.EOF)
 
@@ -591,16 +589,16 @@ object Enumeratee{
 
   def grouped[From] = new {
 
-    def apply[To](folder: Iteratee[From,To]):Enumeratee[From,To] = new CheckDone[From,To] {
+    def apply[To](folder: Iteratee[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
 
-      def step[A](f: Iteratee[From,To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](f: Iteratee[From, To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
 
         case in @ (Input.El(_) | Input.Empty) =>
 
           Iteratee.flatten(f.feed(in)).pureFlatFold(
-            (a,_) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(folder)(k)) } &> k(Input.El(a)),
+            (a, _) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(folder)(k)) } &> k(Input.El(a)),
             kF => Cont(step(Cont(kF))(k)),
-            (msg,e) => Error(msg,in))
+            (msg, e) => Error(msg, in))
 
         case Input.EOF => Done(k(Input.EOF), Input.EOF)
 
@@ -883,7 +881,6 @@ object Enumerator {
 
   import scalax.io.JavaConverters._
 
-
   def fromCallback1[E](retriever: Boolean => Promise[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
@@ -891,7 +888,7 @@ object Enumerator {
 
       var iterateeP = Promise[Iteratee[E, A]]()
 
-      def step(it: Iteratee[E, A],initial:Boolean = false) {
+      def step(it: Iteratee[E, A], initial: Boolean = false) {
 
         val next = it.fold(
           (a, e) => { iterateeP.redeem(it); Promise.pure(None) },
@@ -918,11 +915,10 @@ object Enumerator {
 
       }
 
-      step(it,true)
+      step(it, true)
       iterateeP
     }
   }
-
 
   def fromCallback[E](retriever: () => Promise[Option[E]],
     onComplete: () => Unit = () => (),
@@ -981,7 +977,7 @@ object Enumerator {
   def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = fromStream(new java.io.FileInputStream(file), chunkSize)
 
   def eof[A] = enumInput[A](Input.EOF)
-  
+
   /**
    * Create an Enumerator from a set of values
    *
@@ -1003,99 +999,102 @@ object Enumerator {
         (_, _) => it)))
   }
 
+  trait Hub[E] {
 
-trait Hub[E]{
+    def getPatchCord(): Enumerator[E]
 
-  def getPatchCord():Enumerator[E]
+    def noCords(): Boolean
 
-  def noCords():Boolean
+    def close()
+  }
 
-  def close()
-}
-
-
-def hub[E](e:Enumerator[E], interestIsDownToZero: () => Unit = () => ()):Hub[E] = {
+  def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ()): Hub[E] = {
 
     import scala.concurrent.stm._
 
-  val iteratees: Ref[List[(Iteratee[E,_],Redeemable[Iteratee[E,_]])]] = Ref(List())
+    val iteratees: Ref[List[(Iteratee[E, _], Redeemable[Iteratee[E, _]])]] = Ref(List())
 
-  var closeFlag = false
+    var closeFlag = false
 
-  def step(in:Input[E]):Iteratee[E,Unit] = {
+    def step(in: Input[E]): Iteratee[E, Unit] = {
 
-    val interested :List[(Iteratee[E,_],Redeemable[Iteratee[E,_]])] = iteratees.single.swap(List())
+      val interested: List[(Iteratee[E, _], Redeemable[Iteratee[E, _]])] = iteratees.single.swap(List())
 
-    val commitReady: Ref[List[(Int,(Iteratee[E,_],Redeemable[Iteratee[E,_]]))]] = Ref(List())
+      val commitReady: Ref[List[(Int, (Iteratee[E, _], Redeemable[Iteratee[E, _]]))]] = Ref(List())
 
-    val commitDone: Ref[List[Int]] = Ref(List())
+      val commitDone: Ref[List[Int]] = Ref(List())
 
-    val ready = interested.zipWithIndex.map { case (t,index) =>
-      val p = t._2
-      t._1.fold(
-        (a,e) => {
-          p.redeem(Done(a,e))
-          commitDone.single.transform( _ :+ index)
-          Promise.pure(())
-        } ,
-        k => {
-          val next = k(in)
-          next.pureFold(
-            (a,e) => {
-              p.redeem(Done(a,e))
-              commitDone.single.transform( _ :+ index)
+      val ready = interested.zipWithIndex.map {
+        case (t, index) =>
+          val p = t._2
+          t._1.fold(
+            (a, e) => {
+              p.redeem(Done(a, e))
+              commitDone.single.transform(_ :+ index)
+              Promise.pure(())
             },
-            k => commitReady.single.transform( _ :+ (index,(Cont(k),p))),
-            (msg,e) => {
-              p.redeem(Error(msg,e))
-              commitDone.single.transform( _ :+ index)
-            }) 
-        },
-        (msg,e) => {
-          p.redeem(Error(msg,e))
-          commitDone.single.transform( _ :+ index)
-          Promise.pure(())
-        })
-    }.fold(Promise.pure()){ (s,p) => s.flatMap(_ => p) }.orTimeout((),100)
+            k => {
+              val next = k(in)
+              next.pureFold(
+                (a, e) => {
+                  p.redeem(Done(a, e))
+                  commitDone.single.transform(_ :+ index)
+                },
+                k => commitReady.single.transform(_ :+ (index, (Cont(k), p))),
+                (msg, e) => {
+                  p.redeem(Error(msg, e))
+                  commitDone.single.transform(_ :+ index)
+                })
+            },
+            (msg, e) => {
+              p.redeem(Error(msg, e))
+              commitDone.single.transform(_ :+ index)
+              Promise.pure(())
+            })
+      }.fold(Promise.pure()) { (s, p) => s.flatMap(_ => p) }.orTimeout((), 100)
 
-    Iteratee.flatten(ready.map { _ =>
+      Iteratee.flatten(ready.map { _ =>
 
-      val (hanging,downToZero) = atomic { implicit txn =>
-        val responsive = (commitReady().map(_._1) ++ commitDone()).toSet
-        val hangs = interested.zipWithIndex.collect{ case(e,i) if ! responsive.contains(i) => e}
-              //send EOF to hanging
-        val ready = commitReady().toMap
-        iteratees.transform( commitReady().map(_._2) ++ _ )
-        (hangs, (interested.length > 0 && iteratees().length <= 0))
+        val (hanging, downToZero) = atomic { implicit txn =>
+          val responsive = (commitReady().map(_._1) ++ commitDone()).toSet
+          val hangs = interested.zipWithIndex.collect { case (e, i) if !responsive.contains(i) => e }
+          //send EOF to hanging
+          val ready = commitReady().toMap
+          iteratees.transform(commitReady().map(_._2) ++ _)
+          (hangs, (interested.length > 0 && iteratees().length <= 0))
 
-             }
-        hanging.map{ case (h,p) => h.feed(Input.EOF).extend1 {
-          case Redeemed(it) => p.redeem(it)
-          case Thrown(e) => p.redeem(throw e)
+        }
+        hanging.map {
+          case (h, p) => h.feed(Input.EOF).extend1 {
+            case Redeemed(it) => p.redeem(it)
+            case Thrown(e) => p.redeem(throw e)
 
-        }}
-        if(downToZero) interestIsDownToZero()
-        if(in == Input.EOF || closeFlag) Done((),Input.Empty) else Cont(step)
+          }
+        }
+        if (downToZero) interestIsDownToZero()
+        if (in == Input.EOF || closeFlag) Done((), Input.Empty) else Cont(step)
 
-                              })
+      })
     }
-  e |>> Cont(step)
+    e |>> Cont(step)
 
-  new Hub[E] {
+    new Hub[E] {
 
-    def noCords() = iteratees.single().isEmpty
+      def noCords() = iteratees.single().isEmpty
 
-    def close() {
-      closeFlag = true
-    }
+      def close() {
+        closeFlag = true
+      }
 
-    def getPatchCord() = new Enumerator[E] {
+      def getPatchCord() = new Enumerator[E] {
 
-      def apply[A](it:Iteratee[E,A]):Promise[Iteratee[E,A]] = {
-        
-        val result = Promise[Iteratee[E,A]]()
-        iteratees.single.transform(_ :+ ((it,result.asInstanceOf[Redeemable[Iteratee[E,_]]]))) 
-        result
+        def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+
+          val result = Promise[Iteratee[E, A]]()
+          iteratees.single.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
+          result
+
+        }
 
       }
 
@@ -1103,99 +1102,94 @@ def hub[E](e:Enumerator[E], interestIsDownToZero: () => Unit = () => ()):Hub[E] 
 
   }
 
-}
+  trait PatchPanel[E] {
 
+    def patchIn(e: Enumerator[E]): Boolean
 
-trait PatchPanel[E]{
+    def closed(): Boolean
 
-  def patchIn(e:Enumerator[E]):Boolean
+  }
+  def patchPanel[E](patcher: PatchPanel[E] => Unit): Enumerator[E] = new Enumerator[E] {
 
-  def closed():Boolean
-
-
-}
-  def patchPanel[E](patcher: PatchPanel[E] => Unit):Enumerator[E] = new Enumerator[E]{
-    
     import scala.concurrent.stm._
 
-    def apply[A](it:Iteratee[E,A]):Promise[Iteratee[E,A]] = {
-      val result = Promise[Iteratee[E,A]]()
-      var isClosed:Boolean = false
+    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+      val result = Promise[Iteratee[E, A]]()
+      var isClosed: Boolean = false
 
       result.onRedeem(_ => isClosed = true);
 
-      def refIteratee(ref:Ref[Iteratee[E,Option[A]]]):Iteratee[E,Option[A]] = {
-        val next = Promise[Iteratee[E,Option[A]]]()
+      def refIteratee(ref: Ref[Iteratee[E, Option[A]]]): Iteratee[E, Option[A]] = {
+        val next = Promise[Iteratee[E, Option[A]]]()
         val current = ref.single.swap(Iteratee.flatten(next))
         current.pureFlatFold(
-          (a,e) => {
-            a.foreach( aa => result.redeem(Done(aa,e)))
-            next.redeem(Done(a,e))
-            Done(a,e)
+          (a, e) => {
+            a.foreach(aa => result.redeem(Done(aa, e)))
+            next.redeem(Done(a, e))
+            Done(a, e)
           },
           k => {
             next.redeem(current)
             Cont(step(ref))
           },
-          (msg,e) => {
-            result.redeem(Error(msg,e))
-            next.redeem(Error(msg,e))
-            Error(msg,e)
+          (msg, e) => {
+            result.redeem(Error(msg, e))
+            next.redeem(Error(msg, e))
+            Error(msg, e)
 
           })
-            
+
       }
 
-      def step(ref:Ref[Iteratee[E,Option[A]]])(in:Input[E]):Iteratee[E,Option[A]] = {
-        val next = Promise[Iteratee[E,Option[A]]]()
+      def step(ref: Ref[Iteratee[E, Option[A]]])(in: Input[E]): Iteratee[E, Option[A]] = {
+        val next = Promise[Iteratee[E, Option[A]]]()
         val current = ref.single.swap(Iteratee.flatten(next))
         current.pureFlatFold(
-          (a,e) => {
-            next.redeem(Done(a,e))
-            Done(a,e)
-          } ,
-          k => { 
+          (a, e) => {
+            next.redeem(Done(a, e))
+            Done(a, e)
+          },
+          k => {
             val n = k(in)
             next.redeem(n)
             n.pureFlatFold(
-              (a,e) =>{
-                a.foreach(aa => result.redeem(Done(aa,e)))
-                Done(a,e)
+              (a, e) => {
+                a.foreach(aa => result.redeem(Done(aa, e)))
+                Done(a, e)
               },
               k => Cont(step(ref)),
-              (msg,e) => { 
-                result.redeem(Error(msg,e))
-                Error(msg,e)
+              (msg, e) => {
+                result.redeem(Error(msg, e))
+                Error(msg, e)
               })
           },
-          (msg,e) => {
-            next.redeem(Error(msg,e))
-            Error(msg,e)
-          } )
+          (msg, e) => {
+            next.redeem(Error(msg, e))
+            Error(msg, e)
+          })
       }
 
-
-      patcher(new PatchPanel[E]{
-        val ref:Ref[Ref[Iteratee[E,Option[A]]]] = Ref(Ref(it.map(Some(_))))
+      patcher(new PatchPanel[E] {
+        val ref: Ref[Ref[Iteratee[E, Option[A]]]] = Ref(Ref(it.map(Some(_))))
 
         def closed() = isClosed
 
-        def patchIn(e:Enumerator[E]):Boolean = {
-          !( closed() || {
-         val newRef =  atomic { implicit txn =>
-            val enRef = ref()
-            val it = enRef.swap(Done(None,Input.Empty))
-            val newRef = Ref(it)
-            ref() = newRef
-            newRef
+        def patchIn(e: Enumerator[E]): Boolean = {
+          !(closed() || {
+            val newRef = atomic { implicit txn =>
+              val enRef = ref()
+              val it = enRef.swap(Done(None, Input.Empty))
+              val newRef = Ref(it)
+              ref() = newRef
+              newRef
+            }
+            e |>> refIteratee(newRef) //TODO maybe do something if the enumerator is done, maybe not
+            false
+          })
         }
-           e |>> refIteratee(newRef) //TODO maybe do something if the enumerator is done, maybe not
-           false
-         })
-      }
       })
 
-    result
+      result
 
     }
 
@@ -1203,7 +1197,7 @@ trait PatchPanel[E]{
 
 }
 
-class PushEnumerator[E] private[iteratee](
+class PushEnumerator[E] private[iteratee] (
     onStart: => Unit = () => (),
     onComplete: => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {
