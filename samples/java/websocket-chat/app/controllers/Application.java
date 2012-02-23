@@ -37,11 +37,14 @@ public class Application extends Controller {
         return new WebSocket<JsonNode>() {
             
             // Called when the Websocket Handshake is done.
-            public void onReady(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out) {
+            public void onReady(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out){
                 
                 // Join the chat room.
-                ChatRoom.join(username, in, out);
-                
+                try { 
+                    ChatRoom.join(username, in, out);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         };
     }
