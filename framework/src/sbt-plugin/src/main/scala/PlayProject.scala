@@ -9,6 +9,18 @@ import play.core._
 import play.utils.Colors
 
 object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands with PlaySettings {
+  
+  Option(System.getProperty("play.version")).map {
+    case badVersion if badVersion != play.core.PlayVersion.current => {
+      println(
+        Colors.red("""
+          |This project uses Play %s!
+          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
+        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
+      )
+    }
+    case _ =>
+  }
 
   private def whichLang(name: String) = {
     if (name == JAVA) {
