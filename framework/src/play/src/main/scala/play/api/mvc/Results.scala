@@ -349,10 +349,9 @@ trait Results {
         iteratee => content |>> iteratee)
     }
 
- 
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult[C] = {
       SimpleResult(
-        header = ResponseHeader(status, Map( CONTENT_LENGTH -> "-1")),
+        header = ResponseHeader(status, Map(CONTENT_LENGTH -> "-1")),
         body = content)
     }
 

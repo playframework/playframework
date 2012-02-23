@@ -14,27 +14,27 @@ object EventSource {
 
   trait LowPriorityEventNameExtractor {
 
-    implicit def non[E]:EventNameExtractor[E] = EventNameExtractor[E](_ => None)
+    implicit def non[E]: EventNameExtractor[E] = EventNameExtractor[E](_ => None)
 
   }
 
   trait LowPriorityEventIdExtractor {
 
-    implicit def non[E]:EventIdExtractor[E] = EventIdExtractor[E](_ => None)
+    implicit def non[E]: EventIdExtractor[E] = EventIdExtractor[E](_ => None)
 
   }
 
   object EventNameExtractor extends LowPriorityEventNameExtractor {
 
-    implicit def pair[E]:EventNameExtractor[(String,E)] = EventNameExtractor[(String,E)](p => Some(p._1))
+    implicit def pair[E]: EventNameExtractor[(String, E)] = EventNameExtractor[(String, E)](p => Some(p._1))
 
   }
 
   object EventIdExtractor extends LowPriorityEventIdExtractor
 
-  def apply[E]()(implicit encoder: Comet.CometMessage[E], eventNameExtractor: EventNameExtractor[E], eventIdExtractor:EventIdExtractor[E]) = Enumeratee.map[E] { chunk =>
-    eventNameExtractor.eventName(chunk).map("event: "+ _ + "\n").getOrElse("") +
-    "data: "+encoder.toJavascriptMessage(chunk)+"\r\n\r\n"
+  def apply[E]()(implicit encoder: Comet.CometMessage[E], eventNameExtractor: EventNameExtractor[E], eventIdExtractor: EventIdExtractor[E]) = Enumeratee.map[E] { chunk =>
+    eventNameExtractor.eventName(chunk).map("event: " + _ + "\n").getOrElse("") +
+      "data: " + encoder.toJavascriptMessage(chunk) + "\r\n\r\n"
   }
 
 }
