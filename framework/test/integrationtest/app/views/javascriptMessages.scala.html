@@ -1,0 +1,14 @@
+@()(implicit app: play.api.Application, lang: play.api.i18n.Lang)
+<!DOCTYPE html>
+<html>
+  <head>
+    @helper.javascriptMessages()
+  </head>
+  <body>
+    @javascriptTests(Map(
+      "greeting" -> "Messages('greeting', 'John')",
+      "foo" -> "Messages('foo', 'bar', 'baz')",
+      "nomessage" -> "Messages('nomessage')"
+    ))
+  </body>
+</html>

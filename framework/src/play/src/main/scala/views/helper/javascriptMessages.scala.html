@@ -1,0 +1,23 @@
+@**
+ * Generates a JavaScript function able to compute localized messages.
+ * 
+ * For example:
+ * 
+ * {{{
+ *   @javascriptMessages("jsMessages")
+ * }}}
+ * 
+ * And you can use it in your JavaScript code as follows:
+ * {{{
+ *   alert(jsMessages('greeting', 'World'));
+ * }}}
+ * 
+ * Providing you have the following message in your conf/messages file:
+ * {{{
+ * greeting=Hello %s!
+ * }}}
+ *@
+@(name: String = "Messages")(implicit app: play.api.Application, lang: play.api.i18n.Lang)
+<script type="text/javascript">
+  @Html(play.api.i18n.Messages.javascriptMessages(name))
+</script>

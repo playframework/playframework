@@ -1,0 +1,13 @@
+@(jsExprs: Iterable[(String, String)])
+
+@for((id, expr) <- jsExprs) {
+  <button type="button" id="@id" onclick="display(@expr)">@expr</button>
+}
+
+<div id="result"></div>
+
+<script type="text/javascript">
+var display = function (content) {
+  document.getElementById('result').innerHTML = content;
+};
+</script>

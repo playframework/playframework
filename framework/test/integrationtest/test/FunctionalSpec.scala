@@ -74,9 +74,28 @@ class FunctionalSpec extends Specification {
         browser.goTo("http://localhost:9001/clear/foo")
         browser.getCookies.size must equalTo(0)
 
+
+        // --- JavaScript Messages API
+
+        def jsAction(buttonId: String) = {
+          browser.$("#" + buttonId).click()
+          browser.$("#result").getTexts().get(0)
+        }
+        
+        browser.goTo("http://localhost:9001/javascript/messages")
+        
+        jsAction("greeting") must equalTo ("Hello John!")
+        
+        jsAction("foo") must equalTo ("baz bar")
+        
+        jsAction("nomessage") must equalTo ("nomessage")
+        
+        await(WS.url("http://localhost:9001/javascript/messages").withHeaders("Accept-Language"->"en").get).body must not contain ("Bonjour {0} !")
+        
+        await(WS.url("http://localhost:9001/javascript/messages").withHeaders("Accept-Language"->"fr").get).body must contain ("Bonjour {0} !")
       }
     }
-
+    
   }
   
 }

@@ -4,6 +4,7 @@ import play.api.mvc._
 import play.api.Play.current
 import play.api.Configuration
 
+import play.api.i18n.Messages
 import play.api.cache.Cache
 import play.api.libs.json._
 import play.api.libs.json.Json._
@@ -50,6 +51,10 @@ object Application extends Controller {
   }
   def jsonFromJsObject = Action {
     Ok(toJson(JsObject(List("blah" -> JsString("foo"))))) 
+  }
+  
+  def javascriptMessages = Action { implicit request =>
+    Ok(views.html.javascriptMessages())
   }
 
   def index_java_cache = Action {
