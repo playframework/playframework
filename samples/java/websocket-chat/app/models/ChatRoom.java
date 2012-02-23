@@ -32,7 +32,7 @@ public class ChatRoom extends UntypedActor {
     /**
      * Join the default room.
      */
-    public static void join(final String username, WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out) {
+    public static void join(final String username, WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out) throws Exception{
         
         // Send the Join message to the room
         String result = (String)Await.result(ask(defaultRoom,new Join(username, out), 1000), Duration.create(1, SECONDS));
