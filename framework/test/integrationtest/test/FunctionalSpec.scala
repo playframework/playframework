@@ -16,7 +16,7 @@ class FunctionalSpec extends Specification {
   "an Application" should {
 
     "pass functional test" in {
-      running(TestServer(9001), HTMLUNIT) { browser =>
+      running(TestServer(9001), HTMLUNIT()) { browser =>
 
         val content: String = await(WS.url("http://localhost:9001/post").post("param1=foo")).body
         content must contain ("param1")

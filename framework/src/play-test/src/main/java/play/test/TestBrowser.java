@@ -18,15 +18,6 @@ public class TestBrowser extends Fluent {
      *
      * @param webDriver The WebDriver instance to use.
      */
-    public TestBrowser(Class<? extends WebDriver> webDriver) throws Exception {
-        this(webDriver.newInstance());
-    }
-    
-    /**
-     * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
-     *
-     * @param webDriver The WebDriver instance to use.
-     */
     public TestBrowser(WebDriver webDriver) {
         setDriver(webDriver);
     }

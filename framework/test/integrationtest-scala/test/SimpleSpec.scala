@@ -58,7 +58,7 @@ class SimpleSpec extends Specification {
     }
     
     "run in a browser" in {
-      running(TestServer(3333), HTMLUNIT) { browser =>
+      running(TestServer(3333), HTMLUNIT()) { browser =>
         
         browser.goTo("http://localhost:3333")
         browser.$("#title").getTexts().get(0) must equalTo("Hello Guest")

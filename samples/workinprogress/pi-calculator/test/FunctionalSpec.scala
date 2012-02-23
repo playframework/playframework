@@ -11,7 +11,7 @@ class FunctionalSpec extends Specification {
   
     "pass functional test" in {
    
-      running(TestServer(9001), HTMLUNIT) { browser =>
+      running(TestServer(9001), HTMLUNIT()) { browser =>
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Pi")
       }
