@@ -15,15 +15,15 @@ import play.api.http.HeaderNames._
 import play.utils._
 
 /**
- * provides Play's internal actor system and the corresponding actor instances 
+ * provides Play's internal actor system and the corresponding actor instances
  */
 object Invoker {
 
   case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
   case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
-  
+
   // --
-  
+
   // Call init to register an Actor System properly configured from 
   // this applicationProvider. Otherwise a default ActorSystem will be created.
   def init(applicationProvider: ApplicationProvider) {
@@ -33,9 +33,9 @@ object Invoker {
     promiseInvoker
     actionInvoker
   }
-  
-  private var configuredSystem: ActorSystem = _ 
-  
+
+  private var configuredSystem: ActorSystem = _
+
   // --
 
   lazy val system = {
@@ -144,9 +144,9 @@ class ActionInvoker extends Actor {
 
 object Agent {
 
-  def apply[A](a: A):{
+  def apply[A](a: A): {
     def send(action: (A => A)): Unit
-    def close():Unit
+    def close(): Unit
   } = {
     val actor = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
     new {

@@ -221,7 +221,7 @@ package play.templates {
       val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
       (f, f.getName) match {
         case (f, _) if f == sourceDirectory => {
-          if(setExt) {
+          if (setExt) {
             val parts = suffix.split('.')
             Option(parts.dropRight(1).mkString(".")).filterNot(_.isEmpty).map(_ + ".").getOrElse("") + ext + "." + parts.takeRight(1).mkString
           } else suffix

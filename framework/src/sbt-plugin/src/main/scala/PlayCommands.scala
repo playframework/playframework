@@ -154,7 +154,7 @@ trait PlayCommands {
 
     val libs = {
       dependencies.filter(_.data.ext == "jar").map { dependency =>
-       dependency.data -> (packageName + "/lib/" + (dependency.metadata.get(AttributeKey[ModuleID]("module-id")).map { module =>
+        dependency.data -> (packageName + "/lib/" + (dependency.metadata.get(AttributeKey[ModuleID]("module-id")).map { module =>
           module.organization + "." + module.name + "-" + module.revision + ".jar"
         }.getOrElse(dependency.data.getName)))
       } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
@@ -342,7 +342,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
 
     ()
   }
-  
+
   val playHash = TaskKey[String]("play-hash")
   val playHashTask = (baseDirectory) map { base =>
     ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")).get.map(_.lastModified).mkString(",").hashCode.toString
@@ -369,7 +369,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
       val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
 
       if (previousInfo != currentInfos) {
-        
+
         // Delete previous generated files
         previousRelation._2s.foreach(IO.delete)
 
@@ -414,7 +414,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
     (_ ** "*.js"),
     javascriptEntryPoints,
     { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { (jsFile:File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
+    { (jsFile: File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
     closureCompilerOptions
   )
 

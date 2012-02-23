@@ -53,7 +53,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   def bind(data: Map[String, String]): Form[T] = mapping.bind(data).fold(
     errors => this.copy(data = data, errors = errors, value = None),
     value => this.copy(data = data, errors = Nil, value = Some(value)))
-    
+
   /**
    * Binds data to this form, i.e. handles form submission.
    *
@@ -200,20 +200,20 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * Note that this method fails with an Exception if this form as errors.
    */
   def get: T = value.get
-  
+
   /**
    * Returns the form errors serialized as Json.
    */
   def errorsAsJson(implicit lang: play.api.i18n.Lang): play.api.libs.json.JsValue = {
-    
+
     import play.api.libs.json._
-    
+
     Json.toJson(
       errors.groupBy(_.key).mapValues { errors =>
-        errors.map(e => play.api.i18n.Messages(e.message, e.args:_*))
+        errors.map(e => play.api.i18n.Messages(e.message, e.args: _*))
       }
     )
-    
+
   }
 
 }
@@ -309,19 +309,19 @@ object Form {
    * @return a form definition
    */
   def apply[T](mapping: (String, Mapping[T])): Form[T] = Form(mapping._2.withPrefix(mapping._1), Map.empty, Nil, None)
-  
+
 }
 
-private [data] object FormUtils {
-  
+private[data] object FormUtils {
+
   import play.api.libs.json._
-  
+
   def fromJson(prefix: String = "", js: JsValue): Map[String, String] = js match {
     case JsObject(fields) => {
-      fields.map { case (key, value) => fromJson(Option(prefix).filterNot(_.isEmpty).map(_ + ".").getOrElse("") + key, value) }.foldLeft(Map.empty[String,String])(_ ++ _)
+      fields.map { case (key, value) => fromJson(Option(prefix).filterNot(_.isEmpty).map(_ + ".").getOrElse("") + key, value) }.foldLeft(Map.empty[String, String])(_ ++ _)
     }
     case JsArray(values) => {
-      values.zipWithIndex.map { case (value, i) => fromJson(prefix + "[" + i + "]", value) }.foldLeft(Map.empty[String,String])(_ ++ _)
+      values.zipWithIndex.map { case (value, i) => fromJson(prefix + "[" + i + "]", value) }.foldLeft(Map.empty[String, String])(_ ++ _)
     }
     case JsNull => Map.empty
     case JsUndefined(_) => Map.empty
@@ -329,7 +329,7 @@ private [data] object FormUtils {
     case JsNumber(value) => Map(prefix -> value.toString)
     case JsString(value) => Map(prefix -> value.toString)
   }
-  
+
 }
 
 /**

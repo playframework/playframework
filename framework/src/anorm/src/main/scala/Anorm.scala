@@ -450,7 +450,7 @@ package anorm {
 
     def executeUpdate()(implicit connection: java.sql.Connection): Int =
       getFilledStatement(connection).executeUpdate()
-      
+
     def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: java.sql.Connection): A = {
       Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
     }
@@ -486,14 +486,14 @@ package anorm {
       val nbColumns = meta.getColumnCount()
       MetaData(List.range(1, nbColumns + 1).map(i =>
         MetaDataItem(column = ({
-          
+
           // HACK FOR POSTGRES
-          if(meta.getClass.getName == "org.postgresql.PGResultSetMetaData") {
-            meta.asInstanceOf[{ def getBaseTableName(i: Int): String}].getBaseTableName(i)
+          if (meta.getClass.getName == "org.postgresql.PGResultSetMetaData") {
+            meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
           } else {
             meta.getTableName(i)
           }
-          
+
         } + "." + meta.getColumnName(i)),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))

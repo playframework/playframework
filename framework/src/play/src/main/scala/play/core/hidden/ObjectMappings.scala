@@ -21,7 +21,7 @@ case class ObjectMapping2[R, A1, A2](apply: Function2[A1, A2, R], unapply: Funct
     }
   }
 
-  def unbind(value: R): (Map[String, String], Seq[FormError])= {
+  def unbind(value: R): (Map[String, String], Seq[FormError]) = {
     unapply(value).map { fields =>
       val (v1, v2) = fields
       val a1 = field1.unbind(v1)
@@ -565,7 +565,7 @@ case class ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](appl
 
   def withPrefix(prefix: String): ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*): ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]= {
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping11[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] = {
     this.copy(constraints = constraints ++ addConstraints.toSeq)
   }
 
@@ -1200,9 +1200,9 @@ case class ObjectMapping18[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12,
     }.getOrElse(Map.empty -> Seq(FormError(key, "unbind.failed")))
   }
 
-  def withPrefix(prefix: String): ObjectMapping18[R,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18] = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
+  def withPrefix(prefix: String): ObjectMapping18[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
 
-  def verifying(addConstraints: Constraint[R]*): ObjectMapping18[R,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18] = {
+  def verifying(addConstraints: Constraint[R]*): ObjectMapping18[R, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] = {
     this.copy(constraints = constraints ++ addConstraints.toSeq)
   }
 

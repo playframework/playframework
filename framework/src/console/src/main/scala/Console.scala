@@ -116,7 +116,7 @@ object Console {
 
   def main(args: Array[String]) {
     println(logo)
-    
+
     val (text, status) = args.headOption.collect {
       case "new" => newCommand _
       case "help" => helpCommand _
@@ -127,13 +127,12 @@ object Console {
            |Use `play new` to create a new Play application in the current directory, 
            |or go to an existing application and launch the development console using `play`.
            |
-           |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin)
-      ,-1)
+           |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin), -1)
     }
-      
+
     println(text)
     println()
-    
+
     System.exit(status)
   }
 

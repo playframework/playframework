@@ -1,6 +1,6 @@
 package play.utils
 
-import  java.util.concurrent.{TimeUnit,Callable}
+import java.util.concurrent.{ TimeUnit, Callable }
 
 /**
  * provides conversion helpers
