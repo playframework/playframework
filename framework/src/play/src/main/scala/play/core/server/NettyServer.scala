@@ -145,7 +145,7 @@ object NettyServer {
   /**
    * attempts to create a NettyServer based on either
    * passed in argument or `user.dir` System property or current directory
-   * @param args 
+   * @param args
    */
   def main(args: Array[String]) {
     args.headOption.orElse(

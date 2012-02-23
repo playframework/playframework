@@ -47,7 +47,7 @@ object Cache {
   def set(key: String, value: Any, expiration: Int = 0)(implicit app: Application) = {
     app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
   }
-  
+
   /**
    * Retrieve a value from the cache.
    *
@@ -56,10 +56,10 @@ object Cache {
   def get(key: String)(implicit app: Application): Option[Any] = {
     app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
   }
-  
+
   /**
    * Retrieve a value from the cache, or set it from a default function.
-   * 
+   *
    * @param key Item key.
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was found in cache.

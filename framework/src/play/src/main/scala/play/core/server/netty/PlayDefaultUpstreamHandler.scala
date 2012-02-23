@@ -63,7 +63,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def headers = rHeaders
           def username = None
         }
-        
+
         // converting netty response to play's
         val response = new Response {
 
@@ -80,7 +80,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
               case r @ SimpleResult(ResponseHeader(status, headers), body) if (!websocketableRequest.check) => {
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
-                
+
                 Logger("play").trace("Sending simple result: " + r)
 
                 // Set response headers
@@ -138,9 +138,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               }
 
               case r @ ChunkedResult(ResponseHeader(status, headers), chunks) => {
-            
+
                 Logger("play").trace("Sending chunked result: " + r)
-            
+
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
 
                 // Copy headers to netty response
@@ -179,7 +179,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 chunks(chunksIteratee)
 
               }
-              
+
               case _ =>
                 val channelBuffer = ChannelBuffers.dynamicBuffer(512)
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(500))
@@ -194,7 +194,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val handler = server.getHandlerFor(requestHeader)
 
         handler match {
-          
+
           //execute normal action
           case Right((action: Action[_], app)) => {
 
@@ -302,7 +302,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case e => e.printStackTrace
             }
           }
-          
+
           //handle bad websocket request
           case Right((WebSocket(_), _)) => {
 
@@ -310,7 +310,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             response.handle(Results.BadRequest)
           }
-          
+
           //handle errors
           case Left(e) => {
 

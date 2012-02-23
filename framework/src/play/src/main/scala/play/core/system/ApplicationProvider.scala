@@ -41,7 +41,7 @@ trait ApplicationProvider {
 }
 
 /**
- * creates and initializes an Application 
+ * creates and initializes an Application
  * @param applicationPath location of an Application
  */
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
@@ -67,7 +67,7 @@ class TestApplication(application: Application) extends ApplicationProvider {
 }
 
 /**
- * generic interface that helps the communication between a Play Application 
+ * generic interface that helps the communication between a Play Application
  * and the underlying SBT infrastructre
  */
 trait SBTLink {
@@ -197,18 +197,18 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         }
 
       }
-      
+
       case book() => {
-        
+
         import scalax.file._
 
         Some {
-           documentationHome.flatMap { home =>
-              Option(new java.io.File(home, "manual/book/Book")).filter(_.exists)
-            }.map { book =>
-              val pages = (book:Path).slurpString.split('\n').toSeq.map(_.trim)
-              Ok(views.html.play20.book(pages))
-            }.getOrElse(NotFound("Resource not found [Book]"))
+          documentationHome.flatMap { home =>
+            Option(new java.io.File(home, "manual/book/Book")).filter(_.exists)
+          }.map { book =>
+            val pages = (book: Path).slurpString.split('\n').toSeq.map(_.trim)
+            Ok(views.html.play20.book(pages))
+          }.getOrElse(NotFound("Resource not found [Book]"))
         }
 
       }

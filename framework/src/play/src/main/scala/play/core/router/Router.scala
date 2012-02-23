@@ -159,7 +159,7 @@ object Router {
             Some(route.call.pos.line),
             Some(route.call.pos.column))
         }
-        
+
         if (route.call.controller.isEmpty) {
           throw RoutesCompilationError(
             file,
@@ -911,8 +911,8 @@ object Router {
         "(" ~ (several((parentheses | not(")") ~> """.""".r))) ~ commit(")") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
         }
-      } 
-      
+      }
+
       def brackets: Parser[String] = {
         "[" ~ (several((parentheses | not("]") ~> """.""".r))) ~ commit("]") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
@@ -975,9 +975,9 @@ object Router {
         case name ~ t ~ d => Parameter(name, t.getOrElse("String"), d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
       }
 
-      def parameters:Parser[List[Parameter]]  = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
+      def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def call: Parser[HandlerCall]  = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
+      def call: Parser[HandlerCall] = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
         case handler ~ parameters =>
           {
             val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")

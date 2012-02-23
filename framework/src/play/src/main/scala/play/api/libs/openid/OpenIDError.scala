@@ -10,4 +10,3 @@ object Errors {
   object NETWORK_ERROR extends OpenIDError("network_error", """Couldn't contact the server.""")
 }
 
-

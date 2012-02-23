@@ -7,7 +7,7 @@ import PlayExceptions._
 
 trait PlayReloader {
   this: PlayCommands =>
-  
+
   // ----- Reloader
 
   def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], baseLoader: ClassLoader) = {
@@ -183,23 +183,23 @@ trait PlayReloader {
           }
         }).map(remapProblemForGeneratedSources)
       }
-      
+
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       private def newClassLoader = {
         val loader = new java.net.URLClassLoader(
           Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
           baseLoader) {
-            
-            val version = classLoaderVersion.incrementAndGet
-            
-            override def toString = {
-              "ReloadableClassLoader(v" + version + ") {" + {
-                getURLs.map(_.toString).mkString(", ")
-              } + "}"
-            }
-            
+
+          val version = classLoaderVersion.incrementAndGet
+
+          override def toString = {
+            "ReloadableClassLoader(v" + version + ") {" + {
+              getURLs.map(_.toString).mkString(", ")
+            } + "}"
           }
+
+        }
         currentApplicationClassLoader = Some(loader)
         loader
       }
@@ -207,13 +207,13 @@ trait PlayReloader {
       def reload: Either[Throwable, Option[ClassLoader]] = {
 
         PlayProject.synchronized {
-          
+
           val hash = Project.evaluateTask(playHash, state).get.toEither.right.get
-          
+
           lastHash.filter(_ == hash).map { _ => Right(None) }.getOrElse {
-            
+
             lastHash = Some(hash)
-            
+
             val r = Project.evaluateTask(playReload, state).get.toEither
               .left.map { incomplete =>
                 lastHash = None
@@ -236,7 +236,7 @@ trait PlayReloader {
               }
 
             r
-            
+
           }
 
         }
