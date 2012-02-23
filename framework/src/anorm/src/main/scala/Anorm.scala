@@ -406,13 +406,14 @@ package anorm {
       val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
       else connection.prepareStatement(sql.query)
       params.foldLeft(statement)((s, ps) => {
-        s.addBatch()
         val argsMap = Map(ps: _*)
-        sql.argsInitialOrder
+        val result = sql.argsInitialOrder
           .map(argsMap)
           .zipWithIndex
           .map(_.swap)
           .foldLeft(s)((s, e) => { e._2.set(s, e._1 + 1); s })
+        s.addBatch()
+        result
       })
     }
 
@@ -491,7 +492,16 @@ package anorm {
       val meta = rs.getMetaData()
       val nbColumns = meta.getColumnCount()
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = (meta.getTableName(i) + "." + meta.getColumnName(i)),
+        MetaDataItem(column = ({
+          
+          // HACK FOR POSTGRES
+          if(meta.getClass.getName == "org.postgresql.PGResultSetMetaData") {
+            meta.asInstanceOf[{ def getBaseTableName(i: Int): String}].getBaseTableName(i)
+          } else {
+            meta.getTableName(i)
+          }
+          
+        } + "." + meta.getColumnName(i)),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }
