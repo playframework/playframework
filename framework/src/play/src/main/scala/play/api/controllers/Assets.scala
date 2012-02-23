@@ -83,9 +83,12 @@ object Assets extends Controller {
             val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
 
             // Add Cache directive if configured
-            val cachedResponse = Play.configuration.getString("\"assets.cache." + resourceName + "\"").map { cacheControl =>
-              taggedResponse.withHeaders(CACHE_CONTROL -> cacheControl)
-            }.getOrElse(taggedResponse)
+            val cachedResponse = taggedResponse.withHeaders(CACHE_CONTROL -> {
+              Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
+                case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+                case _ => "no-cache"
+              })
+            })
 
             cachedResponse
 
