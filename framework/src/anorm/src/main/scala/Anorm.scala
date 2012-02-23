@@ -167,14 +167,7 @@ package anorm {
     }
 
     implicit def rowToOption[T](implicit transformer: Column[T]): Column[Option[T]] = Column { (value, meta) =>
-      val nullHandler: Function2[Any, MetaDataItem, Option[SqlRequestError]] = (v, meta) => {
-        val MetaDataItem(qualified, nullable, clazz) = meta
-        if (!nullable) Some(UnexpectedNullableFound(qualified)) else None
-      }
-      nullHandler(value, meta).toLeft(value).right.flatMap { value =>
-        if (value != null) transformer(value, meta).map(Some(_))
-        else (Right(None): MayErr[SqlRequestError, Option[T]])
-      }
+      if (value != null) transformer(value, meta).map(Some(_)) else (Right(None): MayErr[SqlRequestError, Option[T]])
     }
 
   }
