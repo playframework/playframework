@@ -19,7 +19,7 @@ public class TestBrowser extends Fluent {
      * @param webDriver The WebDriver instance to use.
      */
     public TestBrowser(Class<? extends WebDriver> webDriver) throws Exception {
-        this(webDriver.newInstance());
+        this(play.api.test.WebDriverFactory.apply(webDriver));
     }
     
     /**
