@@ -52,7 +52,7 @@ object EnumeratorsSpec extends Specification {
       import play.api.libs.concurrent.Promise
     var pp:Enumerator.Pushee[Int] = null
     val e = Enumerator.pushee[Int]((p => pp =p ))
-    val hub = Enumerator.hub(e)
+    val hub = Concurrent.hub(e)
     val i1 = Iteratee.fold[Int,Int](0){(s,i) => println(i);s+i}
     val c = Iteratee.fold[Int,Int](0){(s,i) => s+1}
     val sum = hub.getPatchCord() |>> i1
@@ -71,8 +71,8 @@ object EnumeratorsSpec extends Specification {
 
   "allow to patch in different Enumerators" in {
       import play.api.libs.concurrent.Promise
-    var pp:Enumerator.PatchPanel[Int] = null
-    val e = Enumerator.patchPanel[Int](p => pp = p)
+    var pp:Concurrent.PatchPanel[Int] = null
+    val e = Concurrent.patchPanel[Int](p => pp = p)
     val i1 = Iteratee.fold[Int,Int](0){(s,i) => println(i);s+i}
     val sum = e |>> i1
     pp.patchIn(Enumerator(1,2,3,4))
