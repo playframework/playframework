@@ -54,6 +54,8 @@ object Assets extends Controller {
 
       resource.map {
 
+        case (url, _) if new File(url.toURI).isDirectory => Forbidden
+
         case (url, isGzipped) => {
 
           lazy val (length, resourceData) = {
