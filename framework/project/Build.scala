@@ -75,7 +75,7 @@ object PlayBuild extends Build {
       settings = buildSettings ++ Seq(
         sbtPlugin := true,
         libraryDependencies := sbtDependencies,
-        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-RC1"),
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
