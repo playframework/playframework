@@ -74,9 +74,6 @@ class FunctionalSpec extends Specification {
 
         // --- Javascript Reverse Router
 
-        browser.webDriver match {
-          case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
-        }
         browser.goTo("http://localhost:9001/javascript-test?name=guillaume")
 
         browser.$("#route-url").click()
