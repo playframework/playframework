@@ -42,7 +42,7 @@ object Assets extends Controller {
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
-    if (!new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath) || new File(resourceName).getCanonicalPath.isDirectory) {
+    if (!new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath) || new File(new File(resourceName).getCanonicalPath).isDirectory) {
       Forbidden
     } else {
 
