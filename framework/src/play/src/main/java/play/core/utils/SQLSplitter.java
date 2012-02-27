@@ -137,6 +137,34 @@ public class SQLSplitter implements Iterable<CharSequence> {
 		}
 	}
 
+	static int consumeParentheses(final CharSequence s, int start) {
+		if ( start >= s.length() ) return start;
+		switch ( s.charAt(start) ) {
+			case '(':
+				++start;
+				while ( start < s.length() ) {
+					if ( s.charAt(start) == ')' )
+						return start + 1;
+					start = nextChar(s, start);
+				}
+				break;
+			default:
+				break;
+		}
+		return start;
+	}
+
+	static int nextChar(final CharSequence sql, final int start) {
+		int i = consumeParentheses(sql, consumeComment(sql, consumeQuote(sql, start)));
+		if ( i == start ) return Math.min(start + 1, sql.length());
+		do {
+			final int j = consumeParentheses(sql, consumeComment(sql, consumeQuote(sql, i)));
+			if ( j == i )
+				return i;
+			i = j;
+		} while ( true );
+	}
+
 	/**
 	 * Splits the SQL "properly" based on semicolons. Respecting quotes and comments.
 	 */
@@ -169,13 +197,7 @@ public class SQLSplitter implements Iterable<CharSequence> {
 						prev = i;
 						return ret;
 					}
-					do {
-						final int j = consumeComment(sql, consumeQuote(sql, i));
-						if ( j == i )
-							break;
-						i = j;
-					} while ( true );
-					++i;
+					i = nextChar(sql, i);
 				}
 				if ( prev != i ) {
 					CharSequence ret = sql.subSequence(prev, i);
