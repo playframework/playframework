@@ -360,6 +360,8 @@ package anorm {
   case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])], defaultParser: RowParser[T]) extends Sql {
 
     def on(args: (Any, ParameterValue[_])*): SimpleSql[T] = this.copy(params = (this.params) ++ args.map {
+      case (k, null) => (k, None)
+      case (s: Symbol,  null) => (k.name, None)
       case (s: Symbol, v) => (s.name, v)
       case (k, v) => (k.toString, v)
     })
