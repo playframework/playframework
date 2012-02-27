@@ -41,6 +41,8 @@ object Concurrent {
     def noCords(): Boolean
 
     def close()
+
+    def closed():Boolean
   }
 
 
@@ -50,6 +52,8 @@ object Concurrent {
     import scala.concurrent.stm._
 
     val iteratees: Ref[List[(Iteratee[E, _], Redeemable[Iteratee[E, _]])]] = Ref(List())
+
+    val started = Ref(false)
 
     var closeFlag = false
 
@@ -113,7 +117,7 @@ object Concurrent {
 
       })
     }
-    e |>> Cont(step)
+    
 
     new Hub[E] {
 
@@ -123,11 +127,14 @@ object Concurrent {
         closeFlag = true
       }
 
+      def closed() = closeFlag
+
       def getPatchCord() = new Enumerator[E] {
 
         def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
-
           val result = Promise[Iteratee[E, A]]()
+          val alreadyStarted = started.single.getAndTransform(_ => true)
+          if(!alreadyStarted) e |>> Cont(step)
           iteratees.single.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
           result
 

@@ -628,6 +628,8 @@ object Enumeratee {
 
   }
 
+
+
   def collect[From] = new {
 
     def apply[To](transformer: PartialFunction[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
