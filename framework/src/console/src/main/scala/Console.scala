@@ -108,8 +108,8 @@ object Console {
             |
             |These commands are available:
             |-----------------------------
-            |license        Display licensing informations.
-            |new            Create a new Play application in the current directory.
+            |license            Display licensing informations.
+            |new [directory]    Create a new Play application in the specified directory.
             |
             |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin, 0)
   }
