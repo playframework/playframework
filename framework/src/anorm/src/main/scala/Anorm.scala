@@ -26,8 +26,7 @@ package object anorm {
 
 package anorm {
 
-  import utils.Scala.MayErr
-  import utils.Scala.MayErr._
+  import MayErr._
   import java.util.Date
 
   abstract class SqlRequestError
@@ -65,17 +64,17 @@ package anorm {
     override def toString() = "NotAssigned"
   }
 
-  trait Column[A] extends ((Any, MetaDataItem) => utils.Scala.MayErr[SqlRequestError, A])
+  trait Column[A] extends ((Any, MetaDataItem) => MayErr[SqlRequestError, A])
 
   object Column {
 
-    def apply[A](transformer: ((Any, MetaDataItem) => utils.Scala.MayErr[SqlRequestError, A])): Column[A] = new Column[A] {
+    def apply[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = new Column[A] {
 
-      def apply(value: Any, meta: MetaDataItem): utils.Scala.MayErr[SqlRequestError, A] = transformer(value, meta)
+      def apply(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, A] = transformer(value, meta)
 
     }
 
-    def nonNull[A](transformer: ((Any, MetaDataItem) => utils.Scala.MayErr[SqlRequestError, A])): Column[A] = Column[A] {
+    def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
       case (value, meta @ MetaDataItem(qualified, _, _)) =>
         if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
     }
