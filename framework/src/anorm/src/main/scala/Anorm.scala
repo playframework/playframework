@@ -361,7 +361,7 @@ package anorm {
 
     def on(args: (Any, ParameterValue[_])*): SimpleSql[T] = this.copy(params = (this.params) ++ args.map {
       case (k, null) => (k, None)
-      case (s: Symbol,  null) => (k.name, None)
+      case (s: Symbol,  null) => (s.name, None)
       case (s: Symbol, v) => (s.name, v)
       case (k, v) => (k.toString, v)
     })
