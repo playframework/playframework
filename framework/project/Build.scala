@@ -74,10 +74,11 @@ object PlayBuild extends Build {
       file("src/sbt-plugin"),
       settings = buildSettings ++ Seq(
         sbtPlugin := true,
+        publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
         addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0"),
         unmanagedJars in Compile ++= sbtJars,
-        publishTo := Some(playRepository),
+        publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
         javacOptions ++= Seq("-encoding", "utf8"),
         publishArtifact in (Compile, packageDoc) := false,
@@ -155,11 +156,18 @@ object PlayBuild extends Build {
 
     object Resolvers {
         import BuildSettings._
+        
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns) 
+        
         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-        val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/ivy-releases/"
-        val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/ivy-snapshots/"
+        
+        val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/maven-releases/"
+        val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/maven-snapshots/"
         val playRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeSnapshot else typesafeReleases
+        
+        val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("http://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns) 
+        val typesafeIvySnapshot = Resolver.url("Typesafe Ivy Snapshots Repository", url("http://repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns) 
+        val playIvyRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeIvySnapshot else typesafeIvyReleases
     }
 
     object Dependencies {
