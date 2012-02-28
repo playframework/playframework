@@ -487,7 +487,7 @@ package anorm {
         MetaDataItem(column = ({
 
           // HACK FOR POSTGRES
-          if (meta.getClass.getName == "org.postgresql.PGResultSetMetaData") {
+          if (meta.getClass.getName.startsWith("org.postgresql.")) {
             meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
           } else {
             meta.getTableName(i)

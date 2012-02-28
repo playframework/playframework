@@ -49,7 +49,7 @@ class ApplicationSpec extends Specification {
     "not serve asset directories" in {
       running(FakeApplication()) {
         val Some(result) = routeAndCall(FakeRequest(GET, "/public//"))
-        status(result) must equalTo (FORBIDDEN)
+        status(result) must equalTo (NOT_FOUND)
       }
     }
    
