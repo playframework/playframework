@@ -335,7 +335,7 @@ public class Http {
      */
     public static class RequestBody {
         
-        public boolean isMaxSizeExcedeed() {
+        public boolean isMaxSizeExceeded() {
             return false;
         }
         
