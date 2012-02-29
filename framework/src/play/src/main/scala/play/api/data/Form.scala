@@ -326,8 +326,8 @@ private[data] object FormUtils {
     case JsNull => Map.empty
     case JsUndefined(_) => Map.empty
     case JsBoolean(value) => Map(prefix -> value.toString)
-    case JsNumber(value) => Map(prefix -> value.toString)
     case JsString(value) => Map(prefix -> value.toString)
+    case other => Map(prefix -> Json.stringify(other))
   }
 
 }
