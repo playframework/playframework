@@ -22,21 +22,21 @@ On windows systems you'll need to set it in the global environment variables.
 
 Enter any existing Play 2.0 application directory and use the `play` command to launch the development console:
 
-```
+```bash
 $ cd ~/workspace/myApplication
 $ play
 ```
 
 You can also directly use `play run` to run the application:
 
-```
+```bash
 $ cd ~/workspace/myApplication
 $ play run
 ```
 
 Use `play new yourNewApplication` to create a new application:
 
-```
+```bash
 $ cd ~/workspace
 $ play new myNewApplication
 ```
@@ -52,7 +52,7 @@ $ play
 
 There are several samples applications included in the `samples/` directory. For example, to run the included Scala Hello World application:
 
-```
+```bash
 $ cd ~/workspace/play2.0/samples/scala/helloworld/
 $ play run
 ```
