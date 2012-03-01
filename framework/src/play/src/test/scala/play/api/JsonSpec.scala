@@ -119,3 +119,171 @@ object JsonSpec extends Specification {
   }
 
 }
+
+object JsonModifierSpec extends Specification {
+  val globalJson = JsObject(
+    List(
+      "title" -> JsString("Acme"),
+      "author" -> JsObject(
+        List(
+          "firstname" -> JsString("Bugs"),
+          "lastname" -> JsString("Bunny")
+          )
+        ),
+      "tags" -> JsArray(
+        List[JsValue](
+          JsString("Awesome article"),
+          JsString("Must read"),
+          JsString("Playframework"),
+          JsString("Rocks")
+          )
+        )
+      )
+    )
+  "JsonModifier" should {
+    "JsonLookup can get a single item" in {
+      globalJson.get(ObjectAccessor("title")) must equalTo(JsString("Acme"))
+    }
+    "JsonLookup can look in depth for an item" in {
+      globalJson.get(ObjectAccessor("author") \ "firstname") must
+        equalTo(JsString("Bugs"))
+    }
+    "JsonLookup can look in an array" in {
+      globalJson.get(ObjectAccessor("tags") * 2) must equalTo(JsString("Playframework"))
+    }
+
+    "JsonModifier can modify a single item" in {
+      globalJson.replace(ObjectAccessor("title"), JsString("Acme more")) must
+        equalTo(
+        JsObject(
+          List(
+            "title" -> JsString("Acme more"),
+            "author" -> JsObject(
+              List(
+                "firstname" -> JsString("Bugs"),
+                "lastname" -> JsString("Bunny")
+                )
+              ),
+            "tags" -> JsArray(
+              List[JsValue](
+                JsString("Awesome article"),
+                JsString("Must read"),
+                JsString("Playframework"),
+                JsString("Rocks")
+                )
+              )
+            )
+          )
+        )
+    }
+
+    "JsonModifier can modify an object item" in {
+      globalJson.replace(ObjectAccessor("author"), JsString("Bugs bunny")) must
+        equalTo(
+        JsObject(
+          List(
+            "title" -> JsString("Acme"),
+            "author" -> JsString("Bugs bunny"),
+            "tags" -> JsArray(
+              List[JsValue](
+                JsString("Awesome article"),
+                JsString("Must read"),
+                JsString("Playframework"),
+                JsString("Rocks")
+                )
+              )
+            )
+          )
+        )
+    }
+
+    "JsonModifier can modify an array item" in {
+      globalJson.replace(ObjectAccessor("tags") * 0, JsString("Really Awesome article")) must
+        equalTo(
+        JsObject(
+          List(
+            "title" -> JsString("Acme"),
+            "author" -> JsObject(
+              List(
+                "firstname" -> JsString("Bugs"),
+                "lastname" -> JsString("Bunny")
+                )
+              ),
+            "tags" -> JsArray(
+              List[JsValue](
+                JsString("Really Awesome article"),
+                JsString("Must read"),
+                JsString("Playframework"),
+                JsString("Rocks")
+                )
+              )
+            )
+          )
+        )
+    }
+
+    "JsonModifier can use callbacks" in {
+      globalJson.replace(ObjectAccessor("title"), ((old: JsValue) => old match {
+        case JsString(content) => JsString(content.toUpperCase)
+        case _ => JsUndefined("not found")
+        })
+      ) must
+        equalTo(
+        JsObject(
+          List(
+            "title" -> JsString("ACME"),
+            "author" -> JsObject(
+              List(
+                "firstname" -> JsString("Bugs"),
+                "lastname" -> JsString("Bunny")
+                )
+              ),
+            "tags" -> JsArray(
+              List[JsValue](
+                JsString("Awesome article"),
+                JsString("Must read"),
+                JsString("Playframework"),
+                JsString("Rocks")
+                )
+              )
+            )
+          )
+        )
+    }
+
+    "JsonModifier can use callbacks and modify again inside" in {
+      globalJson.replace(ObjectAccessor("tags"), ((old: JsValue) => old match {
+        case o: JsArray => o.replace(
+            ArrayAccessor(0), 
+            JsString("First")
+          ).replace(
+            ArrayAccessor(1), 
+            JsString("Second"))
+        case _ => JsUndefined("not found")
+        })
+      ) must
+        equalTo(
+        JsObject(
+          List(
+            "title" -> JsString("Acme"),
+            "author" -> JsObject(
+              List(
+                "firstname" -> JsString("Bugs"),
+                "lastname" -> JsString("Bunny")
+                )
+              ),
+            "tags" -> JsArray(
+              List[JsValue](
+                JsString("First"),
+                JsString("Second"),
+                JsString("Playframework"),
+                JsString("Rocks")
+                )
+              )
+            )
+          )
+        )
+    }
+  }
+}
+

@@ -52,7 +52,27 @@ sealed trait JsValue {
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
 
+  lazy val NonExistantItem = JsUndefined("You were on the brink of collapse and just moved a step forward")
+
+  // Helper methods
+  def get(acc: Accessor): JsValue = get(AccessorStack(List(acc)))
+
+  def get(acc: AccessorStack): JsValue  = acc.stack match{
+    case el :: _ => NonExistantItem
+    case _ => this
+  }
+
   override def toString = Json.stringify(this)
+
+  // Helper methods
+  def replace(acc: Accessor, r: JsValue): JsValue = replace(AccessorStack(List(acc)), r)
+  def replace(acc: Accessor, modifier: (JsValue => JsValue)): JsValue = replace(AccessorStack(List(acc)), modifier)
+  def replace(acc: AccessorStack, r: JsValue): JsValue = replace(acc, ((_:JsValue) => r))
+
+  def replace(acc: AccessorStack, modifier: (JsValue => JsValue)): JsValue = acc.stack match {
+    case List() => modifier(this)
+    case _ => JsUndefined("Wrong path")
+  }
 
 }
 
@@ -85,6 +105,20 @@ case class JsString(value: String) extends JsValue
  * Represent a Json arayy value.
  */
 case class JsArray(value: List[JsValue] = List()) extends JsValue {
+  override def replace(acc: AccessorStack, modifier: (JsValue => JsValue)): JsValue = acc.stack match {
+    case ArrayAccessor(index) :: rest => {
+      val replacement = apply(index).replace(AccessorStack(rest), modifier)
+      val beforeElements = value.take(index)
+      val afterElements = value.drop(index+1)
+      JsArray((beforeElements:+replacement) ++ afterElements)
+    }
+    case _ => super.replace(acc, modifier)
+  }
+
+  override def get(acc: AccessorStack): JsValue = acc.stack match{
+    case ArrayAccessor(index) :: rest => apply(index).get(AccessorStack(rest))
+    case _ => NonExistantItem
+  }
 
   /**
    * Access a value of this array.
@@ -123,6 +157,49 @@ case class JsArray(value: List[JsValue] = List()) extends JsValue {
  * Represent a Json object value.
  */
 case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
+  override def replace(acc: AccessorStack, modifier: (JsValue => JsValue)): JsValue = {
+    acc.stack match {
+    case ObjectAccessor(name) :: rest => {
+      lazy val replacement = \(name).replace(AccessorStack(rest), modifier)
+
+      JsObject({
+        val maybeReplaced = fields.foldLeft[Either[Seq[(String,JsValue)],Seq[(String,JsValue)]]](Left(Seq[(String, JsValue)]()))(
+          // Extract fold elements
+          (i, e) => e match {
+            // Extract current element key + value
+            case (k, v) => i match {
+              // We didn't found the key yet
+              case Left(l) => k match {
+                // Found it, return right saying we've just found it
+                case key if key == name => Right(l :+ (name -> replacement))
+                // Continue appending to the sec
+                case _ => Left(l :+ e)
+              }
+              // Already found it, continue appending
+              case Right(r) => Right(r :+ e)
+            }
+            // Should never ever append as e should be (String, Jsvalue) and match
+            // First case
+            case _ => i
+          }
+        )
+        maybeReplaced match {
+          // Key not found
+          case Left(l) => l :+ (name -> replacement)
+
+          // Key has been found and replaced
+          case Right(r) => r
+        }
+      })
+    }
+    case _ => super.replace(acc, modifier)
+  }}
+
+  override def get(acc: AccessorStack): JsValue = acc.stack match {
+    case List(ObjectAccessor(name)) => \(name)
+    case ObjectAccessor(name) :: rest => \(name).get(AccessorStack(rest))
+    case e => super.get(acc)
+  }
 
   lazy val value: Map[String, JsValue] = fields.toMap
 
