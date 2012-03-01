@@ -46,5 +46,41 @@ object EnumeratorsSpec extends Specification {
 
 }
 
+"Enumerator's Hub" should {
+
+  "share Enumerator with different iteratees" in {
+      import play.api.libs.concurrent.Promise
+    var pp:Enumerator.Pushee[Int] = null
+    val e = Enumerator.pushee[Int]((p => pp =p ))
+    val hub = Concurrent.hub(e)
+    val i1 = Iteratee.fold[Int,Int](0){(s,i) => println(i);s+i}
+    val c = Iteratee.fold[Int,Int](0){(s,i) => s+1}
+    val sum = hub.getPatchCord() |>> i1
+    pp.push(1);
+    val count = hub.getPatchCord() |>> c
+  pp.push(1); pp.push(1); pp.push(1); pp.close()
+
+    sum.flatMap(_.run).value.get must equalTo(4)
+    count.flatMap(_.run).value.get must equalTo(3)
+
+  }
+
+}
+
+"Enumerator's PatchPanel" should {
+
+  "allow to patch in different Enumerators" in {
+      import play.api.libs.concurrent.Promise
+    var pp:Concurrent.PatchPanel[Int] = null
+    val e = Concurrent.patchPanel[Int](p => pp = p)
+    val i1 = Iteratee.fold[Int,Int](0){(s,i) => println(i);s+i}
+    val sum = e |>> i1
+    pp.patchIn(Enumerator(1,2,3,4))
+    pp.patchIn(Enumerator.eof)
+    sum.flatMap(_.run).value.get must equalTo(10)
+
+  }
+
+}
 }
 

@@ -1,7 +1,7 @@
 package sbt
 
 trait PlayKeys {
-  
+
   val distDirectory = SettingKey[File]("play-dist")
 
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")

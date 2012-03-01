@@ -335,7 +335,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Creates a Test Browser.
      */
     public static TestBrowser testBrowser() {
-        return new TestBrowser(new HtmlUnitDriver());
+        return testBrowser(HTMLUNIT);
     }
     
     /**

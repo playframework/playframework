@@ -63,110 +63,163 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def headers = rHeaders
           def username = None
         }
+
         // converting netty response to play's
-        val response = server.response(websocketableRequest) {
+        val response = new Response {
 
-          case r @ SimpleResult(ResponseHeader(status, headers), body) => {
-            val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+          def handle(result: Result) {
+            result match {
 
-            // Set response headers
-            headers.foreach {
-
-              // Fix a bug for Set-Cookie header. 
-              // Multiple cookies could be merged in a single header
-              // but it's not properly supported by some browsers
-              case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-                nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
+              case AsyncResult(p) => p.extend1 {
+                case Redeemed(v) => handle(v)
+                case Thrown(e) => {
+                  Logger("play").error("Waiting for a promise, but got an error: " + e.getMessage, e)
+                  handle(Results.InternalServerError)
+                }
               }
 
-              case (name, value) => nettyResponse.setHeader(name, value)
-            }
+              case r @ SimpleResult(ResponseHeader(status, headers), body) if (!websocketableRequest.check) => {
+                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
 
-            // Response header Connection: Keep-Alive is needed for HTTP 1.0
-            if (keepAlive && version == HttpVersion.HTTP_1_0) {
-              nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
-            }
+                Logger("play").trace("Sending simple result: " + r)
 
-            // Stream the result
-            headers.get(CONTENT_LENGTH).map { contentLength =>
+                // Set response headers
+                headers.foreach {
 
-              val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
-
-              val bodyIteratee = {
-                val writeIteratee = Iteratee.fold1(NettyPromise(e.getChannel.write(nettyResponse)))((_, e: r.BODY_CONTENT) => writer(e))
-
-                Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected()).transform(writeIteratee).mapDone { _ =>
-                  if (e.getChannel.isConnected()) {
-                    if (!keepAlive) e.getChannel.close()
+                  // Fix a bug for Set-Cookie header. 
+                  // Multiple cookies could be merged in a single header
+                  // but it's not properly supported by some browsers
+                  case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
+                    nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
                   }
-                }
-              }
 
-              body(bodyIteratee)
-
-            }.getOrElse {
-
-              // No Content-Length header specified, buffer in-memory
-              val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-              val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
-              val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-              val p = body |>> stringIteratee
-              p.flatMap(i => i.run)
-                .onRedeem { buffer =>
-                  nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
-                  nettyResponse.setContent(buffer)
-                  val f = e.getChannel.write(nettyResponse)
-                  if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                  case (name, value) => nettyResponse.setHeader(name, value)
                 }
 
-            }
-
-          }
-
-          case r @ ChunkedResult(ResponseHeader(status, headers), chunks) => {
-            val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
-
-            // Copy headers to netty response
-            headers.foreach {
-
-              // Fix a bug for Set-Cookie header. 
-              // Multiple cookies could be merged in a single header
-              // but it's not properly supported by some browsers
-              case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-
-                import scala.collection.JavaConverters._
-                import play.api.mvc._
-
-                nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
-
-              }
-
-              case (name, value) => nettyResponse.setHeader(name, value)
-            }
-
-            nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
-            nettyResponse.setChunked(true)
-
-            val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
-
-            val chunksIteratee = {
-              val writeIteratee = Iteratee.fold1(NettyPromise(e.getChannel.write(nettyResponse)))((_, e: r.BODY_CONTENT) => writer(e))
-              Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { _ =>
-                if (e.getChannel.isConnected()) {
-                  val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
-                  if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                // Response header Connection: Keep-Alive is needed for HTTP 1.0
+                if (keepAlive && version == HttpVersion.HTTP_1_0) {
+                  nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
                 }
+
+                // Stream the result
+                headers.get(CONTENT_LENGTH).map { contentLength =>
+
+                  val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => {
+                    if (e.getChannel.isConnected())
+                      NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                        .map(_ => ())
+                    else Promise.pure(())
+                  }
+
+                  val bodyIteratee = {
+                    val writeIteratee = Iteratee.fold1(
+                      if (e.getChannel.isConnected())
+                        NettyPromise( e.getChannel.write(nettyResponse))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                        .map(_ => ())
+                      else Promise.pure(()))((_, e: r.BODY_CONTENT) => writer(e))
+
+                    Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected()).transform(writeIteratee).mapDone { _ =>
+                      if (e.getChannel.isConnected()) {
+                        if (!keepAlive) e.getChannel.close()
+                      }
+                    }
+                  }
+
+                  body(bodyIteratee)
+
+                }.getOrElse {
+
+                  // No Content-Length header specified, buffer in-memory
+                  val channelBuffer = ChannelBuffers.dynamicBuffer(512)
+                  val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
+                  val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
+                  val p = body |>> stringIteratee
+                  p.flatMap(i => i.run)
+                    .onRedeem { buffer =>
+                      nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
+                      nettyResponse.setContent(buffer)
+                      val f = e.getChannel.write(nettyResponse)
+                      if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                    }
+
+                }
+
               }
+
+              case r @ ChunkedResult(ResponseHeader(status, headers), chunks) => {
+
+                Logger("play").trace("Sending chunked result: " + r)
+
+                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+
+                // Copy headers to netty response
+                headers.foreach {
+
+                  // Fix a bug for Set-Cookie header. 
+                  // Multiple cookies could be merged in a single header
+                  // but it's not properly supported by some browsers
+                  case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
+
+                    import scala.collection.JavaConverters._
+                    import play.api.mvc._
+
+                    nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
+
+                  }
+
+                  case (name, value) => nettyResponse.setHeader(name, value)
+                }
+
+                nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
+                nettyResponse.setChunked(true)
+
+
+                val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => {
+                    if (e.getChannel.isConnected())
+                      NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                        .map(_ => ())
+                    else Promise.pure(())
+                  }
+
+                  val chunksIteratee = {
+                    val writeIteratee = Iteratee.fold1(
+                      if (e.getChannel.isConnected())
+                        NettyPromise( e.getChannel.write(nettyResponse))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                        .map(_ => ())
+                      else Promise.pure(()))((_, e: r.BODY_CONTENT) => writer(e))
+
+
+                  Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { _ =>
+                    if (e.getChannel.isConnected()) {
+                      val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
+                      if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                    }
+                  }
+                  }
+
+                chunks(chunksIteratee)
+
+              }
+
+              case _ =>
+                val channelBuffer = ChannelBuffers.dynamicBuffer(512)
+                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(500))
+                nettyResponse.setContent(channelBuffer)
+                nettyResponse.setHeader(CONTENT_LENGTH, 0)
+                val f = e.getChannel.write(nettyResponse)
+                if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
             }
-
-            chunks(chunksIteratee)
-
           }
         }
         // get handler for request
         val handler = server.getHandlerFor(requestHeader)
 
         handler match {
+
           //execute normal action
           case Right((action: Action[_], app)) => {
 
@@ -245,8 +298,14 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 }
 
             eventuallyResultOrRequest.extend(_.value match {
-              case Redeemed(Left(result)) => response.handle(result)
-              case Redeemed(Right(request)) => server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+              case Redeemed(Left(result)) => {
+                Logger("play").trace("Got direct result from the BodyParser: " + result)
+                response.handle(result)
+              }
+              case Redeemed(Right(request)) => {
+                Logger("play").trace("Invoking action with request: " + request)
+                server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+              }
               case error => {
                 Logger("play").error("Cannot invoke the action, eventually got an error: " + error)
                 response.handle(Results.InternalServerError)
@@ -268,6 +327,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case e => e.printStackTrace
             }
           }
+
           //handle bad websocket request
           case Right((WebSocket(_), _)) => {
 
@@ -275,10 +335,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             response.handle(Results.BadRequest)
           }
+
           //handle errors
           case Left(e) => {
 
-            Logger("play").trace("No handler, got direct error: " + e)
+            Logger("play").trace("No handler, got direct result: " + e)
 
             response.handle(e)
           }

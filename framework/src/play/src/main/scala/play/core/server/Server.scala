@@ -25,7 +25,7 @@ trait WebSocketable {
  * provides generic server behaviour for Play applications
  */
 trait Server {
-  
+
   // First delete the default log file for a fresh start
   try {
     scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
@@ -37,35 +37,18 @@ trait Server {
   Logger.configure(
     Map("application.home" -> applicationProvider.path.getAbsolutePath),
     mode = mode)
-    
+
   // Start the main Invoker
   Invoker.init(applicationProvider)
-  
+
   // Get a reference on the Action invoker
   val invoker = Invoker.actionInvoker
-  
+
   val bodyParserTimeout = {
     Configuration(Invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
   }
 
   def mode: Mode.Mode
-
-  def response(webSocketableRequest: WebSocketable)(otheResults: PartialFunction[Result, Unit]) = new Response {
-
-    val websocketErrorResult: PartialFunction[Result, Unit] = { case _ if (webSocketableRequest.check) => handle(Results.BadRequest) }
-
-    val asyncResult: PartialFunction[Result, Unit] = {
-      case AsyncResult(p) => p.extend1 {
-        case Redeemed(v) => handle(v)
-        case Thrown(e) => {
-          Logger("play").error("Waiting for a promise, but got an error: " + e.getMessage, e)
-          handle(Results.InternalServerError)
-        }
-      }
-    }
-
-    def handle(result: Result) = (asyncResult orElse websocketErrorResult orElse otheResults)(result)
-  }
 
   def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
 
@@ -113,7 +96,7 @@ trait Server {
   }
 
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    val future = ask(invoker, Invoker.GetBodyParser(requestHeaders, bodyFunction),bodyParserTimeout)
+    val future = ask(invoker, Invoker.GetBodyParser(requestHeaders, bodyFunction), bodyParserTimeout)
     future.asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
   }
 

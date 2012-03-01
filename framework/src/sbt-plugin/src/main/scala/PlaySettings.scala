@@ -148,7 +148,7 @@ trait PlaySettings {
     routesImport := Seq.empty[String],
 
     playIntellij <<= playIntellijTask,
-    
+
     playHash <<= playHashTask,
 
     // Assets

@@ -160,6 +160,14 @@ object Router {
             Some(route.call.pos.column))
         }
 
+        if (route.call.controller.isEmpty) {
+          throw RoutesCompilationError(
+            file,
+            "Missing Controller",
+            Some(route.call.pos.line),
+            Some(route.call.pos.column))
+        }
+
         route.path.parts.collect {
           case part @ DynamicPart(name, regex) => {
             route.call.parameters.getOrElse(Nil).find(_.name == name).map { p =>
@@ -903,8 +911,8 @@ object Router {
         "(" ~ (several((parentheses | not(")") ~> """.""".r))) ~ commit(")") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
         }
-      } 
-      
+      }
+
       def brackets: Parser[String] = {
         "[" ~ (several((parentheses | not("]") ~> """.""".r))) ~ commit("]") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
@@ -967,13 +975,13 @@ object Router {
         case name ~ t ~ d => Parameter(name, t.getOrElse("String"), d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
       }
 
-      def parameters:Parser[List[Parameter]]  = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
+      def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def call: Parser[HandlerCall]  = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
+      def call: Parser[HandlerCall] = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
         case handler ~ parameters =>
           {
             val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")
-            val className = handler(packageName.split('.').size)
+            val className = try { handler(packageName.split('.').size) } catch { case _ => "" }
             val rest = handler.drop(packageName.split('.').size + 1)
             val field = Option(rest.dropRight(1).mkString(".")).filterNot(_.isEmpty)
             val methodName = rest.takeRight(1).mkString

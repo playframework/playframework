@@ -163,7 +163,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     }
   }
 
-  private def invoke[T](a: T, k: T => Unit): Unit  = STMPromise.invoker ! STMPromise.Invoke(a, k)
+  private def invoke[T](a: T, k: T => Unit): Unit = STMPromise.invoker ! STMPromise.Invoke(a, k)
 
   def redeem(body: => A): Unit = {
     val result = scala.util.control.Exception.allCatch[A].either(body)

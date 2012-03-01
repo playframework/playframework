@@ -129,7 +129,7 @@ object Formats {
           .either({
             val sdf = new SimpleDateFormat(pattern)
             sdf.setLenient(false)
-            sdf.parse(s) 
+            sdf.parse(s)
           }
           )
           .left.map(e => Seq(FormError(key, "error.date", Nil)))

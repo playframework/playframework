@@ -349,10 +349,9 @@ trait Results {
         iteratee => content |>> iteratee)
     }
 
- 
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult[C] = {
       SimpleResult(
-        header = ResponseHeader(status, Map( CONTENT_LENGTH -> "-1")),
+        header = ResponseHeader(status, Map(CONTENT_LENGTH -> "-1")),
         body = content)
     }
 
@@ -504,7 +503,7 @@ trait Results {
   def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
     import java.net.URLEncoder
     val fullUrl = url + Option(queryString).filterNot(_.isEmpty).map { params =>
-      (if(url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair => 
+      (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair =>
         pair._2.map(value => (pair._1 + "=" + URLEncoder.encode(value, "utf-8")))
       }.mkString("&")
     }.getOrElse("")

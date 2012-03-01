@@ -11,14 +11,14 @@ import play.api.libs.concurrent._
  * @param f the socket messages generator
  */
 case class WebSocket[A](f: RequestHeader => (Enumerator[A], Iteratee[A, Unit]) => Unit)(implicit val frameFormatter: WebSocket.FrameFormatter[A]) extends Handler {
-  
+
   /**
    * Returns itself, for better support in the routes file.
    *
    * @return itself
    */
   def apply() = this
-  
+
 }
 
 /**
@@ -72,8 +72,8 @@ object WebSocket {
     WebSocket[A](h => (e, i) => { val (readIn, writeOut) = f(h); e |>> readIn; writeOut |>> i })
   }
 
-  def adapter[A](f: RequestHeader => Enumeratee[A,A])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
-    WebSocket[A](h => (in, out) => {  in &> f(h) |>> out })
+  def adapter[A](f: RequestHeader => Enumeratee[A, A])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
+    WebSocket[A](h => (in, out) => { in &> f(h) |>> out })
   }
 
   /**

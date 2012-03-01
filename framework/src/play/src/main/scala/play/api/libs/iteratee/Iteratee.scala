@@ -4,6 +4,11 @@ import play.api.libs.concurrent._
 
 object Iteratee {
 
+  /**
+   * flatten a [[play.api.libs.concurrent.Promise]] of [[play.api.libs.iteratee.Iteratee]]] into an Iteratee
+   *
+   * @param i a promise of iteratee
+   */
   def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
 
     def fold[B](done: (A, Input[E]) => Promise[B],
@@ -12,7 +17,7 @@ object Iteratee {
   }
 
   /**
-   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function
+   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
    * Example:
    * {{{
@@ -33,6 +38,15 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
+  /**
+   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
+   *
+   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
+   *
+   *
+   * @param state initial state
+   * @param f a function folding the previous state and an input to a new promise of state
+   */
   def fold1[E, A](state: A)(f: (A, E) => Promise[A]): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
@@ -43,10 +57,31 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
+  /**
+   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
+   *
+   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
+   *
+   *
+   * @param state initial state
+   * @param f a function folding the previous state and an input to a new promise of state
+   */
   def fold1[E, A](state: Promise[A])(f: (A, E) => Promise[A]): Iteratee[E, A] = {
     flatten(state.map(s => fold1(s)(f)))
   }
 
+  /**
+   * Create an [[play.api.libs.iteratee.Iteratee]] which consumes and concatenates all Input chunks
+   *
+   * Example:
+   * {{{
+   *   // Get all chunks of input
+   *   def getAll: Iteratee[Array[Byte], Array[Byte]] = Iteratee.consume[Array[Byte]]()
+   * }}}
+   *
+   * Chunks type should be viewable as TraversableOnce
+   *
+   */
   def consume[E] = new {
     def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
       fold[E, Seq[E]](Seq.empty) { (els, chunk) =>
@@ -78,8 +113,25 @@ object Iteratee {
    */
   def ignore[E]: Iteratee[E, Unit] = fold[E, Unit](())((_, _) => ())
 
+  /**
+   * @return an [[play.api.libs.iteratee.Iteratee]] which executes a provided function for every chunk. Returns Done on EOF.
+   *
+   * Example:
+   * {{{
+   *   // Get all chunks of input
+   *   def printChunks: Iteratee[String, Unit] = Iteratee.foreach[String]( s => println(s) )
+   * }}}
+   *
+   * @param f the function that should be executed for every chunk
+   */
   def foreach[E](f: E => Unit): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))
 
+  /**
+   *
+   * @return an [[play.api.libs.iteratee.Iteratee]] which pushes the input into the provided [[play.api.libs.iteratee.Iteratee]], starting over again each time it terminates until an EOF is received, collecting a sequence of results of the different use of the iteratee
+   *
+   * @param i an iteratee used repeatedly to compute a sequence of results
+   */
   def repeat[E, A](i: Iteratee[E, A]): Iteratee[E, Seq[A]] = {
 
     def step(s: Seq[A])(input: Input[E]): Iteratee[E, Seq[A]] = {
@@ -127,6 +179,11 @@ object Input {
 trait Iteratee[E, +A] {
   self =>
 
+  /**
+   * Extracts the computed result of the Iteratee pushing an Input.EOF if necessary
+   *
+   *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
+   */
   def run[AA >: A]: Promise[AA] = fold((a, _) => Promise.pure(a),
     k => k(Input.EOF).fold((a1, _) => Promise.pure(a1),
       _ => sys.error("diverging iteratee after Input.EOF"),
@@ -137,10 +194,23 @@ trait Iteratee[E, +A] {
     Enumerator.enumInput(in) |>> this
   }
 
+  /**
+   *
+   * This method provides the means to check on the state of the Iteratee and eventually extract a value in a Promise
+   * @param done a function that will be called if the Iteratee is a Done
+   * @param cont a function that will be called if the Iteratee is a Cont
+   * @param error a function that will be called if the Iteratee is an Error
+   * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
+   */
   def fold[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B]
 
+  /**
+   * Like fold but taking functions returning pure values (not in promises)
+   *
+   * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
+   */
   def pureFold[B](done: (A, Input[E]) => B,
     cont: (Input[E] => Iteratee[E, A]) => B,
     error: (String, Input[E]) => B): Promise[B] =
@@ -149,6 +219,11 @@ trait Iteratee[E, +A] {
       k => Promise.pure(cont(k)),
       (msg, e) => Promise.pure(error(msg, e)))
 
+  /**
+   * Like pureFold, except taking functions that return an Iteratee
+   *
+   * @return an Iteratee extracted by calling the appropriate provided function
+   */
   def pureFlatFold[B, C](done: (A, Input[E]) => Iteratee[B, C],
     cont: (Input[E] => Iteratee[E, A]) => Iteratee[B, C],
     error: (String, Input[E]) => Iteratee[B, C]): Iteratee[B, C] =
@@ -163,8 +238,19 @@ trait Iteratee[E, +A] {
       k => Cont((in: Input[E]) => k(in).mapDone(f)),
       (err, e) => Error(err, e))
 
+  /**
+   *
+   * Uses the provided function to transform the Iteratee's computed result when the Iteratee is done.
+   *
+   * @param f a function for tranforming the computed result
+   */
   def map[B](f: A => B): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))
 
+  /**
+   * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input
+   *
+   * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
+   */
   def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(
     {
       case (a, Input.Empty) => f(a)
@@ -176,6 +262,9 @@ trait Iteratee[E, +A] {
     k => Cont(in => k(in).flatMap(f)),
     (msg, e) => Error(msg, e))
 
+  /**
+   * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.
+   */
   def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold(
     {
       case (a, Input.Empty) => f(a)
@@ -372,7 +461,7 @@ trait Enumeratee[From, To] {
 
 }
 
-object Enumeratee{
+object Enumeratee {
 
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
@@ -479,16 +568,16 @@ object Enumeratee{
 
   def scanLeft[From] = new {
 
-    def apply[To](seed:To)(f:(To,From) => To):Enumeratee[From,To] = new CheckDone[From,To] {
+    def apply[To](seed: To)(f: (To, From) => To): Enumeratee[From, To] = new CheckDone[From, To] {
 
-      def step[A](lastTo: To )(k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](lastTo: To)(k: K[To, A]): K[From, Iteratee[To, A]] = {
 
         case in @ Input.El(e) =>
-          val next = f(lastTo,e)
+          val next = f(lastTo, e)
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(next)(k)) } &> k(Input.El(next))
 
-        case in@Input.Empty => 
-           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
+        case in @ Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
 
         case Input.EOF => Done(k(Input.EOF), Input.EOF)
 
@@ -500,16 +589,16 @@ object Enumeratee{
 
   def grouped[From] = new {
 
-    def apply[To](folder: Iteratee[From,To]):Enumeratee[From,To] = new CheckDone[From,To] {
+    def apply[To](folder: Iteratee[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
 
-      def step[A](f: Iteratee[From,To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](f: Iteratee[From, To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
 
         case in @ (Input.El(_) | Input.Empty) =>
 
           Iteratee.flatten(f.feed(in)).pureFlatFold(
-            (a,_) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(folder)(k)) } &> k(Input.El(a)),
+            (a, _) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(folder)(k)) } &> k(Input.El(a)),
             kF => Cont(step(Cont(kF))(k)),
-            (msg,e) => Error(msg,in))
+            (msg, e) => Error(msg, in))
 
         case Input.EOF => Done(k(Input.EOF), Input.EOF)
 
@@ -538,6 +627,8 @@ object Enumeratee{
     def continue[A](k: K[E, A]) = Cont(step(k))
 
   }
+
+
 
   def collect[From] = new {
 
@@ -792,7 +883,6 @@ object Enumerator {
 
   import scalax.io.JavaConverters._
 
-
   def fromCallback1[E](retriever: Boolean => Promise[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
@@ -800,7 +890,7 @@ object Enumerator {
 
       var iterateeP = Promise[Iteratee[E, A]]()
 
-      def step(it: Iteratee[E, A],initial:Boolean = false) {
+      def step(it: Iteratee[E, A], initial: Boolean = false) {
 
         val next = it.fold(
           (a, e) => { iterateeP.redeem(it); Promise.pure(None) },
@@ -822,16 +912,15 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
-          case _ => onComplete
+          case _ => onComplete()
         }
 
       }
 
-      step(it,true)
+      step(it, true)
       iterateeP
     }
   }
-
 
   def fromCallback[E](retriever: () => Promise[Option[E]],
     onComplete: () => Unit = () => (),
@@ -862,7 +951,7 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
-          case _ => onComplete
+          case _ => onComplete()
         }
 
       }
@@ -890,7 +979,7 @@ object Enumerator {
   def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = fromStream(new java.io.FileInputStream(file), chunkSize)
 
   def eof[A] = enumInput[A](Input.EOF)
-  
+
   /**
    * Create an Enumerator from a set of values
    *
@@ -912,9 +1001,11 @@ object Enumerator {
         (_, _) => it)))
   }
 
+
+
 }
 
-class PushEnumerator[E] private[iteratee](
+class PushEnumerator[E] private[iteratee] (
     onStart: => Unit = () => (),
     onComplete: => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {

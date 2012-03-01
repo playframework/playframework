@@ -14,8 +14,8 @@ package play.api.libs
  *   def writes(u: User): JsValue = JsObject(List(
  *     "id" -> JsNumber(u.id),
  *     "name" -> JsString(u.name),
- *     "friends" -> JsArray(u.friends.map(fr => JsObject(List("id" -> JsNumber(fr.id), 
- *     "name" -> JsString(fr.name))))))) 
+ *     "friends" -> JsArray(u.friends.map(fr => JsObject(List("id" -> JsNumber(fr.id),
+ *     "name" -> JsString(fr.name)))))))
  * }
  *
  * //then in a controller:
@@ -26,7 +26,7 @@ package play.api.libs
  *    def saveUser(jsonString: String)= Action {
  *      val user = play.api.libs.json.parse(jsonString).as[User]
  *      myDataStore.save(user)
- *      Ok 
+ *      Ok
  *    }
  * }
  * }}}

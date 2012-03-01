@@ -77,7 +77,7 @@ object JavascriptCompiler {
   /**
    * Return all Javascript files in the same directory than the input file, or subdirectories
    */
-  private def allSiblings(source: File):Seq[File] = allJsFilesIn(source.getParentFile())
+  private def allSiblings(source: File): Seq[File] = allJsFilesIn(source.getParentFile())
 
   private def allJsFilesIn(dir: File): Seq[File] = {
     import scala.collection.JavaConversions._

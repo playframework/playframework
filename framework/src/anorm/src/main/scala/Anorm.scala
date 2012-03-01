@@ -26,8 +26,7 @@ package object anorm {
 
 package anorm {
 
-  import utils.Scala.MayErr
-  import utils.Scala.MayErr._
+  import MayErr._
   import java.util.Date
 
   abstract class SqlRequestError
@@ -65,17 +64,17 @@ package anorm {
     override def toString() = "NotAssigned"
   }
 
-  trait Column[A] extends ((Any, MetaDataItem) => utils.Scala.MayErr[SqlRequestError, A])
+  trait Column[A] extends ((Any, MetaDataItem) => MayErr[SqlRequestError, A])
 
   object Column {
 
-    def apply[A](transformer: ((Any, MetaDataItem) => utils.Scala.MayErr[SqlRequestError, A])): Column[A] = new Column[A] {
+    def apply[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = new Column[A] {
 
-      def apply(value: Any, meta: MetaDataItem): utils.Scala.MayErr[SqlRequestError, A] = transformer(value, meta)
+      def apply(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, A] = transformer(value, meta)
 
     }
 
-    def nonNull[A](transformer: ((Any, MetaDataItem) => utils.Scala.MayErr[SqlRequestError, A])): Column[A] = Column[A] {
+    def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
       case (value, meta @ MetaDataItem(qualified, _, _)) =>
         if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
     }
@@ -167,14 +166,7 @@ package anorm {
     }
 
     implicit def rowToOption[T](implicit transformer: Column[T]): Column[Option[T]] = Column { (value, meta) =>
-      val nullHandler: Function2[Any, MetaDataItem, Option[SqlRequestError]] = (v, meta) => {
-        val MetaDataItem(qualified, nullable, clazz) = meta
-        if (!nullable) Some(UnexpectedNullableFound(qualified)) else None
-      }
-      nullHandler(value, meta).toLeft(value).right.flatMap { value =>
-        if (value != null) transformer(value, meta).map(Some(_))
-        else (Right(None): MayErr[SqlRequestError, Option[T]])
-      }
+      if (value != null) transformer(value, meta).map(Some(_)) else (Right(None): MayErr[SqlRequestError, Option[T]])
     }
 
   }
@@ -406,13 +398,14 @@ package anorm {
       val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
       else connection.prepareStatement(sql.query)
       params.foldLeft(statement)((s, ps) => {
-        s.addBatch()
         val argsMap = Map(ps: _*)
-        sql.argsInitialOrder
+        val result = sql.argsInitialOrder
           .map(argsMap)
           .zipWithIndex
           .map(_.swap)
           .foldLeft(s)((s, e) => { e._2.set(s, e._1 + 1); s })
+        s.addBatch()
+        result
       })
     }
 
@@ -456,7 +449,7 @@ package anorm {
 
     def executeUpdate()(implicit connection: java.sql.Connection): Int =
       getFilledStatement(connection).executeUpdate()
-      
+
     def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: java.sql.Connection): A = {
       Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
     }
@@ -491,7 +484,16 @@ package anorm {
       val meta = rs.getMetaData()
       val nbColumns = meta.getColumnCount()
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = (meta.getTableName(i) + "." + meta.getColumnName(i)),
+        MetaDataItem(column = ({
+
+          // HACK FOR POSTGRES
+          if (meta.getClass.getName.startsWith("org.postgresql.")) {
+            meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
+          } else {
+            meta.getTableName(i)
+          }
+
+        } + "." + meta.getColumnName(i)),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }
