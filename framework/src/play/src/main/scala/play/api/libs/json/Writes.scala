@@ -136,16 +136,8 @@ trait DefaultWrites {
   /**
    * Serializer for JsValues.
    */
-  implicit object JsValueWrites extends Writes[JsValue] {
-    def writes(o: JsValue) = o
-    def reads(json: JsValue) = json
-  }
-
-  /**
-   * Serializer for JsObjects.
-   */
-  implicit object JsObjectWrites extends Writes[JsObject] {
-    def writes(o: JsObject) = o
+  implicit def jsValueWrites[T <: JsValue] = new Writes[T] {
+    def writes(o: T) = o
   }
 
   /**
