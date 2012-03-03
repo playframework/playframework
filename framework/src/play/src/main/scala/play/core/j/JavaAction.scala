@@ -54,7 +54,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     }.flatten
 
     val actionMixins = {
-      (method.getDeclaredAnnotations ++ controllerAnnotations).collect {
+      (controllerAnnotations ++ method.getDeclaredAnnotations).collect {
         case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
         case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) => {
           a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
