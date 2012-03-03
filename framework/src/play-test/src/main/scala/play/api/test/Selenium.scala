@@ -8,7 +8,7 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
-import fr.javafreelance.fluentlenium.core._
+import org.fluentlenium.core._
 
 import collection.JavaConverters._
 
@@ -17,19 +17,18 @@ import collection.JavaConverters._
  *
  * @param webDriver The WebDriver instance to use.
  */
-case class TestBrowser(webDriver: WebDriver) extends Fluent(webDriver) {
+case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
 
-  /**
-   * Open an URL.
-   */
-  def goTo(url: String) {
-    getDriver.get(url)
-  }
 
   /**
    * The current page URL.
    */
   override def url = super.url
+
+  /**
+   * The title of the current page.
+   */
+  override def title = super.title
 
   /**
    * The current page HTML source.
@@ -39,19 +38,14 @@ case class TestBrowser(webDriver: WebDriver) extends Fluent(webDriver) {
   /**
    * Retrieves all cookies.
    */
-  def getCookies(): Set[Cookie] = getDriver().manage().getCookies().asScala.toSet
+  override def getCookies(): java.util.Set[Cookie] = super.getCookies
 
   /**
    * Retrieves a cookie.
    */
-  def getCookieNamed(name: String): Cookie = getDriver().manage().getCookieNamed(name)
+  override def getCookie(name: String): Cookie = super.getCookie(name)
 
-  /**
-   * Quits the browser
-   */
-  def quit() {
-    getDriver.quit()
-  }
+
 
 }
 
