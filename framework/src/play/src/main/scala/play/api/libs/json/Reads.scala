@@ -104,7 +104,7 @@ trait DefaultReads {
    */
   implicit def listReads[T](implicit fmt: Reads[T]): Reads[List[T]] = new Reads[List[T]] {
     def reads(json: JsValue) = json match {
-      case JsArray(ts) => ts.map(t => fromJson(t)(fmt))
+      case JsArray(ts) => ts.map(t => fromJson(t)(fmt)).toList
       case _ => throw new RuntimeException("List expected")
     }
   }
@@ -124,7 +124,7 @@ trait DefaultReads {
    */
   implicit def arrayReads[T](implicit fmt: Reads[T], mf: Manifest[T]): Reads[Array[T]] = new Reads[Array[T]] {
     def reads(json: JsValue) = json match {
-      case JsArray(ts) => listToArray(ts.map(t => fromJson(t)(fmt)))
+      case JsArray(ts) => listToArray(ts.map(t => fromJson(t)(fmt)).toList)
       case _ => throw new RuntimeException("Array expected")
     }
   }

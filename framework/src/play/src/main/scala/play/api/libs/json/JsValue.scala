@@ -84,7 +84,7 @@ case class JsString(value: String) extends JsValue
 /**
  * Represent a Json arayy value.
  */
-case class JsArray(value: List[JsValue] = List()) extends JsValue {
+case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
 
   /**
    * Access a value of this array.
