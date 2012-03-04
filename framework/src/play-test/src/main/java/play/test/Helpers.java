@@ -83,7 +83,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Build a new fake application.
      */
     public static FakeApplication fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,String>());
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,String>(), new ArrayList<String>());
     }
     
     /**
@@ -104,9 +104,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Build a new fake application.
      */
     public static FakeApplication fakeApplication(Map<String,String> additionalConfiguration) {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration);
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, new ArrayList<String>());
     }
     
+
+    /**
+     * Build a new fake application.
+     */
+    public static FakeApplication fakeApplication(Map<String,String> additionalConfiguration, List<String> additionalPlugin) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin);
+    }
+
     /**
      * Extracts the Status code of this Result value.
      */
