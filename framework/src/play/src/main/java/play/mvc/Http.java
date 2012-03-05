@@ -85,6 +85,11 @@ public class Http {
         public Flash flash() {
             return flash;
         }
+        
+        /** 
+         * Free space to store your request specific data
+         */
+        public Map<String, Object> args = new HashMap<String, Object>(16);
 
         /**
          * Import in templates to get implicit HTTP context.
@@ -197,11 +202,6 @@ public class Http {
             }
             return headers[0];
         }
-        
-        /** 
-         * Free space to store your request specific data
-         */
-        public Map<String, Object> args = new HashMap<String, Object>(16);
 
         // -- username
 
