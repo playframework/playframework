@@ -210,12 +210,12 @@ object Forms {
    * Constructs a simple mapping for required text field.
    *
    * Note that all field are always required to be present in the form unless
-   * there are marked as optional explicitely. But a requiredText defines text
+   * there are marked as optional explicitely. But a nonEmptyText defines text
    * field that must not be empty, even if present in the form.
    *
    * Example:
    * {{{
-   * Form("username" -> requiredText)
+   * Form("username" -> nonEmptyText)
    * }}}
    */
   val nonEmptyText: Mapping[String] = text verifying Constraints.nonEmpty
@@ -243,7 +243,7 @@ object Forms {
    *
    * Example:
    * {{{
-   * Form("username" -> requiredText(minLength=3))
+   * Form("username" -> nonEmptyText(minLength=3))
    * }}}
    *
    * @param minLength Text min length.
