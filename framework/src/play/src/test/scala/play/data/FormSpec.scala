@@ -33,21 +33,21 @@ object FormSpec extends Specification {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "done" -> Array("true"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "have an error due to baldy formatted date" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11/11")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
 
     }
@@ -55,7 +55,7 @@ object FormSpec extends Specification {
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
 
     }
