@@ -170,6 +170,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
 
   def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
+      case JsNumber(v) if v.remainder(1) == BigDecimal(0) => json.writeNumber(v.longValue)
       case JsNumber(v) => json.writeNumber(v.doubleValue())
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
