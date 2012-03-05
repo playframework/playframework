@@ -59,6 +59,51 @@ object FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
 
     }
+    
+    "apply constraints on wrapped mappings" in {
+      import play.api.data._
+      import play.api.data.Forms._
+      
+      val form = Form(
+          "foo" -> text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
+                     .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
+      )
+      
+      "when it binds data" in {
+        val f1 = form.bind(Map("foo"->"0"))
+        f1.errors.size must equalTo (1)
+        f1.errors.find(_.message == "first.digit") must beSome
+
+        val f2 = form.bind(Map("foo"->"3"))
+        f2.errors.size must equalTo (0)
+
+        val f3 = form.bind(Map("foo"->"50"))
+        f3.errors.size must equalTo (1) // Only one error because "number.42" can’t be applied since wrapped bind failed
+        f3.errors.find(_.message == "first.digit") must beSome
+
+        val f4 = form.bind(Map("foo"->"333"))
+        f4.errors.size must equalTo (1)
+        f4.errors.find(_.message == "number.42") must beSome
+      }
+      
+      "when it is filled with data" in {
+        val f1 = form.fillAndValidate(0)
+        f1.errors.size must equalTo (1)
+        f1.errors.find(_.message == "first.digit") must beSome
+
+        val f2 = form.fillAndValidate(3)
+        f2.errors.size must equalTo (0)
+
+        val f3 = form.fillAndValidate(50)
+        f3.errors.size must equalTo (2)
+        f3.errors.find(_.message == "first.digit") must beSome
+        f3.errors.find(_.message == "number.42") must beSome
+
+        val f4 = form.fillAndValidate(333)
+        f4.errors.size must equalTo (1)
+        f4.errors.find(_.message == "number.42") must beSome
+      }
+    }
   }
 
   "render form using field[Type] syntax" in {
