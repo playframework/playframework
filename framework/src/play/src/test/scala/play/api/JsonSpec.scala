@@ -85,6 +85,14 @@ object JsonSpec extends Specification {
       resultPost must equalTo(expectedPost)
     }
 
+    "Serialize long integers correctly" in {
+      val t = 1330950829160L
+      val m = Map("timestamp" -> t)
+      val jsonM = toJson(m)
+      (jsonM \ "timestamp").as[Long] must equalTo(t)
+      (jsonM.toString must equalTo("{\"timestamp\":1330950829160}"))
+    }
+
     "Map[String,String] should be turned into JsValue" in {
       val f = toJson(Map("k"->"v"))
       f.toString must equalTo("{\"k\":\"v\"}")

@@ -77,6 +77,11 @@ case class JsBoolean(value: Boolean) extends JsValue
 case class JsNumber(value: BigDecimal) extends JsValue
 
 /**
+ * Represent a Json integer number value.
+ */
+case class JsInteger(value: Long) extends JsValue
+
+/**
  * Represent a Json string value.
  */
 case class JsString(value: String) extends JsValue
@@ -171,6 +176,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
   def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
       case JsNumber(v) => json.writeNumber(v.doubleValue())
+      case JsInteger(v) => json.writeNumber(v)
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
       case JsArray(elements) => json.writeObject(elements)
@@ -233,7 +239,9 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
 
     val (maybeValue, nextContext) = (jp.getCurrentToken, parserContext) match {
 
-      case (JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDoubleValue)), c)
+      case (JsonToken.VALUE_NUMBER_INT, c) => (Some(JsInteger(jp.getLongValue)), c)
+
+      case (JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDoubleValue)), c)
 
       case (JsonToken.VALUE_STRING, c) => (Some(JsString(jp.getText)), c)
 
