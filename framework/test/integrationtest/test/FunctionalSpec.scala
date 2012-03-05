@@ -48,6 +48,7 @@ class FunctionalSpec extends Specification {
         browser.pageSource must contain("override akka:2 second")
         browser.pageSource must contain("akka-loglevel:DEBUG")
         browser.pageSource must contain("None")
+        browser.title must beNull
 
         browser.goTo("http://localhost:9001/json_java")
         browser.pageSource must contain ("{\"peter\":\"foo\",\"yay\":\"value\"}")
@@ -64,7 +65,7 @@ class FunctionalSpec extends Specification {
         browser.getCookies.size must equalTo(0)
 
         browser.goTo("http://localhost:9001/cookie")
-        browser.getCookieNamed("foo").getValue must equalTo("bar")
+        browser.getCookie("foo").getValue must equalTo("bar")
 
         browser.goTo("http://localhost:9001/read/foo")
         browser.pageSource must contain("Cookie foo has value: bar")

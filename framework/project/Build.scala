@@ -253,7 +253,7 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             
-            "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"      %  "test"
+            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"      %  "test"
         )
 
         val sbtDependencies = Seq(
@@ -298,7 +298,7 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.7.1",
             "com.novocode"                      %    "junit-interface"          %   "0.8",
             
-            "fr.javafreelance.fluentlenium"     %    "fluentlenium"             %   "0.5.3"
+            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"
         )
 
     }
