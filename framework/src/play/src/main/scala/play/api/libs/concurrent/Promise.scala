@@ -258,8 +258,10 @@ object Promise {
     p
   }
 
-  def sequence[A](promises: Seq[Promise[A]]): Promise[Seq[A]] = {
-    promises.foldLeft(Promise.pure(Seq[A]()))((s, p) => s.flatMap(s => p.map(a => s :+ a)))
+  def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map{ v => Some(v)}}.getOrElse { Promise.pure(None)}
+  
+  def sequence[A, M[_] <: Traversable[_]](in: M[Promise[A]])(implicit cbf: CanBuildFrom[M[Promise[A]], A, M[A]]): Promise[M[A]] = { 
+    in.foldLeft(Promise.pure(cbf(in)): Promise[Builder[A, M[A]]])((fr, fa) => for (r <- fr; a <- fa.asInstanceOf[Promise[A]]) yield (r += a)).map(_.result)
   }
 }
 
