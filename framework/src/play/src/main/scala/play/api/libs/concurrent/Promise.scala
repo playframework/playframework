@@ -8,6 +8,9 @@ import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
 
+import scala.collection.mutable.Builder
+import scala.collection.generic.CanBuildFrom
+
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
 }
