@@ -141,11 +141,10 @@ trait PlayCommands {
   }
 
   val dist = TaskKey[File]("dist", "Build the standalone application package")
-  val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
+  val distTask = (distDirectory, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (dist, root, packaged, dependencies, target, id, version) =>
 
     import sbt.NameFilter._
 
-    val dist = root / "dist"
     val packageName = id + "-" + version
     val zip = dist / (packageName + ".zip")
 
