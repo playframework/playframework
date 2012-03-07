@@ -29,30 +29,18 @@ object Invoker {
   def init(applicationProvider: ApplicationProvider) {
     val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
       ConfigFactory.load()).getOrElse(Configuration.loadDev(applicationProvider.path))
+
     configuredSystem = ActorSystem("play", conf.getConfig("play"))
-    promiseInvoker
-    actionInvoker
+
+    promiseInvoker = configuredSystem.actorOf(Props[play.api.libs.concurrent.STMPromise.PromiseInvoker].withDispatcher("akka.actor.promises-dispatcher").withRouter(RoundRobinRouter(100)), name = "promises")
+    actionInvoker = configuredSystem.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
   }
 
   private var configuredSystem: ActorSystem = _
+  var promiseInvoker: ActorRef = _
+  var actionInvoker: ActorRef = _
 
-  // --
-
-  lazy val system = {
-    Option(configuredSystem).getOrElse {
-      Logger.warn("Missing configuration for Play ActorSystem. Starting a default one.")
-      ActorSystem("play")
-    }
-  }
-
-  lazy val promiseInvoker = {
-    system.actorOf(Props[play.api.libs.concurrent.STMPromise.PromiseInvoker].withDispatcher("akka.actor.promises-dispatcher").withRouter(RoundRobinRouter(100)), name = "promises")
-  }
-
-  lazy val actionInvoker = {
-    system.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
-  }
-
+  def system = configuredSystem
 }
 
 /**
@@ -163,4 +151,3 @@ object Agent {
   }
 
 }
-
