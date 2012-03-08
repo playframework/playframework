@@ -33,21 +33,21 @@ trait DefaultWrites {
    * Serializer for Int types.
    */
   implicit object IntWrites extends Writes[Int] {
-    def writes(o: Int) = JsInteger(o)
+    def writes(o: Int) = JsNumber(o)
   }
 
   /**
    * Serializer for Short types.
    */
   implicit object ShortWrites extends Writes[Short] {
-    def writes(o: Short) = JsInteger(o)
+    def writes(o: Short) = JsNumber(o)
   }
 
   /**
    * Serializer for Long types.
    */
   implicit object LongWrites extends Writes[Long] {
-    def writes(o: Long) = JsInteger(o)
+    def writes(o: Long) = JsNumber(o)
   }
 
   /**
