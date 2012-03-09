@@ -377,6 +377,7 @@ public class Http {
         /**
          * Cast this RequestBody as T if possible.
          */
+        @SuppressWarnings("unchecked")
         public <T> T as(Class<T> tType) {
             if(this.getClass().isAssignableFrom(tType)) {
                 return (T)this;
