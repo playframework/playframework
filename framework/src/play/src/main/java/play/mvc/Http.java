@@ -36,13 +36,6 @@ public class Http {
         private final Session session;
         private final Flash flash;
         
-        private Context() {
-            request = null;
-            response = null;
-            session = null;
-            flash = null;
-        }
-        
         
         /**
          * Creates a new HTTP context.
