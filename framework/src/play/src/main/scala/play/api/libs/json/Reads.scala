@@ -35,7 +35,6 @@ trait DefaultReads {
   implicit object IntReads extends Reads[Int] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => n.toInt
-      case JsInteger(n) => n.toInt
       case _ => throw new RuntimeException("Int expected")
     }
   }
@@ -46,7 +45,6 @@ trait DefaultReads {
   implicit object ShortReads extends Reads[Short] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => n.toShort
-      case JsInteger(n) => n.toShort
       case _ => throw new RuntimeException("Short expected")
     }
   }
@@ -57,7 +55,6 @@ trait DefaultReads {
   implicit object LongReads extends Reads[Long] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => n.toLong
-      case JsInteger(n) => n
       case _ => throw new RuntimeException("Long expected")
     }
   }
