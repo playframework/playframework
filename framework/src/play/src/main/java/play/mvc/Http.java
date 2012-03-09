@@ -131,6 +131,13 @@ public class Http {
                 return play.i18n.Lang.preferred(Context.current().request().acceptLanguages());
             }
             
+            /**
+             * Returns the current context.
+             */
+            public static Context ctx() {
+                return Context.current();
+            }
+            
         }
         
     }
