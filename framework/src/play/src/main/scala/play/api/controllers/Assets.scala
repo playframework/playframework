@@ -10,6 +10,7 @@ import Play.current
 import java.io._
 import scalax.io.{ Resource }
 import java.text.SimpleDateFormat
+import collection.JavaConverters._
 
 /**
  * Controller that serves static resources.
@@ -122,7 +123,7 @@ object Assets extends Controller {
     formatter
   }
 
-  private val lastModifieds = scala.collection.mutable.HashMap.empty[String, String]
+  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
@@ -143,7 +144,7 @@ object Assets extends Controller {
 
   // -- ETags handling
 
-  private val etags = scala.collection.mutable.HashMap.empty[String, String]
+  private val etags = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
 
   private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
