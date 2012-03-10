@@ -10,6 +10,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 import play.libs.F;
+import play.mvc.Http;
 import static play.libs.F.*;
 
 import play.data.validation.*;
@@ -331,8 +332,27 @@ public class Form<T> {
      * Returns the form errors serialized as Json.
      */
     public org.codehaus.jackson.JsonNode errorsAsJson() {
-        return null;
+        return errorsAsJson(Http.Context.Implicit.lang());
     }
+    
+    /**
+     * Returns the form errors serialized as Json using the given Lang.
+     */
+    public org.codehaus.jackson.JsonNode errorsAsJson(play.i18n.Lang lang) {
+        Map<String, List<String>> allMessages = new HashMap<String, List<String>>();
+        for (String key : errors.keySet()) {
+            List<ValidationError> errs = errors.get(key);
+            if (errs != null && !errs.isEmpty()) {
+                List<String> messages = new ArrayList<String>();
+                for (ValidationError error : errs) {
+                    messages.add(play.i18n.Messages.get(lang, error.message(), error.arguments()));
+                }
+                allMessages.put(key, messages);
+            }
+        }
+        return play.libs.Json.toJson(allMessages);
+    }
+    
     
     /**
      * Gets the concrete value if the submission was a success.
