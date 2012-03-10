@@ -92,6 +92,13 @@ object JsonSpec extends Specification {
       (jsonM \ "timestamp").as[Long] must equalTo(t)
       (jsonM.toString must equalTo("{\"timestamp\":1330950829160}"))
     }
+    
+    "Serialize and deserialize BigDecimals" in {
+      val n = BigDecimal("12345678901234567890.42")
+      val json = toJson(n)
+      json must equalTo (JsNumber(n))
+      fromJson[BigDecimal](json) must equalTo (n)
+    }
 
     "Map[String,String] should be turned into JsValue" in {
       val f = toJson(Map("k"->"v"))

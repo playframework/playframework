@@ -63,6 +63,13 @@ trait DefaultWrites {
   implicit object DoubleWrites extends Writes[Double] {
     def writes(o: Double) = JsNumber(o)
   }
+  
+  /**
+   * Serializer for BigDecimal types.
+   */
+  implicit object BigDecimalWrites extends Writes[BigDecimal] {
+    def writes(o: BigDecimal) = JsNumber(o)
+  }
 
   /**
    * Serializer for Boolean types.
