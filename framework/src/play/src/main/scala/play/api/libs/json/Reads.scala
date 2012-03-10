@@ -78,6 +78,16 @@ trait DefaultReads {
       case _ => throw new RuntimeException("Double expected")
     }
   }
+  
+  /**
+   * Deserializer for BigDecimal types.
+   */
+  implicit object BigDecimalReads extends Reads[BigDecimal] {
+    def reads(json: JsValue) = json match {
+      case JsNumber(n) => n
+      case _ => throw new RuntimeException("Number expected")
+    }
+  }
 
   /**
    * Deserializer for Boolean types.
