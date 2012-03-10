@@ -20,8 +20,8 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(Lang lang, String key, Object... args) {
-        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
-        return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)lang);
+        Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        return play.api.i18n.Messages.apply(key, scalaArgs, lang);
     }
     
     /**
@@ -34,8 +34,8 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(String key, Object... args) {
-        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
-        return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)play.mvc.Http.Context.Implicit.lang());
+        Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        return play.api.i18n.Messages.apply(key, scalaArgs, play.mvc.Http.Context.Implicit.lang());
     }
     
 }
