@@ -1,9 +1,20 @@
 package test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.codehaus.jackson.JsonNode;
 import org.junit.*;
 
 import play.mvc.*;
 import play.test.*;
+import play.data.DynamicForm;
+import play.data.validation.ValidationError;
+import play.data.validation.Constraints.RequiredValidator;
+import play.i18n.Lang;
+import play.libs.F;
 import play.libs.F.*;
 
 import static play.test.Helpers.*;
@@ -73,5 +84,24 @@ public class SimpleTest {
             }
         });
     }
-  
+    
+    @Test
+    public void errorsAsJson() {
+        running(fakeApplication(), new Runnable() {
+            @Override
+            public void run() {
+                Lang lang = new Lang(new play.api.i18n.Lang("en", ""));
+                
+                Map<String, List<ValidationError>> errors = new HashMap<String, List<ValidationError>>();
+                List<ValidationError> error = new ArrayList<ValidationError>();
+                error.add(new ValidationError("foo", RequiredValidator.message, new ArrayList<Object>()));
+                errors.put("foo", error);
+                
+                DynamicForm form = new DynamicForm(new HashMap<String, String>(), errors, F.None());
+                
+                JsonNode jsonErrors = form.errorsAsJson(lang);
+                assertThat(jsonErrors.findPath("foo").iterator().next().asText()).isEqualTo(play.i18n.Messages.get(lang, RequiredValidator.message));
+            }
+        });
+    }
 }
