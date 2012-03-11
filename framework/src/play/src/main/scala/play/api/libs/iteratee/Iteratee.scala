@@ -912,7 +912,9 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
-          case _ => onComplete()
+          case Thrown(e) => 
+            iterateeP.throwing(e)
+            onComplete()
         }
 
       }

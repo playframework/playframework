@@ -58,7 +58,6 @@ object Concurrent {
     var closeFlag = false
 
     def step(in: Input[E]): Iteratee[E, Unit] = {
-
       val interested: List[(Iteratee[E, _], Redeemable[Iteratee[E, _]])] = iteratees.single.swap(List())
 
       val commitReady: Ref[List[(Int, (Iteratee[E, _], Redeemable[Iteratee[E, _]]))]] = Ref(List())
@@ -91,7 +90,11 @@ object Concurrent {
               p.redeem(Error(msg, e))
               commitDone.single.transform(_ :+ index)
               Promise.pure(())
-            })
+            }).extend1 {
+              case Redeemed(a) => a
+              case Thrown(e) => p.throwing(e)
+
+            }
       }.fold(Promise.pure()) { (s, p) => s.flatMap(_ => p) }
 
       Iteratee.flatten(ready.map { _ =>
@@ -129,15 +132,41 @@ object Concurrent {
 
       def closed() = closeFlag
 
+      val redeemed = Ref(Waiting : PromiseValue[Iteratee[E,Unit]])
       def getPatchCord() = new Enumerator[E] {
 
         def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
           val result = Promise[Iteratee[E, A]]()
-          val alreadyStarted = started.single.getAndTransform(_ => true)
-          if(!alreadyStarted) e |>> Cont(step)
-          iteratees.single.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
+          val alreadyStarted = ! started.single.compareAndSet(false, true)
+          if(!alreadyStarted) {
+            val promise = (e |>> Cont(step))
+            promise.extend1{ v =>
+              val its = atomic{ implicit txn =>
+                redeemed() = v
+                iteratees.swap(List())
+              }
+              v match {
+              case Thrown(e) => 
+                its.foreach{ case (_,p) => p.throwing(e) }
+                
+              case Redeemed(_) =>
+                its.foreach{ case (it,p) => p.redeem(it)}
+              }
+          }
+          }
+          val finished = atomic { implicit txn =>
+            redeemed() match {
+              case Waiting => 
+                iteratees.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
+                None
+              case notWaiting => Some(notWaiting)
+            }
+          }
+          finished.foreach{
+            case Redeemed(_) => result.redeem(it)
+            case Thrown(e) => result.throwing(e)
+          }
           result
-
         }
 
       }
