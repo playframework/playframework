@@ -84,7 +84,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 Logger("play").trace("Sending simple result: " + r)
 
                 // Set response headers
-                headers.foreach {
+                headers.filterNot(_ == (CONTENT_LENGTH,"-1")).foreach {
 
                   // Fix a bug for Set-Cookie header. 
                   // Multiple cookies could be merged in a single header
@@ -104,10 +104,19 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 // Stream the result
                 headers.get(CONTENT_LENGTH).map { contentLength =>
 
-                  val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
+                  val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => {
+                    if (e.getChannel.isConnected())
+                      NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                    else Promise.pure(())
+                  }
 
                   val bodyIteratee = {
-                    val writeIteratee = Iteratee.fold1(NettyPromise(e.getChannel.write(nettyResponse)))((_, e: r.BODY_CONTENT) => writer(e))
+                    val writeIteratee = Iteratee.fold1(
+                      if (e.getChannel.isConnected())
+                        NettyPromise( e.getChannel.write(nettyResponse))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                      else Promise.pure(()))((_, e: r.BODY_CONTENT) => writer(e))
 
                     Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected()).transform(writeIteratee).mapDone { _ =>
                       if (e.getChannel.isConnected()) {
@@ -164,17 +173,29 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
                 nettyResponse.setChunked(true)
 
-                val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
 
-                val chunksIteratee = {
-                  val writeIteratee = Iteratee.fold1(NettyPromise(e.getChannel.write(nettyResponse)))((_, e: r.BODY_CONTENT) => writer(e))
+                val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => {
+                    if (e.getChannel.isConnected())
+                      NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                    else Promise.pure(())
+                  }
+
+                  val chunksIteratee = {
+                    val writeIteratee = Iteratee.fold1(
+                      if (e.getChannel.isConnected())
+                        NettyPromise( e.getChannel.write(nettyResponse))
+                        .extend1{ case Redeemed(()) => () ; case Thrown(ex) => Logger("play").debug(ex.toString)}
+                      else Promise.pure(()))((_, e: r.BODY_CONTENT) => writer(e))
+
+
                   Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { _ =>
                     if (e.getChannel.isConnected()) {
                       val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
                       if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
                     }
                   }
-                }
+                  }
 
                 chunks(chunksIteratee)
 

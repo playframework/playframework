@@ -5,7 +5,7 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 
-import fr.javafreelance.fluentlenium.core.filter.FilterConstructor._
+import org.fluentlenium.core.filter.FilterConstructor._
 
 class IntegrationSpec extends Specification {
   

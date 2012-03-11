@@ -4,7 +4,7 @@ Play 2.0 is a high productivity Java and Scala Web application framework, integr
 
 It is based on a lightweight stateless Web friendly architecture and features predictable and minimal resources consumption (CPU, Memory, Threads) for highly scalable applications thanks to its reactive model based on Iteratee IO.
 
-http://www.playframework.org/2.0
+http://www.playframework.org
 
 ## Installing
 

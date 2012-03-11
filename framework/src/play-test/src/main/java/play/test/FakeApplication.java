@@ -18,17 +18,18 @@ public class FakeApplication {
      * @param path The application path
      * @param classloader The application classloader
      * @param additionalConfiguration Additional configuration
+     * @param additionalPlugins Additional plugins
      */
-    public FakeApplication(File path, ClassLoader classloader, Map<String,String> additionalConfiguration) {
+    public FakeApplication(File path, ClassLoader classloader, Map<String,String> additionalConfiguration, List<String> additionalPlugins) {
         wrappedApplication = new play.api.test.FakeApplication(
             path, 
             classloader, 
-            Scala.<String>emptySeq(), 
+            Scala.toSeq(additionalPlugins), 
             Scala.<String>emptySeq(), 
             Scala.asScala(additionalConfiguration)
         );
     }
-    
+
     public play.api.test.FakeApplication getWrappedApplication() {
         return wrappedApplication;
     }

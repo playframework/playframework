@@ -6,12 +6,12 @@ import java.util.*;
 
 import org.openqa.selenium.*;
 
-import fr.javafreelance.fluentlenium.core.*;
+import org.fluentlenium.core.*;
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
  */
-public class TestBrowser extends Fluent {
+public class TestBrowser extends FluentAdapter {
     
     /**
      * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
@@ -32,48 +32,41 @@ public class TestBrowser extends Fluent {
     }
     
     /**
-     * Open an URL.
-     */
-    public void goTo(String url) {
-        if (url == null) {
-            throw new IllegalArgumentException("Url is mandatory");
-        }
-        getDriver().get(url);
-    }
-    
+
     /**
      * The current page URL.
      */
     public String url() {
         return super.url();
     }
-    
+    /**
+    * The current page URL.
+    */
+    public String title() {
+       return super.title();
+    }
+
     /**
      * The current page HTML source.
      */
     public String pageSource() {
         return super.pageSource();
     }
-    
+
     /**
      * Retrieves all cookies.
      */
     public Set<Cookie> getCookies() {
-        return getDriver().manage().getCookies();
+        return super.getCookies();
     }
-    
+
     /**
      * Retrieves a cookie.
      */
-    public Cookie getCookieNamed(String name) {
-        return getDriver().manage().getCookieNamed(name);
+    public Cookie getCookie(String name) {
+        return super.getCookie(name);
     }
-    
-    /**
-     * Quits the browser
-     */
-    public void quit() {
-        getDriver().quit();
-    }
-    
+
+
+
 }

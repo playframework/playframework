@@ -523,7 +523,7 @@ case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val
    * @return either a concrete value of type `B` or a set of errors, if the binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], B] = {
-    wrapped.bind(data).right.map(t => f1(t))
+    wrapped.bind(data).right.map(t => f1(t)).right.flatMap(applyConstraints)
   }
 
   /**
@@ -533,7 +533,7 @@ case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val
    * @return either the plain data or a set of errors, if the unbinding failed
    */
   def unbind(value: B): (Map[String, String], Seq[FormError]) = {
-    wrapped.unbind(f2(value))
+    (wrapped.unbind(f2(value))._1, collectErrors(value))
   }
 
   /**

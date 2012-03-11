@@ -153,7 +153,7 @@ object MultipartFormData {
   /**
    * A data part that has excedeed the max size allowed.
    */
-  case class MaxDataPartSizeExcedeed(key: String) extends Part
+  case class MaxDataPartSizeExceeded(key: String) extends Part
 }
 
 /**
@@ -704,7 +704,7 @@ trait BodyParsers {
             .transform(Iteratee.consume[Array[Byte]]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
             .flatMap { data =>
               Cont({
-                case Input.El(_) => Done(MaxDataPartSizeExcedeed(partName), Input.Empty)
+                case Input.El(_) => Done(MaxDataPartSizeExceeded(partName), Input.Empty)
                 case in => Done(data, in)
               })
             }

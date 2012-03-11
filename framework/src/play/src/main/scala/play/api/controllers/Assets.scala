@@ -10,6 +10,7 @@ import Play.current
 import java.io._
 import scalax.io.{ Resource }
 import java.text.SimpleDateFormat
+import collection.JavaConverters._
 
 /**
  * Controller that serves static resources.
@@ -42,8 +43,8 @@ object Assets extends Controller {
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
-    if (!new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
-      Forbidden
+    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
+      NotFound
     } else {
 
       val resource = {
@@ -54,47 +55,59 @@ object Assets extends Controller {
 
       resource.map {
 
+        case (url, _) if new File(url.getFile).isDirectory => NotFound
+
         case (url, isGzipped) => {
 
           lazy val (length, resourceData) = {
             val stream = url.openStream()
-            (stream.available, Enumerator.fromStream(stream))
+            try {
+              (stream.available, Enumerator.fromStream(stream))
+            } catch {
+              case _ => (0, Enumerator[Array[Byte]]())
+            }
           }
+          
+          if(length == 0) {
+            NotFound
+          } else {
+            
+            request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 
-          request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
+              // Prepare a streamed response
+              val response = SimpleResult(
+                header = ResponseHeader(OK, Map(
+                  CONTENT_LENGTH -> length.toString,
+                  CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
+                )),
+                resourceData
+              )
 
-            // Prepare a streamed response
-            val response = SimpleResult(
-              header = ResponseHeader(OK, Map(
-                CONTENT_LENGTH -> length.toString,
-                CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
-              )),
-              resourceData
-            )
+              // Is Gzipped?
+              val gzippedResponse = if (isGzipped) {
+                response.withHeaders(CONTENT_ENCODING -> "gzip")
+              } else {
+                response
+              }
 
-            // Is Gzipped?
-            val gzippedResponse = if (isGzipped) {
-              response.withHeaders(CONTENT_ENCODING -> "gzip")
-            } else {
-              response
+              // Add Etag if we are able to compute it
+              val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
+
+              // Add Cache directive if configured
+              val cachedResponse = taggedResponse.withHeaders(CACHE_CONTROL -> {
+                Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
+                  case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+                  case _ => "no-cache"
+                })
+              })
+
+              cachedResponse
+
             }
 
-            // Add Etag if we are able to compute it
-            val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-
-            // Add Cache directive if configured
-            val cachedResponse = taggedResponse.withHeaders(CACHE_CONTROL -> {
-              Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-                case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-                case _ => "no-cache"
-              })
-            })
-
-            cachedResponse
-
           }
-
-        }
+            
+        }  
 
       }.getOrElse(NotFound)
 
@@ -110,7 +123,7 @@ object Assets extends Controller {
     formatter
   }
 
-  private val lastModifieds = scala.collection.mutable.HashMap.empty[String, String]
+  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
@@ -131,7 +144,7 @@ object Assets extends Controller {
 
   // -- ETags handling
 
-  private val etags = scala.collection.mutable.HashMap.empty[String, String]
+  private val etags = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
 
   private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {

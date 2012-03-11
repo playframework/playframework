@@ -209,7 +209,7 @@ case class MessagesApi(messages: Map[String, Map[String, String]]) {
    */
   def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
     messages.get(lang.code).flatMap(_.get(key)).orElse(messages.get("default").flatMap(_.get(key))).map { pattern =>
-      MessageFormat.format(pattern, args.map(_.asInstanceOf[java.lang.Object]): _*)
+      new MessageFormat(pattern, lang.toLocale).format(args.map(_.asInstanceOf[java.lang.Object]).toArray)
     }
   }
 

@@ -33,21 +33,21 @@ object FormSpec extends Specification {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "done" -> Array("true"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "be valid with mandatory params passed" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
     "have an error due to baldy formatted date" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11/11")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
 
     }
@@ -55,9 +55,54 @@ object FormSpec extends Specification {
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(req, Map.empty.asJava, Map.empty.asJava))
 
-      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest
+      val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
 
+    }
+    
+    "apply constraints on wrapped mappings" in {
+      import play.api.data._
+      import play.api.data.Forms._
+      
+      val form = Form(
+          "foo" -> text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
+                     .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
+      )
+      
+      "when it binds data" in {
+        val f1 = form.bind(Map("foo"->"0"))
+        f1.errors.size must equalTo (1)
+        f1.errors.find(_.message == "first.digit") must beSome
+
+        val f2 = form.bind(Map("foo"->"3"))
+        f2.errors.size must equalTo (0)
+
+        val f3 = form.bind(Map("foo"->"50"))
+        f3.errors.size must equalTo (1) // Only one error because "number.42" can’t be applied since wrapped bind failed
+        f3.errors.find(_.message == "first.digit") must beSome
+
+        val f4 = form.bind(Map("foo"->"333"))
+        f4.errors.size must equalTo (1)
+        f4.errors.find(_.message == "number.42") must beSome
+      }
+      
+      "when it is filled with data" in {
+        val f1 = form.fillAndValidate(0)
+        f1.errors.size must equalTo (1)
+        f1.errors.find(_.message == "first.digit") must beSome
+
+        val f2 = form.fillAndValidate(3)
+        f2.errors.size must equalTo (0)
+
+        val f3 = form.fillAndValidate(50)
+        f3.errors.size must equalTo (2)
+        f3.errors.find(_.message == "first.digit") must beSome
+        f3.errors.find(_.message == "number.42") must beSome
+
+        val f4 = form.fillAndValidate(333)
+        f4.errors.size must equalTo (1)
+        f4.errors.find(_.message == "number.42") must beSome
+      }
     }
   }
 

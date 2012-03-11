@@ -3,12 +3,12 @@ package anorm
 import SqlParser.ResultSet
 
 object SqlParser {
+  import MayErr._
   import java.util.Date
 
   type ResultSet = Stream[Row]
 
   def scalar[T](implicit transformer: Column[T]): RowParser[T] = RowParser[T] { row =>
-    import utils.Scala.MayErr._
 
     (for {
       meta <- row.metaData.ms.headOption.toRight(NoColumnsInReturnedResult)
@@ -30,7 +30,7 @@ object SqlParser {
   def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[Column[Date]])
 
   def get[T](columnName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
-    import utils.Scala.MayErr._
+    import MayErr._
 
     (for {
       meta <- row.metaData.get(columnName)

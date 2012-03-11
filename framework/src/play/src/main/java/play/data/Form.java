@@ -10,6 +10,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 import play.libs.F;
+import play.mvc.Http;
 import static play.libs.F.*;
 
 import play.data.validation.*;
@@ -140,8 +141,8 @@ public class Form<T> {
      *
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bindFromRequest() {
-        return bind(requestData());
+    public Form<T> bindFromRequest(String... allowedFields) {
+        return bind(requestData(), allowedFields);
     }
     
     /**
@@ -150,7 +151,7 @@ public class Form<T> {
      * @param data data to submit
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bind(org.codehaus.jackson.JsonNode data) {
+    public Form<T> bind(org.codehaus.jackson.JsonNode data, String... allowedFields) {
         return bind(
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("", 
@@ -158,7 +159,8 @@ public class Form<T> {
                         play.libs.Json.stringify(data)
                     )
                 )
-            )
+            ),
+            allowedFields
         );
     }
     
@@ -168,7 +170,7 @@ public class Form<T> {
      * @param data data to submit
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bind(Map<String,String> data) {
+    public Form<T> bind(Map<String,String> data, String... allowedFields) {
         
         DataBinder dataBinder = null;
         Map<String, String> objectData = data;
@@ -182,6 +184,9 @@ public class Form<T> {
                     objectData.put(key.substring(rootName.length() + 1), data.get(key));
                 }
             }
+        }
+        if(allowedFields.length > 0) {
+            dataBinder.setAllowedFields(allowedFields);
         }
         dataBinder.setValidator(new SpringValidatorAdapter(play.data.validation.Validation.getValidator()));
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
@@ -215,7 +220,10 @@ public class Form<T> {
                 try {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
                     globalError = (String)v.invoke(result.getTarget());
-                } catch(Exception e) {}
+                } catch(NoSuchMethodException e) {
+                } catch(Throwable e) {
+                    throw new RuntimeException(e);
+                }
             }
             if(globalError != null) {
                 Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
@@ -324,8 +332,27 @@ public class Form<T> {
      * Returns the form errors serialized as Json.
      */
     public org.codehaus.jackson.JsonNode errorsAsJson() {
-        return null;
+        return errorsAsJson(Http.Context.Implicit.lang());
     }
+    
+    /**
+     * Returns the form errors serialized as Json using the given Lang.
+     */
+    public org.codehaus.jackson.JsonNode errorsAsJson(play.i18n.Lang lang) {
+        Map<String, List<String>> allMessages = new HashMap<String, List<String>>();
+        for (String key : errors.keySet()) {
+            List<ValidationError> errs = errors.get(key);
+            if (errs != null && !errs.isEmpty()) {
+                List<String> messages = new ArrayList<String>();
+                for (ValidationError error : errs) {
+                    messages.add(play.i18n.Messages.get(lang, error.message(), error.arguments()));
+                }
+                allMessages.put(key, messages);
+            }
+        }
+        return play.libs.Json.toJson(allMessages);
+    }
+    
     
     /**
      * Gets the concrete value if the submission was a success.

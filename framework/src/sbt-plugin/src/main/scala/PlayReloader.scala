@@ -48,6 +48,7 @@ trait PlayReloader {
 
       def forceReload() {
         reloadNextTime = true
+        lastHash = None
       }
 
       def clean() {

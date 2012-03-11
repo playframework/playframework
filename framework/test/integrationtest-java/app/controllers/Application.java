@@ -8,8 +8,8 @@ import views.html.*;
 public class Application extends Controller {
   
     public static Result index(String name) {
-        request().args.put("name",name);
-        String n = (String)request().args.get("name");
+        Http.Context.current().args.put("name",name);
+        String n = (String)Http.Context.current().args.get("name");
         return ok(index.render(n));
     }
     

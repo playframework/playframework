@@ -40,7 +40,7 @@ trait LoggerLike {
   /**
    * `true` if the logger instance is enabled for the `ERROR` level.
    */
-  lazy val isErrorEnabled = logger.isWarnEnabled
+  lazy val isErrorEnabled = logger.isErrorEnabled
 
   /**
    * Logs a message with the `TRACE` level.

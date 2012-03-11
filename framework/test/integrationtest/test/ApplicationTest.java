@@ -9,6 +9,7 @@ import controllers.Interceptor;
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 import java.util.concurrent.Callable;
+import java.util.*;
 
 public class ApplicationTest {
     
@@ -40,6 +41,17 @@ public class ApplicationTest {
                   assertThat(j).isEqualTo("world");
                } catch (Exception e) {assertThat(e).hasNoCause();}
             }
+        });
+    }
+
+    @Test 
+    public void testAdditionPlugin() {
+        List<String> plugins = new ArrayList<String>();
+        plugins.add("test.DummyPlugin");
+        running(fakeApplication(new HashMap<String,String>(),plugins), new Runnable() {
+          public void run() {
+            assertThat(play.Play.application().plugin(test.DummyPlugin.class).foo()).isEqualTo("yay");
+          }
         });
     }
 

@@ -41,8 +41,15 @@ class ApplicationSpec extends Specification {
       val Some(result) = routeAndCall(FakeRequest(GET, "/json"))
       status(result) must equalTo(OK)
       contentType(result) must equalTo(Some("application/json"))
-      contentAsString(result) must contain("{\"id\":1.0,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
+      contentAsString(result) must contain("{\"id\":1,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
 
+      }
+    }
+    
+    "not serve asset directories" in {
+      running(FakeApplication()) {
+        val Some(result) = routeAndCall(FakeRequest(GET, "/public//"))
+        status(result) must equalTo (NOT_FOUND)
       }
     }
    

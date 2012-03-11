@@ -192,7 +192,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     val result = new STMPromise[B]()
     this.addAction(p => p.value match {
       case Redeemed(a) =>
-        f(a).extend(ip => ip.value match {
+       (try{ f(a)}catch{case e => {println("wow! "+e); throw e}}).extend(ip => ip.value match {
           case Redeemed(a) => result.redeem(a)
           case Thrown(e) => result.redeem(throw e)
 
@@ -205,7 +205,9 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
 object PurePromise {
 
-  def apply[A](a: A): Promise[A] = new Promise[A] {
+  def apply[A](lazyA: => A): Promise[A] = new Promise[A] {
+
+    val a : NotWaiting[A] = scala.util.control.Exception.allCatch[A].either(lazyA).fold(Thrown(_),Redeemed(_))
 
     private def neverRedeemed[A]: Promise[A] = new Promise[A] {
       def onRedeem(k: A => Unit): Unit = ()
@@ -222,9 +224,9 @@ object PurePromise {
 
     }
 
-    def onRedeem(k: A => Unit): Unit = k(a)
+    def onRedeem(k: A => Unit): Unit = a.fold(_ => (), k)
 
-    def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = Redeemed(a)
+    def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = a
 
     def redeem(a: A) = sys.error("Already redeemed")
 
@@ -234,11 +236,11 @@ object PurePromise {
       apply(f(this))
     }
 
-    def filter(p: A => Boolean) = if (p(a)) this else neverRedeemed[A]
+    def filter(p: A => Boolean) = a.fold(_ => this, a => if (p(a)) this else neverRedeemed[A])
 
-    def map[B](f: A => B): Promise[B] = PurePromise[B](f(a))
+    def map[B](f: A => B): Promise[B] = a.fold(e =>  PurePromise[B](throw e), a => PurePromise[B]( f(a)) )
 
-    def flatMap[B](f: A => Promise[B]): Promise[B] = f(a)
+    def flatMap[B](f: A => Promise[B]): Promise[B] = a.fold( e => PurePromise(throw e), a => try { f(a) } catch{case e => PurePromise(throw e)})
   }
 }
 
