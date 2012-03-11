@@ -2,7 +2,12 @@
 
 PRG="$0"
 while [ -h "$PRG" ] ; do
-    PRG=`readlink "$PRG"`
+    DEST=`readlink "$PRG"`
+    if [ -e "$DEST" ]; then
+        PRG="$DEST"
+    else
+        PRG=`dirname "$PRG"`/$DEST
+    fi
 done
 dir=`dirname $PRG`
 
