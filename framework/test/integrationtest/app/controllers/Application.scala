@@ -60,5 +60,12 @@ object Application extends Controller {
     if (v != "world") throw new RuntimeException("java cache API is not working")
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
-}
+  def takeBool(b: Boolean) = Action {
+    Ok(b.toString())
+  }
 
+  def takeBool2(b: Boolean) = Action {
+    Ok(b.toString())
+  }
+
+}

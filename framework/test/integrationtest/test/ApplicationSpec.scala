@@ -61,6 +61,35 @@ class ApplicationSpec extends Specification {
         Cache.get("foo") must equalTo (Some("bar"))
         Cache.remove("foo")
         Cache.get("foo") must equalTo (None)
+    }}
+
+    "reverse routes containing boolean parameters" in {
+      "in the query string" in {
+        controllers.routes.Application.takeBool(true).url must equalTo ("/take-bool?b=1")
+        controllers.routes.Application.takeBool(false).url must equalTo ("/take-bool?b=0")
+      }
+      "in the  path" in {
+        controllers.routes.Application.takeBool2(true).url must equalTo ("/take-bool-2/1")
+        controllers.routes.Application.takeBool2(false).url must equalTo ("/take-bool-2/0")
+      }
+    }
+
+    "bind boolean parameters" in {
+      "from the query string" in {
+        running(FakeApplication()) {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool(true).url))
+          contentAsString(result) must equalTo ("true")
+          val Some(result2) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool(false).url))
+          contentAsString(result2) must equalTo ("false")
+        }
+      }
+      "from the path" in {
+        running(FakeApplication()) {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool2(true).url))
+          contentAsString(result) must equalTo ("true")
+          val Some(result2) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool2(false).url))
+          contentAsString(result2) must equalTo ("false")
+        }
       }
     }
   }
