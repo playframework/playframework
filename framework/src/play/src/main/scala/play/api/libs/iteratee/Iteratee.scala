@@ -317,7 +317,7 @@ trait Iteratee[E, +A] {
 
 object Done {
   /**
-   * Create an [[play.api.libs.iteratee.Iteratee]] in the “done” state.
+   * Create an [[play.api.libs.iteratee.Iteratee]] in the "done" state.
    * @param a Result
    * @param e Remaining unused input
    */
@@ -332,7 +332,7 @@ object Done {
 
 object Cont {
   /**
-   * Create an [[play.api.libs.iteratee.Iteratee]] in the “cont” state.
+   * Create an [[play.api.libs.iteratee.Iteratee]] in the "cont" state.
    * @param k Continuation which will compute the next Iteratee state according to an input
    */
   def apply[E, A](k: Input[E] => Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
@@ -344,7 +344,7 @@ object Cont {
 }
 object Error {
   /**
-   * Create an [[play.api.libs.iteratee.Iteratee]] in the “error” state.
+   * Create an [[play.api.libs.iteratee.Iteratee]] in the "error" state.
    * @param msg Error message
    * @param e The input that caused the error
    */
