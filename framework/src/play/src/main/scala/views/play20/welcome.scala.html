@@ -3,25 +3,33 @@
 @play.api.Play.maybeApplication.filterNot(_.mode != play.api.Mode.Dev).map { _ =>
     
 <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
-<header>
-    <div class="wrapper">
-        <span id="version">@play.core.PlayVersion.current</span>
-        <ul>
-            <li><a href="/@@documentation/api/scala/index.html">Scala API</a></li>
-            <li><a href="/@@documentation/api/java/index.html">Java API</a></li>
-        </ul>
-    </div>
-</header>
-<div id="title" >
+
+<section id="top">
     <div class="wrapper">
         <h1><a href="/@@documentation">@message</a></h1>
+        <nav>
+            <span class="versions">
+                <span>Browse APIs</span>
+                <select onchange="document.location=this.value">
+                    <option selected disabled>Select language</option>
+                    <option value="/@@documentation/api/scala/index.html">Scala</option>
+                    <option value="/@@documentation/api/java/index.html">Java</option>
+                </select>
+            </span>
+        </nav>
     </div>
+</section>
+
+<div id="news">
+    <iframe src="http://www.playframework.org/widget?uid=@play.api.Play.maybeApplication.flatMap(_.configuration.getString("application.secret")).map(_.take(5)).map(play.api.libs.Codecs.sha1(_))&version=@play.core.PlayVersion.current&tag=@style.toUpperCase" scrolling="no" style="overflow: hidden; display: block; margin: 0 auto; width: 960px; height: 60px"></iframe>
 </div>
-<div id="manual" class="wrapper">
+
+
+<div id="content" class="wrapper doc">
 
     @if(style == "Scala") {
 
-        <div id="main">
+        <article>
 
             <h1>Welcome to Play 2.0</h1>
 
@@ -133,27 +141,24 @@ db.pass=secret</code></pre>
                 <strong>play-framework+subscribe@@googlegroups.com</strong>.
             </p>
 
-        </div>    
-        <div id="sidebar">
+        </article>    
+        <aside>
             <h3>Browse</h3>
             <ul>
-                <li><a href="/@@documentation">Local documentation</li>
+                <li><a href="/@@documentation">Local documentation</a></li>
                 <li><a href="/@@documentation/api/scala/index.html">Browse the Scala API</a></li>
             </ul>
             <h3>Start here</h3>
             <ul>
-                <li><a href="/@@documentation/PlayConsole">Using the Play console</li>
+                <li><a href="/@@documentation/PlayConsole">Using the Play console</a></li>
                 <li><a href="/@@documentation/IDE">Setting up your preferred IDE</a></li>
                 <li><a href="/@@documentation/ScalaTodoList">Your first application</a></li>
             </ul>
-            <h3>Search</h3>
-            <p>Get help with google</p>
-            <div id="searchBox"><form action="http://www.google.com/cse" id="cse-search-box"><div><input type="hidden" name="cx" value="002614023023983855063:jn1mu_7bof0" /><input type="hidden" name="ie" value="UTF-8" /><input type="text" name="q" size="28" style="font-size:14px"/></div></form><script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script></div>
-        </div>
+        </aside>
 
     } else {
 
-        <div id="main">
+        <article>
 
             <h1>Welcome to Play 2.0</h1>
 
@@ -271,23 +276,20 @@ db.pass=secret</code></pre>
                 <strong>play-framework+subscribe@@googlegroups.com</strong>.
             </p>
 
-        </div>    
-        <div id="sidebar">
+        </article>    
+        <aside>
             <h3>Browse</h3>
             <ul>
-                <li><a href="/@@documentation">Local documentation</li>
+                <li><a href="/@@documentation">Local documentation</a></li>
                 <li><a href="/@@documentation/api/java/index.html">Browse the Java API</a></li>
             </ul>
             <h3>Start here</h3>
             <ul>
-                <li><a href="/@@documentation/PlayConsole">Using the Play console</li>
+                <li><a href="/@@documentation/PlayConsole">Using the Play console</a></li>
                 <li><a href="/@@documentation/IDE">Setting up your preferred IDE</a></li>
                 <li><a href="/@@documentation/JavaTodoList">Your first application</a></li>
             </ul>
-            <h3>Search</h3>
-            <p>Get help with google</p>
-            <div id="searchBox"><form action="http://www.google.com/cse" id="cse-search-box"><div><input type="hidden" name="cx" value="002614023023983855063:jn1mu_7bof0" /><input type="hidden" name="ie" value="UTF-8" /><input type="text" name="q" size="28" style="font-size:14px"/></div></form><script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script></div>
-        </div>
+        </aside>
 
     }
 

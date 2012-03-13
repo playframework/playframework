@@ -6,31 +6,35 @@
         <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
     </head>
     <body>
-        <header>
-            <div class="wrapper">
-                <span id="version">@play.core.PlayVersion.current</span>
-                <ul>
-                    <li><a href="/@@documentation/api/scala/index.html">Scala API</a></li>
-                    <li><a href="/@@documentation/api/java/index.html">Java API</a></li>
-                </ul>
-            </div>
-        </header>
-        <div id="title" >
+        
+        <section id="top">
             <div class="wrapper">
                 <h1><a href="/@@documentation">Manual, tutorials & references</a></h1>
+                <nav>
+                    <span class="versions">
+                        <span>Browse APIs</span>
+                        <select onchange="document.location=this.value">
+                            <option selected disabled>Select language</option>
+                            <option value="/@@documentation/api/scala/index.html">Scala</option>
+                            <option value="/@@documentation/api/java/index.html">Java</option>
+                        </select>
+                    </span>
+                </nav>
             </div>
-        </div>
-        <div id="manual" class="wrapper">
-            <div id="main">
+        </section>
+        
+        <div id="content" class="wrapper doc">
+            <article>
                 @main.map { html =>
                     @Html(html)
                 }.getOrElse {
                     <h1>Page not found [@title]</h1>
                 }
-            </div>    
-            <div id="sidebar">
+            </article>
+            <aside>
                 @sidebar.map(Html.apply)
-            </div>
+            </aside>
         </div>
+        
     </body>
 <html>
