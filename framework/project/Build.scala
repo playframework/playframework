@@ -184,7 +184,7 @@ object PlayBuild extends Build {
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0",
             "com.google.guava"                  %    "guava"                    %   "10.0.1",
             
-            ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.7.5" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
             
