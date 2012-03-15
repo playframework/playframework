@@ -4,7 +4,27 @@ PRG="$0"
 while [ -h "$PRG" ] ; do
     PRG=`readlink "$PRG"`
 done
+
 dir=`dirname $PRG`
+
+if [ `uname -o` == "Cygwin" ]
+then
+  SBT_IVY_HOME=$(cygpath -w -a $dir/repository)
+  PLAY_HOME=$(cygpath -w -a $dir/framework)
+  SBT_LAUNCH_JAR=$(cygpath -w -a $dir/framework/sbt/sbt-launch.jar)
+  SBT_BOOT_PROPS=file:///$(cygpath -m -a $dir/framework/sbt/sbt.boot.properties)
+  JLINE_TERMINAL=-Djline.terminal=jline.UnixTerminal
+  BUILD=$(cygpath -m -a $dir/framework/build)
+  stty -icanon min 1 -echo
+else 
+  SBT_IVY_HOME=$dir/repository
+  PLAY_HOME=$dir/framework
+  SBT_LAUNCH_JAR=$PLAY_HOME/sbt/sbt-launch.jar
+  SBT_BOOT_PROPS=$PLAY_HOME/sbt/sbt.boot.properties
+  BUILD=$dir/framework/build
+fi
+
+JAVA_ARGS="$JLINE_TERMINAL -Dsbt.ivy.home=$SBT_IVY_HOME -Dplay.home=$PLAY_HOME -Dsbt.boot.properties=$SBT_BOOT_PROPS"
 
 if [ -f conf/application.conf ]; then
   if test "$1" = "clean-all"; then
@@ -48,11 +68,12 @@ if [ -f conf/application.conf ]; then
   fi
 
   if [ -n "$1" ]; then
-    JPDA_PORT="${JPDA_PORT}" $dir/framework/build "$@"
+    JPDA_PORT="${JPDA_PORT}" $BUILD "$@"
   else
-    JPDA_PORT="${JPDA_PORT}" $dir/framework/build play
+    JPDA_PORT="${JPDA_PORT}" $BUILD play
   fi
   
 else
-  java -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch.jar "$@"
+  java ${DEBUG_PARAM} ${JAVA_ARGS} -jar $SBT_LAUNCH_JAR "$@"
 fi
+stty echo
