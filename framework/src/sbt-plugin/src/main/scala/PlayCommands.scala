@@ -97,7 +97,7 @@ trait PlayCommands {
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, t, c, s) =>
     val cacheFile = c / "copy-assets"
     
-    val mappings:Seq[(java.io.File,java.io.File)] = (r.map(_ ***).reduceLeft(_ +++ _).filter(_.isFile) x relativeTo(b +: r) map {
+    val mappings:Seq[(java.io.File,java.io.File)] = (r.map(_ ***).reduceLeft(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
 
