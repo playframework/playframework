@@ -268,6 +268,7 @@ public class Model {
         /**
          * Cancels query execution, if supported by the underlying database and driver.
          */
+        @Override
         public void cancel() {
             query().cancel();
         }
@@ -275,6 +276,7 @@ public class Model {
         /**
          * Copies this query.
          */
+        @Override
         public Query<T> copy() {
             return query().copy();
         }
@@ -282,6 +284,7 @@ public class Model {
         /**
          * Specifies a path to load including all its properties.
          */
+        @Override
         public Query<T> fetch(String path) {
             return query().fetch(path);
         }
@@ -289,6 +292,7 @@ public class Model {
         /**
          * Additionally specifies a <code>JoinConfig</code> to specify a 'query join' and/or define the lazy loading query.
          */
+        @Override
         public Query<T> fetch(String path, FetchConfig joinConfig) {
             return query().fetch(path, joinConfig);
         }
@@ -296,6 +300,7 @@ public class Model {
         /**
          * Specifies a path to fetch with a specific list properties to include, to load a partial object.
          */
+        @Override
         public Query<T> fetch(String path, String fetchProperties) {
             return query().fetch(path, fetchProperties);
         }
@@ -303,6 +308,7 @@ public class Model {
         /**
          * Additionally specifies a <code>FetchConfig</code> to use a separate query or lazy loading to load this path.
          */
+        @Override
         public Query<T> fetch(String assocProperty, String fetchProperties, FetchConfig fetchConfig) {
             return query().fetch(assocProperty, fetchProperties, fetchConfig);
         }
@@ -310,6 +316,7 @@ public class Model {
         /**
          * Applies a filter on the 'many' property list rather than the root level objects.
          */
+        @Override
         public ExpressionList<T> filterMany(String propertyName) {
             return query().filterMany(propertyName);
         }
@@ -317,6 +324,7 @@ public class Model {
         /**
          * Executes a find IDs query in a background thread.
          */
+        @Override
         public FutureIds<T> findFutureIds() {
             return query().findFutureIds();
         }
@@ -324,6 +332,7 @@ public class Model {
         /**
          * Executes a find list query in a background thread.
          */
+        @Override
         public FutureList<T> findFutureList() {
             return query().findFutureList();
         }
@@ -331,6 +340,7 @@ public class Model {
         /**
          * Executes a find row count query in a background thread.
          */
+        @Override
         public FutureRowCount<T> findFutureRowCount() {
             return query().findFutureRowCount();
         }
@@ -338,6 +348,7 @@ public class Model {
         /**
          * Executes a query and returns the results as a list of IDs.
          */
+        @Override
         public List<Object> findIds() {
             return query().findIds();
         }
@@ -345,6 +356,7 @@ public class Model {
         /**
          * Executes the query and returns the results as a list of objects.
          */
+        @Override
         public List<T> findList() {
             return query().findList();
         }
@@ -352,6 +364,7 @@ public class Model {
         /**
          * Executes the query and returns the results as a map of objects.
          */
+        @Override
         public Map<?,T> findMap() {
             return query().findMap();
         }
@@ -359,6 +372,7 @@ public class Model {
         /**
          * Executes the query and returns the results as a map of the objects.
          */
+        @Override
         public <K> Map<K,T> findMap(String a, Class<K> b) {
             return query().findMap(a,b);
         }
@@ -366,6 +380,7 @@ public class Model {
         /**
          * Returns a <code>PagingList</code> for this query.
          */
+        @Override
         public PagingList<T> findPagingList(int pageSize) {
             return query().findPagingList(pageSize);
         }
@@ -373,6 +388,7 @@ public class Model {
         /**
          * Returns the number of entities this query should return.
          */
+        @Override
         public int findRowCount() {
             return query().findRowCount();
         }
@@ -380,6 +396,7 @@ public class Model {
         /**
          * Executes the query and returns the results as a set of objects.
          */
+        @Override
         public Set<T> findSet() {
             return query().findSet();
         }
@@ -387,14 +404,17 @@ public class Model {
         /**
          * Executes the query and returns the results as either a single bean or <code>null</code>, if no matching bean is found.
          */
+        @Override
         public T findUnique() {
             return query().findUnique();
         }
         
+        @Override
         public void findVisit(QueryResultVisitor<T> visitor) {
             query().findVisit(visitor);
         }
         
+        @Override
         public QueryIterator<T> findIterate() {
             return query().findIterate();
         }
@@ -402,6 +422,7 @@ public class Model {
         /**
          * Returns the <code>ExpressionFactory</code> used by this query.
          */
+        @Override
         public ExpressionFactory getExpressionFactory() {
             return query().getExpressionFactory();
         }
@@ -409,6 +430,7 @@ public class Model {
         /**
          * Returns the first row value.
          */
+        @Override
         public int getFirstRow() {
             return query().getFirstRow();
         }
@@ -416,6 +438,7 @@ public class Model {
         /**
          * Returns the SQL that was generated for executing this query.
          */
+        @Override
         public String getGeneratedSql() {
             return query().getGeneratedSql();
         }
@@ -423,6 +446,7 @@ public class Model {
         /**
          * Returns the maximum of rows for this query.
          */
+        @Override
         public int getMaxRows() {
             return query().getMaxRows();
         }
@@ -430,17 +454,28 @@ public class Model {
         /**
          * Returns the <code>RawSql</code> that was set to use for this query.
          */
+        @Override
         public RawSql getRawSql() {
             return query().getRawSql();
         }
 
         /**
-         * Returns the type of query (List, Set, Map, Bean, rowCount etc).
+         * Returns the total hits matched for a lucene text search query.
          */
-        public Query.Type getType() {
-            return query().getType();
+        @Override
+        public int getTotalHits() {
+            return query().getTotalHits();
         }
-        
+
+        /**
+         * executed the select with "for update" which should lock the record "on read"
+         */
+        @Override
+        public Query<T> setForUpdate(boolean forUpdate) {
+            return query().setForUpdate(forUpdate);            
+        }
+
+        @Override
         public UseIndex getUseIndex() {
             return query().getUseIndex();
         }
@@ -448,6 +483,7 @@ public class Model {
         /**
          * Returns the query's <code>having</code> clause.
          */
+        @Override
         public ExpressionList<T> having() {
             return query().having();
         }
@@ -455,6 +491,7 @@ public class Model {
         /**
          * Adds an expression to the <code>having</code> clause and returns the query.
          */
+        @Override
         public Query<T> having(com.avaje.ebean.Expression addExpressionToHaving) {
             return query().having(addExpressionToHaving);
         }
@@ -462,6 +499,7 @@ public class Model {
         /**
          * Adds clauses to the <code>having</code> clause and returns the query.
          */
+        @Override
         public Query<T> having(String addToHavingClause) {
             return query().having(addToHavingClause);
         }
@@ -469,6 +507,7 @@ public class Model {
         /**
          * Returns <code>true</code> if this query was tuned by <code>autoFetch</code>.
          */
+        @Override
         public boolean isAutofetchTuned() {
             return query().isAutofetchTuned();
         }
@@ -476,6 +515,7 @@ public class Model {
         /**
          * Same as {@link #fetch(String)}
          */
+        @Override
         public Query<T> join(String path) {
             return query().join(path);
         }
@@ -483,6 +523,7 @@ public class Model {
         /**
          * Same as {@link #fetch(String, FetchConfig)}
          */
+        @Override
         public Query<T> join(String path, JoinConfig joinConfig) {
             return query().join(path, joinConfig);
         }
@@ -490,6 +531,7 @@ public class Model {
         /**
          * Same as {@link #fetch(String, String)}.
          */
+        @Override
         public Query<T> join(String assocProperty, String fetchProperties) {
             return query().join(assocProperty, fetchProperties);
         }
@@ -497,6 +539,7 @@ public class Model {
         /**
          * Additionally specifies a <code>JoinConfig</code> to specify a 'query join' and or define the lazy loading query.
          */
+        @Override
         public Query<T> join(String assocProperty, String fetchProperties, JoinConfig joinConfig) {
             return query().join(assocProperty, fetchProperties, joinConfig);
         }
@@ -506,6 +549,7 @@ public class Model {
          * <p>
          * This is exactly the same as {@link #orderBy}.
          */
+        @Override
         public OrderBy<T> order() {
             return query().order();
         }
@@ -515,6 +559,7 @@ public class Model {
          * <p>
          * This is exactly the same as {@link #orderBy(String)}.
          */
+        @Override
         public Query<T> order(String orderByClause) {
             return query().order(orderByClause);
         }
@@ -524,6 +569,7 @@ public class Model {
          * <p>
          * This is exactly the same as {@link #order}.
          */
+        @Override
         public OrderBy<T> orderBy() {
             return query().orderBy();
         }
@@ -533,6 +579,7 @@ public class Model {
          * <p>
          * This is exactly the same as {@link #order(String)}.
          */
+        @Override
         public Query<T> orderBy(String orderByClause) {
             return query().orderBy(orderByClause);
         }
@@ -540,6 +587,7 @@ public class Model {
         /**
          * Explicitly sets a comma delimited list of the properties to fetch on the 'main' entity bean, to load a partial object.
          */
+        @Override
         public Query<T> select(String fetchProperties) {
             return query().select(fetchProperties);
         }
@@ -547,6 +595,7 @@ public class Model {
         /**
          * Explicitly specifies whether to use 'Autofetch' for this query.
          */
+        @Override
         public Query<T> setAutofetch(boolean autofetch) {
             return query().setAutofetch(autofetch);
         }
@@ -554,6 +603,7 @@ public class Model {
         /**
          * Sets the rows after which fetching should continue in a background thread.
          */
+        @Override
         public Query<T> setBackgroundFetchAfter(int backgroundFetchAfter) {
             return query().setBackgroundFetchAfter(backgroundFetchAfter);
         }
@@ -561,6 +611,7 @@ public class Model {
         /**
          * Sets a hint, which for JDBC translates to <code>Statement.fetchSize()</code>.
          */
+        @Override
         public Query<T> setBufferFetchSizeHint(int fetchSize) {
             return query().setBufferFetchSizeHint(fetchSize);
         }
@@ -568,6 +619,7 @@ public class Model {
         /**
          * Sets whether this query uses <code>DISTINCT</code>.
          */
+        @Override
         public Query<T> setDistinct(boolean isDistinct) {
             return query().setDistinct(isDistinct);
         }
@@ -575,6 +627,7 @@ public class Model {
         /**
          * Sets the first row to return for this query.
          */
+        @Override
         public Query<T> setFirstRow(int firstRow) {
             return query().setFirstRow(firstRow);
         }
@@ -582,6 +635,7 @@ public class Model {
         /**
          * Sets the ID value to query.
          */
+        @Override
         public Query<T> setId(Object id) {
             return query().setId(id);
         }
@@ -589,6 +643,7 @@ public class Model {
         /**
          * Sets a listener to process the query on a row-by-row basis.
          */
+        @Override
         public Query<T> setListener(QueryListener<T> queryListener) {
             return query().setListener(queryListener);
         }
@@ -596,6 +651,7 @@ public class Model {
         /**
          * When set to <code>true</code>, all the beans from this query are loaded into the bean cache.
          */
+        @Override
         public Query<T> setLoadBeanCache(boolean loadBeanCache) {
             return query().setLoadBeanCache(loadBeanCache);
         }
@@ -603,6 +659,7 @@ public class Model {
         /**
          * Sets the property to use as keys for a map.
          */
+        @Override
         public Query<T> setMapKey(String mapKey) {
             return query().setMapKey(mapKey);
         }
@@ -610,6 +667,7 @@ public class Model {
         /**
          * Sets the maximum number of rows to return in the query.
          */
+        @Override
         public Query<T> setMaxRows(int maxRows) {
             return query().setMaxRows(maxRows);
         }
@@ -619,6 +677,7 @@ public class Model {
          * <p>
          * This is exactly the same as {@link #setOrderBy(com.avaje.ebean.OrderBy)}.
          */
+        @Override
         public Query<T> setOrder(OrderBy<T> orderBy) {
             return query().setOrder(orderBy);
         }
@@ -628,6 +687,7 @@ public class Model {
          * <p>
          * This is exactly the same as {@link #setOrder(com.avaje.ebean.OrderBy)}.
          */
+        @Override
         public Query<T> setOrderBy(OrderBy<T> orderBy) {
             return query().setOrderBy(orderBy);
         }
@@ -642,6 +702,7 @@ public class Model {
         /**
          * Sets a named bind parameter.
          */
+        @Override
         public Query<T> setParameter(String name, Object value) {
             return query().setParameter(name, value);
         }
@@ -649,6 +710,7 @@ public class Model {
         /**
          * Deprecated.
          */
+        @Override
         public Query<T> setQuery(String oql) {
             return query().setQuery(oql);
         }
@@ -656,6 +718,7 @@ public class Model {
         /**
          * Sets <code>RawSql</code> to use for this query.
          */
+        @Override
         public Query<T> setRawSql(RawSql rawSql) {
             return query().setRawSql(rawSql);
         }
@@ -663,6 +726,7 @@ public class Model {
         /**
          * Sets whether the returned beans will be read-only.
          */
+        @Override
         public Query<T> setReadOnly(boolean readOnly) {
             return query().setReadOnly(readOnly);
         }
@@ -670,6 +734,7 @@ public class Model {
         /**
          * Sets a timeout on this query.
          */
+        @Override
         public Query<T> setTimeout(int secs) {
             return query().setTimeout(secs);
         }
@@ -677,6 +742,7 @@ public class Model {
         /**
          * Sets whether to use the bean cache.
          */
+        @Override
         public Query<T> setUseCache(boolean useBeanCache) {
             return query().setUseCache(useBeanCache);
         }
@@ -684,10 +750,12 @@ public class Model {
         /**
          * Sets whether to use the query cache.
          */
+        @Override
         public Query<T> setUseQueryCache(boolean useQueryCache) {
             return query().setUseQueryCache(useQueryCache);
         }
         
+        @Override
         public Query<T> setUseIndex(UseIndex useIndex) {
             return query().setUseIndex(useIndex);
         }
@@ -695,6 +763,7 @@ public class Model {
         /**
          * Sets whether to use 'vanilla mode', in which the returned beans and collections will be plain classes rather than Ebean-generated dynamic subclasses etc.
          */
+        @Override
         public Query<T> setVanillaMode(boolean vanillaMode) {
             return query().setVanillaMode(vanillaMode);
         }
@@ -702,6 +771,7 @@ public class Model {
         /**
          * Adds expressions to the <code>where</code> clause with the ability to chain on the <code>ExpressionList</code>.
          */
+        @Override
         public ExpressionList<T> where() {
             return query().where();
         }
@@ -709,6 +779,7 @@ public class Model {
         /**
          * Adds a single <code>Expression</code> to the <code>where</code> clause and returns the query.
          */
+        @Override
         public Query<T> where(com.avaje.ebean.Expression expression) {
             return query().where(expression);
         }
@@ -716,6 +787,7 @@ public class Model {
         /**
          * Adds additional clauses to the <code>where</code> clause.
          */
+        @Override
         public Query<T> where(String addToWhereClause) {
             return query().where(addToWhereClause);
         }
