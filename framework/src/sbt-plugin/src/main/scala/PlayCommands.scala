@@ -96,7 +96,10 @@ trait PlayCommands {
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, t, c, s) =>
     val cacheFile = c / "copy-assets"
-    val mappings = (r.map(_ ***).reduceLeft(_ +++ _) x rebase(b, t)) ++ (resources x rebase(resourcesDirectories, t))
+    
+    val mappings:Seq[(java.io.File,java.io.File)] = (r.map(_ ***).reduceLeft(_ +++ _).filter(_.isFile) x relativeTo(b +: r) map {
+      case (origin, name) => (origin, new java.io.File(t, name))
+    }) ++ (resources x rebase(resourcesDirectories, t))
 
     /*
     Disable GZIP Generation for this release.
