@@ -86,8 +86,28 @@ public class F {
             this.promise = promise;
         }
 
+       /*
+        * awaits for the promise to get the result using the default timeout (5000 milliseconds)
+        */
         public A get() {
             return promise.value().get();
+        }
+
+         /*
+         * awaits for the promise to get the result 
+         * @param timeout user defined timeout
+         * @param unit timeout for timeout
+         */
+        public A get(Long timeout, TimeUnit unit) {
+            return promise.await(timeout, unit).get();
+        }
+
+        /*
+         * awaits for the promise to get the result 
+         * @param timeout user defined timeout in milliseconds
+         */        
+        public A get(Long timeout) {
+            return get(timeout, TimeUnit.MILLISECONDS);
         }
 
         public void onRedeem(final Callback<A> action) {
@@ -96,7 +116,7 @@ public class F {
                     try {
                         action.invoke(a);
                     } catch(Throwable t) {
-                        throw new RuntimeException();
+                        throw new RuntimeException(t);
                     }
                     return null;
                 }
@@ -110,7 +130,7 @@ public class F {
                         try {
                             return f.apply(a);
                         } catch(Throwable t) {
-                            throw new RuntimeException();
+                            throw new RuntimeException(t);
                         }
                     }
                 })
@@ -124,7 +144,7 @@ public class F {
                         try {
                             return f.apply(a).promise;
                         } catch(Throwable t) {
-                            throw new RuntimeException();
+                            throw new RuntimeException(t);
                         }
                     }
                 })
