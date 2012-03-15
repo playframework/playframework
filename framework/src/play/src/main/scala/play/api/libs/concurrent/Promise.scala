@@ -192,7 +192,12 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     val result = new STMPromise[B]()
     this.addAction(p => p.value match {
       case Redeemed(a) =>
-       (try{ f(a)}catch{case e => {println("wow! "+e); throw e}}).extend(ip => ip.value match {
+       (try{ 
+         f(a)
+       } catch{
+         case e =>
+           Promise.pure[B](throw e)
+       }).extend(ip => ip.value match {
           case Redeemed(a) => result.redeem(a)
           case Thrown(e) => result.redeem(throw e)
 
@@ -246,7 +251,7 @@ object PurePromise {
 
 object Promise {
 
-  def pure[A](a: A): Promise[A] = PurePromise(a)
+  def pure[A](a: => A): Promise[A] = PurePromise(a)
 
   def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
 
