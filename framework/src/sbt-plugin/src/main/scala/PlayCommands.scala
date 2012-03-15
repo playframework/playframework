@@ -140,14 +140,21 @@ trait PlayCommands {
     analysises.reduceLeft(_ ++ _)
   }
 
-  val dist = TaskKey[File]("dist", "Build the standalone application package")
+  val dist = TaskKey[Unit]("dist", "Build the standalone application package as a directory")
   val distTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
+    dist(root, packaged, dependencies, target, id, version, false)
+  }
 
+  val distZip = TaskKey[Unit]("distZip", "Build the standalone application package as a zip file")
+  val distZipTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (root, packaged, dependencies, target, id, version) =>
+    dist(root, packaged, dependencies, target, id, version, true)
+  }
+
+  private def dist(root: File, packaged: Seq[File], dependencies: Seq[Attributed[File]], target: File, id: String, version: String, zipped: Boolean) = {
     import sbt.NameFilter._
 
     val dist = root / "dist"
     val packageName = id + "-" + version
-    val zip = dist / (packageName + ".zip")
 
     IO.delete(dist)
     IO.createDirectory(dist)
@@ -181,15 +188,18 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
       Seq(productionConfig -> (packageName + "/application.conf"))
     }.getOrElse(Nil)
 
-    IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
+    if (zipped) {
+      val zip = dist / (packageName + ".zip")
+      IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
+    } else {
+      IO.copy((libs ++ scripts ++ other ++ prodApplicationConf) map {f => (f._1, dist / f._2)})
+    }
     IO.delete(start)
     IO.delete(productionConfig)
 
     println()
-    println("Your application is ready in " + zip.getCanonicalPath)
+    println("Your application is ready in " + dist.getCanonicalPath)
     println()
-
-    zip
   }
 
   /**

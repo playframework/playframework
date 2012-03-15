@@ -121,6 +121,8 @@ trait PlaySettings {
 
     dist <<= distTask,
 
+    distZip <<= distZipTask,
+
     computeDependencies <<= computeDependenciesTask,
 
     playVersion := play.core.PlayVersion.current,
