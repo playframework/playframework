@@ -52,8 +52,8 @@ object LessCompiler {
       "browser.js",
       1, null)
     ctx.evaluateReader(scope, new InputStreamReader(
-      this.getClass.getClassLoader.getResource("less-1.2.1.js").openConnection().getInputStream()),
-      "less-1.2.1.js",
+      this.getClass.getClassLoader.getResource("less-1.3.0.js").openConnection().getInputStream()),
+      "less-1.3.0.js",
       1, null)
     ctx.evaluateString(scope,
       """
