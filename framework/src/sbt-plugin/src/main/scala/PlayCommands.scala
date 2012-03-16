@@ -93,12 +93,20 @@ trait PlayCommands extends PlayEclipse {
   }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
-  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, t, c, s) =>
+  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
     val cacheFile = c / "copy-assets"
     
-    val mappings:Seq[(java.io.File,java.io.File)] = (r.map(_ ***).reduceLeft(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
+    val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
+    
+    val externalMappings = externals.map {
+      case (root, paths, common) => {
+        paths(root) x relativeTo(root :: Nil) map {
+          case (origin, name) => (origin, new java.io.File(t, common + "/" + name))
+        }
+      }
+    }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
 
     /*
     Disable GZIP Generation for this release.
@@ -117,7 +125,7 @@ trait PlayCommands extends PlayEclipse {
 
     val assetsMapping = mappings ++ gzipped*/
 
-    val assetsMapping = mappings
+    val assetsMapping = mappings ++ externalMappings
 
     s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
 
@@ -245,7 +253,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-
   val playHashTask = (state, thisProjectRef, playExternalAssets) map { (s,r, externalAssets) =>
     val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
       (base / "src" / "main" ** "*") +++ (base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")
