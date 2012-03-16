@@ -215,11 +215,11 @@ public class Form<T> {
             }
             return new Form(rootName, backedType, data, errors, None());
         } else {
-            String globalError = null;
+            Object globalError = null;
             if(result.getTarget() != null) {
                 try {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
-                    globalError = (String)v.invoke(result.getTarget());
+                    globalError = v.invoke(result.getTarget());
                 } catch(NoSuchMethodException e) {
                 } catch(Throwable e) {
                     throw new RuntimeException(e);
@@ -227,8 +227,14 @@ public class Form<T> {
             }
             if(globalError != null) {
                 Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
-                errors.put("", new ArrayList<ValidationError>());
-                errors.get("").add(new ValidationError("", globalError, new ArrayList()));
+                if(globalError instanceof String) {
+                    errors.put("", new ArrayList<ValidationError>());
+                    errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
+                } else if(globalError instanceof List) {
+                    errors.put("", (List<ValidationError>)globalError);
+                } else if(globalError instanceof Map) {
+                    errors = (Map<String,List<ValidationError>>)globalError;
+                }
                 return new Form(rootName, backedType, data, errors, None());
             }
             return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()));
