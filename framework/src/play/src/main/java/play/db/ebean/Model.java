@@ -435,10 +435,14 @@ public class Model {
         }
 
         /**
-         * Returns the type of query (List, Set, Map, Bean, rowCount etc).
+         * Set the query forUpdate mode
          */
-        public Query.Type getType() {
-            return query().getType();
+        public Query setForUpdate(boolean forUpdate) {
+            return query().setForUpdate(forUpdate);
+        }
+
+        public int getTotalHits() {
+            return query().getTotalHits();
         }
         
         public UseIndex getUseIndex() {
