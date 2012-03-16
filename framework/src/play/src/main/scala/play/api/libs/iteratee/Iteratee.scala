@@ -533,7 +533,7 @@ object Enumeratee {
         case in @ (Input.El(_) | Input.Empty) =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(f(in))
 
-        case Input.EOF => Done(k(Input.EOF), Input.EOF)
+        case Input.EOF => Done(Cont(k), Input.EOF)
       }
 
       def continue[A](k: K[To, A]) = Cont(step(k))
@@ -557,7 +557,7 @@ object Enumeratee {
       case in @ Input.Empty if remaining > 0 =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining)(k)) } &> k(in)
 
-      case Input.EOF => Done(k(Input.EOF), Input.EOF)
+      case Input.EOF => Done(Cont(k), Input.EOF)
 
       case in => Done(Cont(k), in)
     }
@@ -579,7 +579,7 @@ object Enumeratee {
         case in @ Input.Empty =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
 
-        case Input.EOF => Done(k(Input.EOF), Input.EOF)
+        case Input.EOF => Done(Cont(k), Input.EOF)
 
       }
 
@@ -600,7 +600,7 @@ object Enumeratee {
             kF => Cont(step(Cont(kF))(k)),
             (msg, e) => Error(msg, in))
 
-        case Input.EOF => Done(k(Input.EOF), Input.EOF)
+        case Input.EOF => Done(Cont(k), Input.EOF)
 
       }
 
@@ -620,7 +620,7 @@ object Enumeratee {
       case in @ Input.Empty =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
 
-      case Input.EOF => Done(k(Input.EOF), Input.EOF)
+      case Input.EOF => Done(Cont(k), Input.EOF)
 
     }
 
@@ -644,7 +644,7 @@ object Enumeratee {
         case in @ Input.Empty =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
 
-        case Input.EOF => Done(k(Input.EOF), Input.EOF)
+        case Input.EOF => Done(Cont(k), Input.EOF)
 
       }
 
@@ -670,7 +670,7 @@ object Enumeratee {
 
           case Input.EOF => inner.pureFlatFold(
             (_, _) => Done(inner, Input.EOF),
-            k => Done(k(Input.EOF), Input.EOF),
+            k => Done(Cont(k), Input.EOF),
             (_, _) => Done(inner, Input.EOF))
 
           case Input.Empty => Cont(step(counter, inner))
@@ -700,7 +700,7 @@ object Enumeratee {
 
           case Input.EOF => inner.pureFlatFold(
             (_, _) => Done(inner, Input.EOF),
-            k => Done(k(Input.EOF), Input.EOF),
+            k => Done(Cont(k), Input.EOF),
             (_, _) => Done(inner, Input.EOF))
 
           case Input.Empty => Cont(step(inner))
