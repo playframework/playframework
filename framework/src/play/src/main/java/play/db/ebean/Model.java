@@ -475,6 +475,10 @@ public class Model {
             return query().setForUpdate(forUpdate);            
         }
 
+        /**
+         * Return the setting for how this query should use a Lucene Index if
+         * one is defined for this bean type.
+         */
         @Override
         public UseIndex getUseIndex() {
             return query().getUseIndex();
