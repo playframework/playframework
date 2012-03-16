@@ -184,12 +184,12 @@ object PlayBuild extends Build {
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0",
             "com.google.guava"                  %    "guava"                    %   "10.0.1",
             
-            ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.7.5" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
             
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
-            "com.h2database"                    %    "h2"                       %   "1.3.158",
+            "com.h2database"                    %    "h2"                       %   "1.3.164",
             "org.scala-tools"                   %%   "scala-stm"                %   "0.4",
             
             ("com.jolbox"                       %    "bonecp"                   %   "0.7.1.RELEASE" notTransitive())
@@ -219,7 +219,7 @@ object PlayBuild extends Build {
             
             "joda-time"                         %    "joda-time"                %   "2.0",
             "org.joda"                          %    "joda-convert"             %   "1.1",
-            "javassist"                         %    "javassist"                %   "3.12.1.GA",
+            "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
             
             ("com.ning"                         %    "async-http-client"        %   "1.7.0" notTransitive())
@@ -273,11 +273,11 @@ object PlayBuild extends Build {
             
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             
-            ("org.avaje"                        %    "ebean"                    %   "2.7.3"  notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.7.5"  notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
             
-            "com.h2database"                    %    "h2"                       %   "1.3.158",
+            "com.h2database"                    %    "h2"                       %   "1.3.164",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "org.pegdown"                       %    "pegdown"                  %   "1.1.0"
         )
