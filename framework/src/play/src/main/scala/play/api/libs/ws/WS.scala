@@ -5,9 +5,9 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.json._
 import play.api.http.{ Writeable, ContentTypeOf }
-
 import com.ning.http.client.{
   AsyncHttpClient,
+  AsyncHttpClientConfig,
   RequestBuilderBase,
   FluentCaseInsensitiveStringsMap,
   HttpResponseBodyPart,
@@ -15,6 +15,7 @@ import com.ning.http.client.{
   HttpResponseStatus,
   Response => AHCResponse
 }
+import com.ning.http.client.AsyncHttpClientConfig
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -36,7 +37,16 @@ object WS {
   /**
    * The underlying HTTP client.
    */
-  lazy val client = new AsyncHttpClient()
+  lazy val client = {
+    import play.api.Play.current
+    val config = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120L).toInt)
+      .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
+    current.configuration.getString("ws.useragent").map { useragent =>
+      config.setUserAgent(useragent)
+    }
+    new AsyncHttpClient(config.build())
+  }
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
