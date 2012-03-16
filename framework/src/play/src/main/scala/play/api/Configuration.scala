@@ -47,7 +47,8 @@ object Configuration {
   def load(appPath: File, mode: Mode.Mode = Mode.Dev) = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev(appPath))
+      val configuration = if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev(appPath))
+      configuration.getConfig(currentMode.toString.toLowerCase).map(_ ++ configuration).getOrElse(configuration)
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
       case e => throw e
