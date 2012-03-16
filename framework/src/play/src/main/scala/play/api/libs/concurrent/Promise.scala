@@ -8,6 +8,10 @@ import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
 
+import scala.collection.mutable.Builder
+import scala.collection._
+import scala.collection.generic.CanBuildFrom
+
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
 }
@@ -265,8 +269,10 @@ object Promise {
     p
   }
 
-  def sequence[A](promises: Seq[Promise[A]]): Promise[Seq[A]] = {
-    promises.foldLeft(Promise.pure(Seq[A]()))((s, p) => s.flatMap(s => p.map(a => s :+ a)))
+  def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map{ v => Some(v)}}.getOrElse { Promise.pure(None)}
+  
+  def sequence[B, M[_]](in: M[Promise[B]])(implicit toTraversableLike : M[Promise[B]] => TraversableLike[Promise[B], M[Promise[B]]], cbf: CanBuildFrom[M[Promise[B]], B, M[B]]): Promise[M[B]] = { 
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa : Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
   }
 }
 
