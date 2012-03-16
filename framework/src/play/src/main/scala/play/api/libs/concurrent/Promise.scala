@@ -9,6 +9,7 @@ import akka.actor.Actor._
 import java.util.concurrent.{ TimeUnit }
 
 import scala.collection.mutable.Builder
+import scala.collection._
 import scala.collection.generic.CanBuildFrom
 
 sealed trait PromiseValue[+A] {
@@ -263,8 +264,8 @@ object Promise {
 
   def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map{ v => Some(v)}}.getOrElse { Promise.pure(None)}
   
-  def sequence[A, M[_] <: Traversable[_]](in: M[Promise[A]])(implicit cbf: CanBuildFrom[M[Promise[A]], A, M[A]]): Promise[M[A]] = { 
-    in.foldLeft(Promise.pure(cbf(in)): Promise[Builder[A, M[A]]])((fr, fa) => for (r <- fr; a <- fa.asInstanceOf[Promise[A]]) yield (r += a)).map(_.result)
+  def sequence[B, M[_]](in: M[Promise[B]])(implicit toTraversableLike : M[Promise[B]] => TraversableLike[Promise[B], M[Promise[B]]], cbf: CanBuildFrom[M[Promise[B]], B, M[B]]): Promise[M[B]] = { 
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa : Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
   }
 }
 
