@@ -379,7 +379,7 @@ public class Constraints {
      */
     public static class PatternValidator extends Validator<String> implements ConstraintValidator<Pattern, String> {
         
-        final static public String message = "error.email";
+        final static public String message = "error.pattern";
         java.util.regex.Pattern regex = null;
         
         public PatternValidator() {}
