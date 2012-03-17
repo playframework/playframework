@@ -38,6 +38,11 @@ package play.api.mvc {
     def headers: Headers
 
     /**
+     * The client IP address.
+     */
+    def remoteAddress: String
+
+    /**
      * The HTTP host (domain, optionally port)
      */
     lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
@@ -119,6 +124,7 @@ package play.api.mvc {
       def method = self.method
       def queryString = self.queryString
       def headers = self.headers
+      def remoteAddress = self.remoteAddress
       lazy val body = f(self.body)
     }
 
@@ -134,6 +140,7 @@ package play.api.mvc {
     def path = request.path
     def uri = request.uri
     def method = request.method
+    def remoteAddress = request.remoteAddress
   }
 
   /**
