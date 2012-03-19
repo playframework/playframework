@@ -86,7 +86,7 @@ object JvmIO {
 
   def processStream(processLine: String => Unit): InputStream => Unit = in => {
     val reader = new BufferedReader(new InputStreamReader(in))
-    def process {
+    def process() {
       val line = reader.readLine()
       if (line != null) {
         processLine(line)
@@ -106,7 +106,7 @@ object JvmIO {
   def transfer(in: InputStream, out: OutputStream): Unit = {
     try {
       val buffer = new Array[Byte](BufferSize)
-      def read {
+      def read() {
         val byteCount = in.read(buffer)
         if (Thread.interrupted) throw new InterruptedException
         if (byteCount > 0) {

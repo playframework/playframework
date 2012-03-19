@@ -510,13 +510,13 @@ package anorm {
     def as[T](parser: ResultSetParser[T], rs: java.sql.ResultSet): T =
       parser(resultSetToStream(rs)) match {
         case Success(a) => a
-        case Error(e) => error(e.toString)
+        case Error(e) => sys.error(e.toString)
       }
 
     def parse[T](parser: ResultSetParser[T], rs: java.sql.ResultSet): T =
       parser(resultSetToStream(rs)) match {
         case Success(a) => a
-        case Error(e) => error(e.toString)
+        case Error(e) => sys.error(e.toString)
       }
 
   }

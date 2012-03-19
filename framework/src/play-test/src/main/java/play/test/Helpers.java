@@ -27,7 +27,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
     
     // --
-    
+    @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest) {
         if(handler instanceof play.core.j.JavaAction) {
             play.api.mvc.Action action = (play.api.mvc.Action)handler;
@@ -226,6 +226,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Use the Router to determine the Action to call for this request and executes it.
      */
+    @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(FakeRequest fakeRequest) {
         try {
             return routeAndCall((Class<? extends play.core.Router.Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest);
