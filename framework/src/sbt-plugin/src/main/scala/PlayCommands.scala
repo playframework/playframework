@@ -984,6 +984,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         println()
         state.fail
       }
+
       case Right(dependencies) => {
         println()
         println("Here are the resolved dependencies of your application:")
@@ -992,20 +993,20 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         import scala.Console._
 
         def asTableRow(module: Map[Symbol, Any]): Seq[(String, String, String, Boolean)] = {
-          val formatted = (Seq(module.get('module).map {
+           val formatted = (Seq(module.get('module).map {
             case (org, name, rev) => org + ":" + name + ":" + rev
           }).flatten,
 
             module.get('requiredBy).map {
-              case callers @ Seq(_*) => callers.map {
-                case (org, name, rev) => org + ":" + name + ":" + rev
+              case callers: Seq[_] => callers.map {
+                case (org, name, rev) => org.toString + ":" + name.toString + ":" + rev.toString
               }
             }.flatten.toSeq,
 
             module.get('evictedBy).map {
               case Some(rev) => Seq("Evicted by " + rev)
               case None => module.get('artifacts).map {
-                case artifacts: Seq[String] => artifacts.map("As " + _)
+                case artifacts: Seq[_] => artifacts.map("As " + _.toString)
               }.flatten
             }.flatten.toSeq)
           val maxLines = Seq(formatted._1.size, formatted._2.size, formatted._3.size).max

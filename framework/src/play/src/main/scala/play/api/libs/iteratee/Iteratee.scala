@@ -915,6 +915,7 @@ object Enumerator {
           case Thrown(e) => 
             iterateeP.throwing(e)
             onComplete()
+          case _ => throw new RuntimeException("should be either Redeemed or Thrown")
         }
 
       }

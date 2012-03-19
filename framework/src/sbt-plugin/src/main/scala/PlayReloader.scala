@@ -149,7 +149,7 @@ trait PlayReloader {
             val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
             val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
 
-            Project.evaluateTask(streamsManager, state).get.toEither.right.toOption.map { streamsManager =>
+            Project.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
               var first: (Option[(String, String, String)], Option[Int]) = (None, None)
               var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
               Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
@@ -189,7 +189,7 @@ trait PlayReloader {
 
       private def newClassLoader = {
         val loader = new java.net.URLClassLoader(
-          Project.evaluateTask(dependencyClasspath in Runtime, state).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
+          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
           baseLoader) {
 
           val version = classLoaderVersion.incrementAndGet
@@ -209,13 +209,13 @@ trait PlayReloader {
 
         PlayProject.synchronized {
 
-          val hash = Project.evaluateTask(playHash, state).get.toEither.right.get
+          val hash = Project.runTask(playHash, state).map(_._2).get.toEither.right.get
 
           lastHash.filter(_ == hash).map { _ => Right(None) }.getOrElse {
 
             lastHash = Some(hash)
 
-            val r = Project.evaluateTask(playReload, state).get.toEither
+            val r = Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>
                 lastHash = None
                 Incomplete.allExceptions(incomplete).headOption.map {
@@ -248,14 +248,14 @@ trait PlayReloader {
 
         val parser = Act.scopedKeyParser(state)
         val Right(sk: ScopedKey[Task[_]]) = complete.DefaultParsers.result(parser, task)
-        val result = Project.evaluateTask(sk, state)
+        val result = Project.runTask(sk, state).map(_._2)
 
         result.flatMap(_.toEither.right.toOption)
 
       }
 
       def definedTests: Seq[String] = {
-        Project.evaluateTask(Keys.definedTests in Test, state).get.toEither
+        Project.runTask(Keys.definedTests in Test, state).map(_._2).get.toEither
           .left.map { incomplete =>
             Incomplete.allExceptions(incomplete).headOption.map {
               case e: PlayException => e

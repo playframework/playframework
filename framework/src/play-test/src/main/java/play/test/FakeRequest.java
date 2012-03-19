@@ -28,6 +28,7 @@ public class FakeRequest {
     /**
      * Add addtional headers to this request.
      */
+    @SuppressWarnings(value = "unchecked")
     public FakeRequest withHeader(String name, String value) {
         fake = fake.withHeaders(Scala.varargs(Scala.Tuple(name, value)));
         return this;
@@ -36,6 +37,7 @@ public class FakeRequest {
     /**
      * Set a Form url encoded body to this request.
      */
+    @SuppressWarnings(value = "unchecked")
     public FakeRequest withFormUrlEncodedBody(java.util.Map<String,String> data) {
         List<scala.Tuple2<String,String>> args = new ArrayList<scala.Tuple2<String,String>>();
         for(String key: data.keySet()) {
@@ -46,6 +48,7 @@ public class FakeRequest {
         return this;
     }
     
+    @SuppressWarnings(value = "unchecked")
     public play.api.mvc.Request<play.mvc.Http.RequestBody> getWrappedRequest() {
         return ((play.api.test.FakeRequest<play.api.mvc.AnyContent>)fake).map(new scala.runtime.AbstractFunction1<play.api.mvc.AnyContent, play.mvc.Http.RequestBody>() {
             public play.mvc.Http.RequestBody apply(play.api.mvc.AnyContent anyContent) {

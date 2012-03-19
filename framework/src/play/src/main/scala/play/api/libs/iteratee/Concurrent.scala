@@ -93,6 +93,7 @@ object Concurrent {
             }).extend1 {
               case Redeemed(a) => a
               case Thrown(e) => p.throwing(e)
+              case _ => throw new RuntimeException("should be either Redeemed or Thrown at this point")
 
             }
       }.fold(Promise.pure()) { (s, p) => s.flatMap(_ => p) }
@@ -165,6 +166,7 @@ object Concurrent {
           finished.foreach{
             case Redeemed(_) => result.redeem(it)
             case Thrown(e) => result.throwing(e)
+            case _ => throw new RuntimeException("should be either Redeemed or Thrown")
           }
           result
         }

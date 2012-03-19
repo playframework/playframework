@@ -19,8 +19,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             unmanagedJars in Compile += compilerJar,
-            scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
-            javacOptions ++= Seq("-encoding", "utf8"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -31,8 +30,7 @@ object PlayBuild extends Build {
         settings = buildSettings ++ Seq(
             libraryDependencies := anormDependencies,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "utf8"),
-            javacOptions ++= Seq("-encoding", "utf8"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := true
         )
@@ -45,8 +43,7 @@ object PlayBuild extends Build {
             libraryDependencies := runtime,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8"),
-            javacOptions ++= Seq("-encoding", "utf8"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
@@ -61,8 +58,8 @@ object PlayBuild extends Build {
       settings = buildSettings ++ Seq(
         libraryDependencies := testDependencies,
         publishTo := Some(playRepository),
-        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
-        javacOptions ++= Seq("-encoding", "utf8"),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+        javacOptions  ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := true,
         resolvers += typesafe
@@ -79,8 +76,7 @@ object PlayBuild extends Build {
         addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
-        scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
-        javacOptions ++= Seq("-encoding", "utf8"),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := false,
         resolvers += typesafe
@@ -95,8 +91,7 @@ object PlayBuild extends Build {
         sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
         unmanagedJars in Compile ++=  sbtJars,
         publishTo := Some(playRepository),
-        scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
-        javacOptions ++= Seq("-encoding", "utf8"),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := true,
         resolvers += typesafe
