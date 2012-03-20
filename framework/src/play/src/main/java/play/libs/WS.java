@@ -2,6 +2,7 @@ package play.libs;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncCompletionHandler;
+import com.ning.http.client.PerRequestConfig;
 import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilderBase;
 import com.ning.http.client.Realm.AuthScheme;
@@ -107,6 +108,9 @@ public class WS {
         private String password = null;
         private AuthScheme scheme = null;
 
+        private int timeout = 0;
+        private Boolean followRedirects = null;
+
         public WSRequestHolder(String url) {
             this.url = url;
         }
@@ -158,6 +162,26 @@ public class WS {
             this.username = username;
             this.password = password;
             this.scheme = scheme;
+            return this;
+        }
+
+        /**
+         * Sets whether redirects (301, 302) should be followed automatically
+         *
+         * @param followRedirect
+         */
+        public WSRequestHolder setFollowRedirects(Boolean followRedirects) {
+            this.followRedirects = followRedirects;
+            return this;
+        }
+
+        /**
+         * Sets the request timeout in milliseconds
+         *
+         * @param timeout
+         */
+        public WSRequestHolder setTimeout(int timeout) {
+            this.timeout = timeout;
             return this;
         }
 
@@ -247,6 +271,14 @@ public class WS {
             WSRequest req = new WSRequest(method).setUrl(url)
                                                  .setHeaders(headers)
                                                  .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.timeout > 0) {
+                PerRequestConfig config = new PerRequestConfig();
+                config.setRequestTimeoutInMs(this.timeout);
+                req.setPerRequestConfig(config);
+            }
+            if (this.followRedirects != null) {
+                req.setFollowRedirects(this.followRedirects);
+            }
             if (this.username != null && this.password != null && this.scheme != null)
                 req.auth(this.username, this.password, this.scheme);
             return req.execute();
@@ -257,6 +289,14 @@ public class WS {
                                                  .setUrl(url)
                                                  .setHeaders(headers)
                                                  .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.timeout > 0) {
+                PerRequestConfig config = new PerRequestConfig();
+                config.setRequestTimeoutInMs(this.timeout);
+                req.setPerRequestConfig(config);
+            }
+            if (this.followRedirects != null) {
+                req.setFollowRedirects(this.followRedirects);
+            }
             if (this.username != null && this.password != null && this.scheme != null)
                 req.auth(this.username, this.password, this.scheme);
             return req.execute();
@@ -267,6 +307,14 @@ public class WS {
                                                  .setUrl(url)
                                                  .setHeaders(headers)
                                                  .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.timeout > 0) {
+                PerRequestConfig config = new PerRequestConfig();
+                config.setRequestTimeoutInMs(this.timeout);
+                req.setPerRequestConfig(config);
+            }
+            if (this.followRedirects != null) {
+                req.setFollowRedirects(this.followRedirects);
+            }
             if (this.username != null && this.password != null && this.scheme != null)
                 req.auth(this.username, this.password, this.scheme);
             return req.execute();
@@ -277,6 +325,14 @@ public class WS {
                                                  .setUrl(url)
                                                  .setHeaders(headers)
                                                  .setQueryParameters(new FluentStringsMap(queryParameters));
+            if (this.timeout > 0) {
+                PerRequestConfig config = new PerRequestConfig();
+                config.setRequestTimeoutInMs(this.timeout);
+                req.setPerRequestConfig(config);
+            }
+            if (this.followRedirects != null) {
+                req.setFollowRedirects(this.followRedirects);
+            }
             if (this.username != null && this.password != null && this.scheme != null)
                 req.auth(this.username, this.password, this.scheme);
             return req.execute();
