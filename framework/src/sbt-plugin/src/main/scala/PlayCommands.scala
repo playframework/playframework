@@ -468,6 +468,8 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
 
         val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
 
+        java.lang.Thread.currentThread().setContextClassLoader(new java.net.URLClassLoader(cp, ClassLoader.getSystemClassLoader))
+
         import com.avaje.ebean.enhance.agent._
         import com.avaje.ebean.enhance.ant._
         import collection.JavaConverters._
