@@ -479,19 +479,18 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
         val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
 
         //model definition only can come from bundled application.conf at this point and "conf" folder is not visible as a resource from this classloader, so
+       	val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf"))) 
 	val models = try { 
-        	val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf"))) 
         	config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",") 
 	} catch { 
   		case e => 
-    			s.log.info("Error while loading config: "+e.getMessage()) 
     			"models.*" 
 	}	 
-	s.log.info("EBean enhancement: "+models)
         
 	ft.process(models)
       } catch {
-        case _ =>
+        case e =>
+		throw e
       }
     }
 
