@@ -38,7 +38,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
 
   // -- Global stuff
 
-  private val globalClass = initialConfiguration.getString("global").getOrElse("Global")
+  private val globalClass = initialConfiguration.getString("application.global").getOrElse("application.Global")
 
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
     Option(classloader.loadClass(globalClass).newInstance().asInstanceOf[play.GlobalSettings])
