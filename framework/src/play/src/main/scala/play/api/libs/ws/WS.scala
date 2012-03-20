@@ -13,9 +13,9 @@ import com.ning.http.client.{
   HttpResponseBodyPart,
   HttpResponseHeaders,
   HttpResponseStatus,
-  Response => AHCResponse
+  Response => AHCResponse,
+  PerRequestConfig
 }
-import com.ning.http.client.AsyncHttpClientConfig
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -53,7 +53,7 @@ object WS {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None)
 
   /**
    * A WS Request.
@@ -257,7 +257,9 @@ object WS {
       headers: Map[String, Seq[String]],
       queryString: Map[String, String],
       calc: Option[SignatureCalculator],
-      auth: Option[Tuple3[String, String, AuthScheme]]) {
+      auth: Option[Tuple3[String, String, AuthScheme]],
+      followRedirects: Option[Boolean],
+      timeout: Option[Int]) {
 
     /**
      * sets the signature calculator for the request
@@ -289,6 +291,18 @@ object WS {
      */
     def withQueryString(parameters: (String, String)*): WSRequestHolder =
       this.copy(queryString = parameters.foldLeft(queryString)((m, param) => m + param))
+
+    /**
+     * Sets whether redirects (301, 302) should be followed automatically
+     */
+    def withFollowRedirects(follow: Boolean): WSRequestHolder =
+      this.copy(followRedirects = Some(follow))
+
+    /**
+     * Sets the request timeout in milliseconds
+     */
+    def withTimeout(timeout: Int): WSRequestHolder =
+      this.copy(timeout = Some(timeout))
 
     /**
      * performs a get with supplied body
@@ -340,16 +354,32 @@ object WS {
      */
     def options(): Promise[Response] = prepare("OPTIONS").execute
 
-    private def prepare(method: String) =
-      new WSRequest(method, auth, calc).setUrl(url)
+    private def prepare(method: String) = {
+      val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
+      followRedirects.map(request.setFollowRedirects(_))
+      timeout.map { t:Int =>
+        val config = new PerRequestConfig()
+        config.setRequestTimeoutInMs(t)
+        request.setPerRequestConfig(config)
+      }
+      request
+    }
 
-    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
-      new WSRequest(method, auth, calc).setUrl(url)
+    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
+      val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
+      followRedirects.map(request.setFollowRedirects(_))
+      timeout.map { t:Int =>
+        val config = new PerRequestConfig()
+        config.setRequestTimeoutInMs(t)
+        request.setPerRequestConfig(config)
+      }
+      request
+    }
 
   }
 }
