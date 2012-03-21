@@ -586,7 +586,7 @@ trait BodyParsers {
 
             val maxHeaderBuffer = Traversable.takeUpTo[Array[Byte]](4 * 1024) transform Iteratee.consume[Array[Byte]]()
 
-            val collectHeaders = maxHeaderBuffer.flatMap { buffer =>
+            val collectHeaders = maxHeaderBuffer.map { buffer =>
               val (headerBytes, rest) = Option(buffer.drop(2)).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
 
               val headerString = new String(headerBytes)
@@ -596,15 +596,10 @@ trait BodyParsers {
               }.toMap
 
               val left = rest.drop(CRLFCRLF.length)
-
-              Cont(in => Done(headers, in match {
-                case Input.El(e) => Input.El(left ++ e)
-                case Input.EOF => Input.El(left)
-                case Input.Empty => Input.El(left)
-              }))
+              (headers,left)
             }
 
-            val readPart = collectHeaders.flatMap(partHandler)
+            val readPart = collectHeaders.flatMap{ case(headers,left) =>  Iteratee.flatten(partHandler(headers).feed(Input.El(left)))}
 
             val handlePart = Enumeratee.map[MatchInfo[Array[Byte]]](_.content).transform(readPart)
 
