@@ -180,6 +180,21 @@ object PlayMagic {
    */
   def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
 
+  /**
+   * Generates form validation attributes
+   */
+  def toValidation(field: play.api.data.Field) = {
+    val out = Html.empty
+    field.constraints.foreach(
+      constraint => constraint._1 match {
+        case "constraint.required" => out + Html(" required")
+        case "constraint.minLength" => out + Html(" minlength=\"" + constraint._2.head + "\"")
+        case "constraint.maxLength" => out + Html(" maxlength=\"" + constraint._2.head + "\"")
+        case _ => ()
+      })
+    out
+  }	
+
 }
 
 /** Defines a magic helper for Play templates in a Java context. */
