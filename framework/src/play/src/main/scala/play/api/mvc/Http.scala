@@ -375,11 +375,11 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    val COOKIE_NAME = Play.maybeApplication.map(a => a.configuration.getString("session.cookieName")).flatMap(x => x).getOrElse("PLAY_SESSION")
+    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
     val emptyCookie = new Session
     override val isSigned = true
-    override val secure = Play.maybeApplication.map(a => a.configuration.getBoolean("session.secure")).flatMap(x => x).getOrElse(false)
-    override val maxAge = Play.maybeApplication.map(a => a.configuration.getInt("session.maxAge")).flatMap(x => x).getOrElse(-1)
+    override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
+    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
