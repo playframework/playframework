@@ -208,6 +208,15 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
    * @param mainLang mainly scala or java?
    */
   def eclipseCommandSettings(mainLang: String) = {
+    val settingsDir = new File(".settings")
+    val coreSettings = new File(settingsDir.toString+java.io.File.separator+"org.eclipse.core.resources.prefs")
+    if (mainLang == JAVA && coreSettings.exists == false) {
+      IO.createDirectory(settingsDir)
+      IO.write(coreSettings,
+      """|eclipse.preferences.version=1
+         |encoding/<project>=UTF-8""".stripMargin
+      )  
+    }
     import com.typesafe.sbteclipse.core._
     import com.typesafe.sbteclipse.core.EclipsePlugin._
     def transformerFactory =
@@ -217,6 +226,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
             (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
           )
       }
+
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.preTasks := Seq(compile in Compile),
