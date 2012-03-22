@@ -173,7 +173,6 @@ trait DefaultReads {
    * Deserializer for JsValue.
    */
   implicit object JsValueReads extends Reads[JsValue] {
-    def writes(o: JsValue) = o
     def reads(json: JsValue) = json
   }
 
