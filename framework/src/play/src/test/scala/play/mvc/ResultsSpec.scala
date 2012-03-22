@@ -8,8 +8,6 @@ object ResultsSpec extends Specification {
 
   "SimpleResult" should {
 
-    val fakeApp = new play.core.StaticApplication(new java.io.File(""))
-
     "have status" in {
       val SimpleResult(ResponseHeader(status, _), _) = Ok("hello")
       status must be_==(200)
