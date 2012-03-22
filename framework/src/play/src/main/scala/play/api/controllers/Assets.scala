@@ -12,26 +12,9 @@ import scalax.io.{ Resource }
 import java.text.SimpleDateFormat
 import collection.JavaConverters._
 
-/**
- * Controller that serves static resources.
- *
- * Resources are searched in the classpath.
- *
- * It handles Last-Modified and ETag header automatically.
- * If a gzipped version of a resource is found (Same resource name with the .gz suffix), it is served instead.
- *
- * You can set a custom Cache directive for a particular resource if needed. For example in your application.conf file:
- *
- * {{{
- * "assets.cache./public/images/logo.png" = "max-age=3600"
- * }}}
- *
- * You can use this controller in any application, just by declaring the appropriate route. For example:
- * {{{
- * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
- * }}}
- */
-object Assets extends Controller {
+
+trait Assets {
+  this: Controller =>
 
   /**
    * Generates an `Action` that serves a static resource.
@@ -156,3 +139,23 @@ object Assets extends Controller {
 
 }
 
+/**
+ * Controller that serves static resources.
+ *
+ * Resources are searched in the classpath.
+ *
+ * It handles Last-Modified and ETag header automatically.
+ * If a gzipped version of a resource is found (Same resource name with the .gz suffix), it is served instead.
+ *
+ * You can set a custom Cache directive for a particular resource if needed. For example in your application.conf file:
+ *
+ * {{{
+ * "assets.cache./public/images/logo.png" = "max-age=3600"
+ * }}}
+ *
+ * You can use this controller in any application, just by declaring the appropriate route. For example:
+ * {{{
+ * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
+ * }}}
+ */
+object Assets extends Controller with Assets
