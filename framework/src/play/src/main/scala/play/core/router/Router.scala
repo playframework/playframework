@@ -174,7 +174,7 @@ object Router {
               if (p.fixed.isDefined || p.default.isDefined) {
                 throw RoutesCompilationError(
                   file,
-                  "Cannot define fixed or default value for path extracted parameter " + name,
+                  "It is not allowed to specify a fixed or default value for the parameter '" + name + "' extracted from the path",
                   Some(p.pos.line),
                   Some(p.pos.column))
               }
