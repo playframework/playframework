@@ -150,6 +150,11 @@ public class Http {
          */
         public abstract String method();
         
+	    /**
+		 * The Remote Ip.
+	     */
+	   public abstract String remoteAddress();
+		
         /**
          * The request host.
          */
