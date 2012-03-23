@@ -53,6 +53,16 @@ class ApplicationSpec extends Specification {
       }
     }
    
+    "remove cache elements" in {
+      running(FakeApplication()) {
+        import play.api.Play.current
+        import play.api.cache.Cache
+        Cache.set("foo", "bar")
+        Cache.get("foo") must equalTo (Some("bar"))
+        Cache.remove("foo")
+        Cache.get("foo") must equalTo (None)
+      }
+    }
   }
    
 }

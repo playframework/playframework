@@ -13,7 +13,7 @@ trait CacheAPI {
    *
    * @param key Item key.
    * @param value Item value.
-   * @param expiration Expiration time in seconds.
+   * @param expiration Expiration time in seconds (0 second means eternity).
    */
   def set(key: String, value: Any, expiration: Int)
 
@@ -24,6 +24,10 @@ trait CacheAPI {
    */
   def get(key: String): Option[Any]
 
+  /**
+   * Remove a value from the cache
+   */
+  def remove(key: String)
 }
 
 /**
@@ -33,9 +37,12 @@ trait CacheAPI {
  */
 object Cache {
 
-  private def error = throw new Exception(
-    "There is no cache plugin registered. Make sure at least one CachePlugin implementation is enabled."
-  )
+  private def cacheAPI(implicit app: Application): CacheAPI = {
+    app.plugin[CachePlugin] match {
+      case Some(plugin) => plugin.api
+      case None => throw new Exception("There is no cache plugin registered. Make sure at least one CachePlugin implementation is enabled.")
+    }
+  }
 
   /**
    * Sets a value without expiration
@@ -45,7 +52,7 @@ object Cache {
    * @param expiration expiration period in seconds.
    */
   def set(key: String, value: Any, expiration: Int = 0)(implicit app: Application) = {
-    app.plugin[CachePlugin].map(_.api.set(key, value, expiration)).getOrElse(error)
+    cacheAPI.set(key, value, expiration)
   }
 
   /**
@@ -54,7 +61,7 @@ object Cache {
    * @param key Item key.
    */
   def get(key: String)(implicit app: Application): Option[Any] = {
-    app.plugin[CachePlugin].map(_.api.get(key)).getOrElse(error)
+    cacheAPI.get(key)
   }
 
   /**
@@ -84,6 +91,9 @@ object Cache {
     }.getOrElse(None)
   }
 
+  def remove(key: String)(implicit app: Application) {
+    cacheAPI.remove(key)
+  }
 }
 
 /**
@@ -144,6 +154,9 @@ class EhCachePlugin(app: Application) extends CachePlugin {
       Option(cache.get(key)).map(_.getObjectValue)
     }
 
+    def remove(key: String) {
+      cache.remove(key)
+    }
   }
 
 }

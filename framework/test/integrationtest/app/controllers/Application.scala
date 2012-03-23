@@ -22,7 +22,6 @@ object Application extends Controller {
     Ok(views.html.index(Cache.getAs[String]("hello").getOrElse("oh noooz")))
   }
 
-
   def submitForm = Action{
    Ok("ok")
   }
@@ -61,6 +60,5 @@ object Application extends Controller {
     if (v != "world") throw new RuntimeException("java cache API is not working")
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
-
 }
 

@@ -51,5 +51,7 @@ public class Cache {
       play.api.cache.Cache.set(key,value, 0, play.api.Play.unsafeApplication());
   }
 
-
+  public static void remove(String key) {
+      play.api.cache.Cache.remove(key, play.api.Play.unsafeApplication());
+  }
 }
