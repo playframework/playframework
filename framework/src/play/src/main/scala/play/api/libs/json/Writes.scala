@@ -10,7 +10,7 @@ import scala.annotation.implicitNotFound
 @implicitNotFound(
   "No Json deserializer found for type ${T}. Try to implement an implicit Writes or Format for this type."
 )
-trait Writes[T] {
+trait Writes[-T] {
 
   /**
    * Convert the object into a JsValue
