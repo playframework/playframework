@@ -61,6 +61,14 @@ object Application extends Controller {
     if (v != "world") throw new RuntimeException("java cache API is not working")
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
+  
+  def javascriptRoutes = Action { implicit request =>
+    import play.api.Routes
+    Ok(Routes.javascriptRouter("routes")(routes.javascript.Application.javascriptTest)).as("text/javascript")
+  }
 
+  def javascriptTest(name: String) = Action {
+    Ok(views.html.javascriptTest(name))
+  }
 }
 
