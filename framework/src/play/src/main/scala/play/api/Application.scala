@@ -11,6 +11,8 @@ import scala.collection.JavaConverters._
 
 import annotation.implicitNotFound
 
+import java.lang.reflect.InvocationTargetException
+
 /**
  * A Play application.
  *
@@ -182,6 +184,10 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
               Some(e))
           }
         }
+        case e: InvocationTargetException => throw PlayException(
+          "Cannot load plugin",
+          "An exception occurred during Plugin [" + className + "] initialization",
+          Some(e.getTargetException))
         case e: PlayException => throw e
         case e => throw PlayException(
           "Cannot load plugin",
