@@ -39,8 +39,10 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   }
 
   // -- Global stuff
-
-  private val globalClass = initialConfiguration.getString("application.global").getOrElse("application.Global")
+  
+  private val globalClass = initialConfiguration.getString("application.global").getOrElse(initialConfiguration.getString("global").map{g => 
+    Logger("play").warn("`global` key is deprecated, pleause change `global` key to `application.global`")
+    g}.getOrElse("Global"))
 
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
     Option(classloader.loadClass(globalClass).newInstance().asInstanceOf[play.GlobalSettings])
@@ -55,7 +57,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   } catch {
     case e: ClassNotFoundException if !initialConfiguration.getString("application.global").isDefined => DefaultGlobal
     case e if initialConfiguration.getString("application.global").isDefined => {
-      throw initialConfiguration.reportError("application.global", "Cannot init the Global object (%s)".format(e.getMessage))
+      throw initialConfiguration.reportError("application.global", "Cannot initialize the custom Global object (%s) (perhaps it's a wrong reference?)".format(e.getMessage))
     }
     case e => throw e
   }
