@@ -90,10 +90,10 @@ object JvmIO {
       val line = reader.readLine()
       if (line != null) {
         processLine(line)
-        process
+        process()
       }
     }
-    process
+    process()
   }
 
   def input(connectInput: Boolean): OutputStream => Unit =
@@ -112,10 +112,10 @@ object JvmIO {
         if (byteCount > 0) {
           out.write(buffer, 0, byteCount)
           out.flush()
-          read
+          read()
         }
       }
-      read
+      read()
     } catch {
       case _: InterruptedException => ()
     }
