@@ -18,6 +18,8 @@ GET     /json                   controllers.Application.json()
 GET     /json_from_jsobject     controllers.Application.jsonFromJsObject()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
+GET     /take-bool              controllers.Application.takeBool(b: Boolean)
+GET     /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 

@@ -333,7 +333,7 @@ object PathBindable {
         case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Boolean: should be 0 or 1")
       }
     }
-    def unbind(key: String, value: Boolean) = key + "=" + (if (value) "1" else "0")
+    def unbind(key: String, value: Boolean) = if (value) "1" else "0"
   }
 
   /**
