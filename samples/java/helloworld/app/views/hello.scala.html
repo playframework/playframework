@@ -2,7 +2,7 @@
 
 @main("Here is the result:") {
     
-    <ul style="color: @if(color != null) { @color } else { "inherited" }">
+    <ul style="color: @if(color != null) { @color } else { inherited }">
         @for(i <- 1 to repeat) {
             <li>Hello @name!</li>
         }
