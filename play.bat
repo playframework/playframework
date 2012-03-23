@@ -16,7 +16,7 @@ java -Dsbt.ivy.home=%~dp0repository -Dplay.home=%~dp0framework -Dsbt.boot.proper
 goto end
 
 :existingApplication
-if not "%1" == "clean-all" goto runCommand
+if not "%~1" == "clean-all" goto runCommand
 
 :cleanCache
 if exist "target" rmdir /s /q target
@@ -31,9 +31,9 @@ set additionalArgs=%additionalArgs:*clean-all=%
 if "%1" == "" goto endWithMessage
 
 :runCommand
-if "%1" == "" goto enterConsole
+if "%~1" == "" goto enterConsole
 
-if "%1" == "debug" goto setDebug
+if "%~1" == "debug" goto setDebug
 goto enterConsoleWithCommands
 
 :setDebug
