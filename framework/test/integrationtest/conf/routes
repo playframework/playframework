@@ -16,6 +16,7 @@ GET     /intercepted-with       controllers.JavaApi.interceptedUsingWith()
 GET     /intercepted            controllers.JavaApi.intercepted()
 GET     /json                   controllers.Application.json()
 GET     /json_from_jsobject     controllers.Application.jsonFromJsObject()
+GET     /javascript/messages    controllers.Application.javascriptMessages()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
 # Map static resources from the /public folder to the /public path
