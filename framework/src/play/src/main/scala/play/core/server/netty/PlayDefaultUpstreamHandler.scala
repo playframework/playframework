@@ -48,6 +48,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
         val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
+        val rRemoteAddress = e.getRemoteAddress match {
+          case ra: java.net.InetSocketAddress => ra.getAddress.getHostAddress
+        }
+        
         val rHeaders = getHeaders(nettyHttpRequest)
         val rCookies = getCookies(nettyHttpRequest)
 
@@ -61,6 +65,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def method = nettyHttpRequest.getMethod.getName
           def queryString = parameters
           def headers = rHeaders
+          def remoteAddress = rRemoteAddress
           def username = None
         }
 
@@ -289,6 +294,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       def queryString = parameters
                       def headers = rHeaders
                       def username = None
+                      def remoteAddress = rRemoteAddress
                       val body = b
                     })
                 }
