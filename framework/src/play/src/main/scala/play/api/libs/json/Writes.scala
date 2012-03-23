@@ -149,13 +149,6 @@ trait DefaultWrites {
   }
 
   /**
-   * Serializer for JsObjects.
-   */
-  implicit object JsObjectWrites extends Writes[JsObject] {
-    def writes(o: JsObject) = o
-  }
-
-  /**
    * Serializer for Option.
    */
   implicit def OptionWrites[T](implicit fmt: Writes[T]): Writes[Option[T]] = new Writes[Option[T]] {
