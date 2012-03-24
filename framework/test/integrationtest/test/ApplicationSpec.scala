@@ -92,6 +92,28 @@ class ApplicationSpec extends Specification {
         }
       }
     }
+
+    "bind int parameters from the query string as a list" in {
+      running(FakeApplication()) {
+        "from a list of numbers" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
+          contentAsString(result) must equalTo ("123")
+        }
+        "from a list of numbers and letters" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
+          contentAsString(result) must equalTo ("12")
+        }
+        "when there is no parameter at all" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, "/take-list"))
+          contentAsString(result) must equalTo ("")
+        }
+        "using the Java API" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, "/take-list-java?x=1&x=2&x=3"))
+          contentAsString(result) must equalTo ("3 elements")
+        }
+      }
+    }
+
   }
    
 }

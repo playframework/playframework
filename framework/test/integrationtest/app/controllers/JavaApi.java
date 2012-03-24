@@ -53,5 +53,9 @@ public class JavaApi extends Controller {
     public static Result intercepted() {
         return ok(Interceptor.state);
     }
+
+    public static Result takeList(List<Integer> xs) {
+        return ok(xs.size() + " elements");
+    }
 }
 
