@@ -28,7 +28,8 @@ if exist "dist" rmdir /s /q dist
 
 shift
 set additionalArgs=%additionalArgs:*clean-all=%
-if "%1" == "" goto endWithMessage
+
+if "%~1" == "" goto endWithMessage
 
 :runCommand
 if "%~1" == "" goto enterConsole
@@ -41,7 +42,7 @@ set JPDA_PORT=9999
 shift
 set additionalArgs=%additionalArgs:*debug=%
 
-if "%1" == "" goto enterConsole
+if "%~1" == "" goto enterConsole
 
 :enterConsoleWithCommands
 
