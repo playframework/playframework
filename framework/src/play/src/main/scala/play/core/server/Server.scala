@@ -39,10 +39,10 @@ trait Server {
     mode = mode)
 
   // Start the main Invoker
-  Invoker.init(applicationProvider)
+  val invoker = Invoker(applicationProvider)
 
-  // Get a reference on the Action invoker
-  val invoker = Invoker.actionInvoker
+  // store the invoker in a global variable
+  Invoker.init(invoker)
 
   val bodyParserTimeout = {
     Configuration(Invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
@@ -92,18 +92,19 @@ trait Server {
   }
 
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
-    invoker ! Invoker.HandleAction(request, response, action, app)
+    invoker.actionInvoker ! Invoker.HandleAction(request, response, action, app)
   }
 
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    val future = ask(invoker, Invoker.GetBodyParser(requestHeaders, bodyFunction), bodyParserTimeout)
+    val future = ask(invoker.actionInvoker, Invoker.GetBodyParser(requestHeaders, bodyFunction), bodyParserTimeout)
     future.asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
   }
 
   def applicationProvider: ApplicationProvider
 
   def stop() {
-    Invoker.system.shutdown()
+    Invoker.uninit()
+    invoker.stop()
     Logger.shutdown()
   }
 
