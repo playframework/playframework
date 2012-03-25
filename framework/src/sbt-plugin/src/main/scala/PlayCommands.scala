@@ -598,17 +598,22 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
     state
   }
 
-  private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
-    val (properties, others) = args.span(_.startsWith("-D"))
-    // collect arguments plus config file property if present 
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
-    val port = others.headOption.map { portString =>
-      try {
+  private def parsePort(portString: String): Int = {
+    try {
         Integer.parseInt(portString)
       } catch {
         case e => sys.error("Invalid port argument: " + portString)
       }
-    }.getOrElse(9000)
+  }
+
+  private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
+    val (properties, others) = args.span(_.startsWith("-D"))
+    // collect arguments plus config file property if present 
+    val httpPort = Option(System.getProperty("http.port"))
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
+    //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property 
+    val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(9000)
+    
     (javaProperties, port)
   }
 
