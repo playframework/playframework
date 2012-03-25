@@ -100,8 +100,6 @@ trait Redeemable[-A] {
 
 object STMPromise {
 
-  val invoker = play.core.Invoker.promiseInvoker
-
   class PromiseInvoker extends Actor {
 
     def receive = {
@@ -164,7 +162,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     }
   }
 
-  private def invoke[T](a: T, k: T => Unit): Unit = STMPromise.invoker ! STMPromise.Invoke(a, k)
+  private def invoke[T](a: T, k: T => Unit): Unit = akka.dispatch.Future{ k(a) }(play.core.Invoker.promiseDispatcher)
 
   def redeem(body: => A): Unit = {
     val result = scala.util.control.Exception.allCatch[A].either(body)

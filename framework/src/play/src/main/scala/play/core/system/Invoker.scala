@@ -30,7 +30,7 @@ object Invoker {
     val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
       ConfigFactory.load()).getOrElse(Configuration.loadDev(applicationProvider.path))
     configuredSystem = ActorSystem("play", conf.getConfig("play"))
-    promiseInvoker
+    promiseDispatcher
     actionInvoker
   }
 
@@ -45,8 +45,8 @@ object Invoker {
     }
   }
 
-  lazy val promiseInvoker = {
-    system.actorOf(Props[play.api.libs.concurrent.STMPromise.PromiseInvoker].withDispatcher("akka.actor.promises-dispatcher").withRouter(RoundRobinRouter(100)), name = "promises")
+  lazy val promiseDispatcher = {
+     system.dispatchers.lookup("akka.actor.promises-dispatcher")
   }
 
   lazy val actionInvoker = {
