@@ -100,4 +100,12 @@ object ResultsSpec extends Specification {
 
   }
 
+  "Ok.sendFile" should {
+    "perform onClose if given" in {
+      var closed = false
+      Ok.sendFile(new java.io.File(""), onClose = () => closed = true)
+      closed must be_==(true)
+    }
+  }
+
 }
