@@ -408,6 +408,11 @@ case class Response(ahcResponse: AHCResponse) {
   def statusText: String = ahcResponse.getStatusText()
 
   /**
+   * The response status text.
+   */
+  def statusText: String = ahcResponse.getStatusText();
+
+  /**
    * Get a response header.
    */
   def header(key: String): Option[String] = Option(ahcResponse.getHeader(key))
