@@ -98,20 +98,6 @@ trait Redeemable[-A] {
   def throwing(t: Throwable): Unit
 }
 
-object STMPromise {
-
-  class PromiseInvoker extends Actor {
-
-    def receive = {
-      case Invoke(a, k) => k(a)
-    }
-
-  }
-
-  case class Invoke[A](a: A, k: A => Unit)
-
-}
-
 class STMPromise[A] extends Promise[A] with Redeemable[A] {
   import scala.concurrent.stm._
 

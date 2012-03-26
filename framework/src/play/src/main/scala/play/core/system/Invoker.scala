@@ -15,6 +15,40 @@ import play.api.http.HeaderNames._
 import play.utils._
 
 /**
+ * holds Play's internal invokers
+ */
+class Invoker(val system: ActorSystem) {
+
+  /**
+   * creates Invoker 
+   * @param applicationProvider applicationProvider for this invoker
+   */
+  def this(applicationProvider: ApplicationProvider) = this(Invoker.appProviderActorSystem(applicationProvider))
+
+  /**
+   * creates Invoker using the default Actor system, useful for testing
+   */
+  def this() = this(ActorSystem("play"))
+
+  val promiseDispatcher = {
+    system.dispatchers.lookup("akka.actor.promises-dispatcher")
+  }
+
+  val actionInvoker = {
+    system.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
+  }
+
+
+  /**
+   * kills actor system 
+   */
+  def stop(): Unit = {
+    system.shutdown()
+    system.awaitTermination()
+  }
+}
+
+/**
  * provides Play's internal actor system and the corresponding actor instances
  */
 object Invoker {
@@ -22,37 +56,39 @@ object Invoker {
   case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
   case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 
-  // --
-
-  // Call init to register an Actor System properly configured from 
-  // this applicationProvider. Otherwise a default ActorSystem will be created.
-  def init(applicationProvider: ApplicationProvider) {
+  private def appProviderActorSystem(applicationProvider: ApplicationProvider) = {
     val conf = play.api.Play.maybeApplication.filter(_.mode == Mode.Prod).map(app =>
       ConfigFactory.load()).getOrElse(Configuration.loadDev(applicationProvider.path))
-    configuredSystem = ActorSystem("play", conf.getConfig("play"))
-    promiseDispatcher
-    actionInvoker
+    ActorSystem("play", conf.getConfig("play"))
   }
 
-  private var configuredSystem: ActorSystem = _
+  def apply(applicationProvider: ApplicationProvider): Invoker = new Invoker(applicationProvider)
 
-  // --
+  // Call init to register an Actor System, otherwise a default ActorSystem will be created.
+  def init(invoker: Invoker): Unit = {
+    if (invokerOption.isDefined)
+      throw new IllegalStateException("Invoker was initialized twice without an intervening uninit; two Server created at once?")
+    invokerOption = Some(invoker)
+  }
 
-  lazy val system = {
-    Option(configuredSystem).getOrElse {
-      Logger.warn("Missing configuration for Play ActorSystem. Starting a default one.")
-      ActorSystem("play")
+  def uninit(): Unit = {
+    invokerOption = None
+  }
+
+  private var invokerOption: Option[Invoker] = None
+
+  private def invoker: Invoker = invokerOption.getOrElse{
+      val default = new Invoker()
+      invokerOption = Some(default)
+      Logger.warn ("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
+      default
     }
-  }
 
-  lazy val promiseDispatcher = {
-     system.dispatchers.lookup("akka.actor.promises-dispatcher")
-  }
+  def system = invoker.system
 
-  lazy val actionInvoker = {
-    system.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
-  }
+  def promiseDispatcher = invoker.promiseDispatcher
 
+  def actionInvoker = invoker.actionInvoker
 }
 
 /**
