@@ -80,6 +80,22 @@ public class F {
 
     public static class Promise<A> {
 
+        public static <A> Promise<A> waitAll(Promise<A>... promises){
+
+            return new Promise(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
+        }
+
+        public static <A> Promise<A> waitAll(Iterable<Promise<A>> promises){
+
+            ArrayList<Promise<A>> ps = new ArrayList<Promise<A>>();
+
+            for(Promise<A> p : promises){
+                ps.add(p);
+            }
+
+            return new Promise(play.core.j.JavaPromise.<A>sequence(ps));
+        }
+
         private final play.api.libs.concurrent.Promise<A> promise;
 
         public Promise(play.api.libs.concurrent.Promise<A> promise) {
