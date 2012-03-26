@@ -62,5 +62,7 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
+  def urldecode(fromPath: String, fromQueryString: String) = Action {
+    Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
+  }
 }
-

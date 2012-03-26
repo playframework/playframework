@@ -53,6 +53,14 @@ class ApplicationSpec extends Specification {
       }
     }
    
+    "urldecode correctly parameters from path and query string" in {
+      running(FakeApplication()) {
+        val Some(result) = routeAndCall(FakeRequest(GET, "/urldecode/2%2B2?q=2%2B2"))
+        contentAsString(result) must contain ("fromPath=2+2")
+        contentAsString(result) must contain ("fromQueryString=2+2")
+      }
+    }
+
   }
    
 }
