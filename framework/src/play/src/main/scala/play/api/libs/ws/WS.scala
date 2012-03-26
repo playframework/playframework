@@ -400,7 +400,12 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response status code.
    */
-  def status: Int = ahcResponse.getStatusCode();
+  def status: Int = ahcResponse.getStatusCode()
+
+  /**
+   * The response status message.
+   */
+  def statusText: String = ahcResponse.getStatusText()
 
   /**
    * Get a response header.

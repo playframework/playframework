@@ -3,14 +3,11 @@ package play.libs;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.PerRequestConfig;
-import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilderBase;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Realm.RealmBuilder;
 import com.ning.http.client.FluentStringsMap;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
@@ -20,13 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
-import play.libs.Scala;
 import play.libs.F.Promise;
 
 import org.codehaus.jackson.JsonNode;
@@ -91,10 +83,10 @@ public class WS {
             } catch (IOException exception) {
                 scalaPromise.throwing(exception);
             }
-            return new Promise(scalaPromise);
+            return new Promise<Response>(scalaPromise);
         }
     }
-    
+
     /**
      * provides the User facing API for building WS request.
      */
@@ -357,6 +349,13 @@ public class WS {
          */
         public int getStatus() {
             return ahcResponse.getStatusCode();
+        }
+
+        /**
+         * Get the HTTP status text of the response
+         */
+        public String getStatusText() {
+            return ahcResponse.getStatusText();
         }
 
         /**
