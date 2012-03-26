@@ -78,4 +78,7 @@ object Application extends Controller {
     Ok(Jsonp(callback, json))
   }
 
+  def urldecode(fromPath: String, fromQueryString: String) = Action {
+    Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
+  }
 }

@@ -31,6 +31,8 @@ GET     /take-list-java         controllers.JavaApi.takeList(x: java.util.List[j
 GET     /jsonp                  controllers.Application.jsonp(callback)
 GET     /jsonp-java             controllers.JavaApi.jsonpJava(callback)
 
+GET     /urldecode/:p           controllers.Application.urldecode(p, q)
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 
