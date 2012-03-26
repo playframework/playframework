@@ -104,6 +104,7 @@ trait Server {
 
   def stop() {
     Invoker.system.shutdown()
+    Invoker.system.awaitTermination(10 seconds)
     Logger.shutdown()
   }
 
