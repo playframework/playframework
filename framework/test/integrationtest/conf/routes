@@ -11,9 +11,11 @@ GET     /headers                controllers.JavaApi.headers()
 GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
+
 GET     /notintercepted         controllers.JavaApi.notIntercepted()
 GET     /intercepted-with       controllers.JavaApi.interceptedUsingWith()
 GET     /intercepted            controllers.JavaApi.intercepted()
+
 GET     /json                   controllers.Application.json()
 GET     /json_from_jsobject     controllers.Application.jsonFromJsObject()
 GET     /index_java_cache       controllers.Application.index_java_cache()
@@ -22,6 +24,9 @@ GET     /urldecode/:p           controllers.Application.urldecode(p, q)
 
 GET     /accept                 controllers.Application.accept()
 GET     /accept-java            controllers.JavaApi.accept()
+
+GET     /jsonp                  controllers.Application.jsonp(callback)
+GET     /jsonp-java             controllers.JavaApi.jsonpJava(callback)
 
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
