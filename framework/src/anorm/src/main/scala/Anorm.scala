@@ -85,6 +85,7 @@ package anorm {
         value match {
           case string: String => Right(string)
           case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
+          case n: Number => Right(n.toString())
           case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to String for column " + qualified))
         }
       }
@@ -94,6 +95,7 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case int: Int => Right(int)
+        case n: Number => Right(n.intValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Int for column " + qualified))
       }
     }
@@ -102,6 +104,7 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case d: Double => Right(d)
+        case n: Number => Right(n.doubleValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Double for column " + qualified))
       }
     }
@@ -110,6 +113,7 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case short: Short => Right(short)
+        case n: Number => Right(n.shortValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Short for column " + qualified))
       }
     }
@@ -118,6 +122,7 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bool: Boolean => Right(bool)
+        case n: Number => Right(n != 0)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Boolean for column " + qualified))
       }
     }
@@ -127,6 +132,7 @@ package anorm {
       value match {
         case int: Int => Right(int: Long)
         case long: Long => Right(long)
+        case n: Number => Right(n.longValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Long for column " + qualified))
       }
     }
@@ -136,8 +142,10 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bi: BigInteger => Right(bi)
+        case bd: java.math.BigDecimal => Right(bd.toBigInteger)
         case int: Int => Right(BigInteger.valueOf(int))
         case long: Long => Right(BigInteger.valueOf(long))
+        case n: Number => Right(BigInteger.valueOf(n.longValue()))
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigInteger for column " + qualified))
       }
     }
@@ -147,7 +155,10 @@ package anorm {
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bi: java.math.BigDecimal => Right(bi)
-        case double: Double => Right(new java.math.BigDecimal(double))
+        case bi: java.math.BigInteger => Right(new BigDecimal(bi))
+        case double: Double => Right(BigDecimal.valueOf(double))
+        case float: Float => Right(BigDecimal.valueOf(float))
+        case n: Number => Right(BigDecimal.valueOf(n.longValue()))
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigDecimal for column " + qualified))
       }
     }
