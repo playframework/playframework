@@ -453,9 +453,14 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
 
     // EBean
     if (ebean) {
+      
+      val originalContextClassLoader = Thread.currentThread.getContextClassLoader
+      
       try {
 
         val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
+        
+        Thread.currentThread.setContextClassLoader(new java.net.URLClassLoader(cp, ClassLoader.getSystemClassLoader))
 
         import com.avaje.ebean.enhance.agent._
         import com.avaje.ebean.enhance.ant._
@@ -481,7 +486,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
         }
         
       } catch {
-        case _ =>
+        case e => throw e
+      } finally {
+        Thread.currentThread.setContextClassLoader(originalContextClassLoader)
       }
     }
 
