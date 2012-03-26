@@ -7,6 +7,7 @@ import play.api.Configuration
 import play.api.cache.Cache
 import play.api.libs.json._
 import play.api.libs.json.Json._
+import play.api.libs.Jsonp
 
 import models._
 import models.Protocol._
@@ -71,4 +72,10 @@ object Application extends Controller {
   def takeList(xs: List[Int]) = Action {
     Ok(xs.mkString)
   }
+
+  def jsonp(callback: String) = Action {
+    val json = JsObject(List("foo" -> JsString("bar")))
+    Ok(Jsonp(callback, json))
+  }
+
 }

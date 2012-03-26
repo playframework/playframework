@@ -134,6 +134,23 @@ class ApplicationSpec extends Specification {
       }
     }
 
+    "return jsonp" in {
+      "Scala API" in {
+        running(FakeApplication()) {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.jsonp("baz").url))
+          contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
+          contentType(result) must equalTo (Some("text/javascript"))
+        }
+      }
+      "Java API" in {
+        running(FakeApplication()) {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.JavaApi.jsonpJava("baz").url))
+          contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
+          contentType(result) must equalTo (Some("text/javascript"))
+        }
+      }
+    }
+
   }
-   
+
 }
