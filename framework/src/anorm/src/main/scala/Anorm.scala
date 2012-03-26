@@ -79,6 +79,8 @@ package anorm {
         if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
     }
 
+    protected def bool2int(b: Boolean) = if (b == true) 1 else 0
+
     implicit def rowToString: Column[String] = {
       Column.nonNull[String] { (value, meta) =>
         val MetaDataItem(qualified, nullable, clazz) = meta
@@ -86,6 +88,7 @@ package anorm {
           case string: String => Right(string)
           case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
           case n: Number => Right(n.toString())
+          case b: Boolean => Right(b.toString())
           case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to String for column " + qualified))
         }
       }
@@ -96,6 +99,7 @@ package anorm {
       value match {
         case int: Int => Right(int)
         case n: Number => Right(n.intValue())
+        case b: Boolean => Right(bool2int(b))
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Int for column " + qualified))
       }
     }
@@ -105,6 +109,7 @@ package anorm {
       value match {
         case d: Double => Right(d)
         case n: Number => Right(n.doubleValue())
+        case b: Boolean => Right(bool2int(b).doubleValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Double for column " + qualified))
       }
     }
@@ -114,6 +119,7 @@ package anorm {
       value match {
         case short: Short => Right(short)
         case n: Number => Right(n.shortValue())
+        case b: Boolean => Right(bool2int(b).shortValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Short for column " + qualified))
       }
     }
@@ -133,6 +139,7 @@ package anorm {
         case int: Int => Right(int: Long)
         case long: Long => Right(long)
         case n: Number => Right(n.longValue())
+        case b: Boolean => Right(bool2int(b).longValue())
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Long for column " + qualified))
       }
     }
@@ -146,6 +153,7 @@ package anorm {
         case int: Int => Right(BigInteger.valueOf(int))
         case long: Long => Right(BigInteger.valueOf(long))
         case n: Number => Right(BigInteger.valueOf(n.longValue()))
+        case b: Boolean => Right(BigInteger.valueOf(bool2int(b)))
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigInteger for column " + qualified))
       }
     }
@@ -159,6 +167,7 @@ package anorm {
         case double: Double => Right(BigDecimal.valueOf(double))
         case float: Float => Right(BigDecimal.valueOf(float))
         case n: Number => Right(BigDecimal.valueOf(n.longValue()))
+        case b: Boolean => Right(BigDecimal.valueOf(bool2int(b)))
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigDecimal for column " + qualified))
       }
     }
