@@ -80,12 +80,12 @@ public class F {
 
     public static class Promise<A> {
 
-        public static <A> Promise<A> waitAll(Promise<A>... promises){
+        public static <A> Promise<List<A>> waitAll(Promise<A>... promises){
 
             return new Promise(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
         }
 
-        public static <A> Promise<A> waitAll(Iterable<Promise<A>> promises){
+        public static <A> Promise<List<A>> waitAll(Iterable<Promise<A>> promises){
 
             ArrayList<Promise<A>> ps = new ArrayList<Promise<A>>();
 
