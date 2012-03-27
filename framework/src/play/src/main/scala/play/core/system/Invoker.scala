@@ -17,18 +17,11 @@ import play.utils._
 /**
  * holds Play's internal invokers
  */
-class Invoker(val system: ActorSystem) {
+class Invoker(applicationProvider: Option[ApplicationProvider] = None) {
 
-  /**
-   * creates Invoker 
-   * @param applicationProvider applicationProvider for this invoker
-   */
-  def this(applicationProvider: ApplicationProvider) = this(Invoker.appProviderActorSystem(applicationProvider))
-
-  /**
-   * creates Invoker using the default Actor system, useful for testing
-   */
-  def this() = this(ActorSystem("play"))
+  val system: ActorSystem = applicationProvider.map{a=>
+    Invoker.appProviderActorSystem(a)
+  }.getOrElse(ActorSystem("play")) 
 
   val promiseDispatcher = {
     system.dispatchers.lookup("akka.actor.promises-dispatcher")
@@ -62,9 +55,8 @@ object Invoker {
     ActorSystem("play", conf.getConfig("play"))
   }
 
-  def apply(applicationProvider: ApplicationProvider): Invoker = new Invoker(applicationProvider)
+  def apply(applicationProvider: ApplicationProvider): Invoker = new Invoker(Some(applicationProvider))
 
-  // Call init to register an Actor System, otherwise a default ActorSystem will be created.
   def init(invoker: Invoker): Unit = {
     if (invokerOption.isDefined)
       throw new IllegalStateException("Invoker was initialized twice without an intervening uninit; two Server created at once?")
