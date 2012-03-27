@@ -40,7 +40,7 @@ object WS {
   lazy val client = {
     import play.api.Play.current
     val config = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120L).toInt)
+      .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
       .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
     current.configuration.getString("ws.useragent").map { useragent =>
       config.setUserAgent(useragent)
