@@ -196,16 +196,14 @@ class ActionInvoker extends Actor {
 
 object Agent {
 
-  def apply[A](a: A): {
-    def send(action: (A => A)): Unit
-    def close(): Unit
-  } = {
-    val actor = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
-    new {
-      def send(action: (A => A)) { actor ! action }
-      def close() = { Invoker.system.stop(actor) }
-    }
+  class Operations[A](actor: ActorRef, c: => Unit) {
+    def send(action: (A => A)) { actor ! action }
+    def close(): Unit = c
+  }
 
+  def apply[A](a: A): Operations[A] = {
+    val actor: ActorRef = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
+    new Operations[A](actor, Invoker.system.stop(actor))
   }
 
   private class Agent[A](var a: A) extends Actor {
