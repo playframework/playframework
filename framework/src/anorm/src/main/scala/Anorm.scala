@@ -94,7 +94,7 @@ package anorm {
       }
     }
 
-    implicit def rowToAny: Column[Any] = Column.nonNull { (value, meta) => Right(value) }
+    implicit def rowToAnyType[T]: Column[T] = Column.nonNull { (value, meta) => Right(value.asInstanceOf[T]) }
 
     implicit def rowToInt: Column[Int] = Column.nonNull { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
