@@ -821,13 +821,13 @@ object Enumerator {
   }
 
   def imperative[E](
-    onStart: => Unit = () => (),
+    onStart: () => Unit = () => (),
     onComplete: => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)
 
   def pushee[E](
     onStart: Pushee[E] => Unit,
-    onComplete: => Unit = () => (),
+    onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
