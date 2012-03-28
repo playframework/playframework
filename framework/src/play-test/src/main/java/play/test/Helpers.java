@@ -146,7 +146,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
         );
     }
-    
+        
+    /**
+     * * Extracts a Cookie value from this Result value
+     */    
+    public static play.mvc.Http.Cookie cookie(String name, Result result) {
+        return play.core.j.JavaResultExtractor.getCookies(result).get(name);
+    }
+
     /**
      * Extracts an Header value of this Result value.
      */
