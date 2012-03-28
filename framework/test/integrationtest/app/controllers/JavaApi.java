@@ -13,6 +13,10 @@ public class JavaApi extends Controller {
     public static Result headers() {
        return ok(request().getHeader(HOST));
     }
+    public static Result cookietest() {
+       response().setCookie("testcookie", "blue");
+       return ok(request().cookies().get("testcookie").name());
+    }
 
     public static Result index() {
         Map<String, String> d = new HashMap<String, String>();
