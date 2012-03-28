@@ -72,9 +72,9 @@ object WS {
     _auth.map(data => auth(data._1, data._2, data._3)).getOrElse({})
 
     /**
-     * Add http auth headers
+     * Add http auth headers. Defaults to HTTP Basic.
      */
-    private def auth(username: String, password: String, scheme: AuthScheme): WSRequest = {
+    private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
       this.setRealm((new RealmBuilder())
         .setScheme(scheme)
         .setPrincipal(username)
