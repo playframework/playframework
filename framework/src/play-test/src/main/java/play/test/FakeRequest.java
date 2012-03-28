@@ -1,6 +1,7 @@
 package play.test;
 
 import play.libs.*;
+import play.mvc.*;
 
 import java.util.*;
 
@@ -34,14 +35,37 @@ public class FakeRequest {
         return this;
     }
 
-    /**
+   /**
+    * Add addtional session to this request.
+    */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withFlash(String name, String value) {
+        fake = fake.withFlash(Scala.varargs(Scala.Tuple(name, value)));
+        return this;
+    }
+
+      /**
      * Add addtional session to this request.
      */
+    @SuppressWarnings(value = "unchecked")  
     public FakeRequest withSession(String name, String value) {
         fake = fake.withSession(Scala.varargs(Scala.Tuple(name, value)));
         return this;
     }
-    
+
+    /**
+     * Add cookies to this request
+     */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withCookies(Http.Cookie... cookies) {
+        List <play.api.mvc.Cookie> scalacookies = new ArrayList<play.api.mvc.Cookie>();
+        for (Http.Cookie c : cookies) {
+            scalacookies.add(new play.api.mvc.Cookie(c.name(), c.value(), c.maxAge(), c.path(), Scala.Option(c.domain()), c.secure(), c.httpOnly()) );
+        }
+        fake = fake.withCookies(Scala.varargs(scalacookies.toArray()));
+        return this;
+    }
+
     /**
      * Set a Form url encoded body to this request.
      */
