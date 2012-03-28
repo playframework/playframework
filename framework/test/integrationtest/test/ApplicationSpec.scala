@@ -4,6 +4,7 @@ import play.api.test._
 import play.api.test.Helpers._
 
 import org.specs2.mutable._
+import models._
 
 class ApplicationSpec extends Specification {
 
@@ -20,6 +21,25 @@ class ApplicationSpec extends Specification {
         contentType(result) must equalTo(Some("text/html"))
         charset(result) must equalTo(Some("utf-8"))
         contentAsString(result) must contain("Hello world")
+      }
+    }
+
+    "tess custom validator failure" in {
+      import play.data._
+      running(FakeApplication()) {
+         val userForm = new Form(classOf[JUser])
+         val anyData = new java.util.HashMap[String,String]
+         anyData.put("email", "")
+         userForm.bind(anyData).errors.toString must contain("ValidationError(email,error.invalid,[class validator.NotEmpty]")
+      }
+    }
+    "tess custom validator passing" in {
+      import play.data._
+      running(FakeApplication()) {
+         val userForm = new Form(classOf[JUser])
+         val anyData = new java.util.HashMap[String,String]
+         anyData.put("email", "peter.hausel@yay.com")
+         userForm.bind(anyData).get.toString must contain ("")
       }
     }
   

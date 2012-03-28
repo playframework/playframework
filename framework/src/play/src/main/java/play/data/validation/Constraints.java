@@ -452,7 +452,7 @@ public class Constraints {
         String message() default ValidateWithValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
-        Class value();
+        Class<? extends Validator> value();
     }
 
     /**
@@ -463,7 +463,6 @@ public class Constraints {
         final static public String message = "error.invalid";
         Class clazz = null;
         Validator validator = null;
-        Method isValid = null;
 
         public ValidateWithValidator() {}
         
@@ -477,7 +476,6 @@ public class Constraints {
                 Constructor<?> constructor = clazz.getDeclaredConstructor();
                 constructor.setAccessible(true);
                 validator = (Validator)constructor.newInstance();
-                isValid = clazz.getMethod("isValid", Object.class);   
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
@@ -485,10 +483,14 @@ public class Constraints {
         
         public boolean isValid(Object object) {
             try {
-                return (Boolean) isValid.invoke(validator, object);
+                return validator.isValid(object);
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        public Tuple<String, Object[]> getErrorMessageKey() {
+            return Tuple(message, new Object[] {});
         }
         
     }
