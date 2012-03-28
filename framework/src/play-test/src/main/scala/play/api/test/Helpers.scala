@@ -130,6 +130,11 @@ object Helpers extends Status with HeaderNames {
   def flash(of: Result): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
 
   /**
+   * Extracts the Session of this Result value.
+   */
+  def session(of: Result): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
+
+  /**
    * Extracts the Location header of this Result value if this Result is a Redirect.
    */
   def redirectLocation(of: Result): Option[String] = of match {
