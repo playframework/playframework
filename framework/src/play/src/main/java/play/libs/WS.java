@@ -350,6 +350,14 @@ public class WS {
         public int getStatus() {
             return ahcResponse.getStatusCode();
         }
+        
+        
+        /**
+         * Get the HTTP status text of the response.
+         */
+        public string getStatusText() {
+            return ahcResponse.getStatusText();
+        }
 
         /**
          * Get the HTTP status text of the response
