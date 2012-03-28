@@ -93,7 +93,10 @@ object Helpers extends Status with HeaderNames {
   /**
    * Extracts the Charset of this Result value.
    */
-  def charset(of: Result): Option[String] = header(CONTENT_TYPE, of).map(_.split("; charset=").drop(1).mkString.trim)
+  def charset(of: Result): Option[String] = header(CONTENT_TYPE, of) match {
+    case Some(s) if s.contains("charset=") => Some(s.split("; charset=").drop(1).mkString.trim)
+    case _ => None
+  }
 
   /**
    * Extracts the content as String.
