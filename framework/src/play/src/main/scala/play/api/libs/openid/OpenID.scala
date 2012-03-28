@@ -144,7 +144,8 @@ object OpenID {
   }
 
   private def extractHref(link: String): Option[String] =
-    new Regex("""href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim)
+    new Regex("""href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim).
+      orElse(new Regex("""href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
 
 }
 
