@@ -21,26 +21,41 @@ public class OpenID {
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
     public static F.Promise<String> redirectURL(String openID, String callbackURL) {
-        return redirectURL(openID, callbackURL, null, null);
+        return redirectURL(openID, callbackURL, null, null, null);
     }
 
     /**
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
     public static F.Promise<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
-        return redirectURL(openID, callbackURL, axRequired, null);
+        return redirectURL(openID, callbackURL, axRequired, null, null);
     }
 
     /**
      * Retrieve the URL where the user should be redirected to start the OpenID authentication process
      */
-    public static F.Promise<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional) {
+    public static F.Promise<String> redirectURL(String openID,
+            String callbackURL,
+            Map<String, String> axRequired,
+            Map<String, String> axOptional) {
+        return redirectURL(openID, callbackURL, axRequired, axOptional, null);
+    }
+
+    /**
+     * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+     */
+    public static F.Promise<String> redirectURL(String openID,
+            String callbackURL,
+            Map<String, String> axRequired,
+            Map<String, String> axOptional,
+            String realm) {
         if (axRequired == null) axRequired = new HashMap<String, String>();
         if (axOptional == null) axOptional = new HashMap<String, String>();
         return new F.Promise<String>(play.api.libs.openid.OpenID.redirectURL(openID,
                                                                              callbackURL,
                                                                              JavaConversions.mapAsScalaMap(axRequired).toSeq(),
-                                                                             JavaConversions.mapAsScalaMap(axOptional).toSeq()));
+                                                                             JavaConversions.mapAsScalaMap(axOptional).toSeq(),
+                                                                             Scala.Option(realm)));
     }
 
     /**
