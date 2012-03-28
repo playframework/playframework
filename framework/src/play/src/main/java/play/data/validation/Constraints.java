@@ -7,6 +7,8 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import javax.validation.*;
 import javax.validation.metadata.*;
@@ -437,6 +439,58 @@ public class Constraints {
      */
     public static Validator<String> pattern(String regex) {
         return new PatternValidator(regex);
+    }
+
+     /**
+     * Defines a custom validator.
+     */
+    @Target({FIELD})
+    @Retention(RUNTIME)
+    @Constraint(validatedBy = ValidateWithValidator.class)
+    @play.data.Form.Display(name="constraint.validatewith", attributes={})
+    public static @interface ValidateWith {
+        String message() default ValidateWithValidator.message;
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+        Class value();
+    }
+
+    /**
+     * Validator for <code>@ValidateWith</code> fields.
+     */
+    public static class ValidateWithValidator extends Validator<Object> implements ConstraintValidator<ValidateWith, Object> {
+        
+        final static public String message = "error.invalid";
+        Class clazz = null;
+        Validator validator = null;
+        Method isValid = null;
+
+        public ValidateWithValidator() {}
+        
+        public ValidateWithValidator(Class clazz) {
+            this.clazz = clazz;
+        }
+        
+        public void initialize(ValidateWith constraintAnnotation) {
+            this.clazz = constraintAnnotation.value();
+             try {
+                Constructor<?> constructor = clazz.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                validator = (Validator)constructor.newInstance();
+                isValid = clazz.getMethod("isValid", Object.class);   
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        public boolean isValid(Object object) {
+            try {
+                return (Boolean) isValid.invoke(validator, object);
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
     }
     
 }
