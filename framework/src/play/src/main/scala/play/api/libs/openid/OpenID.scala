@@ -77,7 +77,8 @@ object OpenID {
         case (Some("id_res"), Some(id), endPoint) => {
           val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
           server.flatMap(url => {
-            val fields = queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication"))
+            val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
+                    .mapValues(_.map(URLEncoder.encode(_, "UTF-8")))
             WS.url(url).post(fields).map(response => {
               if (response.status == 200 && response.body.contains("is_valid:true")) {
                 UserInfo(queryString)
