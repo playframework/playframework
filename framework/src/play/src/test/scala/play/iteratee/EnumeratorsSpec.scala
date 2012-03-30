@@ -82,5 +82,16 @@ object EnumeratorsSpec extends Specification {
   }
 
 }
+
+"Enumerator" should {
+  "be transformed to another Enumerator using flatMap" in {
+    val e = for {
+      i <- Enumerator(10, 20, 30)
+      j <- Enumerator((i until i + 10): _*)
+    } yield j
+    val it = Iteratee.fold[Int, Int](0)((sum, x) => sum + x)
+    (e |>> it).flatMap(_.run).value.get must equalTo ((10 until 40).sum)
+  }
+}
 }
 
