@@ -3,12 +3,6 @@
 PRG="$0"
 while [ -h "$PRG" ] ; do
   PRG=`readlink "$PRG"`
-  TARGET=`readlink "$PRG"`
-  TARGET_BASE=`basename "$TARGET"`
-  TARGET_DIR=`dirname "$TARGET"`
-  LINK_DIR=`dirname "$PRG"`
-  ABS_DIR=`cd $LINK_DIR; cd $TARGET_DIR; pwd`
-  PRG="$ABS_DIR/$TARGET_BASE"
 done
 
 dir=`dirname $PRG`
@@ -67,7 +61,5 @@ if [ -f conf/application.conf ]; then
   fi
   
 else
-  echo "FFFF"
-  echo $dir
   $JAVA -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch.jar "$@"
 fi
