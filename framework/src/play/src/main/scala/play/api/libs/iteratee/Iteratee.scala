@@ -409,6 +409,15 @@ trait Enumerator[E] {
 
   def mapInput[U](f: Input[E] => Input[U]) = parent &> Enumeratee.mapInput[E](f)
 
+  def flatMap[U](f: E => Enumerator[U]): Enumerator[U] = {
+    new Enumerator[U] {
+      def apply[A](iteratee: Iteratee[U, A]): Promise[Iteratee[U, A]] = {
+        val folder = Iteratee.fold1[E, Iteratee[U, A]](iteratee)((it, e) => f(e)(it))
+        parent(folder).flatMap(_.run)
+      }
+    }
+  }
+
 }
 
 /**
