@@ -165,6 +165,17 @@ public class Http {
         public abstract List<play.i18n.Lang> acceptLanguages();
         
         /**
+         * @return The media types set in the request Accept header, not sorted in any particular order.
+         */
+        public abstract List<String> accept();
+        
+        /**
+         * Check if this request accepts a given media type.
+         * @returns true if <code>mediaType</code> is in the Accept header, otherwise false
+         */
+        public abstract boolean accepts(String mediaType);
+        
+        /**
          * The query string content.
          */
         public abstract Map<String,String[]> queryString();

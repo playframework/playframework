@@ -70,6 +70,10 @@ trait JavaHelpers {
           req.queryString.mapValues(_.toArray).asJava
         }
 
+        def accept = req.accept.asJava
+
+        def accepts(mediaType: String) = req.accepts(mediaType)
+
         def cookies = new JCookies {
           def get(name: String) = (for (cookie <- req.cookies.get(name))
             yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
@@ -110,6 +114,10 @@ trait JavaHelpers {
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+
+      def accept = req.accept.asJava
+
+      def accepts(mediaType: String) = req.accepts(mediaType)
 
       def queryString = {
         req.queryString.mapValues(_.toArray).asJava
