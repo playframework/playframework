@@ -53,5 +53,24 @@ public class JavaApi extends Controller {
     public static Result intercepted() {
         return ok(Interceptor.state);
     }
+
+    public static Result takeList(List<Integer> xs) {
+        return ok(xs.size() + " elements");
+    }
+
+    public static Result jsonpJava(String callback) {
+        JsonNode json = Json.parse("{ \"foo\": \"bar\" }");
+        return ok(jsonp(callback, json));
+    }
+
+    public static Result accept() {
+        if (request().accepts("application/json")) {
+            return ok("json");
+        } else if (request().accepts("text/html")) {
+            return ok("html");
+        } else {
+            return badRequest();
+        }
+    }
 }
 
