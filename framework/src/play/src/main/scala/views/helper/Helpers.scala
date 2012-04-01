@@ -35,7 +35,7 @@ package views.html.helper {
     def hasErrors: Boolean = {
       !errors.isEmpty
     }
-
+    
     def label(implicit lang: play.api.i18n.Lang): Any = {
       args.get('_label).getOrElse(play.api.i18n.Messages(field.name))
     }
@@ -56,7 +56,6 @@ package views.html.helper {
 
     implicit def inlineFieldConstructor(f: (FieldElements) => Html) = FieldConstructor(f)
     implicit def templateAsFieldConstructor(t: Template1[FieldElements, Html]) = FieldConstructor(t.render)
-
   }
 
   object repeat {
