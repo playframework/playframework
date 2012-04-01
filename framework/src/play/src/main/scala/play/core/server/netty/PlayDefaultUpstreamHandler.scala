@@ -253,11 +253,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   val (result, handler) = newRequestBodyHandler(bodyParser, allChannels, server)
 
                   val intermediateChunks = ctx.getAttachment.asInstanceOf[scala.collection.mutable.ListBuffer[org.jboss.netty.channel.MessageEvent]]
-                  intermediateChunks.foreach(handler.messageReceived(ctx, _))
-                  ctx.setAttachment(null)
 
                   val p: ChannelPipeline = ctx.getChannel().getPipeline()
                   p.replace("handler", "handler", handler)
+
+                  intermediateChunks.foreach(handler.messageReceived(ctx, _))
+                  ctx.setAttachment(null)
+
                   e.getChannel.setReadable(true)
 
                   result
