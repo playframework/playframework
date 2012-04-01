@@ -153,6 +153,20 @@ public class F {
             );
         }
 
+        public Promise<A> recover(final Function<Throwable,A> f) {
+            return new Promise<A>(
+              promise.recover(new play.api.libs.concurrent.Recover<A>(){
+                  public A recover(Throwable t){
+                      try{
+                          return f.apply(t);
+                      } catch(Throwable tt) {
+                            throw new RuntimeException(tt);
+                      }
+                  }
+              })
+            );
+        }
+
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> f) {
             return new Promise(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {

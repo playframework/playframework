@@ -31,6 +31,7 @@ trait NotWaiting[+A] extends PromiseValue[A] {
   }
 
 }
+
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
@@ -38,6 +39,12 @@ case object Waiting extends PromiseValue[Nothing]
 trait Promise[+A] {
 
   def onRedeem(k: A => Unit): Unit
+
+  def recover [AA >: A] (pf: PartialFunction[Throwable, AA]): Promise[AA] = extend1{
+    case Thrown(e) if pf.isDefinedAt(e) => pf(e)
+    case Thrown(e) => throw e
+    case Redeemed(a) => a
+  }
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B]
 
@@ -120,7 +127,10 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
     val result = new STMPromise[B]()
-    addAction(p => result.redeem(k(p)))
+    addAction{ p =>
+      val bOrExc = scala.util.control.Exception.allCatch[B].either(k(p))
+      bOrExc.fold( e => result.throwing(e), b => result.redeem(b))
+    }
     result
   }
 
