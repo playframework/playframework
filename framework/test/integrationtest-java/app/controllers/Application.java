@@ -1,5 +1,6 @@
 package controllers;
 
+import org.codehaus.jackson.JsonNode;
 import play.*;
 import play.mvc.*;
 
@@ -15,6 +16,11 @@ public class Application extends Controller {
     
     public static Result key() {
         return ok("Key=" + Play.application().configuration().getString("key"));
+    }
+
+    public static Result getIdenticalJson() {
+        JsonNode node = request().body().asJson();
+        return ok(node);
     }
   
 }
