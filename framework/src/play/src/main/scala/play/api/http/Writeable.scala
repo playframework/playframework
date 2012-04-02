@@ -61,7 +61,10 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * `Writeable` for `urlEncodedForm` values
    */
   implicit def writeableOf_urlEncodedForm(implicit codec: Codec): Writeable[Map[String, Seq[String]]] = {
-    Writeable[Map[String, Seq[String]]](formData => codec.encode(formData.map(item => item._2.map(c => item._1 + "=" + c)).flatten.mkString("&")))
+    import java.net.URLEncoder
+    Writeable[Map[String, Seq[String]]](formData =>
+      codec.encode(formData.map(item => item._2.map(c => item._1 + "=" + URLEncoder.encode(c, "UTF-8"))).flatten.mkString("&"))
+    )
   }
 
   /**
