@@ -1,9 +1,12 @@
 package play.test;
 
+import org.codehaus.jackson.JsonNode;
+import play.api.mvc.AnyContentAsJson;
 import play.libs.*;
 import play.mvc.*;
 
 import java.util.*;
+import scala.collection.Seq;
 
 /**
  * Fake HTTP request implementation.
@@ -32,6 +35,21 @@ public class FakeRequest {
     @SuppressWarnings(value = "unchecked")
     public FakeRequest withHeader(String name, String value) {
         fake = fake.withHeaders(Scala.varargs(Scala.Tuple(name, value)));
+        return this;
+    }
+
+    /**
+     * Set a Json Body to this request.
+     * The <tt>Accept-Type</tt> header of the request is set to <tt>application/json</tt>.
+     * The method is set to <tt>POST</tt>.
+     * @param node the Json Node
+     * @return the Fake Request
+     */
+    public FakeRequest withJsonBody(JsonNode node) {
+        Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
+        map.put("Accept-Type", Scala.toSeq(new String[] {"application/json"}));
+        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map)), content);
         return this;
     }
 
