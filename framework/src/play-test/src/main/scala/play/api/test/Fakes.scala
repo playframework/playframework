@@ -1,6 +1,8 @@
 package play.api.test;
 
 import play.api.mvc._
+import org.codehaus.jackson.JsonNode
+import play.api.libs.json.JsValue
 
 /**
  * Fake HTTP headers implementation.
@@ -87,6 +89,16 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
     copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
+  }
+
+  /**
+   * Sets a JSON body to this request.
+   * The content type is set to <tt>application/json</tt>.
+   * The method is set to <tt>POST</tt>.
+   */
+  def withJsonBody(node: JsValue): FakeRequest[AnyContentAsJson] = {
+    copy(method = Helpers.POST, body = AnyContentAsJson(node))
+        .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
   }
 
 }
