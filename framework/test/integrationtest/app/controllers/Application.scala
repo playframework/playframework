@@ -68,4 +68,7 @@ object Application extends Controller {
     Ok(b.toString())
   }
 
+  def takeList(xs: List[Int]) = Action {
+    Ok(xs.mkString)
+  }
 }
