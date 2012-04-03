@@ -144,7 +144,7 @@ object QueryStringBindable {
    * QueryString binder for String.
    */
   implicit def bindableString = new QueryStringBindable[String] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(v => Right(URLDecoder.decode(v, "utf-8")))
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(Right(_)) // No need to URL decode from query string since netty already does that
     def unbind(key: String, value: String) = key + "=" + (URLEncoder.encode(value, "utf-8"))
   }
 
