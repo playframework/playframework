@@ -471,9 +471,12 @@ trait Results {
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
-
+  
   /** Generates a ‘501 NOT_IMPLEMENTED’ result. */
   val NotImplemented = new Status(NOT_IMPLEMENTED)
+
+  /** Generates a ‘502 BAD_GATEWAY’ result. */
+  val BadGateway = new Status(BAD_GATEWAY)
 
   /** Generates a ‘503 SERVICE_UNAVAILABLE’ result. */
   val ServiceUnavailable = new Status(SERVICE_UNAVAILABLE)
