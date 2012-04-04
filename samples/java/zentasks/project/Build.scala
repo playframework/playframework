@@ -10,7 +10,7 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Nil
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
+    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
       // Add your own project settings here      
     )    
 
