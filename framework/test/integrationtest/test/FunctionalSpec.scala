@@ -12,16 +12,21 @@ import models.Protocol._
 
 
 class FunctionalSpec extends Specification {
-
   "an Application" should {
 
+    "pass functional test with two browsers" in {
+      running(TestServer(9002), HTMLUNIT) { browser =>
+        browser.goTo("http://localhost:9002")
+        browser.pageSource must contain("Hello world")
+      }
+    } 
     "pass functional test" in {
       running(TestServer(9001), HTMLUNIT) { browser =>
-
         val content: String = await(WS.url("http://localhost:9001/post").post("param1=foo")).body
         content must contain ("param1")
         content must contain("AnyContentAsText")
         content must contain ("foo")
+
 
         val contentForm: String = await(WS.url("http://localhost:9001/post").post(Map("param1"->Seq("foo")))).body
         contentForm must contain ("AnyContentAsFormUrlEncoded")
