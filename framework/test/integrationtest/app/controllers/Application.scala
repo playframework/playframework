@@ -93,4 +93,12 @@ object Application extends Controller {
     Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
   }
 
+  def accept = Action { request =>
+    request match {
+      case Accepts.Json() => Ok("json")
+      case Accepts.Html() => Ok("html")
+      case _ => BadRequest
+    }
+  }
+
 }

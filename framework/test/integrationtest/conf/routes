@@ -36,6 +36,9 @@ GET     /urldecode/:p           controllers.Application.urldecode(p, q)
 GET     /javascript-routes      controllers.Application.javascriptRoutes()
 GET     /javascript-test        controllers.Application.javascriptTest(name)
 
+GET     /accept                 controllers.Application.accept()
+GET     /accept-java            controllers.JavaApi.accept()
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 
