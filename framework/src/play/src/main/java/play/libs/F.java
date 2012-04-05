@@ -82,7 +82,7 @@ public class F {
 
         public static <A> Promise<List<A>> waitAll(Promise<A>... promises){
 
-            return new Promise(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
+            return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
         }
 
         public static <A> Promise<List<A>> waitAll(Iterable<Promise<A>> promises){
@@ -93,7 +93,7 @@ public class F {
                 ps.add(p);
             }
 
-            return new Promise(play.core.j.JavaPromise.<A>sequence(ps));
+            return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
         }
 
         private final play.api.libs.concurrent.Promise<A> promise;
