@@ -52,6 +52,14 @@ object Application extends Controller {
     Ok(toJson(JsObject(List("blah" -> JsString("foo"))))) 
   }
 
+  def jsonWithContentType = Action {
+    Ok("{}").as("application/json")
+  }
+
+  def jsonWithContentTypeAndCharset = Action {
+    Ok("{}").as("application/json; charset=utf-8")
+  }
+
   def index_java_cache = Action {
     import play.api.Play.current
     JCache.set("hello","world", 60)
