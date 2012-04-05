@@ -35,7 +35,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
         r
     })
   }
-  def chunked[A](onDisconnected: () => Unit) = play.api.libs.iteratee.Enumerator.imperative[A](onComplete = { onDisconnected() })
+  def chunked[A](onDisconnected: () => Unit) = play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
 }
