@@ -197,103 +197,15 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
 
-  // -- Intellij
-
-  val playIntellij = TaskKey[Unit]("idea")
-  val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
-
-    val mainClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes"
-
-    val sl = java.io.File.separator
-
-    val build = IO.read(new File(root + sl + "project" + sl + "Build.scala"))
-
-    val compVersion = "scala-compiler-" + scalaVersion
-
-    lazy val facet =
-      <component name="FacetManager">
-        <facet type="scala" name="Scala">
-          <configuration>
-            <option name="compilerLibraryLevel" value="Global"/>
-            <option name="compilerLibraryName" value={ compVersion }/>
-          </configuration>
-        </facet>
-      </component>
-
-    def sourceRef(s: String, defaultMain: String = "main/src/"): List[String] = {
-      val folder = s.substring(s.lastIndexOf(sl) + 1)
-      //maven layout?
-      if (folder == "java")
-        List("file://$MODULE_DIR$/" + defaultMain + "/java" + "file://$MODULE_DIR$/" + defaultMain + "/scala")
-      else
-        List("file://$MODULE_DIR$/" + folder)
-    }
-
-    def sourceEntry(name: String, test: String = "false") = <sourceFolder url={ name } isTestSource={ test }/>
-
-    def entry(j: String, scope: String = "COMPILE") =
-      <orderEntry type="module-library" scope={ scope }>
-        <library>
-          <CLASSES>
-            <root url={ j }/>
-          </CLASSES>
-          <SOURCES/>
-        </library>
-      </orderEntry>
-
-    //generate project file  
-    val scalaFacet = if (build.contains("mainLang") && build.contains("SCALA")) Some(facet.toString) else None
-
-    val mainLang = scalaFacet.map(_ => "SCALA").getOrElse("JAVA")
-
-    val genClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes_managed"
-
-    val testJars = testDeps.flatMap {
-      case (dep) if dep.data.ext == "jar" =>
-        val ref = "jar://" + dep.data + "!/"
-        entry(ref, "TEST")
-      case _ => None
-    }.mkString("\n")
-
-    //calculate sources, capture both play and standard maven layout in case of multi project setups
-    val sources = (sourceRef(javaSource.getCanonicalPath).map(dir => sourceEntry(dir)) ++ sourceRef(jTestSource.getCanonicalPath, "main/test").map(dir => sourceEntry(dir, test = "true"))).mkString("\n")
-
-    //calculate dependencies
-    val jars = dependencies.flatMap {
-      case (dep) if dep.data.ext == "jar" =>
-        val ref = "jar://" + dep.data + "!/"
-        entry(ref)
-      case _ => None
-    }.mkString("\n") + testJars + entry(genClasses).toString + mainClasses
-
-    val target = new File(root + sl + id + ".iml")
-    s.log.warn(play.console.Console.logo)
-    s.log.info("...about to generate an Intellij project module(" + mainLang + ") called " + target.getName)
-    if (target.exists) s.log.warn(target.toString + " will be overwritten")
-    IO.delete(target)
-    IO.write(target,
-      """|<?xml version="1.0" encoding="UTF-8"?>
-         |<module type="JAVA_MODULE" version="4"> 
-         | %SCALA_FACET% 
-         |  <component name="NewModuleRootManager" inherit-compiler-output="true">
-         |     <exclude-output />
-         |     <content url="file://$MODULE_DIR$">
-         |      %SOURCE%
-         |     </content>
-         |     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
-         |     <orderEntry type="sourceFolder" forTests="false" />
-         |     %JARS%
-         |  </component>
-         |</module>
-         |""".stripMargin)
-
-    play.console.Console.replace(target, "SCALA_FACET" -> scalaFacet.getOrElse(""))
-    play.console.Console.replace(target, "SCALA_VERSION" -> scalaVersion)
-    play.console.Console.replace(target, "JARS" -> jars)
-    play.console.Console.replace(target, "SOURCE" -> sources)
-    s.log.warn(target.getName + " was generated")
-    s.log.warn("If you see unresolved symbols, you might need to run compile first.")
-    s.log.warn("Have fun!")
+  def intellijCommandSettings(mainLang: String) = {
+    import org.sbtidea.SbtIdeaPlugin
+    SbtIdeaPlugin.ideaSettings ++ 
+    Seq(
+      SbtIdeaPlugin.commandName := "idea",
+      SbtIdeaPlugin.addGeneratedClasses := true,
+      SbtIdeaPlugin.includeScalaFacet := {mainLang == SCALA},
+      SbtIdeaPlugin.defaultClassifierPolicy := false
+    )
   }
 
   val playStage = TaskKey[Unit]("stage")
