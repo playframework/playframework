@@ -53,6 +53,24 @@ public class FakeRequest {
         return this;
     }
 
+    /**
+     * Set a Json Body to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+     * @param node the Json Node
+     * @param method the HTTP method. <tt>POST</tt> if set to <code>null</code>
+     * @return the Fake Request
+     */
+    public FakeRequest withJsonBody(JsonNode node, String method) {
+        if (method == null) {
+            method = Helpers.POST;
+        }
+        Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
+        map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
+        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        fake = new play.api.test.FakeRequest(method, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map)), content);
+        return this;
+    }
+
    /**
     * Add addtional session to this request.
     */

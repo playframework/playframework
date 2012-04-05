@@ -95,9 +95,13 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * Sets a JSON body to this request.
    * The content type is set to <tt>application/json</tt>.
    * The method is set to <tt>POST</tt>.
+   *
+   * @param node the JSON Node.
+   * @param _method The request HTTP method, <tt>POST</tt> by default.
+   * @return the current fake request
    */
-  def withJsonBody(node: JsValue): FakeRequest[AnyContentAsJson] = {
-    copy(method = Helpers.POST, body = AnyContentAsJson(node))
+  def withJsonBody(node: JsValue,  _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
+    copy(method = _method, body = AnyContentAsJson(node))
         .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
   }
 
