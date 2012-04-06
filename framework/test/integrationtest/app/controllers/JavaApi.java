@@ -71,5 +71,14 @@ public class JavaApi extends Controller {
         return ok(jsonp(callback, json));
     }
 
+    public static Result accept() {
+        if (request().accepts("application/json")) {
+            return ok("json");
+        } else if (request().accepts("text/html")) {
+            return ok("html");
+        } else {
+            return badRequest();
+        }
+    }
 }
 
