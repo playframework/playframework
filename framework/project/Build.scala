@@ -499,7 +499,6 @@ object PlayBuild extends Build {
                 (root ** "target") --- 
                 (root ** "target" ** "*") --- 
                 (root ** ".*") ---
-                (root ** ".*") ---
                 (root ** ".git" ** "*") ---
                 (root ** "*.lock")
             }
