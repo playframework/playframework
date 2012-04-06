@@ -5,5 +5,5 @@
 500:play.api.db.evolutions.EvolutionsPlugin
 600:play.api.cache.EhCachePlugin
 1000:play.api.libs.concurrent.AkkaPlugin
-1100:play.libs.Json.JsonPlugin
+1100:play.libs.Json$JsonPlugin
 10000:play.api.GlobalPlugin

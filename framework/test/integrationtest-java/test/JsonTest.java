@@ -14,8 +14,6 @@ import play.libs.Json;
 import play.test.*;
 
 import java.io.IOException;
-import java.lang.Override;
-import java.lang.String;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,7 +40,7 @@ public class JsonTest {
     public void inAppWithCustomObjectMapper() {
         Map<String, String> config = new HashMap<String, String>();
         config.put("json.objectMapperProvider", MockObjectMapperProvider.class.getName());
-        running(fakeApplication(), new Runnable() {
+        running(fakeApplication(config), new Runnable() {
             public void run() {
                 assertThat(Json.toJson(new MockObject()).getTextValue(), equalTo("mockobject"));
             }
@@ -60,7 +58,7 @@ public class JsonTest {
 
                 @Override
                 public Version version() {
-                    return null;
+                    return new Version(1, 0, 0, "");
                 }
 
                 @Override
@@ -79,9 +77,14 @@ public class JsonTest {
         public void serialize(test.JsonTest.MockObject value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             jgen.writeString("mockobject");
         }
+
+        @Override
+        public Class<test.JsonTest.MockObject> handledType() {
+            return MockObject.class;
+        }
     }
 
     public static class MockObject {
-        public String foo;
+        public String foo = "bar";
     }
 }
