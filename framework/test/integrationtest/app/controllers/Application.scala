@@ -13,11 +13,12 @@ import models._
 import models.Protocol._
 
 import play.cache.{Cache=>JCache}
-
+import play.api.i18n._
 
 object Application extends Controller {
 
   def index = Action {
+    if (Messages("home.title")(Lang("fr")) != "ffff" ) throw new RuntimeException("i18n does not work")
     val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello", "world")
     Ok(views.html.index(Cache.getAs[String]("hello").getOrElse("oh noooz")))
