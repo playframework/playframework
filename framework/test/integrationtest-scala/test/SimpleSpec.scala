@@ -4,6 +4,7 @@ import org.specs2.mutable._
 
 import play.api.test._
 import play.api.test.Helpers._
+import play.api.libs.json.{JsValue, Json, JsObject}
 
 class SimpleSpec extends Specification {
   
@@ -68,6 +69,34 @@ class SimpleSpec extends Specification {
         browser.url must equalTo("http://localhost:3333/Coco")
         browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
 
+      }
+    }
+
+    "response to the json Action using default (POST) method" in {
+      running(FakeApplication()) {
+        val node = Json.toJson(Map("key1" -> "val1", "key2" -> "2", "key3" -> "true"))
+        val result = controllers.Application.json(FakeRequest().withJsonBody(node))
+
+        status(result) must equalTo(OK)
+        contentType(result) must equalTo(Some("application/json"))
+        val node2 = Json.parse(contentAsString(result))
+        (node2 \ "key1").as[String] must equalTo("val1")
+        (node2 \ "key2").as[String] must equalTo("2")
+        (node2 \ "key3").as[String] must equalTo("true")
+      }
+    }
+
+    "response to the json Action when specifying the method (DELETE)" in {
+      running(FakeApplication()) {
+        val node = Json.toJson(Map("key1" -> "val1", "key2" -> "2", "key3" -> "true"))
+        val result = controllers.Application.json(FakeRequest().withJsonBody(node, "DELETE"))
+
+        status(result) must equalTo(OK)
+        contentType(result) must equalTo(Some("application/json"))
+        val node2 = Json.parse(contentAsString(result))
+        (node2 \ "key1").as[String] must equalTo("val1")
+        (node2 \ "key2").as[String] must equalTo("2")
+        (node2 \ "key3").as[String] must equalTo("true")
       }
     }
     
