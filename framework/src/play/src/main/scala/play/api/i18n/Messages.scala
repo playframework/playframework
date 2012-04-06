@@ -227,7 +227,7 @@ class MessagesPlugin(app: Application) extends Plugin {
   import scalax.io.JavaConverters._
 
   private def loadMessages(file: String): Map[String, String] = {
-    app.classloader.getResources(file).asScala.map { messageFile =>
+    app.classloader.getResources(file).asScala.toList.reverse.map { messageFile =>
       new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
         message.key -> message.pattern
       }.toMap

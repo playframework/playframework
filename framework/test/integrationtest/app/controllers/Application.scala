@@ -19,6 +19,7 @@ object Application extends Controller {
 
   def index = Action {
     if (Messages("home.title")(Lang("fr")) != "ffff" ) throw new RuntimeException("i18n does not work")
+    if (Messages("constraint.required") != "Hijacked" ) throw new RuntimeException("can not override default message")
     val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello", "world")
     Ok(views.html.index(Cache.getAs[String]("hello").getOrElse("oh noooz")))
