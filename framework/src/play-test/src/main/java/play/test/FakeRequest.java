@@ -45,6 +45,7 @@ public class FakeRequest {
      * @param node the Json Node
      * @return the Fake Request
      */
+    @SuppressWarnings(value = "unchecked")
     public FakeRequest withJsonBody(JsonNode node) {
         Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
@@ -60,6 +61,7 @@ public class FakeRequest {
      * @param method the HTTP method. <tt>POST</tt> if set to <code>null</code>
      * @return the Fake Request
      */
+    @SuppressWarnings(value = "unchecked")
     public FakeRequest withJsonBody(JsonNode node, String method) {
         if (method == null) {
             method = Helpers.POST;
