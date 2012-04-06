@@ -318,8 +318,6 @@ public class F {
         public <A> Option<A> map(Function<T,A> function) {
             if(isDefined()) {
                 try {
-                    // fixme jroper what if function returns null? Shouldn't we then return None?  Or shouldn't we
-                    // make the function return an Option, so it can return None, rather than a value?
                     return Some(function.apply(get()));
                 } catch (RuntimeException e) {
                     throw e;
