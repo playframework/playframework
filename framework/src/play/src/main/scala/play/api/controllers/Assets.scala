@@ -67,11 +67,11 @@ object Assets extends Controller {
               case _ => (0, Enumerator[Array[Byte]]())
             }
           }
-          
-          if(length == 0) {
+
+          if (length == 0) {
             NotFound
           } else {
-            
+
             request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
 
               // Prepare a streamed response
@@ -106,8 +106,8 @@ object Assets extends Controller {
             }
 
           }
-            
-        }  
+
+        }
 
       }.getOrElse(NotFound)
 
@@ -123,7 +123,7 @@ object Assets extends Controller {
     formatter
   }
 
-  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
+  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
@@ -144,7 +144,7 @@ object Assets extends Controller {
 
   // -- ETags handling
 
-  private val etags = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
+  private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
   private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {

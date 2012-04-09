@@ -1,12 +1,12 @@
 package play.api.libs
 
 import play.api.libs.json.JsValue
-import play.api.http.{ContentTypeOf, ContentTypes, Writeable}
+import play.api.http.{ ContentTypeOf, ContentTypes, Writeable }
 import play.api.mvc.Codec
 
 /**
  * JSONP helper.
- * 
+ *
  * Example of use, provided the following route definition:
  * {{{
  *   GET  /my-service       Application.myService(callback: String)
@@ -26,7 +26,7 @@ import play.api.mvc.Codec
  * {{{
  *   foo({...});
  * }}}
- * 
+ *
  * Another example, showing how to serve either JSON or JSONP from the same action, according to the presence of
  * a “callback” parameter in the query string:
  * {{{

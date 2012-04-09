@@ -96,11 +96,11 @@ trait PlayCommands {
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
     val cacheFile = c / "copy-assets"
-    
+
     val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
-    
+
     val externalMappings = externals.map {
       case (root, paths, common) => {
         paths(root) x relativeTo(root :: Nil) map {
@@ -173,12 +173,12 @@ trait PlayCommands {
     val start = target / "start"
 
     val customConfig = Option(System.getProperty("config.file"))
-    val customFileName = customConfig.map(f=>Some( (new File(f)).getName)).getOrElse(None)
+    val customFileName = customConfig.map(f => Some((new File(f)).getName)).getOrElse(None)
 
     IO.write(start,
       """#!/usr/bin/env sh
 
-exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/"+fn+" ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
 """ /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
@@ -189,7 +189,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     val prodApplicationConf = customConfig.map { location =>
       val customConfigFile = new File(location)
       IO.copyFile(customConfigFile, productionConfig)
-      Seq(productionConfig -> (packageName + "/"+customConfigFile.getName))
+      Seq(productionConfig -> (packageName + "/" + customConfigFile.getName))
     }.getOrElse(Nil)
 
     IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
@@ -209,13 +209,13 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
    */
   def eclipseCommandSettings(mainLang: String) = {
     val settingsDir = new File(".settings")
-    val coreSettings = new File(settingsDir.toString+java.io.File.separator+"org.eclipse.core.resources.prefs")
+    val coreSettings = new File(settingsDir.toString + java.io.File.separator + "org.eclipse.core.resources.prefs")
     if (mainLang == JAVA && coreSettings.exists == false) {
       IO.createDirectory(settingsDir)
       IO.write(coreSettings,
-      """|eclipse.preferences.version=1
+        """|eclipse.preferences.version=1
          |encoding/<project>=UTF-8""".stripMargin
-      )  
+      )
     }
     import com.typesafe.sbteclipse.core._
     import com.typesafe.sbteclipse.core.EclipsePlugin._
@@ -235,13 +235,13 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   def intellijCommandSettings(mainLang: String) = {
     import org.sbtidea.SbtIdeaPlugin
-    SbtIdeaPlugin.ideaSettings ++ 
-    Seq(
-      SbtIdeaPlugin.commandName := "idea",
-      SbtIdeaPlugin.addGeneratedClasses := true,
-      SbtIdeaPlugin.includeScalaFacet := {mainLang == SCALA},
-      SbtIdeaPlugin.defaultClassifierPolicy := false
-    )
+    SbtIdeaPlugin.ideaSettings ++
+      Seq(
+        SbtIdeaPlugin.commandName := "idea",
+        SbtIdeaPlugin.addGeneratedClasses := true,
+        SbtIdeaPlugin.includeScalaFacet := { mainLang == SCALA },
+        SbtIdeaPlugin.defaultClassifierPolicy := false
+      )
   }
 
   val playStage = TaskKey[Unit]("stage")
@@ -386,20 +386,20 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     // EBean
     if (ebean) {
-      
+
       val originalContextClassLoader = Thread.currentThread.getContextClassLoader
-      
+
       try {
 
         val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
-        
+
         Thread.currentThread.setContextClassLoader(new java.net.URLClassLoader(cp, ClassLoader.getSystemClassLoader))
 
         import com.avaje.ebean.enhance.agent._
         import com.avaje.ebean.enhance.ant._
         import collection.JavaConverters._
         import com.typesafe.config._
-        
+
         val cl = ClassLoader.getSystemClassLoader
 
         val t = new Transformer(cp, "debug=-1")
@@ -411,13 +411,13 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         val models = try {
           config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
         } catch { case e: ConfigException.Missing => "models.*" }
-        
+
         try {
           ft.process(models)
         } catch {
           case _ =>
         }
-        
+
       } catch {
         case e => throw e
       } finally {
@@ -525,10 +525,10 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   private def parsePort(portString: String): Int = {
     try {
-        Integer.parseInt(portString)
-      } catch {
-        case e => sys.error("Invalid port argument: " + portString)
-      }
+      Integer.parseInt(portString)
+    } catch {
+      case e => sys.error("Invalid port argument: " + portString)
+    }
   }
 
   private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
@@ -538,7 +538,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
     //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property 
     val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(9000)
-    
+
     (javaProperties, port)
   }
 
@@ -932,7 +932,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         import scala.Console._
 
         def asTableRow(module: Map[Symbol, Any]): Seq[(String, String, String, Boolean)] = {
-           val formatted = (Seq(module.get('module).map {
+          val formatted = (Seq(module.get('module).map {
             case (org, name, rev) => org + ":" + name + ":" + rev
           }).flatten,
 

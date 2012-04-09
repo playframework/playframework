@@ -152,8 +152,8 @@ trait PlaySettings {
     // Assets
 
     playAssetsDirectories := Seq.empty[File],
-    
-    playExternalAssets := Seq.empty[(File,File => PathFinder,String)],
+
+    playExternalAssets := Seq.empty[(File, File => PathFinder, String)],
 
     playAssetsDirectories <+= baseDirectory / "public",
 

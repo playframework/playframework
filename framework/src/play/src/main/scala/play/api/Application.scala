@@ -39,10 +39,11 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   }
 
   // -- Global stuff
-  
-  private val globalClass = initialConfiguration.getString("application.global").getOrElse(initialConfiguration.getString("global").map{g => 
+
+  private val globalClass = initialConfiguration.getString("application.global").getOrElse(initialConfiguration.getString("global").map { g =>
     Logger("play").warn("`global` key is deprecated, please change `global` key to `application.global`")
-    g}.getOrElse("Global"))
+    g
+  }.getOrElse("Global"))
 
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
     Option(classloader.loadClass(globalClass).newInstance().asInstanceOf[play.GlobalSettings])
@@ -94,7 +95,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   val routes: Option[Router.Routes] = try {
     Some(classloader.loadClass("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
       router.setPrefix(configuration.getString("application.context").map { prefix =>
-        if(!prefix.startsWith("/")) {
+        if (!prefix.startsWith("/")) {
           throw configuration.reportError("application.context", "Invalid application context")
         }
         prefix

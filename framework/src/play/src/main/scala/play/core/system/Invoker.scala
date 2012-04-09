@@ -19,9 +19,9 @@ import play.utils._
  */
 class Invoker(applicationProvider: Option[ApplicationProvider] = None) {
 
-  val system: ActorSystem = applicationProvider.map{a =>
+  val system: ActorSystem = applicationProvider.map { a =>
     Invoker.appProviderActorSystem(a)
-  }.getOrElse(ActorSystem("play")) 
+  }.getOrElse(ActorSystem("play"))
 
   val promiseDispatcher = {
     system.dispatchers.lookup("akka.actor.promises-dispatcher")
@@ -32,7 +32,7 @@ class Invoker(applicationProvider: Option[ApplicationProvider] = None) {
   }
 
   /**
-   * kills actor system 
+   * kills actor system
    */
   def stop(): Unit = {
     system.shutdown()
@@ -47,21 +47,21 @@ object Invoker {
 
   /**
    * provides an extractor for body parser
-   */ 
+   */
   case class GetBodyParser(request: RequestHeader, bodyParser: BodyParser[_])
 
   /**
    * provides actor helper
-   */ 
+   */
   case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 
   private var invokerOption: Option[Invoker] = None
 
-  private def invoker: Invoker = invokerOption.getOrElse{
-      val default = new Invoker()
-      invokerOption = Some(default)
-      Logger.warn ("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
-      default
+  private def invoker: Invoker = invokerOption.getOrElse {
+    val default = new Invoker()
+    invokerOption = Some(default)
+    Logger.warn("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
+    default
   }
 
   private def appProviderActorSystem(applicationProvider: ApplicationProvider) = {
@@ -69,7 +69,7 @@ object Invoker {
       ConfigFactory.load()).getOrElse(Configuration.loadDev(applicationProvider.path))
     ActorSystem("play", conf.getConfig("play"))
   }
-  
+
   /**
    * contructor used by Server
    */
@@ -101,7 +101,7 @@ object Invoker {
    */
   def promiseDispatcher = invoker.promiseDispatcher
 
-   /**
+  /**
    * provides invoker used for Action dispatching
    */
   def actionInvoker = invoker.actionInvoker

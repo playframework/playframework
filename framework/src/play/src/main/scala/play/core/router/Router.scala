@@ -394,7 +394,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
                               route.verb.value,
-                              "\"\"\"\" + Routes.prefix + " + { if(route.path.parts.isEmpty) "" else "{ if(Routes.prefix.endsWith(\"/\")) \"\" else \"/\" } + " } + "\"\"\"\" + " + route.path.parts.map {
+                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ if(Routes.prefix.endsWith(\"/\")) \"\" else \"/\" } + " } + "\"\"\"\" + " + route.path.parts.map {
                                 case StaticPart(part) => "\"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -656,7 +656,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                               route.verb.value,
-                              "Routes.prefix" + { if(route.path.parts.isEmpty) "" else """ + { if(Routes.prefix.endsWith("/")) "" else "/" } + """} + route.path.parts.map {
+                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { if(Routes.prefix.endsWith("/")) "" else "/" } + """ } + route.path.parts.map {
                                 case StaticPart(part) => "\"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -775,7 +775,7 @@ object Router {
             r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
             i,
             r.verb.value,
-            "PathPattern(List(StaticPart(Routes.prefix)" + { if(r.path.parts.isEmpty) "" else """,StaticPart(if(Routes.prefix.endsWith("/")) "" else "/"),""" } + r.path.parts.map(_.toString).mkString(",") + "))")
+            "PathPattern(List(StaticPart(Routes.prefix)" + { if (r.path.parts.isEmpty) "" else """,StaticPart(if(Routes.prefix.endsWith("/")) "" else "/"),""" } + r.path.parts.map(_.toString).mkString(",") + "))")
       }.mkString("\n") +
         """|
                |def documentation = List(%s)
@@ -1120,9 +1120,9 @@ object Router {
     def documentation: Seq[(String, String, String)]
 
     def routes: PartialFunction[RequestHeader, Handler]
-    
+
     private[play] def setPrefix(prefix: String)
-    
+
     def prefix: String
 
     //

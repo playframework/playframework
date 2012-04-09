@@ -32,7 +32,7 @@ package play.api {
     def javascriptRouter(name: String = "Router", ajaxMethod: Option[String] = Some("jQuery.ajax"))(routes: JavascriptReverseRoute*)(implicit request: RequestHeader): String = {
       javascriptRouter(name, ajaxMethod, request.host, routes: _*)
     }
-    
+
     def javascriptRouter(name: String, ajaxMethod: Option[String], host: String, routes: JavascriptReverseRoute*): String = {
       """|var %s = {}; (function(_root){
              |var _nS = function(c,f,b){var e=c.split(f||"."),g=b||_root,d,a;for(d=0,a=e.length;d<a;d++){g=g[e[d]]=g[e[d]]||{}}return g}

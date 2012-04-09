@@ -361,7 +361,7 @@ object WS {
         .setHeaders(headers)
         .setQueryString(queryString)
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t:Int =>
+      timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -375,7 +375,7 @@ object WS {
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t:Int =>
+      timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)

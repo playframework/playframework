@@ -266,7 +266,7 @@ package play.api.mvc {
 
     /**
      * The cookie expiration date in seconds, `-1` for a transient cookie
-     *      */
+     */
     val maxAge = -1
 
     /**

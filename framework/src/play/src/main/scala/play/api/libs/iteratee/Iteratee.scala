@@ -637,8 +637,6 @@ object Enumeratee {
 
   }
 
-
-
   def collect[From] = new {
 
     def apply[To](transformer: PartialFunction[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
@@ -921,7 +919,7 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
-          case Thrown(e) => 
+          case Thrown(e) =>
             iterateeP.throwing(e)
             onComplete()
           case _ => throw new RuntimeException("should be either Redeemed or Thrown")
@@ -1012,8 +1010,6 @@ object Enumerator {
         k => k(Input.El(e)),
         (_, _) => it)))
   }
-
-
 
 }
 

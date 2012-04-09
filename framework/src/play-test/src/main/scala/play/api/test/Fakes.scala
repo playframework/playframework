@@ -53,23 +53,23 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     ))
   }
 
- /**
-  * Constructs a new request with additional Flash.
-  */ 
- def withFlash(data: (String, String)*): FakeRequest[A] = {
+  /**
+   * Constructs a new request with additional Flash.
+   */
+  def withFlash(data: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), 
-          Seq(Flash.encodeAsCookie(new Flash (flash.data ++ data)))
+      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
+        Seq(Flash.encodeAsCookie(new Flash(flash.data ++ data)))
       )
     )
   }
 
   /**
-  * Constructs a new request with additional Cookies.
-  */ 
+   * Constructs a new request with additional Cookies.
+   */
   def withCookies(cookies: Cookie*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies )
+      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies)
     )
   }
 
@@ -78,8 +78,8 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    */
   def withSession(newSessions: (String, String)*): FakeRequest[A] = {
     withHeaders(play.api.http.HeaderNames.COOKIE ->
-      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), 
-          Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
+      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""),
+        Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
       )
     )
   }
@@ -100,9 +100,9 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * @param _method The request HTTP method, <tt>POST</tt> by default.
    * @return the current fake request
    */
-  def withJsonBody(node: JsValue,  _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
+  def withJsonBody(node: JsValue, _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
     copy(method = _method, body = AnyContentAsJson(node))
-        .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
+      .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
   }
 
 }

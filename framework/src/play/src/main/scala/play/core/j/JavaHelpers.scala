@@ -45,43 +45,43 @@ trait JavaHelpers {
     case other => other
   }
 
- /**
-  * creates a java request (with an empty body) from a scala RequestHeader
-  * @param request incoming requestHeader
-  */
-  def createJavaRequest(req: RequestHeader): JRequest = { 
+  /**
+   * creates a java request (with an empty body) from a scala RequestHeader
+   * @param request incoming requestHeader
+   */
+  def createJavaRequest(req: RequestHeader): JRequest = {
     new JRequest {
 
-        def uri = req.uri
+      def uri = req.uri
 
-        def method = req.method
+      def method = req.method
 
-        def host = req.host
+      def host = req.host
 
-        def path = req.path
+      def path = req.path
 
-        def body = null
+      def body = null
 
-        def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
+      def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
-        def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+      def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
-        def queryString = {
-          req.queryString.mapValues(_.toArray).asJava
-        }
-
-        def accept = req.accept.asJava
-
-        def accepts(mediaType: String) = req.accepts(mediaType)
-
-        def cookies = new JCookies {
-          def get(name: String) = (for (cookie <- req.cookies.get(name))
-            yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
-        }
-
-        override def toString = req.toString
-
+      def queryString = {
+        req.queryString.mapValues(_.toArray).asJava
       }
+
+      def accept = req.accept.asJava
+
+      def accepts(mediaType: String) = req.accepts(mediaType)
+
+      def cookies = new JCookies {
+        def get(name: String) = (for (cookie <- req.cookies.get(name))
+          yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
+      }
+
+      override def toString = req.toString
+
+    }
   }
 
   /**
