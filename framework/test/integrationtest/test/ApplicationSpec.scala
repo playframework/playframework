@@ -65,7 +65,33 @@ class ApplicationSpec extends Specification {
 
       }
     }
-    
+
+    def javaResult(result: play.api.mvc.Result) =
+      new play.mvc.Result {
+        def getWrappedResult = result
+      }
+
+    "execute json with content type" in {
+     running(FakeApplication()) {
+         val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithContentType"))
+         status(result) must equalTo(OK)
+         contentType(result) must equalTo(Some("application/json"))
+         charset(result) must equalTo(None)
+         play.test.Helpers.charset(javaResult(result)) must equalTo(null)
+       }
+     }
+
+
+    "execute json with content type and charset" in {
+     running(FakeApplication()) {
+         val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithCharset"))
+         status(result) must equalTo(OK)
+         contentType(result) must equalTo(Some("application/json"))
+         charset(result) must equalTo(Some("utf-8"))
+         play.test.Helpers.charset(javaResult(result)) must equalTo("utf-8")
+       }
+     }
+
     "not serve asset directories" in {
       running(FakeApplication()) {
         val Some(result) = routeAndCall(FakeRequest(GET, "/public//"))
