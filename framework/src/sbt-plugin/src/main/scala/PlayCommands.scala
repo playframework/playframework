@@ -172,23 +172,24 @@ trait PlayCommands {
 
     val start = target / "start"
 
-    val config = Option(System.getProperty("config.file"))
+    val customConfig = Option(System.getProperty("config.file"))
+    val customFileName = customConfig.map(f=>Some( (new File(f)).getName)).getOrElse(None)
 
     IO.write(start,
       """#!/usr/bin/env sh
 
-exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirname $0`/application.conf ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/"+fn+" ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
 """ /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
     val other = Seq((root / "README") -> (packageName + "/README"))
 
-    val productionConfig = target / "application.conf"
+    val productionConfig = customFileName.map(fn => target / fn).getOrElse(target / "application.conf")
 
-    val prodApplicationConf = config.map { location =>
-
-      IO.copyFile(new File(location), productionConfig)
-      Seq(productionConfig -> (packageName + "/application.conf"))
+    val prodApplicationConf = customConfig.map { location =>
+      val customConfigFile = new File(location)
+      IO.copyFile(customConfigFile, productionConfig)
+      Seq(productionConfig -> (packageName + "/"+customConfigFile.getName))
     }.getOrElse(Nil)
 
     IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
