@@ -12,17 +12,35 @@ GET     /cookietest             controllers.JavaApi.cookietest()
 GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
+
 GET     /notintercepted         controllers.JavaApi.notIntercepted()
 GET     /intercepted-with       controllers.JavaApi.interceptedUsingWith()
 GET     /intercepted            controllers.JavaApi.intercepted()
+
 GET     /json                   controllers.Application.json()
 GET     /json_from_jsobject     controllers.Application.jsonFromJsObject()
 GET     /jsonWithContentType    controllers.Application.jsonWithContentType()
 GET     /jsonWithCharset        controllers.Application.jsonWithContentTypeAndCharset()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
+
 GET     /take-bool              controllers.Application.takeBool(b: Boolean)
 GET     /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
+
+GET     /take-list              controllers.Application.takeList(x: List[Int])
+GET     /take-list-java         controllers.JavaApi.takeList(x: java.util.List[java.lang.Integer])
+
+GET     /jsonp                  controllers.Application.jsonp(callback)
+GET     /jsonp-java             controllers.JavaApi.jsonpJava(callback)
+
+GET     /urldecode/:p           controllers.Application.urldecode(p, q)
+
+GET     /javascript-routes      controllers.Application.javascriptRoutes()
+GET     /javascript-test        controllers.Application.javascriptTest(name)
+
+GET     /accept                 controllers.Application.accept()
+GET     /accept-java            controllers.JavaApi.accept()
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 

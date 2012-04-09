@@ -2,26 +2,29 @@ package test
 
 import play.api.test._
 import play.api.test.Helpers._
-
 import play.api.libs.ws._
-
 import org.specs2.mutable._
-
 import models._
 import models.Protocol._
+import org.openqa.selenium.htmlunit.HtmlUnitDriver
 
 
 class FunctionalSpec extends Specification {
-
   "an Application" should {
 
+    "pass functional test with two browsers" in {
+      running(TestServer(9002), HTMLUNIT) { browser =>
+        browser.goTo("http://localhost:9002")
+        browser.pageSource must contain("Hello world")
+      }
+    } 
     "pass functional test" in {
       running(TestServer(9001), HTMLUNIT) { browser =>
-
         val content: String = await(WS.url("http://localhost:9001/post").post("param1=foo")).body
         content must contain ("param1")
         content must contain("AnyContentAsText")
         content must contain ("foo")
+
 
         val contentForm: String = await(WS.url("http://localhost:9001/post").post(Map("param1"->Seq("foo")))).body
         contentForm must contain ("AnyContentAsFormUrlEncoded")
@@ -76,6 +79,30 @@ class FunctionalSpec extends Specification {
         browser.goTo("http://localhost:9001/clear/foo")
         browser.getCookies.size must equalTo(0)
 
+        // --- Javascript Reverse Router
+
+        browser.goTo("http://localhost:9001/javascript-test?name=guillaume")
+
+        browser.$("#route-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("/javascript-test?name=world")
+
+        browser.$("#route-abs-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("http://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-abs-secure-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("https://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-abs-secure-url2").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("https://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("ws://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-secure-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-secure-url2").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:9001/javascript-test?name=world")
       }
     }
 

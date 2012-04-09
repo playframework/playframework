@@ -23,25 +23,19 @@ class ApplicationSpec extends Specification {
         contentType(home) must beSome.which(_ == "text/html")
       }
     }
-    
-    "send BadRequest on form error" in {
+      "send BadRequest on form error" in {
       running(FakeApplication()) {
         val home = routeAndCall(FakeRequest(GET, "/hello?name=Bob&repeat=xx")).get
-        
         status(home) must equalTo(BAD_REQUEST)
         contentType(home) must beSome.which(_ == "text/html")
       }
     }
-    
     "say hello" in {
       running(FakeApplication()) {
         val home = routeAndCall(FakeRequest(GET, "/hello?name=Bob&repeat=10")).get
-        
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "text/html")
       }
     }
-    
-  }
-  
+  } 
 }

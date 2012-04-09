@@ -44,7 +44,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            javacOptions ++= Seq("-encoding", "utf8"),
+            javacOptions ++= Seq("-encoding", "UTF-8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
@@ -60,7 +60,7 @@ object PlayBuild extends Build {
         libraryDependencies := testDependencies,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-        javacOptions  ++= Seq("-encoding", "utf8","-Xlint:unchecked", "-Xlint:deprecation"),
+        javacOptions  ++= Seq("-encoding", "UTF-8","-Xlint:unchecked", "-Xlint:deprecation"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := true,
         resolvers += typesafe
@@ -75,6 +75,7 @@ object PlayBuild extends Build {
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
         addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0"),
+        addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M1-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -497,7 +498,6 @@ object PlayBuild extends Build {
                 (root ** "project/project") --- 
                 (root ** "target") --- 
                 (root ** "target" ** "*") --- 
-                (root ** ".*") ---
                 (root ** ".*") ---
                 (root ** ".git" ** "*") ---
                 (root ** "*.lock")

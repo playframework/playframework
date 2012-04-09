@@ -60,6 +60,21 @@ public class GlobalSettings {
     }
 
     /**
+    *
+    * Called when an HTTP request has been received.
+    * The default implementation (return null) means to use the application router to find the appropriate action 
+    * 
+    * By overriding this method one can provide an alternative routing mechanism. 
+    * Please note, though, this API is very low level, useful for plugin/module authors only.
+    * 
+    * @param request the HTTP request header as seen by the core framework (the body has not been parsed yet)
+    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
+    */
+    public play.api.mvc.Handler onRouteRequest(play.api.mvc.RequestHeader request) {
+        return null;
+    }
+
+    /**
      * Triggered when a resource was requested but not found. The default implementation returns <code>null</code>, so that
      * the Scala engine handles the <code>onActionNotFound</code>.
      *

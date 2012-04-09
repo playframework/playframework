@@ -126,7 +126,7 @@ class EhCachePlugin(app: Application) extends CachePlugin {
    * Is this plugin enabled.
    *
    * {{{
-   * ehcacheplugin.disabled=true
+   * ehcacheplugin=disabled
    * }}}
    */
   override lazy val enabled = {

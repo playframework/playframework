@@ -144,7 +144,7 @@ object QueryStringBindable {
    * QueryString binder for String.
    */
   implicit def bindableString = new QueryStringBindable[String] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(v => Right(URLDecoder.decode(v, "utf-8")))
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(Right(_)) // No need to URL decode from query string since netty already does that
     def unbind(key: String, value: String) = key + "=" + (URLEncoder.encode(value, "utf-8"))
   }
 
@@ -238,6 +238,37 @@ object QueryStringBindable {
         ""
       }
     }
+  }
+
+  /**
+   * QueryString binder for List
+   */
+  implicit def bindableList[T : QueryStringBindable] = new QueryStringBindable[List[T]] {
+    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params)))
+    def unbind(key: String, values: List[T]) = unbindList(key, values)
+  }
+
+  /**
+   * QueryString binder for java.util.List
+   */
+  implicit def bindableJavaList[T : QueryStringBindable] = new QueryStringBindable[java.util.List[T]] {
+    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params).asJava))
+    def unbind(key: String, values: java.util.List[T]) = unbindList(key, values.asScala)
+  }
+
+  private def bindList[T : QueryStringBindable](key: String, params: Map[String, Seq[String]]): List[T] = {
+    for {
+        values <- params.get(key).toList
+        rawValue <- values
+        bound <- implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(rawValue)))
+        value <- bound.right.toOption
+      } yield value
+  }
+
+  private def unbindList[T : QueryStringBindable](key: String, values: Iterable[T]): String = {
+    (for (value <- values) yield {
+      implicitly[QueryStringBindable[T]].unbind(key, value)
+    }).mkString("&")
   }
 
   /**
