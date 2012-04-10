@@ -2,16 +2,9 @@ package play.api.libs.iteratee
 
 object Traversable {
 
-  def passAlong[M] = new Enumeratee.CheckDone[M, M] {
 
-    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
-
-      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
-
-      case Input.EOF => Done(Cont(k), Input.EOF)
-    }
-    def continue[A](k: K[M, A]) = Cont(step(k))
-  }
+  @scala.deprecated("use Enumeratee.passAlong instead","2.1.x")
+  def passAlong[M] = Enumeratee.passAlong[M]
 
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
@@ -80,7 +73,7 @@ object Traversable {
                 val toPass = if (i < 0) Input.El(e.drop(leftToDrop)) else Input.Empty
                 it.pureFlatFold(
                   (_, _) => Done(it, toPass),
-                  k => passAlong.applyOn(k(toPass)),
+                  k => Enumeratee.passAlong.applyOn(k(toPass)),
                   (_, _) => Done(it, toPass))
 
             }
