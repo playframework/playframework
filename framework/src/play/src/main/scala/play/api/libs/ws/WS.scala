@@ -16,7 +16,6 @@ import com.ning.http.client.{
   Response => AHCResponse,
   PerRequestConfig
 }
-import java.util.concurrent.Executor
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -192,8 +191,7 @@ object WS {
       calculator.map(_.sign(this))
 
       var statusCode = 0
-      var iterateeP = new STMPromise[Iteratee[Array[Byte], A]] // Promise[...]?
-      val answer = new STMPromise[A]
+      val answer = Promise[A]
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
