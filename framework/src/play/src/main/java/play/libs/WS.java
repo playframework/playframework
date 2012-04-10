@@ -394,9 +394,8 @@ public class WS {
          */
         public JsonNode asJson() {
             String json = getBody();
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                return mapper.readValue(json, JsonNode.class);
+                return Json.parse(json);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
