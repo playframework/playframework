@@ -36,7 +36,6 @@ object Traversable {
 
       }
       Cont(step(it, count))
-
     }
   }
 
