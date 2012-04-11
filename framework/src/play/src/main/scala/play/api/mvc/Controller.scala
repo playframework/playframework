@@ -16,7 +16,7 @@ import play.api.http._
  * }
  * }}}
  */
-trait Controller extends Results with BodyParsers with Status with HeaderNames with ContentTypes {
+trait Controller extends Results with BodyParsers with Status with HeaderNames with ContentTypes with RequestExtractors {
 
   /**
    * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.

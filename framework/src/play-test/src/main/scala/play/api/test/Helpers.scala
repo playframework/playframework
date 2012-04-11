@@ -93,7 +93,10 @@ object Helpers extends Status with HeaderNames {
   /**
    * Extracts the Charset of this Result value.
    */
-  def charset(of: Result): Option[String] = header(CONTENT_TYPE, of).map(_.split("; charset=").drop(1).mkString.trim)
+  def charset(of: Result): Option[String] = header(CONTENT_TYPE, of) match {
+    case Some(s) if s.contains("charset=") => Some(s.split("; charset=").drop(1).mkString.trim)
+    case _ => None
+  }
 
   /**
    * Extracts the content as String.
@@ -128,6 +131,12 @@ object Helpers extends Status with HeaderNames {
    * Extracts the Flash values of this Result value.
    */
   def flash(of: Result): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
+
+  /**
+   * Extracts the Session of this Result value.
+   * Extracts the Session from this Result value.
+   */
+  def session(of: Result): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
 
   /**
    * Extracts the Location header of this Result value if this Result is a Redirect.

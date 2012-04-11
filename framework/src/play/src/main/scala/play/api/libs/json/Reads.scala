@@ -78,7 +78,7 @@ trait DefaultReads {
       case _ => throw new RuntimeException("Double expected")
     }
   }
-  
+
   /**
    * Deserializer for BigDecimal types.
    */

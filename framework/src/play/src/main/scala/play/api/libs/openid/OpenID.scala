@@ -42,7 +42,8 @@ object OpenID {
   def redirectURL(openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
-    axOptional: Seq[(String, String)] = Seq.empty): Promise[String] = {
+    axOptional: Seq[(String, String)] = Seq.empty,
+    realm: Option[String] = None): Promise[String] = {
     val claimedId = normalize(openID)
     discoverServer(claimedId).map(server => {
       val parameters = Seq(
@@ -51,7 +52,7 @@ object OpenID {
         "openid.claimed_id" -> claimedId,
         "openid.identity" -> server.delegate.getOrElse(claimedId),
         "openid.return_to" -> callbackURL
-      ) ++ axParameters(axRequired, axOptional)
+      ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
       val separator = if (server.url.contains("?")) "&" else "?"
       server.url + separator + parameters.map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8")).mkString("&")
     })
@@ -77,7 +78,7 @@ object OpenID {
         case (Some("id_res"), Some(id), endPoint) => {
           val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
           server.flatMap(url => {
-            val fields = queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication"))
+            val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
             WS.url(url).post(fields).map(response => {
               if (response.status == 200 && response.body.contains("is_valid:true")) {
                 UserInfo(queryString)
@@ -143,7 +144,8 @@ object OpenID {
   }
 
   private def extractHref(link: String): Option[String] =
-    new Regex("""href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim)
+    new Regex("""href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim).
+      orElse(new Regex("""href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
 
 }
 

@@ -92,7 +92,7 @@ class ChatRoom extends Actor {
     
     case Join(username) => {
       // Create an Enumerator to write to this socket
-      val channel =  Enumerator.imperative[JsValue]( onStart = self ! NotifyJoin(username))
+      val channel =  Enumerator.imperative[JsValue]( onStart = () => self ! NotifyJoin(username))
       if(members.contains(username)) {
         sender ! CannotConnect("This username is already used")
       } else {

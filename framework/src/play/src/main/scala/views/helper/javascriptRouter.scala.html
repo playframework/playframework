@@ -12,7 +12,7 @@
  * @param name The javascript object name.
  * @param routes Set of routes to include in this javascript router.
  *@
-@(name:String = "Router")(routes:play.core.Router.JavascriptReverseRoute*) 
+@(name:String = "Router")(routes:play.core.Router.JavascriptReverseRoute*)(implicit request: play.api.mvc.RequestHeader)
 
 <script type="text/javascript">
     @Html(play.api.Routes.javascriptRouter(name)(routes:_*))

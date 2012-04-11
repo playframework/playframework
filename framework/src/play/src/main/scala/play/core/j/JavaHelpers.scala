@@ -46,11 +46,11 @@ trait JavaHelpers {
   }
 
   /**
-   * creates a java context from a scala RequestHeader
-   * @param request
+   * creates a java request (with an empty body) from a scala RequestHeader
+   * @param request incoming requestHeader
    */
-  def createJavaContext(req: RequestHeader): JContext = {
-    new JContext(new JRequest {
+  def createJavaRequest(req: RequestHeader): JRequest = {
+    new JRequest {
 
       def uri = req.uri
 
@@ -70,6 +70,10 @@ trait JavaHelpers {
         req.queryString.mapValues(_.toArray).asJava
       }
 
+      def accept = req.accept.asJava
+
+      def accepts(mediaType: String) = req.accepts(mediaType)
+
       def cookies = new JCookies {
         def get(name: String) = (for (cookie <- req.cookies.get(name))
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
@@ -77,7 +81,15 @@ trait JavaHelpers {
 
       override def toString = req.toString
 
-    },
+    }
+  }
+
+  /**
+   * creates a java context from a scala RequestHeader
+   * @param request
+   */
+  def createJavaContext(req: RequestHeader): JContext = {
+    new JContext(createJavaRequest(req),
       req.session.data.asJava,
       req.flash.data.asJava)
   }
@@ -102,6 +114,10 @@ trait JavaHelpers {
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+
+      def accept = req.accept.asJava
+
+      def accepts(mediaType: String) = req.accepts(mediaType)
 
       def queryString = {
         req.queryString.mapValues(_.toArray).asJava

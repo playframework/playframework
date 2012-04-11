@@ -19,7 +19,6 @@ import collection.JavaConverters._
  */
 case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
 
-
   /**
    * The current page URL.
    */
@@ -44,8 +43,6 @@ case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
    * Retrieves a cookie.
    */
   override def getCookie(name: String): Cookie = super.getCookie(name)
-
-
 
 }
 

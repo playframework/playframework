@@ -1,8 +1,12 @@
 package play.test;
 
+import org.codehaus.jackson.JsonNode;
+import play.api.mvc.AnyContentAsJson;
 import play.libs.*;
+import play.mvc.*;
 
 import java.util.*;
+import scala.collection.Seq;
 
 /**
  * Fake HTTP request implementation.
@@ -33,7 +37,73 @@ public class FakeRequest {
         fake = fake.withHeaders(Scala.varargs(Scala.Tuple(name, value)));
         return this;
     }
-    
+
+    /**
+     * Set a Json Body to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+     * The method is set to <tt>POST</tt>.
+     * @param node the Json Node
+     * @return the Fake Request
+     */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withJsonBody(JsonNode node) {
+        Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
+        map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
+        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map)), content);
+        return this;
+    }
+
+    /**
+     * Set a Json Body to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+     * @param node the Json Node
+     * @param method the HTTP method. <tt>POST</tt> if set to <code>null</code>
+     * @return the Fake Request
+     */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withJsonBody(JsonNode node, String method) {
+        if (method == null) {
+            method = Helpers.POST;
+        }
+        Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
+        map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
+        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        fake = new play.api.test.FakeRequest(method, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map)), content);
+        return this;
+    }
+
+   /**
+    * Add addtional session to this request.
+    */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withFlash(String name, String value) {
+        fake = fake.withFlash(Scala.varargs(Scala.Tuple(name, value)));
+        return this;
+    }
+
+      /**
+     * Add addtional session to this request.
+     */
+    @SuppressWarnings(value = "unchecked")  
+    public FakeRequest withSession(String name, String value) {
+        fake = fake.withSession(Scala.varargs(Scala.Tuple(name, value)));
+        return this;
+    }
+
+    /**
+     * Add cookies to this request
+     */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withCookies(Http.Cookie... cookies) {
+        List <play.api.mvc.Cookie> scalacookies = new ArrayList<play.api.mvc.Cookie>();
+        for (Http.Cookie c : cookies) {
+            scalacookies.add(new play.api.mvc.Cookie(c.name(), c.value(), c.maxAge(), c.path(), Scala.Option(c.domain()), c.secure(), c.httpOnly()) );
+        }
+        fake = fake.withCookies(Scala.varargs(scalacookies.toArray()));
+        return this;
+    }
+
     /**
      * Set a Form url encoded body to this request.
      */

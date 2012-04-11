@@ -4,26 +4,26 @@ import play.api.libs.concurrent._
 
 object Concurrent {
 
-  def dropInputIfNotReady[E](duration: Long, unit:  java.util.concurrent.TimeUnit =  java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E,E] = new Enumeratee[E,E] {
+  def dropInputIfNotReady[E](duration: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A](it: Iteratee[E,A]): Iteratee[E,Iteratee[E,A]] = {
+    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
-      def step(inner: Iteratee[E,A])(in:Input[E]):Iteratee[E,Iteratee[E,A]] = {
+      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
 
         in match {
           case Input.EOF =>
-            Done(inner,Input.Empty)
+            Done(inner, Input.Empty)
 
-          case in => 
-            val readyOrNot: Promise[Either[Iteratee[E,Iteratee[E,A]],Unit]] =  inner.pureFold[Iteratee[E,Iteratee[E,A]]](
-              (a,e) => Done(Done(a,e),Input.Empty),
-              k => Cont{ in => 
+          case in =>
+            val readyOrNot: Promise[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]](
+              (a, e) => Done(Done(a, e), Input.Empty),
+              k => Cont { in =>
                 val next = k(in)
                 Cont(step(next))
-                      },
-              (msg,e) => Done(Error(msg,e),Input.Empty)).orTimeout((),duration,unit)
+              },
+              (msg, e) => Done(Error(msg, e), Input.Empty)).orTimeout((), duration, unit)
 
-            Iteratee.flatten( readyOrNot.map {
+            Iteratee.flatten(readyOrNot.map {
               case Left(ready) => Iteratee.flatten(ready.feed(in))
               case Right(_) => Cont(step(inner))
             })
@@ -42,10 +42,8 @@ object Concurrent {
 
     def close()
 
-    def closed():Boolean
+    def closed(): Boolean
   }
-
-
 
   def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ()): Hub[E] = {
 
@@ -121,7 +119,6 @@ object Concurrent {
 
       })
     }
-    
 
     new Hub[E] {
 
@@ -133,37 +130,37 @@ object Concurrent {
 
       def closed() = closeFlag
 
-      val redeemed = Ref(Waiting : PromiseValue[Iteratee[E,Unit]])
+      val redeemed = Ref(Waiting: PromiseValue[Iteratee[E, Unit]])
       def getPatchCord() = new Enumerator[E] {
 
         def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
           val result = Promise[Iteratee[E, A]]()
-          val alreadyStarted = ! started.single.compareAndSet(false, true)
-          if(!alreadyStarted) {
+          val alreadyStarted = !started.single.compareAndSet(false, true)
+          if (!alreadyStarted) {
             val promise = (e |>> Cont(step))
-            promise.extend1{ v =>
-              val its = atomic{ implicit txn =>
+            promise.extend1 { v =>
+              val its = atomic { implicit txn =>
                 redeemed() = v
                 iteratees.swap(List())
               }
               v match {
-              case Thrown(e) => 
-                its.foreach{ case (_,p) => p.throwing(e) }
-                
-              case Redeemed(_) =>
-                its.foreach{ case (it,p) => p.redeem(it)}
+                case Thrown(e) =>
+                  its.foreach { case (_, p) => p.throwing(e) }
+
+                case Redeemed(_) =>
+                  its.foreach { case (it, p) => p.redeem(it) }
               }
-          }
+            }
           }
           val finished = atomic { implicit txn =>
             redeemed() match {
-              case Waiting => 
+              case Waiting =>
                 iteratees.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
                 None
               case notWaiting => Some(notWaiting)
             }
           }
-          finished.foreach{
+          finished.foreach {
             case Redeemed(_) => result.redeem(it)
             case Thrown(e) => result.throwing(e)
             case _ => throw new RuntimeException("should be either Redeemed or Thrown")
@@ -267,4 +264,4 @@ object Concurrent {
 
     }
   }
-  }
+}

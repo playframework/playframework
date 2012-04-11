@@ -2,8 +2,9 @@
 
 PRG="$0"
 while [ -h "$PRG" ] ; do
-    PRG=`readlink "$PRG"`
+  PRG=`readlink "$PRG"`
 done
+
 dir=`dirname $PRG`
 
 if [ -z $JAVA_HOME ]; then

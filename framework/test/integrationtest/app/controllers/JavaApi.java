@@ -2,16 +2,24 @@ package controllers;
 
 import java.util.*;
 
+import org.codehaus.jackson.JsonNode;
+
 import play.*;
+import play.libs.Json;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
 
 import static play.libs.Json.toJson;
+import static play.libs.Jsonp.jsonp;
 
 public class JavaApi extends Controller {
 
     public static Result headers() {
        return ok(request().getHeader(HOST));
+    }
+    public static Result cookietest() {
+       response().setCookie("testcookie", "blue");
+       return ok(request().cookies().get("testcookie").name());
     }
 
     public static Result index() {
@@ -52,6 +60,25 @@ public class JavaApi extends Controller {
     @Intercepted
     public static Result intercepted() {
         return ok(Interceptor.state);
+    }
+
+    public static Result takeList(List<Integer> xs) {
+        return ok(xs.size() + " elements");
+    }
+
+    public static Result jsonpJava(String callback) {
+        JsonNode json = Json.parse("{ \"foo\": \"bar\" }");
+        return ok(jsonp(callback, json));
+    }
+
+    public static Result accept() {
+        if (request().accepts("application/json")) {
+            return ok("json");
+        } else if (request().accepts("text/html")) {
+            return ok("html");
+        } else {
+            return badRequest();
+        }
     }
 }
 

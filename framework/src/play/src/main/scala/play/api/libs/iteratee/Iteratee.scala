@@ -409,6 +409,15 @@ trait Enumerator[E] {
 
   def mapInput[U](f: Input[E] => Input[U]) = parent &> Enumeratee.mapInput[E](f)
 
+  def flatMap[U](f: E => Enumerator[U]): Enumerator[U] = {
+    new Enumerator[U] {
+      def apply[A](iteratee: Iteratee[U, A]): Promise[Iteratee[U, A]] = {
+        val folder = Iteratee.fold1[E, Iteratee[U, A]](iteratee)((it, e) => f(e)(it))
+        parent(folder).flatMap(_.run)
+      }
+    }
+  }
+
 }
 
 /**
@@ -540,6 +549,28 @@ object Enumeratee {
     }
   }
 
+  def mapInputM[From] = new {
+    def apply[To](f: Input[From] => Promise[Input[To]]) = new CheckDone[From, To] {
+
+      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+        case in @ (Input.El(_) | Input.Empty) =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in).map(k(_)))
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+      }
+
+      def continue[A](k: K[To, A]) = Cont(step(k))
+    }
+  }
+
+  def mapM[E] = new {
+    def apply[NE](f: E => Promise[NE]): Enumeratee[E, NE] = mapInputM[E]{
+      case Input.Empty => Promise.pure(Input.Empty)
+      case Input.EOF => Promise.pure(Input.EOF)
+      case Input.El(e) => f(e).map(Input.El(_))
+    }
+  }
+
   /**
    * Create an Enumeratee which transforms its input using a given function
    */
@@ -627,8 +658,6 @@ object Enumeratee {
     def continue[A](k: K[E, A]) = Cont(step(k))
 
   }
-
-
 
   def collect[From] = new {
 
@@ -735,6 +764,40 @@ object Enumeratee {
 
     }
   }
+
+  def passAlong[M] = new Enumeratee.CheckDone[M, M] {
+
+    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+
+      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+
+      case Input.EOF => Done(Cont(k), Input.EOF)
+    }
+    def continue[A](k: K[M, A]) = Cont(step(k))
+  }
+
+  def onIterateeDone[E](action: () => Unit):Enumeratee[E,E] = new Enumeratee[E,E]{
+
+    def applyOn[A](iteratee:Iteratee[E,A]):Iteratee[E,Iteratee[E,A]] = passAlong[E](iteratee).map{ a => action();a}
+
+  }
+
+  def onEOF[E](action: () => Unit):Enumeratee[E,E] = new CheckDone[E, E] {
+
+      def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
+
+        case Input.EOF =>
+          action()
+          Done(Cont(k), Input.EOF)
+
+        case in =>
+          new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
+      }
+
+      def continue[A](k: K[E, A]) = Cont(step(k))
+
+  }
+
 }
 
 object Enumerator {
@@ -821,13 +884,13 @@ object Enumerator {
   }
 
   def imperative[E](
-    onStart: => Unit = () => (),
+    onStart: () => Unit = () => (),
     onComplete: => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)
 
   def pushee[E](
     onStart: Pushee[E] => Unit,
-    onComplete: => Unit = () => (),
+    onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
@@ -883,6 +946,44 @@ object Enumerator {
 
   import scalax.io.JavaConverters._
 
+  def unfoldM[S,E](s:S)(f: S => Promise[Option[(S,E)]] ): Enumerator[E] = new Enumerator[E] {
+    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+
+      var iterateeP = Promise[Iteratee[E, A]]()
+
+      def step(it: Iteratee[E, A], state:S) {
+
+        val next = it.fold(
+          (a, e) => { iterateeP.redeem(it); Promise.pure(None) },
+          k => {
+            f(state).map {
+              case None => {
+                val remainingIteratee = k(Input.EOF)
+                iterateeP.redeem(remainingIteratee)
+                None
+              }
+              case Some((s,read)) => {
+                val nextIteratee = k(Input.El(read))
+                Some((nextIteratee,s))
+              }
+            }
+          },
+          (_, _) => { iterateeP.redeem(it); Promise.pure(None) }
+        )
+
+        next.extend1 {
+          case Redeemed(Some((i,s))) => step(i,s)
+          case Redeemed(None) => // do nothing, already redeemed
+          case Thrown(e) => iterateeP.throwing(e)
+        }
+
+      }
+
+      step(it, s)
+      iterateeP
+    }
+  }
+
   def fromCallback1[E](retriever: Boolean => Promise[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
@@ -912,14 +1013,12 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
+
+          case Redeemed(None) => onComplete()
           case Thrown(e) => 
             iterateeP.throwing(e)
-            onComplete()
-          case _ => throw new RuntimeException("should be either Redeemed or Thrown")
         }
-
       }
-
       step(it, true)
       iterateeP
     }
@@ -954,6 +1053,8 @@ object Enumerator {
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
+          case Thrown(e) => 
+            iterateeP.throwing(e)
           case _ => onComplete()
         }
 
@@ -1008,8 +1109,6 @@ object Enumerator {
         k => k(Input.El(e)),
         (_, _) => it)))
   }
-
-
 
 }
 
