@@ -1065,8 +1065,7 @@ object Enumerator {
     }
   }
 
-  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8, onClose: () => Unit = () => ()) = {
-
+  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
     fromCallback(() => {
       val buffer = new Array[Byte](chunkSize)
       val chunk = input.read(buffer) match {
@@ -1077,14 +1076,11 @@ object Enumerator {
           Some(input)
       }
       Promise.pure(chunk)
-    }, () => {
-      input.close
-      onClose()
-    })
+    }, input.close)
   }
 
-  def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8, onClose: () => Unit = () => ()): Enumerator[Array[Byte]] = {
-    fromStream(new java.io.FileInputStream(file), chunkSize, onClose)
+  def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = {
+    fromStream(new java.io.FileInputStream(file), chunkSize)
   }
 
   def eof[A] = enumInput[A](Input.EOF)
