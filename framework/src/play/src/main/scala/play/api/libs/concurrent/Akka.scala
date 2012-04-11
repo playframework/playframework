@@ -119,6 +119,7 @@ class AkkaPlugin(app: Application) extends Plugin {
     if (applicationSystemEnabled) {
       Logger("play").info("Shutdown application default Akka system.")
       applicationSystem.shutdown()
+      applicationSystem.awaitTermination()
     }
   }
 
