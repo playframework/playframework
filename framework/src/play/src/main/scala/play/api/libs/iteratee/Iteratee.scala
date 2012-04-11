@@ -778,7 +778,7 @@ object Enumeratee {
 
   def onIterateeDone[E](action: () => Unit):Enumeratee[E,E] = new Enumeratee[E,E]{
 
-    def applyOn[A](iteratee:Iteratee[E,A]):Iteratee[E,Iteratee[E,A]] = passAlong[E](iteratee.map{ a => action();a})
+    def applyOn[A](iteratee:Iteratee[E,A]):Iteratee[E,Iteratee[E,A]] = passAlong[E](iteratee).map{ a => action();a}
 
   }
 
