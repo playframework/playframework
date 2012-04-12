@@ -10,18 +10,16 @@ import org.jboss.netty.handler.stream._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
-
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
-
 import play.core._
 import server.Server
 import play.api._
 import play.api.mvc._
+import play.api.http.HeaderNames.X_FORWARDED_FOR
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
-
 import scala.collection.JavaConverters._
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
@@ -51,6 +49,18 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val rHeaders = getHeaders(nettyHttpRequest)
         val rCookies = getCookies(nettyHttpRequest)
 
+        def rRemoteAddress = e.getRemoteAddress match {
+          case ra: java.net.InetSocketAddress => {
+            val remoteAddress = ra.getAddress.getHostAddress
+            (for {
+              xff <- rHeaders.get(X_FORWARDED_FOR)
+              app <- server.applicationProvider.get.right.toOption
+              trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
+              if remoteAddress == "127.0.0.1" || trustxforwarded
+            } yield xff).getOrElse(remoteAddress)
+          }
+        }
+
         import org.jboss.netty.util.CharsetUtil;
 
         //mapping netty request to Play's
@@ -61,6 +71,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def method = nettyHttpRequest.getMethod.getName
           def queryString = parameters
           def headers = rHeaders
+          lazy val remoteAddress = rRemoteAddress
           def username = None
         }
 
@@ -282,6 +293,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       def method = nettyHttpRequest.getMethod.getName
                       def queryString = parameters
                       def headers = rHeaders
+                      lazy val remoteAddress = rRemoteAddress
                       def username = None
                       val body = b
                     })
