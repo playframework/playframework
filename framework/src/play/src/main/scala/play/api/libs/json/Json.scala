@@ -37,7 +37,7 @@ object Json {
 
   /*
    * Rich Json syntax allows : 
-   * JsObject(Seq("key", JsString("value")) ====> Json.obj( "key" -> "value")
+   * JsObject(Seq("key", JsString("value")) ====> Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
    * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) ====> Json.arr( "value", 123, true )
    */
   trait JsValueWrapper
