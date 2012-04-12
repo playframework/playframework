@@ -267,6 +267,62 @@ object QueryStringBindable {
   }
 
   /**
+   * QueryString binder for Double.
+   */
+  implicit def bindableDouble = new QueryStringBindable[Double] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Double.parseDouble(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Double) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Java Double.
+   */
+  implicit def bindableJavaDouble = new QueryStringBindable[java.lang.Double] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Double.parseDouble(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Double) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Float.
+   */
+  implicit def bindableFloat = new QueryStringBindable[Float] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Float.parseFloat(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Float) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Java Float.
+   */
+  implicit def bindableJavaFloat = new QueryStringBindable[java.lang.Float] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Float.parseFloat(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Float) = key + "=" + value.toString
+  }
+
+  /**
    * QueryString binder for Integer.
    */
   implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
@@ -426,6 +482,62 @@ object PathBindable {
   }
 
   /**
+   * Path binder for Double.
+   */
+  implicit def bindableDouble = new PathBindable[Double] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Double.parseDouble(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Double) = value.toString
+  }
+
+  /**
+   * Path binder for Java Double.
+   */
+  implicit def bindableJavaDouble = new PathBindable[java.lang.Double] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Double.parseDouble(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Double) = value.toString
+  }
+
+  /**
+   * Path binder for Float.
+   */
+  implicit def bindableFloat = new PathBindable[Float] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Float.parseFloat(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Float) = value.toString
+  }
+
+  /**
+   * Path binder for Java Float.
+   */
+  implicit def bindableJavaFloat = new PathBindable[java.lang.Float] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Float.parseFloat(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Float) = value.toString
+  }
+
+  /**
    * Path binder for Integer.
    */
   implicit def bindableInteger = new PathBindable[java.lang.Integer] {
@@ -455,6 +567,32 @@ object PathBindable {
       }
     }
     def unbind(key: String, value: Boolean) = if (value) "1" else "0"
+  }
+
+  /**
+   * Path binder for Option.
+   */
+  implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {
+    def bind(key: String, value: String) = {
+      implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
+    }
+    def unbind(key: String, value: Option[T]) = value.map(v => implicitly[PathBindable[T]].unbind(key, v)).getOrElse("")
+  }
+
+  /**
+   * Path binder for Java Option.
+   */
+  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit m: Manifest[T]) = new PathBindable[T] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(m.erasure.newInstance.asInstanceOf[T].bind(key, value))
+      } catch {
+        case e => Left(e.getMessage)
+      }
+    }
+    def unbind(key: String, value: T) = {
+      value.unbind(key)
+    }
   }
 
 }
