@@ -35,4 +35,18 @@ object Json {
    */
   def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): T = fjs.reads(json)
 
+  /*
+   * Rich Json syntax allows : 
+   * JsObject(Seq("key", JsString("value")) ====> Json.obj( "key" -> "value")
+   * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) ====> Json.arr( "value", 123, true )
+   */
+  trait JsValueWrapper
+
+  private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper
+
+  implicit def toJsFieldJsValueWrapper[T](field: T)(implicit w:Writes[T]): JsValueWrapper = JsValueWrapperImpl(w.writes(field))
+
+  def obj(fields: (String, JsValueWrapper) *): JsObject = JsObject( fields.map( f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
+  def arr(fields: JsValueWrapper *): JsArray = JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
+
 }
