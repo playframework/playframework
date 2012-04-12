@@ -36,9 +36,22 @@ object Json {
   def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): T = fjs.reads(json)
 
   /*
-   * Rich Json syntax allows : 
-   * JsObject(Seq("key", JsString("value")) ====> Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
-   * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) ====> Json.arr( "value", 123, true )
+   * Next is the trait that allows Simplified Json syntax :
+   *
+   * Example : 
+   * JsObject(Seq(
+   *    "key1", JsString("value"), 
+   *    "key2" -> JsNumber(123), 
+   *    "key3" -> JsObject(Seq("key31" -> JsString("value31")))
+   * )) 
+   * ====> Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
+   *
+   * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) 
+   * ====> Json.arr( "value", 123, true )
+   * 
+   * There is an implicit conversion from any Type to JsValueWrapper which is an empty trait that 
+   * shouldn't end into unexpected implicit conversions
+   *
    */
   trait JsValueWrapper
 
