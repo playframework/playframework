@@ -61,6 +61,25 @@ package play.api.mvc {
     }
 
     /**
+     * @return The media types set in the request Accept header, not sorted in any particular order.
+     */
+    lazy val accept: Seq[String] = {
+      for {
+        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
+        value <- acceptHeader.split(",")
+        contentType <- value.split(";").headOption
+      } yield contentType
+    }
+
+    /**
+     * Check if this request accepts a given media type.
+     * @returns true if `mediaType` matches the Accept header, otherwise false
+     */
+    def accepts(mediaType: String): Boolean = {
+      accept.contains(mediaType) || accept.contains("*/*") || accept.contains(mediaType.takeWhile(_ != '/') + "/*")
+    }
+
+    /**
      * The HTTP cookies.
      */
     lazy val cookies: Cookies = Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
@@ -247,7 +266,7 @@ package play.api.mvc {
 
     /**
      * The cookie expiration date in seconds, `-1` for a transient cookie
-     *      */
+     */
     val maxAge = -1
 
     /**

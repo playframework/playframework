@@ -5,7 +5,7 @@ import play.api.http._
 import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._
-import play.mvc.Http.{Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie }
 
 /**
  * Java compatible Results
@@ -40,12 +40,12 @@ object JavaResultExtractor {
 
   def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
     case Result(_, headers) => new JCookies {
-        def get(name: String) = {
-          Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map{cookie => 
-           new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)
-           }.getOrElse(null)
-        }
+      def get(name: String) = {
+        Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
+          new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)
+        }.getOrElse(null)
       }
+    }
     case r => sys.error("Cannot extract Headers from a result of type " + r.getClass.getName)
   }
 

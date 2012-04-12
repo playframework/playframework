@@ -42,6 +42,7 @@ object WS {
     val config = new AsyncHttpClientConfig.Builder()
       .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
       .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
+      .setUseProxyProperties(current.configuration.getBoolean("ws.useProxyProperties").getOrElse(true))
     current.configuration.getString("ws.useragent").map { useragent =>
       config.setUserAgent(useragent)
     }
@@ -192,7 +193,7 @@ object WS {
       calculator.map(_.sign(this))
 
       var statusCode = 0
-      var iterateeP: STMPromise[Iteratee[Array[Byte], A]] = null
+      val iterateeP = Promise[Iteratee[Array[Byte], A]]()
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
@@ -211,9 +212,10 @@ object WS {
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
           if (!doneOrError) {
-            val nextIteratee = iteratee.pureFlatFold(
+            iteratee = iteratee.pureFlatFold(
               // DONE
               (a, e) => {
+                doneOrError = true
                 val it = Done(a, e)
                 iterateeP.redeem(it)
                 it
@@ -226,6 +228,7 @@ object WS {
 
               // ERROR
               (e, input) => {
+                doneOrError = true
                 val it = Error(e, input)
                 iterateeP.redeem(it)
                 it
@@ -359,7 +362,7 @@ object WS {
         .setHeaders(headers)
         .setQueryString(queryString)
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t:Int =>
+      timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -373,7 +376,7 @@ object WS {
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t:Int =>
+      timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)

@@ -596,10 +596,10 @@ trait BodyParsers {
               }.toMap
 
               val left = rest.drop(CRLFCRLF.length)
-              (headers,left)
+              (headers, left)
             }
 
-            val readPart = collectHeaders.flatMap{ case(headers,left) =>  Iteratee.flatten(partHandler(headers).feed(Input.El(left)))}
+            val readPart = collectHeaders.flatMap { case (headers, left) => Iteratee.flatten(partHandler(headers).feed(Input.El(left))) }
 
             val handlePart = Enumeratee.map[MatchInfo[Array[Byte]]](_.content).transform(readPart)
 

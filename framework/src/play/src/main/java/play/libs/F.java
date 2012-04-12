@@ -1,21 +1,10 @@
 package play.libs;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Defines a set of functional programming style helpers.
@@ -78,13 +67,28 @@ public class F {
         public R apply(A a, B b, C c) throws Throwable;
     }
 
+    /**
+     * A promise to produce a result of type <code>A</code>.
+     */
     public static class Promise<A> {
 
+        /**
+         * Combine the given promises into a single promise for the list of results.
+         *
+         * @param promises The promises to combine
+         * @return A single promise whose methods act on the list of redeemed promises
+         */
         public static <A> Promise<List<A>> waitAll(Promise<A>... promises){
 
-            return new Promise(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
+            return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
         }
 
+        /**
+         * Combine the given promises into a single promise for the list of results.
+         *
+         * @param promises The promises to combine
+         * @return A single promise whose methods act on the list of redeemed promises
+         */
         public static <A> Promise<List<A>> waitAll(Iterable<Promise<A>> promises){
 
             ArrayList<Promise<A>> ps = new ArrayList<Promise<A>>();
@@ -93,45 +97,66 @@ public class F {
                 ps.add(p);
             }
 
-            return new Promise(play.core.j.JavaPromise.<A>sequence(ps));
+            return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
         }
 
         private final play.api.libs.concurrent.Promise<A> promise;
 
+        /**
+         * Create a new promise wrapping the given Scala promise
+         *
+         * @param promise The scala promise to wrap
+         */
         public Promise(play.api.libs.concurrent.Promise<A> promise) {
             this.promise = promise;
         }
 
-       /*
-        * awaits for the promise to get the result using the default timeout (5000 milliseconds)
-        */
+        /**
+         * Awaits for the promise to get the result using the default timeout (5000 milliseconds).
+         *
+         * @return The promised object
+         * @throws RuntimeException if the calculation providing the promise threw an exception
+         */
         public A get() {
             return promise.value().get();
         }
 
-         /*
-         * awaits for the promise to get the result 
-         * @param timeout user defined timeout
+        /**
+         * Awaits for the promise to get the result.
+         *
+         * @param timeout A user defined timeout
          * @param unit timeout for timeout
+         * @return The promised result
+         * @throws RuntimeException if the calculation providing the promise threw an exception
          */
         public A get(Long timeout, TimeUnit unit) {
             return promise.await(timeout, unit).get();
         }
 
-        /*
-         * awaits for the promise to get the result 
-         * @param timeout user defined timeout in milliseconds
-         */        
+        /**
+         * Awaits for the promise to get the result.
+         *
+         * @param timeout A user defined timeout in milliseconds
+         * @return The promised result
+         * @throws RuntimeException if the calculation providing the promise threw an exception
+         */
         public A get(Long timeout) {
             return get(timeout, TimeUnit.MILLISECONDS);
         }
 
+        /**
+         * Perform the given <code>action</code> callback when the Promise is redeemed.
+         *
+         * @param action The action to perform.
+         */
         public void onRedeem(final Callback<A> action) {
             promise.onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
                     try {
                         action.invoke(a);
-                    } catch(Throwable t) {
+                    } catch (RuntimeException e) {
+                        throw e;
+                    } catch (Throwable t) {
                         throw new RuntimeException(t);
                     }
                     return null;
@@ -139,12 +164,24 @@ public class F {
             });
         }
 
-        public <B> Promise<B> map(final Function<A,B> f) {
-            return new Promise(
+        /**
+         * Maps this promise to a promise of type <code>B</code>.  The function <code>function</code> is applied as
+         * soon as the promise is redeemed.
+         *
+         * Exceptions thrown by <code>function</code> will be wrapped in {@link java.lang.RuntimeException}, unless
+         * they are <code>RuntimeException</code>'s themselves.
+         *
+         * @param function The function to map <code>A</code> to <code>B</code>.
+         * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
+         */
+        public <B> Promise<B> map(final Function<A, B> function) {
+            return new Promise<B>(
                 promise.map(new scala.runtime.AbstractFunction1<A,B>() {
                     public B apply(A a) {
                         try {
-                            return f.apply(a);
+                            return function.apply(a);
+                        } catch (RuntimeException e) {
+                            throw e;
                         } catch(Throwable t) {
                             throw new RuntimeException(t);
                         }
@@ -153,13 +190,52 @@ public class F {
             );
         }
 
-        public <B> Promise<B> flatMap(final Function<A,Promise<B>> f) {
-            return new Promise(
+        /**
+         * Wraps this promise in a promise that will handle exceptions thrown by this Promise.
+         *
+         * Exceptions thrown by <code>function</code> will be wrapped in {@link java.lang.RuntimeException}, unless
+         * they are <code>RuntimeException</code>'s themselves.
+         *
+         * @param function The function to handle the exception. This may, for example, convert the exception into something
+         *      of type <code>T</code>, or it may throw another exception, or it may do some other handling.
+         * @return A wrapped promise that will only throw an exception if the supplied <code>function</code> throws an
+         *      exception.
+         */
+        public Promise<A> recover(final Function<Throwable,A> function) {
+            return new Promise<A>(
+              promise.recover(new play.api.libs.concurrent.Recover<A>(){
+                  public A recover(Throwable t){
+                      try {
+                          return function.apply(t);
+                      } catch (RuntimeException e) {
+                          throw e;
+                      } catch (Throwable tt) {
+                          throw new RuntimeException(tt);
+                      }
+                  }
+              })
+            );
+        }
+
+        /**
+         * Maps the result of this promise to a promise for a result of type <code>B</code>, and flattens that to be
+         * a single promise for <code>B</code>.
+         *
+         * Exceptions thrown by <code>function</code> will be wrapped in {@link java.lang.RuntimeException}, unless
+         * they are <code>RuntimeException</code>'s themselves.
+         *
+         * @param function The function to map <code>A</code> to a promise for <code>B</code>.
+         * @return A wrapped promise for a result of type <code>B</code>
+         */
+        public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
+            return new Promise<B>(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
                     public play.api.libs.concurrent.Promise<B> apply(A a) {
                         try {
-                            return f.apply(a).promise;
-                        } catch(Throwable t) {
+                            return function.apply(a).promise;
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch (Throwable t) {
                             throw new RuntimeException(t);
                         }
                     }
@@ -167,6 +243,11 @@ public class F {
             );
         }
 
+        /**
+         * Get the underlying Scala promise
+         *
+         * @return The scala promise
+         */
         public play.api.libs.concurrent.Promise<A> getWrappedPromise() {
             return promise;
         }
@@ -179,29 +260,44 @@ public class F {
     public static abstract class Option<T> implements Iterable<T> {
 
         /**
-         * Returns <code>true</code> if this value is defined.
+         * Is the value of this option defined?
+         *
+         * @return <code>true</code> if the value is defined, otherwise <code>false</code>.
          */
         public abstract boolean isDefined();
 
         /**
          * Returns the value if defined.
+         *
+         * @return The value if defined, otherwise <code>null</code>.
          */
         public abstract T get();
 
         /**
          * Constructs a <code>None</code> value.
+         *
+         * @return None
          */
         public static <T> None<T> None() {
-            return (None) new None();
+            return new None<T>();
         }
 
         /**
          * Construct a <code>Some</code> value.
+         *
+         * @param value The value to make optional
+         * @return Some <code>T</code>.
          */
         public static <T> Some<T> Some(T value) {
             return new Some<T>(value);
         }
-        
+
+        /**
+         * Get the value if defined, otherwise return the supplied <code>defaultValue</code>.
+         *
+         * @param defaultValue The value to return if the value of this option is not defined
+         * @return The value of this option, or <code>defaultValue</code>.
+         */
         public T getOrElse(T defaultValue) {
             if(isDefined()) {
                 return get();
@@ -209,12 +305,23 @@ public class F {
                 return defaultValue;
             }
         }
-        
-        public <A> Option<A> map(Function<T,A> f) {
+
+        /**
+         * Map this option to another value.
+         *
+         * @param function The function to map the option using.
+         * @return The mapped option.
+         * @throws RuntimeException if <code>function</code> threw an Exception.  If the exception is a
+         *      <code>RuntimeException</code>, it will be rethrown as is, otherwise it will be wrapped in a
+         *      <code>RuntimeException</code>.
+         */
+        public <A> Option<A> map(Function<T,A> function) {
             if(isDefined()) {
                 try {
-                    return Some(f.apply(get()));
-                } catch(Throwable t) {
+                    return Some(function.apply(get()));
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Throwable t) {
                     throw new RuntimeException();
                 }
             } else {
@@ -226,13 +333,18 @@ public class F {
 
     /**
      * Construct a <code>Some</code> value.
+     *
+     * @param value The value
+     * @return Some value.
      */
-    public static <A> Some<A> Some(A a) {
-        return new Some(a);
+    public static <A> Some<A> Some(A value) {
+        return new Some<A>(value);
     }
 
     /**
      * Constructs a <code>None</code> value.
+     *
+     * @return None.
      */
     public static None None() {
         return new None();
@@ -316,16 +428,22 @@ public class F {
 
         /**
          * Constructs a left side of the disjoint union, as opposed to the Right side.
+         *
+         * @param value The value of the left side
+         * @return A left sided disjoint union
          */
         public static <A, B> Either<A, B> Left(A value) {
-            return new Either(Some(value), None());
+            return new Either<A, B>(Some(value), None());
         }
 
         /**
          * Constructs a right side of the disjoint union, as opposed to the Left side.
+         *
+         * @param value The value of the right side
+         * @return A right sided disjoint union
          */
         public static <A, B> Either<A, B> Right(B value) {
-            return new Either(None(), Some(value));
+            return new Either<A, B>(None(), Some(value));
         }
 
         @Override
@@ -355,9 +473,13 @@ public class F {
 
     /**
      * Constructs a tuple of A,B
+     *
+     * @param a The a value
+     * @param b The b value
+     * @return The tuple
      */
     public static <A, B> Tuple<A, B> Tuple(A a, B b) {
-        return new Tuple(a, b);
+        return new Tuple<A, B>(a, b);
     }
 
     /**
@@ -383,9 +505,14 @@ public class F {
 
     /**
      * Constructs a tuple of A,B,C
+     *
+     * @param a The a value
+     * @param b The b value
+     * @param c The c value
+     * @return The tuple
      */
     public static <A, B, C> Tuple3<A, B, C> Tuple3(A a, B b, C c) {
-        return new Tuple3(a, b, c);
+        return new Tuple3<A, B, C>(a, b, c);
     }
 
     /**
@@ -413,6 +540,12 @@ public class F {
 
     /**
      * Constructs a tuple of A,B,C,D
+     *
+     * @param a The a value
+     * @param b The b value
+     * @param c The c value
+     * @param d The d value
+     * @return The tuple
      */
     public static <A, B, C, D> Tuple4<A, B, C, D> Tuple4(A a, B b, C c, D d) {
         return new Tuple4<A, B, C, D>(a, b, c, d);
@@ -445,6 +578,13 @@ public class F {
 
     /**
      * Constructs a tuple of A,B,C,D,E
+     *
+     * @param a The a value
+     * @param b The b value
+     * @param c The c value
+     * @param d The d value
+     * @param e The e value
+     * @return The tuple
      */
     public static <A, B, C, D, E> Tuple5<A, B, C, D, E> Tuple5(A a, B b, C c, D d, E e) {
         return new Tuple5<A, B, C, D, E>(a, b, c, d, e);
