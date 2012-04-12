@@ -394,16 +394,16 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
                               route.verb.value,
-                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ if(Routes.prefix.endsWith(\"/\")) \"\" else \"/\" } + " } + "\"\"\"\" + " + route.path.parts.map {
-                                case StaticPart(part) => "\"" + part + "\""
+                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ if(Routes.prefix.endsWith(\"/\")) \"\" else \"/\" } + " } + "\"\"\"\"" + route.path.parts.map {
+                                case StaticPart(part) => " + \"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                                    "(\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+                                    " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
                                   }.getOrElse {
                                     throw new Error("missing key " + name)
                                   }
                                 }
-                              }.mkString(" + "),
+                              }.mkString,
 
                               {
                                 val queryParams = route.call.parameters.getOrElse(Nil).filterNot { p =>
