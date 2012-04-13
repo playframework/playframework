@@ -223,61 +223,53 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             val bodyParser = action.parser
 
-            e.getChannel.setReadable(false)
-
-            ctx.setAttachment(scala.collection.mutable.ListBuffer.empty[org.jboss.netty.channel.MessageEvent])
-
             val eventuallyBodyParser = server.getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
 
-            val eventuallyResultOrBody =
+            val _ =
               eventuallyBodyParser.flatMap { bodyParser =>
 
                 requestHeader.headers.get("Expect") match {
                   case Some("100-continue") => {
-                    bodyParser.fold(
-                      (_, _) => Promise.pure(()),
+                    bodyParser.pureFold(
+                      (_, _) => (),
                       k => {
                         val continue = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
                         e.getChannel.write(continue)
-                        Promise.pure(())
+                        
                       },
-                      (_, _) => Promise.pure(())
+                      (_, _) => ()
                     )
 
                   }
-                  case _ =>
+                  case _ => Promise.pure()
                 }
+             }
 
-                if (nettyHttpRequest.isChunked) {
 
-                  val (result, handler) = newRequestBodyHandler(bodyParser, allChannels, server)
+            val eventuallyResultOrBody = if (nettyHttpRequest.isChunked) {
 
-                  val intermediateChunks = ctx.getAttachment.asInstanceOf[scala.collection.mutable.ListBuffer[org.jboss.netty.channel.MessageEvent]]
+                val ( result, handler) = newRequestBodyHandler(eventuallyBodyParser,allChannels, server)
 
-                  val p: ChannelPipeline = ctx.getChannel().getPipeline()
-                  p.replace("handler", "handler", handler)
+                val p: ChannelPipeline = ctx.getChannel().getPipeline()
+                p.replace("handler", "handler", handler)
 
-                  intermediateChunks.foreach(handler.messageReceived(ctx, _))
-                  ctx.setAttachment(null)
+                result
 
-                  e.getChannel.setReadable(true)
+            } else {
 
-                  result
-                } else {
-                  e.getChannel.setReadable(true)
-                  lazy val bodyEnumerator = {
-                    val body = {
-                      val cBuffer = nettyHttpRequest.getContent()
-                      val bytes = new Array[Byte](cBuffer.readableBytes())
-                      cBuffer.readBytes(bytes)
-                      bytes
-                    }
-                    Enumerator(body).andThen(Enumerator.enumInput(EOF))
-                  }
-
-                  (bodyEnumerator |>> bodyParser): Promise[Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]
+              lazy val bodyEnumerator = {
+                val body = {
+                  val cBuffer = nettyHttpRequest.getContent()
+                  val bytes = new Array[Byte](cBuffer.readableBytes())
+                  cBuffer.readBytes(bytes)
+                  bytes
                 }
+                Enumerator(body).andThen(Enumerator.enumInput(EOF))
               }
+
+              eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): Promise[Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]
+
+            }
 
             val eventuallyResultOrRequest =
               eventuallyResultOrBody
@@ -343,14 +335,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
 
         }
-
-      case chunk: org.jboss.netty.handler.codec.http.HttpChunk => {
-        val intermediateChunks = ctx.getAttachment.asInstanceOf[scala.collection.mutable.ListBuffer[org.jboss.netty.channel.MessageEvent]]
-        if (intermediateChunks != null) {
-          intermediateChunks += e
-          ctx.setAttachment(intermediateChunks)
-        }
-      }
 
       case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
 
