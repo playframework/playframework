@@ -345,11 +345,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     lessOptions
   )
 
-  val JavascriptCompiler = AssetsCompiler("javascripts",
+  def JavascriptCompiler(fullCompilerOptions: Option[com.google.javascript.jscomp.CompilerOptions]) = AssetsCompiler("javascripts",
     (_ ** "*.js"),
     javascriptEntryPoints,
     { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { (jsFile: File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
+    { (jsFile: File, simpleCompilerOptions) => play.core.jscompile.JavascriptCompiler.compile(jsFile, simpleCompilerOptions, fullCompilerOptions) },
     closureCompilerOptions
   )
 

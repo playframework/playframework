@@ -35,4 +35,34 @@ object Json {
    */
   def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): T = fjs.reads(json)
 
+
+ /**
+   * Next is the trait that allows Simplified Json syntax :
+   *
+   * Example : 
+   * JsObject(Seq(
+   *    "key1", JsString("value"), 
+   *    "key2" -> JsNumber(123), 
+   *    "key3" -> JsObject(Seq("key31" -> JsString("value31")))
+   * )) 
+   * ====> Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
+   *
+   * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) 
+   * ====> Json.arr( "value", 123, true )
+   * 
+   * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper which is an empty trait that 
+   * shouldn't end into unexpected implicit conversions
+   *
+   * Something to note due to JsValueWrapper extending NotNull : 
+   *    - null or None will end into compiling error : use JsNull instead
+   */
+  sealed trait JsValueWrapper extends NotNull
+
+  private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper 
+
+  implicit def toJsFieldJsValueWrapper[T](field: T)(implicit w:Writes[T]): JsValueWrapper = JsValueWrapperImpl(w.writes(field))
+
+  def obj(fields: (String, JsValueWrapper) *): JsObject = JsObject( fields.map( f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
+  def arr(fields: JsValueWrapper *): JsArray = JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
+
 }

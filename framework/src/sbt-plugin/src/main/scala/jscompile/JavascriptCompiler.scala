@@ -16,25 +16,31 @@ object JavascriptCompiler {
   /**
    * Compile a JS file with its dependencies
    * @return a triple containing the original source code, the minified source code, the list of dependencies (including the input file)
+   * @param source 
+   * @param simpleCompilerOptions user supplied simple command line parameters
+   * @param fullCompilerOptions user supplied full blown CompilerOptions instance
    */
-  def compile(source: File, coptions: Seq[String]): (String, Option[String], Seq[File]) = {
+  def compile(source: File, simpleCompilerOptions: Seq[String], fullCompilerOptions: Option[CompilerOptions]): (String, Option[String], Seq[File]) = {
     import scala.util.control.Exception._
 
     val origin = Path(source).slurpString
 
-    val options = new CompilerOptions()
-    options.closurePass = true
-    options.setProcessCommonJSModules(true)
-    options.setCommonJSModulePathPrefix(source.getParent() + "/")
-    options.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
-    coptions.foreach(_ match {
-      case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
-      case "checkCaja" => options.setCheckCaja(true)
-      case "checkControlStructures" => options.setCheckControlStructures(true)
-      case "checkTypes" => options.setCheckTypes(true)
-      case "checkSymbols" => options.setCheckSymbols(true)
-      case _ => Unit // Unkown option
-    })
+    val options = fullCompilerOptions.getOrElse{
+      val defaultOptions = new CompilerOptions()
+      defaultOptions.closurePass = true
+      defaultOptions.setProcessCommonJSModules(true)
+      defaultOptions.setCommonJSModulePathPrefix(source.getParent() + "/")
+      defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+      simpleCompilerOptions.foreach(_ match {
+        case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(defaultOptions)
+        case "checkCaja" => defaultOptions.setCheckCaja(true)
+        case "checkControlStructures" => defaultOptions.setCheckControlStructures(true)
+        case "checkTypes" => defaultOptions.setCheckTypes(true)
+        case "checkSymbols" => defaultOptions.setCheckSymbols(true)
+        case _ => Unit // Unknown option
+      })
+      defaultOptions
+    }
 
     val compiler = new Compiler()
     val all = allSiblings(source)
