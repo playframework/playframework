@@ -403,11 +403,23 @@ object Forms {
 
   def checked(msg: String): Mapping[Boolean] = boolean verifying (msg, _ == true)
 
+  /**
+   * Constructs a simple mapping for a text field (mapped as `scala.Enumeration`)
+   *
+   * For example:
+   * {{{
+   *   Form("gender" -> enum(Gender))
+   * }}}
+   *
+   * @param enum the enumeration
+   */
+  def enum[E <: Enumeration](enum: E): Mapping[E#Value] = of(enumFormat(enum))
+
   // ----------------------------------------------
   //
   // --- Deprecated members, to remove in  Play 2.1
   //
-  // ----------------------------------------------  
+  // ----------------------------------------------
 
   @deprecated("Use mapping(...) instead", "2.0")
   def of[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]])(a1: (String, Mapping[A1])): Mapping[R] = {
