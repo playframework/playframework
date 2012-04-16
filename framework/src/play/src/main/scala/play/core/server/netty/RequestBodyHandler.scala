@@ -31,7 +31,6 @@ private[server] trait RequestBodyHandler {
     import scala.concurrent.stm._
     val counter = Ref(0)
 
-    val firstIteratee = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
     var iteratee: Ref[Iteratee[Array[Byte], Either[Result, R]]] = Ref(Iteratee.flatten(firstIteratee))
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
