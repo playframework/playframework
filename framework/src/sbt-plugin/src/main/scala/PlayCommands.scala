@@ -180,7 +180,17 @@ trait PlayCommands extends PlayAssetsCompiler {
 
 exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
 """ /* */ )
-    val scripts = Seq(start -> (packageName + "/start"))
+
+    val startbat = target / "start.bat"
+    IO.write(startbat,
+      """@echo off
+setlocal
+set p=%~dp0
+set p=%p:\=/%
+java %* -cp "%p%lib/*" """ + customFileName.map(fn => "-Dconfig.file=\"%p%" + fn + "\" ").getOrElse("") + """play.core.server.NettyServer "%p%"
+""" /* */ )
+
+    val scripts = Seq(start -> (packageName + "/start"), startbat -> (packageName + "/start.bat"))
 
     val other = Seq((root / "README") -> (packageName + "/README"))
 
