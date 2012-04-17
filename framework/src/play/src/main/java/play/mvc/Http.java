@@ -149,6 +149,12 @@ public class Http {
          * The HTTP Method.
          */
         public abstract String method();
+
+        /**
+         * The client IP address.
+         */
+        public abstract String remoteAddress();
+
         
         /**
          * The request host.
