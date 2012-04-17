@@ -345,11 +345,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     lessOptions
   )
 
-  val JavascriptCompiler = AssetsCompiler("javascripts",
+  def JavascriptCompiler(fullCompilerOptions: Option[com.google.javascript.jscomp.CompilerOptions]) = AssetsCompiler("javascripts",
     (_ ** "*.js"),
     javascriptEntryPoints,
     { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { (jsFile: File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
+    { (jsFile: File, simpleCompilerOptions) => play.core.jscompile.JavascriptCompiler.compile(jsFile, simpleCompilerOptions, fullCompilerOptions) },
     closureCompilerOptions
   )
 
@@ -371,15 +371,17 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  val PostCompile = (sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
+  def PostCompile(testScope: Boolean) = (javaSource in Test, sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile, ebeanEnabled) map { (testSrc, src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
 
     // Properties
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
-    val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
+    val classFilter = if (testScope == true) (testSrc ** "*.java") else (javaSrc ** "*.java")
+
+    val javaClasses = classFilter.get.map { sourceFile =>
       analysis.relations.products(sourceFile)
-    }.flatten.distinct
+    }.flatten.distinct 
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
