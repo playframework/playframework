@@ -493,7 +493,7 @@ package anorm {
             meta.getTableName(i)
           }
 
-        } + "." + meta.getColumnName(i)),
+        } + "." + meta.getColumnLabel(i)),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }
