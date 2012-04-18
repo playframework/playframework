@@ -354,8 +354,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         if (intermediateChunks != null) {
           intermediateChunks += e
           ctx.setAttachment(intermediateChunks)
-        } else {
-          println("BOUH -> " + e)
         }
       }
 
