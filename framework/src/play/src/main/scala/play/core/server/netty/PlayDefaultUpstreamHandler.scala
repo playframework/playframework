@@ -10,6 +10,7 @@ import org.jboss.netty.handler.stream._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
+import org.jboss.netty.handler.ssl._
 
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
@@ -29,6 +30,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
     Logger.trace("Exception caught in Netty", e.getCause)
     e.getChannel.close()
+  }
+  
+  override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+    Option(ctx.getPipeline.get(classOf[SslHandler])).map { sslHandler =>
+      sslHandler.handshake()
+    }
   }
 
   override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
@@ -347,6 +354,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         if (intermediateChunks != null) {
           intermediateChunks += e
           ctx.setAttachment(intermediateChunks)
+        } else {
+          println("BOUH -> " + e)
         }
       }
 

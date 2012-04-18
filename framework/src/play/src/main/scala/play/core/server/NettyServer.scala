@@ -10,8 +10,11 @@ import org.jboss.netty.handler.stream._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
-
 import org.jboss.netty.channel.group._
+import org.jboss.netty.handler.ssl._
+
+import java.security._
+import javax.net.ssl._
 import java.util.concurrent._
 
 import play.core._
@@ -21,9 +24,9 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
+import play.core.server.netty._
 
 import scala.collection.JavaConverters._
-import netty._
 
 /**
  * provides a stopable Server
@@ -35,36 +38,68 @@ trait ServerWithStop {
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(appProvider: ApplicationProvider, port: Int, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   def applicationProvider = appProvider
 
-  val bootstrap = new ServerBootstrap(
+  private def newBootstrap = new ServerBootstrap(
     new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory(
       Executors.newCachedThreadPool(),
       Executors.newCachedThreadPool()))
-
-  val allChannels = new DefaultChannelGroup
-
-  val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
-
-  class DefaultPipelineFactory extends ChannelPipelineFactory {
+  
+  class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
     def getPipeline = {
       val newPipeline = pipeline()
+      
+      if(secure) {
+        val keyStore = KeyStore.getInstance("JKS")
+        keyStore.load(FakeKeyStore.asInputStream, FakeKeyStore.getKeyStorePassword)
+        val kmf = KeyManagerFactory.getInstance("SunX509")
+        kmf.init(keyStore, FakeKeyStore.getCertificatePassword)
+        val sslContext = SSLContext.getInstance("TLS")
+        sslContext.init(kmf.getKeyManagers, null, null)
+        val sslEngine = sslContext.createSSLEngine
+        sslEngine.setUseClientMode(false)
+        newPipeline.addLast("ssl", new SslHandler(sslEngine))
+      }
+      
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
   }
-
-  bootstrap.setPipelineFactory(new DefaultPipelineFactory)
-
-  allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
+  
+  // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)
+  val allChannels = new DefaultChannelGroup
+  
+  // Our upStream handler is stateless. Let's use this instance for every new connection
+  val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
+  
+  // The HTTP server channel
+  val HTTP: Bootstrap = {
+    val bootstrap = newBootstrap
+    bootstrap.setPipelineFactory(new PlayPipelineFactory)
+    allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
+    bootstrap
+  }
+  
+  // Maybe the HTTPS server channel
+  val HTTPS: Option[Bootstrap] = sslPort.map { port =>
+    val bootstrap = newBootstrap
+    bootstrap.setPipelineFactory(new PlayPipelineFactory(secure = true))
+    allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
+    bootstrap
+  }
 
   mode match {
     case Mode.Test =>
-    case _ => Logger("play").info("Listening for HTTP on port %s...".format(port))
+    case _ => {
+      Logger("play").info("Listening for HTTP on port %s...".format(port))
+      sslPort.foreach { port =>
+        Logger("play").info("Listening for HTTPS on port %s...".format(port))
+      }
+    }
   }
 
   override def stop() {
@@ -86,8 +121,14 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
       case _ => Logger("play").info("Stopping server...")
     }
 
+    // First, close all opened sockets
     allChannels.close().awaitUninterruptibly()
-    bootstrap.releaseExternalResources()
+    
+    // Release the HTTP server
+    HTTP.releaseExternalResources()
+    
+    // Release the HTTPS server if needed
+    HTTPS.foreach(_.releaseExternalResources())
 
   }
 
@@ -100,7 +141,7 @@ object NettyServer {
 
   import java.io._
   import java.net._
-
+  
   /**
    * creates a NettyServer based on the application represented by applicationPath
    * @param applicationPath path to application
@@ -131,6 +172,7 @@ object NettyServer {
       Some(new NettyServer(
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
+        Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")))
     } catch {
       case e => {
