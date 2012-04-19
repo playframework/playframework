@@ -117,7 +117,7 @@ trait PlaySettings {
 
     mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
 
-    compile in (Compile) <<= PostCompile(testScope = false),
+    compile in (Compile) <<= PostCompile(scope = Compile),
 
     dist <<= distTask,
 

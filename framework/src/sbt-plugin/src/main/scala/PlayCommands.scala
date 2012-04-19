@@ -440,15 +440,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(testScope: Boolean) = (javaSource in Test, sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile, ebeanEnabled) map { (testSrc, src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
-
-    // Properties
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
-    val classFilter = if (testScope == true) (testSrc ** "*.java") else (javaSrc ** "*.java")
-
-    val javaClasses = classFilter.get.map { sourceFile =>
+    val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
       analysis.relations.products(sourceFile)
     }.flatten.distinct 
 
@@ -495,21 +491,20 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
       }
     }
+    // Copy managed classes - only needed in Compile scope
+    if (scope.name.toLowerCase == "compile") {
+      val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
 
-    // Copy managed classes
+      val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
+        analysis.relations.products(managedSourceFile)
+      }.flatten x rebase(classes, managedClassesDirectory)
 
-    val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
+      // Copy modified class files
+      val managedSet = IO.copy(managedClasses)
 
-    val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
-      analysis.relations.products(managedSourceFile)
-    }.flatten x rebase(classes, managedClassesDirectory)
-
-    // Copy modified class files
-    val managedSet = IO.copy(managedClasses)
-
-    // Remove deleted class files
-    (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
-
+      // Remove deleted class files
+      (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
+    }
     analysis
   }
 
