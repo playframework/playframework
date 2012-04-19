@@ -31,8 +31,10 @@ case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Heade
  * @param uri The request uri.
  * @param headers The request HTTP headers.
  * @param body The request body.
+ * @param version The request version.
  */
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A) extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, version : HttpVersion) extends Request[A] {
+  def this(method: String, uri: String, headers: FakeHeaders, body: A) = this(method, uri, headers, body, HttpVersion("HTTP", 1, 1))
 
   /**
    * The request path.
@@ -111,6 +113,8 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
  * Helper utilities to build FakeRequest values.
  */
 object FakeRequest {
+
+  def apply[A](method: String, uri: String, headers: FakeHeaders, body: A) : FakeRequest[A] = this(method, uri, headers, body, HttpVersion("HTTP", 1, 1))
 
   /**
    * Constructs a new GET / fake request.
