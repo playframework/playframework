@@ -6,6 +6,9 @@ package play.api.mvc {
 
   import scala.annotation._
 
+
+  case class HttpVersion(protocolName : String, majorVersion : Int, minorVersion : Int)
+
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
    */
@@ -36,6 +39,11 @@ package play.api.mvc {
      * The HTTP headers.
      */
     def headers: Headers
+
+    /**
+     * The HTTP version.
+     */
+    def version: HttpVersion 
 
     /**
      * The HTTP host (domain, optionally port)
@@ -138,6 +146,7 @@ package play.api.mvc {
       def method = self.method
       def queryString = self.queryString
       def headers = self.headers
+      def version = self.version
       lazy val body = f(self.body)
     }
 
@@ -152,6 +161,7 @@ package play.api.mvc {
     def queryString = request.queryString
     def path = request.path
     def uri = request.uri
+    def version = request.version
     def method = request.method
   }
 

@@ -18,7 +18,7 @@ import java.util.concurrent._
 import play.core._
 import server.Server
 import play.api._
-import play.api.mvc._
+import play.api.mvc.{HttpVersion=>PlayHttpVersion, _}
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
@@ -62,6 +62,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
         //mapping netty request to Play's
 
+        val playHttpVersion = PlayHttpVersion(version.getProtocolName, version.getMajorVersion, version.getMinorVersion)
         val requestHeader = new RequestHeader {
           def uri = nettyHttpRequest.getUri
           def path = nettyUri.getPath
@@ -69,6 +70,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def queryString = parameters
           def headers = rHeaders
           def username = None
+          val version = playHttpVersion
         }
 
         // converting netty response to play's
@@ -296,6 +298,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       def queryString = parameters
                       def headers = rHeaders
                       def username = None
+                      val version = playHttpVersion
                       val body = b
                     })
                 }
