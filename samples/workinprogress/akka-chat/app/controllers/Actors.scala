@@ -18,7 +18,7 @@ class ChatRoomActor extends Actor {
     
     case Join() => {
       lazy val channel: PushEnumerator[String] =  Enumerator.imperative[String](
-        onComplete = self ! Quit(channel)
+        onComplete = ()=> self ! Quit(channel) 
       )
       members = members :+ channel
       Logger.info("New member joined")
