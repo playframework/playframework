@@ -322,7 +322,7 @@ public class F {
                 } catch (RuntimeException e) {
                     throw e;
                 } catch (Throwable t) {
-                    throw new RuntimeException();
+                    throw new RuntimeException(t);
                 }
             } else {
                 return None();
