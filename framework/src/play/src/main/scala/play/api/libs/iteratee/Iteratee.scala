@@ -885,7 +885,7 @@ object Enumerator {
 
   def imperative[E](
     onStart: () => Unit = () => (),
-    onComplete: => Unit = () => (),
+    onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)
 
   def pushee[E](
@@ -911,7 +911,7 @@ object Enumerator {
 
               // DONE
               (a, in) => {
-                onComplete
+                onComplete()
                 Done(a, in)
               },
 
@@ -920,7 +920,7 @@ object Enumerator {
                 val next = k(Input.El(item))
                 next.pureFlatFold(
                   (a, in) => {
-                    onComplete
+                    onComplete()
                     next
                   },
                   _ => next,
@@ -1108,15 +1108,15 @@ object Enumerator {
 }
 
 class PushEnumerator[E] private[iteratee] (
-    onStart: => Unit = () => (),
-    onComplete: => Unit = () => (),
+    onStart: () => Unit = () => (),
+    onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {
 
   var iteratee: Iteratee[E, _] = _
   var promise: Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
 
   def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
-    onStart
+    onStart()
     iteratee = it.asInstanceOf[Iteratee[E, _]]
     val newPromise = new STMPromise[Iteratee[E, A]]()
     promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
@@ -1137,7 +1137,7 @@ class PushEnumerator[E] private[iteratee] (
 
         // DONE
         (a, in) => {
-          onComplete
+          onComplete()
           Done(a, in)
         },
 
@@ -1146,7 +1146,7 @@ class PushEnumerator[E] private[iteratee] (
           val next = k(Input.El(item))
           next.pureFlatFold(
             (a, in) => {
-              onComplete
+              onComplete()
               next
             },
             _ => next,
