@@ -138,15 +138,13 @@ object Assets extends Controller {
       val maybeLastModified = resource.getProtocol match {
         case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
         case "jar" => {
-            // nasty
-            val fileNameInJar = resource.getPath.split('!')(1).drop(1)
-            val fileInJarLastModified = resource.openConnection.asInstanceOf[JarURLConnection].getJarFile.getJarEntry(fileNameInJar).getTime
-            if(fileInJarLastModified == 0) {
-              // last modified was unknown
-              None
-            }
-            else {
-              Some(dateFormatter.format(new java.util.Date(fileInJarLastModified)))
+            resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
+	      Option(resource.openConnection)
+		.collect { case c: JarURLConnection => c }
+		.flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
+		.map(_.getTime)
+		.filterNot(_ == 0)
+		.map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
             }
         }
         case _ => None
