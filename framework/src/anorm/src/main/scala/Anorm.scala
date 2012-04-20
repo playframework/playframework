@@ -483,17 +483,16 @@ package anorm {
     def metaData(rs: java.sql.ResultSet) = {
       val meta = rs.getMetaData()
       val nbColumns = meta.getColumnCount()
+      def getTableName(i: Int): String =
+        // HACK FOR POSTGRES
+        if (meta.getClass.getName.startsWith("org.postgresql.")) {
+          meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
+        } else {
+          meta.getTableName(i)
+        }
+
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = ({
-
-          // HACK FOR POSTGRES
-          if (meta.getClass.getName.startsWith("org.postgresql.")) {
-            meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
-          } else {
-            meta.getTableName(i)
-          }
-
-        } + "." + meta.getColumnName(i)),
+        MetaDataItem(column = getTableName(i) + "." + meta.getColumnName(i),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }
