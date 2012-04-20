@@ -220,18 +220,18 @@ package anorm {
   case class MetaDataItem(qualified: String, nullable: Boolean, clazz: String)
 
   case class MetaData(ms: List[MetaDataItem]) {
-    def get(columnName: String) = {
+    def get(columnName: String): Option[MetaDataItem] = {
       val columnUpper = columnName.toUpperCase()
       dictionary2.get(columnUpper)
         .orElse(dictionary.get(columnUpper))
     }
-    private lazy val dictionary: Map[String, (String, Boolean, String)] =
-      ms.map(m => (m.qualified.toUpperCase(), (m.qualified, m.nullable, m.clazz))).toMap
+    private lazy val dictionary: Map[String, MetaDataItem] =
+      ms.map(m => (m.qualified.toUpperCase(), m)).toMap
 
-    private lazy val dictionary2: Map[String, (String, Boolean, String)] = {
+    private lazy val dictionary2: Map[String, MetaDataItem] = {
       ms.map(m => {
         val column = m.qualified.split('.').last;
-        (column.toUpperCase(), (m.qualified, m.nullable, m.clazz))
+        (column.toUpperCase(), m)
       }).toMap
     }
 
@@ -268,7 +268,7 @@ package anorm {
     private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] = {
       for (
         meta <- metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-        val (qualified, nullable, clazz) = meta;
+        val qualified = meta.qualified;
         result <- ColumnsDictionary.get(qualified.toUpperCase()).toRight(ColumnNotFound(qualified, metaData.availableColumns))
       ) yield result
     }
