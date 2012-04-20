@@ -217,7 +217,7 @@ package anorm {
     def unapplySeq(row: Row): Option[List[Any]] = Some(row.asList)
   }
 
-  case class MetaDataItem(column: String, nullable: Boolean, clazz: String)
+  case class MetaDataItem(qualified: String, nullable: Boolean, clazz: String)
 
   case class MetaData(ms: List[MetaDataItem]) {
     def get(columnName: String) = {
@@ -226,17 +226,17 @@ package anorm {
         .orElse(dictionary.get(columnUpper))
     }
     private lazy val dictionary: Map[String, (String, Boolean, String)] =
-      ms.map(m => (m.column.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
+      ms.map(m => (m.qualified.toUpperCase(), (m.qualified, m.nullable, m.clazz))).toMap
 
     private lazy val dictionary2: Map[String, (String, Boolean, String)] = {
       ms.map(m => {
-        val column = m.column.split('.').last;
-        (column.toUpperCase(), (m.column, m.nullable, m.clazz))
+        val column = m.qualified.split('.').last;
+        (column.toUpperCase(), (m.qualified, m.nullable, m.clazz))
       }).toMap
     }
 
     lazy val columnCount = ms.size
-    lazy val availableColumns: List[String] = ms.map(i => i.column)
+    lazy val availableColumns: List[String] = ms.map(i => i.qualified)
 
   }
 
@@ -250,7 +250,7 @@ package anorm {
 
     lazy val asList = data.zip(metaData.ms.map(_.nullable)).map(i => if (i._2) Option(i._1) else i._1)
 
-    lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.column).zip(asList).toMap
+    lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.qualified).zip(asList).toMap
 
     def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] = SqlParser.get(a)(c)(this) match {
       case Success(a) => Right(a)
@@ -264,7 +264,7 @@ package anorm {
       case _ => Class.forName(t)
     }
 
-    private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.column.toUpperCase()).zip(data).toMap
+    private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.qualified.toUpperCase()).zip(data).toMap
     private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] = {
       for (
         meta <- metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns));
@@ -280,7 +280,7 @@ package anorm {
   case class MockRow(data: List[Any], metaData: MetaData) extends Row
 
   case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
-    override def toString() = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
+    override def toString() = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.qualified + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
   }
 
   object Useful {
@@ -492,7 +492,7 @@ package anorm {
         }
 
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = getTableName(i) + "." + meta.getColumnName(i),
+        MetaDataItem(qualified = getTableName(i) + "." + meta.getColumnName(i),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }
