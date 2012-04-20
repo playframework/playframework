@@ -138,12 +138,12 @@ object Assets extends Controller {
         case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
         case "jar" => {
             resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
-	      Option(resource.openConnection)
-		.collect { case c: JarURLConnection => c }
-		.flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
-		.map(_.getTime)
-		.filterNot(_ == 0)
-		.map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
+              Option(resource.openConnection)
+               .collect { case c: JarURLConnection => c }
+               .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
+               .map(_.getTime)
+               .filterNot(_ == 0)
+               .map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
             }
         }
         case _ => None
