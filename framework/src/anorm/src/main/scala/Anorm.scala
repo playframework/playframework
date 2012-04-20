@@ -31,8 +31,7 @@ package anorm {
 
   abstract class SqlRequestError
   case class ColumnNotFound(columnName: String, possibilities: List[String]) extends SqlRequestError {
-    override def toString = columnName + " not found, available columns : " + possibilities.map { p => p.dropWhile(c => c == '.') }
-      .mkString(", ")
+    override def toString = columnName + " not found, available columns : " + possibilities.mkString(", ")
   }
 
   case class TypeDoesNotMatch(message: String) extends SqlRequestError
@@ -217,26 +216,36 @@ package anorm {
     def unapplySeq(row: Row): Option[List[Any]] = Some(row.asList)
   }
 
-  case class MetaDataItem(qualified: String, nullable: Boolean, clazz: String)
+  case class MetaDataItem(table: Option[String], column: String, label: Option[String], nullable: Boolean, clazz: String) {
+    private lazy val qualified0 = label.orElse(table.map(_ + "." + column)).getOrElse(column)
+    def qualified() = qualified0
+  }
 
   case class MetaData(ms: List[MetaDataItem]) {
-    def get(columnName: String): Option[MetaDataItem] = {
-      val columnUpper = columnName.toUpperCase()
-      dictionary2.get(columnUpper)
-        .orElse(dictionary.get(columnUpper))
+    def get(name: String): Option[MetaDataItem] = {
+      val nameUpper = name.toUpperCase
+      columnToItem.get(nameUpper)
+        .orElse(labelToItem.get(nameUpper))
+        .orElse(tableAndColumnToItem.get(nameUpper))
     }
-    private lazy val dictionary: Map[String, MetaDataItem] =
-      ms.map(m => (m.qualified.toUpperCase(), m)).toMap
 
-    private lazy val dictionary2: Map[String, MetaDataItem] = {
-      ms.map(m => {
-        val column = m.qualified.split('.').last;
-        (column.toUpperCase(), m)
-      }).toMap
+    private lazy val columnToItem: Map[String, MetaDataItem] =
+      ms.groupBy(_.column.toUpperCase)
+        .mapValues(_.head)
+
+    private lazy val labelToItem: Map[String, MetaDataItem] =
+      ms.filterNot(_.label.isEmpty)
+        .groupBy(_.label.get.toUpperCase)
+        .mapValues(_.head)
+
+    private lazy val tableAndColumnToItem: Map[String, MetaDataItem] = {
+      ms.filter(i => !i.table.isEmpty && i.label.isEmpty)
+        .groupBy(i => (i.table.get + i.column).toUpperCase)
+        .mapValues(_.head)
     }
 
     lazy val columnCount = ms.size
-    lazy val availableColumns: List[String] = ms.map(i => i.qualified)
+    lazy val availableColumns: List[String] = ms.map(_.qualified)
 
   }
 
@@ -490,11 +499,17 @@ package anorm {
         } else {
           meta.getTableName(i)
         }
+      def getTableNameOption(i: Int): Option[String] =
+        Some(getTableName(i)).filterNot(_.isEmpty)
 
-      MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(qualified = getTableName(i) + "." + meta.getColumnName(i),
+      MetaData(List.range(1, nbColumns + 1).map { i =>
+        val column = meta.getColumnName(i)
+        val label = meta.getColumnLabel(i)
+        MetaDataItem(table = getTableNameOption(i),
+          column = column,
+          label = Some(label).filterNot(_ == column),
           nullable = meta.isNullable(i) == columnNullable,
-          clazz = meta.getColumnClassName(i))))
+          clazz = meta.getColumnClassName(i))})
     }
 
     def resultSetToStream(rs: java.sql.ResultSet): Stream[SqlRow] = {
