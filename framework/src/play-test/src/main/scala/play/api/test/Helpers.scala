@@ -9,6 +9,8 @@ import play.api.libs.iteratee._
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
+import org.openqa.selenium.chrome._
+import org.openqa.selenium.iphone._
 
 /**
  * Helper functions to run tests.
@@ -23,6 +25,8 @@ object Helpers extends Status with HeaderNames {
 
   val HTMLUNIT = classOf[HtmlUnitDriver]
   val FIREFOX = classOf[FirefoxDriver]
+  val CHROME = classOf[ChromeDriver]
+  val IPHONE = classOf[IPhoneDriver]
 
   /**
    * Executes a block of code in a running application.
