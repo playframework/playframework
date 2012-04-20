@@ -75,13 +75,13 @@ package anorm {
     }
 
     def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
-      case (value, meta @ MetaDataItem(qualified, _, _)) =>
-        if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
+      case (value, meta) =>
+        if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(meta.qualified))
     }
 
     implicit def rowToString: Column[String] = {
       Column.nonNull[String] { (value, meta) =>
-        val MetaDataItem(qualified, nullable, clazz) = meta
+        val qualified = meta.qualified
         value match {
           case string: String => Right(string)
           case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
@@ -91,7 +91,7 @@ package anorm {
     }
 
     implicit def rowToInt: Column[Int] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case int: Int => Right(int)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Int for column " + qualified))
@@ -99,7 +99,7 @@ package anorm {
     }
 
     implicit def rowToDouble: Column[Double] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case d: Double => Right(d)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Double for column " + qualified))
@@ -107,7 +107,7 @@ package anorm {
     }
 
     implicit def rowToShort: Column[Short] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case short: Short => Right(short)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Short for column " + qualified))
@@ -115,7 +115,7 @@ package anorm {
     }
 
     implicit def rowToBoolean: Column[Boolean] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case bool: Boolean => Right(bool)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Boolean for column " + qualified))
@@ -123,7 +123,7 @@ package anorm {
     }
 
     implicit def rowToLong: Column[Long] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case int: Int => Right(int: Long)
         case long: Long => Right(long)
@@ -133,7 +133,7 @@ package anorm {
 
     implicit def rowToBigInteger: Column[java.math.BigInteger] = Column.nonNull { (value, meta) =>
       import java.math.BigInteger
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case bi: BigInteger => Right(bi)
         case int: Int => Right(BigInteger.valueOf(int))
@@ -144,7 +144,7 @@ package anorm {
 
     implicit def rowToBigDecimal: Column[java.math.BigDecimal] = Column.nonNull { (value, meta) =>
       import java.math.BigDecimal
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case bi: java.math.BigDecimal => Right(bi)
         case double: Double => Right(new java.math.BigDecimal(double))
@@ -153,7 +153,7 @@ package anorm {
     }
 
     implicit def rowToDate: Column[Date] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
+      val qualified = meta.qualified
       value match {
         case date: Date => Right(date)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Date for column " + qualified))
