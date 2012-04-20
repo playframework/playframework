@@ -62,16 +62,16 @@ object FormSpec extends Specification {
       myForm hasErrors () must beEqualTo(true)
 
     }
-    
+
     "apply constraints on wrapped mappings" in {
       import play.api.data._
       import play.api.data.Forms._
-      
+
       val form = Form(
           "foo" -> text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
       )
-      
+
       "when it binds data" in {
         val f1 = form.bind(Map("foo"->"0"))
         f1.errors.size must equalTo (1)
@@ -88,7 +88,7 @@ object FormSpec extends Specification {
         f4.errors.size must equalTo (1)
         f4.errors.find(_.message == "number.42") must beSome
       }
-      
+
       "when it is filled with data" in {
         val f1 = form.fillAndValidate(0)
         f1.errors.size must equalTo (1)
@@ -166,6 +166,21 @@ object FormSpec extends Specification {
     val user = userForm.bind(new java.util.HashMap[String, String]()).get()
     userForm.hasErrors() must equalTo(false)
     (user == null) must equalTo(false)
+  }
+
+  "render a form with an enum" in {
+    import play.api.data._
+    import play.api.data.Forms._
+
+    object Status extends Enumeration {
+      val Free = Value("free")
+      val Busy = Value("busy")
+    }
+
+    val statusForm = Form("status" -> enum(Status))
+
+    val enumData = Map("status" -> "free")
+    statusForm.bind(enumData).get must equalTo(Status.Free)
   }
 }
 
