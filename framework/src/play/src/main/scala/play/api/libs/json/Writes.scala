@@ -86,6 +86,13 @@ trait DefaultWrites {
   }
 
   /**
+   * Serializer for Enumeration types.
+   */
+  implicit object EnumWrites extends Writes[Enumeration#Value] {
+    def writes(o: Enumeration#Value) = JsString(o.toString)
+  }
+
+  /**
    * Serializer for List[T] types.
    */
   implicit def listWrites[T](implicit fmt: Writes[T]): Writes[List[T]] = new Writes[List[T]] {
