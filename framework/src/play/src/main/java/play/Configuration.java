@@ -57,6 +57,17 @@ public class Configuration {
     public String getString(String key) {
         return Scala.orNull(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()));
     }
+
+    /**
+     * Retrieves a configuration value as a <code>String</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultString default value if configuration key doesn't exist
+     * @return a configuration value or the defaultString
+     */
+    public String getString(String key, String defaultString) {
+        return Scala.orElse(conf.getString(key, scala.Option.<scala.collection.immutable.Set<java.lang.String>>empty()), defaultString);
+    }
     
     /**
      * Retrieves a configuration value as a <code>Milliseconds</code>.
@@ -66,6 +77,17 @@ public class Configuration {
      */
     public Long getMilliseconds(String key) {
         return (Long)Scala.orNull(conf.getMilliseconds(key));
+    }
+
+    /**
+     * Retrieves a configuration value as a <code>Milliseconds</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultMilliseconds default value if configuration key doesn't exist
+     * @return a configuration value or the defaultMilliseconds
+     */
+    public Long getMilliseconds(String key, Long defaultMilliseconds) {
+        return (Long)Scala.orElse(conf.getMilliseconds(key), defaultMilliseconds);
     }
     
     /**
@@ -77,7 +99,19 @@ public class Configuration {
     public Long getBytes(String key) {
         return (Long)Scala.orNull(conf.getBytes(key));
     }
+
+    /**
+     * Retrieves a configuration value as a <code>Bytes</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultBytes default value if configuration key doesn't exist
+     * @return a configuration value or the defaultBytes
+     */
+    public Long getBytes(String key, Long defaultBytes) {
+        return (Long)Scala.orElse(conf.getBytes(key), defaultBytes);
+    }
     
+
     /**
      * Retrieves a configuration value as an <code>Int</code>.
      *
@@ -87,7 +121,18 @@ public class Configuration {
     public Integer getInt(String key) {
         return (Integer)Scala.orNull(conf.getInt(key));
     }
-    
+
+    /**
+     * Retrieves a configuration value as an <code>Int</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultInteger default value if configuration key doesn't exist
+     * @return a configuration value or the defaultInteger
+     */
+    public Integer getInt(String key, Integer defaultInteger) {
+        return (Integer)Scala.orElse(conf.getInt(key), defaultInteger);
+    }
+
     /**
      * Retrieves a configuration value as a <code>Boolean</code>.
      *
@@ -96,6 +141,17 @@ public class Configuration {
      */
     public Boolean getBoolean(String key) {
         return (Boolean)Scala.orNull(conf.getBoolean(key));
+    }
+
+    /**
+     * Retrieves a configuration value as a <code>Boolean</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultBoolean default value if configuration key doesn't exist
+     * @return a configuration value or the defaultBoolean
+     */
+    public Boolean getBoolean(String key, Boolean defaultBoolean) {
+        return (Boolean)Scala.orElse(conf.getBoolean(key), defaultBoolean);
     }
     
     /**

@@ -18,6 +18,16 @@ public class Scala {
     }
 
     /**
+     * Wrap a Scala Option, handling None by returning a defaultValue
+     */
+    public static <T> T orElse(scala.Option<T> opt, T defaultValue) {
+        if(opt.isDefined()) {
+            return opt.get();
+        }
+        return defaultValue;
+    }
+
+    /**
      * Converts a Scala Map to Java.
      */
     public static <K,V> java.util.Map<K,V> asJava(scala.collection.Map<K,V> scalaMap) {
