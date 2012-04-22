@@ -1092,7 +1092,7 @@ object Router {
         new play.core.j.JavaAction {
           def invocation = call
           def controller = handler.getControllerClass
-          def method = controller.getDeclaredMethod(handler.method, handler.parameterTypes.map {
+          def method = controller.getMethod(handler.method, handler.parameterTypes.map {
             case c if c == classOf[Long] => classOf[java.lang.Long]
             case c => c
           }: _*)
