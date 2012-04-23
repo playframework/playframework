@@ -100,6 +100,13 @@ object JsonSpec extends Specification {
       fromJson[BigDecimal](json) must equalTo (n)
     }
 
+    "Serialize and deserialize Lists" in {
+      val xs: List[Int] = (1 to 5).toList
+      val json = arr(1, 2, 3, 4, 5)
+      toJson(xs) must equalTo (json)
+      fromJson[List[Int]](json) must equalTo (xs)
+    }
+
     "Map[String,String] should be turned into JsValue" in {
       val f = toJson(Map("k"->"v"))
       f.toString must equalTo("{\"k\":\"v\"}")
