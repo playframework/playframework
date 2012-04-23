@@ -100,6 +100,13 @@ trait DefaultWrites {
   }
 
   /**
+   * Serializer for Iterable[T] types.
+   */
+  implicit def iteratableWrites[T](implicit fmt: Writes[T]): Writes[Iterable[T]] = new Writes[Iterable[T]] {
+    def writes(ts: Iterable[T]) = JsArray(ts.map(t => toJson(t)(fmt)).toList)
+  }
+
+  /**
    * Serializer for Array[T] types.
    */
   implicit def arrayWrites[T](implicit fmt: Writes[T], mf: Manifest[T]): Writes[Array[T]] = new Writes[Array[T]] {
