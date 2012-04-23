@@ -112,6 +112,15 @@ public class F {
         }
 
         /**
+         * Create a new pure promise, that is, a promise with a constant value from the start.
+         *
+         * @param a the value for the promise
+         */
+        public Promise(A a) {
+            this(play.api.libs.concurrent.Promise$.MODULE$.pure(a));
+        }
+
+        /**
          * Awaits for the promise to get the result using the default timeout (5000 milliseconds).
          *
          * @return The promised object
