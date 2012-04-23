@@ -131,6 +131,17 @@ object JsonSpec extends Specification {
       val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
     }
+    "Serialize and deserialize Enumerations" in {
+      import play.api.libs.json.Reads.enum
+      object Status extends Enumeration {
+        val Free = Value("free")
+      }
+
+      val e = Status.Free
+      val m = Map("status" -> e)
+      val jsonM = toJson(m)
+      (jsonM \ "status").as(enum(Status)) must equalTo(e)
+    }
   }
 
 }

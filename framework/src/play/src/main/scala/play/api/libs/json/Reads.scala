@@ -110,6 +110,26 @@ trait DefaultReads {
   }
 
   /**
+   * Deserializer for Enumeration types.
+   *
+   * {{{
+   * (Json \ "status").as(enum(Status))
+   * }}}
+   */
+  def enum[E <: Enumeration](enum: E): Reads[E#Value] = new Reads[E#Value] {
+    def reads(json: JsValue) = json match {
+      case JsString(s) => {
+        try {
+          enum.withName(s)
+        } catch {
+          case _ => throw new RuntimeException("Enumeration expected")
+        }
+      }
+      case _ => throw new RuntimeException("String expected")
+    }
+  }
+
+  /**
    * Deserializer for List[T] types.
    */
   implicit def listReads[T](implicit fmt: Reads[T]): Reads[List[T]] = new Reads[List[T]] {
