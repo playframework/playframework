@@ -295,35 +295,42 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     naming: (String, Boolean) => String,
     compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
     optionsSettings: sbt.SettingKey[Seq[String]]) =
-    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting) map { (src, resources, cache, options, files) =>
+    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, incrementalAssetsCompilation) map { (src, resources, cache, options, files, incrementalAssetsCompilation) =>
 
       import java.io._
 
       val cacheFile = cache / name
       val currentInfos = watch(src).get.map(f => f -> FileInfo.lastModified(f)).toMap
+     
       val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
+      
 
       if (previousInfo != currentInfos) {
 
-        // Delete previous generated files
-        previousRelation._2s.foreach(IO.delete)
+        //a changed file can be either a new file, a deleted file or a modified one
+        lazy val changedFiles: Seq[File] = currentInfos.filter(e=> !previousInfo.get(e._1).isDefined || previousInfo(e._1).lastModified < e._2.lastModified).map(_._1).toSeq ++ previousInfo.filter(e=> !currentInfos.get(e._1).isDefined).map(_._1).toSeq
+      
+        previousRelation.filter((original,compiled)=> !incrementalAssetsCompilation || changedFiles.contains(original))._2s.foreach(IO.delete)
 
         val generated = (files x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
-            val (debug, min, dependencies) = compile(sourceFile, options)
-            val out = new File(resources, "public/" + naming(name, false))
-            val outMin = new File(resources, "public/" + naming(name, true))
-            IO.write(out, debug)
-            dependencies.map(_ -> out) ++ min.map { minified =>
-              IO.write(outMin, minified)
-              dependencies.map(_ -> outMin)
-            }.getOrElse(Nil)
+            if (!incrementalAssetsCompilation || changedFiles.contains(sourceFile)) {
+              val (debug, min, dependencies) = compile(sourceFile, options)
+              val out = new File(resources, "public/" + naming(name, false))
+              val outMin = new File(resources, "public/" + naming(name, true))
+              IO.write(out, debug)
+              dependencies.map(_ -> out) ++ min.map { minified =>
+                IO.write(outMin, minified)
+                dependencies.map(_ -> outMin)
+              }.getOrElse(Nil)
+            } else Nil
           }
         }
-
-        Sync.writeInfo(cacheFile,
-          Relation.empty[File, File] ++ generated,
-          currentInfos)(FileInfo.lastModified.format)
+        //write files to classes/public if needed
+        if (!incrementalAssetsCompilation)
+          Sync.writeInfo(cacheFile,
+            Relation.empty[File, File] ++ generated,
+            currentInfos)(FileInfo.lastModified.format)
 
         // Return new files
         generated.map(_._2).distinct.toList
@@ -362,8 +369,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile, options)
       // Any error here would be because of CoffeeScript, not the developer;
       // so we don't want compilation to fail.
-      val minified = catching(classOf[CompilationException])
-        .opt(play.core.jscompile.JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
+      val minified = catching(classOf[CompilationException]).opt(play.core.jscompile.JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
       (jsSource, minified, Seq(coffeeFile))
     },
     coffeescriptOptions

@@ -174,6 +174,8 @@ trait PlaySettings {
     lessOptions := Seq.empty[String],
     coffeescriptOptions := Seq.empty[String],
     closureCompilerOptions := Seq.empty[String],
+    
+    incrementalAssetsCompilation := false,
 
     // Templates
 
