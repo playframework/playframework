@@ -116,8 +116,13 @@ public class F {
          *
          * @param a the value for the promise
          */
-        public Promise(A a) {
-            this(play.api.libs.concurrent.Promise$.MODULE$.pure(a));
+        public Promise(final A a) {
+            this(play.api.libs.concurrent.Promise$.MODULE$.pure(new scala.runtime.AbstractFunction0<A>() {
+                @Override
+                public A apply() {
+                    return a;
+                }
+            }));
         }
 
         /**
