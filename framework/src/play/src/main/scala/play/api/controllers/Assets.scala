@@ -40,6 +40,13 @@ object Assets extends Controller {
    * @param file the file part extracted from the URL
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
+     // -- LastModified handling
+
+    implicit val dateFormatter = {
+      val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+      formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+      formatter
+    }
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
@@ -115,17 +122,11 @@ object Assets extends Controller {
 
   }
 
-  // -- LastModified handling
-
-  private val dateFormatter = {
-    val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-    formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
-    formatter
-  }
+ 
 
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def lastModifiedFor(resource: java.net.URL): Option[String] = {
+  private def lastModifiedFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeLastModified = resource.getProtocol match {
         case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
@@ -146,7 +147,7 @@ object Assets extends Controller {
 
   private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def etagFor(resource: java.net.URL): Option[String] = {
+  private def etagFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1)
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))
