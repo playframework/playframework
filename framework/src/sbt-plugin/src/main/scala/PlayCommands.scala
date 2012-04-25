@@ -328,7 +328,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
               }
           }
         }
-        //write graph to cache file (cache/coffescript)
+        //write object graph to cache file 
         Sync.writeInfo(cacheFile,
            Relation.empty[File, File] ++ generated,
            currentInfos)(FileInfo.lastModified.format)
