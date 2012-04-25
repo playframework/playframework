@@ -177,6 +177,34 @@ object QueryStringBindable {
   }
 
   /**
+   * QueryString binder for Double.
+   */
+  implicit def bindableDouble = new QueryStringBindable[Double] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Double.parseDouble(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Double) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Float.
+   */
+  implicit def bindableFloat = new QueryStringBindable[Float] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Float.parseFloat(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Float) = key + "=" + value.toString
+  }
+
+  /**
    * QueryString binder for Integer.
    */
   implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
@@ -333,6 +361,34 @@ object PathBindable {
       }
     }
     def unbind(key: String, value: Long) = value.toString
+  }
+
+  /**
+   * Path binder for Double.
+   */
+  implicit def bindableDouble = new PathBindable[Double] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Double.parseDouble(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Double) = value.toString
+  }
+
+  /**
+   * Path binder for Float.
+   */
+  implicit def bindableFloat = new PathBindable[Float] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Float.parseFloat(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Float) = value.toString
   }
 
   /**
