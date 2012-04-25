@@ -312,25 +312,26 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       
         previousRelation.filter((original,compiled)=> !incrementalAssetsCompilation || changedFiles.contains(original))._2s.foreach(IO.delete)
 
-        val generated = (files x relativeTo(Seq(src / "assets"))).flatMap {
+        val generated: Seq[(File, java.io.File)] = (files x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
-            if (!incrementalAssetsCompilation || changedFiles.contains(sourceFile)) {
-              val (debug, min, dependencies) = compile(sourceFile, options)
-              val out = new File(resources, "public/" + naming(name, false))
-              val outMin = new File(resources, "public/" + naming(name, true))
-              IO.write(out, debug)
-              dependencies.map(_ -> out) ++ min.map { minified =>
-                IO.write(outMin, minified)
-                dependencies.map(_ -> outMin)
-              }.getOrElse(Nil)
-            } else Nil
+              if (!incrementalAssetsCompilation || changedFiles.contains(sourceFile)) {
+                val (debug, min, dependencies) = compile(sourceFile, options)
+                val out = new File(resources, "public/" + naming(name, false))
+                val outMin = new File(resources, "public/" + naming(name, true))
+                IO.write(out, debug)
+                dependencies.map(_ -> out) ++ min.map { minified =>
+                  IO.write(outMin, minified)
+                  dependencies.map(_ -> outMin)
+                }.getOrElse(Nil)
+              } else {
+                previousRelation.filter((original,compiled)=> original == sourceFile)._2s.map(sourceFile ->_)
+              }
           }
         }
-        //write files to classes/public if needed
-        if (!incrementalAssetsCompilation)
-          Sync.writeInfo(cacheFile,
-            Relation.empty[File, File] ++ generated,
-            currentInfos)(FileInfo.lastModified.format)
+        //write graph to cache file (cache/coffescript)
+        Sync.writeInfo(cacheFile,
+           Relation.empty[File, File] ++ generated,
+           currentInfos)(FileInfo.lastModified.format)
 
         // Return new files
         generated.map(_._2).distinct.toList
