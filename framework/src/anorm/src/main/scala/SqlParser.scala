@@ -36,7 +36,7 @@ object SqlParser {
       meta <- row.metaData.get(columnName)
         .toRight(ColumnNotFound(columnName, row.metaData.availableColumns))
       value <- row.get1(columnName)
-      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3))
+      result <- extractor(value, meta)
     } yield result).fold(e => Error(e), a => Success(a))
   }
 
