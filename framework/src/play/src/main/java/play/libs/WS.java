@@ -142,6 +142,19 @@ public class WS {
             }
             return this;
         }
+        
+        /**
+         * Sets the authentication header for the current request using BASIC authentication.
+         *
+         * @param username
+         * @param password
+         */
+        public WSRequestHolder setAuth(String username, String password) {
+            this.username = username;
+            this.password = password;
+            this.scheme = AuthScheme.BASIC;
+            return this;
+        }
 
         /**
          * Sets the authentication header for the current request.
