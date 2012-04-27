@@ -52,10 +52,10 @@ trait PlaySettings {
       "views.%format%._"))
 
   def closureCompilerSettings(c: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
-      resourceGenerators in Compile <<= JavascriptCompiler(Some(c))(Seq(_)),
-      resourceGenerators in Compile <+= LessCompiler,
-      resourceGenerators in Compile <+= CoffeescriptCompiler
-    )
+    resourceGenerators in Compile <<= JavascriptCompiler(Some(c))(Seq(_)),
+    resourceGenerators in Compile <+= LessCompiler,
+    resourceGenerators in Compile <+= CoffeescriptCompiler
+  )
 
   lazy val defaultSettings = Seq[Setting[_]](
 
@@ -174,7 +174,7 @@ trait PlaySettings {
     lessOptions := Seq.empty[String],
     coffeescriptOptions := Seq.empty[String],
     closureCompilerOptions := Seq.empty[String],
-    
+
     incrementalAssetsCompilation := false,
 
     // Templates

@@ -269,11 +269,11 @@ object Promise {
     toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
   }
 
-  def sequenceEither[A,B](e:Either[A,Promise[B]]):Promise[Either[A,B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_)))
-  
-  def sequenceEither1[A,B](e:Either[Promise[A],Promise[B]]):Promise[Either[A,B]] = e.fold(_.map(Left(_)), _.map(Right(_)))
+  def sequenceEither[A, B](e: Either[A, Promise[B]]): Promise[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_)))
 
-  def sequenceOption[A](o:Option[Promise[A]]):Promise[Option[A]] = o.map(_.map(Some(_))).getOrElse(Promise.pure(None))
+  def sequenceEither1[A, B](e: Either[Promise[A], Promise[B]]): Promise[Either[A, B]] = e.fold(_.map(Left(_)), _.map(Right(_)))
+
+  def sequenceOption[A](o: Option[Promise[A]]): Promise[Option[A]] = o.map(_.map(Some(_))).getOrElse(Promise.pure(None))
 
 }
 

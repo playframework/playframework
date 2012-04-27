@@ -102,7 +102,7 @@ trait DefaultWrites {
   /**
    * Serializer for Traversables types.
    */
-  implicit def traversableWrites[A : Writes] = new Writes[Traversable[A]] {
+  implicit def traversableWrites[A: Writes] = new Writes[Traversable[A]] {
     def writes(as: Traversable[A]) = JsArray(as.map(toJson(_)).toSeq)
   }
 

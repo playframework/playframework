@@ -40,7 +40,7 @@ object Assets extends Controller {
    * @param file the file part extracted from the URL
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
-     // -- LastModified handling
+    // -- LastModified handling
 
     implicit val dateFormatter = {
       val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -121,8 +121,6 @@ object Assets extends Controller {
     }
 
   }
-
- 
 
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 

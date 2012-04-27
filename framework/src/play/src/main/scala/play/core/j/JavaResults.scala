@@ -30,7 +30,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
     val rsp = play.mvc.Http.Context.current().response()
     AsyncResult(p.map {
       case r: PlainResult =>
-        r.withHeaders((rsp.getHeaders().asScala -- r.header.headers.keys).toList:_*)
+        r.withHeaders((rsp.getHeaders().asScala -- r.header.headers.keys).toList: _*)
       case r =>
         r
     })

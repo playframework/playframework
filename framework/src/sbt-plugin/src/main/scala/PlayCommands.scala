@@ -283,7 +283,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
   }
 
-
   // ----- Post compile (need to be refactored and fully configurable)
 
   def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
@@ -292,7 +291,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
       analysis.relations.products(sourceFile)
-    }.flatten.distinct 
+    }.flatten.distinct
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))

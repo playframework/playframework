@@ -46,12 +46,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory(
       Executors.newCachedThreadPool(),
       Executors.newCachedThreadPool()))
-  
+
   class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
     def getPipeline = {
       val newPipeline = pipeline()
-      
-      if(secure) {
+
+      if (secure) {
         val keyStore = KeyStore.getInstance("JKS")
         keyStore.load(FakeKeyStore.asInputStream, FakeKeyStore.getKeyStorePassword)
         val kmf = KeyManagerFactory.getInstance("SunX509")
@@ -62,20 +62,20 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         sslEngine.setUseClientMode(false)
         newPipeline.addLast("ssl", new SslHandler(sslEngine))
       }
-      
+
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
   }
-  
+
   // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)
   val allChannels = new DefaultChannelGroup
-  
+
   // Our upStream handler is stateless. Let's use this instance for every new connection
   val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
-  
+
   // The HTTP server channel
   val HTTP: Bootstrap = {
     val bootstrap = newBootstrap
@@ -83,7 +83,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
     bootstrap
   }
-  
+
   // Maybe the HTTPS server channel
   val HTTPS: Option[Bootstrap] = sslPort.map { port =>
     val bootstrap = newBootstrap
@@ -123,10 +123,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
 
     // First, close all opened sockets
     allChannels.close().awaitUninterruptibly()
-    
+
     // Release the HTTP server
     HTTP.releaseExternalResources()
-    
+
     // Release the HTTPS server if needed
     HTTPS.foreach(_.releaseExternalResources())
 
@@ -141,7 +141,7 @@ object NettyServer {
 
   import java.io._
   import java.net._
-  
+
   /**
    * creates a NettyServer based on the application represented by applicationPath
    * @param applicationPath path to application

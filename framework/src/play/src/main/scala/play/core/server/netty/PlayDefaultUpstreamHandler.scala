@@ -30,7 +30,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
     Logger.trace("Exception caught in Netty", e.getCause)
     e.getChannel.close()
   }
-  
+
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     Option(ctx.getPipeline.get(classOf[SslHandler])).map { sslHandler =>
       sslHandler.handshake()
@@ -252,7 +252,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       k => {
                         val continue = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
                         e.getChannel.write(continue)
-                        
+
                       },
                       (_, _) => ()
                     )
@@ -260,17 +260,16 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   }
                   case _ => Promise.pure()
                 }
-             }
-
+              }
 
             val eventuallyResultOrBody = if (nettyHttpRequest.isChunked) {
 
-                val ( result, handler) = newRequestBodyHandler(eventuallyBodyParser,allChannels, server)
+              val (result, handler) = newRequestBodyHandler(eventuallyBodyParser, allChannels, server)
 
-                val p: ChannelPipeline = ctx.getChannel().getPipeline()
-                p.replace("handler", "handler", handler)
+              val p: ChannelPipeline = ctx.getChannel().getPipeline()
+              p.replace("handler", "handler", handler)
 
-                result
+              result
 
             } else {
 

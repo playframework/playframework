@@ -2,8 +2,7 @@ package play.api.libs.iteratee
 
 object Traversable {
 
-
-  @scala.deprecated("use Enumeratee.passAlong instead","2.1.x")
+  @scala.deprecated("use Enumeratee.passAlong instead", "2.1.x")
   def passAlong[M] = Enumeratee.passAlong[M]
 
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {

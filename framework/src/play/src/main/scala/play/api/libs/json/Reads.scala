@@ -138,7 +138,7 @@ trait DefaultReads {
   /**
    * Deserializer for Array[T] types.
    */
-  implicit def arrayReads[T : Reads : Manifest]: Reads[Array[T]] = new Reads[Array[T]] {
+  implicit def arrayReads[T: Reads: Manifest]: Reads[Array[T]] = new Reads[Array[T]] {
     def reads(json: JsValue) = json.as[List[T]].toArray
   }
 
