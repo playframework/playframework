@@ -135,11 +135,7 @@ public class Http {
         
     }
     
-    /**
-     * An HTTP request.
-     */
-    public abstract static class Request {
-        
+    public abstract static class RequestHeader {
         /**
          * The complete request URI, containing both path and query string.
          */
@@ -185,12 +181,7 @@ public class Http {
          * The query string content.
          */
         public abstract Map<String,String[]> queryString();
-        
-        /**
-         * The request body.
-         */
-        public abstract RequestBody body();
-        
+
         /**
          * @return the request cookies
          */
@@ -219,6 +210,18 @@ public class Http {
             }
             return headers[0];
         }
+
+    }
+    
+    /**
+     * An HTTP request.
+     */
+    public abstract static class Request extends RequestHeader {
+
+        /**
+         * The request body.
+         */
+        public abstract RequestBody body();
 
         // -- username
 
