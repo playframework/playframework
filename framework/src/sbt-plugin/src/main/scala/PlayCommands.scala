@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 
-trait PlayCommands {
+trait PlayCommands extends PlayEclipse {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -196,25 +196,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     zip
   }
 
-  /**
-   * provides Settings for the eclipse project
-   * @param mainLang mainly scala or java?
-   */
-  def eclipseCommandSettings(mainLang: String) = {
-    import com.typesafe.sbteclipse.core._
-    import com.typesafe.sbteclipse.core.EclipsePlugin._
-    def transformerFactory =
-      new EclipseClasspathEntryTransformerFactory {
-        override def createTransformer(ref: ProjectRef, state: State) =
-          setting(crossTarget in ref)(state) map (ct =>
-            (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
-          )
-      }
-    EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
-      EclipseKeys.createSrc := EclipseCreateSrc.Default,
-      EclipseKeys.preTasks := Seq(compile in Compile),
-      EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
-  }
 
   // -- Intellij
 
