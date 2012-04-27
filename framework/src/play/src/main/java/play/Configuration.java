@@ -257,6 +257,15 @@ public class Configuration {
     }
     
     /**
+     * Retrieves the set of direct sub-keys available in this configuration.
+     *
+     * @return the set of direct sub-keys available in this configuration
+     */
+    public Set<String> subKeys() {
+        return JavaConverters.setAsJavaSetConverter(conf.subKeys()).asJava();
+    }
+    
+    /**
      * Creates a configuration error for a specific congiguration key.
      *
      * @param key the configuration key, related to this error
