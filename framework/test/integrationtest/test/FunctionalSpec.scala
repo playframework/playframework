@@ -12,6 +12,18 @@ import org.openqa.selenium.htmlunit.HtmlUnitDriver
 class FunctionalSpec extends Specification {
   "an Application" should {
 
+    "call onClose for Ok.sendFile responses" in {
+      import java.io.File
+      running(TestServer(9003), HTMLUNIT) { browser =>
+        def file = new File("onClose.tmp")
+        file.createNewFile()
+        file.exists() must equalTo(true)
+
+        browser.goTo("http://localhost:9003/onCloseSendFile/" + file.getCanonicalPath)
+        file.exists() must equalTo(false)
+      }
+    }
+
     "pass functional test with two browsers" in {
       running(TestServer(9002), HTMLUNIT) { browser =>
         browser.goTo("http://localhost:9002")
