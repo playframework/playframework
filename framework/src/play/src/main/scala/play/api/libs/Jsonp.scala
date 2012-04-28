@@ -32,7 +32,7 @@ import play.api.mvc.Codec
  * {{{
  *   def myService = Action { implicit request =>
  *     val json = ...
- *     request.queryString.get("callback").flatMap(_.headOption) match {
+ *     request.queryString.getString("callback") match {
  *       case Some(callback) => Ok(Jsonp(callback, json))
  *       case None => Ok(json)
  *     }

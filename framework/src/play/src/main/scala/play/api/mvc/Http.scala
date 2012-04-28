@@ -30,7 +30,7 @@ package play.api.mvc {
     /**
      * The parsed query string.
      */
-    def queryString: Map[String, Seq[String]]
+    def queryString: QueryString
 
     /**
      * The HTTP headers.
@@ -243,6 +243,52 @@ package play.api.mvc {
     def toSimpleMap: Map[String, String] = keys.map { headerKey =>
       (headerKey, apply(headerKey))
     }.toMap
+
+  }
+
+  /**
+   * The query string part of an URL.
+   */
+  class QueryString(private val data: Map[String, Seq[String]]) extends Map[String, Seq[String]] with collection.immutable.MapLike[String, Seq[String], QueryString] {
+
+    override def get(key: String): Option[Seq[String]] = data.get(key)
+
+    override def iterator = data.iterator
+
+    override def + [A >: Seq[String]](kv: (String, A)): Map[String, A] = data + kv
+
+    override def - (key: String): QueryString = QueryString(data - key)
+
+    override def empty: QueryString = QueryString.empty
+
+    /**
+     * @param key parameter name to retrieve
+     * @return the first value for the requested parameter, if found, otherwise `None`.
+     */
+    def getString(key: String): Option[String] = data.get(key).flatMap(_.headOption)
+
+  }
+
+  object QueryString {
+
+    import play.api.http.Writeable
+
+    /**
+     * Creates a QueryString from a map of parameters.
+     */
+    def apply(data: Map[String, Seq[String]]) = new QueryString(data)
+
+    /**
+     * Creates a QueryString from key-value pairs.
+     * Example:
+     * 
+     * {{{
+     *   QueryString("foo"->"bar", "foo"->"baz")
+     * }}}
+     */
+    def apply(params: (String, String)*) = new QueryString(params.groupBy(_._1).mapValues(_.map(_._2)))
+
+    def empty = new QueryString(Map.empty)
 
   }
 

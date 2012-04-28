@@ -491,7 +491,7 @@ trait Results {
    * @param url the URL to redirect to
    * @param status HTTP status
    */
-  def Redirect(url: String, status: Int): SimpleResult[Results.EmptyContent] = Redirect(url, Map.empty, status)
+  def Redirect(url: String, status: Int): SimpleResult[Results.EmptyContent] = Redirect(url, QueryString.empty, status)
 
   /**
    * Generates a redirect simple result.
@@ -500,7 +500,7 @@ trait Results {
    * @param queryString queryString parameters to add to the queryString
    * @param status HTTP status
    */
-  def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
+  def Redirect(url: String, queryString: QueryString = QueryString.empty, status: Int = SEE_OTHER) = {
     import java.net.URLEncoder
     val fullUrl = url + Option(queryString).filterNot(_.isEmpty).map { params =>
       (if (url.contains("?")) "&" else "?") + params.toSeq.flatMap { pair =>

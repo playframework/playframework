@@ -77,7 +77,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def uri = nettyHttpRequest.getUri
           def path = nettyUri.getPath
           def method = nettyHttpRequest.getMethod.getName
-          def queryString = parameters
+          def queryString = QueryString(parameters)
           def headers = rHeaders
           lazy val remoteAddress = rRemoteAddress
           def username = None
@@ -296,7 +296,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       def uri = nettyHttpRequest.getUri
                       def path = nettyUri.getPath
                       def method = nettyHttpRequest.getMethod.getName
-                      def queryString = parameters
+                      def queryString = QueryString(parameters)
                       def headers = rHeaders
                       lazy val remoteAddress = rRemoteAddress
                       def username = None
