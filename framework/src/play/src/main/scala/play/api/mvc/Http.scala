@@ -247,6 +247,39 @@ package play.api.mvc {
   }
 
   /**
+   * Helpers to deal with query string values
+   */
+  object QueryString {
+
+    /**
+     * @param params query string data
+     * @key name of the parameter to retrieve
+     * @return the first value for the given `key`, if found, otherwise `None`.
+     */
+    def getString(params: Map[String, Seq[String]], key: String): Option[String] = params.get(key).flatMap(_.headOption)
+
+    object implicits {
+
+      class QueryString(params: Map[String, Seq[String]]) {
+        def getString(key: String) = QueryString.getString(params, key)
+      }
+
+      /**
+       * Pimps a map of query string data to add it the helpers as methods, allowing a more object idiomatic notation.
+       * Example:
+       * 
+       * {{{
+       *   import play.api.mvc.QueryString.implicits._
+       *   def index = Action { request =>
+       *     request.queryString.getString("foo").map(Ok(_)).getOrElse(BadRequest)
+       *   }
+       * }}}
+       */
+      implicit def toQueryString(params: Map[String, Seq[String]]) = new QueryString(params)
+    }
+  }
+
+  /**
    * Trait that should be extended by the Cookie helpers.
    */
   trait CookieBaker[T <: AnyRef] {

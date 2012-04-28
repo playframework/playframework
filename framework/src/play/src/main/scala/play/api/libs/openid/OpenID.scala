@@ -10,6 +10,7 @@ import play.api.libs.concurrent.PurePromise
 import play.api.data.Form
 import play.api.data.Forms.{ of, text, optional }
 import play.api.mvc.Request
+import play.api.mvc.QueryString.getString
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
@@ -22,8 +23,8 @@ object UserInfo {
 
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
     val axAttribute = new Regex("^openid[.].+[.]value[.]([^.]+)([.]\\d+)?$")
-    val id = queryString.get("openid.claimedId").flatMap(_.headOption)
-      .orElse(queryString.get("openid.identity").flatMap(_.headOption))
+    val id = getString(queryString, "openid.claimedId")
+      .orElse(getString(queryString, "openid.identity"))
       .getOrElse(throw Errors.BAD_RESPONSE)
     val attributes = queryString.toSeq.map(pair => (axAttribute.findFirstMatchIn(pair._1).map(_.group(1)), pair._2.headOption))
       .collect({ case (Some(key), Some(value)) => (key, value) }).toMap
@@ -72,9 +73,9 @@ object OpenID {
   }
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
-    (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimedId").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
-      queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
+    (getString(queryString, "openid.mode"),
+      getString(queryString, "openid.claimedId").orElse(getString(queryString, "openid.identity")),
+      getString(queryString, "openid.op_endpoint")) match {
         case (Some("id_res"), Some(id), endPoint) => {
           val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
           server.flatMap(url => {
