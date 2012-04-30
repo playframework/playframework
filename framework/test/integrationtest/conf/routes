@@ -41,6 +41,8 @@ GET     /javascript-test        controllers.Application.javascriptTest(name)
 GET     /accept                 controllers.Application.accept()
 GET     /accept-java            controllers.JavaApi.accept()
 
+GET     /onCloseSendFile/*fp    controllers.Application.onCloseSendFile(fp)
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 
