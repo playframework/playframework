@@ -388,7 +388,7 @@ package anorm {
 
   }
 
-  case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]) {
+  case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]) extends WithFilledStatement {
 
     def addBatch(args: (String, ParameterValue[_])*): BatchSql = this.copy(params = (this.params) :+ args)
 
@@ -411,11 +411,22 @@ package anorm {
 
     def filledStatement(implicit connection: java.sql.Connection) = getFilledStatement(connection)
 
-    def execute()(implicit connection: java.sql.Connection): Array[Int] = getFilledStatement(connection).executeBatch()
+    def execute()(implicit connection: java.sql.Connection): Array[Int] = withFilledStatement(connection)(_.executeBatch())
 
   }
 
-  trait Sql {
+  trait WithFilledStatement { self: { def getFilledStatement(conn: java.sql.Connection, getGeneratedKeys: Boolean): java.sql.PreparedStatement } =>
+    def withFilledStatement[T](connection: java.sql.Connection, getGeneratedKeys: Boolean = false)(f: java.sql.PreparedStatement => T): T = {
+      val s = getFilledStatement(connection, getGeneratedKeys)
+      try {
+        f(s)
+      } finally {
+        if (!s.isClosed) s.close()
+      }
+    }
+  }
+
+  trait Sql extends WithFilledStatement {
 
     import SqlParser._
     import scala.util.control.Exception._
@@ -424,7 +435,16 @@ package anorm {
 
     def filledStatement(implicit connection: java.sql.Connection) = getFilledStatement(connection)
 
-    def apply()(implicit connection: java.sql.Connection) = Sql.resultSetToStream(resultSet())
+    def apply[T](f: Stream[SqlRow] => T)(implicit connection: java.sql.Connection): T = {
+      val rs = resultSet()
+      val statement = rs.getStatement()
+      try {
+        val rowStream = Sql.resultSetToStream(rs)
+        f(rowStream)
+      } finally {
+        if (!statement.isClosed()) statement.close()
+      }
+    }
 
     def resultSet()(implicit connection: java.sql.Connection) = (getFilledStatement(connection).executeQuery())
 
@@ -440,15 +460,14 @@ package anorm {
 
     def parse[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.parse[T](parser, resultSet())
 
-    def execute()(implicit connection: java.sql.Connection): Boolean = getFilledStatement(connection).execute()
+    def execute()(implicit connection: java.sql.Connection): Boolean = withFilledStatement(connection)(_.execute())
 
     def execute1(getGeneratedKeys: Boolean = false)(implicit connection: java.sql.Connection): (java.sql.PreparedStatement, Int) = {
       val statement = getFilledStatement(connection, getGeneratedKeys)
       (statement, { statement.executeUpdate() })
     }
 
-    def executeUpdate()(implicit connection: java.sql.Connection): Int =
-      getFilledStatement(connection).executeUpdate()
+    def executeUpdate()(implicit connection: java.sql.Connection): Int = withFilledStatement(connection)(_.executeUpdate())
 
     def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: java.sql.Connection): A = {
       Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
