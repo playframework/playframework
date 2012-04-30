@@ -220,9 +220,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     import com.typesafe.sbteclipse.core._
     import com.typesafe.sbteclipse.core.EclipsePlugin._
     def transformerFactory =
-      new EclipseClasspathEntryTransformerFactory {
+      new EclipseTransformerFactory[Seq[EclipseClasspathEntry] => Seq[EclipseClasspathEntry]] {
         override def createTransformer(ref: ProjectRef, state: State) =
-          setting(crossTarget in ref)(state) map (ct =>
+          setting(crossTarget in ref, state) map (ct =>
             (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
           )
       }
