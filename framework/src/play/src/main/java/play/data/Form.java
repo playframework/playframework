@@ -11,6 +11,7 @@ import static java.lang.annotation.RetentionPolicy.*;
 
 import play.libs.F;
 import play.mvc.Http;
+import play.mvc.Http.QueryString;
 import static play.libs.F.*;
 
 import play.data.validation.*;
@@ -104,7 +105,7 @@ public class Form<T> {
             );
         }
         
-        Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
+        QueryString queryString = play.mvc.Controller.request().queryString();
         
         Map<String,String> data = new HashMap<String,String>();
         
@@ -127,10 +128,7 @@ public class Form<T> {
         }
         
         for(String key: queryString.keySet()) {
-            String[] value = queryString.get(key);
-            if(value.length > 0) {
-                data.put(key, value[0]);
-            }
+            data.put(key, queryString.getString(key));
         }
         
         return data;

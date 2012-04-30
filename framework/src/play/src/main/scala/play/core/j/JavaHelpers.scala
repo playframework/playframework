@@ -2,7 +2,7 @@ package play.core.j
 
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, QueryString => JQueryString, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 
 import scala.collection.JavaConverters._
 
@@ -68,8 +68,8 @@ trait JavaHelpers {
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
-      def queryString = {
-        req.queryString.mapValues(_.toArray).asJava
+      lazy val queryString = {
+        new JQueryString(req.queryString.mapValues(_.toArray).asJava)
       }
 
       def accept = req.accept.asJava
@@ -123,8 +123,8 @@ trait JavaHelpers {
 
       def accepts(mediaType: String) = req.accepts(mediaType)
 
-      def queryString = {
-        req.queryString.mapValues(_.toArray).asJava
+      lazy val queryString = {
+        new JQueryString(req.queryString.mapValues(_.toArray).asJava)
       }
 
       def cookies = new JCookies {

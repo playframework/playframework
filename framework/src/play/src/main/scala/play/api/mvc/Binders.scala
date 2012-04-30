@@ -230,11 +230,13 @@ object JavascriptLitteral {
  */
 object QueryStringBindable {
 
+  import play.api.mvc.QueryString.getString
+
   /**
    * QueryString binder for String.
    */
   implicit def bindableString = new QueryStringBindable[String] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(Right(_)) // No need to URL decode from query string since netty already does that
+    def bind(key: String, params: Map[String, Seq[String]]) = getString(params, key).map(Right(_)) // No need to URL decode from query string since netty already does that
     def unbind(key: String, value: String) = key + "=" + (URLEncoder.encode(value, "utf-8"))
   }
 
@@ -242,7 +244,7 @@ object QueryStringBindable {
    * QueryString binder for Int.
    */
   implicit def bindableInt = new QueryStringBindable[Int] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: Map[String, Seq[String]]) = getString(params, key).map { i =>
       try {
         Right(java.lang.Integer.parseInt(i))
       } catch {
@@ -256,7 +258,7 @@ object QueryStringBindable {
    * QueryString binder for Long.
    */
   implicit def bindableLong = new QueryStringBindable[Long] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: Map[String, Seq[String]]) = getString(params, key).map { i =>
       try {
         Right(java.lang.Long.parseLong(i))
       } catch {
@@ -270,7 +272,7 @@ object QueryStringBindable {
    * QueryString binder for Integer.
    */
   implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: Map[String, Seq[String]]) = getString(params, key).map { i =>
       try {
         Right(java.lang.Integer.parseInt(i))
       } catch {
@@ -284,7 +286,7 @@ object QueryStringBindable {
    * QueryString binder for Boolean.
    */
   implicit def bindableBoolean = new QueryStringBindable[Boolean] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: Map[String, Seq[String]]) = getString(params, key).map { i =>
       try {
         java.lang.Integer.parseInt(i) match {
           case 0 => Right(false)

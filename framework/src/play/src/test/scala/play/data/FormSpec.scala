@@ -2,7 +2,7 @@ package play.data
 
 import org.specs2.mutable._
 import play.mvc._
-import play.mvc.Http.Context
+import play.mvc.Http.{Context, QueryString}
 import scala.collection.JavaConverters._
 
 class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Request {
@@ -25,7 +25,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def cookies() = new play.mvc.Http.Cookies {
     def get(name: String) = null
   }
-  def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
+  def queryString = new QueryString(new java.util.HashMap[String, Array[String]])
   setUsername("peter")
 }
 
