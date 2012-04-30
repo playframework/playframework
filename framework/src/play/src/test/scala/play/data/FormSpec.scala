@@ -167,5 +167,20 @@ object FormSpec extends Specification {
     userForm.hasErrors() must equalTo(false)
     (user == null) must equalTo(false)
   }
+
+  "render a form with an enum" in {
+    import play.api.data._
+    import play.api.data.Forms._
+
+    object Status extends Enumeration {
+      val Free = Value("free")
+      val Busy = Value("busy")
+    }
+
+    val statusForm = Form("status" -> enum(Status))
+
+    val enumData = Map("status" -> "free")
+    statusForm.bind(enumData).get must equalTo(Status.Free)
+  }
 }
 
