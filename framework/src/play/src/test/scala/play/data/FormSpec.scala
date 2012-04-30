@@ -167,5 +167,27 @@ object FormSpec extends Specification {
     userForm.hasErrors() must equalTo(false)
     (user == null) must equalTo(false)
   }
+
+  "render form using jodaDate" in {
+    import play.api.data._
+    import play.api.data.Forms._
+    import play.api.data.format.Formats.jodaDateTimeFormat
+    import org.joda.time.DateTime
+
+    val dateForm = Form(("date" -> jodaDate))
+    val data = Map("date" -> "2012-01-01")
+    dateForm.bind(data).get mustEqual(new DateTime(2012,1,1,0,0))
+  }
+
+  "render form using jodaDate with format(30/1/2012)" in {
+    import play.api.data._
+    import play.api.data.Forms._
+    import play.api.data.format.Formats.jodaDateTimeFormat
+    import org.joda.time.DateTime
+
+    val dateForm = Form(("date" -> jodaDate("dd/MM/yyyy")))
+    val data = Map("date" -> "30/1/2012")
+    dateForm.bind(data).get mustEqual(new DateTime(2012,1,30,0,0))
+  }
 }
 
