@@ -327,14 +327,17 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
     val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
     val MysqlFullUrl = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
+    val MysqlCustomProperties = ".*\\?(.*)".r
 
     conf.getString("url") match {
       case Some(PostgresFullUrl(username, password, host, dbname)) =>
         datasource.setJdbcUrl("jdbc:postgresql://%s/%s".format(host, dbname))
         datasource.setUsername(username)
         datasource.setPassword(password)
-      case Some(MysqlFullUrl(username, password, host, dbname)) =>
-        datasource.setJdbcUrl("jdbc:mysql://%s/%s?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci".format(host, dbname))
+      case  Some(url @ MysqlFullUrl(username, password, host, dbname)) =>
+        val defaultProperties = """?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci"""
+        val addDefaultPropertiesIfNeeded = MysqlCustomProperties.findFirstMatchIn(url).map(_ => "").getOrElse(defaultProperties)        
+        datasource.setJdbcUrl("jdbc:mysql://%s/%s".format(host, dbname + addDefaultPropertiesIfNeeded))
         datasource.setUsername(username)
         datasource.setPassword(password)
       case Some(s: String) =>
