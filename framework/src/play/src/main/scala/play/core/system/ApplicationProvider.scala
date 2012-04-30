@@ -37,7 +37,8 @@ trait SourceMapper {
 trait ApplicationProvider {
   def path: File
   def get: Either[Throwable, Application]
-  def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
+  def handleWebCommand( requestHeader: play.api.mvc.RequestHeader ): Option[Handler] = None
+  def handleEditorCommand( requestHeader: play.api.mvc.RequestHeader ): Option[Handler] = None
 }
 
 /**
@@ -148,8 +149,8 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
     }
   }
-
-  override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
+  
+  def handleWebCommandAsResult(request: play.api.mvc.RequestHeader): Option[Result] = {
 
     import play.api.mvc.Results._
 
@@ -161,8 +162,10 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
     val apiDoc = """/@documentation/api/(.*)""".r
     val wikiResource = """/@documentation/resources/(.*)""".r
     val wikiPage = """/@documentation/([^/]*)""".r
+    val inlineEditorResource = """/@editor/resources/(.*)""".r
 
     val documentationHome = Option(System.getProperty("play.home")).map(ph => new java.io.File(ph + "/../documentation"))
+    val inlineEditorHome = Option( System.getProperty( "play.home" ) ).map( ph => new java.io.File( ph + "/../jsEditor" ) )
 
     request.path match {
 
@@ -301,10 +304,52 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         }
 
       }
+      
+      case inlineEditorResource( path ) => {
+          Some {
+            inlineEditorHome.flatMap { home =>
+              Option( new java.io.File( home, path ) ).filter( _.exists )
+            }.map { file =>
+              Ok.sendFile( file, inline = true )
+            }.getOrElse( NotFound( "Resource not found [" + path + "]" ) )
+          }
+        }
 
       case _ => None
 
     }
   }
-}
+  
+  override def handleWebCommand( request: play.api.mvc.RequestHeader ): Option[Handler] = 
+     handleWebCommandAsResult(request) map { result => Action( result ) }
 
+  override def handleEditorCommand( request: play.api.mvc.RequestHeader ): Option[Handler] = {
+    import play.api.mvc._
+    import play.api.data.Form
+    import play.api.mvc.Results._
+    import play.api.data.Forms._
+
+    val inlineEditor = """/@editor/(.*)""".r
+
+    request.path match {
+      case "/@editor/save" =>
+        Some( Action { implicit request =>
+          val saveForm = Form( tuple(
+            "fileName" -> text,
+            "fileContent" -> text ) )
+            
+          saveForm.bindFromRequest.fold(
+            formWithErrors => BadRequest,
+            formValue => formValue match {
+              case ( fileName, fileContent ) if fileName startsWith sbtLink.projectPath.getAbsolutePath =>
+                val out = new PrintWriter( new File(fileName) )
+                try{ out.print( fileContent ) }
+                finally{ out.close }
+                Ok
+            } )
+        } )
+      case _ =>
+        None
+    }
+  }
+}

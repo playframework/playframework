@@ -19,6 +19,7 @@ trait PlayExceptions {
     def position = problem.position.pointer.map(m => m.asInstanceOf[Int])
     def input = problem.position.sourceFile.map(scalax.file.Path(_))
     def sourceName = problem.position.sourceFile.map(_.getAbsolutePath)
+    override def sourceType: Option[String] = Some( "scala" )
   }
 
   case class TemplateCompilationException(source: File, message: String, atLine: Int, column: Int) extends PlayException(
@@ -27,6 +28,7 @@ trait PlayExceptions {
     def position = Some(column)
     def input = Some(scalax.file.Path(source))
     def sourceName = Some(source.getAbsolutePath)
+    override def sourceType: Option[String] = Some( "html" )
   }
 
   case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException(
@@ -37,7 +39,7 @@ trait PlayExceptions {
     def sourceName = Some(source.getAbsolutePath)
   }
 
-  case class AssetCompilationException(source: Option[File], message: String, atLine: Int, atColumn: Int) extends PlayException(
+  case class AssetCompilationException(source: Option[File], message: String, atLine: Int, atColumn: Int, override val sourceType: Option[String] )  extends PlayException(
     "Compilation error", message) with PlayException.ExceptionSource {
     def line = Some(atLine)
     def position = Some(atColumn)
