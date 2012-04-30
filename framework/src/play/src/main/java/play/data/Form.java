@@ -213,7 +213,7 @@ public class Form<T> {
                 }
                 errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
             }
-            return new Form(rootName, backedType, data, errors, None());
+            return new Form<T>(rootName, backedType, data, errors, None());
         } else {
             Object globalError = null;
             if(result.getTarget() != null) {
@@ -235,9 +235,9 @@ public class Form<T> {
                 } else if(globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, None());
+                return new Form<T>(rootName, backedType, data, errors, None());
             }
-            return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()));
+            return new Form<T>(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()));
         }
     }
     
@@ -269,7 +269,7 @@ public class Form<T> {
         if(value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
+        return new Form<T>(rootName, backedType, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), Some(value));
     }
     
     /**
@@ -397,7 +397,7 @@ public class Form<T> {
      * @param error the error message
      */    
     public void reject(String key, String error) {
-        reject(key, error, new ArrayList());
+        reject(key, error, new ArrayList<Object>());
     }
     
     /**
@@ -416,9 +416,16 @@ public class Form<T> {
      * @param error the error message.
      */    
     public void reject(String error) {
-        reject("", error, new ArrayList());
+        reject("", error, new ArrayList<Object>());
     }
-    
+
+    /**
+     * Discard errors of this form
+     */
+    public void discardErrors() {
+        errors.clear();
+    }
+
     /**
      * Retrieve a field.
      *
