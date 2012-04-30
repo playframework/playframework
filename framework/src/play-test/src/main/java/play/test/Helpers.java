@@ -7,6 +7,8 @@ import play.libs.F.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
+import org.openqa.selenium.chrome.*;
+import org.openqa.selenium.iphone.*;
 
 import java.util.*;
 
@@ -25,6 +27,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     
     public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
+    public static Class<? extends WebDriver> CHROME = ChromeDriver.class;
+    public static Class<? extends WebDriver> IPHONE = IPhoneDriver.class;
     
     // --
     @SuppressWarnings(value = "unchecked")
