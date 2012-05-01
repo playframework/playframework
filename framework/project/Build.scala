@@ -179,7 +179,7 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.1",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.1",
-            "com.google.guava"                  %    "guava"                    %   "10.0.1",
+            "com.google.guava"                  %    "guava"                    %   "12.0-rc2",
             
             ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
               .exclude("javax.persistence", "persistence-api")
