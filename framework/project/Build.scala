@@ -184,6 +184,8 @@ object PlayBuild extends Build {
               .exclude("com.google.code.findbugs", "jsr305")
             ,
             
+            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
+            
             ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
