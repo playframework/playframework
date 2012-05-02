@@ -3,7 +3,7 @@
 <html>
     <head>
         <title>@title</title>
-        <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css">
+        <link rel="stylesheet" media="screen" href="/@@documentation/resources/style/main.css"></link>
     </head>
     <body>
         
@@ -24,7 +24,7 @@
         </section>
         
         <div id="content" class="wrapper doc">
-            <article>
+            <article id="main">
                 @main.map { html =>
                     @Html(html)
                 }.getOrElse {
@@ -37,4 +37,4 @@
         </div>
         
     </body>
-<html>
+</html>
