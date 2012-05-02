@@ -174,8 +174,10 @@ object WS {
     /**
      * Defines the query string.
      */
-    def setQueryString(queryString: Map[String, String]) = {
-      queryString.foreach { param: (String, String) => this.addQueryParameter(param._1, param._2) }
+    def setQueryString(queryString: Map[String, Seq[String]]) = {
+      for ((key, values) <- queryString; value <- values) {
+        this.addQueryParameter(key, value)
+      }
       this
     }
 
@@ -258,7 +260,7 @@ object WS {
    */
   case class WSRequestHolder(url: String,
       headers: Map[String, Seq[String]],
-      queryString: Map[String, String],
+      queryString: Map[String, Seq[String]],
       calc: Option[SignatureCalculator],
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
@@ -293,7 +295,9 @@ object WS {
      * adds any number of query string parameters to the
      */
     def withQueryString(parameters: (String, String)*): WSRequestHolder =
-      this.copy(queryString = parameters.foldLeft(queryString)((m, param) => m + param))
+      this.copy(queryString = parameters.foldLeft(queryString) {
+        case (m, (k, v)) => m + (k -> (v +: m.get(k).getOrElse(Nil)))
+      })
 
     /**
      * Sets whether redirects (301, 302) should be followed automatically
@@ -357,7 +361,7 @@ object WS {
      */
     def options(): Promise[Response] = prepare("OPTIONS").execute
 
-    private def prepare(method: String) = {
+    private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
@@ -370,7 +374,7 @@ object WS {
       request
     }
 
-    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
+    private[play] def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
         .setQueryString(queryString)
