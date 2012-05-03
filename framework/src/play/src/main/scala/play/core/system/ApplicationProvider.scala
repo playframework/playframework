@@ -206,7 +206,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, "manual/book/Book")).filter(_.exists)
           }.map { book =>
-            val pages = (book: Path).slurpString.split('\n').toSeq.map(_.trim)
+            val pages = Path(book).slurpString.split('\n').toSeq.map(_.trim)
             Ok(views.html.play20.book(pages))
           }.getOrElse(NotFound("Resource not found [Book]"))
         }
@@ -246,7 +246,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
         Some {
 
           val pageWithSidebar = documentationHome.flatMap { home =>
-            (home: Path).descendants().find(_.name == page + ".md").map { pageSource =>
+            Path(home).descendants().find(_.name == page + ".md").map { pageSource =>
 
               // Recursively search for Sidebar
               lazy val findSideBar: (Option[Path] => Option[Path]) = _ match {
@@ -277,7 +277,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                   val link = image match {
                     case full if full.startsWith("http://") => full
                     case absolute if absolute.startsWith("/") => "resources/manual" + absolute
-                    case relative => "resources/" + pageSource.parent.get.relativize(documentationHome.get).path + "/" + relative
+                    case relative => "resources/" + pageSource.parent.get.relativize(Path(documentationHome.get)).path + "/" + relative
                   }
                   (link, """<img src="""" + link + """"/>""")
                 }

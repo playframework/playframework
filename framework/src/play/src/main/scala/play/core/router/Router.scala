@@ -87,7 +87,7 @@ object Router {
     case class GeneratedSource(file: File) {
 
       val lines = if (file.exists) Path(file).slurpString.split('\n').toList else Nil
-      val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path(m.trim.drop(11)))
+      val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path.fromString(m.trim.drop(11)))
 
       def isGenerated: Boolean = source.isDefined
 
