@@ -394,9 +394,9 @@ public class Constraints {
     @Target({FIELD})
     @Retention(RUNTIME)
     @Constraint(validatedBy = PatternValidator.class)
-    @play.data.Form.Display(name="constraint.pattern", attributes={})
+    @play.data.Form.Display(name="constraint.pattern", attributes={"value"})
     public static @interface Pattern {
-        String message() default EmailValidator.message;
+        String message() default PatternValidator.message;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         String value();
