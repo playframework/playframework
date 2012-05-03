@@ -569,6 +569,6 @@ object MimeTypes {
         xpi=application/x-xpinstall
         
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
-      parts(0) -> parts.drop(1).mkString).toMap
+      parts(0) -> parts.drop(1).mkString).toMap.mapValues(_ + "; charset=UTF-8")
 
 }
