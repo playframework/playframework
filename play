@@ -2,6 +2,7 @@
 
 PRG=$(
   PRG=$0
+  ORIG=$(pwd -P)
 
   # While not a symlink
   while [ -h "$PRG" ]; do
@@ -13,9 +14,9 @@ PRG=$(
     PRG="$(dirname $PRG)/$(readlink $(basename $PRG))"
   done
 
-  cd $(dirname $PRG)
-
   # Get a readable path
+  cd $ORIG
+  cd $(dirname $PRG)
   echo "$(pwd -P)/$(basename $PRG)"
 )
 dir=`dirname $PRG`
