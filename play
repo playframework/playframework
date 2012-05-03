@@ -1,9 +1,23 @@
 #! /usr/bin/env sh
 
-PRG="$0"
-while [ -h "$PRG" ] ; do
-    PRG=`readlink "$PRG"`
-done
+PRG=$(
+  PRG=$0
+
+  # While not a symlink
+  while [ -h "$PRG" ]; do
+
+    # Go to the directory to readlink
+    cd $(dirname $PRG)
+
+    # Append new link to current path
+    PRG="$(dirname $PRG)/$(readlink $(basename $PRG))"
+  done
+
+  cd $(dirname $PRG)
+
+  # Get a readable path
+  echo "$(pwd -P)/$(basename $PRG)"
+)
 dir=`dirname $PRG`
 
 if [ -f conf/application.conf ]; then
