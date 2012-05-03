@@ -1,6 +1,6 @@
 package test
 
-import org.specs2.mutable._
+import org.specs2.mutable.Specification
 
 import play.api.test._
 import play.api.test.Helpers._
@@ -8,16 +8,19 @@ import play.api.test.Helpers._
 import play.api.data._
 import play.api.data.Forms._
 
-class FormSpec extends Specification {
-  
-  val userForm = Form(
+object Dummyform {
+  def provide = Form(
     tuple(
-      "email" -> text,
+      "email" -> Forms.text,
       "address" -> optional(
         single("city" -> nonEmptyText)
       )
     )
   )
+}
+class FormSpec extends Specification {
+  
+  val userForm = Dummyform.provide
   
   "the userForm" should {
   

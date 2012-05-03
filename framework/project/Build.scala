@@ -66,6 +66,11 @@ object PlayBuild extends Build {
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
 
+    def registerPlugin(module: ModuleID, localScalaVersion: String= buildScalaVersionForSbt) = 
+        libraryDependencies <+= (sbtVersion) {
+            sbtVersion => Defaults.sbtPluginExtra(module, sbtVersion, localScalaVersion)
+        }
+
     lazy val SbtPluginProject = Project(
       "SBT-Plugin",
       file("src/sbt-plugin"),
@@ -73,8 +78,8 @@ object PlayBuild extends Build {
         sbtPlugin := true,
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
-        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-M2"),
-        addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M1-TYPESAFE"),
+        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-M2"),
+        registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M1-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -119,7 +124,8 @@ object PlayBuild extends Build {
 
         val buildOrganization = "play"
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
-        val buildScalaVersion = "2.9.1"
+        val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.1")
+        val buildScalaVersionForSbt = "2.9.1"
         val buildSbtVersion   = "0.11.2"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -139,13 +145,13 @@ object PlayBuild extends Build {
         def isJar(f:java.io.File) = f.getName.endsWith(".jar")
 
         val sbtJars:Seq[java.io.File] = {
-            file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
-            file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
-            Seq(file("sbt/boot/scala-" + buildScalaVersion + "/lib/jline.jar"))
+            file("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
+            file("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-tools.sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
+            Seq(file("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/jline.jar"))
         }
         
         val compilerJar:java.io.File = {
-          file("sbt/boot/scala-" + buildScalaVersion + "/lib/scala-compiler.jar")
+          file("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/scala-compiler.jar")
         }
 
     }
@@ -175,7 +181,7 @@ object PlayBuild extends Build {
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.0",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.0",
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.2",
             "com.google.guava"                  %    "guava"                    %   "10.0.1",
@@ -185,7 +191,7 @@ object PlayBuild extends Build {
             
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
-            "org.scala-tools"                   %%   "scala-stm"                %   "0.4",
+            "org.scala-tools"                   %%   "scala-stm"                %   "0.5",
             
             ("com.jolbox"                       %    "bonecp"                   %   "0.7.1.RELEASE" notTransitive())
               .exclude("com.google.guava", "guava")
@@ -222,7 +228,7 @@ object PlayBuild extends Build {
             ,
             
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
-            "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
+            "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
             
             ("org.reflections"                  %    "reflections"              %   "0.9.6" notTransitive())
               .exclude("com.google.guava", "guava")
@@ -245,7 +251,7 @@ object PlayBuild extends Build {
             
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             
-            "org.specs2"                        %%   "specs2"                   %   "1.7.1"      %  "test",
+            "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             
             "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"      %  "test"
@@ -266,7 +272,7 @@ object PlayBuild extends Build {
               .exclude("junit", "junit")
             ,
             
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
             
             ("org.avaje"                        %    "ebean"                    %   "2.7.3"  notTransitive())
               .exclude("javax.persistence", "persistence-api")
@@ -278,19 +284,19 @@ object PlayBuild extends Build {
         )
 
         val consoleDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0"
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0"
         )
 
         val templatesDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
-            "org.specs2"                        %%   "specs2"                   %   "1.7.1"    %   "test"
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
+            "org.specs2"                        %%   "specs2"                   %   "1.9"    %   "test"
         )
 
         val anormDependencies = Seq(
         )
 
         val testDependencies = Seq(
-            "org.specs2"                        %%   "specs2"                   %   "1.7.1",
+            "org.specs2"                        %%   "specs2"                   %   "1.9",
             "com.novocode"                      %    "junit-interface"          %   "0.8",
             
             "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"
@@ -362,7 +368,7 @@ object PlayBuild extends Build {
             (file("src/play-test/src/main/scala") ** "*.scala").get ++ 
             (file("src/play/src/main/scala/views") ** "*.scala").get ++ 
             (file("src/anorm/src/main/scala") ** "*.scala").get ++ 
-            (file("src/play/target/scala-2.9.1/src_managed/main/views/html/helper") ** "*.scala").get
+            (file("src/play/target/scala-" + buildScalaVersion + "/src_managed/main/views/html/helper") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc
