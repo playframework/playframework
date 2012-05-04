@@ -77,9 +77,10 @@ object Console {
       }.mkString.replaceAll("\\\\+", "/")
 
       def copyRecursively(from: Path, target: Path) {
+        import scala.util.control.Exception._
         from.copyTo(target)
         from.children().foreach { child =>
-          copyRecursively(child, target / child.name)
+          catching(classOf[java.io.IOException]) opt copyRecursively(child, target / child.name)
         }
       }
 
