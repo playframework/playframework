@@ -93,7 +93,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    * The router used by this application (if defined).
    */
   val routes: Option[Router.Routes] = try {
-    Some(classloader.loadClass("Routes$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
+    Some(classloader.loadClass(configuration.getString("application.router").map(_ + "$").getOrElse("Routes$")).getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
       router.setPrefix(configuration.getString("application.context").map { prefix =>
         if (!prefix.startsWith("/")) {
           throw configuration.reportError("application.context", "Invalid application context")
@@ -103,7 +103,9 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       router
     }
   } catch {
-    case e: ClassNotFoundException => None
+    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName => 
+      throw configuration.reportError("application.router", "Router not found: " + routerName)
+    }
     case e => throw e
   }
 
