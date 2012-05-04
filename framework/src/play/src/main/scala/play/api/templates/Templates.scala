@@ -2,6 +2,7 @@ package play.api.templates
 
 import play.api.mvc._
 import play.templates._
+import java.net.URLEncoder
 
 /**
  * Content type used in default HTML templates.
@@ -179,6 +180,23 @@ object PlayMagic {
    * }}}
    */
   def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
+
+  /** Adds more methods to String values in templates */
+  class StringOps(s: String) {
+
+    /**
+     * URL encode a value.
+     * Example:
+     * {{{
+     *   @("foo bar".urlEncoded)
+     * }}}
+     */
+    def urlEncoded(implicit c: Codec) =
+      URLEncoder.encode(s, c.charset)
+
+  }
+
+  implicit def stringOps(s: String) = new StringOps(s)
 
 }
 
