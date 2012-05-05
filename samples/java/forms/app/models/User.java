@@ -5,17 +5,21 @@ import javax.validation.*;
 import play.data.validation.Constraints.*;
 
 public class User {
-    
-    @Required
-    @MinLength(4)
+   
+    public interface All {}
+    public interface Step1{}    
+	public interface Step2{}    
+
+    @Required(groups = {All.class, Step1.class})
+    @MinLength(value = 4, groups = {All.class, Step1.class})
     public String username;
     
-    @Required
-    @Email
+    @Required(groups = {All.class, Step1.class})
+    @Email(groups = {All.class, Step1.class})
     public String email;
     
-    @Required
-    @MinLength(6)
+    @Required(groups = {All.class, Step1.class})
+    @MinLength(value = 6, groups = {All.class, Step1.class})
     public String password;
 
     @Valid
@@ -32,12 +36,12 @@ public class User {
     
     public static class Profile {
         
-        @Required
+        @Required(groups = {All.class, Step2.class})
         public String country;
         
         public String address;
         
-        @Min(18) @Max(100)
+        @Min(value = 18, groups = {All.class, Step2.class}) @Max(value = 100, groups = {All.class, Step2.class})
         public Integer age;
         
         public Profile() {}

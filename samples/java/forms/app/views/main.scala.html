@@ -23,6 +23,9 @@
                         <li class="@("active".when(nav == "contact"))">
                             <a href="@routes.Contacts.blank()">Contacts</a>
                         </li>
+						<li class="@("active".when(nav == "wizard"))">
+	                        <a href="@routes.Wizard.step(1)">Wizard</a>
+	                    </li>
                     </ul>
                 </div>
             </div>
