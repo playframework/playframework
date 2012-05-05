@@ -7,8 +7,19 @@ import play.libs.F
 
 object JavaPromise {
 
-  def sequence[A](promises: JList[F.Promise[A]]): Promise[JList[A]] =
+  def sequence[A](promises: JList[F.Promise[A]]): Promise[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))
       .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)
+  }
+
+  def timeout[A](message: A, delay: Long, unit:java.util.concurrent.TimeUnit) = {
+    Promise.timeout(message, delay, unit)
+  }
+  
+  def recover[A](promise: Promise[A], f: Throwable => A) = {
+    promise.recover {
+      case t: Throwable => f(t)
+    }
+  }
 
 }

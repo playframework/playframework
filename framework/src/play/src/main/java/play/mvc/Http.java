@@ -181,6 +181,13 @@ public class Http {
          * The query string content.
          */
         public abstract Map<String,String[]> queryString();
+        
+        /**
+         * Helper method to access a queryString parameter.
+         */
+        public String queryString(String key) {
+            return queryString().containsKey(key) && queryString().get(key).length > 0 ? queryString().get(key)[0] : null;
+        }
 
         /**
          * @return the request cookies
