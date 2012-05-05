@@ -104,6 +104,23 @@ public class F {
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
         }
 
+        /**
+         * Create a new pure promise, that is, a promise with a constant value from the start.
+         *
+         * @param a the value for the promise
+         */
+        public static <A> Promise<A> pure(final A a) {
+            return new Promise<A>(play.core.j.JavaPromise.<A>pure(a));
+        }
+
+        /**
+         * Create a new promise throwing an exception.
+         * @param a Value to throw
+         */
+        public static <A> Promise<A> throwing(Throwable throwable) {
+            return new Promise<A>(play.core.j.JavaPromise.<A>throwing(throwable));
+        }
+
         private final play.api.libs.concurrent.Promise<A> promise;
 
         /**
@@ -113,20 +130,6 @@ public class F {
          */
         public Promise(play.api.libs.concurrent.Promise<A> promise) {
             this.promise = promise;
-        }
-
-        /**
-         * Create a new pure promise, that is, a promise with a constant value from the start.
-         *
-         * @param a the value for the promise
-         */
-        public Promise(final A a) {
-            this(play.api.libs.concurrent.Promise$.MODULE$.pure(new scala.runtime.AbstractFunction0<A>() {
-                @Override
-                public A apply() {
-                    return a;
-                }
-            }));
         }
 
         /**

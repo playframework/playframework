@@ -22,4 +22,8 @@ object JavaPromise {
     }
   }
 
+  def pure[A](a: A) = Promise.pure(a)
+
+  def throwing[A](throwable: Throwable) = Promise.pure[A](throw throwable)
+
 }
