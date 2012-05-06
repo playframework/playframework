@@ -228,9 +228,8 @@ object PlayBuild extends Build {
 
             "joda-time"                         %    "joda-time"                %   "2.0",
             "org.joda"                          %    "joda-convert"             %   "1.1",
-            "javassist"                         %    "javassist"                %   "3.12.1.GA",
-            "commons-lang"                      %    "commons-lang"             %   "2.6",
-            
+            "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
+            "org.apache.commons"                %    "commons-lang3"            %   "3.1",            
             ("com.ning"                         %    "async-http-client"        %   "1.7.6" notTransitive())
               .exclude("org.jboss.netty", "netty")
             ,

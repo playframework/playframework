@@ -4,7 +4,7 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.templates._
 
-import org.apache.commons.lang.{ StringEscapeUtils }
+import org.apache.commons.lang3.{ StringEscapeUtils }
 
 /**
  * Helper function to produce a Comet Enumeratee.
@@ -30,7 +30,7 @@ object Comet {
     /**
      * String messages.
      */
-    implicit val stringMessages = CometMessage[String](str => "'" + StringEscapeUtils.escapeJavaScript(str) + "'")
+    implicit val stringMessages = CometMessage[String](str => "'" + StringEscapeUtils.escapeEcmaScript(str) + "'")
 
     /**
      * Json messages.
