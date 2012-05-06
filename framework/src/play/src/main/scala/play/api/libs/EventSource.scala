@@ -4,8 +4,6 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.templates._
 
-import org.apache.commons.lang.{ StringEscapeUtils }
-
 object EventSource {
 
   case class EventNameExtractor[E](eventName: E => Option[String])
