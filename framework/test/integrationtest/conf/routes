@@ -5,6 +5,7 @@
 GET     /                       controllers.Application.index()
 POST    /post                   controllers.Application.post()
 POST    /submitForm             controllers.Application.submitForm()
+GET     /inherit                controllers.CRUDAction.methods.index()
 GET     /form                   controllers.Application.form()
 GET     /json_java              controllers.JavaApi.index()
 GET     /headers                controllers.JavaApi.headers()
