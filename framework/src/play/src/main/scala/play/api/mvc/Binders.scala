@@ -457,30 +457,4 @@ object PathBindable {
     def unbind(key: String, value: Boolean) = if (value) "1" else "0"
   }
 
-  /**
-   * Path binder for Option.
-   */
-  implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {
-    def bind(key: String, value: String) = {
-      implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
-    }
-    def unbind(key: String, value: Option[T]) = value.map(v => implicitly[PathBindable[T]].unbind(key, v)).getOrElse("")
-  }
-
-  /**
-   * Path binder for Java Option.
-   */
-  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit m: Manifest[T]) = new PathBindable[T] {
-    def bind(key: String, value: String) = {
-      try {
-        Right(m.erasure.newInstance.asInstanceOf[T].bind(key, value))
-      } catch {
-        case e => Left(e.getMessage)
-      }
-    }
-    def unbind(key: String, value: T) = {
-      value.unbind(key)
-    }
-  }
-
 }
