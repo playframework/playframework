@@ -80,7 +80,7 @@ object PlayBuild extends Build {
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
         registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-M2"),
-        registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M1-TYPESAFE"),
+        registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -127,7 +127,7 @@ object PlayBuild extends Build {
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
         val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.1")
         val buildScalaVersionForSbt = "2.9.1"
-        val buildSbtVersion   = "0.11.2"
+        val buildSbtVersion   = "0.11.3"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
@@ -146,8 +146,8 @@ object PlayBuild extends Build {
         def isJar(f:java.io.File) = f.getName.endsWith(".jar")
 
         val sbtJars:Seq[java.io.File] = {
-            file("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
-            file("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-tools.sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
+            file("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
+            file("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
             Seq(file("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/jline.jar"))
         }
         
