@@ -82,10 +82,23 @@ public class F {
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
         }
         
+        /**
+         * Create a Promise that is redeemed after a timeout.
+         *
+         * @param message The message to use to redeem the Promise.
+         * @param delay The delay (expressed with the corresponding unit).
+         * @param unit The Unit.
+         */
         public static <A> Promise<A> timeout(A message, Long delay, java.util.concurrent.TimeUnit unit) {
             return new Promise(play.core.j.JavaPromise.timeout(message, delay, unit));
         }
         
+        /**
+         * Create a Promise that is redeemed after a timeout.
+         *
+         * @param message The message to use to redeem the Promise.
+         * @param delay The delay expressed in Milliseconds.
+         */
         public static <A> Promise<A> timeout(A message, Long delay) {
             return timeout(message, delay, java.util.concurrent.TimeUnit.MILLISECONDS);
         }
@@ -279,11 +292,12 @@ public class F {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current();
             return new scala.runtime.AbstractFunction1<A,B>() {
                 public B apply(A a) {
+                    final play.mvc.Http.Context previousContext = play.mvc.Http.Context.current();
                     try {
                         play.mvc.Http.Context.current.set(context);
                         return f.apply(a);
                     } finally {
-                        play.mvc.Http.Context.current.remove();
+                        play.mvc.Http.Context.current.set(previousContext);
                     }
                 }
             };
