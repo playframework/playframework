@@ -128,6 +128,16 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.grouped" should {
+    "not throw away left inputs by the folder iteratee" in {
+
+      val upToSpace = Traversable.splitOnceAt[String,Char](c => c != '\n')  &>> Iteratee.consume()
+
+      val result = (Enumerator("dasdasdas ", "dadadasda\nshouldb\neinnext") &> Enumeratee.grouped(upToSpace) ><> Enumeratee.map(_+"|")) |>> Iteratee.consume[String]()
+      result.flatMap(_.run).value.get must equalTo("dasdasdas dadadasda|shouldb|")
+    }
+  }
+
   "Enumeratee.scanLeft" should {
 
     "transform elements using a sate" in {

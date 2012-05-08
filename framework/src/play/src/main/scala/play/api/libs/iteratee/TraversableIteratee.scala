@@ -58,6 +58,30 @@ object Traversable {
     }
   }
 
+  import Enumeratee.CheckDone
+
+  def splitOnceAt[M,E](p: E => Boolean)(implicit traversableLike: M => scala.collection.TraversableLike[E, M]):Enumeratee[M,M] =  new CheckDone[M, M] {
+
+      def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+
+        case in @ Input.El(e) =>
+          e.span(p) match {
+            case (prefix,suffix) if suffix.isEmpty => new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(Input.El(prefix))
+            case (prefix,suffix) => Done(if(prefix.isEmpty) Cont(k) else  k(Input.El(prefix)), Input.El(suffix.drop(1)))
+
+          }
+
+        case in @ Input.Empty =>
+          new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+
+      }
+
+      def continue[A](k: K[M, A]) = Cont(step(k))
+
+  }
+
   def drop[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
     def applyOn[A](inner: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
