@@ -203,6 +203,14 @@ object Input {
 
 }
 
+sealed trait Step[E,+A]
+
+object Step {
+  case class Done[+A,E](a:A, remaining:Input[E]) extends Step[E,A]
+  case class Cont[E,+A](k: Input[E] => Iteratee[E,A]) extends Step[E,A]
+  case class Error[E](msg:String, input:Input[E]) extends Step[E,Nothing]
+}
+
 /**
  * @tparam E Input type
  * @tparam A Result type of this Iteratee
@@ -236,6 +244,11 @@ trait Iteratee[E, +A] {
   def fold[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B]
+
+  def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = fold(
+    (a,e) => folder(Step.Done(a,e)),
+    k => folder(Step.Cont(k)),
+    (msg,e) => folder(Step.Error(msg,e)))
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
@@ -386,12 +399,6 @@ object Error {
 
   }
 }
-
-
-
-
-
-
 
 object Parsing {
 
