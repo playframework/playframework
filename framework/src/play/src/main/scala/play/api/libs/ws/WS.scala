@@ -187,13 +187,12 @@ object WS {
       super.setUrl(url)
     }
 
-    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
+    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[A] = {
       import com.ning.http.client.AsyncHandler
-      var doneOrError = false
       calculator.map(_.sign(this))
 
       var statusCode = 0
-      val iterateeP = Promise[Iteratee[Array[Byte], A]]()
+      val answer = Promise[A]
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
@@ -211,44 +210,36 @@ object WS {
         }
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
-          if (!doneOrError) {
+            var continue = STATE.CONTINUE
             iteratee = iteratee.pureFlatFold(
               // DONE
               (a, e) => {
-                doneOrError = true
-                val it = Done(a, e)
-                iterateeP.redeem(it)
-                it
+                continue = STATE.ABORT
+                Done(a, e)
               },
 
               // CONTINUE
-              k => {
-                k(El(bodyPart.getBodyPartBytes()))
-              },
+              k => k(El(bodyPart.getBodyPartBytes())),
 
               // ERROR
               (e, input) => {
-                doneOrError = true
-                val it = Error(e, input)
-                iterateeP.redeem(it)
-                it
-              })
-            STATE.CONTINUE
-          } else {
-            iteratee = null
-            STATE.ABORT
-          }
+                continue = STATE.ABORT
+                Error(e, input)
+              }
+             )
+            continue
         }
 
         override def onCompleted() = {
-          Option(iteratee).map(iterateeP.redeem(_))
+           if (iteratee != null) answer.redeem(iteratee.run.await.get)
+           else answer.redeem(throw new Throwable("no headers received"))
         }
 
         override def onThrowable(t: Throwable) = {
-          iterateeP.redeem(throw t)
+          answer.redeem(throw t)
         }
       })
-      iterateeP
+      answer
     }
 
   }
@@ -317,7 +308,7 @@ object WS {
      * performs a get with supplied body
      * @param consumer that's handling the response
      */
-    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] =
+    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[A] =
       prepare("GET").executeStream(consumer)
 
     /**
@@ -329,7 +320,7 @@ object WS {
      * performs a POST with supplied body
      * @param consumer that's handling the response
      */
-    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
+    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[A] = prepare("POST", body).executeStream(consumer)
 
     /**
      * Perform a PUT on the request asynchronously.
@@ -340,7 +331,7 @@ object WS {
      * performs a PUT with supplied body
      * @param consumer that's handling the response
      */
-    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
+    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[A] = prepare("PUT", body).executeStream(consumer)
 
     /**
      * Perform a DELETE on the request asynchronously.
