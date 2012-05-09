@@ -197,5 +197,36 @@ object Formats {
    */
   implicit val sqlDateFormat: Formatter[java.sql.Date] = sqlDateFormat("yyyy-MM-dd")
 
+  /**
+   * Formatter for the `org.joda.time.DateTime` type.
+   *
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   */
+  def jodaDateTimeFormat(pattern: String): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
+
+    import org.joda.time.DateTime
+
+    override val format = Some("format.date", Seq(pattern))
+
+    def bind(key: String, data: Map[String, String]) = {
+
+      stringFormat.bind(key, data).right.flatMap { s =>
+        scala.util.control.Exception.allCatch[DateTime]
+          .either(DateTime.parse(s, org.joda.time.format.DateTimeFormat.forPattern(pattern)))
+          .left.map(e => Seq(FormError(key, "error.date", Nil)))
+      }
+    }
+
+    def unbind(key: String, value: DateTime) = jodaDateTimeFormat(pattern).unbind(key, value)
+
+  }
+
+  /**
+   * Default formatter for `org.joda.time.DateTime` type with pattern `yyyy-MM-dd`.
+   *
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   */
+  implicit val jodaDateTimeFormat: Formatter[org.joda.time.DateTime] = jodaDateTimeFormat("yyyy-MM-dd")
+
 }
 
