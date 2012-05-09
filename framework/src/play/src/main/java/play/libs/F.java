@@ -289,10 +289,10 @@ public class F {
         // -- Utils
         
         private <A,B> scala.Function1<A,B> withContext(final scala.Function1<A,B> f) {
-            final play.mvc.Http.Context context = play.mvc.Http.Context.current();
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new scala.runtime.AbstractFunction1<A,B>() {
                 public B apply(A a) {
-                    final play.mvc.Http.Context previousContext = play.mvc.Http.Context.current();
+                    final play.mvc.Http.Context previousContext = play.mvc.Http.Context.current.get();
                     try {
                         play.mvc.Http.Context.current.set(context);
                         return f.apply(a);
