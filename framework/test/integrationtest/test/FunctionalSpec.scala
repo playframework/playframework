@@ -11,7 +11,7 @@ import org.openqa.selenium.htmlunit.HtmlUnitDriver
 
 class FunctionalSpec extends Specification {
   "an Application" should {
-
+    
     "call onClose for Ok.sendFile responses" in {
       import java.io.File
       running(TestServer(9003), HTMLUNIT) { browser =>
@@ -20,6 +20,7 @@ class FunctionalSpec extends Specification {
         file.exists() must equalTo(true)
 
         browser.goTo("http://localhost:9003/onCloseSendFile/" + file.getCanonicalPath)
+        Thread.sleep(1000)
         file.exists() must equalTo(false)
       }
     }
