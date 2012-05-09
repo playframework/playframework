@@ -123,7 +123,8 @@ object LessCompiler {
         throw AssetCompilationException(Some(file),
           ScriptableObject.getProperty(error, "message").asInstanceOf[String],
           ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue,
-          ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue)
+          ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue,
+          Some("less"))
       }
     }
   }

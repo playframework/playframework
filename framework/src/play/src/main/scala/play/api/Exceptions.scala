@@ -81,7 +81,15 @@ object PlayException {
         (firstLine, (before :+ focus) ++ after, errorLine)
       }
     }
+    /**
+     * Extract all the lines of the file
+     */
+    def allLines: Option[ String ] = input.map( _.slurpString )
 
+    /**
+     * Defines the type of the underlaying source
+     */
+    def sourceType: Option[String] = Some( "text" )
   }
 
   /**

@@ -89,4 +89,5 @@ case class CompilationException(message: String, coffeeFile: File, atLine: Optio
   def position = None
   def input = Some(scalax.file.Path(coffeeFile))
   def sourceName = Some(coffeeFile.getAbsolutePath)
+  override def sourceType = Some( "coffee" )
 }
