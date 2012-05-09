@@ -1337,7 +1337,15 @@ object Router {
     }
 
     def handlerFor(request: RequestHeader): Option[Handler] = {
-      routes.lift(request)
+      routes.lift(request) match {
+        case None if "HEAD" == request.method =>
+          // Check if there is a handler for a GET request instead
+          routes.lift(new WrappedRequestHeader(request) {
+            override def method = "GET"
+          })
+        case None => None
+        case opt@Some(e) => opt
+      }
     }
 
     def invokeHandler[T](call: => T, handler: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {

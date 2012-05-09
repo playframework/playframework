@@ -152,15 +152,21 @@ package play.api.mvc {
   /**
    * Wrap an existing request. Useful to extend a request.
    */
-  class WrappedRequest[A](request: Request[A]) extends Request[A] {
+  class WrappedRequest[A](request: Request[A]) extends WrappedRequestHeader(request) with Request[A] {
     def body = request.body
-    def headers = request.headers
-    def queryString = request.queryString
-    def path = request.path
-    def uri = request.uri
-    def method = request.method
-    def remoteAddress = request.remoteAddress
   }
+
+  /**
+   * Wrap an existing request header. Useful to extend or override a request header
+   */
+   class WrappedRequestHeader(requestHeader: RequestHeader) extends RequestHeader {
+     def uri = requestHeader.uri
+     def path = requestHeader.uri
+     def method = requestHeader.method
+     def queryString = requestHeader.queryString
+     def headers = requestHeader.headers
+     def remoteAddress = requestHeader.remoteAddress
+   }
 
   /**
    * The HTTP response.

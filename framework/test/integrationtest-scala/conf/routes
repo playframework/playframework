@@ -4,7 +4,7 @@
 
 GET     /                           controllers.Application.index(name = "Guest")
 GET     /key                        controllers.Application.key
-GET     /:name                      controllers.Application.index(name)
+GET     /name/:name                 controllers.Application.index(name)
 POST    /json                       controllers.Application.json
 
 # Map static resources from the /public folder to the /assets URL path

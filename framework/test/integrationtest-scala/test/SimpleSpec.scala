@@ -37,16 +37,30 @@ class SimpleSpec extends Specification {
       
       result must equalTo(None)
     }
-    
+
     "respond to the GET /Kiki request" in {
-      val Some(result) = routeAndCall(FakeRequest(GET, "/Kiki"))
+      val Some(result) = routeAndCall(FakeRequest(GET, "/name/Kiki"))
       
       status(result) must equalTo(OK)
       contentType(result) must equalTo(Some("text/html"))
       charset(result) must equalTo(Some("utf-8"))
       contentAsString(result) must contain("Hello Kiki")
     }
-    
+
+    "do not respond to HEAD request to a route for which no HEAD method is defined" in {
+      val result = routeAndCall(FakeRequest(HEAD, "/json"))
+
+      result must equalTo(None)
+    }
+
+    "respond to the HEAD /Kiki request if there is a corresponding GET route defined" in {
+      val Some(result) = routeAndCall(FakeRequest(HEAD, "/name/Kiki"))
+
+      status(result) must equalTo(OK)
+      contentType(result) must equalTo(Some("text/html"))
+      charset(result) must equalTo(Some("utf-8"))
+    }
+
     "respond to the key Action" in {
       running(FakeApplication()) {
         val result = controllers.Application.key(FakeRequest())
@@ -66,7 +80,7 @@ class SimpleSpec extends Specification {
         
         browser.$("a").click()
         
-        browser.url must equalTo("http://localhost:3333/Coco")
+        browser.url must equalTo("http://localhost:3333/name/Coco")
         browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
 
       }
