@@ -11,9 +11,8 @@ object Iteratee {
    */
   def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](done: (A, Input[E]) => Promise[B],
-      cont: (Input[E] => Iteratee[E, A]) => Promise[B],
-      error: (String, Input[E]) => Promise[B]): Promise[B] = i.flatMap(_.fold(done, cont, error))
+    def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = i.flatMap(_.fold1(folder))
+
   }
 
   def isDoneOrError[E, A](it: Iteratee[E, A]): Promise[Boolean] = it.pureFold((_, _) => true, _ => false, (_, _) => true)
@@ -223,11 +222,15 @@ trait Iteratee[E, +A] {
    *
    *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
    */
-  def run[AA >: A]: Promise[AA] = fold((a, _) => Promise.pure(a),
-    k => k(Input.EOF).fold((a1, _) => Promise.pure(a1),
-      _ => sys.error("diverging iteratee after Input.EOF"),
-      (msg, e) => sys.error(msg)),
-    (msg, e) => sys.error(msg))
+  def run[AA >: A]: Promise[AA] = fold1({
+    case Step.Done(a,_) => Promise.pure(a)
+    case Step.Cont(k) => k(Input.EOF).fold1({
+      case Step.Done(a1,_) => Promise.pure(a1)
+      case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
+      case Step.Error(msg,e) => sys.error(msg)
+    })
+    case Step.Error(msg,e) => sys.error(msg)
+  })
 
   def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
     Enumerator.enumInput(in) |>> this
@@ -243,12 +246,13 @@ trait Iteratee[E, +A] {
    */
   def fold[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
-    error: (String, Input[E]) => Promise[B]): Promise[B]
+    error: (String, Input[E]) => Promise[B]): Promise[B] = fold1({
+      case Step.Done(a,e) => done(a,e)
+      case Step.Cont(k) => cont(k)
+      case Step.Error(msg,e) => error(msg,e)
+    })
 
-  def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = fold(
-    (a,e) => folder(Step.Done(a,e)),
-    k => folder(Step.Cont(k)),
-    (msg,e) => folder(Step.Error(msg,e)))
+  def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B]
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
@@ -366,9 +370,8 @@ object Done {
    * @param e Remaining unused input
    */
   def apply[E, A](a: A, e: Input[E]): Iteratee[E, A] = new Iteratee[E, A] {
-    def fold[B](done: (A, Input[E]) => Promise[B],
-      cont: (Input[E] => Iteratee[E, A]) => Promise[B],
-      error: (String, Input[E]) => Promise[B]): Promise[B] = done(a, e)
+
+    def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Done(a,e))
 
   }
 
@@ -380,9 +383,8 @@ object Cont {
    * @param k Continuation which will compute the next Iteratee state according to an input
    */
   def apply[E, A](k: Input[E] => Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
-    def fold[B](done: (A, Input[E]) => Promise[B],
-      cont: (Input[E] => Iteratee[E, A]) => Promise[B],
-      error: (String, Input[E]) => Promise[B]): Promise[B] = cont(k)
+
+    def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Cont(k))
 
   }
 }
@@ -393,9 +395,8 @@ object Error {
    * @param e The input that caused the error
    */
   def apply[E](msg: String, e: Input[E]): Iteratee[E, Nothing] = new Iteratee[E, Nothing] {
-    def fold[B](done: (Nothing, Input[E]) => Promise[B],
-      cont: (Input[E] => Iteratee[E, Nothing]) => Promise[B],
-      error: (String, Input[E]) => Promise[B]): Promise[B] = error(msg, e)
+
+    def fold1[B](folder: Step[E,Nothing] => Promise[B]): Promise[B] = folder(Step.Error(msg,e))
 
   }
 }

@@ -65,13 +65,13 @@ object Concurrent {
       val ready = interested.zipWithIndex.map {
         case (t, index) =>
           val p = t._2
-          t._1.fold(
-            (a, e) => {
+          t._1.fold1 {
+            case Step.Done(a, e) =>
               p.redeem(Done(a, e))
               commitDone.single.transform(_ :+ index)
               Promise.pure(())
-            },
-            k => {
+
+            case Step.Cont(k) =>
               val next = k(in)
               next.pureFold(
                 (a, e) => {
@@ -83,12 +83,12 @@ object Concurrent {
                   p.redeem(Error(msg, e))
                   commitDone.single.transform(_ :+ index)
                 })
-            },
-            (msg, e) => {
+
+            case Step.Error(msg, e) =>
               p.redeem(Error(msg, e))
               commitDone.single.transform(_ :+ index)
               Promise.pure(())
-            }).extend1 {
+          }.extend1 {
               case Redeemed(a) => a
               case Thrown(e) => p.throwing(e)
               case _ => throw new RuntimeException("should be either Redeemed or Thrown at this point")

@@ -78,10 +78,10 @@ object Enumerator {
 
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] =
-      i.fold((a, e) => Promise.pure(i),
-        k => Promise.pure(k(e)),
-        (_, _) => Promise.pure(i))
-
+      i.fold1{ 
+        case Step.Cont(k) => Promise.pure(k(e))
+        case _ =>  Promise.pure(i)
+      }
   }
 
   def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2] {
@@ -262,19 +262,14 @@ object Enumerator {
 
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
 
-      def step(it: Iteratee[E, A]): Promise[Iteratee[E,A]] = {
-
-        it.fold(
-          (a, e) => Promise.pure(Done(a,e)),
-          k => {
-            inner[A](step,k)
-          },
-          (msg, e) => Promise.pure(Error(msg,e))
-        )
+      def step(it: Iteratee[E, A]): Promise[Iteratee[E,A]] = it.fold1{
+          case Step.Done(a, e) => Promise.pure(Done(a,e))
+          case Step.Cont(k) => inner[A](step,k)
+          case Step.Error(msg, e) => Promise.pure(Error(msg,e))
       }
+
       step(it)
     }
-
   }
 
   trait TreatCont1[E,S]{
@@ -287,15 +282,10 @@ object Enumerator {
 
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
 
-      def step(it: Iteratee[E, A], state:S): Promise[Iteratee[E,A]] = {
-
-        it.fold(
-          (a, e) => Promise.pure(Done(a,e)),
-          k => {
-            inner[A](step,state,k)
-          },
-          (msg, e) => Promise.pure(Error(msg,e))
-        )
+      def step(it: Iteratee[E, A], state:S): Promise[Iteratee[E,A]] = it.fold1{
+          case Step.Done(a, e) => Promise.pure(Done(a,e))
+          case Step.Cont(k) => inner[A](step,state,k)
+          case Step.Error(msg, e) => Promise.pure(Error(msg,e))
       }
       step(it,s)
     }
@@ -311,9 +301,8 @@ object Enumerator {
 
       def step(it: Iteratee[E, A], initial: Boolean = false) {
 
-        val next = it.fold(
-          (a, e) => { iterateeP.redeem(it); Promise.pure(None) },
-          k => {
+        val next = it.fold1 {
+          case Step.Cont(k) => {
             retriever(initial).map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
@@ -325,9 +314,9 @@ object Enumerator {
                 Some(nextIteratee)
               }
             }
-          },
-          (_, _) => { iterateeP.redeem(it); Promise.pure(None) }
-        )
+          }
+          case _ => { iterateeP.redeem(it); Promise.pure(None) }
+        }
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
@@ -351,9 +340,8 @@ object Enumerator {
 
       def step(it: Iteratee[E, A]) {
 
-        val next = it.fold(
-          (a, e) => { iterateeP.redeem(it); Promise.pure(None) },
-          k => {
+        val next = it.fold1{
+          case Step.Cont(k) => {
             retriever().map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
@@ -365,9 +353,9 @@ object Enumerator {
                 Some(nextIteratee)
               }
             }
-          },
-          (_, _) => { iterateeP.redeem(it); Promise.pure(None) }
-        )
+          }
+          case _ => { iterateeP.redeem(it); Promise.pure(None) }
+        }
 
         next.extend1 {
           case Redeemed(Some(i)) => step(i)
