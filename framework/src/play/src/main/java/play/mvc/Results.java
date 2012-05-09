@@ -1016,11 +1016,10 @@ public class Results {
         final private play.api.mvc.Result wrappedResult;
 
         public AsyncResult(play.libs.F.Promise<Result> p) {
-            final Http.Context ctx = Http.Context.current();
             wrappedResult = play.core.j.JavaResults.async(
                 p.map(new play.libs.F.Function<Result,play.api.mvc.Result>() {
                     public play.api.mvc.Result apply(Result r) {
-                        return play.core.j.JavaResults.createResult(ctx, r);
+                        return play.core.j.JavaHelpers$.MODULE$.createResult(Http.Context.current(), r);
                     }
                 }).getWrappedPromise()
             );

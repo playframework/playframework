@@ -10,7 +10,7 @@ import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie }
 /**
  * Java compatible Results
  */
-object JavaResults extends Results with DefaultWriteables with DefaultContentTypeOfs with JavaHelpers {
+object JavaResults extends Results with DefaultWriteables with DefaultContentTypeOfs {
   def writeContent(codec: Codec): Writeable[Content] = writeableOf_Content[Content](codec)
   def writeString(codec: Codec): Writeable[String] = Writeable.wString(codec)
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes
