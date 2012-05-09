@@ -33,7 +33,7 @@ import scala.collection.JavaConverters._
  * {{{
  *   object Pager {
  *     implicit def queryStringBinder(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[Pager] {
- *       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Pager]] = {
+ *       override def bind(key: String, params: QueryString): Option[Either[String, Pager]] = {
  *         for {
  *           index <- intBinder.bind(key + ".index", params)
  *           size <- intBinder.bind(key + ".size", params)
@@ -70,7 +70,7 @@ trait QueryStringBindable[A] {
    * @return `None` if the parameter was not present in the query string data. Otherwise, returns `Some` of either
    * `Right` of the parameter value, or `Left` of an error message if the binding failed.
    */
-  def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]]
+  def bind(key: String, params: QueryString): Option[Either[String, A]]
 
   /**
    * Unbind a query string parameter.
@@ -234,7 +234,7 @@ object QueryStringBindable {
    * QueryString binder for String.
    */
   implicit def bindableString = new QueryStringBindable[String] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map(Right(_)) // No need to URL decode from query string since netty already does that
+    def bind(key: String, params: QueryString) = params.getString(key).map(Right(_)) // No need to URL decode from query string since netty already does that
     def unbind(key: String, value: String) = key + "=" + (URLEncoder.encode(value, "utf-8"))
   }
 
@@ -242,7 +242,7 @@ object QueryStringBindable {
    * QueryString binder for Int.
    */
   implicit def bindableInt = new QueryStringBindable[Int] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: QueryString) = params.getString(key).map { i =>
       try {
         Right(java.lang.Integer.parseInt(i))
       } catch {
@@ -256,7 +256,7 @@ object QueryStringBindable {
    * QueryString binder for Long.
    */
   implicit def bindableLong = new QueryStringBindable[Long] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: QueryString) = params.getString(key).map { i =>
       try {
         Right(java.lang.Long.parseLong(i))
       } catch {
@@ -270,7 +270,7 @@ object QueryStringBindable {
    * QueryString binder for Integer.
    */
   implicit def bindableInteger = new QueryStringBindable[java.lang.Integer] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: QueryString) = params.getString(key).map { i =>
       try {
         Right(java.lang.Integer.parseInt(i))
       } catch {
@@ -284,7 +284,7 @@ object QueryStringBindable {
    * QueryString binder for Boolean.
    */
   implicit def bindableBoolean = new QueryStringBindable[Boolean] {
-    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+    def bind(key: String, params: QueryString) = params.getString(key).map { i =>
       try {
         java.lang.Integer.parseInt(i) match {
           case 0 => Right(false)
@@ -302,7 +302,7 @@ object QueryStringBindable {
    * QueryString binder for Option.
    */
   implicit def bindableOption[T: QueryStringBindable] = new QueryStringBindable[Option[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
+    def bind(key: String, params: QueryString) = {
       Some(
         implicitly[QueryStringBindable[T]].bind(key, params)
           .map(_.right.map(Some(_)))
@@ -315,7 +315,7 @@ object QueryStringBindable {
    * QueryString binder for Java Option.
    */
   implicit def bindableJavaOption[T: QueryStringBindable] = new QueryStringBindable[play.libs.F.Option[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
+    def bind(key: String, params: QueryString) = {
       Some(
         implicitly[QueryStringBindable[T]].bind(key, params)
           .map(_.right.map(play.libs.F.Option.Some(_)))
@@ -334,7 +334,7 @@ object QueryStringBindable {
    * QueryString binder for List
    */
   implicit def bindableList[T: QueryStringBindable] = new QueryStringBindable[List[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params)))
+    def bind(key: String, params: QueryString) = Some(Right(bindList[T](key, params)))
     def unbind(key: String, values: List[T]) = unbindList(key, values)
   }
 
@@ -342,15 +342,15 @@ object QueryStringBindable {
    * QueryString binder for java.util.List
    */
   implicit def bindableJavaList[T: QueryStringBindable] = new QueryStringBindable[java.util.List[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params).asJava))
+    def bind(key: String, params: QueryString) = Some(Right(bindList[T](key, params).asJava))
     def unbind(key: String, values: java.util.List[T]) = unbindList(key, values.asScala)
   }
 
-  private def bindList[T: QueryStringBindable](key: String, params: Map[String, Seq[String]]): List[T] = {
+  private def bindList[T: QueryStringBindable](key: String, params: QueryString): List[T] = {
     for {
       values <- params.get(key).toList
       rawValue <- values
-      bound <- implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(rawValue)))
+      bound <- implicitly[QueryStringBindable[T]].bind(key, QueryString(key -> rawValue))
       value <- bound.right.toOption
     } yield value
   }
@@ -365,7 +365,7 @@ object QueryStringBindable {
    * QueryString binder for QueryStringBindable.
    */
   implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit m: Manifest[T]) = new QueryStringBindable[T] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
+    def bind(key: String, params: QueryString) = {
       try {
         val o = m.erasure.newInstance.asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
         if (o.isDefined) {

@@ -43,7 +43,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   /**
    * The request query String
    */
-  lazy val queryString: Map[String, Seq[String]] = play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
+  lazy val queryString: QueryString = QueryString(play.core.parsers.FormUrlEncodedParser.parse(rawQueryString))
 
   /**
    * Constructs a new request with additional headers.

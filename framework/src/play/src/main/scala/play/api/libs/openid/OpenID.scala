@@ -9,7 +9,7 @@ import java.net.URLEncoder
 import play.api.libs.concurrent.PurePromise
 import play.api.data.Form
 import play.api.data.Forms.{ of, text, optional }
-import play.api.mvc.Request
+import play.api.mvc.{Request, QueryString}
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
@@ -20,10 +20,10 @@ case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
  */
 object UserInfo {
 
-  def apply(queryString: Map[String, Seq[String]]): UserInfo = {
+  def apply(queryString: QueryString): UserInfo = {
     val axAttribute = new Regex("^openid[.].+[.]value[.]([^.]+)([.]\\d+)?$")
-    val id = queryString.get("openid.claimedId").flatMap(_.headOption)
-      .orElse(queryString.get("openid.identity").flatMap(_.headOption))
+    val id = queryString.getString("openid.claimedId")
+      .orElse(queryString.getString("openid.identity"))
       .getOrElse(throw Errors.BAD_RESPONSE)
     val attributes = queryString.toSeq.map(pair => (axAttribute.findFirstMatchIn(pair._1).map(_.group(1)), pair._2.headOption))
       .collect({ case (Some(key), Some(value)) => (key, value) }).toMap
@@ -68,13 +68,13 @@ object OpenID {
    */
   def verifiedId(queryString: java.util.Map[String, Array[String]]): Promise[UserInfo] = {
     import scala.collection.JavaConversions._
-    verifiedId(queryString.toMap.mapValues(_.toSeq))
+    verifiedId(QueryString(queryString.toMap.mapValues(_.toSeq)))
   }
 
-  private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
-    (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimedId").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
-      queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
+  private def verifiedId(queryString: QueryString): Promise[UserInfo] = {
+    (queryString.getString("openid.mode"),
+      queryString.getString("openid.claimedId").orElse(queryString.getString("openid.identity")),
+      queryString.getString("openid.op_endpoint")) match {
         case (Some("id_res"), Some(id), endPoint) => {
           val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
           server.flatMap(url => {

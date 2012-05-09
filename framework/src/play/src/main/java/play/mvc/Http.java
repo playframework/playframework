@@ -180,7 +180,7 @@ public class Http {
         /**
          * The query string content.
          */
-        public abstract Map<String,String[]> queryString();
+        public abstract QueryString queryString();
         
         /**
          * Helper method to access a queryString parameter.
@@ -250,6 +250,37 @@ public class Http {
         }
         
     }
+    
+
+    /**
+     * The request query string
+     */
+    @SuppressWarnings("serial")
+    public static class QueryString extends HashMap<String, String[]> {
+
+        /**
+         * @param m query string data
+         */
+        public QueryString(Map<? extends String, ? extends String[]> m) {
+            super(m);
+        }
+
+        /**
+         * Retrieve a parameter value as a <code>String</code>.
+         * @param key name of the parameter to retrieve
+         * @return the first value for the given <code>key</code>, if found, otherwise <code>null</code>.
+         */
+        public String getString(String key) {
+            String[] values = get(key);
+            if (values == null || values.length == 0) {
+                return null;
+            } else {
+                return values[0];
+            }
+        }
+
+    }
+
     
     /**
      * Handle the request body a raw bytes data.

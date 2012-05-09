@@ -1114,7 +1114,7 @@ object Router {
 
   case class Param[T](name: String, value: Either[String, T])
 
-  case class RouteParams(path: Map[String, String], queryString: Map[String, Seq[String]]) {
+  case class RouteParams(path: Map[String, String], queryString: QueryString) {
 
     def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] = {
       Param(key, path.get(key).map(binder.bind(key, _)).getOrElse {
