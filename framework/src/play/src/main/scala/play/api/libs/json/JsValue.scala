@@ -48,6 +48,13 @@ sealed trait JsValue {
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this))
 
   /**
+   * Tries to convert the node into a T. An implicit Reads[T] must be defined.
+   *
+   * @return Right[T] if it succeeds, Left[RuntimeException] if it fails.
+   */
+  def asEither[T](implicit fjs: Reads[T]): Either[Throwable, T] = catching(classOf[RuntimeException]).either(fjs.reads(this))
+
+  /**
    * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
