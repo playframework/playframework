@@ -19,6 +19,8 @@ import play.i18n.Lang;
 import play.libs.F;
 import play.libs.F.*;
 
+import play.api.mvc.AsyncResult;
+
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
@@ -157,4 +159,51 @@ public class SimpleTest {
             }
         });
     }
+
+    @Test
+    public void asyncResult() {
+
+        class AsyncTestResult implements Result {
+            private final play.api.mvc.Result wrappedResult;
+
+            @Override
+            public play.api.mvc.Result getWrappedResult() {
+                return wrappedResult;
+            }
+
+            public AsyncTestResult(Result result) {
+                play.api.mvc.Result wrappedResult = result.getWrappedResult();
+                if (wrappedResult instanceof AsyncResult)
+                    this.wrappedResult = ((AsyncResult) wrappedResult).result()
+                            .value().get();
+                else
+                    this.wrappedResult = wrappedResult;
+            }
+
+        }
+
+        running(fakeApplication(), new Runnable() {
+            @Override
+            public void run() {
+                Result result = routeAndCall(fakeRequest(
+                        GET, "/async"));
+                assertThat(result.getWrappedResult() instanceof AsyncResult)
+                        .isEqualTo(true);
+                result = new AsyncTestResult(result);
+                assertThat(status(result)).isEqualTo(OK);
+                assertThat(charset(result)).isEqualTo("utf-8");
+                assertThat(contentAsString(result)).isEqualTo("success");
+                assertThat(contentType(result)).isEqualTo("text/plain");
+                assertThat(header("header_test", result)).isEqualTo(
+                        "header_val");
+                assertThat(session(result).get("session_test")).isEqualTo(
+                        "session_val");
+                assertThat(cookie("cookie_test", result).value()).isEqualTo(
+                        "cookie_val");
+                assertThat(flash(result).get("flash_test")).isEqualTo(
+                        "flash_val");
+            }
+        });
+    }
+
 }
