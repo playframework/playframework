@@ -367,7 +367,7 @@ public class Constraints {
         
         public boolean isValid(String object) {
             if(object == null || object.length() == 0) {
-                return true;
+                return false;
             }
             
             return regex.matcher(object).matches();
