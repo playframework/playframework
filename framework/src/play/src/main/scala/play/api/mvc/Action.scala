@@ -146,9 +146,9 @@ object BodyParser {
 }
 
 /**
- * Helper object to create `Action` values.
+ * Provides helpers for creating `Action` values.
  */
-object Action {
+trait ActionBuilder {
 
   /**
    * Constructs an `Action`.
@@ -183,9 +183,7 @@ object Action {
    * @param block the action code
    * @return an action
    */
-  def apply(block: Request[AnyContent] => Result): Action[AnyContent] = {
-    Action(BodyParsers.parse.anyContent)(block)
-  }
+  def apply(block: Request[AnyContent] => Result): Action[AnyContent] = apply(BodyParsers.parse.anyContent)(block)
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
@@ -200,8 +198,11 @@ object Action {
    * @param block the action code
    * @return an action
    */
-  def apply(block: => Result): Action[AnyContent] = {
-    this.apply(_ => block)
-  }
+  def apply(block: => Result): Action[AnyContent] = apply(_ => block)
 
 }
+
+/**
+ * Helper object to create `Action` values.
+ */
+object Action extends ActionBuilder
