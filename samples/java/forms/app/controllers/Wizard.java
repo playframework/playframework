@@ -8,7 +8,8 @@ import views.html.wizard.*;
 
 import models.*;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 
 public class Wizard extends Controller {
