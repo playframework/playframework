@@ -33,6 +33,11 @@ package play.api.mvc {
     def queryString: Map[String, Seq[String]]
 
     /**
+     * Helper method to access a queryString parameter.
+     */
+    def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
+
+    /**
      * The HTTP headers.
      */
     def headers: Headers

@@ -185,7 +185,7 @@ public class Http {
         /**
          * Helper method to access a queryString parameter.
          */
-        public String queryString(String key) {
+        public String getQueryString(String key) {
             return queryString().containsKey(key) && queryString().get(key).length > 0 ? queryString().get(key)[0] : null;
         }
 
