@@ -59,6 +59,9 @@
 		        text-shadow: 1px 1px 1px rgba(0,0,0,.3);
 		        border-top: 4px solid #2a2a2a;
 		    }
+		    h2 a {
+		    	color: #fff;
+		    }
 			pre {
 				margin: 0;
 				border-bottom: 1px solid #DDD;
@@ -127,7 +130,9 @@
 
 				@source.sourceName.map { name =>
 					<h2>
-						In @name @source.line.map { line =>
+						In @source.line.map { line =>
+						@* URL Scheme according to: http://manual.macromates.com/en/using_textmate_from_terminal.html#url_scheme_html *@
+						<a href="txmt://open/?url=@views.html.helper.urlEncode("file://"+name)&line=@line@source.position.map{pos=>&column=@pos}">@name</a>
 							at line @line.
 						}
 					</h2>
