@@ -19,4 +19,10 @@ package object helper {
    */
   val defaultField = defaultFieldConstructor.f
 
+  /**
+   * @return The url-encoded value of `string` using the charset provided by `codec`
+   */
+  def urlEncode(string: String)(implicit codec: play.api.mvc.Codec): String =
+    java.net.URLEncoder.encode(string, codec.charset)
+
 }
