@@ -4,6 +4,7 @@
 
 GET     /                           controllers.Application.index(name = "Guest")
 GET     /key                        controllers.Application.key
+GET     /async                      controllers.Application.asyncResult
 GET     /:name                      controllers.Application.index(name)
 
 POST    /json                       controllers.Application.getIdenticalJson()

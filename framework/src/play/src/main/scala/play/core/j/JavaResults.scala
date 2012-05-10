@@ -25,16 +25,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] = ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
-  def async(p: play.api.libs.concurrent.Promise[Result]) = {
-    import scala.collection.JavaConverters.mapAsScalaMapConverter
-    val rsp = play.mvc.Http.Context.current().response()
-    AsyncResult(p.map {
-      case r: PlainResult =>
-        r.withHeaders((rsp.getHeaders().asScala -- r.header.headers.keys).toList: _*)
-      case r =>
-        r
-    })
-  }
+  def async(p: play.api.libs.concurrent.Promise[Result]) = AsyncResult(p)
   def chunked[A](onDisconnected: () => Unit) = play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
