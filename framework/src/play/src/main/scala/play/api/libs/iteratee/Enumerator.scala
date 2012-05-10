@@ -136,8 +136,13 @@ object Enumerator {
 
       val itE1 = iteratee[E1] { case (l, r) => (false, r) }
       val itE2 = iteratee[E2] { case (l, r) => (l, false) }
-      e1 |>> itE1
-      e2 |>> itE2
+      val r1 = e1 |>> itE1
+      val r2 = e2 |>> itE2
+      r1.flatMap(_ => r2).extend1 {
+        case Redeemed(_) => redeemResultIfNotYet()
+        case Thrown(e) => result.throwing(e)
+
+      }
       result
     }
 
@@ -407,7 +412,7 @@ object Enumerator {
 
   private def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
-      i.map(it => it.pureFlatFold((_, _) => it,
+      i.flatMap(it => it.pureFold((_, _) => it,
         k => k(Input.El(e)),
         (_, _) => it)))
   }
