@@ -67,7 +67,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
   val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
-
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -248,11 +247,15 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (baseDirectory, playExternalAssets) map { (base, externalAssets) =>
-    ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*") +++ externalAssets.map {
+  val playHashTask = (state, thisProjectRef, playExternalAssets) map { (s,r, externalAssets) =>
+    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
+      (base / "src" / "main" ** "*") +++ (base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")
+    }.foldLeft(PathFinder.empty)(_ +++ _)
+    ( filesToHash +++ externalAssets.map {
       case (root, paths, _) => paths(root)
     }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
   }
+
 
   // ----- Post compile (need to be refactored and fully configurable)
 
@@ -437,8 +440,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     println()
 
     val sbtLoader = this.getClass.getClassLoader
-    val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
-
+    def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
+        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+        throw commonLoaderEither.left.get
+      }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader
