@@ -637,13 +637,22 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
             }
           }.start()
 
-          println(Colors.green(
-            """|
-               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
-               |""".stripMargin))
+          properties.find { p => p._1 == "background" && p._2 == "true"} match {
+          	case Some(_) =>
+          	  println(Colors.green(
+			    """|
+			       |(Starting server. The server will remain in background)
+			       |""".stripMargin))				  
+  
+			case _ => 
+			  println(Colors.green(
+				"""|
+				   |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
+				   |""".stripMargin))
 
-          waitForKey()
-
+              waitForKey()
+          }
+					
           println()
 
           state.copy(remainingCommands = Seq.empty)
