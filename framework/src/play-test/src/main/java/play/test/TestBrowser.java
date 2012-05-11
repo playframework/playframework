@@ -28,45 +28,8 @@ public class TestBrowser extends FluentAdapter {
      * @param webDriver The WebDriver instance to use.
      */
     public TestBrowser(WebDriver webDriver) {
-        setDriver(webDriver);
+        super(webDriver);
     }
     
-    /**
-
-    /**
-     * The current page URL.
-     */
-    public String url() {
-        return super.url();
-    }
-    /**
-    * The current page URL.
-    */
-    public String title() {
-       return super.title();
-    }
-
-    /**
-     * The current page HTML source.
-     */
-    public String pageSource() {
-        return super.pageSource();
-    }
-
-    /**
-     * Retrieves all cookies.
-     */
-    public Set<Cookie> getCookies() {
-        return super.getCookies();
-    }
-
-    /**
-     * Retrieves a cookie.
-     */
-    public Cookie getCookie(String name) {
-        return super.getCookie(name);
-    }
-
-
 
 }
