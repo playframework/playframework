@@ -248,10 +248,10 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (baseDirectory, playExternalAssets) map { (base, externalAssets) =>
-    ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*") +++ externalAssets.map {
+  val playHashTask = (baseDirectory, playExternalAssets, watchTransitiveSources) map { (base, externalAssets, transitiveSources) =>
+    (((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*") +++ externalAssets.map {
       case (root, paths, _) => paths(root)
-    }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
+    }.foldLeft(PathFinder.empty)(_ +++ _)).get ++ transitiveSources).map(_.lastModified).mkString(",").hashCode.toString
   }
 
   // ----- Post compile (need to be refactored and fully configurable)
