@@ -7,7 +7,7 @@ import play.libs.F
 
 object JavaPromise {
 
-  def sequence[A](promises: JList[F.Promise[A]]): Promise[JList[A]] = {
+  def sequence[A](promises: JList[F.Promise[_ <: A]]): Promise[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))
       .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)
   }

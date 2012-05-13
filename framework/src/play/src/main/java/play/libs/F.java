@@ -78,7 +78,7 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> waitAll(Promise<A>... promises){
+        public static <A> Promise<List<A>> waitAll(Promise<? extends A>... promises){
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
         }
         
@@ -109,9 +109,9 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> waitAll(Iterable<Promise<A>> promises){
-            ArrayList<Promise<A>> ps = new ArrayList<Promise<A>>();
-            for(Promise<A> p : promises){
+        public static <A> Promise<List<A>> waitAll(Iterable<Promise<? extends A>> promises){
+            ArrayList<Promise<? extends A>> ps = new ArrayList<Promise<? extends A>>();
+            for(Promise<? extends A> p : promises){
                 ps.add(p);
             }
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
@@ -128,7 +128,7 @@ public class F {
 
         /**
          * Create a new promise throwing an exception.
-         * @param a Value to throw
+         * @param throwable Value to throw
          */
         public static <A> Promise<A> throwing(Throwable throwable) {
             return new Promise<A>(play.core.j.JavaPromise.<A>throwing(throwable));
