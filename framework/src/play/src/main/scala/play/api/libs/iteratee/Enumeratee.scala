@@ -61,12 +61,12 @@ object Enumeratee {
     def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
 
     def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
-      it.pureFlatFold(
-        (_, _) => Done(it, Input.Empty),
-        k => continue(k),
-        (_, _) => Done(it, Input.Empty))
-
+      it.pureFlatFold {
+        case Step.Cont(k) => continue(k)
+        case _ => Done(it, Input.Empty)
+      }
   }
+
   def zip[E, A, B](inner1: Iteratee[E, A], inner2: Iteratee[E, B]): Iteratee[E, (A, B)] = zipWith(inner1, inner2)((_, _))
 
   def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C): Iteratee[E, C] = {
@@ -97,11 +97,11 @@ object Enumeratee {
     }
 
     def getInside[T](it: Iteratee[E, T]): Promise[(Option[Either[(String, Input[E]), (T, Input[E])]], Iteratee[E, T])] = {
-      it.pureFold(
-        (a, e) => Some(Right((a, e))),
-        k => None,
-        (msg, e) => Some(Left((msg, e)))
-      ).map(r => (r, it))
+      it.pureFold {
+        case Step.Done(a, e) => Some(Right((a, e)))
+        case Step.Cont(k) => None
+        case Step.Error(msg, e) => Some(Left((msg, e)))
+      }.map(r => (r, it))
 
     }
 
@@ -212,14 +212,15 @@ object Enumeratee {
 
         case in @ (Input.El(_) | Input.Empty) =>
 
-          Iteratee.flatten(f.feed(in)).pureFlatFold(
-            (a, left) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = 
+          Iteratee.flatten(f.feed(in)).pureFlatFold {
+            case Step.Done(a, left) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = 
               (left match {
                 case Input.El(_) => step(folder)(k)(left)
                 case _ => Cont(step(folder)(k))
-              })} &> k(Input.El(a)),
-            kF => Cont(step(Cont(kF))(k)),
-            (msg, e) => Error(msg, in))
+              })} &> k(Input.El(a))
+            case Step.Cont(kF) => Cont(step(Cont(kF))(k))
+            case Step.Error(msg, e) => Error(msg, in)
+          }
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -282,15 +283,15 @@ object Enumeratee {
 
           case Input.El(e) if counter > 0 => Cont(step(counter - 1, inner))
 
-          case Input.El(e) => inner.pureFlatFold(
-            (_, _) => Done(inner, in),
-            k => Cont(step(0, k(in))),
-            (_, _) => Done(inner, in))
+          case Input.El(e) => inner.pureFlatFold {
+            case Step.Cont(k) => Cont(step(0, k(in)))
+            case _ => Done(inner, in)
+          }
 
-          case Input.EOF => inner.pureFlatFold(
-            (_, _) => Done(inner, Input.EOF),
-            k => Done(Cont(k), Input.EOF),
-            (_, _) => Done(inner, Input.EOF))
+          case Input.EOF => inner.pureFlatFold {
+            case Step.Cont(k) => Done(Cont(k), Input.EOF)
+            case _ => Done(inner, Input.EOF)
+          }
 
           case Input.Empty => Cont(step(counter, inner))
 
@@ -312,15 +313,15 @@ object Enumeratee {
 
         in match {
           case Input.El(e) if !p(e) => Done(inner, in)
-          case Input.El(e) => inner.pureFlatFold(
-            (_, _) => Cont(step(inner)),
-            k => Cont(step(k(in))),
-            (_, _) => Cont(step(inner)))
+          case Input.El(e) => inner.pureFlatFold {
+            case Step.Cont(k) => Cont(step(k(in)))
+            case _ => Cont(step(inner))
+          }
 
-          case Input.EOF => inner.pureFlatFold(
-            (_, _) => Done(inner, Input.EOF),
-            k => Done(Cont(k), Input.EOF),
-            (_, _) => Done(inner, Input.EOF))
+          case Input.EOF => inner.pureFlatFold {
+            case Step.Cont(k) => Done(Cont(k), Input.EOF)
+            case _ => Done(inner, Input.EOF)
+          }
 
           case Input.Empty => Cont(step(inner))
         }
@@ -337,21 +338,19 @@ object Enumeratee {
         in match {
           case Input.El(e) if (p(e)) => Done(inner, in)
           case _ =>
-            inner.pureFlatFold(
-              (_, _) => Done(inner, in),
-              k => {
+            inner.pureFlatFold {
+              case Step.Cont(k) => {
                 val next = k(in)
-                next.pureFlatFold(
-                  (_, _) => Done(inner, in),
-                  k => Cont(step(next)),
-                  (_, _) => Done(inner, in))
-              },
-              (_, _) => Done(inner, in))
+                next.pureFlatFold {
+                  case Step.Cont(k) => Cont(step(next))
+                  case _ => Done(inner, in)
+                }
+              }
+              case _ => Done(inner, in)
+            }
         }
-
       }
       Cont(step(inner))
-
     }
   }
 

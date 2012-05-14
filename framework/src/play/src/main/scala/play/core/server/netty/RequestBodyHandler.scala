@@ -41,29 +41,31 @@ private[server] trait RequestBodyHandler {
       if (!redeemed) {
         val itPromise = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
         val current = iteratee.single.swap(Iteratee.flatten(itPromise))
-        val next = current.pureFlatFold[Array[Byte], Either[Result, R]](
-          (_, _) => current,
-          k => k(chunk),
-          (e, _) => current)
+        val next = current.pureFlatFold[Array[Byte], Either[Result, R]] {
+          case Step.Done(_, _) => current
+          case Step.Cont(k) => k(chunk)
+          case Step.Error(e, _) => current
+        }
 
         itPromise.redeem(next)
 
-        next.pureFold(
-          (a, e) => if (!redeemed) {
+        next.pureFold {
+          case Step.Done(a, e) => if (!redeemed) {
             p.redeem(next);
             iteratee = null; p = null; redeemed = true
             if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
-          },
-          k =>
+          }
+          case Step.Cont(k) =>
             if (counter.single.transformAndGet { _ - 1 } <= MIN_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
-              ctx.getChannel.setReadable(true),
+              ctx.getChannel.setReadable(true)
 
-          (msg, e) =>
+          case Step.Error(msg, e) =>
             if (!redeemed) {
               p.redeem(Done(Left(Results.InternalServerError), e))
               iteratee = null; p = null; redeemed = true
               if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
-            })
+            }
+        }
       }
     }
 

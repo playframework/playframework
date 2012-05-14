@@ -214,27 +214,25 @@ object WS {
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
           if (!doneOrError) {
-            iteratee = iteratee.pureFlatFold(
-              // DONE
-              (a, e) => {
+            iteratee = iteratee.pureFlatFold {
+              case Step.Done(a, e) => {
                 doneOrError = true
                 val it = Done(a, e)
                 iterateeP.redeem(it)
                 it
-              },
+              }
 
-              // CONTINUE
-              k => {
+              case Step.Cont(k) => {
                 k(El(bodyPart.getBodyPartBytes()))
-              },
+              }
 
-              // ERROR
-              (e, input) => {
+              case Step.Error(e, input) => {
                 doneOrError = true
                 val it = Error(e, input)
                 iterateeP.redeem(it)
                 it
-              })
+              }
+            }
             STATE.CONTINUE
           } else {
             iteratee = null

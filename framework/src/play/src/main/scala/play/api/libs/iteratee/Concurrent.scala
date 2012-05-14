@@ -15,13 +15,13 @@ object Concurrent {
             Done(inner, Input.Empty)
 
           case in =>
-            val readyOrNot: Promise[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]](
-              (a, e) => Done(Done(a, e), Input.Empty),
-              k => Cont { in =>
+            val readyOrNot: Promise[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]] {
+              case Step.Done(a, e) => Done(Done(a, e), Input.Empty)
+              case Step.Cont(k) => Cont { in =>
                 val next = k(in)
                 Cont(step(next))
-              },
-              (msg, e) => Done(Error(msg, e), Input.Empty)).orTimeout((), duration, unit)
+              }
+              case Step.Error(msg, e) => Done(Error(msg, e), Input.Empty)}.orTimeout((), duration, unit)
 
             Iteratee.flatten(readyOrNot.map {
               case Left(ready) => Iteratee.flatten(ready.feed(in))
@@ -65,7 +65,7 @@ object Concurrent {
       val ready = interested.zipWithIndex.map {
         case (t, index) =>
           val p = t._2
-          t._1.fold1 {
+          t._1.fold {
             case Step.Done(a, e) =>
               p.redeem(Done(a, e))
               commitDone.single.transform(_ :+ index)
@@ -73,16 +73,17 @@ object Concurrent {
 
             case Step.Cont(k) =>
               val next = k(in)
-              next.pureFold(
-                (a, e) => {
+              next.pureFold {
+                case Step.Done(a, e) => {
                   p.redeem(Done(a, e))
                   commitDone.single.transform(_ :+ index)
-                },
-                k => commitReady.single.transform(_ :+ (index, (Cont(k), p))),
-                (msg, e) => {
+                }
+                case Step.Cont(k) => commitReady.single.transform(_ :+ (index, (Cont(k), p)))
+                case Step.Error(msg, e) => {
                   p.redeem(Error(msg, e))
                   commitDone.single.transform(_ :+ index)
-                })
+                }
+              }
 
             case Step.Error(msg, e) =>
               p.redeem(Error(msg, e))
@@ -193,51 +194,54 @@ object Concurrent {
       def refIteratee(ref: Ref[Iteratee[E, Option[A]]]): Iteratee[E, Option[A]] = {
         val next = Promise[Iteratee[E, Option[A]]]()
         val current = ref.single.swap(Iteratee.flatten(next))
-        current.pureFlatFold(
-          (a, e) => {
+        current.pureFlatFold {
+          case Step.Done(a, e) => {
             a.foreach(aa => result.redeem(Done(aa, e)))
             next.redeem(Done(a, e))
             Done(a, e)
-          },
-          k => {
+          }
+          case Step.Cont(k) => {
             next.redeem(current)
             Cont(step(ref))
-          },
-          (msg, e) => {
+          }
+          case Step.Error(msg, e) => {
             result.redeem(Error(msg, e))
             next.redeem(Error(msg, e))
             Error(msg, e)
 
-          })
+          }
+        }
 
       }
 
       def step(ref: Ref[Iteratee[E, Option[A]]])(in: Input[E]): Iteratee[E, Option[A]] = {
         val next = Promise[Iteratee[E, Option[A]]]()
         val current = ref.single.swap(Iteratee.flatten(next))
-        current.pureFlatFold(
-          (a, e) => {
+        current.pureFlatFold {
+          case Step.Done(a, e) => {
             next.redeem(Done(a, e))
             Done(a, e)
-          },
-          k => {
+          }
+          case Step.Cont(k) => {
             val n = k(in)
             next.redeem(n)
-            n.pureFlatFold(
-              (a, e) => {
+            n.pureFlatFold {
+              case Step.Done(a, e) => {
                 a.foreach(aa => result.redeem(Done(aa, e)))
                 Done(a, e)
-              },
-              k => Cont(step(ref)),
-              (msg, e) => {
+              }
+              case Step.Cont(k) => Cont(step(ref))
+              case Step.Error(msg, e) => {
                 result.redeem(Error(msg, e))
                 Error(msg, e)
-              })
-          },
-          (msg, e) => {
+              }
+            }
+          }
+          case Step.Error(msg, e) => {
             next.redeem(Error(msg, e))
             Error(msg, e)
-          })
+          }
+        }
       }
 
       patcher(new PatchPanel[E] {

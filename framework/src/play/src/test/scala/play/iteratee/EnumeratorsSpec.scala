@@ -9,8 +9,8 @@ object EnumeratorsSpec extends Specification {
 
   "mix it with another enumerator into one" in {
       import play.api.libs.concurrent.Promise
-      val e1 = Enumerator(List(1),List(3),List(5),List(7)) >>> Enumerator.enumInput(Input.EOF)
-      val e2 = Enumerator(List(2),List(4),List(6),List(8))  >>> Enumerator.enumInput(Input.EOF)
+      val e1 = Enumerator(List(1),List(3),List(5),List(7))
+      val e2 = Enumerator(List(2),List(4),List(6),List(8))
       val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
       val kk =e(Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)

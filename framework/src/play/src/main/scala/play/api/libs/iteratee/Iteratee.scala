@@ -11,11 +11,11 @@ object Iteratee {
    */
   def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = i.flatMap(_.fold1(folder))
+    def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = i.flatMap(_.fold(folder))
 
   }
 
-  def isDoneOrError[E, A](it: Iteratee[E, A]): Promise[Boolean] = it.pureFold((_, _) => true, _ => false, (_, _) => true)
+  def isDoneOrError[E, A](it: Iteratee[E, A]): Promise[Boolean] = it.pureFold{ case Step.Cont(_) => false; case _ => true }
 
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
@@ -170,13 +170,14 @@ object Iteratee {
 
         case Input.Empty => Cont(step(s))
 
-        case Input.El(e) => i.pureFlatFold(
-          (a, e) => Done(s :+ a, input),
-          k => for {
+        case Input.El(e) => i.pureFlatFold {
+          case Step.Done(a, e) => Done(s :+ a, input)
+          case Step.Cont(k) => for {
             a <- k(input);
             az <- repeat(i)
-          } yield s ++ (a +: az),
-          (msg, e) => Error(msg, e))
+          } yield s ++ (a +: az)
+          case Step.Error(msg, e) => Error(msg, e)
+        }
       }
     }
 
@@ -222,9 +223,9 @@ trait Iteratee[E, +A] {
    *
    *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
    */
-  def run[AA >: A]: Promise[AA] = fold1({
+  def run[AA >: A]: Promise[AA] = fold({
     case Step.Done(a,_) => Promise.pure(a)
-    case Step.Cont(k) => k(Input.EOF).fold1({
+    case Step.Cont(k) => k(Input.EOF).fold({
       case Step.Done(a1,_) => Promise.pure(a1)
       case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
       case Step.Error(msg,e) => sys.error(msg)
@@ -244,47 +245,40 @@ trait Iteratee[E, +A] {
    * @param error a function that will be called if the Iteratee is an Error
    * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
    */
-  def fold[B](done: (A, Input[E]) => Promise[B],
+  def fold1[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
-    error: (String, Input[E]) => Promise[B]): Promise[B] = fold1({
+    error: (String, Input[E]) => Promise[B]): Promise[B] = fold({
       case Step.Done(a,e) => done(a,e)
       case Step.Cont(k) => cont(k)
       case Step.Error(msg,e) => error(msg,e)
     })
 
-  def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B]
+  def fold[B](folder: Step[E,A] => Promise[B]): Promise[B]
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
    *
    * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
    */
-  def pureFold[B](done: (A, Input[E]) => B,
-    cont: (Input[E] => Iteratee[E, A]) => B,
-    error: (String, Input[E]) => B): Promise[B] =
-    fold[B](
-      (a, e) => Promise.pure(done(a, e)),
-      k => Promise.pure(cont(k)),
-      (msg, e) => Promise.pure(error(msg, e)))
+  def pureFold[B](folder: Step[E,A] => B): Promise[B] = fold(s => Promise.pure(folder(s)))
 
   /**
    * Like pureFold, except taking functions that return an Iteratee
    *
    * @return an Iteratee extracted by calling the appropriate provided function
    */
-  def pureFlatFold[B, C](done: (A, Input[E]) => Iteratee[B, C],
-    cont: (Input[E] => Iteratee[E, A]) => Iteratee[B, C],
-    error: (String, Input[E]) => Iteratee[B, C]): Iteratee[B, C] =
-    Iteratee.flatten(pureFold(done, cont, error))
+  def pureFlatFold[B,C](folder: Step[E,A] => Iteratee[B,C]): Iteratee[B,C] = Iteratee.flatten(pureFold(folder))
 
   def flatFold[B, C](done: (A, Input[E]) => Promise[Iteratee[B, C]],
     cont: (Input[E] => Iteratee[E, A]) => Promise[Iteratee[B, C]],
-    error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold(done, cont, error))
+    error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error))
 
   def mapDone[B](f: A => B): Iteratee[E, B] =
-    this.pureFlatFold((a, e) => Done(f(a), e),
-      k => Cont((in: Input[E]) => k(in).mapDone(f)),
-      (err, e) => Error(err, e))
+    this.pureFlatFold{
+      case Step.Done(a,e) => Done(f(a), e)
+      case Step.Cont(k) =>  Cont((in: Input[E]) => k(in).mapDone(f))
+      case Step.Error(err,e) => Error(err, e)
+    }
 
   /**
    *
@@ -299,67 +293,69 @@ trait Iteratee[E, +A] {
    *
    * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
    */
-  def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(
-    {
-      case (a, Input.Empty) => f(a)
-      case (a, e) => f(a).pureFlatFold(
-        (a, _) => Done(a, e),
-        k => k(e),
-        (msg, e) => Error(msg, e))
-    },
-    k => Cont(in => k(in).flatMap(f)),
-    (msg, e) => Error(msg, e))
+  def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold{
+      case Step.Done(a, Input.Empty) => f(a)
+      case Step.Done(a, e) => f(a).pureFlatFold {
+        case Step.Done(a, _) => Done(a, e)
+        case Step.Cont(k) => k(e)
+        case Step.Error(msg, e) => Error(msg, e)
+      }
+      case Step.Cont(k) => Cont(in => k(in).flatMap(f))
+      case Step.Error(msg, e) => Error(msg, e)
+  }
 
   /**
    * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.
    */
-  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold(
-    {
-      case (a, Input.Empty) => f(a)
-      case (a, e) => f(a).pureFlatFold(
-        (a, eIn) => {
-          val fullIn = (e, eIn) match {
-            case (Input.Empty, in) => in
-            case (in, Input.Empty) => in
-            case (Input.EOF, _) => Input.EOF
-            case (in, Input.EOF) => in
-            case (Input.El(e1), Input.El(e2)) => Input.El[E](p(e1) ++ p(e2))
-          }
+  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold{
+    case Step.Done(a, Input.Empty) => f(a)
+    case Step.Done(a, e) => f(a).pureFlatFold {
+      case Step.Done(a, eIn) => {
+        val fullIn = (e, eIn) match {
+          case (Input.Empty, in) => in
+          case (in, Input.Empty) => in
+          case (Input.EOF, _) => Input.EOF
+          case (in, Input.EOF) => in
+          case (Input.El(e1), Input.El(e2)) => Input.El[E](p(e1) ++ p(e2))
+        }
 
-          Done(a, fullIn)
-        },
-        k => k(e),
-        (msg, e) => Error(msg, e))
-    },
-    k => Cont(in => k(in).flatMap(f)),
-    (msg, e) => Error(msg, e))
+        Done(a, fullIn)
+      }
+      case Step.Cont(k) => k(e)
+      case Step.Error(msg, e) => Error(msg, e)
+    }
+    case Step.Cont(k) => Cont(in => k(in).flatMap(f))
+    case Step.Error(msg, e) => Error(msg, e)
+  }
 
   def joinI[AIn](implicit in: A <:< Iteratee[_, AIn]): Iteratee[E, AIn] = {
     this.flatMap { a =>
       val inner = in(a)
-      inner.pureFlatFold(
-        (a, _) => Done(a, Input.Empty),
-        k => k(Input.EOF).pureFlatFold(
-          (a, _) => Done(a, Input.Empty),
-          k => Error("divergent inner iteratee on joinI after EOF", Input.EOF),
-          (msg, e) => Error(msg, Input.EOF)),
-        (msg, e) => Error(msg, Input.Empty))
+      inner.pureFlatFold {
+        case Step.Done(a, _) => Done(a, Input.Empty)
+        case Step.Cont(k) => k(Input.EOF).pureFlatFold {
+          case Step.Done(a, _) => Done(a, Input.Empty)
+          case Step.Cont(k) => Error("divergent inner iteratee on joinI after EOF", Input.EOF)
+          case Step.Error(msg, e) => Error(msg, Input.EOF)
+        }
+        case Step.Error(msg, e) => Error(msg, Input.Empty)
+      }
     }
-
   }
 
   def joinConcatI[AIn, X](implicit in: A <:< Iteratee[E, AIn], p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, AIn] = {
     this.flatMapTraversable { a =>
       val inner = in(a)
-      inner.pureFlatFold(
-        (a, e) => Done(a, e),
-        k => k(Input.EOF).pureFlatFold(
-          (a, e) => Done(a, e),
-          k => Error("divergent inner iteratee on joinI after EOF", Input.EOF),
-          (msg, e) => Error(msg, Input.EOF)),
-        (msg, e) => Error(msg, Input.Empty))
+      inner.pureFlatFold {
+        case Step.Done(a, e) => Done(a, e)
+        case Step.Cont(k) => k(Input.EOF).pureFlatFold {
+          case Step.Done(a, e) => Done(a, e)
+          case Step.Cont(k) => Error("divergent inner iteratee on joinI after EOF", Input.EOF)
+          case Step.Error(msg, e) => Error(msg, Input.EOF)
+        }
+        case Step.Error(msg, e) => Error(msg, Input.Empty)
+      }
     }
-
   }
 }
 
@@ -371,7 +367,7 @@ object Done {
    */
   def apply[E, A](a: A, e: Input[E]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Done(a,e))
+    def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Done(a,e))
 
   }
 
@@ -384,7 +380,7 @@ object Cont {
    */
   def apply[E, A](k: Input[E] => Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold1[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Cont(k))
+    def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Cont(k))
 
   }
 }
@@ -396,7 +392,7 @@ object Error {
    */
   def apply[E](msg: String, e: Input[E]): Iteratee[E, Nothing] = new Iteratee[E, Nothing] {
 
-    def fold1[B](folder: Step[E,Nothing] => Promise[B]): Promise[B] = folder(Step.Error(msg,e))
+    def fold[B](folder: Step[E,Nothing] => Promise[B]): Promise[B] = folder(Step.Error(msg,e))
 
   }
 }
@@ -423,7 +419,7 @@ object Parsing {
 
     def applyOn[A](inner: Iteratee[MatchInfo[Array[Byte]], A]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
 
-      Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
+      Iteratee.flatten(inner.fold1((a, e) => Promise.pure(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
         k => Promise.pure(Cont(step(Array[Byte](), Cont(k)))),
         (err, r) => throw new Exception()))
 
@@ -463,16 +459,16 @@ object Parsing {
           val all = rest ++ chunk
           def inputOrEmpty(a: Array[Byte]) = if (a.isEmpty) Input.Empty else Input.El(a)
 
-          Iteratee.flatten(inner.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(rest))),
+          Iteratee.flatten(inner.fold1((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(rest))),
             k => {
               val (result, suffix) = scan(Nil, all, 0)
               val fed = result.filter(!_.content.isEmpty).foldLeft(Promise.pure(Array[Byte](), Cont(k))) { (p, m) =>
-                p.flatMap(i => i._2.fold((a, e) => Promise.pure((i._1 ++ m.content, Done(a, e))),
+                p.flatMap(i => i._2.fold1((a, e) => Promise.pure((i._1 ++ m.content, Done(a, e))),
                   k => Promise.pure((i._1, k(Input.El(m)))),
                   (err, e) => throw new Exception()))
               }
               fed.flatMap {
-                case (ss, i) => i.fold((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
+                case (ss, i) => i.fold1((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
                   k => Promise.pure(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
                     case Input.EOF => Done(k(Input.El(Unmatched(suffix))), Input.EOF) //suffix maybe empty
                     case other => step(ss ++ suffix, Cont(k))(other)

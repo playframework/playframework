@@ -247,16 +247,15 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                 requestHeader.headers.get("Expect") match {
                   case Some("100-continue") => {
-                    bodyParser.pureFold(
-                      (_, _) => (),
-                      k => {
+                    bodyParser.pureFold {
+                      case Step.Done(_, _) => ()
+                      case Step.Cont(k) => {
                         val continue = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
                         e.getChannel.write(continue)
 
-                      },
-                      (_, _) => ()
-                    )
-
+                      }
+                      case Step.Error(_, _) => ()
+                    }
                   }
                   case _ => Promise.pure()
                 }

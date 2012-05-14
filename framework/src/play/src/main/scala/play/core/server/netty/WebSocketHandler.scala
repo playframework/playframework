@@ -42,7 +42,7 @@ private[server] trait WebSocketHandler {
             (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
             k => {
               val next = k(input)
-              next.fold1 {
+              next.fold {
                 case Step.Done(a, e) =>
                   iterateeAgent.close()
                   ctx.getChannel().disconnect();
