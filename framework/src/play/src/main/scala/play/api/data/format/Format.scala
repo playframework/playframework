@@ -217,8 +217,7 @@ object Formats {
       }
     }
 
-    def unbind(key: String, value: DateTime) = jodaDateTimeFormat(pattern).unbind(key, value)
-
+    def unbind(key: String, value: DateTime) = Map(key -> value.toString(pattern))
   }
 
   /**
