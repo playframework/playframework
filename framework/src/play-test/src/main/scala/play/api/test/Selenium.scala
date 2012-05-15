@@ -44,6 +44,12 @@ case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
    */
   override def getCookie(name: String): Cookie = super.getCookie(name)
 
+  /**
+   * retrieves the underlying option interface that can be used
+   * to set cookies, manage timeouts among other things
+   */
+   def manage: WebDriver.Options = super.getDriver.manage
+
 }
 
 /**
