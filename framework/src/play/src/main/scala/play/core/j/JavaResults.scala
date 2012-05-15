@@ -34,11 +34,13 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
 object JavaResultExtractor {
 
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
+    case r: AsyncResult => getStatus(new ResultWrapper(r.result.await.get))
     case Result(status, _) => status
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
+    case r: AsyncResult => getCookies(new ResultWrapper(r.result.await.get))
     case Result(_, headers) => new JCookies {
       def get(name: String) = {
         Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
@@ -50,16 +52,22 @@ object JavaResultExtractor {
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
+    case r: AsyncResult => getHeaders(new ResultWrapper(r.result.await.get))
     case Result(_, headers) => headers.asJava
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getBody(result: play.mvc.Result): Array[Byte] = result.getWrappedResult match {
+    case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run).value.get
     }
     case r => sys.error("Cannot extract the body content from a result of type " + r.getClass.getName)
+  }
+
+  class ResultWrapper(r: play.api.mvc.Result) extends play.mvc.Result {
+    def getWrappedResult = r
   }
 
 }
