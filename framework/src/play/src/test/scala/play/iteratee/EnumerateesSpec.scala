@@ -36,6 +36,24 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.takeWhile" should {
+
+    "pass chunks until condition is not met" in {
+      val take3AndConsume = Enumeratee.takeWhile[String](_ != "4" ) &>>  Iteratee.consume()
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      (enumerator |>> take3AndConsume).flatMap(_.run).value.get must equalTo(List(1,2,3).map(_.toString).mkString)
+    }
+
+    "passes along what's left of chunks after taking" in {
+      
+      val take3AndConsume = (Enumeratee.takeWhile[String](_ != "4") &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      (enumerator |>> take3AndConsume).flatMap(_.run).value.get must equalTo(Range(4,20).map(_.toString).mkString)
+
+    }
+
+  }
+
 
   "Traversable.take" should {
 

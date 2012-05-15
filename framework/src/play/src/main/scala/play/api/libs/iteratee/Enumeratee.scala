@@ -273,62 +273,42 @@ object Enumeratee {
     }
   }
 
-  def drop[E](count: Int): Enumeratee[E, E] = new Enumeratee[E, E] {
+  def drop[E](count: Int): Enumeratee[E, E] = new CheckDone[E,E] {
 
-    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
 
-      def step(counter: Int, inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+      case in @ Input.El(_) if remaining == 1 => passAlong[E](Cont(k))
 
-        in match {
+      case in @ Input.El(_) if remaining > 1 => Cont(step(remaining-1)(k))
 
-          case Input.El(e) if counter > 0 => Cont(step(counter - 1, inner))
+      case in @ Input.Empty if remaining > 0 => Cont(step(remaining)(k))
 
-          case Input.El(e) => inner.pureFlatFold {
-            case Step.Cont(k) => Cont(step(0, k(in)))
-            case _ => Done(inner, in)
-          }
+      case Input.EOF => Done(Cont(k), Input.EOF)
 
-          case Input.EOF => inner.pureFlatFold {
-            case Step.Cont(k) => Done(Cont(k), Input.EOF)
-            case _ => Done(inner, Input.EOF)
-          }
-
-          case Input.Empty => Cont(step(counter, inner))
-
-        }
-
-      }
-
-      Cont(step(count, iteratee))
+      case in => passAlong[E] &> k(in) 
 
     }
+
+    def continue[A](k: K[E, A]) = Cont(step(count)(k))
 
   }
 
-  def takeWhile[E](p: E => Boolean): Enumeratee[E, E] = new Enumeratee[E, E] {
+  def takeWhile[E](p: E => Boolean): Enumeratee[E, E] = new CheckDone[E, E] {
 
-    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
 
-      def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
+      case in @ Input.El(e) if !p(e) => Done(Cont(k), in)
 
-        in match {
-          case Input.El(e) if !p(e) => Done(inner, in)
-          case Input.El(e) => inner.pureFlatFold {
-            case Step.Cont(k) => Cont(step(k(in)))
-            case _ => Cont(step(inner))
-          }
+      case in @ Input.El(e) =>
+        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
 
-          case Input.EOF => inner.pureFlatFold {
-            case Step.Cont(k) => Done(Cont(k), Input.EOF)
-            case _ => Done(inner, Input.EOF)
-          }
+      case in @ Input.Empty  =>
+        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
 
-          case Input.Empty => Cont(step(inner))
-        }
-      }
-
-      Cont(step(iteratee))
+      case Input.EOF => Done(Cont(k), Input.EOF)
     }
+
+    def continue[A](k: K[E, A]) = Cont(step(k))
 
   }
 
