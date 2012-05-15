@@ -94,15 +94,9 @@ object Enumerator {
       val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true, true))
       val result = Promise[Iteratee[E2, A]]()
 
-      def redeemResultIfNotYet(r:Iteratee[E2, A]) = {
-        val toRedeem = atomic { implicit transaction =>
-          if (attending().isDefined) {
-            attending() = None
-            //val it = iter()
-            Some(r)
-          } else None
-        }
-        toRedeem.foreach(result.redeem(_))
+      def redeemResultIfNotYet(r:Iteratee[E2, A]){
+        if (attending.single.transformIfDefined{ case Some(_) => None})
+            result.redeem(r)
       }
 
       def iteratee[EE <: E2](f: ((Boolean, Boolean)) => (Boolean, Boolean)): Iteratee[EE, Unit] = {
@@ -121,7 +115,7 @@ object Enumerator {
                     case Step.Cont(kk) =>
                       p.redeem(Cont(kk))
                       Promise.pure(Cont(step))
-                    case Step.Done(a,e) => 
+                    case _ => 
                       p.redeem(n)
                       Promise.pure(Done((), Input.Empty: Input[EE]))
                   }
