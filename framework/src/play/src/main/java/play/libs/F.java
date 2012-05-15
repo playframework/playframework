@@ -184,10 +184,22 @@ public class F {
          * @param action The action to perform.
          */
         public void onRedeem(final Callback<A> action) {
-            promise.onRedeem(withContext(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
+            promise.onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
                     try {
-                        action.invoke(a);
+                        run(new Function<A,Object>() {
+                            public Object apply(A a) {
+                                try {
+                                    action.invoke(a);
+                                    return 0;
+                                } catch(RuntimeException e) {
+                                    throw e;
+                                } catch(Throwable t) {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                        }, a, context);
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable t) {
@@ -195,7 +207,7 @@ public class F {
                     }
                     return null;
                 }
-            }));
+            });
         }
 
         /**
@@ -209,18 +221,19 @@ public class F {
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
         public <B> Promise<B> map(final Function<A, B> function) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
-                promise.map(withContext(new scala.runtime.AbstractFunction1<A,B>() {
-                    public B apply(A a) {
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
+                    public play.api.libs.concurrent.Promise<B> apply(A a) {
                         try {
-                            return function.apply(a);
+                            return run(function, a, context);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
                             throw new RuntimeException(t);
                         }
                     }
-                }))
+                })
             );
         }
 
@@ -236,18 +249,19 @@ public class F {
          *      exception.
          */
         public Promise<A> recover(final Function<Throwable,A> function) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<A>(
-                play.core.j.JavaPromise.recover(promise, withContext(new scala.runtime.AbstractFunction1<Throwable, A>() {
-                    public A apply(Throwable t) {
+                play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, play.api.libs.concurrent.Promise<A>>() {
+                    public play.api.libs.concurrent.Promise<A> apply(Throwable t) {
                         try {
-                            return function.apply(t);
+                            return run(function,t, context);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable e) {
                             throw new RuntimeException(e);
                         }
                     }
-                }))
+                })
             );
         }
 
@@ -262,18 +276,23 @@ public class F {
          * @return A wrapped promise for a result of type <code>B</code>
          */
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
-                promise.flatMap(withContext(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
-                    public play.api.libs.concurrent.Promise<B> apply(A a) {
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<Promise<B>>>() {
+                    public play.api.libs.concurrent.Promise<Promise<B>> apply(A a) {
                         try {
-                            return function.apply(a).promise;
+                            return run(function, a, context);
                         } catch (RuntimeException e) {
                             throw e;
-                        } catch (Throwable t) {
+                        } catch(Throwable t) {
                             throw new RuntimeException(t);
                         }
                     }
-                }))
+                }).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,play.api.libs.concurrent.Promise<B>>() {
+                    public play.api.libs.concurrent.Promise<B> apply(Promise<B> p) {
+                        return p.promise;
+                    }
+                })
             );
         }
 
@@ -287,20 +306,72 @@ public class F {
         }
         
         // -- Utils
-        
-        private <A,B> scala.Function1<A,B> withContext(final scala.Function1<A,B> f) {
-            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
-            return new scala.runtime.AbstractFunction1<A,B>() {
-                public B apply(A a) {
-                    final play.mvc.Http.Context previousContext = play.mvc.Http.Context.current.get();
-                    try {
-                        play.mvc.Http.Context.current.set(context);
-                        return f.apply(a);
-                    } finally {
-                        play.mvc.Http.Context.current.set(previousContext);
+
+        static Integer nb = 64;
+
+        static List<akka.actor.ActorRef> actors = null;
+        static List<akka.actor.ActorRef> actors() {
+            synchronized(Promise.class) {
+                if(actors == null) {
+                    synchronized(Promise.class) {
+                        actors = new ArrayList<akka.actor.ActorRef>(nb);
+                        akka.actor.Props definition = new akka.actor.Props(PromiseActor.class).withDispatcher("akka.actor.promises-dispatcher");
+                        for(int i=0; i<nb; i++) {
+                            actors.add(play.core.Invoker$.MODULE$.system().actorOf(definition, "promise-actor-" + i));
+                        }
                     }
                 }
-            };
+            }
+            return actors;
+        }
+
+        static <A,B> play.api.libs.concurrent.Promise<B> run(Function<A,B> f, A a, play.mvc.Http.Context context) {
+            Long id;
+            if(context == null) {
+                id = 0l;
+            } else {
+                id = context.id();
+            }
+            return new play.api.libs.concurrent.AkkaPromise(
+                (akka.dispatch.Future<Object>)akka.pattern.Patterns.ask(
+                    actors().get((int)(id % actors().size())), 
+                    Tuple3(f, a, context), 
+                    1000
+                )
+            ).map(new scala.runtime.AbstractFunction1<Object,B> () {
+                public B apply(Object o) {
+                    Either<Throwable,B> r = (Either<Throwable,B>)o;
+                    if(r.left.isDefined()) {
+                        Throwable t = r.left.get();
+                        if(t instanceof RuntimeException) {
+                            throw (RuntimeException)t;
+                        } else {
+                            throw new RuntimeException(t);
+                        }
+                    }
+                    return r.right.get();
+                }
+            });
+        }
+
+        // ExecuteS the Promise functions (capturing exception), with the given ThreadLocal context.
+        // This Actor is used as Agent to ensure function execution ordering for a given context.
+        public static class PromiseActor extends akka.actor.UntypedActor {
+
+            public void onReceive(Object o) {
+                Function f = (Function)(((Tuple3)o)._1);
+                Object a = (Object)(((Tuple3)o)._2);
+                play.mvc.Http.Context context = (play.mvc.Http.Context)(((Tuple3)o)._3);
+                try {
+                    play.mvc.Http.Context.current.set(context);
+                    getSender().tell(Either.Right(f.apply(a)));
+                } catch(Throwable t) {
+                    getSender().tell(Either.Left(t));
+                } finally {
+                    play.mvc.Http.Context.current.remove();
+                }
+            }
+
         }
 
     }

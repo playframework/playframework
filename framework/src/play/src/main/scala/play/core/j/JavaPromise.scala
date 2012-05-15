@@ -1,7 +1,7 @@
 package play.core.j
 
 import java.util.{ List => JList }
-import play.api.libs.concurrent.{ Promise }
+import play.api.libs.concurrent._
 import scala.collection.JavaConverters
 import play.libs.F
 
@@ -16,10 +16,11 @@ object JavaPromise {
     Promise.timeout(message, delay, unit)
   }
   
-  def recover[A](promise: Promise[A], f: Throwable => A) = {
-    promise.recover {
-      case t: Throwable => f(t)
-    }
+  def recover[A](promise: Promise[A], f: Throwable => Promise[A]): Promise[A] = {
+    promise.extend1 {
+      case Thrown(e) => f(e)
+      case Redeemed(a) => Promise.pure(a)
+    }.flatMap( p => p )
   }
 
   def pure[A](a: A) = Promise.pure(a)

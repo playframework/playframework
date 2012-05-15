@@ -112,7 +112,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
   // Reconfigure logger
   {
 
-    val validValues = Some(Set("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "OFF", "INHERITED"))
+    val validValues = Set("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "OFF", "INHERITED")
     val setLevel = (level: String) => level match {
       case "INHERITED" => null
       case level => ch.qos.logback.classic.Level.toLevel(level)
@@ -123,8 +123,8 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       configuration.getConfig("logger").map { loggerConfig =>
         loggerConfig.keys.map {
           case "resource" | "file" | "url" => "" -> null
-          case key @ "root" => "ROOT" -> loggerConfig.getString(key, validValues).map(setLevel).get
-          case key => key -> loggerConfig.getString(key, validValues).map(setLevel).get
+          case key @ "root" => "ROOT" -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
+          case key => key -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
         }.toMap
       }.getOrElse(Map.empty),
       mode)

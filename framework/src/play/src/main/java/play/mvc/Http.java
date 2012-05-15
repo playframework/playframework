@@ -30,6 +30,9 @@ public class Http {
         }
         
         //
+
+        private static java.util.concurrent.atomic.AtomicLong idGenerator = new java.util.concurrent.atomic.AtomicLong();
+        private final Long id = idGenerator.incrementAndGet();
         
         private final Request request;
         private final Response response;
@@ -49,6 +52,13 @@ public class Http {
             this.response = new Response();
             this.session = new Session(sessionData);
             this.flash = new Flash(flashData);
+        }
+
+        /**
+         * The context id (unique)
+         */
+        public Long id() {
+            return id;
         }
         
         /**
@@ -131,6 +141,10 @@ public class Http {
                 return Context.current();
             }
             
+        }
+
+        public String toString() {
+            return "Context attached to (" + request() + ")";
         }
         
     }
