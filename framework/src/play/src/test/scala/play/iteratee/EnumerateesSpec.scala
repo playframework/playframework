@@ -16,6 +16,18 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.dropWhile" should {
+
+    "ignore chunkes while predicate is valid" in {
+      
+      val drop3AndConsume = Enumeratee.dropWhile[String](_ != "4") &>>  Iteratee.consume[String]()
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      (enumerator |>> drop3AndConsume).flatMap(_.run).value.get must equalTo(Range(4,20).map(_.toString).mkString)
+
+    }
+
+  }
+
   "Enumeratee.take" should {
 
     "pass only first 3 chunkes to Iteratee when applied with 3" in {

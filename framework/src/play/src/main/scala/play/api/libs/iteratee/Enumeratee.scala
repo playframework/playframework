@@ -293,6 +293,24 @@ object Enumeratee {
 
   }
 
+  def dropWhile[E](p: E => Boolean): Enumeratee[E, E] = new CheckDone[E,E] {
+
+    def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
+
+      case in @ Input.El(e) if !p(e) => passAlong[E] &> k(in)
+
+      case in @ Input.El(_) => Cont(step(k))
+
+      case in @ Input.Empty => Cont(step(k))
+
+      case Input.EOF => Done(Cont(k), Input.EOF)
+
+    }
+
+    def continue[A](k: K[E, A]) = Cont(step(k))
+
+  }
+
   def takeWhile[E](p: E => Boolean): Enumeratee[E, E] = new CheckDone[E, E] {
 
     def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
