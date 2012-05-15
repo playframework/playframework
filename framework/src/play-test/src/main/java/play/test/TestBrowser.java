@@ -32,8 +32,6 @@ public class TestBrowser extends FluentAdapter {
     }
     
     /**
-
-    /**
      * The current page URL.
      */
     public String url() {
@@ -67,6 +65,12 @@ public class TestBrowser extends FluentAdapter {
         return super.getCookie(name);
     }
 
-
+   /**
+    * retrieves the underlying option interface that can be used
+    * to set cookies, manage timeouts among other things
+    */
+    public WebDriver.Options manage() {
+        return super.getDriver().manage();
+    }
 
 }
