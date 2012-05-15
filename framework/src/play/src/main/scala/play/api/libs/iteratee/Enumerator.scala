@@ -84,6 +84,76 @@ object Enumerator {
       }
   }
 
+  def interleave[E](e1: Enumerator[E], es: Enumerator[E] *): Enumerator[E] = interleave(e1 +: es)
+
+  def interleave[E](es: Seq[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
+
+    import scala.concurrent.stm._
+
+    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+
+      val iter: Ref[Iteratee[E, A]] = Ref(it)
+      val attending: Ref[Option[Seq[Boolean]]] = Ref(Some(es.map(_ => true)))
+      val result = Promise[Iteratee[E, A]]()
+
+      def redeemResultIfNotYet(r:Iteratee[E, A]){
+        if (attending.single.transformIfDefined{ case Some(_) => None})
+            result.redeem(r)
+      }
+
+      def iteratee[EE <: E](f: Seq[Boolean] => Seq[Boolean]): Iteratee[EE, Unit] = {
+        def step(in: Input[EE]): Iteratee[EE, Unit] = {
+
+          val p = Promise[Iteratee[E, A]]()
+          val i = iter.single.swap(Iteratee.flatten(p))
+          in match {
+            case Input.El(_) | Input.Empty =>
+
+              val nextI = i.fold {
+
+                case Step.Cont(k) =>
+                  val n = k(in)
+                  n.fold {
+                    case Step.Cont(kk) =>
+                      p.redeem(Cont(kk))
+                      Promise.pure(Cont(step))
+                    case _ => 
+                      p.redeem(n)
+                      Promise.pure(Done((), Input.Empty: Input[EE]))
+                  }
+                case _ =>
+                  p.redeem(i)
+                  Promise.pure(Done((),Input.Empty: Input[EE]))
+
+              }
+              Iteratee.flatten(nextI)
+            case Input.EOF => {
+              if(attending.single.transformAndGet { _.map(f) }.forall(_ ==  false)){
+                p.redeem(Iteratee.flatten(i.feed(Input.EOF)))
+              } else {
+                p.redeem(i)
+              }
+              Done((), Input.Empty)
+            }
+          }
+        }
+        Cont(step)
+      }
+      val ps = es.zipWithIndex.map{ case (e,index) => e |>> iteratee[E](_.patch(index,Seq(true),1))}
+                     .map(_.flatMap(_.pureFold(any => ())))
+
+      Promise.sequence(ps).extend1 {
+        case Redeemed(_) => 
+          redeemResultIfNotYet(iter.single())
+        case Thrown(e) => result.throwing(e)
+
+      }
+
+      result
+    }
+
+  }
+
   def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2] {
 
     import scala.concurrent.stm._
