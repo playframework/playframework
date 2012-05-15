@@ -67,34 +67,36 @@ trait Promise[+A] {
 
     val p = Promise[Either[A, B]]()
     val ref = Ref(false)
-    this.onRedeem { v =>
+    this.extend1 { v =>
       if (!ref.single()) {
-        val iRedeemed = atomic { implicit txn =>
-          val before = ref()
-          ref() = true
-          !before
-        }
-        if (iRedeemed) {
-          p.redeem(Left(v))
-        }
+        val iRedeemed = ref.single.getAndTransform(_ => true)
+
+        if (! iRedeemed) { v match {
+          case Redeemed(a) =>
+            p.redeem(Left(a))
+          case Thrown(e) =>
+            p.throwing(e)
+          }
+                        }
       }
     }
-    other.onRedeem { v =>
+    other.extend1 { v =>
       if (!ref.single()) {
-        val iRedeemed = atomic { implicit txn =>
-          val before = ref()
-          ref() = true
-          !before
-        }
-        if (iRedeemed) {
-          p.redeem(Right(v))
-        }
+        val iRedeemed = ref.single.getAndTransform(_ => true)
+
+        if (! iRedeemed) { v match {
+          case Redeemed(a) =>
+            p.redeem(Right(a))
+          case Thrown(e) =>
+            p.throwing(e)
+          }
+                        }
       }
     }
     p
   }
 
-  def orTimeout[B](message: B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
+  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
     or(Promise.timeout(message, duration, unit))
   }
 
