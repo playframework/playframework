@@ -11,6 +11,8 @@ import com.ning.http.client.FluentStringsMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
@@ -173,7 +175,7 @@ public class WS {
         /**
          * Sets whether redirects (301, 302) should be followed automatically
          *
-         * @param followRedirect
+         * @param followRedirects
          */
         public WSRequestHolder setFollowRedirects(Boolean followRedirects) {
             this.followRedirects = followRedirects;
@@ -384,7 +386,7 @@ public class WS {
         public String getBody() {
             try {
                 return ahcResponse.getResponseBody();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -396,7 +398,7 @@ public class WS {
         public Document asXml() {
             try {
                 return play.libs.XML.fromInputStream(ahcResponse.getResponseBodyAsStream(), "utf-8");
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -410,11 +412,48 @@ public class WS {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 return mapper.readValue(json, JsonNode.class);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
+        /**
+         * Get the response body as a stream
+         * @return The stream to read the response body from
+         */
+        public InputStream getBodyAsStream() {
+            try {
+                return ahcResponse.getResponseBodyAsStream();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Get the response body as a byte array
+         * @return The byte array
+         */
+        public byte[] asByteArray() {
+            try {
+                return ahcResponse.getResponseBodyAsBytes();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Return the request {@link java.net.URI}. Note that if the request got redirected, the value of the
+         * {@link java.net.URI} will be the last valid redirect url.
+         *
+         * @return the request {@link java.net.URI}.
+         */
+        public URI getUri() {
+            try {
+                return ahcResponse.getUri();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }
