@@ -411,6 +411,7 @@ package play.api.mvc {
     override val isSigned = true
     override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
     override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
+    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
