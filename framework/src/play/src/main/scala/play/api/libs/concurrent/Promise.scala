@@ -4,6 +4,7 @@ import play.core._
 import play.api._
 
 import akka.actor._
+import akka.util.Duration
 import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
@@ -52,7 +53,7 @@ trait Promise[+A] {
 
   def value = await
 
-  def await: NotWaiting[A] = await(5000)
+  def await: NotWaiting[A] = await(Promise.defaultTimeout)
 
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A]
 
@@ -250,6 +251,9 @@ object PurePromise {
 }
 
 object Promise {
+  
+  private [concurrent] lazy val defaultTimeout = 
+    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis 
 
   private [concurrent] lazy val system = ActorSystem("promise")
 
