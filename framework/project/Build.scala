@@ -180,8 +180,8 @@ object PlayBuild extends Build {
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
             "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.4",
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
-            "ch.qos.logback"                    %    "logback-core"             %   "1.0.0",
-            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.0",
+            "ch.qos.logback"                    %    "logback-core"             %   "1.0.3",
+            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.3",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.1",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.1",
@@ -225,8 +225,8 @@ object PlayBuild extends Build {
               .exclude("org.springframework", "spring-core")
             ,
             
-            "joda-time"                         %    "joda-time"                %   "2.0",
-            "org.joda"                          %    "joda-convert"             %   "1.1",
+            "joda-time"                         %    "joda-time"                %   "2.1",
+            "org.joda"                          %    "joda-convert"             %   "1.2",
             "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
             
