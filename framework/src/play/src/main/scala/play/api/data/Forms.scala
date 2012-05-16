@@ -389,7 +389,7 @@ object Forms {
   val jodaDate: Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime]
 
   /**
-   * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
+   * Constructs a simple mapping for a date field (mapped as `org.joda.time.DateTime type`).
    *
    * For example:
    * {{{
