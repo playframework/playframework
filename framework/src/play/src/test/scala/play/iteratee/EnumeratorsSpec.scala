@@ -133,6 +133,17 @@ object EnumeratorsSpec extends Specification {
 
 }
 
+"Enumerator.broadcast" should {
+  "broadcast the same to already registered iteratees" in {
 
+    val (broadcaster,pushHere) = Concurrent.broadcast[String]
+    val results = play.api.libs.concurrent.Promise.sequence(Range(1,20).map(_ => Iteratee.fold[String,String](""){(s,e) => s + e }).map(broadcaster.apply).map(_.flatMap(_.run)))
+    pushHere.push("beep")
+    pushHere.push("beep")
+    pushHere.eofAndEnd()
+    results.value.get must equalTo(Range(1,20).map(_ => "beepbeep"))
+
+  }
+}
 }
 

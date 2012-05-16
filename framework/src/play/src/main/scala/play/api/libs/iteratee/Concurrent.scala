@@ -1,8 +1,158 @@
 package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
+import Enumerator.Pushee
 
 object Concurrent {
+
+  trait Broadcast[E] {
+
+    def push(chunk: Input[E])
+
+    def push(item: E)
+
+    def end(e:Throwable)
+
+    def end()
+
+    def eofAndEnd()
+
+  }
+
+  def broadcast[E]:(Enumerator[E],Broadcast[E]) = {
+
+    import scala.concurrent.stm._
+
+    val iteratees: Ref[List[(Iteratee[E, _], Redeemable[Iteratee[E, _]])]] = Ref(List())
+
+    def step(in: Input[E]): Iteratee[E, Unit] = {
+      val interested = iteratees.single.swap(List())
+
+      val ready = interested.map {
+        case (it,p) =>
+          it.fold {
+            case Step.Done(a, e) => Promise.pure(Left(Done(a,e)))
+            case Step.Cont(k) => {
+              val next = k(in)
+              next.pureFold {
+                case Step.Done(a, e) => Left(Done(a, e))
+                case Step.Cont(k) => Right((Cont(k),p))
+                case Step.Error(msg, e) => Left(Error(msg, e))
+              }
+            }
+            case Step.Error(msg, e) => Promise.pure(Left(Error(msg, e)))
+          }.extend1 {
+              case Redeemed(Left(s)) => 
+                p.redeem(s)
+                None
+              case Redeemed(Right(s)) =>
+                Some(s)
+              case Thrown(e) => 
+                p.throwing(e)
+                None
+            }
+      }
+
+      Iteratee.flatten(Promise.sequence(ready).map { commitReady =>
+
+        val downToZero = atomic { implicit txn =>
+          iteratees.transform(commitReady.collect{case Some(s) => s} ++ _)
+          (interested.length > 0 && iteratees().length <= 0)
+        }
+
+        if (in == Input.EOF) Done((), Input.Empty) else Cont(step)
+
+      })
+    }
+
+    val redeemed = Ref(Waiting: PromiseValue[Unit])
+
+    val enumerator = new Enumerator[E] {
+
+        def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+          val result = Promise[Iteratee[E, A]]()
+         
+
+          val finished = atomic { implicit txn =>
+            redeemed() match {
+              case Waiting =>
+                iteratees.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
+                None
+              case notWaiting:NotWaiting[_] => Some(notWaiting)
+            }
+          }
+          finished.foreach {
+            case Redeemed(_) => result.redeem(it)
+            case Thrown(e) => result.throwing(e)
+          }
+          result
+        }
+
+    }
+
+    val mainIteratee =  Ref(Cont(step))
+
+    val toPush = new Broadcast[E]{
+
+      def push(chunk: Input[E]) {
+
+        val itPromise = Promise[Iteratee[E,Unit]]()
+
+        val current: Iteratee[E,Unit] = mainIteratee.single.swap(Iteratee.flatten(itPromise))
+
+        val next = current.pureFold {
+          case Step.Done(a, e) => Done(a,e)
+          case Step.Cont(k) => k(chunk)
+          case Step.Error(msg, e) => Error(msg,e)
+        }
+
+        next.extend1{
+          case Redeemed(it) =>  itPromise.redeem(it)
+          case Thrown(e) => {
+            val its = atomic { implicit txn =>
+              redeemed() = Thrown(e)
+              iteratees.swap(List())
+            }
+            itPromise.throwing(e)
+            its.foreach { case (it, p) => p.redeem(it)}
+          }
+        }
+      }
+
+      def push(item: E) = push(Input.El(item)) 
+
+      def end(e:Throwable){
+        val current: Iteratee[E,Unit] = mainIteratee.single.swap(Done((),Input.Empty))
+        def endEveryone() = {
+          val its = atomic { implicit txn =>
+            redeemed() = Thrown(e)
+            iteratees.swap(List())
+                          }
+          its.foreach { case (it, p) => p.throwing(e)}
+        }
+
+        current.pureFold { case _ => endEveryone() }
+      }
+
+      def end() {
+        val current: Iteratee[E,Unit] = mainIteratee.single.swap(Done((),Input.Empty))
+        def endEveryone() = {
+          val its = atomic { implicit txn =>
+            redeemed() = Redeemed(())
+            iteratees.swap(List())
+          }
+          its.foreach { case (it, p) => p.redeem(it)}
+        }
+        current.pureFold { case _ => endEveryone() }
+      }
+
+      def eofAndEnd(){
+        push(Input.EOF)
+        end()
+      }
+    }
+    (enumerator,toPush)
+  }
 
   def dropInputIfNotReady[E](duration: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 

@@ -410,6 +410,7 @@ object Enumerator {
     }
   }
 
+  @scala.deprecated("use Enumerator.generateM instead", "2.1.0")
   def fromCallback[E](retriever: () => Promise[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {

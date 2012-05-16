@@ -250,6 +250,8 @@ object Enumeratee {
 
   }
 
+  def filterNot[E](predicate: E => Boolean): Enumeratee[E, E] = filter(e => !predicate(e))
+
   def collect[From] = new {
 
     def apply[To](transformer: PartialFunction[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {

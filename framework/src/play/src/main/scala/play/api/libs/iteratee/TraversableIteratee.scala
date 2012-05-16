@@ -69,7 +69,6 @@ object Traversable {
           e.span(p) match {
             case (prefix,suffix) if suffix.isEmpty => new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(Input.El(prefix))
             case (prefix,suffix) => Done(if(prefix.isEmpty) Cont(k) else  k(Input.El(prefix)), Input.El(suffix.drop(1)))
-
           }
 
         case in @ Input.Empty =>
