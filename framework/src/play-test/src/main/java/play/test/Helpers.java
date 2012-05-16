@@ -342,8 +342,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
         TestBrowser browser = null;
+        TestServer startedServer = null;
         try {
             start(server);
+            startedServer = server;
             browser = testBrowser(webDriver);
             block.invoke(browser);
         } catch(Throwable t) {
@@ -352,7 +354,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             if(browser != null) {
                 browser.quit();
             }
-            stop(server);
+            if(startedServer != null) {
+                stop(startedServer);
+            }
         }
     }
 

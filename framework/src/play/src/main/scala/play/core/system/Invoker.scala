@@ -23,10 +23,6 @@ class Invoker(applicationProvider: Option[ApplicationProvider] = None) {
     Invoker.appProviderActorSystem(a)
   }.getOrElse(ActorSystem("play"))
 
-  val promiseDispatcher = {
-    system.dispatchers.lookup("akka.actor.promises-dispatcher")
-  }
-
   val actionInvoker = {
     system.actorOf(Props[ActionInvoker].withDispatcher("akka.actor.actions-dispatcher").withRouter(RoundRobinRouter(100)), name = "actions")
   }
@@ -38,6 +34,7 @@ class Invoker(applicationProvider: Option[ApplicationProvider] = None) {
     system.shutdown()
     system.awaitTermination()
   }
+
 }
 
 /**
@@ -97,14 +94,10 @@ object Invoker {
   def system = invoker.system
 
   /**
-   * provides promise dispatcher
-   */
-  def promiseDispatcher = invoker.promiseDispatcher
-
-  /**
    * provides invoker used for Action dispatching
    */
   def actionInvoker = invoker.actionInvoker
+
 }
 
 /**

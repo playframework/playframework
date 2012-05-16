@@ -160,7 +160,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
     }
   }
 
-  private def invoke[T](a: T, k: T => Unit): Unit = akka.dispatch.Future { k(a) }(play.core.Invoker.promiseDispatcher)
+  private def invoke[T](a: T, k: T => Unit): Unit = akka.dispatch.Future { k(a) }(Promise.system.dispatcher)
 
   def redeem(body: => A): Unit = {
     val result = scala.util.control.Exception.allCatch[A].either(body)
@@ -250,6 +250,8 @@ object PurePromise {
 }
 
 object Promise {
+
+  private [concurrent] lazy val system = ActorSystem("promise")
 
   def pure[A](a: => A): Promise[A] = PurePromise(a)
 

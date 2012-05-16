@@ -315,9 +315,8 @@ public class F {
                 if(actors == null) {
                     synchronized(Promise.class) {
                         actors = new ArrayList<akka.actor.ActorRef>(nb);
-                        akka.actor.Props definition = new akka.actor.Props(PromiseActor.class).withDispatcher("akka.actor.promises-dispatcher");
                         for(int i=0; i<nb; i++) {
-                            actors.add(play.core.Invoker$.MODULE$.system().actorOf(definition, "promise-actor-" + i));
+                            actors.add(play.api.libs.concurrent.Promise$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
                         }
                     }
                 }
