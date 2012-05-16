@@ -580,17 +580,7 @@ object PathBindable {
   }
 
   /**
-   * Path binder for Option.
-   */
-  implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {
-    def bind(key: String, value: String) = {
-      implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
-    }
-    def unbind(key: String, value: Option[T]) = value.map(v => implicitly[PathBindable[T]].unbind(key, v)).getOrElse("")
-  }
-
-  /**
-   * Path binder for Java Option.
+   * Path binder for Java PathBindable
    */
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit m: Manifest[T]) = new PathBindable[T] {
     def bind(key: String, value: String) = {
