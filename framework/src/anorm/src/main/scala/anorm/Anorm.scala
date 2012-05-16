@@ -2,6 +2,7 @@ package anorm
 
   import MayErr._
   import java.util.Date
+  import collection.TraversableOnce
 
   abstract class SqlRequestError
   case class ColumnNotFound(columnName: String, possibilities: List[String]) extends SqlRequestError {
@@ -364,9 +365,9 @@ package anorm
 
   case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]) {
 
-    def addBatch(args: (String, ParameterValue[_])*): BatchSql = this.copy(params = (this.params) :+ args)
+    def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue[_])]]) : BatchSql = this.copy(params = (this.params) ++ paramsMapList)
 
-    def addBatchParams(args: ParameterValue[_]*): BatchSql = this.copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
+    def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue[_]]]): BatchSql = this.copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
 
     def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
       val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
