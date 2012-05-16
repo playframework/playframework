@@ -116,6 +116,7 @@ object MimeTypes {
         elc=application/x-bytecodeelisp=(compiled=elisp)
         eml=message/rfc822
         env=application/x-envoy
+        eot=application/vnd.ms-fontobject
         eps=application/postscript
         es=application/x-esrehber
         etx=text/x-setext
@@ -488,6 +489,7 @@ object MimeTypes {
         wmlc=application/vnd.wap.wmlc
         wmls=text/vnd.wap.wmlscript
         wmlsc=application/vnd.wap.wmlscriptc
+        woff=application/x-font-woff
         word=application/msword
         wp5=application/wordperfect
         wp6=application/wordperfect
@@ -567,7 +569,7 @@ object MimeTypes {
 
         # Extensions for Mozilla apps (Firefox and friends)
         xpi=application/x-xpinstall
-        
+
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
       parts(0) -> parts.drop(1).mkString).toMap
 
