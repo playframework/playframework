@@ -1,6 +1,8 @@
 package play;
 
 import java.util.*;
+
+import com.typesafe.config.Config;
 import scala.collection.JavaConverters;
 
 import play.libs.Scala;
@@ -26,12 +28,19 @@ public class Configuration {
     private final play.api.Configuration conf;
 
     /**
+     * Creates a new configuration from a Typesafe Config object.
+     */
+    public Configuration(Config conf) {
+        this(new play.api.Configuration(conf));
+    }
+
+    /**
      * Creates a new configuration from a Scala-based configuration.
      */
     public Configuration(play.api.Configuration conf) {
         this.conf = conf;
     }
-    
+
     // --
 
     /**
