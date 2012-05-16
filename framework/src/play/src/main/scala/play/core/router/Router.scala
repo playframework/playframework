@@ -2,6 +2,7 @@ package play.core
 
 import play.api.mvc._
 import play.api.mvc.Results._
+import org.apache.commons.lang3.reflect.MethodUtils
 
 /**
  * provides Play's router implementation
@@ -1169,10 +1170,7 @@ object Router {
         new play.core.j.JavaAction {
           def invocation = call
           def controller = handler.getControllerClass
-          def method = controller.getMethod(handler.method, handler.parameterTypes.map {
-            case c if c == classOf[Long] => classOf[java.lang.Long]
-            case c => c
-          }: _*)
+          def method = MethodUtils.getMatchingAccessibleMethod(controller, handler.method, handler.parameterTypes: _*)
         }
       }
     }
