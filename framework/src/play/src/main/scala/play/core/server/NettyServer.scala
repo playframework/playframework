@@ -150,7 +150,8 @@ object NettyServer {
 
     // Manage RUNNING_PID file
     java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
-      val pidFile = new File(applicationPath, "RUNNING_PID")
+      val pidPath = Option(System.getProperty("pidfile.path")).getOrElse(applicationPath.getAbsolutePath())
+      val pidFile = new File(pidPath, "RUNNING_PID")
 
       if (pidFile.exists) {
         println("This application is already running (Or delete the RUNNING_PID file).")
