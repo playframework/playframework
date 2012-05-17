@@ -473,7 +473,7 @@ package play.api.mvc {
    */
   object Flash extends CookieBaker[Flash] {
 
-    val COOKIE_NAME = "PLAY_FLASH"
+    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("flash.cookieName")).getOrElse("PLAY_FLASH")
     val emptyCookie = new Flash
 
     def deserialize(data: Map[String, String]) = new Flash(data)
