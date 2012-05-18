@@ -147,7 +147,7 @@ object Assets extends Controller {
 
   private def etagFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1)
+      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1).map("\""+_+"\"")
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))
       maybeEtag
     }
