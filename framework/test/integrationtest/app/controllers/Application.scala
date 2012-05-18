@@ -36,11 +36,12 @@ object Application extends Controller {
   def conf = Action {
     val config = play.api.Play.configuration
     val overrideConfig =  play.api.Configuration.load(new java.io.File(".")).getString("play.akka.actor.retrieveBodyParserTimeout").get
+    val timeout = config.getMilliseconds("promise.akka.actor.typed.timeout").get
 
     val s = config.getString("complex-app.something").getOrElse("boooooo")
     val c = config.getString("nokey").getOrElse("None")
     val overrideAkka = play.api.libs.concurrent.Akka.system.settings.config.getString("akka.loglevel")
-    Ok(s + " no key: " + c +" - override akka:"+ overrideConfig+" akka-loglevel:"+ overrideAkka)
+    Ok(s + " no key: " + c +" - override akka:"+ overrideConfig+" akka-loglevel:"+ overrideAkka+ " promise-timeout:"+ timeout)
   }
   
   def post = Action { request =>
