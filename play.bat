@@ -9,8 +9,9 @@ set fp=file:///!p: =%%20!
 set buildScript="%~dp0framework\build.bat"
 set additionalArgs=%*
 
-if exist "conf\application.conf" goto existingApplication
-if exist "conf\reference.conf" goto existingApplication
+if not exist "project\plugins.sbt" goto noApplication
+findstr addSbtPlugin(\"play\" project\plugins.sbt > NUL
+if %errorlevel%==0 goto existingApplication
 
 :noApplication
 java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" -jar "%~dp0framework\sbt\sbt-launch.jar" %*
