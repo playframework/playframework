@@ -100,7 +100,7 @@ public class Http {
             if (lang != null) {
                 return lang;
             } else {
-                Cookie cookieLang = request.cookies().get(langCookieName());
+                Cookie cookieLang = request.cookie(langCookieName());
                 if (cookieLang != null) {
                     Lang lang = Lang.forCode(cookieLang.value());
                     if (lang != null) return lang;
@@ -246,7 +246,15 @@ public class Http {
         /**
          * @return the request cookies
          */
-        public abstract Cookies cookies(); // FIXME Provide a “Cookie cookie(String name)” function instead of this one?
+        public abstract Cookies cookies();
+        
+        /**
+         * @param name Name of the cookie to retrieve
+         * @return the cookie, if found, otherwise null.
+         */
+        public Cookie cookie(String name) {
+            return cookies().get(name);
+        }
         
         /**
          * Retrieves all headers.
