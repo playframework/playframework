@@ -35,7 +35,7 @@ public class Messages {
     */
     public static String get(String key, Object... args) {
         Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
-        return play.api.i18n.Messages.apply(key, scalaArgs, play.mvc.Http.Context.Implicit.lang());
+        return play.api.i18n.Messages.apply(key, scalaArgs, play.mvc.Http.Context.current().lang());
     }
     
 }
