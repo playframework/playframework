@@ -246,7 +246,7 @@ object PlayBuild extends Build {
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             
-            ("jaxen"                            %    "jaxen"                    %   "1.1.3" notTransitive())
+            ("jaxen"                            %    "jaxen"                    %   "1.1.4" notTransitive())
               .exclude("maven-plugins", "maven-cobertura-plugin")
               .exclude("maven-plugins", "maven-findbugs-plugin")
               .exclude("dom4j", "dom4j")
