@@ -125,13 +125,10 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   def filter(p: A => Boolean): Promise[A] = {
     val result = new STMPromise[A]()
-    onRedeem(a => if (p(a)) result.redeem(a))
-    result
-  }
-
-  def collect[B](p: PartialFunction[A, B]) = {
-    val result = new STMPromise[B]()
-    onRedeem(a => p.lift(a).foreach(result.redeem(_)))
+    this.addAction(_.value match {
+      case Redeemed(a) => if (p(a)) result.redeem(a) else result.redeem(throw new NoSuchElementException)
+      case Thrown(t) => result.redeem(throw t)
+    })
     result
   }
 
