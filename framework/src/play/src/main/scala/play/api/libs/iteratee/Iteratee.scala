@@ -124,6 +124,16 @@ object Iteratee {
     }
   }
 
+  def getChunks[E]: Iteratee[E,List[E]] = fold[E, List[E]](Nil) { (els, chunk) => els :+ chunk }
+
+  def skipToEof[E]: Iteratee[E,Unit] = {
+    def cont: Iteratee[E,Unit] = Cont {
+      case Input.EOF => Done((),Input.EOF)
+      case _ => cont
+    }
+    cont
+  }
+
   def eofOrElse[E] = new {
 
     def apply[A, B](otherwise: B)(then: A) = {
@@ -203,7 +213,15 @@ object Input {
 
 }
 
-sealed trait Step[E,+A]
+sealed trait Step[E,+A] {
+
+  lazy val it = this match {
+    case Step.Done(a,e) => Done(a,e)
+    case Step.Cont(k) => Cont(k)
+    case Step.Error(msg,e) => Error(msg,e)
+  }
+
+}
 
 object Step {
   case class Done[+A,E](a:A, remaining:Input[E]) extends Step[E,A]
@@ -236,6 +254,8 @@ trait Iteratee[E, +A] {
   def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
     Enumerator.enumInput(in) |>> this
   }
+
+  def unflatten: Promise[Step[E,A]] = pureFold(identity)
 
   /**
    *
@@ -303,6 +323,8 @@ trait Iteratee[E, +A] {
       case Step.Cont(k) => Cont(in => k(in).flatMap(f))
       case Step.Error(msg, e) => Error(msg, e)
   }
+
+  def flatMapInput[B](f: Step[E,A] => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(f)
 
   /**
    * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.

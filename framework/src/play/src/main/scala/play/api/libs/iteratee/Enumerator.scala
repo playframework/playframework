@@ -20,6 +20,10 @@ trait Enumerator[E] {
    */
   def |>>[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = apply(i)
 
+  def |>>>[A](i: Iteratee[E, A]): Promise[A] = apply(i).flatMap(_.run)
+
+  def |>>|[A](i: Iteratee[E, A]): Promise[Step[E,A]] = apply(i).flatMap(_.unflatten)
+
   /**
    * Sequentially combine this Enumerator with another Enumerator
    */
@@ -210,10 +214,9 @@ object Enumerator {
 
       val itE1 = iteratee[E1] { case (l, r) => (false, r) }
       val itE2 = iteratee[E2] { case (l, r) => (l, false) }
-      val r1 = e1 |>> itE1
-      val r2 = e2 |>> itE2
-      r1.flatMap(_.pureFold(any => ()))
-        .flatMap(_ => r2.flatMap(_.pureFold(any => ()))).extend1 {
+      val r1 = e1 |>>| itE1
+      val r2 = e2 |>>| itE2
+      r1.flatMap(_ => r2).extend1 {
         case Redeemed(_) => 
           redeemResultIfNotYet(iter.single())
         case Thrown(e) => result.throwing(e)
