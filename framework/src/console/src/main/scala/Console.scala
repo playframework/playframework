@@ -144,7 +144,10 @@ object Console {
             val params: Array[String] = interact(defaults.filter(e => e._1 != "application_name" && e._1 != "description")).map(e=>"--"+e._1+"="+e._2).toArray
 
             val exitCode = Giter8.run(Array(template._1,"--application_name="+template._2) ++ params)
-            (haveFun(template._2), exitCode)
+            if (exitCode == 0) 
+              (haveFun(template._2), exitCode) 
+            else 
+              ("something went wrong while processing g8 template", exitCode)
           }
       } catch {case ex: Exception => 
         ("Ooops - Something went wrong! Exception:"+ex.toString, -1)
