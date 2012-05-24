@@ -49,7 +49,8 @@ class FunctionalSpec extends Specification {
         secondRequest.status must equalTo(304)
        
         val localCal = cal
-        localCal.setTime(startDate)
+        val f = new java.io.File("public/stylesheets/main.css")
+        localCal.setTime(new java.util.Date(f.lastModified))
         localCal.add(Calendar.HOUR, -1)
         val earlierDate =  localCal.getTime
 
