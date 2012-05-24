@@ -261,11 +261,26 @@ public class SimpleTest {
                 customerForm.field("orders[0].items[0].productCode")
                         .constraints().size())
                 .as("field(\"orders[0].items[0].productCode\").constraints().size()")
-                .isEqualTo(1);
+                .isEqualTo(2);
         assertThat(
                 customerForm.field("orders[0].items[0].productCode")
                         .constraints().get(0)._1).as(
                 "field(\"orders[0].items[0].productCode\").constraints(0)")
+                .isEqualTo("constraint.pattern");
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(0)._2.size()).as(
+                "field(\"orders[0].items[0].productCode\").constraints(0)")
+                .isEqualTo(1);
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(0)._2.get(0)).as(
+                "field(\"orders[0].items[0].productCode\").constraints(0)")
+                .isEqualTo("[A-Z]{4}-[0-9]{3,}");
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(1)._1).as(
+                "field(\"orders[0].items[0].productCode\").constraints(1)")
                 .isEqualTo("constraint.required");
         // orders[0].items[0].deliveryDate constraints
         assertThat(

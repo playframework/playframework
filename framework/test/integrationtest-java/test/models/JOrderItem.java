@@ -6,6 +6,7 @@ import javax.persistence.ManyToOne;
 
 import play.data.format.Formats.DateTime;
 import play.data.validation.Constraints.Min;
+import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
 
@@ -25,6 +26,7 @@ public class JOrderItem extends Model {
 	public Integer qty;
 
 	@Required
+	@Pattern(value = "[A-Z]{4}-[0-9]{3,}", message = "A valid product code is required")
 	public String productCode;
 
 	@DateTime(pattern = "yyyy-MM-dd")
