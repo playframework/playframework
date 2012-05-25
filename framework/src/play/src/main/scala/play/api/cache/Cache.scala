@@ -87,7 +87,12 @@ object Cache {
    */
   def getAs[T](key: String)(implicit app: Application, m: ClassManifest[T]): Option[T] = {
     get(key)(app).map { item =>
-      if (m.erasure.isAssignableFrom(item.getClass)) Some(item.asInstanceOf[T]) else None
+      try {
+        //if (m.erasure.isAssignableFrom(item.getClass)) Some(item.asInstanceOf[T]) else None
+        Some(item.asInstanceOf[T])
+      }catch{
+        case e:ClassCastException => None
+      }
     }.getOrElse(None)
   }
 
