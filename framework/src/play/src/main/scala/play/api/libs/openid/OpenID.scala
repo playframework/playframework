@@ -21,13 +21,32 @@ case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
 object UserInfo {
 
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
-    val axAttribute = new Regex("^openid[.].+[.]value[.]([^.]+)([.]\\d+)?$")
-    val id = queryString.get("openid.claimedId").flatMap(_.headOption)
-      .orElse(queryString.get("openid.identity").flatMap(_.headOption))
-      .getOrElse(throw Errors.BAD_RESPONSE)
-    val attributes = queryString.toSeq.map(pair => (axAttribute.findFirstMatchIn(pair._1).map(_.group(1)), pair._2.headOption))
-      .collect({ case (Some(key), Some(value)) => (key, value) }).toMap
-    new UserInfo(id, attributes)
+    val extractor = new UserInfoExtractor(queryString)
+    val id = extractor.id getOrElse(throw Errors.BAD_RESPONSE)
+    new UserInfo(id, extractor.axAttributes)
+  }
+
+  /** Extract the values required to create an instance of the UserInfo
+   *
+   * The UserInfoExtractor ensures that attributes returned via OpenId attribute exchange are signed
+   * (i.e. listed in the openid.signed field) and verified in the check_authentication step.
+   */
+  private[openid] class UserInfoExtractor(params:Map[String, Seq[String]]) {
+    val AxAttribute =  """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
+    val extractAxAttribute: PartialFunction[String, (String,String)] = {
+      case AxAttribute(fullKey, key, num) => (fullKey, key) // fullKey e.g. 'ext1.value.email', shortKey e.g. 'email' or 'fav_movie.2'
+    }
+
+    private lazy val signedFields = params.get("openid.signed") flatMap {_.headOption map {_.split(",")}} getOrElse(Array())
+
+    def id = params.get("openid.claimed_id").flatMap(_.headOption).orElse(params.get("openid.identity").flatMap(_.headOption))
+
+    def axAttributes = params.foldLeft(Map[String,String]()) {
+      case (result, (key, values)) => extractAxAttribute.lift(key) flatMap {
+        case (fullKey, shortKey) if signedFields.contains(fullKey) => values.headOption map {value => Map(shortKey -> value)}
+        case _ => None
+      } map(result ++ _) getOrElse result
+    }
   }
 
 }
@@ -73,7 +92,7 @@ object OpenID {
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
     (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimedId").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
+      queryString.get("openid.claimed_id").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
       queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
         case (Some("id_res"), Some(id), endPoint) => {
           val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
