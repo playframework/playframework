@@ -359,10 +359,15 @@ package play.templates {
       }
 
       def matchExpression: Parser[Display] = {
-        at ~> positioned(identifier ~ whiteSpaceNoBreak ~ "match" ^^ { case i ~ w ~ m => Simple(i + w + m) }) ~ block ^^ {
-          case expr ~ block => {
-            Display(ScalaExp(List(expr, block)))
-          }
+        val simpleExpr: Parser[List[ScalaExpPart]] = positioned(methodCall ^^ { Simple(_) }) ~ several(expressionPart) ^^ {
+          case first ~ parts => first :: parts
+        }
+        val complexExpr = positioned(parentheses ^^ { expr => (Simple(expr)) }) ^^ { List(_) }
+
+        at ~> ((simpleExpr | complexExpr) ~ whiteSpaceNoBreak ~ "match" ^^ {
+          case e ~ w ~ m => e ++ Seq(Simple(w + m))
+        }) ~ block ^^ {
+          case expr ~ block => Display(ScalaExp(expr ++ Seq(block)))
         }
       }
 

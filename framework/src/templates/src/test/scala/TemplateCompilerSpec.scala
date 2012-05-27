@@ -32,12 +32,25 @@ object TemplateCompilerSpec extends Specification {
       helper.compile[(() => Html)]("static.scala.html", "html.static")().toString.trim must be_==(
         "<h1>It works</h1>")
 
+      val testParam = "12345"
+      helper.compile[((String) => Html)]("patternMatching.scala.html", "html.patternMatching")(testParam).toString.trim must be_==(
+        """@test
+@test.length
+@test.length.toInt
+
+@(test)
+@(test.length)
+@(test.length + 1)
+@(test.+(3))
+
+5 match @test.length""")
+
       val hello = helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim
       
       hello must be_==(
         "<h1>Hello World!</h1><h1>xml</h1>")
-          
-      helper.compile[((collection.immutable.Set[String]) => Html)]("set.scala.html", "html.set")(Set("first","second","third")).toString.trim.replace("\n","").replaceAll("\\s+", "") must be_==("firstsecondthird")   
+
+      helper.compile[((collection.immutable.Set[String]) => Html)]("set.scala.html", "html.set")(Set("first","second","third")).toString.trim.replace("\n","").replaceAll("\\s+", "") must be_==("firstsecondthird")
 
     }
     "fail compilation for error.scala.html" in {
