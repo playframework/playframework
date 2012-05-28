@@ -5,21 +5,23 @@ import Enumerator.Pushee
 
 object Concurrent {
 
-  trait Broadcast[E] {
+  trait Channel[E] {
 
     def push(chunk: Input[E])
 
-    def push(item: E)
+    def push(item: E){ push(Input.El(item)) }
 
     def end(e:Throwable)
 
     def end()
 
-    def eofAndEnd()
-
+    def eofAndEnd(){
+      push(Input.EOF)
+      end()
+    }
   }
 
-  def broadcast[E]:(Enumerator[E],Broadcast[E]) = {
+  def broadcast[E]:(Enumerator[E],Channel[E]) = {
 
     import scala.concurrent.stm._
 
@@ -92,7 +94,7 @@ object Concurrent {
 
     val mainIteratee =  Ref(Cont(step))
 
-    val toPush = new Broadcast[E]{
+    val toPush = new Channel[E]{
 
       def push(chunk: Input[E]) {
 
@@ -119,8 +121,6 @@ object Concurrent {
         }
       }
 
-      def push(item: E) = push(Input.El(item)) 
-
       def end(e:Throwable){
         val current: Iteratee[E,Unit] = mainIteratee.single.swap(Done((),Input.Empty))
         def endEveryone() = {
@@ -146,10 +146,6 @@ object Concurrent {
         current.pureFold { case _ => endEveryone() }
       }
 
-      def eofAndEnd(){
-        push(Input.EOF)
-        end()
-      }
     }
     (enumerator,toPush)
   }
@@ -295,17 +291,94 @@ object Concurrent {
     }
   }
 
-  trait Hub[E] {
+  def unicast[E](
+    onStart: Channel[E] => Unit,
+    onComplete: => Unit,
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
-    def getPatchCord(): Enumerator[E]
+    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+      var iteratee: Iteratee[E, A] = it
+      var promise: Promise[Iteratee[E, A]] with Redeemable[Iteratee[E, A]] = new STMPromise[Iteratee[E, A]]()
 
+      val pushee = new Channel[E] {
+        def close() {
+          if (iteratee != null) {
+            iteratee.feed(Input.EOF).map(result => promise.redeem(result))
+            iteratee = null
+            promise = null
+          }
+        }
+
+        def end(e:Throwable){
+          if (iteratee != null) {
+            promise.throwing(e)
+            iteratee = null
+            promise = null
+          }
+        }
+
+        def end(){
+          if (iteratee != null) {
+            promise.redeem(iteratee)
+            iteratee = null
+            promise = null
+          }
+        }
+
+        def push(item: Input[E]) {
+            iteratee = iteratee.pureFlatFold[E, A] {
+
+              case Step.Done(a, in) => {
+                onComplete
+                Done(a, in)
+              }
+
+              case Step.Cont(k) => {
+                val next = k(item)
+                next.pureFlatFold {
+                  case Step.Done(a, in) => {
+                    onComplete
+                    next
+                  }
+                  case Step.Error(msg,e) =>
+                    onError(msg,e)
+                    next
+                  case _ => next
+                }
+              }
+
+              case Step.Error(e, in) => {
+                onError(e, in)
+                Error(e, in)
+              }
+            }
+        }
+      }
+      onStart(pushee)
+      promise
+    }
+
+  }
+
+  def broadcast[E](e: Enumerator[E],interestIsDownToZero: => Unit = ()): (Enumerator[E],Broadcaster) = {val h = hub(e,() => interestIsDownToZero); (h.getPatchCord(),h) }
+
+  trait Broadcaster {
     def noCords(): Boolean
 
     def close()
 
     def closed(): Boolean
+
   }
 
+  @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
+  trait Hub[E] extends Broadcaster {
+
+    def getPatchCord(): Enumerator[E]
+
+  }
+
+  @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
   def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ()): Hub[E] = {
 
     import scala.concurrent.stm._
@@ -360,21 +433,11 @@ object Concurrent {
 
       Iteratee.flatten(ready.map { _ =>
 
-        val (hanging, downToZero) = atomic { implicit txn =>
-          val responsive = (commitReady().map(_._1) ++ commitDone()).toSet
-          val hangs = interested.zipWithIndex.collect { case (e, i) if !responsive.contains(i) => e }
-          //send EOF to hanging
+        val downToZero = atomic { implicit txn =>
           val ready = commitReady().toMap
           iteratees.transform(commitReady().map(_._2) ++ _)
-          (hangs, (interested.length > 0 && iteratees().length <= 0))
+           (interested.length > 0 && iteratees().length <= 0)
 
-        }
-        hanging.map {
-          case (h, p) => h.feed(Input.EOF).extend1 {
-            case Redeemed(it) => p.redeem(it)
-            case Thrown(e) => p.redeem(throw e)
-
-          }
         }
         if (downToZero) interestIsDownToZero()
         if (in == Input.EOF || closeFlag) Done((), Input.Empty) else Cont(step)

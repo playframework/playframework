@@ -235,13 +235,14 @@ object Enumerator {
 
   }
 
+  @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
   def imperative[E](
     onStart: () => Unit = () => (),
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)
 
 
-
+  @scala.deprecated("use Concurrent.unicast instead", "2.1.0")
   def pushee[E](
     onStart: Pushee[E] => Unit,
     onComplete: () => Unit = () => (),
@@ -497,6 +498,7 @@ object Enumerator {
   }
 }
 
+@scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
 class PushEnumerator[E] private[iteratee] (
     onStart: () => Unit = () => (),
     onComplete: () => Unit = () => (),
