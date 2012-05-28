@@ -214,7 +214,9 @@ object NettyServer {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val appProvider = new ReloadableApplication(sbtLink)
-        new NettyServer(appProvider, port, mode = Mode.Dev)
+        new NettyServer(appProvider, port,
+          Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
+          mode = Mode.Dev)
       } catch {
         case e => {
           throw e match {
