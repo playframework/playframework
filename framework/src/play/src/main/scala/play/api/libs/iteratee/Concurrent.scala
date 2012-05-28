@@ -154,6 +154,117 @@ object Concurrent {
     (enumerator,toPush)
   }
 
+
+  import java.util.concurrent.{ TimeUnit }
+  def lazyAndErrIfNotReady[E](timeout:Int, unit: TimeUnit = TimeUnit.MILLISECONDS): Enumeratee[E,E] = new Enumeratee[E,E] {
+
+    def applyOn[A](inner: Iteratee[E,A]): Iteratee[E, Iteratee[E,A]] = {
+      def step(it:Iteratee[E,A]):K[E, Iteratee[E,A]] = {
+        case Input.EOF => Done(it,Input.EOF)
+
+        case other => Iteratee.flatten(it.unflatten.orTimeout((),timeout,unit).map{
+          case Left(Step.Cont(k)) => Cont(step( k(other)) )
+
+          case Left(done) => Done(done.it,other)
+
+          case Right(_) => Error("iteratee is taking too long", other)
+
+        })
+      }
+      Cont(step(inner))
+    }
+  }
+
+  def buffer[E](maxBuffer:Int): Enumeratee[E,E] = new Enumeratee[E,E] {
+
+    import scala.collection.immutable.Queue
+    import scala.concurrent.stm._
+    import play.api.libs.iteratee.Enumeratee.CheckDone
+
+    def applyOn[A](it: Iteratee[E,A]): Iteratee[E, Iteratee[E,A]] = {
+
+      val last = Promise[Iteratee[E,Iteratee[E,A]]]()
+
+      sealed trait State
+      case class Queueing(q:Queue[Input[E]]) extends State
+      case class Waiting(p:Redeemable[Input[E]]) extends State
+      case class DoneIt(s:Iteratee[E,Iteratee[E,A]]) extends State
+
+      val state: Ref[State] = Ref(Queueing(Queue[Input[E]]()))
+
+      def step:K[E, Iteratee[E,A]] = {
+        case in@Input.EOF =>
+          state.single.getAndTransform {
+            case Queueing(q) => Queueing(q.enqueue(in))
+
+            case Waiting(p) => Queueing(Queue())
+
+            case d@DoneIt(it) => d
+
+        } match {
+            case Waiting(p) =>
+              p.redeem(in)
+            case _ =>
+
+          }
+          Iteratee.flatten(last)
+
+        case other => 
+          val s = state.single.getAndTransform {
+            case Queueing(q) if maxBuffer > 0 && q.length <= maxBuffer => Queueing(q.enqueue(other))
+
+            case Queueing(q) => Queueing(Queue(Input.EOF))
+
+            case Waiting(p) => Queueing(Queue())
+
+            case d@DoneIt(it) => d
+
+            }
+          s match {
+            case Waiting(p) =>
+              p.redeem(other)
+              Cont(step)
+            case DoneIt(it) => it
+            case Queueing(q) if maxBuffer > 0 && q.length <= maxBuffer => Cont(step)
+            case Queueing(_) => Error("buffer overflow", other)
+
+          }
+      }
+
+      def moreInput[A](k: K[E, A]): Iteratee[E,Iteratee[E,A]] = {
+        val in: Promise[Input[E]] = atomic { implicit txn =>
+            state() match {
+              case Queueing(q) =>
+                if(!q.isEmpty){
+                  val (e,newB) = q.dequeue
+                  state() = Queueing(newB)
+                  Promise.pure(e)
+                } else {
+                  val p = Promise[Input[E]]()
+                  state() = Waiting(p)
+                  p
+                }
+              case _ => throw new Exception("can't get here")
+            }
+         }
+         Iteratee.flatten(in.map { in => (new CheckDone[E,E] { def continue[A](cont: K[E, A]) = moreInput(cont) } &> k(in)) })
+            
+      }
+      (new CheckDone[E,E] { def continue[A](cont: K[E, A]) = moreInput(cont) } &> it).unflatten.extend1 {
+        case Redeemed(it) =>
+          state.single() = DoneIt(it.it)
+          last.redeem(it.it)
+        case Thrown(e) =>
+          state.single() = DoneIt(Iteratee.flatten(Promise.pure[Iteratee[E,Iteratee[E,A]]]( throw e)))
+          last.throwing(e)
+
+
+      }
+      Cont(step)
+
+    }
+  }
+
   def dropInputIfNotReady[E](duration: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {

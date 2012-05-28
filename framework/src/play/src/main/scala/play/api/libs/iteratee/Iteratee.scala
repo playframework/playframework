@@ -215,7 +215,7 @@ object Input {
 
 sealed trait Step[E,+A] {
 
-  lazy val it = this match {
+  lazy val it:Iteratee[E,A] = this match {
     case Step.Done(a,e) => Done(a,e)
     case Step.Cont(k) => Cont(k)
     case Step.Error(msg,e) => Error(msg,e)
