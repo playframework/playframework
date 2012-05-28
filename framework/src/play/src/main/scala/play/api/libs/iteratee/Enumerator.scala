@@ -485,11 +485,13 @@ object Enumerator {
    */
   def apply[E](in: E*): Enumerator[E] = new Enumerator[E] {
 
-    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = enumerate(in, i)
+    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = enumerateSeq(in, i)
 
   }
 
-  private def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
+  def enumerate[E](s:Seq[E]): Enumerator[E] = apply(s:_*)
+
+  private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
       i.flatMap(it => it.pureFold{ 
         case Step.Cont(k) => k(Input.El(e))
