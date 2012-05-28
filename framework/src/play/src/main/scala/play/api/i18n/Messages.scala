@@ -48,13 +48,24 @@ object Lang {
   private val CountryLocale = """([a-zA-Z]{2})-([a-zA-Z]{2}|[0-9]{3})""".r
 
   /**
-   * Create a Lang value from a code (such as fr or en-US).
+   * Create a Lang value from a code (such as fr or en-US) and
+   *  throw exception if language is unrecognized
    */
   def apply(code: String): Lang = {
+    get(code).getOrElse(
+                   sys.error("Unrecognized language: %s".format(code))
+    )
+  }
+
+  /**
+   * Create a Lang value from a code (such as fr or en-US) or none
+   * if language is unrecognized.
+   */
+  def get(code: String): Option[Lang] = {
     code match {
-      case SimpleLocale(language) => Lang(language, "")
-      case CountryLocale(language, country) => Lang(language, country)
-      case _ => sys.error("Unrecognized language: %s".format(code))
+      case SimpleLocale(language) => Some(Lang(language, ""))
+      case CountryLocale(language, country) => Some(Lang(language, country))
+      case _ => None
     }
   }
 
