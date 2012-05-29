@@ -27,6 +27,7 @@ import play.api.libs.concurrent._
 import play.core.server.netty._
 
 import scala.collection.JavaConverters._
+import java.security.cert.X509Certificate
 
 /**
  * provides a stopable Server
@@ -57,7 +58,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         val kmf = KeyManagerFactory.getInstance("SunX509")
         kmf.init(keyStore, FakeKeyStore.getCertificatePassword)
         val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(kmf.getKeyManagers, null, null)
+        val tm = Option(System.getProperty("https.server.clientTrust")).map{
+          case "noCA" =>Array[TrustManager](noCATrustManager)
+          case path => null //for the moment
+        }.getOrElse(null)
+        sslContext.init(kmf.getKeyManagers, tm, new SecureRandom())
         val sslEngine = sslContext.createSSLEngine
         sslEngine.setUseClientMode(false)
         newPipeline.addLast("ssl", new SslHandler(sslEngine))
@@ -132,6 +137,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
 
   }
 
+}
+
+object noCATrustManager extends X509TrustManager {
+  val nullArray = Array[X509Certificate]()
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def getAcceptedIssuers() = nullArray
 }
 
 /**
