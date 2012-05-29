@@ -5,6 +5,7 @@ import play.api.mvc._
 import play.api.http._
 
 import play.api.libs.iteratee._
+import play.api.libs.concurrent._
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
@@ -176,7 +177,18 @@ object Helpers extends Status with HeaderNames {
   def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Result] = {
     val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
     routes.routes.lift(request).map {
-      case action: Action[_] => action.asInstanceOf[Action[T]](request)
+      case a: Action[_] => 
+        val action = a.asInstanceOf[Action[T]]
+        val parsedBody: Option[Either[play.api.mvc.Result,T]] = action.parser(request).fold1(
+          (a,in) => Promise.pure(Some(a)),
+          k => Promise.pure(None),
+          (msg,in) => Promise.pure(None)).await.get
+        parsedBody.map{resultOrT =>
+          resultOrT.right.toOption.map{innerBody => 
+            action(FakeRequest(request.method, request.uri, request.headers, innerBody))
+          }.getOrElse(resultOrT.left.get)
+        }.getOrElse(action(request))
+        
     }
   }
 
