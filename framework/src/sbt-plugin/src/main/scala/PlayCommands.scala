@@ -247,13 +247,13 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (state, thisProjectRef, playExternalAssets) map { (s,r, externalAssets) =>
+  val playHashTask = (state, thisProjectRef, playExternalAssets, watchTransitiveSources) map { (s,r, externalAssets, transitiveSources) =>
     val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
-      (base / "src" / "main" ** "*") +++ (base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")
+       (base / "public" ** "*")
     }.foldLeft(PathFinder.empty)(_ +++ _)
-    ( filesToHash +++ externalAssets.map {
+    ((filesToHash +++ externalAssets.map {
       case (root, paths, _) => paths(root)
-    }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
+    }.foldLeft(PathFinder.empty)(_ +++ _)).get ++ transitiveSources).map(_.lastModified).mkString(",").hashCode.toString
   }
 
 

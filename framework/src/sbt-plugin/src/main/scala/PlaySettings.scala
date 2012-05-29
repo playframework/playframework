@@ -107,8 +107,8 @@ trait PlaySettings {
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
-    // Adds config/routes to continious triggers
-    watchSources <+= confDirectory map { _ / "routes" },
+    // Adds config directory to continious triggers
+    watchSources <+= confDirectory map {all => all},
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
