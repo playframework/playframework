@@ -46,8 +46,29 @@ import play.api.libs.iteratee._
 
 
     /**
-     * The X509 client certs
-     * @return a certificate chain
+     * calling this method will request the user to select an X509 Certificate from his key chain if he has one,
+     * or return a cached certificate chain if the user has already selected one during the current TLS session.
+     * Since requesting something of the user could take a lot  of time, this is returned immediately as a Promise.
+     * The first element of the Certificate is the user's Certificate, the other elements of the chain if any, are the
+     * certificates that were used to sign the first one ( which is the usual Certificate Authority based approach ).
+     *
+     * For example:
+     * {{{
+     * import play.api.libs.concurrent._
+     * def index = Action { req =>
+     *                Async {
+     *                   //timeouts should be set as transport specific options as explained in Netty's ChannelFuture
+     *                   //if done that way, then timeouts will break the connection anyway.
+     *                   req.certs.extend1 {
+     *                          case Redeemed(cert) => Ok("your cert is: \n\n "+cert )
+     *                          case Thrown(e) => InternalServerError("received error: \n"+e )
+     *                   }
+     *                }
+     *             }
+     * }}}
+     *
+     * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
+     *         contain an Error if something went wrong (eg: the request is not made on an httpS connection )
      */
     def certs: Promise[Seq[Certificate]]
 
