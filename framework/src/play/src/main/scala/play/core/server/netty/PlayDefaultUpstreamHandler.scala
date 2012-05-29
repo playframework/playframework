@@ -18,15 +18,25 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
+import scala.collection.immutable
+import java.security.cert.Certificate
+import collection.immutable.Nil
+import javax.net.ssl.SSLException
+import scala.concurrent.Future
+
+object PlayDefaultUpstreamHandler {
+  val logger = Logger("play")
+}
 
 import play.api.libs.concurrent.execution.defaultContext
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
+  import PlayDefaultUpstreamHandler.logger
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    Logger.trace("Exception caught in Netty", e.getCause)
+    logger.warn("Exception caught in Netty", e.getCause)
     e.getChannel.close()
   }
 
@@ -46,12 +56,68 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
     allChannels.add(e.getChannel)
   }
 
+  val emptySeq: immutable.IndexedSeq[Certificate] = Nil.toIndexedSeq
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
+
+    trait certs { req: RequestHeader =>
+
+      def certs: Future[IndexedSeq[Certificate]] = {
+        import org.jboss.netty.handler.ssl.SslHandler
+        import scala.util.control.Exception._
+        import javax.net.ssl.SSLPeerUnverifiedException
+        val sslCatcher = catching(classOf[SSLPeerUnverifiedException])
+
+        val res: Option[Future[IndexedSeq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
+          sslCatcher.opt {
+            logger.info("checking for certs in ssl session")
+            val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
+            Promise.pure[IndexedSeq[Certificate]](res)
+          } orElse {
+            logger.info("attempting to request certs from client")
+            //need to make use of the certificate sessions in the setup process
+            //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
+            sslh.setEnableRenegotiation(true); //does this have to be done on every request?
+            req.headers.get("User-Agent") match {
+              case Some(agent) if needAuth(agent) => sslh.getEngine.setNeedClientAuth(true)
+              case _ => sslh.getEngine.setWantClientAuth(true)
+            }
+            val future = sslh.handshake()
+            future.await()
+            val r: Future[IndexedSeq[Certificate]] = NettyPromise(future).extend{ p=>
+                sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
+            }
+            Some(r)
+          }
+         }
+        logger.info("returning Promise")
+        res.getOrElse(Promise.pure(throw new SSLException("No SSLHandler!")))
+      }
+
+      /**
+       *  Some agents do not send client certificates unless required by a NEED.
+       *
+       *  This is a problem for them, as it ends up breaking the SSL connection for agents that do not send a cert.
+       *  For human agents this is a bigger problem, as one would rather send them a message of explanation for what
+       *  went wrong, with perhaps pointers to other methods  of authentication, rather than showing an ugly connection
+       *  broken/dissallowed window ) For Opera and AppleWebKit browsers (Safari) authentication requests should
+       *  therefore be done over javascript, on resources that NEED a cert, and which can fail cleanly with a
+       *  javascript exception.  )
+       *
+       *  It would be useful if this could be updated by server from time to  time from a file on the internet,
+       *  so that changes to browsers could update server behavior.
+       *
+       */
+      def needAuth(agent: String): Boolean =
+        (agent contains "Java")  | (agent contains "AppleWebKit")  |  (agent contains "Opera") | (agent contains "libcurl")
+
+    }
+
     e.getMessage match {
 
       case nettyHttpRequest: HttpRequest =>
 
-        Logger("play").trace("Http request received by netty: " + nettyHttpRequest)
+        logger.trace("Http request received by netty: " + nettyHttpRequest)
+
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
@@ -73,11 +139,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
         }
 
-        import org.jboss.netty.util.CharsetUtil;
-
         //mapping netty request to Play's
 
-        val requestHeader = new RequestHeader {
+        val requestHeader = new RequestHeader with certs {
           val id = requestIDs.incrementAndGet
           val tags = Map.empty[String,String]
           def uri = nettyHttpRequest.getUri
@@ -111,7 +175,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case r @ SimpleResult(ResponseHeader(status, headers), body) if (!websocketableRequest.check) => {
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
 
-                Logger("play").trace("Sending simple result: " + r)
+                logger.trace("Sending simple result: " + r)
 
                 // Set response headers
                 headers.filterNot(_ == (CONTENT_LENGTH, "-1")).foreach {
@@ -187,7 +251,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
               case r @ ChunkedResult(ResponseHeader(status, headers), chunks) => {
 
-                Logger("play").trace("Sending chunked result: " + r)
+                logger.trace("Sending chunked result: " + r)
 
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
 
@@ -219,7 +283,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                              .extend1{ 
                                case Redeemed(_) => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty)
                                case Thrown(ex) =>
-                                 Logger("play").debug(ex.toString) 
+                                 logger.debug(ex.toString)
                                  if(e.getChannel.isConnected())  e.getChannel.close()
                                  throw ex
                              })
@@ -231,7 +295,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                         .extend1{ 
                           case Redeemed(_) => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty:Input[r.BODY_CONTENT])
                           case Thrown(ex) =>
-                            Logger("play").debug(ex.toString) 
+                            logger.debug(ex.toString)
                             if(e.getChannel.isConnected())  e.getChannel.close()
                             throw ex
                         })
@@ -292,7 +356,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             handleAction(a,Some(app))
 
           case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) =>
-            Logger("play").trace("Serving this request with: " + ws)
+            logger.trace("Serving this request with: " + ws)
 
             try {
               val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
@@ -303,19 +367,19 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
-            Logger("play").trace("Bad websocket request")
+            logger.trace("Bad websocket request")
             val a = EssentialAction(_ => Done(Results.BadRequest,Input.Empty))
             handleAction(a,Some(app))
 
           case Left(e) =>
-            Logger("play").trace("No handler, got direct result: " + e)
+            logger.trace("No handler, got direct result: " + e)
             val a = EssentialAction(_ => Done(e,Input.Empty))
             handleAction(a,None)
 
         }
 
         def handleAction(a:EssentialAction,app:Option[Application]){
-          Logger("play").trace("Serving this request with: " + a)
+          logger.trace("Serving this request with: " + a)
 
           val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(a)
 
@@ -362,13 +426,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             case Redeemed(r) => response.handle(r)
 
             case Thrown(error) =>
-              Logger("play").error("Cannot invoke the action, eventually got an error: " + error)
+              logger.error("Cannot invoke the action, eventually got an error: " + error)
               response.handle( app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)))
               e.getChannel.setReadable(true)
           }
         }
 
-      case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
+      case unexpected => logger.error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
 
     }
   }
