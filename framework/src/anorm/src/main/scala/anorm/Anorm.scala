@@ -88,6 +88,14 @@ package anorm
       }
     }
 
+    implicit def rowToByte: Column[Byte] = Column.nonNull { (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case byte: Byte => Right(byte)
+        case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte for column " + qualified))
+      }
+    }
+
     implicit def rowToBoolean: Column[Boolean] = Column.nonNull { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
