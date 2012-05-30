@@ -44,4 +44,13 @@ public class Application extends Controller {
         }));
     }
 
+    public static Result setLang(String code) {
+        changeLang(code);
+        return ok(lang().code());
+    }
+
+    public static Result hello() {
+        return ok(play.i18n.Messages.get("hello"));
+    }
+
 }
