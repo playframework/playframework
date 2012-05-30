@@ -474,7 +474,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
               super.loadClass(name)
             } catch {
               case e: ClassNotFoundException => {
-                reloader.currentApplicationClassLoader.map(_.loadClass(name)).getOrElse(throw e)
+                reloader.currentApplicationClassLoader.synchronized {
+                  reloader.currentApplicationClassLoader.map(_.loadClass(name)).getOrElse(throw e)
+                }
               }
             }
           }

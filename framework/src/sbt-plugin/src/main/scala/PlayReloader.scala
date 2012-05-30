@@ -51,7 +51,9 @@ trait PlayReloader {
       }
 
       def clean() {
-        currentApplicationClassLoader = None
+        currentApplicationClassLoader.synchronized {
+          currentApplicationClassLoader = None
+        }
         currentProducts = Map.empty[java.io.File, Long]
         currentAnalysis = None
       }
@@ -187,21 +189,26 @@ trait PlayReloader {
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       private def newClassLoader = {
-        val loader = new java.net.URLClassLoader(
-          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
-          baseLoader) {
 
-          val version = classLoaderVersion.incrementAndGet
+        currentApplicationClassLoader.synchronized {
 
-          override def toString = {
-            "ReloadableClassLoader(v" + version + ") {" + {
-              getURLs.map(_.toString).mkString(", ")
-            } + "}"
+          val loader = new java.net.URLClassLoader(
+            Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
+            baseLoader) {
+
+            val version = classLoaderVersion.incrementAndGet
+
+            override def toString = {
+              "ReloadableClassLoader(v" + version + ") {" + {
+                getURLs.map(_.toString).mkString(", ")
+              } + "}"
+            }
+
           }
+          currentApplicationClassLoader = Some(loader)
+          loader
 
         }
-        currentApplicationClassLoader = Some(loader)
-        loader
       }
 
       def reload: Either[Throwable, Option[ClassLoader]] = {
