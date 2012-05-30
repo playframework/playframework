@@ -22,7 +22,7 @@ object UserInfo {
 
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
     val axAttribute = new Regex("^openid[.].+[.]value[.]([^.]+)([.]\\d+)?$")
-    val id = queryString.get("openid.claimedId").flatMap(_.headOption)
+    val id = queryString.get("openid.claimed_id").flatMap(_.headOption)
       .orElse(queryString.get("openid.identity").flatMap(_.headOption))
       .getOrElse(throw Errors.BAD_RESPONSE)
     val attributes = queryString.toSeq.map(pair => (axAttribute.findFirstMatchIn(pair._1).map(_.group(1)), pair._2.headOption))
@@ -73,7 +73,7 @@ object OpenID {
 
   private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
     (queryString.get("openid.mode").flatMap(_.headOption),
-      queryString.get("openid.claimedId").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
+      queryString.get("openid.claimed_id").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
       queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
         case (Some("id_res"), Some(id), endPoint) => {
           val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
