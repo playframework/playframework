@@ -379,6 +379,28 @@ object Forms {
   def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern)
 
   /**
+   * Constructs a simple mapping for a date field (mapped as `org.joda.time.DateTime type`).
+   *
+   * For example:
+   * {{{
+   *   Form("birthdate" -> jodaDate)
+   * }}}
+   */
+  val jodaDate: Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `org.joda.time.DateTime type`).
+   *
+   * For example:
+   * {{{
+   *   Form("birthdate" -> jodaDate("dd-MM-yyyy"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
+   */
+  def jodaDate(pattern: String): Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime] as jodaDateTimeFormat(pattern)
+
+  /**
    * Constructs a simple mapping for an e-mail field.
    *
    * For example:

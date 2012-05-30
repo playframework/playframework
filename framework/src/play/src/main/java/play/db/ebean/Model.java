@@ -101,6 +101,16 @@ public class Model {
         Ebean.getServer(server).saveManyToManyAssociations(this, path);
     }    
     
+    
+    /**
+     * Deletes a many-to-many association
+     * 
+     * @parama path name of the many-to-many association we want to delete
+     */
+    public void deleteManyToManyAssociations(String path) {
+        Ebean.deleteManyToManyAssociations(this, path);
+    }
+    
     /**
      * Updates this entity.
      */

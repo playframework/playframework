@@ -10,7 +10,7 @@ import scala.annotation.implicitNotFound
 @implicitNotFound(
   "No Json deserializer found for type ${T}. Try to implement an implicit Reads or Format for this type."
 )
-trait Reads[+T] {
+trait Reads[T] {
 
   /**
    * Convert the JsValue into a T
@@ -110,38 +110,6 @@ trait DefaultReads {
   }
 
   /**
-   * Deserializer for List[T] types.
-   */
-  implicit def listReads[T](implicit fmt: Reads[T]): Reads[List[T]] = new Reads[List[T]] {
-    def reads(json: JsValue) = json match {
-      case JsArray(ts) => ts.map(t => fromJson(t)(fmt)).toList
-      case _ => throw new RuntimeException("List expected")
-    }
-  }
-
-  /**
-   * Deserializer for Seq[T] types.
-   */
-  implicit def seqReads[T](implicit fmt: Reads[T]): Reads[Seq[T]] = new Reads[Seq[T]] {
-    def reads(json: JsValue) = json match {
-      case JsArray(ts) => ts.map(t => fromJson(t)(fmt))
-      case _ => throw new RuntimeException("Seq expected")
-    }
-  }
-
-  /**
-   * Deserializer for Array[T] types.
-   */
-  implicit def arrayReads[T](implicit fmt: Reads[T], mf: Manifest[T]): Reads[Array[T]] = new Reads[Array[T]] {
-    def reads(json: JsValue) = json match {
-      case JsArray(ts) => listToArray(ts.map(t => fromJson(t)(fmt)).toList)
-      case _ => throw new RuntimeException("Array expected")
-    }
-  }
-
-  private[this] def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
-
-  /**
    * Deserializer for Map[String,V] types.
    */
   implicit def mapReads[V](implicit fmtv: Reads[V]): Reads[collection.immutable.Map[String, V]] = new Reads[collection.immutable.Map[String, V]] {
@@ -152,38 +120,32 @@ trait DefaultReads {
   }
 
   /**
-   * Deserializer for Set[T] types.
+   * Generic deserializer for collections types.
    */
-  implicit def mutableSetReads[T](implicit fmt: Reads[T]): Reads[mutable.Set[T]] = {
-    viaSeq((x: Seq[T]) => mutable.Set(x: _*))
-  }
-
-  /**
-   * Deserializer for Set[T] types.
-   */
-  implicit def immutableSetReads[T](implicit fmt: Reads[T]): Reads[immutable.Set[T]] = {
-    viaSeq((x: Seq[T]) => immutable.Set(x: _*))
-  }
-
-  /**
-   * Deserializer for SortedSet[T] types.
-   */
-  implicit def immutableSortedSetReads[S](implicit ord: S => Ordered[S], binS: Reads[S]): Reads[immutable.SortedSet[S]] = {
-    viaSeq((x: Seq[S]) => immutable.TreeSet[S](x: _*))
-  }
-
-  private def viaSeq[S <: Iterable[T], T](f: Seq[T] => S)(implicit fmt: Reads[T]): Reads[S] = new Reads[S] {
+  implicit def traversableReads[F[_], A](implicit bf: generic.CanBuildFrom[F[_], A, F[A]], ra: Reads[A]) = new Reads[F[A]] {
     def reads(json: JsValue) = json match {
-      case JsArray(ts) => f(ts.map(t => fromJson[T](t)))
+      case JsArray(ts) => {
+        val builder = bf()
+        for (a <- ts.map(fromJson[A](_))) {
+          builder += a
+        }
+        builder.result()
+      }
       case _ => throw new RuntimeException("Collection expected")
     }
+  }
+
+  /**
+   * Deserializer for Array[T] types.
+   */
+  implicit def arrayReads[T: Reads: Manifest]: Reads[Array[T]] = new Reads[Array[T]] {
+    def reads(json: JsValue) = json.as[List[T]].toArray
   }
 
   /**
    * Deserializer for JsValue.
    */
   implicit object JsValueReads extends Reads[JsValue] {
-    def writes(o: JsValue) = o
     def reads(json: JsValue) = json
   }
 
@@ -192,7 +154,7 @@ trait DefaultReads {
    */
   implicit object JsObjectReads extends Reads[JsObject] {
     def reads(json: JsValue) = json match {
-      case o @ JsObject(_) => o
+      case o: JsObject => o
       case _ => throw new RuntimeException("JsObject expected")
     }
   }

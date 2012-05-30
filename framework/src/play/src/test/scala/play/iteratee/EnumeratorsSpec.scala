@@ -9,8 +9,8 @@ object EnumeratorsSpec extends Specification {
 
   "mix it with another enumerator into one" in {
       import play.api.libs.concurrent.Promise
-      val e1 = Enumerator(List(1),List(3),List(5),List(7)) >>> Enumerator.enumInput(Input.EOF)
-      val e2 = Enumerator(List(2),List(4),List(6),List(8))  >>> Enumerator.enumInput(Input.EOF)
+      val e1 = Enumerator(List(1),List(3),List(5),List(7))
+      val e2 = Enumerator(List(2),List(4),List(6),List(8))
       val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
       val kk =e(Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
@@ -91,6 +91,58 @@ object EnumeratorsSpec extends Specification {
     } yield j
     val it = Iteratee.fold[Int, Int](0)((sum, x) => sum + x)
     (e |>> it).flatMap(_.run).value.get must equalTo ((10 until 40).sum)
+  }
+}
+
+"Enumerator.generateM" should {
+  "generate a stream of values until the expression is None" in {
+
+    val a = 0 to 10 toList
+    val it = a.iterator
+
+    val enumerator = Enumerator.generateM( play.api.libs.concurrent.Promise.pure(if(it.hasNext) Some(it.next) else None))
+
+    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value.get must equalTo("012345678910")
+
+  }
+
+}
+
+"Enumerator.generateM" should {
+  "Can be composed with another enumerator (doesn't send EOF)" in {
+
+    val a = 0 to 10 toList
+    val it = a.iterator
+
+    val enumerator = Enumerator.generateM( play.api.libs.concurrent.Promise.pure(if(it.hasNext) Some(it.next) else None)) >>> Enumerator(12)
+
+    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value.get must equalTo("01234567891012")
+
+  }
+
+}
+
+"Enumerator.unfoldM" should {
+  "Can be composed with another enumerator (doesn't send EOF)" in {
+
+    val enumerator = Enumerator.unfoldM[Int,Int](0)( s => play.api.libs.concurrent.Promise.pure(if(s > 10) None else Some((s+1,s+1)))) >>> Enumerator(12)
+
+    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value.get must equalTo("123456789101112")
+
+  }
+
+}
+
+"Enumerator.broadcast" should {
+  "broadcast the same to already registered iteratees" in {
+
+    val (broadcaster,pushHere) = Concurrent.broadcast[String]
+    val results = play.api.libs.concurrent.Promise.sequence(Range(1,20).map(_ => Iteratee.fold[String,String](""){(s,e) => s + e }).map(broadcaster.apply).map(_.flatMap(_.run)))
+    pushHere.push("beep")
+    pushHere.push("beep")
+    pushHere.eofAndEnd()
+    results.value.get must equalTo(Range(1,20).map(_ => "beepbeep"))
+
   }
 }
 }

@@ -5,6 +5,7 @@
 GET     /                       controllers.Application.index()
 POST    /post                   controllers.Application.post()
 POST    /submitForm             controllers.Application.submitForm()
+GET     /inherit                controllers.CRUDAction.methods.index()
 GET     /form                   controllers.Application.form()
 GET     /json_java              controllers.JavaApi.index()
 GET     /headers                controllers.JavaApi.headers()
@@ -40,6 +41,8 @@ GET     /javascript-test        controllers.Application.javascriptTest(name)
 
 GET     /accept                 controllers.Application.accept()
 GET     /accept-java            controllers.JavaApi.accept()
+
+GET     /onCloseSendFile/*fp    controllers.Application.onCloseSendFile(fp)
 
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)

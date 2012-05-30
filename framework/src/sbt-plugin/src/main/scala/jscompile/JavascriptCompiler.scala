@@ -16,7 +16,7 @@ object JavascriptCompiler {
   /**
    * Compile a JS file with its dependencies
    * @return a triple containing the original source code, the minified source code, the list of dependencies (including the input file)
-   * @param source 
+   * @param source
    * @param simpleCompilerOptions user supplied simple command line parameters
    * @param fullCompilerOptions user supplied full blown CompilerOptions instance
    */
@@ -25,7 +25,7 @@ object JavascriptCompiler {
 
     val origin = Path(source).slurpString
 
-    val options = fullCompilerOptions.getOrElse{
+    val options = fullCompilerOptions.getOrElse {
       val defaultOptions = new CompilerOptions()
       defaultOptions.closurePass = true
       defaultOptions.setProcessCommonJSModules(true)

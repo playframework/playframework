@@ -8,6 +8,7 @@ import play.api.libs.iteratee._
 import Play.current
 
 import java.io._
+import java.net.JarURLConnection
 import scalax.io.{ Resource }
 import java.text.SimpleDateFormat
 import collection.JavaConverters._
@@ -40,6 +41,13 @@ object Assets extends Controller {
    * @param file the file part extracted from the URL
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
+    // -- LastModified handling
+
+    implicit val dateFormatter = {
+      val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+      formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+      formatter
+    }
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
@@ -68,40 +76,47 @@ object Assets extends Controller {
             }
           }
 
-          if (length == 0) {
+          if(length == 0) {
             NotFound
           } else {
+            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch => 
+              etagFor(url).filter(_ == ifNoneMatch)
+            }.map (_ => NotModified).getOrElse {
+              request.headers.get(IF_MODIFIED_SINCE).flatMap { ifModifiedSince =>
+                lastModifiedFor(url).filterNot(lastModified => dateFormatter.parse(lastModified).after(dateFormatter.parse(ifModifiedSince)))
+              }.map (_ => NotModified).getOrElse {
 
-            request.headers.get(IF_NONE_MATCH).filter(Some(_) == etagFor(url)).map(_ => NotModified).getOrElse {
+                // Prepare a streamed response
+                val response = SimpleResult(
+                  header = ResponseHeader(OK, Map(
+                    CONTENT_LENGTH -> length.toString,
+                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
+                  )),
+                  resourceData
+                )
 
-              // Prepare a streamed response
-              val response = SimpleResult(
-                header = ResponseHeader(OK, Map(
-                  CONTENT_LENGTH -> length.toString,
-                  CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
-                )),
-                resourceData
-              )
+                // Is Gzipped?
+                val gzippedResponse = if (isGzipped) {
+                  response.withHeaders(CONTENT_ENCODING -> "gzip")
+                } else {
+                  response
+                }
 
-              // Is Gzipped?
-              val gzippedResponse = if (isGzipped) {
-                response.withHeaders(CONTENT_ENCODING -> "gzip")
-              } else {
-                response
-              }
+                // Add Etag if we are able to compute it
+                val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
+                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified, DATE -> dateFormatter.format(new java.util.Date))).getOrElse(taggedResponse)
 
-              // Add Etag if we are able to compute it
-              val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-
-              // Add Cache directive if configured
-              val cachedResponse = taggedResponse.withHeaders(CACHE_CONTROL -> {
-                Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-                  case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-                  case _ => "no-cache"
+                // Add Cache directive if configured
+                val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
+                  Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
+                    case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+                    case _ => "no-cache"
+                  })
                 })
-              })
 
-              cachedResponse
+                cachedResponse
+
+              }:Result
 
             }
 
@@ -115,25 +130,21 @@ object Assets extends Controller {
 
   }
 
-  // -- LastModified handling
-
-  private val dateFormatter = {
-    val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-    formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
-    formatter
-  }
-
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def lastModifiedFor(resource: java.net.URL): Option[String] = {
+  private def lastModifiedFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeLastModified = resource.getProtocol match {
         case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
-        case "jar" => new java.net.URL(resource.getPath) match {
-          case url if url.getProtocol == "file" => Some(
-            dateFormatter.format(new java.util.Date(new java.io.File(url.getPath.takeWhile(c => !(c == '!'))).lastModified))
-          )
-          case _ => None
+        case "jar" => {
+            resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
+              Option(resource.openConnection)
+               .collect { case c: JarURLConnection => c }
+               .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
+               .map(_.getTime)
+               .filterNot(_ == 0)
+               .map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
+            }
         }
         case _ => None
       }
@@ -146,9 +157,9 @@ object Assets extends Controller {
 
   private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def etagFor(resource: java.net.URL): Option[String] = {
+  private def etagFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map(Codecs.sha1)
+      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\""+Codecs.sha1(_)+"\"")
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))
       maybeEtag
     }

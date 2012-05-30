@@ -66,7 +66,7 @@ public class F {
     public static interface Function3<A,B,C,R> {
         public R apply(A a, B b, C c) throws Throwable;
     }
-
+    
     /**
      * A promise to produce a result of type <code>A</code>.
      */
@@ -78,9 +78,29 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> waitAll(Promise<A>... promises){
-
+        public static <A> Promise<List<A>> waitAll(Promise<? extends A>... promises){
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
+        }
+        
+        /**
+         * Create a Promise that is redeemed after a timeout.
+         *
+         * @param message The message to use to redeem the Promise.
+         * @param delay The delay (expressed with the corresponding unit).
+         * @param unit The Unit.
+         */
+        public static <A> Promise<A> timeout(A message, Long delay, java.util.concurrent.TimeUnit unit) {
+            return new Promise(play.core.j.JavaPromise.timeout(message, delay, unit));
+        }
+        
+        /**
+         * Create a Promise that is redeemed after a timeout.
+         *
+         * @param message The message to use to redeem the Promise.
+         * @param delay The delay expressed in Milliseconds.
+         */
+        public static <A> Promise<A> timeout(A message, Long delay) {
+            return timeout(message, delay, java.util.concurrent.TimeUnit.MILLISECONDS);
         }
 
         /**
@@ -89,15 +109,29 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> waitAll(Iterable<Promise<A>> promises){
-
-            ArrayList<Promise<A>> ps = new ArrayList<Promise<A>>();
-
-            for(Promise<A> p : promises){
+        public static <A> Promise<List<A>> waitAll(Iterable<Promise<? extends A>> promises){
+            ArrayList<Promise<? extends A>> ps = new ArrayList<Promise<? extends A>>();
+            for(Promise<? extends A> p : promises){
                 ps.add(p);
             }
-
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
+        }
+
+        /**
+         * Create a new pure promise, that is, a promise with a constant value from the start.
+         *
+         * @param a the value for the promise
+         */
+        public static <A> Promise<A> pure(final A a) {
+            return new Promise<A>(play.core.j.JavaPromise.<A>pure(a));
+        }
+
+        /**
+         * Create a new promise throwing an exception.
+         * @param throwable Value to throw
+         */
+        public static <A> Promise<A> throwing(Throwable throwable) {
+            return new Promise<A>(play.core.j.JavaPromise.<A>throwing(throwable));
         }
 
         private final play.api.libs.concurrent.Promise<A> promise;
@@ -150,10 +184,22 @@ public class F {
          * @param action The action to perform.
          */
         public void onRedeem(final Callback<A> action) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             promise.onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
                     try {
-                        action.invoke(a);
+                        run(new Function<A,Object>() {
+                            public Object apply(A a) {
+                                try {
+                                    action.invoke(a);
+                                    return 0;
+                                } catch(RuntimeException e) {
+                                    throw e;
+                                } catch(Throwable t) {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                        }, a, context);
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable t) {
@@ -175,11 +221,12 @@ public class F {
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
         public <B> Promise<B> map(final Function<A, B> function) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
-                promise.map(new scala.runtime.AbstractFunction1<A,B>() {
-                    public B apply(A a) {
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
+                    public play.api.libs.concurrent.Promise<B> apply(A a) {
                         try {
-                            return function.apply(a);
+                            return run(function, a, context);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
@@ -202,18 +249,19 @@ public class F {
          *      exception.
          */
         public Promise<A> recover(final Function<Throwable,A> function) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<A>(
-              promise.recover(new play.api.libs.concurrent.Recover<A>(){
-                  public A recover(Throwable t){
-                      try {
-                          return function.apply(t);
-                      } catch (RuntimeException e) {
-                          throw e;
-                      } catch (Throwable tt) {
-                          throw new RuntimeException(tt);
-                      }
-                  }
-              })
+                play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, play.api.libs.concurrent.Promise<A>>() {
+                    public play.api.libs.concurrent.Promise<A> apply(Throwable t) {
+                        try {
+                            return run(function,t, context);
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch(Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                })
             );
         }
 
@@ -228,16 +276,21 @@ public class F {
          * @return A wrapped promise for a result of type <code>B</code>
          */
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
+            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
-                promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
-                    public play.api.libs.concurrent.Promise<B> apply(A a) {
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<Promise<B>>>() {
+                    public play.api.libs.concurrent.Promise<Promise<B>> apply(A a) {
                         try {
-                            return function.apply(a).promise;
+                            return run(function, a, context);
                         } catch (RuntimeException e) {
                             throw e;
-                        } catch (Throwable t) {
+                        } catch(Throwable t) {
                             throw new RuntimeException(t);
                         }
+                    }
+                }).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,play.api.libs.concurrent.Promise<B>>() {
+                    public play.api.libs.concurrent.Promise<B> apply(Promise<B> p) {
+                        return p.promise;
                     }
                 })
             );
@@ -250,6 +303,74 @@ public class F {
          */
         public play.api.libs.concurrent.Promise<A> getWrappedPromise() {
             return promise;
+        }
+        
+        // -- Utils
+
+        static Integer nb = 64;
+
+        static List<akka.actor.ActorRef> actors = null;
+        static List<akka.actor.ActorRef> actors() {
+            synchronized(Promise.class) {
+                if(actors == null) {
+                    synchronized(Promise.class) {
+                        actors = new ArrayList<akka.actor.ActorRef>(nb);
+                        for(int i=0; i<nb; i++) {
+                            actors.add(play.api.libs.concurrent.Promise$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
+                        }
+                    }
+                }
+            }
+            return actors;
+        }
+
+        static <A,B> play.api.libs.concurrent.Promise<B> run(Function<A,B> f, A a, play.mvc.Http.Context context) {
+            Long id;
+            if(context == null) {
+                id = 0l;
+            } else {
+                id = context.id();
+            }
+            return new play.api.libs.concurrent.AkkaPromise(
+                (akka.dispatch.Future<Object>)akka.pattern.Patterns.ask(
+                    actors().get((int)(id % actors().size())), 
+                    Tuple3(f, a, context), 
+                    1000
+                )
+            ).map(new scala.runtime.AbstractFunction1<Object,B> () {
+                public B apply(Object o) {
+                    Either<Throwable,B> r = (Either<Throwable,B>)o;
+                    if(r.left.isDefined()) {
+                        Throwable t = r.left.get();
+                        if(t instanceof RuntimeException) {
+                            throw (RuntimeException)t;
+                        } else {
+                            throw new RuntimeException(t);
+                        }
+                    }
+                    return r.right.get();
+                }
+            });
+        }
+
+        // ExecuteS the Promise functions (capturing exception), with the given ThreadLocal context.
+        // This Actor is used as Agent to ensure function execution ordering for a given context.
+        public static class PromiseActor extends akka.actor.UntypedActor {
+
+            public void onReceive(Object o) {
+                Function f = (Function)(((Tuple3)o)._1);
+                Object a = (Object)(((Tuple3)o)._2);
+                play.mvc.Http.Context context = (play.mvc.Http.Context)(((Tuple3)o)._3);
+                try {
+                    play.mvc.Http.Context.current.set(context);
+                    getSender().tell(Either.Right(f.apply(a)));
+                } catch(Throwable t) {
+                    getSender().tell(Either.Left(t));
+                } finally {
+                    play.mvc.Http.Context.current.remove();
+                }
+            }
+
         }
 
     }
@@ -322,7 +443,7 @@ public class F {
                 } catch (RuntimeException e) {
                     throw e;
                 } catch (Throwable t) {
-                    throw new RuntimeException();
+                    throw new RuntimeException(t);
                 }
             } else {
                 return None();

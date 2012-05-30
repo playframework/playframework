@@ -39,7 +39,7 @@ public class GlobalSettings {
      * @param t is any throwable
      * @return null as the default implementation
      */
-    public Result onError(Throwable t) {
+    public Result onError(RequestHeader request, Throwable t) {
         return null;
     }
     
@@ -70,7 +70,7 @@ public class GlobalSettings {
     * @param request the HTTP request header as seen by the core framework (the body has not been parsed yet)
     * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
     */
-    public play.api.mvc.Handler onRouteRequest(play.api.mvc.RequestHeader request) {
+    public play.api.mvc.Handler onRouteRequest(RequestHeader request) {
         return null;
     }
 
@@ -78,10 +78,10 @@ public class GlobalSettings {
      * Triggered when a resource was requested but not found. The default implementation returns <code>null</code>, so that
      * the Scala engine handles the <code>onActionNotFound</code>.
      *
-     * @param uri the request URI
+     * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public Result onHandlerNotFound(String uri) {
+    public Result onHandlerNotFound(RequestHeader request) {
         return null;
     }
     
@@ -89,10 +89,10 @@ public class GlobalSettings {
      * Triggered when a resource was requested but not found, the default implementation returns <code>null</code>, so that
      * the Scala engine handles the <code>onBadRequest</code>.
      *
-     * @param uri the request URI
+     * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public Result onBadRequest(String uri, String error) {
+    public Result onBadRequest(RequestHeader request, String error) {
         return null;
     }
 }

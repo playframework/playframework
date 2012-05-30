@@ -58,19 +58,29 @@ object Formats {
   }
 
   /**
+   * Helper for formatters binders
+   * @param parse Function parsing a String value into a T value, throwing an exception in case of failure
+   * @param error Error to set in case of parsing failure
+   * @param key Key name of the field to parse
+   * @param data Field data
+   */
+  private def parsing[T](parse: String => T, errMsg: String, errArgs: Seq[Any])(key: String, data: Map[String, String]): Either[Seq[FormError], T] = {
+    stringFormat.bind(key, data).right.flatMap { s =>
+      util.control.Exception.allCatch[T]
+        .either(parse(s))
+        .left.map(e => Seq(FormError(key, errMsg, errArgs)))
+    }
+  }
+
+  /**
    * Default formatter for the `Long` type.
    */
   implicit def longFormat: Formatter[Long] = new Formatter[Long] {
 
     override val format = Some("format.numeric", Nil)
 
-    def bind(key: String, data: Map[String, String]) = {
-      stringFormat.bind(key, data).right.flatMap { s =>
-        scala.util.control.Exception.allCatch[Long]
-          .either(java.lang.Long.parseLong(s))
-          .left.map(e => Seq(FormError(key, "error.number", Nil)))
-      }
-    }
+    def bind(key: String, data: Map[String, String]) =
+      parsing(_.toLong, "error.number", Nil)(key, data)
 
     def unbind(key: String, value: Long) = Map(key -> value.toString)
   }
@@ -82,15 +92,36 @@ object Formats {
 
     override val format = Some("format.numeric", Nil)
 
-    def bind(key: String, data: Map[String, String]) = {
-      stringFormat.bind(key, data).right.flatMap { s =>
-        scala.util.control.Exception.allCatch[Int]
-          .either(Integer.parseInt(s))
-          .left.map(e => Seq(FormError(key, "error.number", Nil)))
-      }
-    }
+    def bind(key: String, data: Map[String, String]) =
+      parsing(_.toInt, "error.number", Nil)(key, data)
 
     def unbind(key: String, value: Int) = Map(key -> value.toString)
+  }
+
+  /**
+   * Default formatter for the `Float` type.
+   */
+  implicit def floatFormat: Formatter[Float] = new Formatter[Float] {
+
+    override val format = Some("format.real", Nil)
+
+    def bind(key: String, data: Map[String, String]) =
+      parsing(_.toFloat, "error.real", Nil)(key, data)
+
+    def unbind(key: String, value: Float) = Map(key -> value.toString)
+  }
+
+  /**
+   * Default formatter for the `Double` type.
+   */
+  implicit def doubleFormat: Formatter[Double] = new Formatter[Double] {
+
+    override val format = Some("format.real", Nil)
+
+    def bind(key: String, data: Map[String, String]) =
+      parsing(_.toDouble, "error.real", Nil)(key, data)
+
+    def unbind(key: String, value: Double) = Map(key -> value.toString)
   }
 
   /**
@@ -124,16 +155,12 @@ object Formats {
     override val format = Some("format.date", Seq(pattern))
 
     def bind(key: String, data: Map[String, String]) = {
-      stringFormat.bind(key, data).right.flatMap { s =>
-        scala.util.control.Exception.allCatch[Date]
-          .either({
-            val sdf = new SimpleDateFormat(pattern)
-            sdf.setLenient(false)
-            sdf.parse(s)
-          }
-          )
-          .left.map(e => Seq(FormError(key, "error.date", Nil)))
+      def dateParser = { s: String =>
+        val sdf = new SimpleDateFormat(pattern)
+        sdf.setLenient(false)
+        sdf.parse(s)
       }
+      parsing(dateParser, "error.date", Nil)(key, data)
     }
 
     def unbind(key: String, value: Date) = Map(key -> new SimpleDateFormat(pattern).format(value))
@@ -169,6 +196,36 @@ object Formats {
    * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
    */
   implicit val sqlDateFormat: Formatter[java.sql.Date] = sqlDateFormat("yyyy-MM-dd")
+
+  /**
+   * Formatter for the `org.joda.time.DateTime` type.
+   *
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   */
+  def jodaDateTimeFormat(pattern: String): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
+
+    import org.joda.time.DateTime
+
+    override val format = Some("format.date", Seq(pattern))
+
+    def bind(key: String, data: Map[String, String]) = {
+
+      stringFormat.bind(key, data).right.flatMap { s =>
+        scala.util.control.Exception.allCatch[DateTime]
+          .either(DateTime.parse(s, org.joda.time.format.DateTimeFormat.forPattern(pattern)))
+          .left.map(e => Seq(FormError(key, "error.date", Nil)))
+      }
+    }
+
+    def unbind(key: String, value: DateTime) = Map(key -> value.toString(pattern))
+  }
+
+  /**
+   * Default formatter for `org.joda.time.DateTime` type with pattern `yyyy-MM-dd`.
+   *
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   */
+  implicit val jodaDateTimeFormat: Formatter[org.joda.time.DateTime] = jodaDateTimeFormat("yyyy-MM-dd")
 
 }
 

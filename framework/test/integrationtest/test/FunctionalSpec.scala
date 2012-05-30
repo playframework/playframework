@@ -7,10 +7,27 @@ import org.specs2.mutable._
 import models._
 import models.Protocol._
 import org.openqa.selenium.htmlunit.HtmlUnitDriver
-
+import java.util.Calendar
 
 class FunctionalSpec extends Specification {
   "an Application" should {
+    
+    def cal = Calendar.getInstance()
+
+    val startDate = cal.getTime()
+
+    "call onClose for Ok.sendFile responses" in {
+      import java.io.File
+      running(TestServer(9003), HTMLUNIT) { browser =>
+        def file = new File("onClose.tmp")
+        file.createNewFile()
+        file.exists() must equalTo(true)
+
+        browser.goTo("http://localhost:9003/onCloseSendFile/" + file.getCanonicalPath)
+        Thread.sleep(1000)
+        file.exists() must equalTo(false)
+      }
+    }
 
     "pass functional test with two browsers" in {
       running(TestServer(9002), HTMLUNIT) { browser =>
@@ -20,6 +37,27 @@ class FunctionalSpec extends Specification {
     } 
     "pass functional test" in {
       running(TestServer(9001), HTMLUNIT) { browser =>
+        // -- Etags
+
+        val format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+        val h = await(WS.url("http://localhost:9001/public/stylesheets/main.css").get)
+        h.header("Last-Modified").isDefined must equalTo(true)
+        h.header("Etag").get.startsWith("\"") must equalTo(true)
+        h.header("Etag").get.endsWith("\"") must equalTo(true)
+        
+        val secondRequest = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get)
+        secondRequest.status must equalTo(304)
+       
+        val localCal = cal
+        val f = new java.io.File("public/stylesheets/main.css")
+        localCal.setTime(new java.util.Date(f.lastModified))
+        localCal.add(Calendar.HOUR, -1)
+        val earlierDate =  localCal.getTime
+
+        val third = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(earlierDate)).get)
+        third.header("Last-Modified").isDefined must equalTo(true)
+        third.status must equalTo(200)
+
         val content: String = await(WS.url("http://localhost:9001/post").post("param1=foo")).body
         content must contain ("param1")
         content must contain("AnyContentAsText")
@@ -42,6 +80,9 @@ class FunctionalSpec extends Specification {
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Hello world")
 
+        browser.goTo("http://localhost:9001/inherit")
+        browser.pageSource must contain("I'm the parent action")
+
         await(WS.url("http://localhost:9001").get()).body must contain ("Hello world")
 
         await(WS.url("http://localhost:9001/json").get()).json.as[User] must equalTo(User(1, "Sadek", List("tea")))
@@ -50,6 +91,7 @@ class FunctionalSpec extends Specification {
         browser.pageSource must contain("This value comes from complex-app's complex1.conf")
         browser.pageSource must contain("override akka:2 second")
         browser.pageSource must contain("akka-loglevel:DEBUG")
+        browser.pageSource must contain("promise-timeout:7000")
         browser.pageSource must contain("None")
         browser.title must beNull
 

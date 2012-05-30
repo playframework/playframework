@@ -2,8 +2,7 @@ package play.api.libs.iteratee
 
 object Traversable {
 
-
-  @scala.deprecated("use Enumeratee.passAlong instead","2.1.x")
+  @scala.deprecated("use Enumeratee.passAlong instead", "2.1.x")
   def passAlong[M] = Enumeratee.passAlong[M]
 
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
@@ -13,14 +12,14 @@ object Traversable {
       def step(inner: Iteratee[M, A], leftToTake: Int)(in: Input[M]): Iteratee[M, Iteratee[M, A]] = {
         in match {
           case in @ Input.El(e) =>
-            inner.pureFlatFold(
-              (_, _) => Done(inner, in),
-              k => e.splitAt(leftToTake) match {
+            inner.pureFlatFold {
+              case Step.Cont(k) => e.splitAt(leftToTake) match {
                 case (all, x) if x.isEmpty => Cont(step(k(Input.El(all)), (leftToTake - all.size)))
                 case (x, left) if x.isEmpty => Done(inner, Input.El(left))
                 case (toPush, left) => Done(k(Input.El(toPush)), Input.El(left))
-              },
-              (_, _) => Done(inner, in))
+              }
+              case _ => Done(inner, in)
+            }
 
           case Input.EOF => Done(inner, Input.EOF)
 
@@ -40,12 +39,13 @@ object Traversable {
         in match {
           case in @ Input.El(e) =>
             e.splitAt(leftToTake) match {
-              case (all, x) if x.isEmpty => inner.pureFlatFold(
-                (_, _) => Cont(step(inner, (leftToTake - all.size))),
-                k => Cont(step(k(Input.El(all)), (leftToTake - all.size))),
-                (_, _) => Cont(step(inner, (leftToTake - all.size))))
+              case (all, x) if x.isEmpty => inner.pureFlatFold {
+                case Step.Done(_, _) => Cont(step(inner, (leftToTake - all.size)))
+                case Step.Cont(k) => Cont(step(k(Input.El(all)), (leftToTake - all.size)))
+                case Step.Error(_, _) => Cont(step(inner, (leftToTake - all.size)))
+              }
               case (x, left) if x.isEmpty => Done(inner, Input.El(left))
-              case (toPush, left) => Done(inner.pureFlatFold((_, _) => inner, k => k(Input.El(toPush)), (_, _) => inner), Input.El(left))
+              case (toPush, left) => Done(inner.pureFlatFold{ case Step.Cont(k) => k(Input.El(toPush)); case _ => inner }, Input.El(left))
             }
 
           case Input.EOF => Done(inner, Input.EOF)
@@ -57,6 +57,29 @@ object Traversable {
       Cont(step(it, count))
 
     }
+  }
+
+  import Enumeratee.CheckDone
+
+  def splitOnceAt[M,E](p: E => Boolean)(implicit traversableLike: M => scala.collection.TraversableLike[E, M]):Enumeratee[M,M] =  new CheckDone[M, M] {
+
+      def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+
+        case in @ Input.El(e) =>
+          e.span(p) match {
+            case (prefix,suffix) if suffix.isEmpty => new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(Input.El(prefix))
+            case (prefix,suffix) => Done(if(prefix.isEmpty) Cont(k) else  k(Input.El(prefix)), Input.El(suffix.drop(1)))
+          }
+
+        case in @ Input.Empty =>
+          new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+
+      }
+
+      def continue[A](k: K[M, A]) = Cont(step(k))
+
   }
 
   def drop[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
@@ -71,11 +94,10 @@ object Traversable {
               case i if i > 0 => Cont(step(it, left))
               case i =>
                 val toPass = if (i < 0) Input.El(e.drop(leftToDrop)) else Input.Empty
-                it.pureFlatFold(
-                  (_, _) => Done(it, toPass),
-                  k => Enumeratee.passAlong.applyOn(k(toPass)),
-                  (_, _) => Done(it, toPass))
-
+                it.pureFlatFold {
+                  case Step.Cont(k) => Enumeratee.passAlong.applyOn(k(toPass))
+                  case _ => Done(it, toPass)
+                }
             }
           case Input.Empty => Cont(step(it, leftToDrop))
 

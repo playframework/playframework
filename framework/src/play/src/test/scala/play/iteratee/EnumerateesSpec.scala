@@ -16,6 +16,18 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.dropWhile" should {
+
+    "ignore chunkes while predicate is valid" in {
+      
+      val drop3AndConsume = Enumeratee.dropWhile[String](_ != "4") &>>  Iteratee.consume[String]()
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      (enumerator |>> drop3AndConsume).flatMap(_.run).value.get must equalTo(Range(4,20).map(_.toString).mkString)
+
+    }
+
+  }
+
   "Enumeratee.take" should {
 
     "pass only first 3 chunkes to Iteratee when applied with 3" in {
@@ -29,6 +41,24 @@ object EnumerateesSpec extends Specification {
     "passes along what's left of chunks after taking 3" in {
       
       val take3AndConsume = (Enumeratee.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      (enumerator |>> take3AndConsume).flatMap(_.run).value.get must equalTo(Range(4,20).map(_.toString).mkString)
+
+    }
+
+  }
+
+  "Enumeratee.takeWhile" should {
+
+    "pass chunks until condition is not met" in {
+      val take3AndConsume = Enumeratee.takeWhile[String](_ != "4" ) &>>  Iteratee.consume()
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      (enumerator |>> take3AndConsume).flatMap(_.run).value.get must equalTo(List(1,2,3).map(_.toString).mkString)
+    }
+
+    "passes along what's left of chunks after taking" in {
+      
+      val take3AndConsume = (Enumeratee.takeWhile[String](_ != "4") &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
       (enumerator |>> take3AndConsume).flatMap(_.run).value.get must equalTo(Range(4,20).map(_.toString).mkString)
 
@@ -126,6 +156,16 @@ object EnumerateesSpec extends Specification {
 
     }
 
+  }
+
+  "Enumeratee.grouped" should {
+    "not throw away left inputs by the folder iteratee" in {
+
+      val upToSpace = Traversable.splitOnceAt[String,Char](c => c != '\n')  &>> Iteratee.consume()
+
+      val result = (Enumerator("dasdasdas ", "dadadasda\nshouldb\neinnext") &> Enumeratee.grouped(upToSpace) ><> Enumeratee.map(_+"|")) |>> Iteratee.consume[String]()
+      result.flatMap(_.run).value.get must equalTo("dasdasdas dadadasda|shouldb|")
+    }
   }
 
   "Enumeratee.scanLeft" should {

@@ -39,9 +39,27 @@ object CoffeescriptCompiler {
 
   }
 
+  private def executeNativeCompiler(in: String, source: File): String = {
+    import scala.sys.process._
+    val qb = Process(in)
+    var out = List[String]()
+    var err = List[String]()
+    val exit = qb ! ProcessLogger((s) => out ::= s, (s) => err ::= s)
+    if (exit != 0) {
+      val eRegex = """.*Parse error on line (\d+):.*""".r
+      val errReverse = err.reverse
+      val r = eRegex.unapplySeq(errReverse.mkString("")).map(_.head.toInt)
+      throw CompilationException(errReverse.mkString("\n"), source, r)
+    }
+    out.reverse.mkString("\n")
+  }
+
   def compile(source: File, options: Seq[String]): String = {
     try {
-      compiler(source, options.contains("bare"))
+      if (options.size == 2 && options.headOption.filter(_ == "native").isDefined)
+        executeNativeCompiler(options.last + " " + source.getAbsolutePath, source)
+      else
+        compiler(source, options.contains("bare"))
     } catch {
       case e: JavaScriptException => {
 

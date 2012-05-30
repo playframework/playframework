@@ -25,17 +25,8 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] = ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
-  def async(p: play.api.libs.concurrent.Promise[Result]) = {
-    import scala.collection.JavaConverters.mapAsScalaMapConverter
-    val rsp = play.mvc.Http.Context.current().response()
-    AsyncResult(p.map {
-      case r: PlainResult =>
-        r.withHeaders((rsp.getHeaders().asScala -- r.header.headers.keys).toList:_*)
-      case r =>
-        r
-    })
-  }
-  def chunked[A](onDisconnected: () => Unit) = play.api.libs.iteratee.Enumerator.imperative[A](onComplete = { onDisconnected() })
+  def async(p: play.api.libs.concurrent.Promise[Result]) = AsyncResult(p)
+  def chunked[A](onDisconnected: () => Unit) = play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
 }
@@ -43,11 +34,13 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
 object JavaResultExtractor {
 
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
+    case r: AsyncResult => getStatus(new ResultWrapper(r.result.await.get))
     case Result(status, _) => status
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
+    case r: AsyncResult => getCookies(new ResultWrapper(r.result.await.get))
     case Result(_, headers) => new JCookies {
       def get(name: String) = {
         Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
@@ -59,16 +52,22 @@ object JavaResultExtractor {
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
+    case r: AsyncResult => getHeaders(new ResultWrapper(r.result.await.get))
     case Result(_, headers) => headers.asJava
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getBody(result: play.mvc.Result): Array[Byte] = result.getWrappedResult match {
+    case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run).value.get
     }
     case r => sys.error("Cannot extract the body content from a result of type " + r.getClass.getName)
+  }
+
+  class ResultWrapper(r: play.api.mvc.Result) extends play.mvc.Result {
+    def getWrappedResult = r
   }
 
 }

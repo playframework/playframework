@@ -326,13 +326,13 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName): SimpleResult[Array[Byte]] = {
+    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): SimpleResult[Array[Byte]] = {
       SimpleResult(
         header = ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
         ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=" + fileName(content))))),
-        Enumerator.fromFile(content)
+        Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)
       )
     }
 
@@ -471,9 +471,12 @@ trait Results {
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
-
+  
   /** Generates a ‘501 NOT_IMPLEMENTED’ result. */
   val NotImplemented = new Status(NOT_IMPLEMENTED)
+
+  /** Generates a ‘502 BAD_GATEWAY’ result. */
+  val BadGateway = new Status(BAD_GATEWAY)
 
   /** Generates a ‘503 SERVICE_UNAVAILABLE’ result. */
   val ServiceUnavailable = new Status(SERVICE_UNAVAILABLE)

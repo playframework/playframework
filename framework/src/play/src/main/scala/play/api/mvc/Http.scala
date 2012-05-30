@@ -33,9 +33,19 @@ package play.api.mvc {
     def queryString: Map[String, Seq[String]]
 
     /**
+     * Helper method to access a queryString parameter.
+     */
+    def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
+
+    /**
      * The HTTP headers.
      */
     def headers: Headers
+
+    /**
+     * The client IP address.
+     */
+    def remoteAddress: String
 
     /**
      * The HTTP host (domain, optionally port)
@@ -138,6 +148,7 @@ package play.api.mvc {
       def method = self.method
       def queryString = self.queryString
       def headers = self.headers
+      def remoteAddress = self.remoteAddress
       lazy val body = f(self.body)
     }
 
@@ -153,6 +164,7 @@ package play.api.mvc {
     def path = request.path
     def uri = request.uri
     def method = request.method
+    def remoteAddress = request.remoteAddress
   }
 
   /**
@@ -399,6 +411,7 @@ package play.api.mvc {
     override val isSigned = true
     override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
     override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
+    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -460,7 +473,7 @@ package play.api.mvc {
    */
   object Flash extends CookieBaker[Flash] {
 
-    val COOKIE_NAME = "PLAY_FLASH"
+    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("flash.cookieName")).getOrElse("PLAY_FLASH")
     val emptyCookie = new Flash
 
     def deserialize(data: Map[String, String]) = new Flash(data)

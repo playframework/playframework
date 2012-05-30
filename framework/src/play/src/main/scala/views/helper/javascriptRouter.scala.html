@@ -1,14 +1,24 @@
 @**
- * Generate a Javascript router.
+ * Generates a Javascript object that lets you refer 
+ * to your application's routes in Javascript code
  *
  * Example:
  * {{{
  * @javascriptRouter("jsRoutes")(
- *   routes.javascripts.Users.list,
- *   routes.javascripts.Application.index
+ *   routes.javascript.Users.list,
+ *   routes.javascript.Application.index
  * )
  * }}}
  *
+ * Now you can access your routes in JavaScript without hardcoded URL's, e.g.:
+ * {{{
+ * jsRoutes.controllers.Users.list().ajax({success: /* ... */, error: /* ... */})
+ * }}}
+ * Each action in the generated object has the following keys:
+ * * *ajax*: lets you perform a jQuery ajax call to that actiomn
+ * * *method*: HTTP method
+ * * *url*
+ * 
  * @param name The javascript object name.
  * @param routes Set of routes to include in this javascript router.
  *@

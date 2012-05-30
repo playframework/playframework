@@ -56,6 +56,8 @@ trait JavaHelpers {
 
       def method = req.method
 
+      def remoteAddress = req.remoteAddress
+
       def host = req.host
 
       def path = req.path
@@ -104,6 +106,8 @@ trait JavaHelpers {
       def uri = req.uri
 
       def method = req.method
+
+      def remoteAddress = req.remoteAddress
 
       def host = req.host
 

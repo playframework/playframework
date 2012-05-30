@@ -1,5 +1,6 @@
 body {
     text-align: justify;
+    color: #000 !important;
 }
 
 a {
@@ -15,7 +16,6 @@ img {
 #manual ol li {
     font-size: 14px;
     margin: 0 !important;
-    padding: 0 !important;
     line-height: 18px;
 }
 
@@ -24,7 +24,7 @@ ol ol li {
 
 #manual ol ol {
     margin: 0 0 0 3em!important;
-    padding: 0;
+    padding: 10px;
 }
 
 blockquote {
@@ -34,6 +34,10 @@ blockquote {
     padding-top: 0;
     padding-bottom: 0;
     color: #666;
+}
+
+article blockquote, article .note {
+    background: #fafafa;
 }
 
 #manual pre {

@@ -13,7 +13,7 @@ else
     JAVA=$JAVA_HOME/bin/java
 fi
 
-if [ -f conf/application.conf ]; then
+if [ -f conf/application.conf -o -f conf/reference.conf ]; then
   if test "$1" = "clean-all"; then
     rm -rf target
     rm -rf tmp

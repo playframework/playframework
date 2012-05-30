@@ -52,10 +52,10 @@ trait PlaySettings {
       "views.%format%._"))
 
   def closureCompilerSettings(c: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
-      resourceGenerators in Compile <<= JavascriptCompiler(Some(c))(Seq(_)),
-      resourceGenerators in Compile <+= LessCompiler,
-      resourceGenerators in Compile <+= CoffeescriptCompiler
-    )
+    resourceGenerators in Compile <<= JavascriptCompiler(Some(c))(Seq(_)),
+    resourceGenerators in Compile <+= LessCompiler,
+    resourceGenerators in Compile <+= CoffeescriptCompiler
+  )
 
   lazy val defaultSettings = Seq[Setting[_]](
 
@@ -95,9 +95,9 @@ trait PlaySettings {
       loader.loadClass("play.api.Logger").getMethod("shutdown").invoke(null)
     },
 
-    testOptions in Test += Tests.Argument("sequential", "true"),
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
 
-    testOptions in Test += Tests.Argument("junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit,"junitxml", "console"),
 
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
@@ -107,8 +107,8 @@ trait PlaySettings {
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
-    // Adds config/routes to continious triggers
-    watchSources <+= confDirectory map { _ / "routes" },
+    // Adds config directory to continious triggers
+    watchSources <+= confDirectory map {all => all},
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
@@ -123,7 +123,7 @@ trait PlaySettings {
 
     mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
 
-    compile in (Compile) <<= PostCompile(testScope = false),
+    compile in (Compile) <<= PostCompile(scope = Compile),
 
     dist <<= distTask,
 
@@ -174,6 +174,8 @@ trait PlaySettings {
     lessOptions := Seq.empty[String],
     coffeescriptOptions := Seq.empty[String],
     closureCompilerOptions := Seq.empty[String],
+
+    incrementalAssetsCompilation := false,
 
     // Templates
 

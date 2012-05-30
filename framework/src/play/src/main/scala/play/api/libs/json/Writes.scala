@@ -86,27 +86,11 @@ trait DefaultWrites {
   }
 
   /**
-   * Serializer for List[T] types.
-   */
-  implicit def listWrites[T](implicit fmt: Writes[T]): Writes[List[T]] = new Writes[List[T]] {
-    def writes(ts: List[T]) = JsArray(ts.map(t => toJson(t)(fmt)))
-  }
-
-  /**
-   * Serializer for Seq[T] types.
-   */
-  implicit def seqWrites[T](implicit fmt: Writes[T]): Writes[Seq[T]] = new Writes[Seq[T]] {
-    def writes(ts: Seq[T]) = JsArray(ts.toList.map(t => toJson(t)(fmt)))
-  }
-
-  /**
    * Serializer for Array[T] types.
    */
   implicit def arrayWrites[T](implicit fmt: Writes[T], mf: Manifest[T]): Writes[Array[T]] = new Writes[Array[T]] {
     def writes(ts: Array[T]) = JsArray((ts.map(t => toJson(t)(fmt))).toList)
   }
-
-  private def listToArray[T: Manifest](ls: List[T]): Array[T] = ls.toArray
 
   /**
    * Serializer for Map[String,V] types.
@@ -116,28 +100,10 @@ trait DefaultWrites {
   }
 
   /**
-   * Serializer for Set[T] types.
+   * Serializer for Traversables types.
    */
-  implicit def mutableSetWrites[T](implicit fmt: Writes[T]): Writes[mutable.Set[T]] = {
-    viaSeq((x: Seq[T]) => mutable.Set(x: _*))
-  }
-
-  /**
-   * Serializer for Set[T] types.
-   */
-  implicit def immutableSetWrites[T](implicit fmt: Writes[T]): Writes[immutable.Set[T]] = {
-    viaSeq((x: Seq[T]) => immutable.Set(x: _*))
-  }
-
-  /**
-   * Serializer for Set[T] types.
-   */
-  implicit def immutableSortedSetWrites[S](implicit ord: S => Ordered[S], binS: Writes[S]): Writes[immutable.SortedSet[S]] = {
-    viaSeq((x: Seq[S]) => immutable.TreeSet[S](x: _*))
-  }
-
-  private def viaSeq[S <: Iterable[T], T](f: Seq[T] => S)(implicit fmt: Writes[T]): Writes[S] = new Writes[S] {
-    def writes(ts: S) = JsArray(ts.map(t => toJson(t)(fmt)).toList)
+  implicit def traversableWrites[A: Writes] = new Writes[Traversable[A]] {
+    def writes(as: Traversable[A]) = JsArray(as.map(toJson(_)).toSeq)
   }
 
   /**
@@ -145,7 +111,6 @@ trait DefaultWrites {
    */
   implicit object JsValueWrites extends Writes[JsValue] {
     def writes(o: JsValue) = o
-    def reads(json: JsValue) = json
   }
 
   /**

@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 
-trait PlayCommands {
+trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -67,7 +67,6 @@ trait PlayCommands {
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
   val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
-
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -203,35 +202,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     zip
   }
 
-  /**
-   * provides Settings for the eclipse project
-   * @param mainLang mainly scala or java?
-   */
-  def eclipseCommandSettings(mainLang: String) = {
-    val settingsDir = new File(".settings")
-    val coreSettings = new File(settingsDir.toString + java.io.File.separator + "org.eclipse.core.resources.prefs")
-    if (mainLang == JAVA && coreSettings.exists == false) {
-      IO.createDirectory(settingsDir)
-      IO.write(coreSettings,
-        """|eclipse.preferences.version=1
-         |encoding/<project>=UTF-8""".stripMargin
-      )
-    }
-    import com.typesafe.sbteclipse.core._
-    import com.typesafe.sbteclipse.core.EclipsePlugin._
-    def transformerFactory =
-      new EclipseClasspathEntryTransformerFactory {
-        override def createTransformer(ref: ProjectRef, state: State) =
-          setting(crossTarget in ref)(state) map (ct =>
-            (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
-          )
-      }
-
-    EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
-      EclipseKeys.createSrc := EclipseCreateSrc.Default,
-      EclipseKeys.preTasks := Seq(compile in Compile),
-      EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
-  }
 
   def intellijCommandSettings(mainLang: String) = {
     import org.sbtidea.SbtIdeaPlugin
@@ -277,111 +247,25 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (baseDirectory, playExternalAssets) map { (base, externalAssets) =>
-    ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*") +++ externalAssets.map {
+  val playHashTask = (state, thisProjectRef, playExternalAssets, watchTransitiveSources) map { (s,r, externalAssets, transitiveSources) =>
+    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
+       (base / "public" ** "*")
+    }.foldLeft(PathFinder.empty)(_ +++ _)
+    ((filesToHash +++ externalAssets.map {
       case (root, paths, _) => paths(root)
-    }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
+    }.foldLeft(PathFinder.empty)(_ +++ _)).get ++ transitiveSources).map(_.lastModified).mkString(",").hashCode.toString
   }
 
-  // ----- Assets
-
-  // Name: name of the compiler
-  // files: the function to find files to compile from the assets directory
-  // naming: how to name the generated file from the original file and whether it should be minified or not
-  // compile: compile the file and return the compiled sources, the minified source (if relevant) and the list of dependencies
-  def AssetsCompiler(name: String,
-    watch: File => PathFinder,
-    filesSetting: sbt.SettingKey[PathFinder],
-    naming: (String, Boolean) => String,
-    compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
-    optionsSettings: sbt.SettingKey[Seq[String]]) =
-    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting) map { (src, resources, cache, options, files) =>
-
-      import java.io._
-
-      val cacheFile = cache / name
-      val currentInfos = watch(src).get.map(f => f -> FileInfo.lastModified(f)).toMap
-      val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
-
-      if (previousInfo != currentInfos) {
-
-        // Delete previous generated files
-        previousRelation._2s.foreach(IO.delete)
-
-        val generated = (files x relativeTo(Seq(src / "assets"))).flatMap {
-          case (sourceFile, name) => {
-            val (debug, min, dependencies) = compile(sourceFile, options)
-            val out = new File(resources, "public/" + naming(name, false))
-            val outMin = new File(resources, "public/" + naming(name, true))
-            IO.write(out, debug)
-            dependencies.map(_ -> out) ++ min.map { minified =>
-              IO.write(outMin, minified)
-              dependencies.map(_ -> outMin)
-            }.getOrElse(Nil)
-          }
-        }
-
-        Sync.writeInfo(cacheFile,
-          Relation.empty[File, File] ++ generated,
-          currentInfos)(FileInfo.lastModified.format)
-
-        // Return new files
-        generated.map(_._2).distinct.toList
-
-      } else {
-
-        // Return previously generated files
-        previousRelation._2s.toSeq
-
-      }
-
-    }
-
-  val LessCompiler = AssetsCompiler("less",
-    (_ ** "*.less"),
-    lessEntryPoints,
-    { (name, min) => name.replace(".less", if (min) ".min.css" else ".css") },
-    { (lessFile, options) => play.core.less.LessCompiler.compile(lessFile) },
-    lessOptions
-  )
-
-  def JavascriptCompiler(fullCompilerOptions: Option[com.google.javascript.jscomp.CompilerOptions]) = AssetsCompiler("javascripts",
-    (_ ** "*.js"),
-    javascriptEntryPoints,
-    { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
-    { (jsFile: File, simpleCompilerOptions) => play.core.jscompile.JavascriptCompiler.compile(jsFile, simpleCompilerOptions, fullCompilerOptions) },
-    closureCompilerOptions
-  )
-
-  val CoffeescriptCompiler = AssetsCompiler("coffeescript",
-    (_ ** "*.coffee"),
-    coffeescriptEntryPoints,
-    { (name, min) => name.replace(".coffee", if (min) ".min.js" else ".js") },
-    { (coffeeFile, options) =>
-      import scala.util.control.Exception._
-      val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile, options)
-      // Any error here would be because of CoffeeScript, not the developer;
-      // so we don't want compilation to fail.
-      val minified = catching(classOf[CompilationException])
-        .opt(play.core.jscompile.JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
-      (jsSource, minified, Seq(coffeeFile))
-    },
-    coffeescriptOptions
-  )
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(testScope: Boolean) = (javaSource in Test, sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile, ebeanEnabled) map { (testSrc, src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
-
-    // Properties
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
-    val classFilter = if (testScope == true) (testSrc ** "*.java") else (javaSrc ** "*.java")
-
-    val javaClasses = classFilter.get.map { sourceFile =>
+    val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
       analysis.relations.products(sourceFile)
-    }.flatten.distinct 
+    }.flatten.distinct
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
@@ -426,21 +310,20 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
       }
     }
+    // Copy managed classes - only needed in Compile scope
+    if (scope.name.toLowerCase == "compile") {
+      val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
 
-    // Copy managed classes
+      val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
+        analysis.relations.products(managedSourceFile)
+      }.flatten x rebase(classes, managedClassesDirectory)
 
-    val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
+      // Copy modified class files
+      val managedSet = IO.copy(managedClasses)
 
-    val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
-      analysis.relations.products(managedSourceFile)
-    }.flatten x rebase(classes, managedClassesDirectory)
-
-    // Copy modified class files
-    val managedSet = IO.copy(managedClasses)
-
-    // Remove deleted class files
-    (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
-
+      // Remove deleted class files
+      (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
+    }
     analysis
   }
 
@@ -451,7 +334,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
     try {
-      (confDirectory * "routes").get.foreach { routesFile =>
+      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.headOption.map { routesFile =>
         compile(routesFile, generatedDir, additionalImports)
       }
     } catch {
@@ -557,8 +440,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     println()
 
     val sbtLoader = this.getClass.getClassLoader
-    val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
-
+    def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
+        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+        throw commonLoaderEither.left.get
+      }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader

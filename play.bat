@@ -1,22 +1,24 @@
 :begin
 @echo off
 
-setlocal
+setlocal enabledelayedexpansion
 
 set p=%~dp0
 set p=%p:\=/%
-set buildScript=%~dp0framework\build.bat
+set fp=file:///!p: =%%20!
+set buildScript="%~dp0framework\build.bat"
 set additionalArgs=%*
 
 if exist "conf\application.conf" goto existingApplication
+if exist "conf\reference.conf" goto existingApplication
 
 :noApplication
-java -Dsbt.ivy.home=%~dp0repository -Dplay.home=%~dp0framework -Dsbt.boot.properties="file:///%p%framework/sbt/play.boot.properties" -jar %~dp0framework\sbt\sbt-launch.jar %*
+java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" -jar "%~dp0framework\sbt\sbt-launch.jar" %*
 
 goto end
 
 :existingApplication
-if not "%1" == "clean-all" goto runCommand
+if not "%~1" == "clean-all" goto runCommand
 
 :cleanCache
 if exist "target" rmdir /s /q target
@@ -28,12 +30,13 @@ if exist "dist" rmdir /s /q dist
 
 shift
 set additionalArgs=%additionalArgs:*clean-all=%
-if "%1" == "" goto endWithMessage
+
+if "%~1" == "" goto endWithMessage
 
 :runCommand
-if "%1" == "" goto enterConsole
+if "%~1" == "" goto enterConsole
 
-if "%1" == "debug" goto setDebug
+if "%~1" == "debug" goto setDebug
 goto enterConsoleWithCommands
 
 :setDebug
@@ -41,7 +44,7 @@ set JPDA_PORT=9999
 shift
 set additionalArgs=%additionalArgs:*debug=%
 
-if "%1" == "" goto enterConsole
+if "%~1" == "" goto enterConsole
 
 :enterConsoleWithCommands
 

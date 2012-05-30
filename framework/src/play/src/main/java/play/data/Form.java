@@ -18,6 +18,7 @@ import play.data.validation.*;
 import org.springframework.beans.*;
 import org.springframework.validation.*;
 import org.springframework.validation.beanvalidation.*;
+import org.springframework.context.support.*;
 
 import org.hibernate.validator.engine.*;
 
@@ -43,6 +44,7 @@ public class Form<T> {
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
     private final Option<T> value;
+    private final Class<?> groups;
     
     private T blankInstance() {
         try {
@@ -62,9 +64,17 @@ public class Form<T> {
     }
     
     public Form(String name, Class<T> clazz) {
-        this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None());
+        this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None(),  null);
     }
-    
+
+	public Form(String name, Class<T> clazz, Class<?> groups) {
+        this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None(), groups);
+    }
+     	
+	public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
+		this(rootName, clazz, data, errors, value, null);
+	}
+	
     /**
      * Creates a new <code>Form</code>.
      *
@@ -73,12 +83,13 @@ public class Form<T> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value, Class<?> groups) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
         this.errors = errors;
         this.value = value;
+		this.groups = groups;
     }
     
     protected Map<String,String> requestData() {
@@ -144,7 +155,7 @@ public class Form<T> {
     public Form<T> bindFromRequest(String... allowedFields) {
         return bind(requestData(), allowedFields);
     }
-    
+
     /**
      * Binds Json data to this form - that is, handles form submission.
      *
@@ -163,7 +174,31 @@ public class Form<T> {
             allowedFields
         );
     }
-    
+
+	private static final Set<String> internalAnnotationAttributes = new HashSet<String>(3);
+	static {
+			internalAnnotationAttributes.add("message");
+			internalAnnotationAttributes.add("groups");
+			internalAnnotationAttributes.add("payload");
+	}
+
+	protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
+	        List<Object> arguments = new LinkedList<Object>();
+	        String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};
+	        arguments.add(new DefaultMessageSourceResolvable(codes, field));
+	        // Using a TreeMap for alphabetical ordering of attribute names
+	        Map<String, Object> attributesToExpose = new TreeMap<String, Object>();
+	        for (Map.Entry<String, Object> entry : descriptor.getAttributes().entrySet()) {
+	            String attributeName = entry.getKey();
+	            Object attributeValue = entry.getValue();
+				if (!internalAnnotationAttributes.contains(attributeName)) {
+	            	attributesToExpose.put(attributeName, attributeValue);
+				}
+	        }
+	        arguments.addAll(attributesToExpose.values());
+	        return arguments.toArray(new Object[arguments.size()]);
+	    }
+
     /**
      * Binds data to this form - that is, handles form submission.
      *
@@ -188,12 +223,38 @@ public class Form<T> {
         if(allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
-        dataBinder.setValidator(new SpringValidatorAdapter(play.data.validation.Validation.getValidator()));
+		SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
+        dataBinder.setValidator(validator);
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
         dataBinder.bind(new MutablePropertyValues(objectData));
-        dataBinder.validate();
-        BindingResult result = dataBinder.getBindingResult();
+		Set<ConstraintViolation<Object>> validationErrors;
+		if (groups != null) {
+        	validationErrors = validator.validate(dataBinder.getTarget(), groups);
+		} else {
+			validationErrors = validator.validate(dataBinder.getTarget());
+		}
+
+		BindingResult result = dataBinder.getBindingResult();
+
+	 	for (ConstraintViolation<Object> violation : validationErrors) {
+	            String field = violation.getPropertyPath().toString();
+	            FieldError fieldError = result.getFieldError(field);
+	            if (fieldError == null || !fieldError.isBindingFailure()) {
+	                try {
+	                    result.rejectValue(field,
+	                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+	                            getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+	                            violation.getMessage());
+	                }
+	                catch (NotReadablePropertyException ex) {
+	                    throw new IllegalStateException("JSR-303 validated property '" + field +
+	                            "' does not have a corresponding accessor for data binding - " +
+	                            "check your DataBinder's configuration (bean property versus direct field access)", ex);
+	                }
+	    	}
+	    }
+
         
         if(result.hasErrors()) {
             Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
@@ -213,7 +274,7 @@ public class Form<T> {
                 }
                 errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
             }
-            return new Form(rootName, backedType, data, errors, None());
+            return new Form(rootName, backedType, data, errors, None(), groups);
         } else {
             Object globalError = null;
             if(result.getTarget() != null) {
@@ -235,9 +296,9 @@ public class Form<T> {
                 } else if(globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, None());
+                return new Form(rootName, backedType, data, errors, None(), groups);
             }
-            return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()));
+            return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
         }
     }
     
@@ -269,7 +330,7 @@ public class Form<T> {
         if(value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
+        return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value), groups);
     }
     
     /**
@@ -397,7 +458,7 @@ public class Form<T> {
      * @param error the error message
      */    
     public void reject(String key, String error) {
-        reject(key, error, new ArrayList());
+        reject(key, error, new ArrayList<Object>());
     }
     
     /**
@@ -416,9 +477,16 @@ public class Form<T> {
      * @param error the error message.
      */    
     public void reject(String error) {
-        reject("", error, new ArrayList());
+        reject("", error, new ArrayList<Object>());
     }
-    
+
+    /**
+     * Discard errors of this form
+     */
+    public void discardErrors() {
+        errors.clear();
+    }
+
     /**
      * Retrieve a field.
      *

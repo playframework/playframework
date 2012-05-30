@@ -11,6 +11,51 @@ import scala.collection.JavaConverters._
 
 /**
  * Binder for query string parameters.
+ * 
+ * You can provide an implementation of `QueryStringBindable[A]` for any type `A` you want to be able to
+ * bind directly from the request query string.
+ * 
+ * For example, if you have the following type to encode pagination:
+ * 
+ * {{{
+ *   /**
+ *    * @param index Current page index
+ *    * @param size Number of items in a page
+ *    */
+ *   case class Pager(index: Int, size: Int)
+ * }}}
+ * 
+ * Play will create a `Pager(5, 42)` value from a query string looking like `/foo?p.index=5&p.size=42` if you define
+ * an instance of `QueryStringBindable[Pager]` available in the implicit scope.
+ * 
+ * For example:
+ * 
+ * {{{
+ *   object Pager {
+ *     implicit def queryStringBinder(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[Pager] {
+ *       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Pager]] = {
+ *         for {
+ *           index <- intBinder.bind(key + ".index", params)
+ *           size <- intBinder.bind(key + ".size", params)
+ *         } yield {
+ *           (index, size) match {
+ *             case (Right(index), Right(size)) => Right(Pager(index, size))
+ *             case _ => Left("Unable to bind a Pager")
+ *           }
+ *         }
+ *       }
+ *       override def unbind(key: String, pager: Pager): String = {
+ *         intBinder.unbind(key + ".index", pager.index) + "&" + intBinder.unbind(key + ".size", pager.size)
+ *       }
+ *     }
+ *   }
+ * }}}
+ * 
+ * To use it in a route, just write a type annotation aside the parameter you want to bind:
+ * 
+ * {{{
+ *   GET  /foo        controllers.foo(p: Pager)
+ * }}}
  */
 @implicitNotFound(
   "No QueryString binder found for type ${A}. Try to implement an implicit QueryStringBindable for this type."
@@ -22,6 +67,8 @@ trait QueryStringBindable[A] {
    *
    * @param key Parameter key
    * @param params QueryString data
+   * @return `None` if the parameter was not present in the query string data. Otherwise, returns `Some` of either
+   * `Right` of the parameter value, or `Left` of an error message if the binding failed.
    */
   def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]]
 
@@ -30,6 +77,7 @@ trait QueryStringBindable[A] {
    *
    * @param key Parameter key
    * @param value Parameter value.
+   * @return a query string fragment containing the key and its value. E.g. "foo=42"
    */
   def unbind(key: String, value: A): String
 
@@ -42,6 +90,47 @@ trait QueryStringBindable[A] {
 
 /**
  * Binder for URL path parameters.
+ * 
+ * You can provide an implementation of `PathBindable[A]` for any type `A` you want to be able to
+ * bind directly from the request path.
+ * 
+ * For example, given this class definition:
+ * 
+ * {{{
+ *   case class User(id: Int, name: String, age: Int)
+ * }}}
+ * 
+ * You can define a binder retrieving a `User` instance from its id, useable like the following:
+ * 
+ * {{{
+ *   // In your routes:
+ *   // GET  /show/:user      controllers.Application.show(user)
+ *   // For example: /show/42
+ *   
+ *   object Application extends Controller {
+ *     def show(user: User) = Action {
+ *       …
+ *     }
+ *   }
+ * }}}
+ * 
+ * The definition the binder can look like the following:
+ * 
+ * {{{
+ *   object User {
+ *     implicit def pathBinder(implicit intBinder: QueryStringBindable[Int]) = new PathBindable[User] {
+ *       override def bind(key: String, value: String): Either[String, User] = {
+ *         for {
+ *           id <- intBinder.bind(key, value).right
+ *           user <- User.findById(id).toRight("User not found").right
+ *         } yield user
+ *       }
+ *       override def unbind(key: String, user: User): String = {
+ *         intBinder.unbind(user.id)
+ *       }
+ *     }
+ *   }
+ * }}}
  */
 @implicitNotFound(
   "No URL path binder found for type ${A}. Try to implement an implicit PathBindable for this type."
@@ -53,6 +142,7 @@ trait PathBindable[A] {
    *
    * @param key Parameter key
    * @param value The value as String (extracted from the URL path)
+   * @return `Right` of the value or `Left` of an error message if the binding failed
    */
   def bind(key: String, value: String): Either[String, A]
 
@@ -174,6 +264,62 @@ object QueryStringBindable {
       }
     }
     def unbind(key: String, value: Long) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Double.
+   */
+  implicit def bindableDouble = new QueryStringBindable[Double] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Double.parseDouble(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Double) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Java Double.
+   */
+  implicit def bindableJavaDouble = new QueryStringBindable[java.lang.Double] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Double.parseDouble(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Double) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Float.
+   */
+  implicit def bindableFloat = new QueryStringBindable[Float] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Float.parseFloat(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Float) = key + "=" + value.toString
+  }
+
+  /**
+   * QueryString binder for Java Float.
+   */
+  implicit def bindableJavaFloat = new QueryStringBindable[java.lang.Float] {
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { i =>
+      try {
+        Right(java.lang.Float.parseFloat(i))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Float) = key + "=" + value.toString
   }
 
   /**
@@ -333,6 +479,62 @@ object PathBindable {
       }
     }
     def unbind(key: String, value: Long) = value.toString
+  }
+
+  /**
+   * Path binder for Double.
+   */
+  implicit def bindableDouble = new PathBindable[Double] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Double.parseDouble(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Double) = value.toString
+  }
+
+  /**
+   * Path binder for Java Double.
+   */
+  implicit def bindableJavaDouble = new PathBindable[java.lang.Double] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Double.parseDouble(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Double: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Double) = value.toString
+  }
+
+  /**
+   * Path binder for Float.
+   */
+  implicit def bindableFloat = new PathBindable[Float] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Float.parseFloat(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: Float) = value.toString
+  }
+
+  /**
+   * Path binder for Java Float.
+   */
+  implicit def bindableJavaFloat = new PathBindable[java.lang.Float] {
+    def bind(key: String, value: String) = {
+      try {
+        Right(java.lang.Float.parseFloat(URLDecoder.decode(value, "utf-8")))
+      } catch {
+        case e: NumberFormatException => Left("Cannot parse parameter " + key + " as Float: " + e.getMessage)
+      }
+    }
+    def unbind(key: String, value: java.lang.Float) = value.toString
   }
 
   /**

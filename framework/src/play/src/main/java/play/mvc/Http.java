@@ -30,6 +30,9 @@ public class Http {
         }
         
         //
+
+        private static java.util.concurrent.atomic.AtomicLong idGenerator = new java.util.concurrent.atomic.AtomicLong();
+        private final Long id = idGenerator.incrementAndGet();
         
         private final Request request;
         private final Response response;
@@ -49,6 +52,13 @@ public class Http {
             this.response = new Response();
             this.session = new Session(sessionData);
             this.flash = new Flash(flashData);
+        }
+
+        /**
+         * The context id (unique)
+         */
+        public Long id() {
+            return id;
         }
         
         /**
@@ -132,14 +142,14 @@ public class Http {
             }
             
         }
+
+        public String toString() {
+            return "Context attached to (" + request() + ")";
+        }
         
     }
     
-    /**
-     * An HTTP request.
-     */
-    public abstract static class Request {
-        
+    public abstract static class RequestHeader {
         /**
          * The complete request URI, containing both path and query string.
          */
@@ -149,6 +159,12 @@ public class Http {
          * The HTTP Method.
          */
         public abstract String method();
+
+        /**
+         * The client IP address.
+         */
+        public abstract String remoteAddress();
+
         
         /**
          * The request host.
@@ -181,10 +197,12 @@ public class Http {
         public abstract Map<String,String[]> queryString();
         
         /**
-         * The request body.
+         * Helper method to access a queryString parameter.
          */
-        public abstract RequestBody body();
-        
+        public String getQueryString(String key) {
+            return queryString().containsKey(key) && queryString().get(key).length > 0 ? queryString().get(key)[0] : null;
+        }
+
         /**
          * @return the request cookies
          */
@@ -213,6 +231,18 @@ public class Http {
             }
             return headers[0];
         }
+
+    }
+    
+    /**
+     * An HTTP request.
+     */
+    public abstract static class Request extends RequestHeader {
+
+        /**
+         * The request body.
+         */
+        public abstract RequestBody body();
 
         // -- username
 

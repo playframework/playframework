@@ -44,8 +44,10 @@ trait DBApi {
    * @throws an error if the required data source is not registered
    */
   def getDataSourceURL(name: String): String = {
-    val ds = getDataSource(name)
-    ds.getConnection.getMetaData.getURL
+    val connection = getDataSource(name).getConnection
+    val url = connection.getMetaData.getURL
+    connection.close()
+    url
   }
 
   /**
@@ -199,6 +201,12 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
 
   lazy val dbConfig = app.configuration.getConfig("db").getOrElse(Configuration.empty)
 
+  private def dbURL(conn: Connection): String = {
+    val u = conn.getMetaData.getURL
+    conn.close()
+    u
+  }
+
   // should be accessed in onStart first
   private lazy val dbApi: DBApi = new BoneCPApi(dbConfig, app.classloader)
 
@@ -223,6 +231,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    */
   def api: DBApi = dbApi
 
+
   /**
    * Reads the configuration and connects to every data source.
    */
@@ -233,7 +242,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
         ds._1.getConnection.close()
         app.mode match {
           case Mode.Test =>
-          case mode => Logger("play").info("database [" + ds._2 + "] connected at " + ds._1.getConnection.getMetaData.getURL)
+          case mode => Logger("play").info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
         }
       } catch {
         case e => {
@@ -327,14 +336,17 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
     val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
     val MysqlFullUrl = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
+    val MysqlCustomProperties = ".*\\?(.*)".r
 
     conf.getString("url") match {
       case Some(PostgresFullUrl(username, password, host, dbname)) =>
         datasource.setJdbcUrl("jdbc:postgresql://%s/%s".format(host, dbname))
         datasource.setUsername(username)
         datasource.setPassword(password)
-      case Some(MysqlFullUrl(username, password, host, dbname)) =>
-        datasource.setJdbcUrl("jdbc:mysql://%s/%s?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci".format(host, dbname))
+      case  Some(url @ MysqlFullUrl(username, password, host, dbname)) =>
+        val defaultProperties = """?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci"""
+        val addDefaultPropertiesIfNeeded = MysqlCustomProperties.findFirstMatchIn(url).map(_ => "").getOrElse(defaultProperties)        
+        datasource.setJdbcUrl("jdbc:mysql://%s/%s".format(host, dbname + addDefaultPropertiesIfNeeded))
         datasource.setUsername(username)
         datasource.setPassword(password)
       case Some(s: String) =>

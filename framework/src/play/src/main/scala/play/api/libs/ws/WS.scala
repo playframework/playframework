@@ -41,6 +41,7 @@ object WS {
     import play.api.Play.current
     val config = new AsyncHttpClientConfig.Builder()
       .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
       .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
       .setUseProxyProperties(current.configuration.getBoolean("ws.useProxyProperties").getOrElse(true))
     current.configuration.getString("ws.useragent").map { useragent =>
@@ -174,8 +175,10 @@ object WS {
     /**
      * Defines the query string.
      */
-    def setQueryString(queryString: Map[String, String]) = {
-      queryString.foreach { param: (String, String) => this.addQueryParameter(param._1, param._2) }
+    def setQueryString(queryString: Map[String, Seq[String]]) = {
+      for ((key, values) <- queryString; value <- values) {
+        this.addQueryParameter(key, value)
+      }
       this
     }
 
@@ -212,27 +215,25 @@ object WS {
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
           if (!doneOrError) {
-            iteratee = iteratee.pureFlatFold(
-              // DONE
-              (a, e) => {
+            iteratee = iteratee.pureFlatFold {
+              case Step.Done(a, e) => {
                 doneOrError = true
                 val it = Done(a, e)
                 iterateeP.redeem(it)
                 it
-              },
+              }
 
-              // CONTINUE
-              k => {
+              case Step.Cont(k) => {
                 k(El(bodyPart.getBodyPartBytes()))
-              },
+              }
 
-              // ERROR
-              (e, input) => {
+              case Step.Error(e, input) => {
                 doneOrError = true
                 val it = Error(e, input)
                 iterateeP.redeem(it)
                 it
-              })
+              }
+            }
             STATE.CONTINUE
           } else {
             iteratee = null
@@ -258,7 +259,7 @@ object WS {
    */
   case class WSRequestHolder(url: String,
       headers: Map[String, Seq[String]],
-      queryString: Map[String, String],
+      queryString: Map[String, Seq[String]],
       calc: Option[SignatureCalculator],
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
@@ -293,7 +294,9 @@ object WS {
      * adds any number of query string parameters to the
      */
     def withQueryString(parameters: (String, String)*): WSRequestHolder =
-      this.copy(queryString = parameters.foldLeft(queryString)((m, param) => m + param))
+      this.copy(queryString = parameters.foldLeft(queryString) {
+        case (m, (k, v)) => m + (k -> (v +: m.get(k).getOrElse(Nil)))
+      })
 
     /**
      * Sets whether redirects (301, 302) should be followed automatically
@@ -357,7 +360,7 @@ object WS {
      */
     def options(): Promise[Response] = prepare("OPTIONS").execute
 
-    private def prepare(method: String) = {
+    private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
@@ -370,7 +373,7 @@ object WS {
       request
     }
 
-    private def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
+    private[play] def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
         .setQueryString(queryString)

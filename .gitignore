@@ -20,3 +20,4 @@ RUNNING_PID
 .cache
 *.iml
 documentation/*.pdf
+framework/test/integrationtest-java/conf/evolutions/

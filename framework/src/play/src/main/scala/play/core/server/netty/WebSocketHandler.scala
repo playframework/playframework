@@ -42,16 +42,17 @@ private[server] trait WebSocketHandler {
             (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
             k => {
               val next = k(input)
-              next.fold(
-                (a, e) => {
+              next.fold {
+                case Step.Done(a, e) =>
                   iterateeAgent.close()
                   ctx.getChannel().disconnect();
                   promise.redeem(next);
                   Logger("play").trace("cleaning for channel " + ctx.getChannel());
                   Promise.pure(next)
-                },
-                _ => Promise.pure(next),
-                (msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) })
+
+                case Step.Cont(_) => Promise.pure(next)
+                case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
+              }
             },
             (err, e) => /* handle error, maybe close the socket */ Promise.pure(it))))
       }

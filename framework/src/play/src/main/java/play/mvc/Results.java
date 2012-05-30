@@ -1019,7 +1019,7 @@ public class Results {
             wrappedResult = play.core.j.JavaResults.async(
                 p.map(new play.libs.F.Function<Result,play.api.mvc.Result>() {
                     public play.api.mvc.Result apply(Result r) {
-                        return r.getWrappedResult();
+                        return play.core.j.JavaHelpers$.MODULE$.createResult(Http.Context.current(), r);
                     }
                 }).getWrappedPromise()
             );
