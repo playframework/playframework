@@ -352,6 +352,7 @@ object QueryStringBindable {
       }
     }
     def unbind(key: String, value: Boolean) = key + "=" + (if (value) "1" else "0")
+    override def javascriptUnbind = """function(k,v){return k+'='+(v?1:0)}"""
   }
 
   /**
@@ -365,6 +366,7 @@ object QueryStringBindable {
           .getOrElse(Right(None)))
     }
     def unbind(key: String, value: Option[T]) = value.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
+    override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
 
   /**
@@ -384,7 +386,10 @@ object QueryStringBindable {
         ""
       }
     }
+    override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
+
+  private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
 
   /**
    * QueryString binder for List
@@ -392,6 +397,7 @@ object QueryStringBindable {
   implicit def bindableList[T: QueryStringBindable] = new QueryStringBindable[List[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params)))
     def unbind(key: String, values: List[T]) = unbindList(key, values)
+    override def javascriptUnbind = javascriptUnbindList(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
 
   /**
@@ -400,6 +406,7 @@ object QueryStringBindable {
   implicit def bindableJavaList[T: QueryStringBindable] = new QueryStringBindable[java.util.List[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params).asJava))
     def unbind(key: String, values: java.util.List[T]) = unbindList(key, values.asScala)
+    override def javascriptUnbind = javascriptUnbindList(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
 
   private def bindList[T: QueryStringBindable](key: String, params: Map[String, Seq[String]]): List[T] = {
@@ -416,6 +423,8 @@ object QueryStringBindable {
       implicitly[QueryStringBindable[T]].unbind(key, value)
     }).mkString("&")
   }
+
+  private def javascriptUnbindList(jsUnbindT: String) = "function(k,vs){return vs.map(function(v){return (" + jsUnbindT + ")(k, v)}).join('&')}"
 
   /**
    * QueryString binder for QueryStringBindable.
@@ -567,20 +576,11 @@ object PathBindable {
       }
     }
     def unbind(key: String, value: Boolean) = if (value) "1" else "0"
+    override def javascriptUnbind = """function(k,v){return v?1:0}"""
   }
 
   /**
-   * Path binder for Option.
-   */
-  implicit def bindableOption[T: PathBindable] = new PathBindable[Option[T]] {
-    def bind(key: String, value: String) = {
-      implicitly[PathBindable[T]].bind(key, value).right.map(Some(_))
-    }
-    def unbind(key: String, value: Option[T]) = value.map(v => implicitly[PathBindable[T]].unbind(key, v)).getOrElse("")
-  }
-
-  /**
-   * Path binder for Java Option.
+   * Path binder for Java PathBindable
    */
   implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit m: Manifest[T]) = new PathBindable[T] {
     def bind(key: String, value: String) = {
