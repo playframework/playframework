@@ -6,6 +6,7 @@ import play.api._
 import akka.actor._
 import akka.util.Duration
 import akka.actor.Actor._
+import akka.dispatch.Future
 
 import java.util.concurrent.{ TimeUnit }
 
@@ -101,6 +102,14 @@ trait Promise[+A] {
     or(Promise.timeout(message, duration, unit))
   }
 
+  def asFuture(implicit app: Application): Future[A] = {
+    val p = akka.dispatch.Promise[A]()(Akka.system.dispatcher)
+    this.extend1 {
+      case Redeemed(a) => p.success(a)
+      case Thrown(e) => p.failure(e)
+    }
+    p.future
+  }
 }
 
 trait Redeemable[-A] {
