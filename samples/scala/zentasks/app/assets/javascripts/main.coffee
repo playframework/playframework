@@ -198,7 +198,7 @@ class AppRouter extends Backbone.Router
         @currentApp = new Tasks
             el: $("#main")
     routes:
-        "/"                          : "index"
+        ""                          : "index"
         "/projects/:project/tasks"   : "tasks"
     index: ->
         # show dashboard
