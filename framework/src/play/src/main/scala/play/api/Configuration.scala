@@ -2,7 +2,7 @@ package play.api
 
 import java.io._
 
-import com.typesafe.config.{ Config, ConfigFactory, ConfigParseOptions, ConfigSyntax, ConfigOrigin, ConfigException }
+import com.typesafe.config.{ Config, ConfigFactory, ConfigList, ConfigParseOptions, ConfigSyntax, ConfigObject, ConfigOrigin, ConfigException }
 
 import scala.collection.JavaConverters._
 
@@ -164,7 +164,7 @@ case class Configuration(underlying: Config) {
    * @return a configuration value
    */
   def getBoolean(path: String): Option[Boolean] = readValue(path, underlying.getBoolean(path))
-
+  
   /**
    * Retrieves a configuration value as `Milliseconds`.
    *
@@ -174,7 +174,7 @@ case class Configuration(underlying: Config) {
    * val timeout = configuration.getString("engine.timeout")
    * }}}
    *
-   * The configuratioon must be provided as:
+   * The configuration must be provided as:
    *
    * {{{
    * engine.timeout = 1 second
@@ -191,7 +191,7 @@ case class Configuration(underlying: Config) {
    * val maxSize = configuration.getString("engine.maxSize")
    * }}}
    *
-   * The configuratioon must be provided as:
+   * The configuration must be provided as:
    *
    * {{{
    * engine.maxSize = 512k
@@ -215,6 +215,226 @@ case class Configuration(underlying: Config) {
    */
   def getConfig(path: String): Option[Configuration] = readValue(path, underlying.getConfig(path)).map(Configuration(_))
 
+  /**
+   * Retrieves a configuration value as a List of `Boolean`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val switches = configuration.getString("board.switches")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * board.switches = [true, true, false]
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
+   * Authorized vales are `yes/no or true/false.
+   */
+  def getBooleanList(path: String): Option[java.util.List[java.lang.Boolean]] = readValue(path, underlying.getBooleanList(path))
+
+  /**
+   * Retrieves a configuration value as a List of `Bytes`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getString("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [512k, 256k, 256k]
+   * }}}
+   */  
+  def getBytesList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getBytesList(path))
+  
+  /**
+   * Retrieves a List of sub-configurations, i.e. a configuration instance for each key that matches the path.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val engineConfigs = configuration.getSub("engine")
+   * }}}
+   *
+   * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
+   */  
+  def getConfigList(path: String): Option[java.util.List[Configuration]] = readValue[java.util.List[_ <: Config]](path, underlying.getConfigList(path)).map{configs => configs.asScala.map(Configuration(_)).asJava}
+  
+  /**
+   * Retrieves a configuration value as a List of `Double`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getString("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [5.0, 3.34, 2.6]
+   * }}}
+   */    
+  def getDoubleList(path: String): Option[java.util.List[java.lang.Double]] = readValue(path, underlying.getDoubleList(path))
+  
+  /**
+   * Retrieves a configuration value as a List of `Integer`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getString("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [100, 500, 2]
+   * }}}
+   */    
+  def getIntList(path: String): Option[java.util.List[java.lang.Integer]] = readValue(path, underlying.getIntList(path))
+
+  /**
+   * Gets a list value (with any element type) as a ConfigList, which implements java.util.List<ConfigValue>.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getString("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = ["foo", "bar"]
+   * }}}
+   */    
+  def getList(path: String): Option[ConfigList] = readValue(path, underlying.getList(path))
+  
+  /**
+   * Retrieves a configuration value as a List of `Long`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getString("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [10000000000000, 500, 2000]
+   * }}}
+   */      
+  def getLongList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getLongList(path))
+
+  /**
+   * Retrieves a configuration value as List of `Milliseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeouts = configuration.getString("engine.timeouts")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeouts = [1 second, 1 second]
+   * }}}
+   */  
+  def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getMillisecondsList(path))
+
+  /**
+   * Retrieves a configuration value as List of `Nanoseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeouts = configuration.getString("engine.timeouts")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeouts = [1 second, 1 second]
+   * }}}
+   */   
+  def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getNanosecondsList(path))
+
+  /**
+   * Retrieves a configuration value as a List of `Number`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getString("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [50, 500, 5000]
+   * }}}
+   */    
+  def getNumberList(path: String): Option[java.util.List[java.lang.Number]] = readValue(path, underlying.getNumberList(path))
+
+  /**
+   * Retrieves a configuration value as a List of `ConfigObject`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val engineProperties = configuration.getString("engine.properties")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.properties = [{id: 5, power: 3}, {id: 6, power: 20}]
+   * }}}
+   */    
+  def getObjectList(path: String): Option[java.util.List[_ <: ConfigObject]] = readValue[java.util.List[_ <: ConfigObject]](path, underlying.getObjectList(path))
+  
+  /**
+   * Retrieves a configuration value as a List of `String`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val names = configuration.getString("names")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * names = ["Jim", "Bob", "Steve"]
+   * }}}
+   */      
+  def getStringList(path: String): Option[java.util.List[java.lang.String]] = readValue(path, underlying.getStringList(path))
+  
+  /**
+   * Retrieves a ConfigObject for this path, which implements Map<String,ConfigValue>
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val engineProperties = configuration.getString("engine.properties")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.properties = {id: 1, power: 5}
+   * }}}
+   */      
+  def getObject(path: String): Option[ConfigObject] = readValue(path, underlying.getObject(path))
+  
   /**
    * Returns available keys.
    *
