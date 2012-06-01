@@ -49,7 +49,7 @@ object Application extends Controller {
 
   // -- Javascript routing
 
-  def javascriptRoutes = Action {
+  def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(
       Routes.javascriptRouter("jsRoutes")(

@@ -84,7 +84,7 @@ trait QueryStringBindable[A] {
   /**
    * Javascript function to unbind in the Javascript router.
    */
-  def javascriptUnbind: String = """function(k,v) {return k+'='+v}"""
+  def javascriptUnbind: String = """function(k,v) {return encodeURIComponent(k)+'='+encodeURIComponent(v)}"""
 
 }
 

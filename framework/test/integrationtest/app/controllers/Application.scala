@@ -50,6 +50,7 @@ object Application extends Controller {
   def json = Action {
     Ok(toJson(User(1, "Sadek", List("tea"))))
   }
+  
   def jsonFromJsObject = Action {
     Ok(toJson(JsObject(List("blah" -> JsString("foo"))))) 
   }
@@ -63,8 +64,21 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
+  def takeBool(b: Boolean) = Action {
+    Ok(b.toString())
+  }
+
   def urldecode(fromPath: String, fromQueryString: String) = Action {
     Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
+  }
+  
+  def javascriptRoutes = Action { implicit request =>
+    import play.api.Routes
+    Ok(Routes.javascriptRouter("routes")(routes.javascript.Application.javascriptTest)).as("text/javascript")
+  }
+
+  def javascriptTest(name: String) = Action {
+    Ok(views.html.javascriptTest(name))
   }
 
   def accept = Action { request =>
