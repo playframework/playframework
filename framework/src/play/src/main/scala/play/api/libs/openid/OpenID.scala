@@ -1,15 +1,18 @@
 package play.api.libs.openid
 
+import scala.util.control.Exception._
 import play.api.libs.concurrent.Promise
 import play.api.libs.ws.WS
 import scala.util.matching.Regex
 import play.api.http.HeaderNames
 import scala.xml.Elem
-import java.net.URLEncoder
 import play.api.libs.concurrent.PurePromise
 import play.api.data.Form
-import play.api.data.Forms.{ of, text, optional }
+import play.api.data.Forms.{of, text, optional}
 import play.api.mvc.Request
+import play.api.libs.ws.WS.WSRequestHolder
+import java.util.regex.Pattern
+import java.net._
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
@@ -50,10 +53,15 @@ object UserInfo {
   }
 
 }
+
 /**
  * provides OpenID support
  */
-object OpenID {
+object OpenID extends OpenIDClient(WS.url)
+
+private[openid] class OpenIDClient(ws: (String) => WSRequestHolder) {
+
+  val discovery = new Discovery(ws)
 
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
@@ -61,16 +69,18 @@ object OpenID {
   def redirectURL(openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
-    axOptional: Seq[(String, String)] = Seq.empty): Promise[String] = {
-    val claimedId = normalize(openID)
-    discoverServer(claimedId).map(server => {
+    axOptional: Seq[(String, String)] = Seq.empty,
+    realm: Option[String] = None): Promise[String] = {
+
+    val claimedId = discovery.normalizeIdentifier(openID)
+    discovery.discoverServer(openID).map({server =>
       val parameters = Seq(
         "openid.ns" -> "http://specs.openid.net/auth/2.0",
         "openid.mode" -> "checkid_setup",
         "openid.claimed_id" -> claimedId,
         "openid.identity" -> server.delegate.getOrElse(claimedId),
         "openid.return_to" -> callbackURL
-      ) ++ axParameters(axRequired, axOptional)
+      ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
       val separator = if (server.url.contains("?")) "&" else "?"
       server.url + separator + parameters.map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8")).mkString("&")
     })
@@ -93,24 +103,23 @@ object OpenID {
     (queryString.get("openid.mode").flatMap(_.headOption),
       queryString.get("openid.claimed_id").flatMap(_.headOption).orElse(queryString.get("openid.identity").flatMap(_.headOption)),
       queryString.get("openid.op_endpoint").flatMap(_.headOption)) match {
-        case (Some("id_res"), Some(id), endPoint) => {
-          val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discoverServer(id).map(_.url))
-          server.flatMap(url => {
-            val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
-                    .mapValues(_.map(URLEncoder.encode(_, "UTF-8")))
-            WS.url(url).post(fields).map(response => {
-              if (response.status == 200 && response.body.contains("is_valid:true")) {
-                UserInfo(queryString)
-              } else throw Errors.AUTH_ERROR
-            })
+      case (Some("id_res"), Some(id), endPoint) => {
+        val server: Promise[String] = endPoint.map(PurePromise(_)).getOrElse(discovery.discoverServer(id).map(_.url))
+        server.flatMap(url => {
+          val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
+          ws(url).post(fields).map(response => {
+            if (response.status == 200 && response.body.contains("is_valid:true")) {
+              UserInfo(queryString)
+            } else throw Errors.AUTH_ERROR
           })
-        }
-        case _ => PurePromise(throw Errors.BAD_RESPONSE)
+        })
       }
+      case _ => PurePromise(throw Errors.BAD_RESPONSE)
+    }
   }
 
   private def axParameters(axRequired: Seq[(String, String)],
-    axOptional: Seq[(String, String)]): Seq[(String, String)] = {
+                           axOptional: Seq[(String, String)]): Seq[(String, String)] = {
     if (axRequired.length == 0 && axOptional.length == 0)
       Nil
     else {
@@ -125,26 +134,53 @@ object OpenID {
       Seq("openid.ns.ax" -> "http://openid.net/srv/ax/1.0", "openid.ax.mode" -> "fetch_request") ++ axRequiredParams ++ axOptionalParams ++ definitions
     }
   }
+}
 
-  private def normalize(openID: String): String = {
-    val trimmed = openID.trim
-    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-      "http://" + trimmed
-    } else {
-      trimmed
+/**
+ *  Resolve the OpenID identifier to the location of the user's OpenID service provider.
+ *
+ *  Known limitations:
+ *
+ *   * The Discovery doesn't support XRIs at the moment
+ */
+private[openid] class Discovery(ws: (String) => WSRequestHolder) {
+
+  trait Identifier {
+    def normalize:String
+    def isDefinedAt(in:String)
+  }
+
+  case class UrlIdentifier(url: String) {
+    def normalize = catching(classOf[MalformedURLException], classOf[URISyntaxException]) opt {
+      def port(p:Int) = p match {
+        case 80 | 443 => -1
+        case port => port
+      }
+      def schemeForPort(p: Int) = p match {
+        case 443 => "https"
+        case _ => "http"
+      }
+      def scheme(uri:URI) = Option(uri.getScheme) getOrElse schemeForPort(uri.getPort)
+      def path(path:String) = if(null == path || path.isEmpty) "/" else path
+
+      val uri = (if(url.matches("^(http|HTTP)(s|S)?:.*")) new URI(url) else new URI("http://" + url)).normalize()
+      new URI(scheme(uri), uri.getUserInfo, uri.getHost.toLowerCase, port(uri.getPort), path(uri.getPath), uri.getQuery, null).toURL.toExternalForm
     }
   }
 
-  private val providerRegex = new Regex("""<link[^>]+openid2[.]provider[^>]+>""")
-  private val serverRegex = new Regex("""<link[^>]+openid[.]server[^>]+>""")
-  private val localidRegex = new Regex("""<link[^>]+openid2[.]local_id[^>]+>""")
-  private val delegateRegex = new Regex("""<link[^>]+openid[.]delegate[^>]+>""")
+  private val providerRegex = new Regex( """<link[^>]+openid2[.]provider[^>]+>""")
+  private val serverRegex = new Regex( """<link[^>]+openid[.]server[^>]+>""")
+  private val localidRegex = new Regex( """<link[^>]+openid2[.]local_id[^>]+>""")
+  private val delegateRegex = new Regex( """<link[^>]+openid[.]delegate[^>]+>""")
+
+  def normalizeIdentifier(openID: String) = normalize(openID)
 
   /**
    * Resolve the OpenID server from the user's OpenID
    */
-  private def discoverServer(openid: String): Promise[OpenIDServer] = {
-    WS.url(openid).get().map(response => {
+  def discoverServer(openID:String): Promise[OpenIDServer] = {
+    val discoveryUrl = normalize(openID)
+    ws(discoveryUrl).get().map(response => {
       // Try HTML
       val serverUrl: Option[String] = providerRegex.findFirstIn(response.body)
         .orElse(serverRegex.findFirstIn(response.body))
@@ -158,13 +194,17 @@ object OpenID {
       val fromXRD = response.header(HeaderNames.CONTENT_TYPE).filter(_.contains("application/xrds+xml")).map(_ =>
         OpenIDServer((response.xml \\ "URI").text, None)
       )
-      fromHtml.orElse(fromXRD).getOrElse(throw Errors.NETWORK_ERROR)
+      fromXRD.orElse(fromHtml).getOrElse(throw Errors.NETWORK_ERROR)
     })
   }
 
   private def extractHref(link: String): Option[String] =
-    new Regex("""href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim).
-      orElse(new Regex("""href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
+    new Regex( """href="([^"]*)"""").findFirstMatchIn(link).map(_.group(1).trim).
+      orElse(new Regex( """href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
 
+  private def normalize(openID: String): String = {
+    val trimmed = openID.trim
+    UrlIdentifier(trimmed).normalize getOrElse trimmed
+  }
 }
 

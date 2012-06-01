@@ -84,6 +84,4 @@ object UserInfoSpec extends Specification {
     "openid.ns.ext1" -> "http://openid.net/srv/ax/1.0",
     "openid.ext1.mode" -> "fetch_response"
   ) ++ createDefaultResponse
-
-  private implicit def stringToSeq(s: String): Seq[String] = Seq(s)
 }
