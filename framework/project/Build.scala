@@ -192,7 +192,7 @@ object PlayBuild extends Build {
             
             "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
             
-            ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.7.5" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
             
