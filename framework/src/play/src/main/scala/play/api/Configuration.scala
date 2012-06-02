@@ -171,7 +171,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeout = configuration.getString("engine.timeout")
+   * val timeout = configuration.getMilliseconds("engine.timeout")
    * }}}
    *
    * The configuration must be provided as:
@@ -180,7 +180,24 @@ case class Configuration(underlying: Config) {
    * engine.timeout = 1 second
    * }}}
    */
-  def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))
+  def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))  
+  
+  /**
+   * Retrieves a configuration value as `Nanoseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeout = configuration.getNanoseconds("engine.timeout")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeout = 1 second
+   * }}}
+   */
+  def getNanoseconds(path: String): Option[Long] = readValue(path, underlying.getNanoseconds(path))
 
   /**
    * Retrieves a configuration value as `Bytes`.
@@ -216,12 +233,60 @@ case class Configuration(underlying: Config) {
   def getConfig(path: String): Option[Configuration] = readValue(path, underlying.getConfig(path)).map(Configuration(_))
 
   /**
+   * Retrieves a configuration value as a `Double`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val population = configuration.getDouble("world.population")
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Double`.
+   *
+   * @param key the configuration key, relative to the configuration root key
+   * @return a configuration value
+   */
+  def getDouble(path: String): Option[Double] = readValue(path, underlying.getDouble(path))
+
+  /**
+   * Retrieves a configuration value as a `Long`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val duration = configuration.getLong("timeout.duration")
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Long`.
+   *
+   * @param key the configuration key, relative to the configuration root key
+   * @return a configuration value
+   */
+  def getLong(path: String): Option[Long] = readValue(path, underlying.getLong(path))
+  
+  /**
+   * Retrieves a configuration value as a `Number`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val counter = configuration.getNumber("foo.counter")
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Number`.
+   *
+   * @param key the configuration key, relative to the configuration root key
+   * @return a configuration value
+   */
+  def getNumber(path: String): Option[Number] = readValue(path, underlying.getNumber(path))
+
+  /**
    * Retrieves a configuration value as a List of `Boolean`.
    *
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val switches = configuration.getString("board.switches")
+   * val switches = configuration.getBooleanList("board.switches")
    * }}}
    *
    * The configuration must be provided as:
@@ -241,7 +306,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val maxSizes = configuration.getString("engine.maxSizes")
+   * val maxSizes = configuration.getBytesList("engine.maxSizes")
    * }}}
    *
    * The configuration must be provided as:
@@ -258,7 +323,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val engineConfigs = configuration.getSub("engine")
+   * val engineConfigs = configuration.getConfigList("engine")
    * }}}
    *
    * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
@@ -271,7 +336,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val maxSizes = configuration.getString("engine.maxSizes")
+   * val maxSizes = configuration.getDoubleList("engine.maxSizes")
    * }}}
    *
    * The configuration must be provided as:
@@ -288,7 +353,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val maxSizes = configuration.getString("engine.maxSizes")
+   * val maxSizes = configuration.getIntList("engine.maxSizes")
    * }}}
    *
    * The configuration must be provided as:
@@ -305,7 +370,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val maxSizes = configuration.getString("engine.maxSizes")
+   * val maxSizes = configuration.getList("engine.maxSizes")
    * }}}
    *
    * The configuration must be provided as:
@@ -322,7 +387,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val maxSizes = configuration.getString("engine.maxSizes")
+   * val maxSizes = configuration.getLongList("engine.maxSizes")
    * }}}
    *
    * The configuration must be provided as:
@@ -339,7 +404,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeouts = configuration.getString("engine.timeouts")
+   * val timeouts = configuration.getMillisecondsList("engine.timeouts")
    * }}}
    *
    * The configuration must be provided as:
@@ -356,7 +421,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val timeouts = configuration.getString("engine.timeouts")
+   * val timeouts = configuration.getNanosecondsList("engine.timeouts")
    * }}}
    *
    * The configuration must be provided as:
@@ -373,7 +438,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val maxSizes = configuration.getString("engine.maxSizes")
+   * val maxSizes = configuration.getNumberList("engine.maxSizes")
    * }}}
    *
    * The configuration must be provided as:
@@ -390,7 +455,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val engineProperties = configuration.getString("engine.properties")
+   * val engineProperties = configuration.getObjectList("engine.properties")
    * }}}
    *
    * The configuration must be provided as:
@@ -407,7 +472,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val names = configuration.getString("names")
+   * val names = configuration.getStringList("names")
    * }}}
    *
    * The configuration must be provided as:
@@ -424,7 +489,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val engineProperties = configuration.getString("engine.properties")
+   * val engineProperties = configuration.getObject("engine.properties")
    * }}}
    *
    * The configuration must be provided as:

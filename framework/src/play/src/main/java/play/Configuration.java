@@ -99,6 +99,27 @@ public class Configuration {
     public Long getMilliseconds(String key, Long defaultMilliseconds) {
         return (Long)Scala.orElse(conf.getMilliseconds(key), defaultMilliseconds);
     }
+        
+    /**
+     * Retrieves a configuration value as a <code>Nanoseconds</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
+     */
+    public Long getNanoseconds(String key) {
+        return (Long)Scala.orNull(conf.getNanoseconds(key));
+    }
+
+    /**
+     * Retrieves a configuration value as a <code>Nanoseconds</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultNanoseconds default value if configuration key doesn't exist
+     * @return a configuration value or the defaultMilliseconds
+     */
+    public Long getNanoseconds(String key, Long defaultNanoseconds) {
+        return (Long)Scala.orElse(conf.getNanoseconds(key), defaultNanoseconds);
+    }
     
     /**
      * Retrieves a configuration value as a <code>Bytes</code>.
@@ -121,6 +142,26 @@ public class Configuration {
         return (Long)Scala.orElse(conf.getBytes(key), defaultBytes);
     }
     
+    /**
+     * Retrieves a configuration value as an <code>Double</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
+     */
+    public Double getDouble(String key) {
+        return (Double)Scala.orNull(conf.getDouble(key));
+    }
+
+    /**
+     * Retrieves a configuration value as an <code>Double</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultDouble default value if configuration key doesn't exist
+     * @return a configuration value or the defaultInteger
+     */
+    public Double getDouble(String key, Double defaultDouble) {
+        return (Double)Scala.orElse(conf.getDouble(key), defaultDouble);
+    }
 
     /**
      * Retrieves a configuration value as an <code>Int</code>.
@@ -141,6 +182,48 @@ public class Configuration {
      */
     public Integer getInt(String key, Integer defaultInteger) {
         return (Integer)Scala.orElse(conf.getInt(key), defaultInteger);
+    }
+    
+    /**
+     * Retrieves a configuration value as an <code>Long</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
+     */
+    public Long getLong(String key) {
+        return (Long)Scala.orNull(conf.getLong(key));
+    }
+
+    /**
+     * Retrieves a configuration value as an <code>Long</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultLong default value if configuration key doesn't exist
+     * @return a configuration value or the defaultInteger
+     */
+    public Long getLong(String key, Long defaultLong) {
+        return (Long)Scala.orElse(conf.getLong(key), defaultLong);
+    }
+    
+    /**
+     * Retrieves a configuration value as an <code>Number</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @return a configuration value or <code>null</code>
+     */
+    public Number getNumber(String key) {
+        return (Number)Scala.orNull(conf.getNumber(key));
+    }
+
+    /**
+     * Retrieves a configuration value as an <code>Number</code>.
+     *
+     * @param key configuration key (relative to configuration root key)
+     * @param defaultLong default value if configuration key doesn't exist
+     * @return a configuration value or the defaultInteger
+     */
+    public Number getNumber(String key, Number defaultNumber) {
+        return (Number)Scala.orElse(conf.getNumber(key), defaultNumber);
     }
 
     /**
