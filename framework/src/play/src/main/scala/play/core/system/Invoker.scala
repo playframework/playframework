@@ -114,45 +114,11 @@ class ActionInvoker extends Actor {
     case Invoker.HandleAction(request, response: Response, action, app: Application) => {
 
       val result = try {
-        try {
-          Threads.withContextClassLoader(app.classloader) {
-            action(request)
-          }
-        } catch {
-          case e: PlayException.UsefulException => throw e
-          case e: Throwable => {
-
-            val source = app.sources.flatMap(_.sourceFor(e))
-
-            throw new PlayException(
-              "Execution exception",
-              "[%s: %s]".format(e.getClass.getSimpleName, e.getMessage),
-              Some(e)) with PlayException.ExceptionSource {
-              def line = source.map(_._2)
-              def position = None
-              def input = source.map(_._1).map(scalax.file.Path(_))
-              def sourceName = source.map(_._1.getAbsolutePath)
-            }
-
-          }
+        Threads.withContextClassLoader(app.classloader) {
+          action(request)
         }
       } catch {
-        case e => try {
-
-          Logger.error(
-            """
-            |
-            |! %sInternal server error, for request [%s] ->
-            |""".stripMargin.format(e match {
-              case p: PlayException => "@" + p.id + " - "
-              case _ => ""
-            }, request),
-            e)
-
-          app.global.onError(request, e)
-        } catch {
-          case e => DefaultGlobal.onError(request, e)
-        }
+        case e => app.handleError(request, e)
       }
 
       response.handle {

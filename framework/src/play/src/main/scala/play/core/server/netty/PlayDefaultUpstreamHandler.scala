@@ -92,8 +92,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case AsyncResult(p) => p.extend1 {
                 case Redeemed(v) => handle(v)
                 case Thrown(e) => {
-                  Logger("play").error("Waiting for a promise, but got an error: " + e.getMessage, e)
-                  handle(Results.InternalServerError)
+                  server.applicationProvider.get match {
+                    case Right(app) => handle(app.handleError(requestHeader, e))
+                    case Left(_) => handle(Results.InternalServerError)
+                  }
                 }
               }
 

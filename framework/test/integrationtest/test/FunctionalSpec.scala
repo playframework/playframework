@@ -148,6 +148,21 @@ class FunctionalSpec extends Specification {
       }
     }
 
+    "Provide a hook to handle errors" in {
+      "Synchronous results" in {
+        running(TestServer(9000), HTMLUNIT) { browser =>
+          browser.goTo("http://localhost:9000/sync-error")
+          browser.pageSource must equalTo ("Something went wrong.")
+        }
+      }
+      "Asynchronous results" in {
+        running(TestServer(9000), HTMLUNIT) { browser =>
+          browser.goTo("http://localhost:9000/async-error")
+          browser.pageSource must equalTo ("Something went wrong.")
+        }
+      }
+    }
+
   }
   
 }
