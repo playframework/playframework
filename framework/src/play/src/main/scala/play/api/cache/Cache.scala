@@ -3,6 +3,7 @@ package play.api.cache
 import play.api._
 
 import reflect.ClassManifest
+import org.apache.commons.lang3.reflect.TypeUtils
 /**
  * API for a Cache plugin.
  */
@@ -87,7 +88,7 @@ object Cache {
    */
   def getAs[T](key: String)(implicit app: Application, m: ClassManifest[T]): Option[T] = {
     get(key)(app).map { item =>
-      if (m.erasure.isAssignableFrom(item.getClass)) Some(item.asInstanceOf[T]) else None
+      if (TypeUtils.isInstance(item, m.erasure)) Some(item.asInstanceOf[T]) else None
     }.getOrElse(None)
   }
 
