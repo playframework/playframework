@@ -1,10 +1,12 @@
 package play.api.mvc {
 
   import play.api._
-  import play.api.libs.iteratee._
+import libs.concurrent.Promise
+import play.api.libs.iteratee._
   import play.api.libs.Crypto
 
   import scala.annotation._
+  import java.security.cert.Certificate
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -41,6 +43,34 @@ package play.api.mvc {
      * The HTTP headers.
      */
     def headers: Headers
+
+
+    /**
+     * calling this method will request the user to select an X509 Certificate from his key chain if he has one,
+     * or return a cached certificate chain if the user has already selected one during the current TLS session.
+     * Since requesting something of the user could take a lot  of time, this is returned immediately as a Promise.
+     * The first element of the Certificate is the user's Certificate, the other elements of the chain if any, are the
+     * certificates that were used to sign the first one ( which is the usual Certificate Authority based approach ).
+     *
+     * For example:
+     * {{{
+     * import play.api.libs.concurrent._
+     * def index = Action { req =>
+     *                Async {
+     *                   //timeouts should be set as transport specific options as explained in Netty's ChannelFuture
+     *                   //if done that way, then timeouts will break the connection anyway.
+     *                   req.certs.extend1 {
+     *                          case Redeemed(cert) => Ok("your cert is: \n\n "+cert )
+     *                          case Thrown(e) => InternalServerError("received error: \n"+e )
+     *                   }
+     *                }
+     *             }
+     * }}}
+     *
+     * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
+     *         contain an Error if something went wrong (eg: the request is not made on an httpS connection )
+     */
+    def certs: Promise[Seq[Certificate]]
 
     /**
      * The client IP address.
@@ -146,6 +176,7 @@ package play.api.mvc {
       def uri = self.uri
       def path = self.path
       def method = self.method
+      def certs = self.certs
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
@@ -161,6 +192,7 @@ package play.api.mvc {
     def body = request.body
     def headers = request.headers
     def queryString = request.queryString
+    def certs = request.certs
     def path = request.path
     def uri = request.uri
     def method = request.method
