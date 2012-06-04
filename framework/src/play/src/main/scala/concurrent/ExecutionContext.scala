@@ -43,23 +43,7 @@ trait ExecutionContext {
  */
 object ExecutionContext {
   
-  implicit val defaultExecutionContext: ExecutionContext = {
-    println("original")
-    scala.concurrent.defaultExecutionContext
-  }
-
-  //import scala.concurrent.{ExecutionContext , Awaitable}
-  import scala.concurrent.util.Duration
-
-  /*implicit def defaultExecutionContext1: ExecutionContext = new ExecutionContext {
-    def execute(runnable: Runnable): Unit = play.api.libs.concurrent.Promise.system.dispatcher.execute(runnable)
-
-    def reportFailure(t: Throwable): Unit = play.api.libs.concurrent.Promise.system.dispatcher.reportFailure(t)
-
-    def internalBlockingCall[T](awaitable: Awaitable[T], atMost: Duration): T = throw new Exception()
-
-  }
-  * */
+  implicit val defaultExecutionContext: ExecutionContext = scala.concurrent.defaultExecutionContext
   
   /** Creates an `ExecutionContext` from the given `ExecutorService`.
    */

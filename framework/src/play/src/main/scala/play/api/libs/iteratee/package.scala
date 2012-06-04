@@ -7,4 +7,6 @@ package object iteratee {
 
   type K[E, A] = Input[E] => Iteratee[E, A]
 
+  implicit private[iteratee] val defaultExecutionContext: scala.concurrent.ExecutionContext = scala.concurrent.defaultExecutionContext
+
 }
