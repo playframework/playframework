@@ -149,24 +149,27 @@ object NettyServer {
   def createServer(applicationPath: File): Option[NettyServer] = {
 
     // Manage RUNNING_PID file
-    java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
-      val pidPath = Option(System.getProperty("pidfile.path")).getOrElse(applicationPath.getAbsolutePath())
-      val pidFile = new File(pidPath, "RUNNING_PID")
+    val pidFileEnabled = Option(System.getProperty("pidfile.enabled")).map(java.lang.Boolean.parseBoolean(_)).getOrElse(true);
+    if (pidFileEnabled) {
+      java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
+        val pidPath = Option(System.getProperty("pidfile.path")).getOrElse(applicationPath.getAbsolutePath())
+        val pidFile = new File(pidPath, "RUNNING_PID")
 
-      if (pidFile.exists) {
-        println("This application is already running (Or delete the RUNNING_PID file).")
-        System.exit(-1)
-      }
-
-      // The Logger is not initialized yet, we print the Process ID on STDOUT
-      println("Play server process ID is " + pid)
-
-      new FileOutputStream(pidFile).write(pid.getBytes)
-      Runtime.getRuntime.addShutdownHook(new Thread {
-        override def run {
-          pidFile.delete()
+        if (pidFile.exists) {
+          println("This application is already running (Or delete the RUNNING_PID file).")
+          System.exit(-1)
         }
-      })
+
+        // The Logger is not initialized yet, we print the Process ID on STDOUT
+        println("Play server process ID is " + pid)
+
+        new FileOutputStream(pidFile).write(pid.getBytes)
+        Runtime.getRuntime.addShutdownHook(new Thread {
+          override def run {
+            pidFile.delete()
+          }
+        })
+      }
     }
 
     try {
