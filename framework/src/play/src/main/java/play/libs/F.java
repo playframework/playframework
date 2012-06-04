@@ -147,14 +147,14 @@ public class F {
             return new Promise<A>(play.core.j.JavaPromise.<A>throwing(throwable));
         }
 
-        private final play.api.libs.concurrent.Promise<A> promise;
+        private final scala.concurrent.Future<A> promise;
 
         /**
          * Create a new promise wrapping the given Scala promise
          *
          * @param promise The scala promise to wrap
          */
-        public Promise(play.api.libs.concurrent.Promise<A> promise) {
+        public Promise( scala.concurrent.Future<A> promise) {
             this.promise = promise;
         }
 
@@ -165,7 +165,7 @@ public class F {
          * @throws RuntimeException if the calculation providing the promise threw an exception
          */
         public A get() {
-            return promise.value().get();
+            return new play.api.libs.concurrent.PlayPromise<A>(promise).value1().get();
         }
 
         /**
@@ -177,7 +177,7 @@ public class F {
          * @throws RuntimeException if the calculation providing the promise threw an exception
          */
         public A get(Long timeout, TimeUnit unit) {
-            return promise.await(timeout, unit).get();
+            return new play.api.libs.concurrent.PlayPromise<A>(promise).await(timeout, unit).get();
         }
 
         /**
@@ -214,7 +214,7 @@ public class F {
          */
         public void onRedeem(final Callback<A> action) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
-            promise.onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
+            new play.api.libs.concurrent.PlayPromise<A>(promise).onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
                     try {
                         run(new Function<A,Object>() {
@@ -252,18 +252,18 @@ public class F {
         public <B> Promise<B> map(final Function<A, B> function) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
-                    promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
-                        public play.api.libs.concurrent.Promise<B> apply(A a) {
-                            try {
-                                return run(function, a, context);
-                            } catch (RuntimeException e) {
-                                throw e;
-                            } catch(Throwable t) {
-                                throw new RuntimeException(t);
-                            }
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<B>>() {
+                    public scala.concurrent.Future<B> apply(A a) {
+                        try {
+                            return run(function, a, context);
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch(Throwable t) {
+                            throw new RuntimeException(t);
                         }
-                    })
-                    );
+                    }
+                    },null)
+            );
         }
 
         /**
@@ -280,16 +280,16 @@ public class F {
         public Promise<A> recover(final Function<Throwable,A> function) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<A>(
-                    play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, play.api.libs.concurrent.Promise<A>>() {
-                        public play.api.libs.concurrent.Promise<A> apply(Throwable t) {
-                            try {
-                                return run(function,t, context);
-                            } catch (RuntimeException e) {
-                                throw e;
-                            } catch(Throwable e) {
-                                throw new RuntimeException(e);
-                            }
+                play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, scala.concurrent.Future<A>>() {
+                    public scala.concurrent.Future<A> apply(Throwable t) {
+                        try {
+                            return run(function,t, context);
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch(Throwable e) {
+                            throw new RuntimeException(e);
                         }
+                    }
                     })
                     );
         }
@@ -307,22 +307,22 @@ public class F {
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
-                    promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<Promise<B>>>() {
-                        public play.api.libs.concurrent.Promise<Promise<B>> apply(A a) {
-                            try {
-                                return run(function, a, context);
-                            } catch (RuntimeException e) {
-                                throw e;
-                            } catch(Throwable t) {
-                                throw new RuntimeException(t);
-                            }
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<Promise<B>>>() {
+                    public scala.concurrent.Future<Promise<B>> apply(A a) {
+                        try {
+                            return run(function, a, context);
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch(Throwable t) {
+                            throw new RuntimeException(t);
                         }
-                    }).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,play.api.libs.concurrent.Promise<B>>() {
-                        public play.api.libs.concurrent.Promise<B> apply(Promise<B> p) {
-                            return p.promise;
-                        }
-                    })
-                    );
+                    }
+                    },null).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,scala.concurrent.Future<B>>() {
+                    public scala.concurrent.Future<B> apply(Promise<B> p) {
+                        return p.promise;
+                    }
+                        },null)
+            );
         }
 
         /**
@@ -330,7 +330,7 @@ public class F {
          *
          * @return The scala promise
          */
-        public play.api.libs.concurrent.Promise<A> getWrappedPromise() {
+        public scala.concurrent.Future<A> getWrappedPromise() {
             return promise;
         }
 
@@ -353,7 +353,7 @@ public class F {
             return actors;
         }
 
-        static <A,B> play.api.libs.concurrent.Promise<B> run(Function<A,B> f, A a, play.mvc.Http.Context context) {
+        static <A,B> scala.concurrent.Future<B> run(Function<A,B> f, A a, play.mvc.Http.Context context) {
             Long id;
             if(context == null) {
                 id = 0l;
@@ -377,9 +377,10 @@ public class F {
                                     throw new RuntimeException(t);
                                 }
                             }
+                           
                             return r.right.get();
-                        }
-                    });
+                }
+            },null);
         }
 
         // Executes the Promise functions (capturing exception), with the given ThreadLocal context.

@@ -30,7 +30,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def chunked(stream: java.io.InputStream, chunkSize: Int) = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
 }
-
+import play.api.libs.concurrent._
 object JavaResultExtractor {
 
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
@@ -61,7 +61,7 @@ object JavaResultExtractor {
     case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
-      bodyEnumerator(readAsBytes).flatMap(_.run).value.get
+      bodyEnumerator(readAsBytes).flatMap(_.run).value1.get
     }
     case r => sys.error("Cannot extract the body content from a result of type " + r.getClass.getName)
   }

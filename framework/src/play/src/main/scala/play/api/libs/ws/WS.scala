@@ -126,7 +126,7 @@ object WS {
           result.redeem(throw t)
         }
       })
-      result
+      result.future
     }
 
     /**
@@ -249,7 +249,7 @@ object WS {
           iterateeP.redeem(throw t)
         }
       })
-      iterateeP
+      iterateeP.future
     }
 
   }

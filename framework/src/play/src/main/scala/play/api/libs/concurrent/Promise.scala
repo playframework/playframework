@@ -38,31 +38,35 @@ case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
 
-trait Promise[+A] {
+class PlayRedeemable[-A](p:scala.concurrent.Promise[A]){
+  def redeem(a: => A): Unit = try(p.success(a)) catch {case e => p.failure(e)}
 
-  def onRedeem(k: A => Unit): Unit
+  def throwing(t: Throwable): Unit = p.failure(t)
 
-  def recover[AA >: A](pf: PartialFunction[Throwable, AA]): Promise[AA] = extend1 {
-    case Thrown(e) if pf.isDefinedAt(e) => pf(e)
-    case Thrown(e) => throw e
-    case Redeemed(a) => a
+}
+
+class PlayPromise[+A](fu:scala.concurrent.Future[A]){
+
+  def onRedeem(k: A => Unit): Unit = extend1 { case Redeemed(a) => k(a) ; case  _ => }
+
+  def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
+    val result = Promise[B]()
+    fu.onComplete(_ => result.redeem(k(fu)))
+    result.future
   }
 
-  def extend[B](k: Function1[Promise[A], B]): Promise[B]
+  def extend1[B](k: Function1[NotWaiting[A], B]): Promise[B] = extend[B](p => k(p.value1))
 
-  def extend1[B](k: Function1[NotWaiting[A], B]): Promise[B] = extend[B](p => k(p.value))
-
-  def value = await
+  def value1 = await
 
   def await: NotWaiting[A] = await(Promise.defaultTimeout)
 
-  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A]
+  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
+    scala.concurrent.Await.ready(fu,scala.concurrent.util.Duration(timeout,unit))
+    fu.value.get.fold(e => Thrown(e), a => Redeemed(a))
+  }
 
-  def filter(p: A => Boolean): Promise[A]
-
-  def map[B](f: A => B): Promise[B]
-
-  def flatMap[B](f: A => Promise[B]): Promise[B]
+  def filter(p: A => Boolean): Promise[A] = null
 
   def or[B](other: Promise[B]): Promise[Either[A, B]] = {
     import scala.concurrent.stm._
@@ -95,7 +99,7 @@ trait Promise[+A] {
                         }
       }
     }
-    p
+    p.future
   }
 
   def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
@@ -113,109 +117,10 @@ trait Redeemable[-A] {
   def throwing(t: Throwable): Unit
 }
 
-class STMPromise[A] extends Promise[A] with Redeemable[A] {
-  import scala.concurrent.stm._
-
-  val actions: Ref[List[Promise[A] => Unit]] = Ref(List())
-  var redeemed: Ref[PromiseValue[A]] = Ref(Waiting)
-
-  def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
-    val result = new STMPromise[B]()
-    addAction { p =>
-      val bOrExc = scala.util.control.Exception.allCatch[B].either(k(p))
-      bOrExc.fold(e => result.throwing(e), b => result.redeem(b))
-    }
-    result
-  }
-
-  def filter(p: A => Boolean): Promise[A] = {
-    val result = new STMPromise[A]()
-    this.addAction(_.value match {
-      case Redeemed(a) => if (p(a)) result.redeem(a) else result.redeem(throw new NoSuchElementException)
-      case Thrown(t) => result.redeem(throw t)
-    })
-    result
-  }
-
-  def onRedeem(k: A => Unit): Unit = {
-    addAction(p => p.value match { case Redeemed(a) => k(a); case _ => })
-  }
-
-  private def addAction(k: Promise[A] => Unit): Unit = {
-    if (redeemed.single().isDefined) {
-      invoke(this, k)
-    } else {
-      val ok: Boolean = atomic { implicit txn =>
-        if (!redeemed().isDefined) { actions() = actions() :+ k; true }
-        else false
-      }
-      if (!ok) invoke(this, k)
-    }
-  }
-
-  def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
-    atomic { implicit txn =>
-      if (redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
-      else {
-        retryFor(unit.toNanos(timeout), scala.actors.threadpool.TimeUnit.NANOSECONDS)
-        throw new TimeoutException("Promise timed out after " + timeout + " : " + unit)
-      }
-    }
-  }
-
-  private def invoke[T](a: T, k: T => Unit): Unit = akka.dispatch.Future { k(a) }(Promise.system.dispatcher)
-
-  def redeem(body: => A): Unit = {
-    val result = scala.util.control.Exception.allCatch[A].either(body)
-    atomic { implicit txn =>
-      if (redeemed().isDefined) sys.error("already redeemed")
-      redeemed() = result.fold(Thrown(_), Redeemed(_))
-    }
-    actions.single.swap(List()).foreach(invoke(this, _))
-  }
-
-  def throwing(t: Throwable): Unit = {
-    atomic { implicit txn =>
-      if (redeemed().isDefined) sys.error("already redeemed")
-      redeemed() = Thrown(t)
-    }
-    actions.single.swap(List()).foreach(invoke(this, _))
-  }
-
-  def map[B](f: A => B): Promise[B] = {
-    val result = new STMPromise[B]()
-    this.addAction(p => p.value match {
-      case Redeemed(a) => result.redeem(f(a))
-      case Thrown(e) => result.redeem(throw e)
-    })
-    result
-  }
-
-  def flatMap[B](f: A => Promise[B]) = {
-    val result = new STMPromise[B]()
-    this.addAction(p => p.value match {
-      case Redeemed(a) =>
-        (try {
-          f(a)
-        } catch {
-          case e =>
-            Promise.pure[B](throw e)
-        }).extend(ip => ip.value match {
-          case Redeemed(a) => result.redeem(a)
-          case Thrown(e) => result.redeem(throw e)
-
-        })
-      case Thrown(e) => result.redeem(throw e)
-    })
-    result
-  }
-}
-
 object PurePromise {
 
-  def apply[A](lazyA: => A): Promise[A] = 
-    (try (akka.dispatch.Promise.successful(lazyA)(Promise.system.dispatcher))
-     catch{ case e => akka.dispatch.Promise.failed(e)(Promise.system.dispatcher)}).asPromise
+  def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try ( scala.concurrent.Promise.successful(lazyA) ) catch {case e => scala.concurrent.Promise.failed(e)}).future
+
 }
 
 object Promise {
@@ -229,7 +134,7 @@ object Promise {
 
   def pure[A](a: => A): Promise[A] = PurePromise(a)
 
-  def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
+  def apply[A](): scala.concurrent.Promise[A] = scala.concurrent.Promise[A]()
 
   def timeout[A](message: A, duration: akka.util.Duration): Promise[A] = {
     timeout(message, duration.toMillis)
@@ -238,7 +143,7 @@ object Promise {
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
     val p = Promise[A]()
     play.core.Invoker.system.scheduler.scheduleOnce(akka.util.Duration(duration, unit))(p.redeem(message))
-    p
+    p.future
   }
 
   def timeout: Promise[Nothing] = {

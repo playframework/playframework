@@ -111,7 +111,7 @@ object Enumerator {
         def step(in: Input[EE]): Iteratee[EE, Unit] = {
 
           val p = Promise[Iteratee[E, A]]()
-          val i = iter.single.swap(Iteratee.flatten(p))
+          val i = iter.single.swap(Iteratee.flatten(p.future))
           in match {
             case Input.El(_) | Input.Empty =>
 
@@ -155,7 +155,7 @@ object Enumerator {
 
       }
 
-      result
+      result.future
     }
 
   }
@@ -179,7 +179,7 @@ object Enumerator {
         def step(in: Input[EE]): Iteratee[EE, Unit] = {
 
           val p = Promise[Iteratee[E2, A]]()
-          val i = iter.single.swap(Iteratee.flatten(p))
+          val i = iter.single.swap(Iteratee.flatten(p.future))
           in match {
             case Input.El(_) | Input.Empty =>
 
@@ -224,7 +224,7 @@ object Enumerator {
         case Thrown(e) => result.throwing(e)
 
       }
-      result
+      result.future
     }
 
   }
@@ -252,7 +252,7 @@ object Enumerator {
 
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
       var iteratee: Iteratee[E, A] = it
-      var promise: Promise[Iteratee[E, A]] with Redeemable[Iteratee[E, A]] = new STMPromise[Iteratee[E, A]]()
+      var promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
 
       val pushee = new Pushee[E] {
         def close() {
@@ -294,7 +294,7 @@ object Enumerator {
         }
       }
       onStart(pushee)
-      promise
+      promise.future
     }
 
   }
@@ -412,7 +412,7 @@ object Enumerator {
         }
       }
       step(it, true)
-      iterateeP
+      iterateeP.future
     }
   }
 
@@ -453,7 +453,7 @@ object Enumerator {
       }
 
       step(it)
-      iterateeP
+      iterateeP.future
     }
   }
 
@@ -514,9 +514,9 @@ class PushEnumerator[E] private[iteratee] (
   def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
     onStart()
     iteratee = it.asInstanceOf[Iteratee[E, _]]
-    val newPromise = new STMPromise[Iteratee[E, A]]()
+    val newPromise = Promise[Iteratee[E, A]]()
     promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
-    newPromise
+    newPromise.future
   }
 
   def close() {

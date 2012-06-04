@@ -63,13 +63,13 @@ public class OpenID {
      */
     public static F.Promise<UserInfo> verifiedId() {
         Request request = Http.Context.current().request();
-        Promise<UserInfo> scalaPromise = play.api.libs.openid.OpenID.verifiedId(request.queryString()).map(
+        scala.concurrent.Future<UserInfo> scalaPromise = play.api.libs.openid.OpenID.verifiedId(request.queryString()).map(
                 new AbstractFunction1<play.api.libs.openid.UserInfo, UserInfo>() {
                     @Override
                     public UserInfo apply(play.api.libs.openid.UserInfo scalaUserInfo) {
                         return new UserInfo(scalaUserInfo.id(), JavaConversions.mapAsJavaMap(scalaUserInfo.attributes()));
                     }
-                });
+                },null);
         return new F.Promise<UserInfo>(scalaPromise);
     }
 

@@ -156,13 +156,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
                   val p = body |>> stringIteratee
                   p.flatMap(i => i.run)
-                    .onRedeem { buffer =>
-                      nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
-                      nettyResponse.setContent(buffer)
-                      val f = e.getChannel.write(nettyResponse)
-                      if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                    .extend1 { 
+                      case Redeemed(buffer) =>
+                        nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
+                        nettyResponse.setContent(buffer)
+                        val f = e.getChannel.write(nettyResponse)
+                        if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
                     }
-
                 }
 
               }
@@ -305,7 +305,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                     })
                 }
 
-            eventuallyResultOrRequest.extend(_.value match {
+            eventuallyResultOrRequest.extend1 {
               case Redeemed(Left(result)) => {
                 Logger("play").trace("Got direct result from the BodyParser: " + result)
                 response.handle(result)
@@ -319,7 +319,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 response.handle(Results.InternalServerError)
                 e.getChannel.setReadable(true)
               }
-            })
+            }
 
           }
 

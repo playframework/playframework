@@ -76,7 +76,7 @@ private[server] trait RequestBodyHandler {
       }
     }
 
-    (p, new SimpleChannelUpstreamHandler {
+    (p.future, new SimpleChannelUpstreamHandler {
       override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
         e.getMessage match {
 
