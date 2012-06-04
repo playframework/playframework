@@ -44,6 +44,9 @@ GET     /accept-java            controllers.JavaApi.accept()
 
 GET     /onCloseSendFile/*fp    controllers.Application.onCloseSendFile(fp)
 
+GET     /sync-error             controllers.Application.syncError()
+GET     /async-error            controllers.Application.asyncError()
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 
