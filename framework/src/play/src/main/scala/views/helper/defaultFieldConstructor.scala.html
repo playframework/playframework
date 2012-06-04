@@ -11,17 +11,26 @@
  * </dl>
  * }}}
  *
+ * or if input type is hidden:
+ * {{{
+ * <input type="hidden" id="name" name="name">
+ * }}}
+ * 
  * @param el The field informations.
  *@
 @(elements: FieldElements)
 
-<dl class="@elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
-    <dt><label for="@elements.id">@elements.label(elements.lang)</label></dt>
-    <dd>@elements.input</dd>
-    @elements.errors(elements.lang).map { error =>
-        <dd class="error">@error</dd>
-    }
-    @elements.infos(elements.lang).map { info =>
-        <dd class="info">@info</dd>
-    }
-</dl>
+@if(elements.input.body.trim.startsWith("<input type=\"hidden\"")) {
+    @elements.input
+} else {
+    <dl class="@elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
+        <dt><label for="@elements.id">@elements.label(elements.lang)</label></dt>
+        <dd>@elements.input</dd>
+        @elements.errors(elements.lang).map { error =>
+            <dd class="error">@error</dd>
+        }
+        @elements.infos(elements.lang).map { info =>
+            <dd class="info">@info</dd>
+        }
+    </dl>
+}
