@@ -163,9 +163,14 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
     val libs = {
       dependencies.filter(_.data.ext == "jar").map { dependency =>
-        dependency.data -> (packageName + "/lib/" + (dependency.metadata.get(AttributeKey[ModuleID]("module-id")).map { module =>
-          module.organization + "." + module.name + "-" + module.revision + ".jar"
-        }.getOrElse(dependency.data.getName)))
+        val filename = for {
+          module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
+          artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
+        } yield {
+          module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
+        }
+        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        dependency.data -> path
       } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
     }
 
