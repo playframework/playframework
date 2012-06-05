@@ -14,6 +14,7 @@ import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
 
+
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
 }
