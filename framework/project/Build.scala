@@ -177,9 +177,9 @@ object PlayBuild extends Build {
 
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.3.0.Final",
-            "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
-            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.4",
-            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
+            "org.slf4j"                         %    "slf4j-api"                %   "1.6.5",
+            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.5",
+            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.5",
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.3",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.3",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
