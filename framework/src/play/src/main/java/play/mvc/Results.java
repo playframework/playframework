@@ -1013,20 +1013,31 @@ public class Results {
      */
     public static class AsyncResult implements Result {
 
-        final private play.api.mvc.Result wrappedResult;
+        private final F.Promise<Result> promise;
 
-        public AsyncResult(play.libs.F.Promise<Result> p) {
-            wrappedResult = play.core.j.JavaResults.async(
-                p.map(new play.libs.F.Function<Result,play.api.mvc.Result>() {
-                    public play.api.mvc.Result apply(Result r) {
-                        return play.core.j.JavaHelpers$.MODULE$.createResult(Http.Context.current(), r);
-                    }
-                }).getWrappedPromise()
-            );
+        public AsyncResult(F.Promise<Result> promise) {
+            this.promise = promise;
+        }
+
+        /**
+         * Get the promise for the actual result. Using this an action may map the result to another result, or
+         * do some other processing with the response/session/flash scope, and then return that promise wrapped in
+         * a new AsyncResult.
+         *
+         * @return The promise for the actual result
+         */
+        public Promise<Result> getWrappedPromise() {
+            return promise;
         }
 
         public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
+            return play.core.j.JavaResults.async(
+                    promise.map(new F.Function<Result,play.api.mvc.Result>() {
+                        public play.api.mvc.Result apply(Result r) {
+                            return play.core.j.JavaHelpers$.MODULE$.createResult(Http.Context.current(), r);
+                        }
+                    }).getWrappedPromise()
+            );
         }
 
     }
