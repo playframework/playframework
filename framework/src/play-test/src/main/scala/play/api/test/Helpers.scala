@@ -11,6 +11,8 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
+import play.api.libs.concurrent.execution.defaultContext
+
 /**
  * Helper functions to run tests.
  */

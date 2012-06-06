@@ -16,6 +16,8 @@ import akka.pattern.Patterns.ask
 import akka.util.duration._
 import akka.util.Timeout
 
+import play.api.libs.concurrent.execution.defaultContext
+
 trait WebSocketable {
   def getHeader(header: String): String
   def check: Boolean

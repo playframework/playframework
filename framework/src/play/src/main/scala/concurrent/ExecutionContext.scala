@@ -43,7 +43,7 @@ trait ExecutionContext {
  */
 object ExecutionContext {
   
-  implicit val defaultExecutionContext: ExecutionContext = scala.concurrent.defaultExecutionContext
+  //implicit val defaultExecutionContext: ExecutionContext = scala.concurrent.defaultExecutionContext
   
   /** Creates an `ExecutionContext` from the given `ExecutorService`.
    */
@@ -62,5 +62,3 @@ object ExecutionContext {
   }
   
 }
-
-

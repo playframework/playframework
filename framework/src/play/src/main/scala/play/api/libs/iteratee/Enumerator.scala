@@ -2,6 +2,8 @@ package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
 
+import play.api.libs.concurrent.execution.defaultContext
+
 /**
  * Pushes input to an [[play.api.libs.iteratee.Iteratee]]
  * @type E Type of the input

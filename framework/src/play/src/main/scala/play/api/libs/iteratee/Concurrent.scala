@@ -2,6 +2,7 @@ package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
 import Enumerator.Pushee
+import play.api.libs.concurrent.execution.defaultContext
 
 object Concurrent {
 

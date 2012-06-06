@@ -7,6 +7,8 @@ import play.api.libs.iteratee._
 import scala.collection.JavaConverters._
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie }
 
+import play.api.libs.concurrent.execution.defaultContext
+
 /**
  * Java compatible Results
  */

@@ -1,7 +1,7 @@
 package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
-
+import play.api.libs.concurrent.execution.defaultContext
 
 /**
  * Combines the roles of an Iteratee[From] and a Enumerator[To]

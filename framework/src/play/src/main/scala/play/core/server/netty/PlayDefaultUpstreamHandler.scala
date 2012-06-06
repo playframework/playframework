@@ -24,6 +24,8 @@ import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 
+import play.api.libs.concurrent.execution.defaultContext
+
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {

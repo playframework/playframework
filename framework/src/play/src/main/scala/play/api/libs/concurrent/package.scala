@@ -12,8 +12,6 @@ import akka.dispatch.{ Future }
  */
 package object concurrent {
 
-  implicit private[concurrent] val defaultExecutionContext: scala.concurrent.ExecutionContext = scala.concurrent.defaultExecutionContext
-
   type RedeemablePromise[A] = Promise[A] with Redeemable[A]
 
   /**

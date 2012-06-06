@@ -1,6 +1,7 @@
 package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
+import play.api.libs.concurrent.execution.defaultContext
 
 object Iteratee {
 
