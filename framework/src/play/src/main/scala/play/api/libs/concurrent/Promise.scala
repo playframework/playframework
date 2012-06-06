@@ -72,26 +72,28 @@ trait Promise[+A] {
       if (!ref.single()) {
         val iRedeemed = ref.single.getAndTransform(_ => true)
 
-        if (! iRedeemed) { v match {
-          case Redeemed(a) =>
-            p.redeem(Left(a))
-          case Thrown(e) =>
-            p.throwing(e)
+        if (!iRedeemed) {
+          v match {
+            case Redeemed(a) =>
+              p.redeem(Left(a))
+            case Thrown(e) =>
+              p.throwing(e)
           }
-                        }
+        }
       }
     }
     other.extend1 { v =>
       if (!ref.single()) {
         val iRedeemed = ref.single.getAndTransform(_ => true)
 
-        if (! iRedeemed) { v match {
-          case Redeemed(a) =>
-            p.redeem(Right(a))
-          case Thrown(e) =>
-            p.throwing(e)
+        if (!iRedeemed) {
+          v match {
+            case Redeemed(a) =>
+              p.redeem(Right(a))
+            case Thrown(e) =>
+              p.throwing(e)
           }
-                        }
+        }
       }
     }
     p
@@ -208,19 +210,19 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
 object PurePromise {
 
-  def apply[A](lazyA: => A): Promise[A] = 
+  def apply[A](lazyA: => A): Promise[A] =
     (try (akka.dispatch.Promise.successful(lazyA)(Promise.system.dispatcher))
-     catch{ case e => akka.dispatch.Promise.failed(e)(Promise.system.dispatcher)}).asPromise
+    catch { case e => akka.dispatch.Promise.failed(e)(Promise.system.dispatcher) }).asPromise
 }
 
 object Promise {
 
   private[concurrent] def invoke[T](t: => T): Promise[T] = akka.dispatch.Future { t }(Promise.system.dispatcher).asPromise
-  
-  private [concurrent] lazy val defaultTimeout = 
-    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis 
 
-  private [concurrent] lazy val system = ActorSystem("promise")
+  private[concurrent] lazy val defaultTimeout =
+    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis
+
+  private[concurrent] lazy val system = ActorSystem("promise")
 
   def pure[A](a: => A): Promise[A] = PurePromise(a)
 

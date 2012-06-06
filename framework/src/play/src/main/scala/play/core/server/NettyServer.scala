@@ -156,7 +156,7 @@ object NettyServer {
 
       if (pidFile.getAbsolutePath != "/dev/null") {
         if (pidFile.exists) {
-          println("This application is already running (Or delete "+ pidFile.getAbsolutePath +" file).")
+          println("This application is already running (Or delete " + pidFile.getAbsolutePath + " file).")
           System.exit(-1)
         }
 
@@ -175,13 +175,13 @@ object NettyServer {
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0"))
-        
+
       Runtime.getRuntime.addShutdownHook(new Thread {
         override def run {
           server.stop()
         }
       })
-      
+
       Some(server)
     } catch {
       case e => {

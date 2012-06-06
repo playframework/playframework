@@ -11,12 +11,12 @@ import scala.collection.JavaConverters._
 
 /**
  * Binder for query string parameters.
- * 
+ *
  * You can provide an implementation of `QueryStringBindable[A]` for any type `A` you want to be able to
  * bind directly from the request query string.
- * 
+ *
  * For example, if you have the following type to encode pagination:
- * 
+ *
  * {{{
  *   /**
  *    * @param index Current page index
@@ -24,12 +24,12 @@ import scala.collection.JavaConverters._
  *    */
  *   case class Pager(index: Int, size: Int)
  * }}}
- * 
+ *
  * Play will create a `Pager(5, 42)` value from a query string looking like `/foo?p.index=5&p.size=42` if you define
  * an instance of `QueryStringBindable[Pager]` available in the implicit scope.
- * 
+ *
  * For example:
- * 
+ *
  * {{{
  *   object Pager {
  *     implicit def queryStringBinder(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[Pager] {
@@ -50,9 +50,9 @@ import scala.collection.JavaConverters._
  *     }
  *   }
  * }}}
- * 
+ *
  * To use it in a route, just write a type annotation aside the parameter you want to bind:
- * 
+ *
  * {{{
  *   GET  /foo        controllers.foo(p: Pager)
  * }}}
@@ -90,32 +90,32 @@ trait QueryStringBindable[A] {
 
 /**
  * Binder for URL path parameters.
- * 
+ *
  * You can provide an implementation of `PathBindable[A]` for any type `A` you want to be able to
  * bind directly from the request path.
- * 
+ *
  * For example, given this class definition:
- * 
+ *
  * {{{
  *   case class User(id: Int, name: String, age: Int)
  * }}}
- * 
+ *
  * You can define a binder retrieving a `User` instance from its id, useable like the following:
- * 
+ *
  * {{{
  *   // In your routes:
  *   // GET  /show/:user      controllers.Application.show(user)
  *   // For example: /show/42
- *   
+ *
  *   object Application extends Controller {
  *     def show(user: User) = Action {
  *       …
  *     }
  *   }
  * }}}
- * 
+ *
  * The definition the binder can look like the following:
- * 
+ *
  * {{{
  *   object User {
  *     implicit def pathBinder(implicit intBinder: QueryStringBindable[Int]) = new PathBindable[User] {

@@ -2,7 +2,7 @@ package play.core.j
 
 import play.api._
 import play.api.mvc._
-import play.mvc.Http.{RequestHeader => JRequestHeader}
+import play.mvc.Http.{ RequestHeader => JRequestHeader }
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
 class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings {

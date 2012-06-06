@@ -97,7 +97,7 @@ trait PlaySettings {
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
 
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit,"junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "junitxml", "console"),
 
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
@@ -108,7 +108,7 @@ trait PlaySettings {
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
     // Adds config directory's source files to continuous hot reloading 
-    watchSources <+= confDirectory map {all => all},
+    watchSources <+= confDirectory map { all => all },
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 

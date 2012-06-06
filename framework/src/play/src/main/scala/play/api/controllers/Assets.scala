@@ -76,15 +76,15 @@ object Assets extends Controller {
             }
           }
 
-          if(length == 0) {
+          if (length == 0) {
             NotFound
           } else {
-            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch => 
+            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch =>
               etagFor(url).filter(_ == ifNoneMatch)
-            }.map (_ => NotModified).getOrElse {
+            }.map(_ => NotModified).getOrElse {
               request.headers.get(IF_MODIFIED_SINCE).flatMap { ifModifiedSince =>
                 lastModifiedFor(url).filterNot(lastModified => dateFormatter.parse(lastModified).after(dateFormatter.parse(ifModifiedSince)))
-              }.map (_ => NotModified).getOrElse {
+              }.map(_ => NotModified).getOrElse {
 
                 // Prepare a streamed response
                 val response = SimpleResult(
@@ -116,7 +116,7 @@ object Assets extends Controller {
 
                 cachedResponse
 
-              }:Result
+              }: Result
 
             }
 
@@ -137,14 +137,14 @@ object Assets extends Controller {
       val maybeLastModified = resource.getProtocol match {
         case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
         case "jar" => {
-            resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
-              Option(resource.openConnection)
-               .collect { case c: JarURLConnection => c }
-               .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
-               .map(_.getTime)
-               .filterNot(_ == 0)
-               .map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
-            }
+          resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
+            Option(resource.openConnection)
+              .collect { case c: JarURLConnection => c }
+              .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
+              .map(_.getTime)
+              .filterNot(_ == 0)
+              .map(lastModified => dateFormatter.format(new java.util.Date(lastModified)))
+          }
         }
         case _ => None
       }
@@ -159,7 +159,7 @@ object Assets extends Controller {
 
   private def etagFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\""+Codecs.sha1(_)+"\"")
+      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\"" + Codecs.sha1(_) + "\"")
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))
       maybeEtag
     }

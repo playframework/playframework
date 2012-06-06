@@ -164,7 +164,7 @@ case class Configuration(underlying: Config) {
    * @return a configuration value
    */
   def getBoolean(path: String): Option[Boolean] = readValue(path, underlying.getBoolean(path))
-  
+
   /**
    * Retrieves a configuration value as `Milliseconds`.
    *
@@ -180,8 +180,8 @@ case class Configuration(underlying: Config) {
    * engine.timeout = 1 second
    * }}}
    */
-  def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))  
-  
+  def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))
+
   /**
    * Retrieves a configuration value as `Nanoseconds`.
    *
@@ -263,7 +263,7 @@ case class Configuration(underlying: Config) {
    * @return a configuration value
    */
   def getLong(path: String): Option[Long] = readValue(path, underlying.getLong(path))
-  
+
   /**
    * Retrieves a configuration value as a `Number`.
    *
@@ -314,9 +314,9 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.maxSizes = [512k, 256k, 256k]
    * }}}
-   */  
+   */
   def getBytesList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getBytesList(path))
-  
+
   /**
    * Retrieves a List of sub-configurations, i.e. a configuration instance for each key that matches the path.
    *
@@ -327,9 +327,9 @@ case class Configuration(underlying: Config) {
    * }}}
    *
    * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
-   */  
-  def getConfigList(path: String): Option[java.util.List[Configuration]] = readValue[java.util.List[_ <: Config]](path, underlying.getConfigList(path)).map{configs => configs.asScala.map(Configuration(_)).asJava}
-  
+   */
+  def getConfigList(path: String): Option[java.util.List[Configuration]] = readValue[java.util.List[_ <: Config]](path, underlying.getConfigList(path)).map { configs => configs.asScala.map(Configuration(_)).asJava }
+
   /**
    * Retrieves a configuration value as a List of `Double`.
    *
@@ -344,9 +344,9 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.maxSizes = [5.0, 3.34, 2.6]
    * }}}
-   */    
+   */
   def getDoubleList(path: String): Option[java.util.List[java.lang.Double]] = readValue(path, underlying.getDoubleList(path))
-  
+
   /**
    * Retrieves a configuration value as a List of `Integer`.
    *
@@ -361,7 +361,7 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.maxSizes = [100, 500, 2]
    * }}}
-   */    
+   */
   def getIntList(path: String): Option[java.util.List[java.lang.Integer]] = readValue(path, underlying.getIntList(path))
 
   /**
@@ -378,9 +378,9 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.maxSizes = ["foo", "bar"]
    * }}}
-   */    
+   */
   def getList(path: String): Option[ConfigList] = readValue(path, underlying.getList(path))
-  
+
   /**
    * Retrieves a configuration value as a List of `Long`.
    *
@@ -395,7 +395,7 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.maxSizes = [10000000000000, 500, 2000]
    * }}}
-   */      
+   */
   def getLongList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getLongList(path))
 
   /**
@@ -412,7 +412,7 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.timeouts = [1 second, 1 second]
    * }}}
-   */  
+   */
   def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getMillisecondsList(path))
 
   /**
@@ -429,7 +429,7 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.timeouts = [1 second, 1 second]
    * }}}
-   */   
+   */
   def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getNanosecondsList(path))
 
   /**
@@ -446,7 +446,7 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.maxSizes = [50, 500, 5000]
    * }}}
-   */    
+   */
   def getNumberList(path: String): Option[java.util.List[java.lang.Number]] = readValue(path, underlying.getNumberList(path))
 
   /**
@@ -463,9 +463,9 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.properties = [{id: 5, power: 3}, {id: 6, power: 20}]
    * }}}
-   */    
+   */
   def getObjectList(path: String): Option[java.util.List[_ <: ConfigObject]] = readValue[java.util.List[_ <: ConfigObject]](path, underlying.getObjectList(path))
-  
+
   /**
    * Retrieves a configuration value as a List of `String`.
    *
@@ -480,9 +480,9 @@ case class Configuration(underlying: Config) {
    * {{{
    * names = ["Jim", "Bob", "Steve"]
    * }}}
-   */      
+   */
   def getStringList(path: String): Option[java.util.List[java.lang.String]] = readValue(path, underlying.getStringList(path))
-  
+
   /**
    * Retrieves a ConfigObject for this path, which implements Map<String,ConfigValue>
    *
@@ -497,9 +497,9 @@ case class Configuration(underlying: Config) {
    * {{{
    * engine.properties = {id: 1, power: 5}
    * }}}
-   */      
+   */
   def getObject(path: String): Option[ConfigObject] = readValue(path, underlying.getObject(path))
-  
+
   /**
    * Returns available keys.
    *

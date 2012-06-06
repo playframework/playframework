@@ -207,7 +207,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     zip
   }
 
-
   def intellijCommandSettings(mainLang: String) = {
     import org.sbtidea.SbtIdeaPlugin
     SbtIdeaPlugin.ideaSettings ++
@@ -252,15 +251,14 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (state, thisProjectRef, playExternalAssets, watchTransitiveSources) map { (s,r, externalAssets, transitiveSources) =>
-    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
-       (base / "public" ** "*")
+  val playHashTask = (state, thisProjectRef, playExternalAssets, watchTransitiveSources) map { (s, r, externalAssets, transitiveSources) =>
+    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map { base =>
+      (base / "public" ** "*")
     }.foldLeft(PathFinder.empty)(_ +++ _)
     ((filesToHash +++ externalAssets.map {
       case (root, paths, _) => paths(root)
     }.foldLeft(PathFinder.empty)(_ +++ _)).get ++ transitiveSources).map(_.lastModified).mkString(",").hashCode.toString
   }
-
 
   // ----- Post compile (need to be refactored and fully configurable)
 
@@ -454,10 +452,10 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     val sbtLoader = this.getClass.getClassLoader
     def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
-    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
-        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
-        throw commonLoaderEither.left.get
-      }
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse {
+      state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+      throw commonLoaderEither.left.get
+    }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader

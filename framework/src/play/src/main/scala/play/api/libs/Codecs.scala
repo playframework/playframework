@@ -18,7 +18,7 @@ object Codecs {
     digest.update(bytes)
     digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft("") { _ + _ }
   }
-  
+
   /**
    * Computes the MD5 digest for a byte array.
    *

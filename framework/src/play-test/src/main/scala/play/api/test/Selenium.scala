@@ -11,7 +11,7 @@ import org.openqa.selenium.htmlunit._
 import org.fluentlenium.core._
 
 import collection.JavaConverters._
-import java.util.concurrent.TimeUnit 
+import java.util.concurrent.TimeUnit
 import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
 /**
@@ -21,40 +21,41 @@ import org.openqa.selenium.support.ui.FluentWait
  */
 case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
 
-   /**
-   * Repeatedly applies this instance's input value to the given block until one of the following occurs: 
-   * the function returns neither null nor false, 
-   * the function throws an unignored exception, 
-   * the timeout expires  
+  /**
+   * Repeatedly applies this instance's input value to the given block until one of the following occurs:
+   * the function returns neither null nor false,
+   * the function throws an unignored exception,
+   * the timeout expires
    *
    * @param timeout
    * @param timeunit duration
    * @param block code to be executed
    */
   def waitUntil[T](timeout: Int, timeUnit: TimeUnit)(block: => T): T = {
-    val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout,timeUnit)
+    val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout, timeUnit)
     val f = new Function[WebDriver, T]() {
-     def apply(driver: WebDriver): T = {
-       block
-     }}
+      def apply(driver: WebDriver): T = {
+        block
+      }
+    }
     wait.until(f)
   }
 
   /**
-   * Repeatedly applies this instance's input value to the given block until one of the following occurs: 
-   * the function returns neither null nor false, 
-   * the function throws an unignored exception, 
-   * the default timeout expires  
+   * Repeatedly applies this instance's input value to the given block until one of the following occurs:
+   * the function returns neither null nor false,
+   * the function throws an unignored exception,
+   * the default timeout expires
    *
    * @param block code to be executed
    */
-  def waitUntil[T](block: => T): T =  waitUntil(3000,TimeUnit.MILLISECONDS)(block)
-  
+  def waitUntil[T](block: => T): T = waitUntil(3000, TimeUnit.MILLISECONDS)(block)
+
   /**
    * retrieves the underlying option interface that can be used
    * to set cookies, manage timeouts among other things
    */
-   def manage: WebDriver.Options = super.getDriver.manage
+  def manage: WebDriver.Options = super.getDriver.manage
 
 }
 
