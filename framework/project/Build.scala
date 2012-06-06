@@ -183,8 +183,8 @@ object PlayBuild extends Build {
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.3",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.3",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
-            "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.1",
-            "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.1",
+            "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2",
+            "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.2",
             
             ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
               .exclude("com.google.code.findbugs", "jsr305")
