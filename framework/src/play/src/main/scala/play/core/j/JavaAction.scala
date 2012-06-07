@@ -30,11 +30,16 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       def call(ctx: JContext): JResult = {
         try {
           JContext.current.set(ctx)
-          invocation
+          play.libs.F.Promise.pure("").map(
+            new play.libs.F.Function[String,JResult] {
+              def apply(nothing: String) = invocation
+            }
+          ).get
         } finally {
           JContext.current.remove()
         }
       }
+
     }
 
     // Wrap into user defined Global action
