@@ -807,7 +807,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
       }
 
-      deps
+      deps.filterNot(_('artifacts).asInstanceOf[Seq[_]].isEmpty)
 
     }
 
