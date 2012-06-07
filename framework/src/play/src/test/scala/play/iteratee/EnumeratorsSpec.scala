@@ -2,6 +2,10 @@ package play.api.libs.iteratee
 
 import org.specs2.mutable._
 
+import play.api.libs.concurrent._
+
+import play.api.libs.concurrent.execution.defaultContext
+
 object EnumeratorsSpec extends Specification {
 
 
@@ -13,9 +17,9 @@ object EnumeratorsSpec extends Specification {
       val e2 = Enumerator(List(2),List(4),List(6),List(8))
       val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk =e(Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
+      val kk =e(Iteratee.fold1(p.future)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
       p.redeem(List())
-      val result = kk.value.get
+      val result = kk.await.get
       println("interleaved enumerators result is: "+result)
       result.diff(Seq(1,2,3,4,5,6,7,8)) must equalTo(Seq())
     }
@@ -26,9 +30,9 @@ object EnumeratorsSpec extends Specification {
       val e2 = Enumerator(List(2),List(4),List(6),List(8))  >>> Enumerator.enumInput(Input.EOF)
       val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk =e(Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
+      val kk =e(Iteratee.fold1(p.future)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
       p.redeem(List())
-      val result = kk.value.get
+      val result = kk.await.get
       result.diff(Seq(1,2,3,4,5,6,7,8)) must equalTo(Seq())
     }
 
@@ -38,9 +42,9 @@ object EnumeratorsSpec extends Specification {
       val e2 = Enumerator(List(2),List(4),List(6),List(8))
       val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk = (e |>> Enumeratee.take(7) &>> Iteratee.fold1(p)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
+      val kk = (e |>> Enumeratee.take(7) &>> Iteratee.fold1(p.future)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
       p.redeem(List())
-      val result = kk.value.get
+      val result = kk.await.get
       result.length must equalTo(7)
     }
 
@@ -71,12 +75,13 @@ object EnumeratorsSpec extends Specification {
 
   "allow to patch in different Enumerators" in {
       import play.api.libs.concurrent.Promise
-    var pp:Concurrent.PatchPanel[Int] = null
-    val e = Concurrent.patchPanel[Int](p => pp = p)
+    val pp = Promise[Concurrent.PatchPanel[Int]]()
+    val e = Concurrent.patchPanel[Int](p => pp.redeem(p))
     val i1 = Iteratee.fold[Int,Int](0){(s,i) => println(i);s+i}
     val sum = e |>> i1
-    pp.patchIn(Enumerator(1,2,3,4))
-    pp.patchIn(Enumerator.eof)
+    val p = pp.future.await.get
+    p.patchIn(Enumerator(1,2,3,4))
+    p.patchIn(Enumerator.eof)
     sum.flatMap(_.run).value.get must equalTo(10)
   }
 

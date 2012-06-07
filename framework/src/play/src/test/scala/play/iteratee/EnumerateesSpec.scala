@@ -1,5 +1,7 @@
 package play.api.libs.iteratee
 
+import play.api.libs.concurrent.execution.defaultContext
+
 import org.specs2.mutable._
 
 object EnumerateesSpec extends Specification {
