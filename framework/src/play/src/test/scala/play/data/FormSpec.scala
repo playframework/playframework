@@ -47,8 +47,9 @@ object ScalaForms {
     val loginForm = Form(
       tuple(
         "email" -> of[String],
-        "password" -> of[Int])
+        "password" -> of[Int]
       )
+    )
 
     val helloForm = Form(
       tuple(
@@ -73,11 +74,19 @@ object ScalaForms {
       )
     )
 
+    val repeatedForm = Form(
+      tuple(
+        "name" -> nonEmptyText,
+        "emails" -> list(nonEmptyText)
+      )
+    )
+
     val form = Form(
           "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
-      )
+    )
 }
+
 object FormSpec extends Specification {
 
   "A form" should {
@@ -113,8 +122,6 @@ object FormSpec extends Specification {
     }
     
     "apply constraints on wrapped mappings" in {
-      
-      
       
       "when it binds data" in {
         val f1 = ScalaForms.form.bind(Map("foo"->"0"))
@@ -154,13 +161,44 @@ object FormSpec extends Specification {
   }
 
   "render form using field[Type] syntax" in {
-    
     val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
     ScalaForms.loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
   }
 
+  "support repeated values" in {
+    ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki")) ).get must equalTo(("Kiki", Seq()))
+    ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
+    ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")) ).hasErrors must equalTo(true)
+    ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
+    ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+  }
+
+  "support repeated values for Java binding" in {
+
+    val user1 = Controller.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki")))).get 
+    user1.getName must beEqualTo("Kiki")
+    user1.getEmails.size must beEqualTo(0)
+
+    val user2 = Controller.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")) )).get 
+    user2.getName must beEqualTo("Kiki")
+    user2.getEmails.size must beEqualTo(1)
+
+    val user3 = Controller.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")) )).get 
+    user3.getName must beEqualTo("Kiki")
+    user3.getEmails.size must beEqualTo(2)
+
+    val user4 = Controller.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")) )).get 
+    user4.getName must beEqualTo("Kiki")
+    user4.getEmails.size must beEqualTo(1)
+
+    val user5 = Controller.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")) )).get 
+    user5.getName must beEqualTo("Kiki")
+    user5.getEmails.size must beEqualTo(2)
+
+  }
+
   "render a form with max 18 fields" in {
-    
     ScalaForms.helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo("(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)")
   }
 
