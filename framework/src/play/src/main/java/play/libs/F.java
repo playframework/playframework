@@ -154,7 +154,7 @@ public class F {
         public A get() {
             return promise.value().get();
         }
-
+        
         /**
          * Awaits for the promise to get the result.
          *
@@ -335,7 +335,7 @@ public class F {
                 (akka.dispatch.Future<Object>)akka.pattern.Patterns.ask(
                     actors().get((int)(id % actors().size())), 
                     Tuple3(f, a, context), 
-                    1000
+                    akka.util.Timeout.apply(60000 * 60 * 1) // Let's wait 1h here. Unfortunately we can't avoid a timeout.
                 )
             ).map(new scala.runtime.AbstractFunction1<Object,B> () {
                 public B apply(Object o) {
@@ -353,7 +353,7 @@ public class F {
             });
         }
 
-        // ExecuteS the Promise functions (capturing exception), with the given ThreadLocal context.
+        // Executes the Promise functions (capturing exception), with the given ThreadLocal context.
         // This Actor is used as Agent to ensure function execution ordering for a given context.
         public static class PromiseActor extends akka.actor.UntypedActor {
 
