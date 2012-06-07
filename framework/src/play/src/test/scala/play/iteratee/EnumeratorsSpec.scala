@@ -67,7 +67,7 @@ object EnumeratorsSpec extends Specification {
 
 }
 
-"Enumerator's PatchPanel" should {
+/*"Enumerator's PatchPanel" should {
 
   "allow to patch in different Enumerators" in {
       import play.api.libs.concurrent.Promise
@@ -78,10 +78,9 @@ object EnumeratorsSpec extends Specification {
     pp.patchIn(Enumerator(1,2,3,4))
     pp.patchIn(Enumerator.eof)
     sum.flatMap(_.run).value.get must equalTo(10)
-
   }
 
-}
+}*/
 
 "Enumerator" should {
   "be transformed to another Enumerator using flatMap" in {

@@ -53,7 +53,7 @@ object ConcurrentSpec extends Specification {
 
     "return an error if the iteratee is taking too long" in {
 
-      val slowIteratee = Iteratee.flatten(Promise.timeout(Cont[Long,List[Long]]{case _ => Done(List(1),Input.Empty)},100))
+      val slowIteratee = Iteratee.flatten(Promise.timeout(Cont[Long,List[Long]]{case _ => Done(List(1),Input.Empty)},1000))
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
       (fastEnumerator &> Concurrent.lazyAndErrIfNotReady(50) |>>> slowIteratee).value.get must throwA[Exception]("iteratee is taking too long")
 
