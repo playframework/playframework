@@ -557,22 +557,27 @@ public class Form<T> {
         } catch(NullPointerException e) {}
 
         // Constraints
+        List<Tuple<String,List<Object>>> constraints = new ArrayList<Tuple<String,List<Object>>>();
+        Class<?> classType = backedType;
         String leafKey = key;
         if(rootName != null && leafKey.startsWith(rootName + ".")) {
             leafKey = leafKey.substring(rootName.length() + 1);
         }
         int p = leafKey.lastIndexOf('.');
-        Class<?> classType = backedType;
         if (p > 0) {
             classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
             leafKey = leafKey.substring(p + 1);
         }
-        PropertyDescriptor property = play.data.validation.Validation.getValidator().getConstraintsForClass(classType).getConstraintsForProperty(leafKey);
-        List<Tuple<String,List<Object>>> constraints = new ArrayList<Tuple<String,List<Object>>>();
-        if(property != null) {
-            constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
+        if (classType != null) {
+            BeanDescriptor beanDescriptor = play.data.validation.Validation.getValidator().getConstraintsForClass(classType);
+            if (beanDescriptor != null) {
+                PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
+                if(property != null) {
+                    constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
+                }
+            }
         }
-        
+
         return new Field(this, key, constraints, format, fieldErrors, fieldValue);
     }
     
