@@ -11,11 +11,11 @@ object Iteratee {
    */
   def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Promise[B]): Promise[B] = i.flatMap(_.fold(folder))
+    def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = i.flatMap(_.fold(folder))
 
   }
 
-  def isDoneOrError[E, A](it: Iteratee[E, A]): Promise[Boolean] = it.pureFold { case Step.Cont(_) => false; case _ => true }
+  def isDoneOrError[E, A](it: Iteratee[E, A]): Promise[Boolean] = it.pureFold{ case Step.Cont(_) => false; case _ => true }
 
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
@@ -77,7 +77,7 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
-  def fold2[E, A](state: A)(f: (A, E) => Promise[(A, Boolean)]): Iteratee[E, A] = {
+  def fold2[E, A](state: A)(f: (A, E) => Promise[(A,Boolean)]): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
       case Input.EOF => Done(s, Input.EOF)
@@ -124,11 +124,11 @@ object Iteratee {
     }
   }
 
-  def getChunks[E]: Iteratee[E, List[E]] = fold[E, List[E]](Nil) { (els, chunk) => els :+ chunk }
+  def getChunks[E]: Iteratee[E,List[E]] = fold[E, List[E]](Nil) { (els, chunk) => els :+ chunk }
 
-  def skipToEof[E]: Iteratee[E, Unit] = {
-    def cont: Iteratee[E, Unit] = Cont {
-      case Input.EOF => Done((), Input.EOF)
+  def skipToEof[E]: Iteratee[E,Unit] = {
+    def cont: Iteratee[E,Unit] = Cont {
+      case Input.EOF => Done((),Input.EOF)
       case _ => cont
     }
     cont
@@ -213,20 +213,20 @@ object Input {
 
 }
 
-sealed trait Step[E, +A] {
+sealed trait Step[E,+A] {
 
-  lazy val it: Iteratee[E, A] = this match {
-    case Step.Done(a, e) => Done(a, e)
+  lazy val it:Iteratee[E,A] = this match {
+    case Step.Done(a,e) => Done(a,e)
     case Step.Cont(k) => Cont(k)
-    case Step.Error(msg, e) => Error(msg, e)
+    case Step.Error(msg,e) => Error(msg,e)
   }
 
 }
 
 object Step {
-  case class Done[+A, E](a: A, remaining: Input[E]) extends Step[E, A]
-  case class Cont[E, +A](k: Input[E] => Iteratee[E, A]) extends Step[E, A]
-  case class Error[E](msg: String, input: Input[E]) extends Step[E, Nothing]
+  case class Done[+A,E](a:A, remaining:Input[E]) extends Step[E,A]
+  case class Cont[E,+A](k: Input[E] => Iteratee[E,A]) extends Step[E,A]
+  case class Error[E](msg:String, input:Input[E]) extends Step[E,Nothing]
 }
 
 /**
@@ -242,20 +242,20 @@ trait Iteratee[E, +A] {
    *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
    */
   def run[AA >: A]: Promise[AA] = fold({
-    case Step.Done(a, _) => Promise.pure(a)
+    case Step.Done(a,_) => Promise.pure(a)
     case Step.Cont(k) => k(Input.EOF).fold({
-      case Step.Done(a1, _) => Promise.pure(a1)
+      case Step.Done(a1,_) => Promise.pure(a1)
       case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
-      case Step.Error(msg, e) => sys.error(msg)
+      case Step.Error(msg,e) => sys.error(msg)
     })
-    case Step.Error(msg, e) => sys.error(msg)
+    case Step.Error(msg,e) => sys.error(msg)
   })
 
   def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
     Enumerator.enumInput(in) |>> this
   }
 
-  def unflatten: Promise[Step[E, A]] = pureFold(identity)
+  def unflatten: Promise[Step[E,A]] = pureFold(identity)
 
   /**
    *
@@ -268,36 +268,36 @@ trait Iteratee[E, +A] {
   def fold1[B](done: (A, Input[E]) => Promise[B],
     cont: (Input[E] => Iteratee[E, A]) => Promise[B],
     error: (String, Input[E]) => Promise[B]): Promise[B] = fold({
-    case Step.Done(a, e) => done(a, e)
-    case Step.Cont(k) => cont(k)
-    case Step.Error(msg, e) => error(msg, e)
-  })
+      case Step.Done(a,e) => done(a,e)
+      case Step.Cont(k) => cont(k)
+      case Step.Error(msg,e) => error(msg,e)
+    })
 
-  def fold[B](folder: Step[E, A] => Promise[B]): Promise[B]
+  def fold[B](folder: Step[E,A] => Promise[B]): Promise[B]
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
    *
    * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
    */
-  def pureFold[B](folder: Step[E, A] => B): Promise[B] = fold(s => Promise.pure(folder(s)))
+  def pureFold[B](folder: Step[E,A] => B): Promise[B] = fold(s => Promise.pure(folder(s)))
 
   /**
    * Like pureFold, except taking functions that return an Iteratee
    *
    * @return an Iteratee extracted by calling the appropriate provided function
    */
-  def pureFlatFold[B, C](folder: Step[E, A] => Iteratee[B, C]): Iteratee[B, C] = Iteratee.flatten(pureFold(folder))
+  def pureFlatFold[B,C](folder: Step[E,A] => Iteratee[B,C]): Iteratee[B,C] = Iteratee.flatten(pureFold(folder))
 
   def flatFold[B, C](done: (A, Input[E]) => Promise[Iteratee[B, C]],
     cont: (Input[E] => Iteratee[E, A]) => Promise[Iteratee[B, C]],
     error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error))
 
   def mapDone[B](f: A => B): Iteratee[E, B] =
-    this.pureFlatFold {
-      case Step.Done(a, e) => Done(f(a), e)
-      case Step.Cont(k) => Cont((in: Input[E]) => k(in).mapDone(f))
-      case Step.Error(err, e) => Error(err, e)
+    this.pureFlatFold{
+      case Step.Done(a,e) => Done(f(a), e)
+      case Step.Cont(k) =>  Cont((in: Input[E]) => k(in).mapDone(f))
+      case Step.Error(err,e) => Error(err, e)
     }
 
   /**
@@ -313,23 +313,23 @@ trait Iteratee[E, +A] {
    *
    * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
    */
-  def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold {
-    case Step.Done(a, Input.Empty) => f(a)
-    case Step.Done(a, e) => f(a).pureFlatFold {
-      case Step.Done(a, _) => Done(a, e)
-      case Step.Cont(k) => k(e)
+  def flatMap[B](f: A => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold{
+      case Step.Done(a, Input.Empty) => f(a)
+      case Step.Done(a, e) => f(a).pureFlatFold {
+        case Step.Done(a, _) => Done(a, e)
+        case Step.Cont(k) => k(e)
+        case Step.Error(msg, e) => Error(msg, e)
+      }
+      case Step.Cont(k) => Cont(in => k(in).flatMap(f))
       case Step.Error(msg, e) => Error(msg, e)
-    }
-    case Step.Cont(k) => Cont(in => k(in).flatMap(f))
-    case Step.Error(msg, e) => Error(msg, e)
   }
 
-  def flatMapInput[B](f: Step[E, A] => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(f)
+  def flatMapInput[B](f: Step[E,A] => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(f)
 
   /**
    * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.
    */
-  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold {
+  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold{
     case Step.Done(a, Input.Empty) => f(a)
     case Step.Done(a, e) => f(a).pureFlatFold {
       case Step.Done(a, eIn) => {
@@ -389,7 +389,7 @@ object Done {
    */
   def apply[E, A](a: A, e: Input[E]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Promise[B]): Promise[B] = folder(Step.Done(a, e))
+    def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Done(a,e))
 
   }
 
@@ -402,7 +402,7 @@ object Cont {
    */
   def apply[E, A](k: Input[E] => Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Promise[B]): Promise[B] = folder(Step.Cont(k))
+    def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Cont(k))
 
   }
 }
@@ -414,7 +414,7 @@ object Error {
    */
   def apply[E](msg: String, e: Input[E]): Iteratee[E, Nothing] = new Iteratee[E, Nothing] {
 
-    def fold[B](folder: Step[E, Nothing] => Promise[B]): Promise[B] = folder(Step.Error(msg, e))
+    def fold[B](folder: Step[E,Nothing] => Promise[B]): Promise[B] = folder(Step.Error(msg,e))
 
   }
 }

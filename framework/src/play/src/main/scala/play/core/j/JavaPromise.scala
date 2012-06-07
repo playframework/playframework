@@ -12,15 +12,15 @@ object JavaPromise {
       .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)
   }
 
-  def timeout[A](message: A, delay: Long, unit: java.util.concurrent.TimeUnit) = {
+  def timeout[A](message: A, delay: Long, unit:java.util.concurrent.TimeUnit) = {
     Promise.timeout(message, delay, unit)
   }
-
+  
   def recover[A](promise: Promise[A], f: Throwable => Promise[A]): Promise[A] = {
     promise.extend1 {
       case Thrown(e) => f(e)
       case Redeemed(a) => Promise.pure(a)
-    }.flatMap(p => p)
+    }.flatMap( p => p )
   }
 
   def pure[A](a: A) = Promise.pure(a)
