@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Defines a set of functional programming style helpers.
@@ -93,6 +94,14 @@ public class F {
             return new Promise(play.core.j.JavaPromise.timeout(message, delay, unit));
         }
         
+       /**
+        * Create a Promise that is redeemed after the default timeout expires.
+        *
+        */
+        public static Promise<TimeoutException> timeout() {
+            return new Promise(play.core.j.JavaPromise.timeout());
+        }
+
         /**
          * Create a Promise that is redeemed after a timeout.
          *
@@ -178,6 +187,22 @@ public class F {
             return get(timeout, TimeUnit.MILLISECONDS);
         }
 
+       /**
+        * combines the current promise with <code>another</code> promise using or
+        * @param another 
+        */
+        public <B> Promise<Either<A,B>> or(Promise<B> another) {
+            return (new Promise(this.promise.or(another.getWrappedPromise()))).map(
+                 new Function<scala.Either<A,B>,Either<A,B>>() {
+                    public Either<A,B> apply(scala.Either<A,B> scalaEither) {
+                        if (scalaEither.left().toOption().isDefined() == true) 
+                            return Either.Left(scalaEither.left().get());
+                        else 
+                            return Either.Right(scalaEither.right().get());
+                    }
+                 }
+                );
+        }
         /**
          * Perform the given <code>action</code> callback when the Promise is redeemed.
          *

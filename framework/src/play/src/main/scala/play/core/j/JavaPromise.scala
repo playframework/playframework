@@ -4,6 +4,7 @@ import java.util.{ List => JList }
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters
 import play.libs.F
+import java.util.concurrent.TimeoutException
 
 object JavaPromise {
 
@@ -16,6 +17,8 @@ object JavaPromise {
     Promise.timeout(message, delay, unit)
   }
   
+  def timeout: Promise[TimeoutException] = Promise.timeout
+
   def recover[A](promise: Promise[A], f: Throwable => Promise[A]): Promise[A] = {
     promise.extend1 {
       case Thrown(e) => f(e)

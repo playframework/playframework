@@ -12,6 +12,7 @@ import java.util.concurrent.{ TimeUnit }
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
+import java.util.concurrent.TimeoutException
 
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
@@ -101,6 +102,10 @@ trait Promise[+A] {
     or(Promise.timeout(message, duration, unit))
   }
 
+  def orTimeout[B](message: B): Promise[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)
+
+  def orTimeout(e: Throwable): Promise[A] = orTimeout(e, Promise.defaultTimeout).map(_.fold(a => a, e => throw e))
+
 }
 
 trait Redeemable[-A] {
@@ -153,7 +158,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
       if (redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
       else {
         retryFor(unit.toNanos(timeout), scala.actors.threadpool.TimeUnit.NANOSECONDS)
-        throw new java.util.concurrent.TimeoutException("Promise timed out after " + timeout + " : " + unit)
+        throw new TimeoutException("Promise timed out after " + timeout + " : " + unit)
       }
     }
   }
@@ -235,6 +240,10 @@ object Promise {
     play.core.Invoker.system.scheduler.scheduleOnce(akka.util.Duration(duration, unit))(p.redeem(message))
     p
   }
+
+  def timeout: Promise[TimeoutException] = {
+    timeout(new TimeoutException("Timeout in promise"), Promise.defaultTimeout)
+  } 
 
   def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
 
