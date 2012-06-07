@@ -112,6 +112,7 @@ object Helpers extends Status with HeaderNames {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run).value.get
     }
+    case AsyncResult(p) => contentAsBytes(p.await.get)
     case r => sys.error("Cannot extract the body content from a result of type " + r.getClass.getName)
   }
 
@@ -120,6 +121,7 @@ object Helpers extends Status with HeaderNames {
    */
   def status(of: Result): Int = of match {
     case Result(status, _) => status
+    case AsyncResult(p) => status(p.await.get)
     case r => sys.error("Cannot extract the status from a result of type " + r.getClass.getName)
   }
 
@@ -148,6 +150,7 @@ object Helpers extends Status with HeaderNames {
     case Result(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
     case Result(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
     case Result(_, _) => None
+    case AsyncResult(p) => redirectLocation(p.await.get)
     case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
   }
 
@@ -161,6 +164,7 @@ object Helpers extends Status with HeaderNames {
    */
   def headers(of: Result): Map[String, String] = of match {
     case Result(_, headers) => headers
+    case AsyncResult(p) => headers(p.await.get)
     case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
   }
 
