@@ -72,7 +72,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
             IO.use(new FileInputStream(file)) {
               in =>
                 keyStore.load(in, password)
-            }
+  }
             Logger("play").info("for port " + tlsPort + " using keystore at " + file)
             val kmf = KeyManagerFactory.getInstance(algorithm)
             kmf.init(keyStore, password) //there should be a certificate keystore
