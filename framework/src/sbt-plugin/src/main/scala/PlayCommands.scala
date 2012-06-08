@@ -163,9 +163,14 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
     val libs = {
       dependencies.filter(_.data.ext == "jar").map { dependency =>
-        dependency.data -> (packageName + "/lib/" + (dependency.metadata.get(AttributeKey[ModuleID]("module-id")).map { module =>
-          module.organization + "." + module.name + "-" + module.revision + ".jar"
-        }.getOrElse(dependency.data.getName)))
+        val filename = for {
+          module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
+          artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
+        } yield {
+          module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
+        }
+        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        dependency.data -> path
       } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
     }
 
@@ -259,16 +264,24 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, cacheDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, ebean) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
-    val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
-      analysis.relations.products(sourceFile)
-    }.flatten.distinct
+    val timestampFile = cacheDir / "play_instrumentation"
+    val lastEnhanced = if (timestampFile.exists) IO.read(timestampFile).toLong else Long.MinValue
+    val javaClasses = (javaSrc ** "*.java").get flatMap { sourceFile =>
+      // PropertiesEnhancer is class-local, so no need to check outside the class.
+      if (analysis.apis.internal(sourceFile).compilation.startTime > lastEnhanced)
+        analysis.relations.products(sourceFile)
+      else
+        Nil
+    }
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
+
+    IO.write(timestampFile, System.currentTimeMillis.toString)
 
     // EBean
     if (ebean) {
@@ -794,7 +807,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
       }
 
-      deps
+      deps.filterNot(_('artifacts).asInstanceOf[Seq[_]].isEmpty)
 
     }
 

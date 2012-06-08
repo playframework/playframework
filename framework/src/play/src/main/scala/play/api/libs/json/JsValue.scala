@@ -45,7 +45,10 @@ sealed trait JsValue {
    *
    * @return Some[T] if it succeeds, None if it fails.
    */
-  def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this))
+  def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this)).filter {
+    case JsUndefined(_) => false
+    case _ => true
+  }
 
   /**
    * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
@@ -184,7 +187,6 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
       }
       case JsNull => json.writeNull()
       case JsUndefined(error) => {
-        play.Logger.warn("Serializing an object with an undefined property: " + error)
         json.writeNull()
       }
     }

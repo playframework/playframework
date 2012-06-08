@@ -11,6 +11,7 @@ set additionalArgs=%*
 
 if exist "conf\application.conf" goto existingApplication
 if exist "conf\reference.conf" goto existingApplication
+if exist "project" goto existingApplication
 
 :noApplication
 java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" -jar "%~dp0framework\sbt\sbt-launch.jar" %*

@@ -11,7 +11,9 @@ import org.openqa.selenium.htmlunit._
 import org.fluentlenium.core._
 
 import collection.JavaConverters._
-
+import java.util.concurrent.TimeUnit 
+import com.google.common.base.Function
+import org.openqa.selenium.support.ui.FluentWait
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
  *
@@ -19,31 +21,35 @@ import collection.JavaConverters._
  */
 case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
 
-  /**
-   * The current page URL.
+   /**
+   * Repeatedly applies this instance's input value to the given block until one of the following occurs: 
+   * the function returns neither null nor false, 
+   * the function throws an unignored exception, 
+   * the timeout expires  
+   *
+   * @param timeout
+   * @param timeunit duration
+   * @param block code to be executed
    */
-  override def url = super.url
+  def waitUntil[T](timeout: Int, timeUnit: TimeUnit)(block: => T): T = {
+    val wait = new FluentWait[WebDriver](webDriver).withTimeout(timeout,timeUnit)
+    val f = new Function[WebDriver, T]() {
+     def apply(driver: WebDriver): T = {
+       block
+     }}
+    wait.until(f)
+  }
 
   /**
-   * The title of the current page.
+   * Repeatedly applies this instance's input value to the given block until one of the following occurs: 
+   * the function returns neither null nor false, 
+   * the function throws an unignored exception, 
+   * the default timeout expires  
+   *
+   * @param block code to be executed
    */
-  override def title = super.title
-
-  /**
-   * The current page HTML source.
-   */
-  override def pageSource = super.pageSource
-
-  /**
-   * Retrieves all cookies.
-   */
-  override def getCookies(): java.util.Set[Cookie] = super.getCookies
-
-  /**
-   * Retrieves a cookie.
-   */
-  override def getCookie(name: String): Cookie = super.getCookie(name)
-
+  def waitUntil[T](block: => T): T =  waitUntil(3000,TimeUnit.MILLISECONDS)(block)
+  
   /**
    * retrieves the underlying option interface that can be used
    * to set cookies, manage timeouts among other things

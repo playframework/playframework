@@ -444,13 +444,6 @@ public class Model {
             return query().getRawSql();
         }
 
-        /**
-         * Returns the type of query (List, Set, Map, Bean, rowCount etc).
-         */
-        public Query.Type getType() {
-            return query().getType();
-        }
-        
         public UseIndex getUseIndex() {
             return query().getUseIndex();
         }
@@ -728,6 +721,22 @@ public class Model {
          */
         public Query<T> where(String addToWhereClause) {
             return query().where(addToWhereClause);
+        }
+
+        /**
+         * Return the total hits matched for a lucene text search query.
+         */
+        @Override
+        public int getTotalHits() {
+            return query().getTotalHits();
+        }
+
+        /**
+         * Execute the select with "for update" which should lock the record "on read"
+         */
+        @Override
+        public Query<T> setForUpdate(boolean forUpdate) {
+            return query().setForUpdate(forUpdate);
         }
         
     }

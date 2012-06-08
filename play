@@ -7,13 +7,13 @@ done
 
 dir=`dirname $PRG`
 
-if [ -z $JAVA_HOME ]; then
+if [ -z "$JAVA_HOME" ]; then
     JAVA="java"
 else
-    JAVA=$JAVA_HOME/bin/java
+    JAVA="$JAVA_HOME/bin/java"
 fi
 
-if [ -f conf/application.conf -o -f conf/reference.conf ]; then
+if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; then
   if test "$1" = "clean-all"; then
     rm -rf target
     rm -rf tmp
@@ -61,5 +61,5 @@ if [ -f conf/application.conf -o -f conf/reference.conf ]; then
   fi
   
 else
-  $JAVA -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch.jar "$@"
+  "$JAVA" -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch.jar "$@"
 fi

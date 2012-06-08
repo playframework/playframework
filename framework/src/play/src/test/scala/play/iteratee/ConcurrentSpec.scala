@@ -11,7 +11,7 @@ object ConcurrentSpec extends Specification {
 
     "not slow down the enumerator if the iteratee is slow" in {
       Promise.timeout((),1)
-      val slowIteratee = Iteratee.foldM(List[Long]()){ (s,e:Long) => Promise.timeout(s :+ e,100) }
+      val slowIteratee = Iteratee.foldM(List[Long]()){ (s,e:Long) => Promise.timeout(s :+ e, 100) }
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10)
       val result = 
         fastEnumerator &>
@@ -20,7 +20,7 @@ object ConcurrentSpec extends Specification {
         Concurrent.buffer(20) |>>>
         slowIteratee
 
-      result.value.get.max must beLessThan(100L)
+      result.value.get.max must beLessThan(1000L)
     }
 
     "throw an exception when buffer is full" in {
@@ -53,7 +53,7 @@ object ConcurrentSpec extends Specification {
 
     "return an error if the iteratee is taking too long" in {
 
-      val slowIteratee = Iteratee.flatten(Promise.timeout(Cont[Long,List[Long]]{case _ => Done(List(1),Input.Empty)},100))
+      val slowIteratee = Iteratee.flatten(Promise.timeout(Cont[Long,List[Long]]{case _ => Done(List(1),Input.Empty)},1000))
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
       (fastEnumerator &> Concurrent.lazyAndErrIfNotReady(50) |>>> slowIteratee).value.get must throwA[Exception]("iteratee is taking too long")
 

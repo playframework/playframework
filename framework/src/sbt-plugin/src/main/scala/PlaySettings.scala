@@ -107,13 +107,13 @@ trait PlaySettings {
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
-    // Adds config directory to continious triggers
+    // Adds config directory's source files to continuous hot reloading 
     watchSources <+= confDirectory map {all => all},
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
-    // Adds views template to continious triggers
-    watchSources <++= baseDirectory map { path => ((path / "app") ** "*.scala.*").get },
+    // Adds app directory's source files to continuous hot reloading
+    watchSources <++= baseDirectory map { path => ((path / "app") ** "*").get },
 
     commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 

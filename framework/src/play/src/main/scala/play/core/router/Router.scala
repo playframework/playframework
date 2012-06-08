@@ -446,7 +446,7 @@ object Router {
                                     queryParams.map { p =>
                                       ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
                                     }.map {
-                                      case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == \"\"\" +  implicitly[JavascriptLitteral[" + typeName + "]].to(" + default + ") + \"\"\" ? null : " + u + ")"
+                                      case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == null ? \"\"\" +  implicitly[JavascriptLitteral[" + typeName + "]].to(" + default + ") + \"\"\" : " + u + ")"
                                       case (u, Parameter(name, typeName, None, None)) => u
                                     }.mkString(", "))
 

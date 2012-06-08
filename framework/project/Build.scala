@@ -183,8 +183,8 @@ object PlayBuild extends Build {
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.3",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.3",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
-            "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.1",
-            "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.1",
+            "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2",
+            "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.2",
             
             ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
               .exclude("com.google.code.findbugs", "jsr305")
@@ -192,7 +192,7 @@ object PlayBuild extends Build {
             
             "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
             
-            ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.7.5" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
             
@@ -237,7 +237,7 @@ object PlayBuild extends Build {
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
             
-            ("org.reflections"                  %    "reflections"              %   "0.9.6" notTransitive())
+            ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
               .exclude("com.google.guava", "guava")
               .exclude("javassist", "javassist")
             ,
@@ -261,7 +261,7 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"      %  "test"
+            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
         )
 
         val sbtDependencies = Seq(
@@ -307,7 +307,7 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.9",
             "com.novocode"                      %    "junit-interface"          %   "0.8",
             
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"
+            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"
         )
 
     }

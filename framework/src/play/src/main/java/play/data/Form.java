@@ -92,58 +92,79 @@ public class Form<T> {
 		this.groups = groups;
     }
     
-    protected Map<String,String> requestData() {
+    protected Map<String,String> requestData(Http.Request request) {
         
         Map<String,String[]> urlFormEncoded = new HashMap<String,String[]>();
-        if(play.mvc.Controller.request().body().asFormUrlEncoded() != null) {
-            urlFormEncoded = play.mvc.Controller.request().body().asFormUrlEncoded();
+        if(request.body().asFormUrlEncoded() != null) {
+            urlFormEncoded = request.body().asFormUrlEncoded();
         }
         
         Map<String,String[]> multipartFormData = new HashMap<String,String[]>();
-        if(play.mvc.Controller.request().body().asMultipartFormData() != null) {
-            multipartFormData = play.mvc.Controller.request().body().asMultipartFormData().asFormUrlEncoded();
+        if(request.body().asMultipartFormData() != null) {
+            multipartFormData = request.body().asMultipartFormData().asFormUrlEncoded();
         }
         
         Map<String,String> jsonData = new HashMap<String,String>();
-        if(play.mvc.Controller.request().body().asJson() != null) {
+        if(request.body().asJson() != null) {
             jsonData = play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("", 
                     play.api.libs.json.Json.parse(
-                        play.libs.Json.stringify(play.mvc.Controller.request().body().asJson())
+                        play.libs.Json.stringify(request.body().asJson())
                     )
                 )
             );
         }
         
-        Map<String,String[]> queryString = play.mvc.Controller.request().queryString();
+        Map<String,String[]> queryString = request.queryString();
         
         Map<String,String> data = new HashMap<String,String>();
         
         for(String key: urlFormEncoded.keySet()) {
-            String[] value = urlFormEncoded.get(key);
-            if(value.length > 0) {
-                data.put(key, value[0]);
+            String[] values = urlFormEncoded.get(key);
+            if(key.endsWith("[]")) {
+                String k = key.substring(0, key.length() - 2);
+                for(int i=0; i<values.length; i++) {
+                    data.put(k + "[" + i + "]", values[i]);
+                }
+            } else {
+                if(values.length > 0) {
+                    data.put(key, values[0]);
+                }
             }
         }
         
         for(String key: multipartFormData.keySet()) {
-            String[] value = multipartFormData.get(key);
-            if(value.length > 0) {
-                data.put(key, value[0]);
+            String[] values = multipartFormData.get(key);
+            if(key.endsWith("[]")) {
+                String k = key.substring(0, key.length() - 2);
+                for(int i=0; i<values.length; i++) {
+                    data.put(k + "[" + i + "]", values[i]);
+                }
+            } else {
+                if(values.length > 0) {
+                    data.put(key, values[0]);
+                }
             }
         }
-        
+
         for(String key: jsonData.keySet()) {
             data.put(key, jsonData.get(key));
         }
         
         for(String key: queryString.keySet()) {
-            String[] value = queryString.get(key);
-            if(value.length > 0) {
-                data.put(key, value[0]);
+            String[] values = queryString.get(key);
+            if(key.endsWith("[]")) {
+                String k = key.substring(0, key.length() - 2);
+                for(int i=0; i<values.length; i++) {
+                    data.put(k + "[" + i + "]", values[i]);
+                }
+            } else {
+                if(values.length > 0) {
+                    data.put(key, values[0]);
+                }
             }
         }
-        
+
         return data;
     }
     
@@ -153,7 +174,16 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(String... allowedFields) {
-        return bind(requestData(), allowedFields);
+        return bind(requestData(play.mvc.Controller.request()), allowedFields);
+    }
+
+    /**
+     * Binds request data to this form - that is, handles form submission.
+     *
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bindFromRequest(Http.Request request, String... allowedFields) {
+        return bind(requestData(request), allowedFields);
     }
 
     /**

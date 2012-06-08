@@ -26,15 +26,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     val javaContext = createJavaContext(req)
 
     val rootAction = new JAction[Any] {
-
-      def call(ctx: JContext): JResult = {
-        try {
-          JContext.current.set(ctx)
-          invocation
-        } finally {
-          JContext.current.remove()
-        }
-      }
+      def call(ctx: JContext): JResult = invocation
     }
 
     // Wrap into user defined Global action
@@ -71,7 +63,19 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       }
     }
 
-    createResult(javaContext, finalAction.call(javaContext))
+    createResult(javaContext, try {
+      JContext.current.set(javaContext)
+      play.mvc.Results.async {
+        play.libs.F.Promise.pure("").map(
+          new play.libs.F.Function[String,JResult] {
+            def apply(nothing: String) = finalAction.call(javaContext)
+          }
+        )
+      }
+    } finally {
+      JContext.current.remove()
+    })
+
   }
 
 }

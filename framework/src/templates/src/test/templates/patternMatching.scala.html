@@ -1,0 +1,26 @@
+@(test:String)
+
+@test match {
+    case test => {@@test}
+}
+@test.length match {
+    case 5 => {@@test.length}
+}
+@test.length.toInt match {
+    case 5 => {@@test.length.toInt}
+}
+
+@(test) match {
+    case test => {@@(test)}
+}
+@(test.length) match {
+    case 5 => {@@(test.length)}
+}
+@(test.length + 1) match {
+    case 6 => {@@(test.length + 1)}
+}
+@(test.+(3)) match {
+    case _ => {@@(test.+(3))}
+}
+
+@test.length match @@test.length

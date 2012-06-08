@@ -6,6 +6,8 @@ import java.util.*;
 import org.w3c.dom.*;
 import org.codehaus.jackson.*;
 
+import play.i18n.Lang;
+
 /**
  * Defines HTTP standard objects.
  */
@@ -38,7 +40,9 @@ public class Http {
         private final Response response;
         private final Session session;
         private final Flash flash;
-        
+
+        private Lang lang = null;
+
         
         /**
          * Creates a new HTTP context.
@@ -88,7 +92,43 @@ public class Http {
         public Flash flash() {
             return flash;
         }
-        
+
+        /**
+         * @return the current lang.
+         */
+        public Lang lang() {
+            if (lang != null) {
+                return lang;
+            } else {
+                Cookie cookieLang = request.cookie(langCookieName());
+                if (cookieLang != null) {
+                    Lang lang = Lang.forCode(cookieLang.value());
+                    if (lang != null) return lang;
+                }
+                return Lang.preferred(request().acceptLanguages());
+            }
+        }
+
+        /**
+         * Change durably the lang for the current user.
+         * @param code New lang code to use (e.g. "fr", "en_US", etc.)
+         * @return true if the requested lang was supported by the application, otherwise false.
+         */
+        public boolean changeLang(String code) {
+            Lang lang = Lang.forCode(code);
+            if (Lang.availables().contains(lang)) {
+                this.lang = lang;
+                response.setCookie(langCookieName(), code);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private String langCookieName() {
+            return play.Configuration.root().getString("application.lang.cookie", "PLAY_LANG");
+        }
+
         /** 
          * Free space to store your request specific data
          */
@@ -130,8 +170,8 @@ public class Http {
             /**
              * Returns the current lang.
              */
-            public static play.i18n.Lang lang() {
-                return play.i18n.Lang.preferred(Context.current().request().acceptLanguages());
+            public static Lang lang() {
+                return Context.current().lang();
             }
             
             /**
@@ -206,7 +246,15 @@ public class Http {
         /**
          * @return the request cookies
          */
-        public abstract Cookies cookies(); // FIXME Provide a “Cookie cookie(String name)” function instead of this one?
+        public abstract Cookies cookies();
+        
+        /**
+         * @param name Name of the cookie to retrieve
+         * @return the cookie, if found, otherwise null.
+         */
+        public Cookie cookie(String name) {
+            return cookies().get(name);
+        }
         
         /**
          * Retrieves all headers.
@@ -795,6 +843,15 @@ public class Http {
         String VIA = "Via";
         String WARNING = "Warning";
         String WWW_AUTHENTICATE = "WWW-Authenticate";
+        String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+        String ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers";
+        String ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age";
+        String ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
+        String ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+        String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+        String ORIGIN = "Origin";
+        String ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method";
+        String ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";        
     }
     
     /**

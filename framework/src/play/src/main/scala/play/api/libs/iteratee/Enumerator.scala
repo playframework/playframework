@@ -22,6 +22,8 @@ trait Enumerator[E] {
 
   def |>>>[A](i: Iteratee[E, A]): Promise[A] = apply(i).flatMap(_.run)
 
+  def run[A](i: Iteratee[E, A]): Promise[A] = |>>>(i)
+
   def |>>|[A](i: Iteratee[E, A]): Promise[Step[E,A]] = apply(i).flatMap(_.unflatten)
 
   /**

@@ -42,12 +42,26 @@ public class Lang extends play.api.i18n.Lang {
     public java.util.Locale toLocale() {
         return underlyingLang.toLocale();
     }
+
+    @Override
+    public boolean equals(Object other) {
+        return underlyingLang.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+        return underlyingLang.hashCode();
+    }
     
     /**
      * Create a Lang value from a code (such as fr or en-US).
      */
     public static Lang forCode(String code) {
-        return new Lang(play.api.i18n.Lang.apply(code));
+        try {
+            return new Lang(play.api.i18n.Lang.apply(code));
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     /**
@@ -73,5 +87,5 @@ public class Lang extends play.api.i18n.Lang {
         }
         return new Lang(play.api.i18n.Lang.preferred(Scala.toSeq(result), play.api.Play.current()));
     }
-    
+
 }

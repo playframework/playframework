@@ -12,6 +12,7 @@ import java.util.concurrent.{ TimeUnit }
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
+import java.util.concurrent.TimeoutException
 
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
@@ -101,6 +102,10 @@ trait Promise[+A] {
     or(Promise.timeout(message, duration, unit))
   }
 
+  def orTimeout[B](message: B): Promise[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)
+
+  def orTimeout(e: Throwable): Promise[A] = orTimeout(e, Promise.defaultTimeout).map(_.fold(a => a, e => throw e))
+
 }
 
 trait Redeemable[-A] {
@@ -138,7 +143,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   private def addAction(k: Promise[A] => Unit): Unit = {
     if (redeemed.single().isDefined) {
-      k(this)
+      invoke(this, k)
     } else {
       val ok: Boolean = atomic { implicit txn =>
         if (!redeemed().isDefined) { actions() = actions() :+ k; true }
@@ -153,7 +158,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
       if (redeemed() != Waiting) redeemed().asInstanceOf[NotWaiting[A]]
       else {
         retryFor(unit.toNanos(timeout), scala.actors.threadpool.TimeUnit.NANOSECONDS)
-        throw new java.util.concurrent.TimeoutException("Promise timed out after " + timeout + " : " + unit)
+        throw new TimeoutException("Promise timed out after " + timeout + " : " + unit)
       }
     }
   }
@@ -208,46 +213,14 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
 object PurePromise {
 
-  def apply[A](lazyA: => A): Promise[A] = new Promise[A] {
-
-    val a: NotWaiting[A] = scala.util.control.Exception.allCatch[A].either(lazyA).fold(Thrown(_), Redeemed(_))
-
-    private def neverRedeemed[A]: Promise[A] = new Promise[A] {
-      def onRedeem(k: A => Unit): Unit = ()
-
-      def extend[B](k: Function1[Promise[A], B]): Promise[B] = neverRedeemed[B]
-
-      def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = throw new java.util.concurrent.TimeoutException("will never get redeemed")
-
-      def filter(p: A => Boolean): Promise[A] = this
-
-      def map[B](f: A => B): Promise[B] = neverRedeemed[B]
-
-      def flatMap[B](f: A => Promise[B]): Promise[B] = neverRedeemed[B]
-
-    }
-
-    def onRedeem(k: A => Unit): Unit = a.fold(_ => (), k)
-
-    def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = a
-
-    def redeem(a: A) = sys.error("Already redeemed")
-
-    def throwing(t: Throwable) = sys.error("Already redeemed")
-
-    def extend[B](f: (Promise[A] => B)): Promise[B] = {
-      apply(f(this))
-    }
-
-    def filter(p: A => Boolean) = a.fold(_ => this, a => if (p(a)) this else neverRedeemed[A])
-
-    def map[B](f: A => B): Promise[B] = a.fold(e => PurePromise[B](throw e), a => PurePromise[B](f(a)))
-
-    def flatMap[B](f: A => Promise[B]): Promise[B] = a.fold(e => PurePromise(throw e), a => try { f(a) } catch { case e => PurePromise(throw e) })
-  }
+  def apply[A](lazyA: => A): Promise[A] = 
+    (try (akka.dispatch.Promise.successful(lazyA)(Promise.system.dispatcher))
+     catch{ case e => akka.dispatch.Promise.failed(e)(Promise.system.dispatcher)}).asPromise
 }
 
 object Promise {
+
+  private[concurrent] def invoke[T](t: => T): Promise[T] = akka.dispatch.Future { t }(Promise.system.dispatcher).asPromise
   
   private [concurrent] lazy val defaultTimeout = 
     Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis 
@@ -267,6 +240,10 @@ object Promise {
     play.core.Invoker.system.scheduler.scheduleOnce(akka.util.Duration(duration, unit))(p.redeem(message))
     p
   }
+
+  def timeout: Promise[TimeoutException] = {
+    timeout(new TimeoutException("Timeout in promise"), Promise.defaultTimeout)
+  } 
 
   def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
 
