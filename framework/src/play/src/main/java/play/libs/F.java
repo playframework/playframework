@@ -95,10 +95,14 @@ public class F {
         }
         
        /**
-        * Create a Promise that is redeemed after the default timeout expires.
+        * Create a Promise timer that is throwing a TimeoutException after the default timeout duration expires.
+        *
+        * The returned Promise is usually combined with other Promises.
+        *
+        * @return a promise without a real value 
         *
         */
-        public static Promise<TimeoutException> timeout() {
+        public static Promise<scala.Unit> timeout() throws TimeoutException {
             return new Promise(play.core.j.JavaPromise.timeout());
         }
 
@@ -188,7 +192,7 @@ public class F {
         }
 
        /**
-        * combines the current promise with <code>another</code> promise using or
+        * combines the current promise with <code>another</code> promise using `or`
         * @param another 
         */
         public <B> Promise<Either<A,B>> or(Promise<B> another) {

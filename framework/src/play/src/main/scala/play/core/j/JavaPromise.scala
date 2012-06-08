@@ -17,7 +17,7 @@ object JavaPromise {
     Promise.timeout(message, delay, unit)
   }
   
-  def timeout: Promise[TimeoutException] = Promise.timeout
+  def timeout: Promise[Nothing] = Promise.timeout
 
   def recover[A](promise: Promise[A], f: Throwable => Promise[A]): Promise[A] = {
     promise.extend1 {
