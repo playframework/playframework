@@ -187,6 +187,29 @@ public class Form<T> {
     }
 
     /**
+     * Binds request data to this form - that is, handles form submission.
+     *
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
+        Map<String,String> data = new HashMap<String,String>();
+        for(String key: requestData.keySet()) {
+            String[] values = requestData.get(key);
+            if(key.endsWith("[]")) {
+                String k = key.substring(0, key.length() - 2);
+                for(int i=0; i<values.length; i++) {
+                    data.put(k + "[" + i + "]", values[i]);
+                }
+            } else {
+                if(values.length > 0) {
+                    data.put(key, values[0]);
+                }
+            }
+        }
+        return bind(data, allowedFields);
+    }
+
+    /**
      * Binds Json data to this form - that is, handles form submission.
      *
      * @param data data to submit

@@ -241,8 +241,8 @@ object Promise {
     p
   }
 
-  def timeout: Promise[TimeoutException] = {
-    timeout(new TimeoutException("Timeout in promise"), Promise.defaultTimeout)
+  def timeout: Promise[Nothing] = {
+    timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS )
   } 
 
   def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }

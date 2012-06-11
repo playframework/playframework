@@ -344,6 +344,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         TestBrowser browser = null;
         TestServer startedServer = null;
         try {
+            play.core.Invoker.uninit();
             start(server);
             startedServer = server;
             browser = testBrowser(webDriver);
