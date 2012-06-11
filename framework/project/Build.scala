@@ -230,12 +230,12 @@ object PlayBuild extends Build {
             "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
             
-            ("com.ning"                         %    "async-http-client"        %   "1.7.0" notTransitive())
+            ("com.ning"                         %    "async-http-client"        %   "1.7.5" notTransitive())
               .exclude("org.jboss.netty", "netty")
             ,
             
-            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
-            "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
+            "oauth.signpost"                    %   "signpost-core"             %   "1.2.1.1",
+            "com.codahale"                      %   "jerkson_2.9.1"             %   "0.5.0",
             
             ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
               .exclude("com.google.guava", "guava")
@@ -258,10 +258,10 @@ object PlayBuild extends Build {
             
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             
-            "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
+            "org.specs2"                        %%   "specs2"                   %   "1.9"       %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.8"       %  "test",
             
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.6.0"     %  "test"
         )
 
         val sbtDependencies = Seq(
@@ -306,8 +306,7 @@ object PlayBuild extends Build {
         val testDependencies = Seq(
             "org.specs2"                        %%   "specs2"                   %   "1.9",
             "com.novocode"                      %    "junit-interface"          %   "0.8",
-            
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.6.0"
         )
 
     }
