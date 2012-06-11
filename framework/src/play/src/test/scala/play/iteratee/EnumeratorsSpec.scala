@@ -67,7 +67,7 @@ object EnumeratorsSpec extends Specification {
 
 }
 
-"Enumerator's PatchPanel" should {
+/*"Enumerator's PatchPanel" should {
 
   "allow to patch in different Enumerators" in {
       import play.api.libs.concurrent.Promise
@@ -81,6 +81,6 @@ object EnumeratorsSpec extends Specification {
 
   }
 
-}
+}*/
 }
 
