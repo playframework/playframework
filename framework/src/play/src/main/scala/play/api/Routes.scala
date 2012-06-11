@@ -43,7 +43,7 @@ package play.api {
              |})(%s)
           """.stripMargin.format(
         name,
-        ajaxMethod.map("ajax:function(c){c.url=r.url;c.type=r.method;return " + _ + "(c)},").getOrElse(""),
+        ajaxMethod.map("ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return " + _ + "(c)},").getOrElse(""),
         host,
         host,
         routes.map { route =>
