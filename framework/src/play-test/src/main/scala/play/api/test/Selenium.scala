@@ -115,7 +115,13 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
       sys.error("Server already started!")
     }
     play.core.Invoker.uninit()
-    server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, mode = Mode.Test)
+    try {
+      server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, mode = Mode.Test)
+     } catch {
+        case t: Throwable => 
+          t.printStackTrace
+          throw new RuntimeException(t)
+     } 
   }
 
   /**
