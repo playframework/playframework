@@ -79,7 +79,7 @@ object PlayBuild extends Build {
         sbtPlugin := true,
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
-        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-M2"),
+        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-RC1"),
         registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),

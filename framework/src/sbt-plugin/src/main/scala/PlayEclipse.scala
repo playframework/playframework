@@ -113,10 +113,13 @@ trait PlayEclipse {
     //generate JDT pref file if needed
     generateJavaPrefFile(mainLang)
 
+    val flavor = if (mainLang == SCALA) EclipseProjectFlavor.Scala else EclipseProjectFlavor.Java
+
     //setup sbteclipse
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.eclipseOutput := Some(".target"),
+      EclipseKeys.projectFlavor := flavor,
       EclipseKeys.preTasks := Seq(compile in Compile),
       EclipseKeys.projectTransformerFactories := projectTransformers,
       EclipseKeys.classpathTransformerFactories := classPathTransformers)
