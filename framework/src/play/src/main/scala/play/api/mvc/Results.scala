@@ -251,6 +251,8 @@ case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] =>
  */
 case class AsyncResult(result: Promise[Result]) extends Result
 
+  def map(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
+
 /**
  * A Codec handle the conversion of String to Byte arrays.
  *
