@@ -2,7 +2,8 @@ package play.api.libs.oauth
 
 import _root_.oauth.signpost.{ OAuthConsumer, OAuthProvider }
 import _root_.oauth.signpost.exception.OAuthException
-import _root_.oauth.signpost.basic.{ DefaultOAuthConsumer, DefaultOAuthProvider }
+import _root_.oauth.signpost.basic.DefaultOAuthConsumer
+import _root_.oauth.signpost.commonshttp.CommonsHttpOAuthProvider
 import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
 
@@ -15,7 +16,7 @@ import play.api.libs.ws.WS.WSRequest
 case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
 
   private val provider = {
-    val p = new DefaultOAuthProvider(info.requestTokenURL, info.accessTokenURL, info.authorizationURL)
+    val p = new CommonsHttpOAuthProvider(info.requestTokenURL, info.accessTokenURL, info.authorizationURL)
     p.setOAuth10a(use10a)
     p
   }
