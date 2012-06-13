@@ -292,23 +292,23 @@ public class Http {
          */
         public abstract RequestBody body();
 
-        // -- username
+        // -- user
 
-        private String username = null;
+        private Object user = null;
         
         /**
-         * The user name for this request, if defined.
+         * The user for this request, if defined.
          * This is usually set by annotating your Action with <code>@Authenticated</code>.
          */
-        public String username() {
-            return username;
+        public Object user() {
+            return user;
         }
         
         /**
-         * Defines the user name for this request.
+         * Defines the user for this request.
          */
-        public void setUsername(String username) {
-            this.username = username;
+        public void setUser(Object user) {
+            this.user = user;
         }
         
     }

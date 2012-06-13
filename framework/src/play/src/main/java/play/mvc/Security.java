@@ -23,22 +23,22 @@ public class Security {
      * Wraps another action, allowing only authenticated HTTP requests.
      * <p>
      * The user name is retrieved from the session cookie, and added to the HTTP request's
-     * <code>username</code> attribute.
+     * <code>user</code> attribute.
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
         
         public Result call(Context ctx) {
             try {
                 Authenticator authenticator = configuration.value().newInstance();
-                String username = authenticator.getUsername(ctx);
-                if(username == null) {
+                Object user = authenticator.getUser(ctx);
+                if(user == null) {
                     return authenticator.onUnauthorized(ctx);
                 } else {
                     try {
-                        ctx.request().setUsername(username);
+                        ctx.request().setUser(user);
                         return delegate.call(ctx);
                     } finally {
-                        ctx.request().setUsername(null);
+                        ctx.request().setUser(null);
                     }
                 }
             } catch(RuntimeException e) {
@@ -56,11 +56,11 @@ public class Security {
     public static class Authenticator extends Results {
         
         /**
-         * Retrieves the username from the HTTP context; the default is to read from the session cookie.
+         * Retrieves the user from the HTTP context; the default is to retrieve the username read from the session cookie.
          *
          * @return null if the user is not authenticated.
          */
-        public String getUsername(Context ctx) {
+        public String getUser(Context ctx) {
             return ctx.session().get("username");
         }
         
