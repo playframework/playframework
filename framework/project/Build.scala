@@ -235,6 +235,7 @@ object PlayBuild extends Build {
             ,
             
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
+            "oauth.signpost" 					% 	 "signpost-commonshttp4" 	% 	"1.2.1.1",
             "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
             
             ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
