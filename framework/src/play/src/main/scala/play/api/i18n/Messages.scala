@@ -52,7 +52,7 @@ object Lang {
    *  throw exception if language is unrecognized
    */
   def apply(code: String): Lang = {
-    option(code).getOrElse(
+    get(code).getOrElse(
                    sys.error("Unrecognized language: %s".format(code))
     )
   }
@@ -61,7 +61,7 @@ object Lang {
    * Create a Lang value from a code (such as fr or en-US) or none
    * if language is unrecognized.
    */
-  def option(code: String): Option[Lang] = {
+  def get(code: String): Option[Lang] = {
     code match {
       case SimpleLocale(language) => Some(Lang(language, ""))
       case CountryLocale(language, country) => Some(Lang(language, country))
