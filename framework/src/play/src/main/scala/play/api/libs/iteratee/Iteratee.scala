@@ -124,6 +124,16 @@ object Iteratee {
     }
   }
 
+  def head[E]:Iteratee[E,Option[E]] = {
+
+      def step:K[E,Option[E]] = {
+        case Input.Empty => Cont(step)
+        case Input.EOF => Done(None,Input.EOF)
+        case Input.El(e)  => Done(Some(e), Input.Empty)
+      }
+      Cont(step)
+  }
+
   def getChunks[E]: Iteratee[E,List[E]] = fold[E, List[E]](Nil) { (els, chunk) => els :+ chunk }
 
   def skipToEof[E]: Iteratee[E,Unit] = {
