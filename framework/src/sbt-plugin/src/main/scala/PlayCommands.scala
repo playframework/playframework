@@ -67,7 +67,6 @@ trait PlayCommands extends PlayEclipse {
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
   val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
-
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -94,12 +93,20 @@ trait PlayCommands extends PlayEclipse {
   }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
-  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, t, c, s) =>
+  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
     val cacheFile = c / "copy-assets"
     
-    val mappings:Seq[(java.io.File,java.io.File)] = (r.map(_ ***).reduceLeft(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
+    val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
+    
+    val externalMappings = externals.map {
+      case (root, paths, common) => {
+        paths(root) x relativeTo(root :: Nil) map {
+          case (origin, name) => (origin, new java.io.File(t, common + "/" + name))
+        }
+      }
+    }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
 
     /*
     Disable GZIP Generation for this release.
@@ -118,7 +125,7 @@ trait PlayCommands extends PlayEclipse {
 
     val assetsMapping = mappings ++ gzipped*/
 
-    val assetsMapping = mappings
+    val assetsMapping = mappings ++ externalMappings
 
     s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
 
@@ -157,9 +164,14 @@ trait PlayCommands extends PlayEclipse {
 
     val libs = {
       dependencies.filter(_.data.ext == "jar").map { dependency =>
-        dependency.data -> (packageName + "/lib/" + (dependency.metadata.get(AttributeKey[ModuleID]("module-id")).map { module =>
-          module.organization + "." + module.name + "-" + module.revision + ".jar"
-        }.getOrElse(dependency.data.getName)))
+        val filename = for {
+          module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
+          artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
+        } yield {
+          module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
+        }
+        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        dependency.data -> path
       } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
     }
 
@@ -241,8 +253,13 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (baseDirectory) map { base =>
-    ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")).get.map(_.lastModified).mkString(",").hashCode.toString
+  val playHashTask = (state, thisProjectRef, playExternalAssets) map { (s,r, externalAssets) =>
+    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
+      (base / "src" / "main" ** "*") +++ (base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")
+    }.foldLeft(PathFinder.empty)(_ +++ _)
+    ( filesToHash +++ externalAssets.map {
+      case (root, paths, _) => paths(root)
+    }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
   }
 
   // ----- Assets
@@ -509,8 +526,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     println()
 
     val sbtLoader = this.getClass.getClassLoader
-    val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
-
+    def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
+        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+        throw commonLoaderEither.left.get
+      }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader

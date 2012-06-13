@@ -19,7 +19,12 @@ trait PlayReloader {
       def projectPath = extracted.currentProject.base
 
       def watchFiles = {
-        ((extracted.currentProject.base / "conf") ** "*").get
+        inAllDependencies(extracted.currentRef, baseDirectory, Project structure state).map {currentProjectPath =>
+        if (currentProjectPath != projectPath)
+          (currentProjectPath / "src" / "main" ** "*") +++ (currentProjectPath / "app" ** "*") +++ (currentProjectPath / "conf" ** "*") 
+        else 
+          (currentProjectPath / "conf" ** "*")  
+        }.foldLeft(PathFinder.empty)(_ +++ _).get
       }
 
       // ----- Internal state used for reloading is kept here

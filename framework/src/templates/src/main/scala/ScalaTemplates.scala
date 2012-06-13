@@ -647,7 +647,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
           val r1 = new Response[global.Tree]
           newCompiler.askParsedEntered(file, true, r1)
-          r1.get.left.get
+          r1.get.left.toOption.getOrElse(throw r1.get.right.get)
         }
 
       }
