@@ -1020,14 +1020,13 @@ public class Results {
         }
 
         /**
-         * Get the promise for the actual result. Using this an action may map the result to another result, or
-         * do some other processing with the response/session/flash scope, and then return that promise wrapped in
-         * a new AsyncResult.
+         * Transform this asynchronous result
          *
-         * @return The promise for the actual result
+         * @param f The transformation function
+         * @return The transformed AsyncResult
          */
-        public Promise<Result> getWrappedPromise() {
-            return promise;
+        public AsyncResult transform(F.Function<Result, Result> f) {
+            return new AsyncResult(promise.map(f));
         }
 
         public play.api.mvc.Result getWrappedResult() {
