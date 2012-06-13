@@ -5,6 +5,19 @@ object Traversable {
   @scala.deprecated("use Enumeratee.passAlong instead", "2.1.x")
   def passAlong[M] = Enumeratee.passAlong[M]
 
+  def head[E] = new { 
+    def apply[A](implicit p: E => scala.collection.TraversableLike[A, E]):Iteratee[E,Option[A]] = {
+
+      def step:K[E,Option[A]] = {
+        case Input.Empty => Cont(step)
+        case Input.EOF => Done(None,Input.EOF)
+        case Input.El(xs) if ! xs.isEmpty => Done(Some(xs.head), Input.El(xs.tail))
+        case Input.El(empty) => Cont(step)
+      }
+      Cont(step)
+    }
+  }
+
   def takeUpTo[M](count: Int)(implicit p: M => scala.collection.TraversableLike[_, M]): Enumeratee[M, M] = new Enumeratee[M, M] {
 
     def applyOn[A](it: Iteratee[M, A]): Iteratee[M, Iteratee[M, A]] = {
