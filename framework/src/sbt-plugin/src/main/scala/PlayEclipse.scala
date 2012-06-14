@@ -94,7 +94,7 @@ trait PlayEclipse {
                 override def transform(node: Node): Seq[Node] = node match {
                   //add src_managed/main
                   case elem if (elem.label == "classpath") =>
-                    val newChild = elem.child ++ <classpathentry path={ct + f + "src_managed"+ f + "main" } kind="src"></classpathentry>
+                    val newChild = elem.child ++ <classpathentry path={"target" + f + ct.getName + f + "src_managed"+ f + "main" } kind="src"></classpathentry>
                     Elem(elem.prefix, "classpath", elem.attributes, elem.scope, newChild: _*)
                  case other =>
                     other  
