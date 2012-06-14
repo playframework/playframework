@@ -31,7 +31,6 @@ trait PlayEclipse {
     val f = java.io.File.separator
 
 
-   
     def err(node: Node) = throw new RuntimeException("error proccessing "+ Node)
 
     lazy val addClassesManaged = new EclipseTransformerFactory[RewriteRule] {
@@ -41,8 +40,10 @@ trait PlayEclipse {
                 override def transform(node: Node): Seq[Node] = node match {
                   //add classes_managed  
                   case elem if (elem.label == "classpathentry" && elem.attribute("path").getOrElse(err(elem)).toString.contains("org.scala-ide.sdt.launching.SCALA_CONTAINER")) =>
-                    <classpathentry path={ct + java.io.File.separator + "classes_managed"} kind="lib"></classpathentry>
-                 case other =>
+                    val path = ct + f + "classes_managed"
+                    new java.io.File(path).mkdirs()
+                    <classpathentry path={path} kind="lib"></classpathentry>
+                  case other =>
                     other  
                 }
               }
@@ -57,11 +58,11 @@ trait PlayEclipse {
                 override def transform(node: Node): Seq[Node] = node match {
                   //add javabuilder
                   case elem if (elem.text == "org.scala-ide.sdt.core.scalabuilder") =>
-                     <name>org.eclipse.jdt.core.javabuilder</name>
+                    <name>org.eclipse.jdt.core.javabuilder</name>
                   //remove scala nature   
                   case elem if (elem.text == "org.scala-ide.sdt.core.scalanature") =>
-                     <name></name>
-                 case other =>
+                    <name></name>
+                  case other =>
                     other  
                 }
               }
@@ -69,7 +70,7 @@ trait PlayEclipse {
           }
     } 
 
-     lazy val addScalaLib = new EclipseTransformerFactory[RewriteRule] {
+    lazy val addScalaLib = new EclipseTransformerFactory[RewriteRule] {
           override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
             evaluateTask(dependencyClasspath in Runtime, ref,  state) map { classpath =>
               val scalaLib = classpath.filter(_.data.getAbsolutePath.contains("scala-library.jar")).headOption.map(_.data.getAbsolutePath).getOrElse(throw new RuntimeException("could not find scala-library.jar"))
@@ -96,7 +97,7 @@ trait PlayEclipse {
                   case elem if (elem.label == "classpath") =>
                     val newChild = elem.child ++ <classpathentry path={"target" + f + ct.getName + f + "src_managed"+ f + "main" } kind="src"></classpathentry>
                     Elem(elem.prefix, "classpath", elem.attributes, elem.scope, newChild: _*)
-                 case other =>
+                  case other =>
                     other  
                 }
               }
