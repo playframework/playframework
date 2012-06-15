@@ -12,8 +12,6 @@ import play.api.http.Status._
 
 object DiscoverySpec extends Specification with Mockito {
 
-  type Params = Map[String, Seq[String]]
-
   val ws = new WSMock
   val discovery = new Discovery(ws.url)
 
@@ -61,10 +59,12 @@ object DiscoverySpec extends Specification with Mockito {
       }
     }
 
+    // Spec 7.2 - Normalization
     "normalize URLs according to he OpenID 2.0 spec" in {
       // XRIs are currently not supported
       // 1. If the user's input starts with the "xri://" prefix, it MUST be stripped off, so that XRIs are used in the canonical form.
       // 2. If the first character of the resulting string is an XRI Global Context Symbol ("=", "@", "+", "$", "!") or "(", as defined in Section 2.2.1 of [XRI_Syntax_2.0], then the input SHOULD be treated as an XRI.
+      // XRI is currently not supported
 
       "The input SHOULD be treated as an http URL; if it does not include a \"http\" or \"https\" scheme, the Identifier MUST be prefixed with the string \"http://\"." in {
         normalize("example.com") must be equalTo "http://example.com/"
@@ -131,7 +131,6 @@ object DiscoverySpec extends Specification with Mockito {
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
 
-
       "should fall back to HTML based discovery if OP Identifier cannot be found in the XRDS" in {
         val ws = new WSMock
         ws.response.status returns OK thenReturns OK
@@ -146,6 +145,55 @@ object DiscoverySpec extends Specification with Mockito {
         there was one(ws.request).get()
 
         new URL(redirectUrl).hostAndPath must be equalTo "https://www.example.com/openidserver/openid.server"
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
+      }
+
+      // OpenID 1.1 compatibility - http://openid.net/specs/openid-authentication-2_0.html#anchor38
+      "should fall back to HTML based discovery (with an OpenID 1.1 document) if OP Identifier cannot be found in the XRDS" in {
+        val ws = new WSMock
+        ws.response.status returns OK thenReturns OK
+        ws.response.body returns readFixture("discovery/html/openIDProvider-OpenID-1.1.html")
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/invalid-op-identifier.xml"))
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/html") thenReturns Some("application/xrds+xml")
+
+        val returnTo = "http://foo.bar.com/openid"
+        val openId = "http://abc.example.com/foo"
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+
+        there was one(ws.request).get()
+
+        new URL(redirectUrl).hostAndPath must be equalTo "https://www.example.com/openidserver/openid.server-1"
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
+      }
+
+      "Relying Parties SHOULD extract and use OpenID Authentication 1.0 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
+        val ws = new WSMock
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1-op.xml"))
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+        val returnTo = "http://foo.bar.com/openid"
+        val openId = "http://abc.example.com/foo"
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+
+        there was one(ws.request).get()
+        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider-server-1.example.com"
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
+      }
+
+      "Relying Parties SHOULD extract and use OpenID Authentication 1.1 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
+        val ws = new WSMock
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml"))
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+        val returnTo = "http://foo.bar.com/openid"
+        val openId = "http://abc.example.com/foo"
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+
+        there was one(ws.request).get()
+        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider-server-1.1.example.com"
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
@@ -220,8 +268,6 @@ object DiscoverySpec extends Specification with Mockito {
     case Some(value) => params.get(key) must beSome(Seq(value))
     case _ => params.get(key) must beNone
   }
-
-  private def readFixture(filePath: String) = Source.fromInputStream(this.getClass.getResourceAsStream(filePath)).mkString
 
   private def parseQueryString(url: String): Params = {
     catching(classOf[MalformedURLException]) opt new URL(url) map {
