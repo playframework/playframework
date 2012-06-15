@@ -14,7 +14,7 @@
                     bar
                 </ds:X509Certificate>
             </ds:X509Data>
-        </ds:KeyInfo>
+ t       </ds:KeyInfo>
     </ds:Signature>
     <XRD>
         <CanonicalID>example.com</CanonicalID>

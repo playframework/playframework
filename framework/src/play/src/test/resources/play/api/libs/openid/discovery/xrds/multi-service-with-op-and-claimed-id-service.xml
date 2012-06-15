@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
+    <XRD>
+
+        <!-- Claimed Identifier Element -->
+        <Service>
+            <Type>http://specs.openid.net/auth/2.0/signon</Type>
+            <URI>http://openidprovider-claimed.example.com</URI>
+        </Service>
+
+        <!-- OP Identifier Element -->
+        <Service>
+            <Type>http://specs.openid.net/auth/2.0/server</Type>
+            <URI>http://openidprovider-opid.example.com</URI>
+        </Service>
+    </XRD>
+</xrds:XRDS>

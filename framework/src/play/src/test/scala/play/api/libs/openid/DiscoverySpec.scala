@@ -8,6 +8,7 @@ import java.net.{MalformedURLException, URL}
 import util.control.Exception._
 import collection.JavaConverters._
 import play.api.http.HeaderNames
+import play.api.http.Status._
 
 object DiscoverySpec extends Specification with Mockito {
 
@@ -24,11 +25,6 @@ object DiscoverySpec extends Specification with Mockito {
     "normalize uppercase URL identifiers" in {
       normalize("HTTP://EXAMPLE.COM/") must be equalTo "http://example.com/"
     }
-    "normalize percent encoded URLs" in {
-      normalize("HTTP://EXAMPLE.COM/%3d") must be equalTo "http://example.com/%3D"
-      normalize("HTTP://EXAMPLE.COM/a?%3d") must be equalTo "http://example.com/a?%3D"
-      normalize("HTTP://EXAMPLE.COM/a?q#%3d") must be equalTo "http://example.com/a?q#%3D"
-    }.pendingUntilFixed
     "normalize percent signs" in {
       normalize("HTTP://EXAMPLE.COM/%63") must be equalTo "http://example.com/c"
     }
@@ -96,13 +92,15 @@ object DiscoverySpec extends Specification with Mockito {
         val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
 
         there was one(ws.request).get()
+
         new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider.example.com"
+
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
 
-      "with multiple service element" in {
+      "with multiple service elements" in {
         val ws = new WSMock
-        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/google-multiple-services.xml"))
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml"))
         ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
 
         val returnTo = "http://foo.bar.com/openid"
@@ -110,15 +108,36 @@ object DiscoverySpec extends Specification with Mockito {
         val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
 
         there was one(ws.request).get()
-        new URL(redirectUrl).hostAndPath must be startingWith "https://www.google.com/a/example.com/o8/ud"
+
+        new URL(redirectUrl).hostAndPath must be equalTo "http://www.myopenid.com/server"
+
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
 
+      // See 7.3.2.2.  Extracting Authentication Data
+      "returning the OP Identifier over the Claimed Identifier if both are present" in {
+        val ws = new WSMock
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+        val returnTo = "http://foo.bar.com/openid"
+        val openId = "http://abc.example.com/foo"
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+
+        there was one(ws.request).get()
+
+        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider-opid.example.com"
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
+      }
+
+
       "should fall back to HTML based discovery if OP Identifier cannot be found in the XRDS" in {
         val ws = new WSMock
+        ws.response.status returns OK thenReturns OK
         ws.response.body returns readFixture("discovery/html/openIDProvider.html")
         ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/invalid-op-identifier.xml"))
-        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/html") thenReturns Some("application/xrds+xml")
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
@@ -127,8 +146,9 @@ object DiscoverySpec extends Specification with Mockito {
         there was one(ws.request).get()
 
         new URL(redirectUrl).hostAndPath must be equalTo "https://www.example.com/openidserver/openid.server"
-//        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
-      }.pendingUntilFixed
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
+      }
     }
 
     "resolve an OpenID server via HTML" in {
@@ -144,6 +164,7 @@ object DiscoverySpec extends Specification with Mockito {
         there was one(ws.request).get()
 
         new URL(redirectUrl).hostAndPath must be equalTo "https://www.example.com/openidserver/openid.server"
+
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
 
@@ -157,6 +178,7 @@ object DiscoverySpec extends Specification with Mockito {
         there was one(ws.request).get()
 
         new URL(redirectUrl).hostAndPath must be equalTo "http://www.example.com:8080/openidserver/openid.server"
+
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), "http://example.com/", returnTo,
           opLocalIdentifier = Some("http://exampleuser.example.com/"))
       }
