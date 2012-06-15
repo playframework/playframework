@@ -42,10 +42,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
 
     def getPipeline = {
       val newPipeline = pipeline()
-      sslContext.map{ ctxt =>
-        val sslEngine = ctxt.createSSLEngine
-        sslEngine.setUseClientMode(false)
-        newPipeline.addLast("ssl", new SslHandler(sslEngine))
+      if (secure) {
+        sslContext.map { ctxt =>
+            val sslEngine = ctxt.createSSLEngine
+            sslEngine.setUseClientMode(false)
+            newPipeline.addLast("ssl", new SslHandler(sslEngine))
+        }
       }
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
