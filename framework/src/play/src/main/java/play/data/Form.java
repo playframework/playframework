@@ -262,10 +262,16 @@ public class Form<T> {
         
         DataBinder dataBinder = null;
         Map<String, String> objectData = data;
+
+        T current = value.get();
+        if (current == null ) {
+            current = blankInstance();
+        } 
+        
         if(rootName == null) {
-            dataBinder = new DataBinder(blankInstance());
+            dataBinder = new DataBinder(current);
         } else {
-            dataBinder = new DataBinder(blankInstance(), rootName);
+            dataBinder = new DataBinder(current, rootName);
             objectData = new HashMap<String,String>();
             for(String key: data.keySet()) {
                 if(key.startsWith(rootName + ".")) {
@@ -384,6 +390,19 @@ public class Form<T> {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
         return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value), groups);
+    }
+
+    /**
+     * Populates this form with an existing value or new instance, used for edit forms .
+     *
+     * @param value existing value of type <code>T</code> used to fill this form
+     * @return a copy of this form filled with the new data
+     */
+    public Form<T> fillOrNew(T value){
+        if (value == null){
+            value = blankInstance();
+        }
+        return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value));
     }
     
     /**
