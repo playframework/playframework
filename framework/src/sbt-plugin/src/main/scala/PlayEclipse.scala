@@ -95,7 +95,7 @@ trait PlayEclipse {
               new RewriteRule {
                 override def transform(node: Node): Seq[Node] = node match {
                   //add src_managed/main
-                  case elem if (elem.label == "classpath") =>
+                  case elem if (elem.label == "classpath" && new java.io.File(ct + f + "src_managed"+ f + "main").exists) =>
                     val newChild = elem.child ++ <classpathentry path={"target" + f + ct.getName + f + "src_managed"+ f + "main" } kind="src"></classpathentry>
                     Elem(elem.prefix, "classpath", elem.attributes, elem.scope, newChild: _*)
                  case other =>
