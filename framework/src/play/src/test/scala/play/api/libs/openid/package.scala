@@ -1,7 +1,10 @@
 package play.api.libs
 
-import java.net.URL
 import io.Source
+import org.jboss.netty.handler.codec.http.QueryStringDecoder
+import java.net.{MalformedURLException, URL}
+import util.control.Exception._
+import collection.JavaConverters._
 import play.api.libs.ws.WS.WSRequestHolder
 import play.api.libs.ws.Response
 import play.api.libs.concurrent.Promise
@@ -24,6 +27,12 @@ package object openid {
 
   def readFixture(filePath: String) = Source.fromInputStream(this.getClass.getResourceAsStream(filePath)).mkString
 
+  def parseQueryString(url: String): Params = {
+    catching(classOf[MalformedURLException]) opt new URL(url) map {
+      url =>
+        new QueryStringDecoder(url.toURI.getRawQuery, false).getParameters.asScala.mapValues(_.asScala.toSeq).toMap
+    } getOrElse Map()
+  }
 
   // See 10.1 - Positive Assertions
   // http://openid.net/specs/openid-authentication-2_0.html#positive_assertions

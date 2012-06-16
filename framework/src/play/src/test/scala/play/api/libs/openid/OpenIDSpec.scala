@@ -15,17 +15,98 @@ object OpenIDSpec extends Specification with Mockito {
   val identity = "http://example.com/openid?id=C123&id"
   val defaultSigned = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"
 
+  // 9.1 Request parameters - http://openid.net/specs/openid-authentication-2_0.html#anchor27
+  def isValidOpenIDRequest(query:Params) = {
+    query.get("openid.mode") must beSome(Seq("checkid_setup"))
+    query.get("openid.ns") must beSome(Seq("http://specs.openid.net/auth/2.0"))
+  }
+
   "OpenID" should {
     "initiate discovery" in {
-      val ws = new WSMock
+      val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
       openId.redirectURL("http://example.com", "http://foo.bar.com/openid")
       there was one(ws.request).get()
     }
 
+    "generate a valid redirectUrl" in {
+      val ws = createMockWithValidOpDiscoveryAndVerification
+      val openId = new OpenIDClient(ws.url)
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto").value.get
+
+      val query = parseQueryString(redirectUrl)
+
+      isValidOpenIDRequest(query)
+
+      query.get("openid.return_to") must beSome(Seq("http://foo.bar.com/returnto"))
+      query.get("openid.realm") must beNone
+    }
+
+    "generate a valid redirectUrl including the realm" in {
+      val ws = createMockWithValidOpDiscoveryAndVerification
+      val openId = new OpenIDClient(ws.url)
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto", realm = Some("http://*.bar.com")).value.get
+
+      val query = parseQueryString(redirectUrl)
+
+      isValidOpenIDRequest(query)
+
+      query.get("openid.realm") must beSome(Seq("http://*.bar.com"))
+    }
+
+    "generate a valid redirectUrl with a proper required extended attributes request" in {
+      val ws = createMockWithValidOpDiscoveryAndVerification
+      val openId = new OpenIDClient(ws.url)
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
+        axRequired = Seq("email" -> "http://schema.openid.net/contact/email")).value.get
+
+      val query = parseQueryString(redirectUrl)
+
+      isValidOpenIDRequest(query)
+
+      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
+      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
+      query.get("openid.ax.required") must beSome(Seq("email"))
+      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+    }
+
+    "generate a valid redirectUrl with a proper 'if_available' extended attributes request" in {
+      val ws = createMockWithValidOpDiscoveryAndVerification
+      val openId = new OpenIDClient(ws.url)
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
+        axOptional = Seq("email" -> "http://schema.openid.net/contact/email")).value.get
+
+      val query = parseQueryString(redirectUrl)
+
+      isValidOpenIDRequest(query)
+
+      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
+      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
+      query.get("openid.ax.if_available") must beSome(Seq("email"))
+      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+    }
+
+    "generate a valid redirectUrl with a proper 'if_available' AND required extended attributes request" in {
+      val ws = createMockWithValidOpDiscoveryAndVerification
+      val openId = new OpenIDClient(ws.url)
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
+        axRequired = Seq("first" -> "http://axschema.org/namePerson/first"),
+        axOptional = Seq("email" -> "http://schema.openid.net/contact/email")).value.get
+
+      val query = parseQueryString(redirectUrl)
+
+      isValidOpenIDRequest(query)
+
+      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
+      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
+      query.get("openid.ax.required") must beSome(Seq("first"))
+      query.get("openid.ax.type.first") must beSome(Seq("http://axschema.org/namePerson/first"))
+      query.get("openid.ax.if_available") must beSome(Seq("email"))
+      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+    }
+
     "verify the response" in {
       val ws = new WSMock
-
       ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
       ws.response.body returns "is_valid:true\n" // http://openid.net/specs/openid-authentication-2_0.html#kvform
 
@@ -82,13 +163,7 @@ object OpenIDSpec extends Specification with Mockito {
 
     // OpenID 1.1 compatibility - 14.2.1
     "verify an OpenID 1.1 response that is missing the \"openid.op_endpoint\" parameter" in {
-      val ws = new WSMock
-
-      ws.response.status returns OK thenReturns OK
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
-      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
-      ws.response.body returns "is_valid:true\n" // http://openid.net/specs/openid-authentication-2_0.html#kvform
-
+      val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
 
       val responseQueryString = (openIdResponse - "openid.op_endpoint")
@@ -108,6 +183,15 @@ object OpenIDSpec extends Specification with Mockito {
         }
       }
     }
+  }
+
+  def createMockWithValidOpDiscoveryAndVerification = {
+    val ws = new WSMock
+    ws.response.status returns OK thenReturns OK
+    ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
+    ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
+    ws.response.body returns "is_valid:true\n" // http://openid.net/specs/openid-authentication-2_0.html#kvform
+    ws
   }
 
   def setupMockRequest(queryString:Params = openIdResponse) = {

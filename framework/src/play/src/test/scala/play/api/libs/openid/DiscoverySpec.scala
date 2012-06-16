@@ -2,11 +2,7 @@ package play.api.libs.openid
 
 import org.specs2.mutable.Specification
 import org.specs2.mock._
-import scala.io.Source
-import org.jboss.netty.handler.codec.http.QueryStringDecoder
-import java.net.{MalformedURLException, URL}
-import util.control.Exception._
-import collection.JavaConverters._
+import java.net.URL
 import play.api.http.HeaderNames
 import play.api.http.Status._
 import org.specs2.control.NoStackTraceFilter
@@ -269,12 +265,5 @@ object DiscoverySpec extends Specification with Mockito {
   private def verifyOptionalParam(params: Params, key: String, expected: Option[String] = None) = expected match {
     case Some(value) => params.get(key) must beSome(Seq(value))
     case _ => params.get(key) must beNone
-  }
-
-  private def parseQueryString(url: String): Params = {
-    catching(classOf[MalformedURLException]) opt new URL(url) map {
-      url =>
-        new QueryStringDecoder(url.toURI.getRawQuery, false).getParameters.asScala.mapValues(_.asScala.toSeq).toMap
-    } getOrElse Map()
   }
 }
