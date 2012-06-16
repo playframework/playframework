@@ -7,8 +7,6 @@ import org.mockito._
 import play.api.mvc.Request
 import play.api.http.{ContentTypeOf, Writeable, HeaderNames}
 import play.api.libs.openid.Errors.{BAD_RESPONSE, AUTH_ERROR}
-import org.specs2.control.NoStackTraceFilter
-import play.api.libs.openid._
 import scala.Some
 
 object OpenIDSpec extends Specification with Mockito {
