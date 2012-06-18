@@ -56,6 +56,8 @@ package object openid {
     val request = mock[WSRequestHolder]
     val response = mock[Response]
 
+    val urls:collection.mutable.Buffer[String] = new collection.mutable.ArrayBuffer[String]()
+
     response.status returns OK
     response.header(HeaderNames.CONTENT_TYPE) returns Some("text/html;charset=UTF-8")
     response.body returns ""
@@ -63,7 +65,10 @@ package object openid {
     request.get() returns Promise.pure(response)
     request.post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]]) returns Promise.pure(response)
 
-    def url(url: String): WSRequestHolder = request
+    def url(url: String): WSRequestHolder = {
+      urls += url
+      request
+    }
   }
 
 }

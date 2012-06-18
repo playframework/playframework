@@ -106,9 +106,7 @@ object OpenIDSpec extends Specification with Mockito {
     }
 
     "verify the response" in {
-      val ws = new WSMock
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
-      ws.response.body returns "is_valid:true\n" // http://openid.net/specs/openid-authentication-2_0.html#kvform
+      val ws = createMockWithValidOpDiscoveryAndVerification
 
       val openId = new OpenIDClient(ws.url)
 
@@ -135,10 +133,44 @@ object OpenIDSpec extends Specification with Mockito {
       }
     }
 
+    // 11.2 If the Claimed Identifier was not previously discovered by the Relying Party
+    // (the "openid.identity" in the request was "http://specs.openid.net/auth/2.0/identifier_select" or a different Identifier,
+    // or if the OP is sending an unsolicited positive assertion), the Relying Party MUST perform discovery on the
+    // Claimed Identifier in the response to make sure that the OP is authorized to make assertions about the Claimed Identifier.
+    "verify the response using discovery on the claimed Identifier" in {
+      val ws = createMockWithValidOpDiscoveryAndVerification
+      val openId = new OpenIDClient(ws.url)
+
+      val spoofedEndpoint = "http://evilhackerendpoint.com"
+      val responseQueryString = openIdResponse - "openid.op_endpoint" + ("openid.op_endpoint" -> Seq(spoofedEndpoint))
+
+      openId.verifiedId(setupMockRequest(responseQueryString)).value.get
+
+      "direct verification does not use the openid.op_endpoint that is part of the query string" in {
+        ws.urls contains(spoofedEndpoint) must beFalse
+      }
+      "the endpoint is resolved using discovery on the claimed Id" in {
+        ws.urls(0) must be equalTo claimedId
+      }
+      "use endpoint discovery and then direct verification" in {
+        got {
+          // Use discovery to resolve the endpoint
+          one(ws.request).get()
+          // Verify the response
+          one(ws.request).post(any[Params])(any[Writeable[Params]], any[ContentTypeOf[Params]])
+        }
+      }
+      "use direct verification on the discovered endpoint" in {
+        ws.urls(1) must be equalTo "https://www.google.com/a/example.com/o8/ud?be=o8" // From the mock XRDS
+      }
+    }
+
     "fail response verification if direct verification fails" in {
       val ws = new WSMock
 
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
+      ws.response.status returns OK thenReturns OK
+      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
+      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
       ws.response.body returns "is_valid:false\n"
 
       val openId = new OpenIDClient(ws.url)
@@ -151,7 +183,9 @@ object OpenIDSpec extends Specification with Mockito {
     "fail response verification if the response indicates an error" in {
       val ws = new WSMock
 
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
+      ws.response.status returns OK thenReturns OK
+      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
+      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
       ws.response.body returns "is_valid:false\n"
 
       val openId = new OpenIDClient(ws.url)
