@@ -21,8 +21,22 @@ object MimeTypes {
    */
   def forFileName(name: String) = name.split('.').takeRight(1).headOption.flatMap(forExtension(_))
 
-  lazy val types =
+  def types: Map[String, String] = defaultTypes ++ applicationTypes
 
+  /**
+   * Mimetypes defined in the current application, as declared in application.conf
+   */
+  def applicationTypes: Map[String, String] = play.api.Play.maybeApplication.flatMap { application =>
+    application.configuration.getConfig("mimetype").map { config =>
+      config.subKeys.map { key =>
+        (key, config.getString(key))
+      }.collect { case ((key, Some(value))) =>
+        (key, value)
+      }.toMap
+    }
+  }.getOrElse(Map.empty)
+
+  lazy val defaultTypes =
     """
         3dm=x-world/x-3dmf
         3dmf=x-world/x-3dmf
