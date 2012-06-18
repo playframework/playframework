@@ -235,8 +235,8 @@ object PlayBuild extends Build {
             ,
             
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
-            "oauth.signpost" 					% 	 "signpost-commonshttp4" 	% 	"1.2.1.1",
-            "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
+            "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.1",
+            "com.codahale"                      %   "jerkson_2.9.1"             %   "0.5.0",
             
             ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
               .exclude("com.google.guava", "guava")
@@ -269,7 +269,7 @@ object PlayBuild extends Build {
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "rhino"                             %    "js"                       %   "1.7R2",
             
-            ("com.google.javascript"            %    "closure-compiler"         %   "r1810" notTransitive())
+            ("com.google.javascript"            %    "closure-compiler"         %   "r1918" notTransitive())
               .exclude("args4j", "args4j")
               .exclude("com.google.guava", "guava")
               .exclude("org.json", "json")
