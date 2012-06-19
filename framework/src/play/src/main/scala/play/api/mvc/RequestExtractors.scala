@@ -33,10 +33,11 @@ trait AcceptExtractors {
    * }}}
    */
   object Accepts {
-    val Json = Accepting("application/json")
-    val Html = Accepting("text/html")
-    val Xml = Accepting("application/xml")
-    val JavaScript = Accepting("application/javascript")
+    import play.api.http.MimeTypes
+    val Json = Accepting(MimeTypes.JSON)
+    val Html = Accepting(MimeTypes.HTML)
+    val Xml = Accepting(MimeTypes.XML)
+    val JavaScript = Accepting(MimeTypes.JAVASCRIPT)
   }
 
 }
