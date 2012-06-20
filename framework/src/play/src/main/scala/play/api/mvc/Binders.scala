@@ -410,7 +410,7 @@ object QueryStringBindable {
     }).mkString("&")
   }
 
-  private def javascriptUnbindList(jsUnbindT: String) = "function(k,vs){return vs.map(function(v){return (" + jsUnbindT + ")(k, v)}).join('&')}"
+  private def javascriptUnbindList(jsUnbindT: String) = "function(k,vs){var l=vs&&vs.length,r=[],i=0;for(;i<l;i++){r[i]=(" + jsUnbindT + ")(k,vs[i])}return r.join('&')}"
 
   /**
    * QueryString binder for QueryStringBindable.
