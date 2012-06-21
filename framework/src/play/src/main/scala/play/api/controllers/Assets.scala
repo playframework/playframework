@@ -103,6 +103,8 @@ object Assets extends Controller {
                 DATE -> df.print({ new java.util.Date }.getTime)
               )).getOrElse {
 
+                val charset = Play.configuration.getString("\"assets.charset." + resourceName + "\"").getOrElse("utf-8")
+
                 // Prepare a streamed response
                 val response = SimpleResult(
                   header = ResponseHeader(OK, Map(
