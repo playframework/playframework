@@ -25,7 +25,125 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
-sealed trait Result extends NotNull
+sealed trait Result extends NotNull with WithHeaders[Result]
+
+sealed trait WithHeaders[+A <: Result] {
+  /**
+   * Adds HTTP headers to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withHeaders(ETAG -> "0")
+   * }}}
+   *
+   * @param headers the headers to add to this result.
+   * @return the new result
+   */
+  def withHeaders(headers: (String, String)*): A
+
+  /**
+   * Adds cookies to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
+   * }}}
+   *
+   * @param cookies the cookies to add to this result
+   * @return the new result
+   */
+  def withCookies(cookies: Cookie*): A
+
+  /**
+   * Discards cookies along this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingCookies("theme")
+   * }}}
+   *
+   * @param cookies the cookies to discard along to this result
+   * @return the new result
+   */
+  def discardingCookies(names: String*): A
+
+  /**
+   * Sets a new session for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
+   * }}}
+   *
+   * @param session the session to set with this result
+   * @return the new result
+   */
+  def withSession(session: Session): A
+
+  /**
+   * Sets a new session for this result, discarding the existing session.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withSession("saidHello" -> "yes")
+   * }}}
+   *
+   * @param session the session to set with this result
+   * @return the new result
+   */
+  def withSession(session: (String, String)*): A
+
+  /**
+   * Discards the existing session for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withNewSession
+   * }}}
+   *
+   * @return the new result
+   */
+  def withNewSession: A
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
+   * }}}
+   *
+   * @param flash the flash scope to set with this result
+   * @return the new result
+   */
+  def flashing(flash: Flash): A
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").flashing("success" -> "Done!")
+   * }}}
+   *
+   * @param flash the flash values to set with this result
+   * @return the new result
+   */
+  def flashing(values: (String, String)*): A
+
+  /**
+   * Changes the result content type.
+   *
+   * For example:
+   * {{{
+   * Ok("<text>Hello world</text>").as("text/xml")
+   * }}}
+   *
+   * @param contentType the new content type.
+   * @return the new result
+   */
+  def as(contentType: String): A
+}
 
 /**
  * Helper utilities for Result values.
@@ -49,25 +167,12 @@ object Result {
 /**
  * A plain HTTP result.
  */
-trait PlainResult extends Result {
+trait PlainResult extends Result with WithHeaders[PlainResult] {
 
   /**
    * The response header
    */
   val header: ResponseHeader
-
-  /**
-   * Adds HTTP headers to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withHeaders(ETAG -> "0")
-   * }}}
-   *
-   * @param headers the headers to add to this result.
-   * @return the new result
-   */
-  def withHeaders(headers: (String, String)*): PlainResult
 
   /**
    * Adds cookies to this result.
@@ -249,7 +354,145 @@ case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] =>
  *
  * @param result the promise of result, which can be any other result type
  */
-case class AsyncResult(result: Promise[Result]) extends Result
+case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[AsyncResult] {
+
+  def map(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
+
+  /**
+   * Adds headers to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withHeaders(ETAG -> "0")
+   * }}}
+   *
+   * @param headers the headers to add to this result.
+   * @return the new result
+   */
+  def withHeaders(headers: (String, String)*): AsyncResult = {
+    map(_.withHeaders(headers: _*))
+  }
+
+  /**
+   * Adds cookies to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
+   * }}}
+   *
+   * @param cookies the cookies to add to this result
+   * @return the new result
+   */
+  def withCookies(cookies: Cookie*): AsyncResult = {
+    map(_.withCookies(cookies: _*))
+  }
+
+  /**
+   * Discards cookies along this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingCookies("theme")
+   * }}}
+   *
+   * @param cookies the cookies to discard along to this result
+   * @return the new result
+   */
+  def discardingCookies(names: String*): AsyncResult = {
+    map(_.discardingCookies(names: _*))
+  }
+
+  /**
+   * Sets a new session for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
+   * }}}
+   *
+   * @param session the session to set with this result
+   * @return the new result
+   */
+  def withSession(session: Session): AsyncResult = {
+    map(_.withSession(session))
+  }
+
+  /**
+   * Sets a new session for this result, discarding the existing session.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withSession("saidHello" -> "yes")
+   * }}}
+   *
+   * @param session the session to set with this result
+   * @return the new result
+   */
+  def withSession(session: (String, String)*): AsyncResult = {
+    map(_.withSession(session: _*))
+  }
+
+  /**
+   * Discards the existing session for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withNewSession
+   * }}}
+   *
+   * @return the new result
+   */
+  def withNewSession: AsyncResult = {
+    map(_.withNewSession)
+  }
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
+   * }}}
+   *
+   * @param flash the flash scope to set with this result
+   * @return the new result
+   */
+  def flashing(flash: Flash): AsyncResult = {
+    map(_.flashing(flash))
+  }
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").flashing("success" -> "Done!")
+   * }}}
+   *
+   * @param flash the flash values to set with this result
+   * @return the new result
+   */
+  def flashing(values: (String, String)*): AsyncResult = {
+    map(_.flashing(values: _*))
+  }
+
+  /**
+   * Changes the result content type.
+   *
+   * For example:
+   * {{{
+   * Ok("<text>Hello world</text>").as("text/xml")
+   * }}}
+   *
+   * @param contentType the new content type.
+   * @return the new result
+   */
+  def as(contentType: String): AsyncResult = {
+    map(_.as(contentType))
+  }
+
+}
 
 /**
  * A Codec handle the conversion of String to Byte arrays.
