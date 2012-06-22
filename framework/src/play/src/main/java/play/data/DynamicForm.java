@@ -2,7 +2,6 @@ package play.data;
 
 import java.util.*;
 
-import play.libs.F;
 import static play.libs.F.*;
 
 import play.data.validation.*;
@@ -88,6 +87,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
+    @SuppressWarnings("rawtypes")
     public static class Dynamic {
 
         private Map data = new HashMap();

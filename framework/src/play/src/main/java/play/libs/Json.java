@@ -1,7 +1,5 @@
 package play.libs;
 
-import java.io.StringWriter;
-
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.node.*;
@@ -23,7 +21,7 @@ public class Json {
             throw new RuntimeException(e);
         }
     }
-   
+
     /**
      * Convert a JsonNode to a Java value
      *
@@ -37,21 +35,21 @@ public class Json {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Creates a new empty ObjectNode.
      */ 
     public static ObjectNode newObject() {
         return new ObjectMapper().createObjectNode();
     }
-    
+
     /**
      * Convert a JsonNode to its string representation.
      */
     public static String stringify(JsonNode json) {
         return json.toString();
     }
-    
+
     /**
      * Parse a String representing a json, and return it as a JsonNode.
      */
@@ -62,5 +60,5 @@ public class Json {
             throw new RuntimeException(t);
         }
     }
-   
+
 }

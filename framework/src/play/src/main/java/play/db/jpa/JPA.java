@@ -2,18 +2,15 @@ package play.db.jpa;
 
 import play.*;
 
-import java.io.*;
-import java.util.*;
-
 import javax.persistence.*;
 
 /**
  * JPA Helpers.
  */
 public class JPA {
-    
+
     static ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
-    
+
     /**
      * Get the EntityManager for specified persistence unit for this thread.
      */
@@ -22,20 +19,20 @@ public class JPA {
         if(app == null) {
             throw new RuntimeException("No application running");
         }
-        
+
         JPAPlugin jpaPlugin = app.plugin(JPAPlugin.class);
         if(jpaPlugin == null) {
             throw new RuntimeException("No JPA EntityManagerFactory configured for name [" + key + "]");
         }
-        
+
         EntityManager em = jpaPlugin.em(key);
         if(em == null) {
             throw new RuntimeException("No JPA EntityManagerFactory configured for name [" + key + "]");
         }
-        
+
         return em;
     } 
-    
+
     /**
      * Get the default EntityManager for this thread.
      */
@@ -46,14 +43,14 @@ public class JPA {
         }
         return em;
     }
-    
+
     /**
      * Bind an EntityManager to the current thread.
      */
     public static void bindForCurrentThread(EntityManager em) {
         currentEntityManager.set(em);
     }
-    
+
     /**
      * Run a block of code in a JPA transaction.
      *
@@ -62,7 +59,7 @@ public class JPA {
     public static <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
         return withTransaction("default", false, block);
     }
-    
+
     /**
      * Run a block of code in a JPA transaction.
      *
@@ -80,7 +77,7 @@ public class JPA {
             throw new RuntimeException(t);
         }
     }
-    
+
     /**
      * Run a block of code in a JPA transaction.
      *
@@ -92,17 +89,17 @@ public class JPA {
         EntityManager em = null;
         EntityTransaction tx = null;
         try {
-            
+
             em = JPA.em(name);
             JPA.bindForCurrentThread(em);
-            
+
             if(!readOnly) {
                 tx = em.getTransaction();
                 tx.begin();
             }
-            
+
             T result = block.apply();
-            
+
             if(tx != null) {
                 if(tx.getRollbackOnly()) {
                     tx.rollback();
@@ -110,9 +107,9 @@ public class JPA {
                     tx.commit();
                 }
             }
-            
+
             return result;
-            
+
         } catch(Throwable t) {
             if(tx != null) {
                 try { tx.rollback(); } catch(Throwable e) {}
@@ -125,5 +122,5 @@ public class JPA {
             }
         }
     }
-    
+
 }

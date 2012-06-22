@@ -2,17 +2,15 @@ package play.mvc;
 
 import java.lang.annotation.*;
 
-import play.api.libs.iteratee.*;
-
 /**
  * A body parser parses the HTTP request body content.
  */
 public interface BodyParser {
-    
+
     play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength);
-    
+
     /**
-     * Specifiy the body parser to use for an Action method.
+     * Specify the body parser to use for an Action method.
      */
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
@@ -20,7 +18,7 @@ public interface BodyParser {
         Class<? extends BodyParser> value();
         int maxLength() default Integer.MAX_VALUE;
     }
-    
+
     /**
      * Guess the body content by checking the Content-Type header.
      */
@@ -29,7 +27,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.anyContent(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as Json if the Content-Type is text/json or application/json.
      */
@@ -38,7 +36,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.json(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as Json without checking the Content-Type.
      */
@@ -47,7 +45,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.tolerantJson(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as Xml if the Content-Type is text/xml.
      */
@@ -56,7 +54,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.xml(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as Xml without checking the Content-Type.
      */
@@ -65,7 +63,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.tolerantXml(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as text if the Content-Type is text/plain.
      */
@@ -74,7 +72,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.text(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as text without checking the Content-Type.
      */
@@ -83,7 +81,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.tolerantText(maxLength);
         }
     }
-    
+
     /**
      * Store the body content in a RawBuffer.
      */
@@ -92,7 +90,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.raw(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
      */
@@ -101,7 +99,7 @@ public interface BodyParser {
             return play.core.j.JavaParsers.formUrlEncoded(maxLength);
         }
     }
-    
+
     /**
      * Parse the body as form url encoded without checking the Content-Type.
      */
@@ -110,5 +108,5 @@ public interface BodyParser {
             return play.core.j.JavaParsers.multipartFormData(maxLength);
         }
     }
-    
+
 }
