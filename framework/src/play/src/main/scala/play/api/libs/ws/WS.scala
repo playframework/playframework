@@ -39,7 +39,13 @@ object WS {
    */
   lazy val client = {
     import play.api.Play.current
-    val config = new AsyncHttpClientConfig.Builder()
+
+    // Allow supplying an alternate factory for making AsyncHttpClientConfig.Builder
+    val baseConfig = current.configuration.getString("ws.configBuilder").map { klass =>
+      Class.forName(klass).newInstance().asInstanceOf[AsyncHttpClientConfig.Builder]
+    }.getOrElse(new AsyncHttpClientConfig.Builder())
+    
+    val config = baseConfig
       .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
       .setRequestTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
       .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
@@ -47,6 +53,7 @@ object WS {
     current.configuration.getString("ws.useragent").map { useragent =>
       config.setUserAgent(useragent)
     }
+
     new AsyncHttpClient(config.build())
   }
 
