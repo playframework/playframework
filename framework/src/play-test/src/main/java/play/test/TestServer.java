@@ -1,12 +1,10 @@
 package play.test;
 
-import java.io.*;
-
 /**
  * A test Netty web server.
  */
 public class TestServer extends play.api.test.TestServer {
-    
+
     /**
      * A test Netty web server.
      *
@@ -16,5 +14,5 @@ public class TestServer extends play.api.test.TestServer {
     public TestServer(int port, FakeApplication application) {
         super(port, application.getWrappedApplication());
     }
-    
+
 }

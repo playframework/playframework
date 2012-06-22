@@ -9,9 +9,9 @@ import play.libs.*;
  * A Fake application.
  */
 public class FakeApplication {
-    
+
     final play.api.test.FakeApplication wrappedApplication;
-    
+
     /**
      * A Fake application.
      *
@@ -22,16 +22,16 @@ public class FakeApplication {
      */
     public FakeApplication(File path, ClassLoader classloader, Map<String,String> additionalConfiguration, List<String> additionalPlugins) {
         wrappedApplication = new play.api.test.FakeApplication(
-            path, 
-            classloader, 
-            Scala.toSeq(additionalPlugins), 
-            Scala.<String>emptySeq(), 
-            Scala.asScala(additionalConfiguration)
-        );
+                path,
+                classloader,
+                Scala.toSeq(additionalPlugins),
+                Scala.<String>emptySeq(),
+                Scala.asScala(additionalConfiguration)
+                );
     }
 
     public play.api.test.FakeApplication getWrappedApplication() {
         return wrappedApplication;
     }
-    
+
 }

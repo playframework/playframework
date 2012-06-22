@@ -14,18 +14,18 @@ import java.util.*;
  * Helper functions to run tests.
  */
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {
-    
+
     public static String GET = "GET";
     public static String POST = "POST";
     public static String PUT = "PUT";
     public static String DELETE = "DELETE";
     public static String HEAD = "HEAD";
-    
+
     // --
     
     public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
-    
+
     // --
     @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest) {
@@ -33,7 +33,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             play.api.mvc.Action action = (play.api.mvc.Action)handler;
             final play.api.mvc.Result iResult = action.apply(fakeRequest.getWrappedRequest());
             return new Result() {
-                
+
                 public play.api.mvc.Result getWrappedResult() {
                     return iResult;
                 }
@@ -41,22 +41,22 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 public String toString() {
                     return iResult.toString();
                 }
-                
+
             };
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
         }
     }
-    
+
     // --
-    
+
     /**
      * Call an action method while decorating it with the right @With interceptors.
      */
     public static Result callAction(HandlerRef actionReference) {
         return callAction(actionReference, fakeRequest());
     }
-    
+
     /**
      * Call an action method while decorating it with the right @With interceptors.
      */
@@ -64,42 +64,42 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
         return invokeHandler(handlerRef.handler(), fakeRequest);
     }
-    
+
     /**
      * Build a new GET / fake request.
      */
     public static FakeRequest fakeRequest() {
         return new FakeRequest();
     }
-    
+
     /**
      * Build a new fake request.
      */
     public static FakeRequest fakeRequest(String method, String uri) {
         return new FakeRequest(method, uri);
     }
-    
+
     /**
      * Build a new fake application.
      */
     public static FakeApplication fakeApplication() {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,String>(), new ArrayList<String>());
     }
-    
+
     /**
      * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
      */
     public static Map<String,String> inMemoryDatabase() {
         return inMemoryDatabase("default");
     }
-    
+
     /**
      * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
      */
     public static Map<String,String> inMemoryDatabase(String name) {
         return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name));
     }
-    
+
     /**
      * Build a new fake application.
      */
@@ -121,14 +121,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static int status(Result result) {
         return play.core.j.JavaResultExtractor.getStatus(result);
     }
-    
+
     /**
      * Extracts the Location header of this Result value if this Result is a Redirect.
      */
     public static String redirectLocation(Result result) {
         return header(LOCATION, result);
     }
-    
+
     /**
      * Extracts the Flash values of this Result value.
      */
@@ -146,10 +146,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
         );
     }
-        
+
     /**
      * * Extracts a Cookie value from this Result value
-     */    
+     */
     public static play.mvc.Http.Cookie cookie(String name, Result result) {
         return play.core.j.JavaResultExtractor.getCookies(result).get(name);
     }
@@ -160,21 +160,21 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static String header(String header, Result result) {
         return play.core.j.JavaResultExtractor.getHeaders(result).get(header);
     }
-    
+
     /**
      * Extracts all Headers of this Result value.
      */
     public static Map<String,String> headers(Result result) {
         return play.core.j.JavaResultExtractor.getHeaders(result);
     }
-    
+
     /**
      * Extracts the Content-Type of this Content value.
      */
     public static String contentType(Content content) {
         return content.contentType();
     }
-    
+
     /**
      * Extracts the Content-Type of this Result value.
      */
@@ -187,7 +187,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return h.trim();
         }
     }
-    
+
     /**
      * Extracts the Charset of this Result value.
      */
@@ -200,28 +200,28 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return null;
         }
     }
-    
+
     /**
      * Extracts the content as bytes.
      */
     public static byte[] contentAsBytes(Result result) {
         return play.core.j.JavaResultExtractor.getBody(result);
     }
-    
+
     /**
      * Extracts the content as bytes.
      */
     public static byte[] contentAsBytes(Content content) {
         return content.body().getBytes();
     }
-    
+
     /**
      * Extracts the content as String.
      */
     public static String contentAsString(Content content) {
         return content.body();
     }
-    
+
     /**
      * Extracts the content as String.
      */
@@ -238,7 +238,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             throw new RuntimeException(t);
         }
     }
-    
+
     /**
      * Use the Router to determine the Action to call for this request and executes it.
      */
@@ -252,7 +252,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             throw new RuntimeException(t);
         }
     }
-    
+
     /**
      * Use the Router to determine the Action to call for this request and executes it.
      */
@@ -270,21 +270,21 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             throw new RuntimeException(t);
         } 
     }
-    
+
     /**
      * Starts a new application.
      */
     public static void start(FakeApplication fakeApplication) {
         play.api.Play.start(fakeApplication.getWrappedApplication());
     }
-    
+
     /**
      * Stops an application.
      */
     public static void stop(FakeApplication fakeApplication) {
         play.api.Play.stop();
     }
-    
+
     /**
      * Executes a block of code in a running application.
      */
@@ -296,35 +296,35 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             stop(fakeApplication);
         }
     }
-    
+
     /**
      * Creates a new Test server.
      */
     public static TestServer testServer(int port) {
         return new TestServer(port, fakeApplication());
     }
-    
+
     /**
      * Creates a new Test server.
      */
     public static TestServer testServer(int port, FakeApplication app) {
         return new TestServer(port, app);
     }
-    
+
     /**
      * Starts a Test server.
      */
     public static void start(TestServer server) {
         server.start();
     }
-    
+
     /**
      * Stops a Test server.
      */
     public static void stop(TestServer server) {
         server.stop();
     }
-    
+
     /**
      * Executes a block of code in a running server.
      */
@@ -336,7 +336,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             stop(server);
         }
     }
-    
+
     /**
      * Executes a block of code in a running server, with a test browser.
      */
@@ -367,7 +367,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static TestBrowser testBrowser() {
         return testBrowser(HTMLUNIT);
     }
-    
+
     /**
      * Creates a Test Browser.
      */
@@ -380,12 +380,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             throw new RuntimeException(t);
         }
     }
-    
+
     /**
      * Creates a Test Browser.
      */
     public static TestBrowser testBrowser(WebDriver of) {
         return new TestBrowser(of);
     }
-    
+
 }
