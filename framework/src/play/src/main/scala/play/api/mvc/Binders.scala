@@ -5,6 +5,7 @@ import scala.annotation._
 import play.api.mvc._
 
 import java.net.{ URLEncoder, URLDecoder }
+import java.util.UUID
 import scala.annotation._
 
 import scala.collection.JavaConverters._
@@ -342,6 +343,13 @@ object QueryStringBindable {
     bindableBoolean.transform(b => b, b => b)
 
   /**
+   * Path binder for java.util.UUID.
+   */
+  implicit object bindableUUID extends Parsing[UUID](
+    UUID.fromString(_), _.toString, (key: String, e: Exception) => "Cannot parse parameter %s as UUID: %s".format(key, e.getMessage)
+  )
+
+  /**
    * QueryString binder for Option.
    */
   implicit def bindableOption[T: QueryStringBindable] = new QueryStringBindable[Option[T]] {
@@ -531,6 +539,13 @@ object PathBindable {
    */
   implicit def bindableJavaBoolean: PathBindable[java.lang.Boolean] = 
     bindableBoolean.transform(b => b, b => b)
+
+  /**
+   * Path binder for java.util.UUID.
+   */
+  implicit object bindableUUID extends Parsing[UUID](
+    UUID.fromString(_), _.toString, (key: String, e: Exception) => "Cannot parse parameter %s as UUID: %s".format(key, e.getMessage)
+  )
 
   /**
    * Path binder for Java PathBindable
