@@ -2,6 +2,7 @@ package play.libs;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncCompletionHandler;
+import com.ning.http.client.FluentCaseInsensitiveStringsMap;
 import com.ning.http.client.PerRequestConfig;
 import com.ning.http.client.RequestBuilderBase;
 import com.ning.http.client.Realm.AuthScheme;
@@ -49,18 +50,91 @@ public class WS {
      */
     public static class WSRequest extends RequestBuilderBase<WSRequest> {
 
+        private FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
+
+        private String method;
+
+        private String url;
+
         public WSRequest(String method) {
             super(WSRequest.class, method, false);
+            this.method = method;
         }
 
         private WSRequest auth(String username, String password, AuthScheme scheme) {
             this.setRealm((new RealmBuilder())
-                .setScheme(scheme)
-                .setPrincipal(username)
-                .setPassword(password)
-                .setUsePreemptiveAuth(true)
-                .build());
+                    .setScheme(scheme)
+                    .setPrincipal(username)
+                    .setPassword(password)
+                    .setUsePreemptiveAuth(true)
+                    .build());
             return this;
+        }
+
+        /**
+         * Set an HTTP header.
+         */
+        @Override
+        public WSRequest setHeader(String name, String value) {
+            headers.replace(name, value);
+            return super.setHeader(name, value);
+        }
+
+        /**
+         * Add an HTTP header (used for headers with mutiple values).
+         */
+        @Override
+        public WSRequest addHeader(String name, String value) {
+            if (value == null) {
+                value = "";
+            }
+            headers.add(name, value);
+            return super.addHeader(name, value);
+        }
+
+        /**
+         * Defines the request headers.
+         */
+        @Override
+        public WSRequest setHeaders(FluentCaseInsensitiveStringsMap hdrs) {
+            headers = (headers == null ? new FluentCaseInsensitiveStringsMap() : new FluentCaseInsensitiveStringsMap(headers));
+            return super.setHeaders(hdrs);
+        }
+
+        /**
+         * Defines the request headers.
+         */
+        @Override
+        public WSRequest setHeaders(Map<String, Collection<String>> hdrs) {
+            headers = (headers == null ? new FluentCaseInsensitiveStringsMap() : new FluentCaseInsensitiveStringsMap(headers));
+            return super.setHeaders(hdrs);
+        }
+
+        /**
+         * Return the headers of the request being constructed
+         */
+        public Map<String, List<String>> getAllHeaders() {
+            return headers;
+        }
+
+        public List<String> getHeader(String name) {
+            List<String> hdrs = headers.get(name);
+            if (hdrs == null) return new ArrayList<String>();
+            return hdrs;
+        }
+
+        public String getMethod() {
+            return this.method;
+        }
+
+        @Override
+        public WSRequest setUrl(String url) {
+            this.url = url;
+            return super.setUrl(url);
+        }
+
+        public String getUrl() {
+            return this.url;
         }
 
         private Promise<Response> execute() {
@@ -101,6 +175,7 @@ public class WS {
         private String username = null;
         private String password = null;
         private AuthScheme scheme = null;
+        private SignatureCalculator calculator = null;
 
         private int timeout = 0;
         private Boolean followRedirects = null;
@@ -144,7 +219,7 @@ public class WS {
             }
             return this;
         }
-        
+
         /**
          * Sets the authentication header for the current request using BASIC authentication.
          *
@@ -169,6 +244,11 @@ public class WS {
             this.username = username;
             this.password = password;
             this.scheme = scheme;
+            return this;
+        }
+
+        public WSRequestHolder sign(SignatureCalculator calculator) {
+            this.calculator = calculator;
             return this;
         }
 
@@ -276,62 +356,36 @@ public class WS {
 
         private Promise<Response> execute(String method) {
             WSRequest req = new WSRequest(method).setUrl(url)
-                                                 .setHeaders(headers)
-                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
-            if (this.timeout > 0) {
-                PerRequestConfig config = new PerRequestConfig();
-                config.setRequestTimeoutInMs(this.timeout);
-                req.setPerRequestConfig(config);
-            }
-            if (this.followRedirects != null) {
-                req.setFollowRedirects(this.followRedirects);
-            }
-            if (this.username != null && this.password != null && this.scheme != null)
-                req.auth(this.username, this.password, this.scheme);
-            return req.execute();
+                    .setHeaders(headers)
+                    .setQueryParameters(new FluentStringsMap(queryParameters));
+            return execute(req);
         }
 
         private Promise<Response> executeString(String method, String body) {
             WSRequest req = new WSRequest(method).setBody(body)
-                                                 .setUrl(url)
-                                                 .setHeaders(headers)
-                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
-            if (this.timeout > 0) {
-                PerRequestConfig config = new PerRequestConfig();
-                config.setRequestTimeoutInMs(this.timeout);
-                req.setPerRequestConfig(config);
-            }
-            if (this.followRedirects != null) {
-                req.setFollowRedirects(this.followRedirects);
-            }
-            if (this.username != null && this.password != null && this.scheme != null)
-                req.auth(this.username, this.password, this.scheme);
-            return req.execute();
+                    .setUrl(url)
+                    .setHeaders(headers)
+                    .setQueryParameters(new FluentStringsMap(queryParameters));
+            return execute(req);
         }
 
         private Promise<Response> executeIS(String method, InputStream body) {
             WSRequest req = new WSRequest(method).setBody(body)
-                                                 .setUrl(url)
-                                                 .setHeaders(headers)
-                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
-            if (this.timeout > 0) {
-                PerRequestConfig config = new PerRequestConfig();
-                config.setRequestTimeoutInMs(this.timeout);
-                req.setPerRequestConfig(config);
-            }
-            if (this.followRedirects != null) {
-                req.setFollowRedirects(this.followRedirects);
-            }
-            if (this.username != null && this.password != null && this.scheme != null)
-                req.auth(this.username, this.password, this.scheme);
-            return req.execute();
+                    .setUrl(url)
+                    .setHeaders(headers)
+                    .setQueryParameters(new FluentStringsMap(queryParameters));
+            return execute(req);
         }
 
         private Promise<Response> executeFile(String method, File body) {
             WSRequest req = new WSRequest(method).setBody(body)
-                                                 .setUrl(url)
-                                                 .setHeaders(headers)
-                                                 .setQueryParameters(new FluentStringsMap(queryParameters));
+                    .setUrl(url)
+                    .setHeaders(headers)
+                    .setQueryParameters(new FluentStringsMap(queryParameters));
+            return execute(req);
+        }
+
+        private Promise<Response> execute(WSRequest req) {
             if (this.timeout > 0) {
                 PerRequestConfig config = new PerRequestConfig();
                 config.setRequestTimeoutInMs(this.timeout);
@@ -342,12 +396,12 @@ public class WS {
             }
             if (this.username != null && this.password != null && this.scheme != null)
                 req.auth(this.username, this.password, this.scheme);
+            if (this.calculator != null)
+                this.calculator.sign(req);
             return req.execute();
         }
-
-
     }
-    
+
     /**
      * A WS response.
      */
@@ -454,6 +508,18 @@ public class WS {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    /**
+     * Sign a WS call.
+     */
+    public static interface SignatureCalculator {
+
+        /**
+         * Sign a request
+         */
+        public void sign(WSRequest request);
+
     }
 
 }
