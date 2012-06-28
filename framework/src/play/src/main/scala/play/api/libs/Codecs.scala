@@ -65,4 +65,31 @@ object Codecs {
     new String(toHex(array))
   }
 
+  /**
+   * Converts a character that denotes hesadecimal digit into a byte
+   */
+  private def fromHex(value : Char) : Byte = {
+    if (value >= '0' && value <= '9')      (value - '0').toByte
+    else if (value >= 'a' && value <= 'f') (10 + value - 'a').toByte
+    else if (value >= 'A' && value <= 'F') (10 + value - 'A').toByte
+    else 
+      throw new IllegalArgumentException("Invalid hexadecimal digit: " + value)
+  }
+
+  /**
+   * Converts an array of characters that denotes a hexadecimal representation into a byte array.
+   */
+  def fromHex(array: Array[Char]): Array[Byte] = {
+    val result = new Array[Byte](array.length / 2)
+     for (i <- 0 until result.length) {
+     result(i) = ((fromHex(array(2 * i)) << 4) + fromHex(array(2 * i + 1))).toByte
+    }
+    result
+  }
+
+  /**
+   * Converts a String that denotes a hexadecimal representation into a byte array`.
+   */
+   def fromHexString(value: String) : Array[Byte] = fromHex(value.toCharArray)
+
 }
