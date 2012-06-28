@@ -65,4 +65,12 @@ object Codecs {
     new String(toHex(array))
   }
 
+  /**
+   * Transform an hexadecimal String to a byte array.
+   */
+  def hexStringToByte(hexString: String): Array[Byte] = {
+    import org.apache.commons.codec.binary.Hex;
+    Hex.decodeHex(hexString.toCharArray());
+  }
+
 }

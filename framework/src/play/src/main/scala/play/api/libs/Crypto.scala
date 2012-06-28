@@ -12,6 +12,8 @@ import play.api.PlayException
  */
 object Crypto {
 
+  private def secret: Option[String] = Play.maybeApplication.flatMap(_.configuration.getString("application.secret"))
+
   /**
    * Signs the given String with HMAC-SHA1 using the given key.
    */
@@ -25,9 +27,59 @@ object Crypto {
    * Signs the given String with HMAC-SHA1 using the application’s secret key.
    */
   def sign(message: String): String = {
-    Play.maybeApplication.flatMap(_.configuration.getString("application.secret")).map(secret => sign(message, secret.getBytes)).getOrElse {
+    secret.map(secret => sign(message, secret.getBytes)).getOrElse {
       throw PlayException("Configuration error", "Missing application.secret")
     }
+  }
+
+  /**
+   * Encrypt a String with the AES encryption standard using the application secret
+   * @param value The String to encrypt
+   * @return An hexadecimal encrypted string
+   */
+  def encryptAES(value: String): String = {
+    secret.map(secret => encryptAES(value, secret.substring(0, 16))).getOrElse {
+      throw PlayException("Configuration error", "Missing application.secret")
+    }
+  }
+
+  /**
+   * Encrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
+   * @param value The String to encrypt
+   * @param privateKey The key used to encrypt
+   * @return An hexadecimal encrypted string
+   */
+  def encryptAES(value: String, privateKey: String): String = {
+    val raw = privateKey.getBytes()
+    val skeySpec = new SecretKeySpec(raw, "AES")
+    val cipher = Cipher.getInstance("AES")
+    cipher.init(Cipher.ENCRYPT_MODE, skeySpec)
+    Codecs.toHexString(cipher.doFinal(value.getBytes()))
+  }
+
+  /**
+   * Decrypt a String with the AES encryption standard using the application secret
+   * @param value An hexadecimal encrypted string
+   * @return The decrypted String
+   */
+  def decryptAES(value: String): String = {
+    secret.map(secret => decryptAES(value, secret.substring(0, 16))).getOrElse {
+      throw PlayException("Configuration error", "Missing application.secret")
+    }
+  }
+
+  /**
+   * Decrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
+   * @param value An hexadecimal encrypted string
+   * @param privateKey The key used to encrypt
+   * @return The decrypted String
+   */
+  def decryptAES(value: String, privateKey: String): String = {
+    val raw = privateKey.getBytes();
+    val skeySpec = new SecretKeySpec(raw, "AES");
+    val cipher = Cipher.getInstance("AES");
+    cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+    new String(cipher.doFinal(Codecs.hexStringToByte(value)));
   }
 
 }
