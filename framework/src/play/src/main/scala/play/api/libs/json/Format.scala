@@ -27,3 +27,4 @@ trait DefaultFormat {
   }
 
 }
+

@@ -11,6 +11,9 @@ import scala.collection._
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
 
+
+case class JsResultException(orig: JsValue, error: JsValue, globalErrors: Option[JsValue] = None) extends RuntimeException( "JsResultException(original:%s, error:%s, globals:%s)".format(orig, error, globalErrors) )
+
 /**
  * Generic json value
  */
@@ -45,7 +48,10 @@ sealed trait JsValue {
    *
    * @return Some[T] if it succeeds, None if it fails.
    */
-  def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this)).filter {
+  def asOpt[T](implicit fjs: Reads[T]): Option[T] = fjs.reads(this).fold(
+      valid = v => Some(v),
+      invalid = (_, _, _) => None
+    ).filter {
     case JsUndefined(_) => false
     case _ => true
   }
@@ -53,10 +59,33 @@ sealed trait JsValue {
   /**
    * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
    */
-  def as[T](implicit fjs: Reads[T]): T = fjs.reads(this)
+  def as[T](implicit fjs: Reads[T]): T = fjs.reads(this).fold(
+    valid = identity,
+    invalid = (o, e, g) => throw new JsResultException(o, e, g)
+  )
+
+  /**
+   * Tries to convert the node into a JsResult[T] (Success or Error). An implicit Reads[T] must be defined.
+   */
+  def validate[T](implicit fjs: Reads[T]): JsResult[T] = fjs.reads(this)
 
   override def toString = Json.stringify(this)
 
+
+  /**
+   * Concatenates this JsValue with another JsValue (only works for JsObject/JsArray).
+   */
+  def ++(other: JsValue): JsValue = JsUndefined("++" + " can only be applied on JsObject/JsArray")
+
+  /**
+   * Append an element to this JsValue (only works for JsObject/JsArray).
+   */
+  def :+(el: JsValue): JsValue = JsUndefined(":+" + " can only be applied on JsObject/JsArray")
+
+  /**
+   * Prepend an element to this JsValue (only works for JsObject/JsArray).
+   */
+  def +:(el: JsValue): JsValue = JsUndefined("+:" + " can only be applied on JsObject/JsArray")
 }
 
 /**
@@ -87,7 +116,7 @@ case class JsString(value: String) extends JsValue
 /**
  * Represent a Json arayy value.
  */
-case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
+case class JsArray(value: Seq[JsValue] = List()) extends JsValue{
 
   /**
    * Access a value of this array.
@@ -108,17 +137,20 @@ case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
   /**
    * Concatenates this array with the elements of an other array.
    */
-  def ++(other: JsArray): JsArray = JsArray(value ++ other.value)
+  override def ++(other: JsValue): JsValue = other match { 
+    case JsArray(v) => JsArray(value ++ v)
+    case _ => super.++(other)
+  }
 
   /**
    * Append an element to this array.
    */
-  def :+(el: JsValue): JsArray = JsArray(value :+ el)
+  override def :+(el: JsValue): JsArray = JsArray(value :+ el)
 
   /**
    * Prepend an element to this array.
    */
-  def +:(el: JsValue): JsArray = JsArray(el +: value)
+  override def +:(el: JsValue): JsArray = JsArray(el +: value)
 
 }
 
@@ -162,8 +194,26 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
   /**
    * Merge this object with an other one. Values from other override value of the current object.
    */
-  def ++(other: JsObject) = JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
+  override def ++(other: JsValue): JsValue = other match {
+    case o @ JsObject(_) => JsObject(fields.filterNot(field => o.keys(field._1)) ++ o.fields)
+    case _ => super.++(other)
+  }
 
+  /**
+   * Append an element to this object (only a JsObject).
+   */
+  override def :+(el: JsValue): JsValue = el match {
+    case o @ JsObject(_) => o ++ this
+    case _ => super.:+(el)
+  }
+
+  /**
+   * Prepend an element to this object (only a JsObject).
+   */
+  override def +:(el: JsValue): JsValue = el match {
+    case o @ JsObject(_) => this ++ o
+    case _ => super.:+(el)
+  }  
 }
 
 // -- Serializers.
