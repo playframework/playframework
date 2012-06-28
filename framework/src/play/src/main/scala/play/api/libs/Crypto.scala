@@ -30,4 +30,51 @@ object Crypto {
     }
   }
 
+  /**
+  * Encrypt a String with the AES encryption standard using the application secret
+  * @param value The String to encrypt
+  * @return An hexadecimal encrypted string
+  */
+  def encryptAES(value: String) : String = {
+    Play.maybeApplication.flatMap(_.configuration.getString("application.secret")).map(secret => encryptAES(value, secret.substring(0, 16).getBytes)).getOrElse {
+      throw PlayException("Configuration error", "Missing application.secret")
+    }
+  }
+  
+  /**
+  * Encrypt a String with the AES encryption standard. Key must have a length of 16 bytes
+  * @param value The String to encrypt
+  * @param key The key used to encrypt
+  * @return An hexadecimal encrypted string
+  */
+  def encryptAES(value : String, key : Array[Byte]) : String = {
+    val cipher = Cipher.getInstance("AES")
+    cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"))
+    Codecs.toHexString(cipher.doFinal(value.getBytes("utf-8")))
+  }
+
+  /**
+  * Decrypt a String with the AES encryption standard using the application secret
+  * @param value An hexadecimal encrypted string
+  * @return The decrypted String
+  */
+  def decryptAES(value: String) : String  = {
+    Play.maybeApplication.flatMap(_.configuration.getString("application.secret")).map(secret => decryptAES(value, secret.substring(0, 16).getBytes)).getOrElse {
+      throw PlayException("Configuration error", "Missing application.secret")
+    }
+  }
+  
+  /**
+  * Decrypt a String with the AES encryption standard. Key must have a length of 16 bytes
+  * @param value An hexadecimal encrypted string
+  * @param key The key used to encrypt
+  * @return The decrypted String
+  */
+    def decryptAES(value : String, key : Array[Byte]) : String = {
+    val cipher = Cipher.getInstance("AES")
+    cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"))
+    new String(cipher.doFinal(Codecs.fromHexString(value)),"utf-8")
+  }
+  
+
 }
