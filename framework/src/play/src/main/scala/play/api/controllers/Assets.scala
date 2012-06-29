@@ -44,9 +44,14 @@ object Assets extends Controller {
     // -- LastModified handling
 
     implicit val dateFormatter = {
-      val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+      val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.ENGLISH)
       formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
       formatter
+    }
+    def parseDate(date: String): Option[java.util.Date] = try {
+      Option(dateFormatter.parse(date))
+    } catch {
+      case _: Exception => None
     }
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
@@ -82,8 +87,8 @@ object Assets extends Controller {
             request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch => 
               etagFor(url).filter(_ == ifNoneMatch)
             }.map (_ => NotModified).getOrElse {
-              request.headers.get(IF_MODIFIED_SINCE).flatMap { ifModifiedSince =>
-                lastModifiedFor(url).filterNot(lastModified => dateFormatter.parse(lastModified).after(dateFormatter.parse(ifModifiedSince)))
+              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
+                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
               }.map (_ => NotModified).getOrElse {
 
                 // Prepare a streamed response
