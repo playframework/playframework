@@ -356,6 +356,15 @@ case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] =>
  */
 case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[AsyncResult] {
 
+  /**
+   * Apply some transformation to this `AsyncResult`
+   *
+   * @param f The transformation function
+   * @return The transformed `AsyncResult`
+   */
+  def transform(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
+
+
   def map(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
 
   /**
@@ -493,6 +502,7 @@ case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[
   }
 
 }
+
 
 /**
  * A Codec handle the conversion of String to Byte arrays.

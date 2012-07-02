@@ -1011,20 +1011,30 @@ public class Results {
      */
     public static class AsyncResult implements Result {
 
-        final private play.api.mvc.Result wrappedResult;
+        private final F.Promise<Result> promise;
 
-        public AsyncResult(play.libs.F.Promise<Result> p) {
-            wrappedResult = play.core.j.JavaResults.async(
-                    p.map(new play.libs.F.Function<Result,play.api.mvc.Result>() {
+        public AsyncResult(F.Promise<Result> promise) {
+            this.promise = promise;
+        }
+
+        /**
+         * Transform this asynchronous result
+         *
+         * @param f The transformation function
+         * @return The transformed AsyncResult
+         */
+        public AsyncResult transform(F.Function<Result, Result> f) {
+            return new AsyncResult(promise.map(f));
+        }
+
+        public play.api.mvc.Result getWrappedResult() {
+            return play.core.j.JavaResults.async(
+                    promise.map(new F.Function<Result,play.api.mvc.Result>() {
                         public play.api.mvc.Result apply(Result r) {
                             return play.core.j.JavaHelpers$.MODULE$.createResult(Http.Context.current(), r);
                         }
                     }).getWrappedPromise()
-                    );
-        }
-
-        public play.api.mvc.Result getWrappedResult() {
-            return this.wrappedResult;
+            );
         }
 
     }
