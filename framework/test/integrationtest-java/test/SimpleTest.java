@@ -45,7 +45,28 @@ public class SimpleTest {
         assertThat(charset(result)).isEqualTo("utf-8");
         assertThat(contentAsString(result)).contains("Hello Kiki");
     }
-    
+
+   @Test
+   public void sessionCookieShouldOverrideOldValue() {
+
+        running(fakeApplication(), new Runnable() {
+          Boolean shouldNotBeCalled = false;
+          @Override
+          public void run() {
+            FakeRequest req = fakeRequest();
+            for (int i = 0; i < 5; i++) {
+              req = req.withSession("key" + i, "value" + i);
+            }
+            for (int i = 0; i < 5; i++) {
+              if (!req.getWrappedRequest().session().get("key" + i).isDefined()) {
+                shouldNotBeCalled = true;
+              }
+            }
+            assertThat(shouldNotBeCalled).isEqualTo(false);
+          }
+        });
+   }
+
     @Test
     public void badRoute() {
         Result result = routeAndCall(fakeRequest(GET, "/xx/Kiki"));
