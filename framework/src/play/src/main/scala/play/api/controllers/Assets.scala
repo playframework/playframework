@@ -43,7 +43,7 @@ object Assets extends Controller {
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
     // -- LastModified handling
 
-    implicit val dateFormatter = {
+    implicit def dateFormatter = {
       val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.ENGLISH)
       formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
       formatter
