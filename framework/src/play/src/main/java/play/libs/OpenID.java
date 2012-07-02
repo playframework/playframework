@@ -81,6 +81,7 @@ public class OpenID {
             this.attributes = new HashMap<String, String>();
         }
         public UserInfo(String id, Map<String, String> attributes) {
+            this.id = id;
             this.attributes = attributes;
         }
     }
