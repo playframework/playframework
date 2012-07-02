@@ -34,7 +34,27 @@ public class SimpleTest {
         int a = 1 + 1;
         assertThat(a).isEqualTo(2);
     }
-    
+   @Test
+   public void sessionCookieShouldOverrideOldValue() {   
+
+        running(fakeApplication(), new Runnable() {
+          Boolean shouldNotBeCalled = false;
+          @Override
+          public void run() {
+            FakeRequest req = fakeRequest();
+            for (int i = 0; i < 5; i++) {
+              req = req.withSession("key" + i, "value" + i);
+            }
+            for (int i = 0; i < 5; i++) {
+              if (!req.getWrappedRequest().session().get("key" + i).isDefined()) {
+                shouldNotBeCalled = true;
+              }
+            }
+            assertThat(shouldNotBeCalled).isEqualTo(false);
+          }
+        });
+   }
+
     @Test
     public void renderTemplate() {
         Content html = views.html.index.render("Coco");

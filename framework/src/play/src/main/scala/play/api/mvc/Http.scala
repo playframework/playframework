@@ -585,7 +585,7 @@ package play.api.mvc {
      * @return a valid Set-Cookie header value
      */
     def merge(cookieHeader: String, cookies: Seq[Cookie], discard: Seq[String] = Nil): String = {
-      encode(decode(cookieHeader) ++ cookies, discard)
+      encode(cookies ++ decode(cookieHeader), discard)
     }
 
   }
