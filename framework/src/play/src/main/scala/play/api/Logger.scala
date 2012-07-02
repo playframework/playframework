@@ -242,7 +242,7 @@ object Logger extends LoggerLike {
             }.
             orElse {
               if (mode != Mode.Test) {
-                Option(this.getClass.getClassLoader.getResource("logger.xml"))
+                Option(this.getClass.getClassLoader.getResource("application-logger.xml")).orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
               } else {
                 None
               }
