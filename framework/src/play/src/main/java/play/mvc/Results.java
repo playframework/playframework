@@ -1012,6 +1012,7 @@ public class Results {
     public static class AsyncResult implements Result {
 
         private final F.Promise<Result> promise;
+        private final Http.Context context = Http.Context.current();
 
         public AsyncResult(F.Promise<Result> promise) {
             this.promise = promise;
@@ -1031,7 +1032,7 @@ public class Results {
             return play.core.j.JavaResults.async(
                     promise.map(new F.Function<Result,play.api.mvc.Result>() {
                         public play.api.mvc.Result apply(Result r) {
-                            return play.core.j.JavaHelpers$.MODULE$.createResult(Http.Context.current(), r);
+                            return play.core.j.JavaHelpers$.MODULE$.createResult(context, r);
                         }
                     }).getWrappedPromise()
             );
