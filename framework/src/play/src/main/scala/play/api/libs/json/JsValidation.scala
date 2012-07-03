@@ -47,12 +47,9 @@ object JsMapper {
         jsc1._1.asSingleJsResult(json), 
         jsc2._1.asSingleJsResult(json)
       ).flatMap{ case (js1, js2) => product(
-        jsc1._2(js1), 
-        jsc2._2(js2)
-      )}.fold(
-        valid = { case (a1, a2) => JsSuccess(apply(a1, a2)) },
-        invalid = (o, e, g) => JsError(json, e, g)
-      )
+        jsc1._2(js1).repath(jsc1._1), 
+        jsc2._2(js2).repath(jsc2._1)
+      )}.map{ case(a1, a2) => apply(a1, a2) }.rebase(json)
 
       def writes(t: T): JsValue = {
         unapply(t) match {
@@ -75,13 +72,10 @@ object JsMapper {
         jsc3._1.asSingleJsResult(json)
       ).flatMap{ case (js1, js2, js3) => 
        product(
-        jsc1._2(js1), 
-        jsc2._2(js2), 
-        jsc3._2(js3)
-      ) }.fold(
-        valid = { case(a1, a2, a3) => JsSuccess(apply(a1, a2, a3)) },
-        invalid = (o, e, g) => JsError(json, e, g)
-      )
+        jsc1._2(js1).repath(jsc1._1), 
+        jsc2._2(js2).repath(jsc2._1), 
+        jsc3._2(js3).repath(jsc3._1)
+      ) }.map{ case(a1, a2, a3) => apply(a1, a2, a3) }.rebase(json)
 
       def writes(t: T): JsValue = {
         unapply(t) match {

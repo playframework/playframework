@@ -121,8 +121,8 @@ object JsonValidSpec extends Specification {
   )(User)(User.unapply)
 
 
-  "JSON validators" should {
-    "validate case class" in {
+  "JSON validators very simple case class" should {
+    "validate simple case class" in {
       val bobby = User("bobby")
       val js = Json.toJson(bobby)
       js.validate[User] must equalTo(JsSuccess(bobby))
@@ -146,7 +146,8 @@ object JsonValidSpec extends Specification {
       js.validate[User] must equalTo(
         JsError(
           js, 
-          JsPath \ "name" -> Seq(ValidationError("validation.error.missing-path"))))
+          JsPath \ "name" -> Seq(ValidationError("validation.error.missing-path"
+            ))))
     }
   }
 
