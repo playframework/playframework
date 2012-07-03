@@ -27,10 +27,7 @@ object JsMapper {
            (apply: Function1[A1, T])(unapply: Function1[T, Option[A1]])
            (implicit w1: Writes[A1]) = {
     new Format[T] {
-      def reads(json: JsValue): JsResult[T] = jsc1._1.asSingleJsResult(json).flatMap(jsc1._2(_)).fold(
-        valid = a1 => JsSuccess(apply(a1)),
-        invalid = (o, e, g) => JsError(json, e, g)
-      )
+      def reads(json: JsValue): JsResult[T] = jsc1._1.asSingleJsResult(json).flatMap(jsc1._2(_).repath(jsc1._1)).map(apply(_)).rebase(json)
       
       def writes(t: T): JsValue = {
         unapply(t) match {

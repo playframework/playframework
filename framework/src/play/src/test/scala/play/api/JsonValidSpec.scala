@@ -83,7 +83,7 @@ object JsonValidSpec extends Specification {
         JsError(
           Json.arr("alpha", 5, true),
           JsPath(0) -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath(1) -> Seq(ValidationError("validate.error.expected.jsnumber"))
+          JsPath(2) -> Seq(ValidationError("validate.error.expected.jsnumber"))
         )
       )
     }
@@ -95,7 +95,7 @@ object JsonValidSpec extends Specification {
             (js \ "key1").validate[Int],
             (js \ "key2").validate[String],
             (js \ "key3").validate[List[Float]]
-          )
+          ).rebase(js)
         }
       }
 
@@ -112,12 +112,12 @@ object JsonValidSpec extends Specification {
   case class User(name: String)
 
   def minLength(length: Int): Constraint[String] = Constraint[String]("constraint.js.minLength", length) { 
-    case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validation.error.minLength", JsNumber(length))))
+    case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validate.error.minLength", JsNumber(length))))
     case js => JsError(js, JsPath() -> Seq(ValidationError("error.expected.jsstring")))
   }
   
   implicit val UserFormat = JsMapper(
-    JsPath \ "name" -> of[String]
+    JsPath \ "name" -> minLength(5)
   )(User)(User.unapply)
 
 
@@ -128,11 +128,16 @@ object JsonValidSpec extends Specification {
       js.validate[User] must equalTo(JsSuccess(bobby))
     }
 
+    "fail validation when constraints are not respected " in {
+      val obj = Json.obj("name" -> 5)
+      obj.validate[User] must equalTo(JsError(obj, JsPath \ 'name -> Seq(ValidationError("error.expected.jsstring"))))
+    }
+
     "fail validation when rules are not respected " in {
       val bob = User("bob")
       val js = Json.toJson(bob)
       // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
-      js.validate[User] must equalTo(JsError(JsString("bob"), JsPath \ "name" -> Seq(ValidationError("validation.error.minLength", JsNumber(5)))))
+      js.validate[User] must equalTo(JsError(js, JsPath \ "name" -> Seq(ValidationError("validate.error.minLength", JsNumber(5)))))
     }
 
     "fail validation when field missing" in {
@@ -141,8 +146,7 @@ object JsonValidSpec extends Specification {
       js.validate[User] must equalTo(
         JsError(
           js, 
-          Seq(), 
-          Seq(ValidationError("validation.error.missing-path", JsString("/name")))))
+          JsPath \ "name" -> Seq(ValidationError("validation.error.missing-path"))))
     }
   }
 

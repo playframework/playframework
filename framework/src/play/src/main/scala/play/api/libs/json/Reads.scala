@@ -47,6 +47,9 @@ sealed trait JsResult[T] {
     }
   }
 
+  def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
+  def repath(path: JsPath): JsResult[T] = fold(valid = JsSuccess(_), invalid = (o, e, g) => JsError(o, e.map{ case (p, s) => path ++ p -> s }, g))
+
   def get[T]
 
   def getOrElse[T](t: T) = this match {
@@ -244,7 +247,7 @@ trait DefaultReads {
             case JsSuccess(v) => Right( (key, v, value) )
             case JsError(o, e, g) =>
               hasErrors = true
-              Left( ( e.map{ case (p, valerr) => (JsPath \ "key") ++ p -> valerr }, g) )
+              Left( ( e.map{ case (p, valerr) => (JsPath \ key) ++ p -> valerr }, g) )
           } 
         }
 
@@ -272,11 +275,11 @@ trait DefaultReads {
 
         // first validates prod separates JsError / JsResult in an Seq[Either]
         // the aim is to find all errors prod then to merge them all
-        val r = ts.map { elt => fromJson[A](elt)(ra) match {
+        val r = ts.zipWithIndex.map { case (elt, idx) => fromJson[A](elt)(ra) match {
             case JsSuccess(v) => Right(v)
             case JsError(o, e, g) => 
               hasErrors = true
-              Left( ( e.map{ case (p, valerr) => (JsPath \ "key") ++ p -> valerr }, g) )
+              Left( ( e.map{ case (p, valerr) => (JsPath(idx)) ++ p -> valerr }, g) )
           }
         }
 
