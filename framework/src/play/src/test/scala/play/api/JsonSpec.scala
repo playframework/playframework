@@ -6,27 +6,35 @@ import play.api.libs.json.Json._
 import play.api.libs.json.Generic._
 import play.api.libs.json.JsResultHelpers._
 import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
+import play.api.libs.json.Constraint._
 
 import scala.util.control.Exception._
 import java.text.ParseException
+
+import play.api.data.validation.ValidationError 
 
 object JsonSpec extends Specification {
 
   case class User(id: Long, name: String, friends: List[User])
 
-  implicit object UserFormat extends Format[User] {
-    def reads(json: JsValue): JsResult[User] = 
-      product( 
-        (json \ "id").validate[Long],
-        (json \ "name").validate[String],
-        (json \ "friends").validate[List[User]]).map{ case (id, name, friends) => User(id, name, friends) }
+ implicit lazy val UserFormat: Format[User] = JsMapper(
+    JsPath \ "id" -> of[Long],
+    JsPath \ "name" -> of[String],
+    JsPath \ "friends" -> of[List[User]]
+  )(User.apply)(User.unapply)
+    /*extends Format[User] {
+    def reads(json: JsValue): JsResult[User] = product(
+      JsPath \ "id" -> of[Long],
+      JsPath \ "name" -> of[String],
+      JsPath \ "friends" -> of[List[User]]).map{ case (id, name, friends) => User(id, name, friends) }
 
     def writes(u: User): JsValue = Json.obj(
       "id" -> u.id,
       "name" -> u.name,
       "friends" -> u.friends.map(fr => toJson(fr))
     )
-  }
+  }*/
 
   case class Car(id: Long, models: Map[String, String])
 
@@ -43,8 +51,8 @@ object JsonSpec extends Specification {
   implicit object DateFormat extends Reads[Date] {
     def reads(json: JsValue): JsResult[Date] = json match {
         // Need to throw a RuntimeException, ParseException beeing out of scope of asOpt
-        case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).map(JsSuccess(_)).getOrElse(JsError(json, JsErrorObj(json, "parse.exception")))
-        case _ => JsError(json, JsErrorObj(json, "parse.exception"))
+        case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).map(JsSuccess(_)).getOrElse(JsError(json, JsPath() -> Seq(ValidationError( "parse.exception" ))))
+        case _ => JsError(json, JsPath() -> Seq(ValidationError( "parse.exception" )))
     }
   }
 
@@ -61,9 +69,10 @@ object JsonSpec extends Specification {
     "serialize and desarialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))
       val jsonCar = toJson(c)
+
       jsonCar.as[Car] must equalTo(c)
     }
-    "serialize and deserialize" in {
+    /*"serialize and deserialize" in {
       val luigi = User(1, "Luigi", List())
       val kinopio = User(2, "Kinopio", List())
       val yoshi = User(3, "Yoshi", List())
@@ -71,7 +80,7 @@ object JsonSpec extends Specification {
       val jsonMario = toJson(mario)
       jsonMario.as[User] must equalTo(mario)
       (jsonMario \\ "name") must equalTo(Seq(JsString("Mario"), JsString("Luigi"), JsString("Kinopio"), JsString("Yoshi")))
-    }
+    }*/
     "Complete JSON should create full Post object" in {
       val postJson = """{"body": "foobar", "created_at": "2011-04-22T13:33:48Z"}"""
       val expectedPost = Post("foobar", Some(dateParser.parse("2011-04-22T13:33:48Z")))
@@ -146,12 +155,15 @@ object JsonSpec extends Specification {
     }
 
     "generate validation error when parsing " in {
-      val obj = Json.obj(
+      /*val obj = Json.obj(
         "id" -> 1, 
         "name" -> "bob", 
         "friends" -> 5)
 
-      obj.validate[User] must equalTo(JsError(JsNumber(5), JsErrorObj(JsNumber(5), "validate.error.expected.jsarray")))
+      obj.validate[User] must equalTo(JsError(obj, JsPath \ 'friends -> Seq(ValidationError("validate.error.expected.jsarray"))))*/
+      UserFormat.toString must equalTo("blabla")
+
+
     }
 
   }

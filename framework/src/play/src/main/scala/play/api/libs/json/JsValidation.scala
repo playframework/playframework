@@ -1,5 +1,8 @@
 package play.api.libs.json
 
+import play.api.data.validation.ValidationError
+import JsResultHelpers._
+
 case class Constraint[T](name: Option[String], args: Seq[Any])(f: (JsValue => JsResult[T])) {
 
   /**
@@ -13,26 +16,86 @@ case class Constraint[T](name: Option[String], args: Seq[Any])(f: (JsValue => Js
 
 object Constraint {
   def apply[T](name: String, args: Any*)(f: (JsValue => JsResult[T])): Constraint[T] = Constraint(Some(name), args.toSeq)(f)
+
+  def of[T](implicit r: Reads[T]): Constraint[T] = Constraint(None, Seq())(js => r.reads(js))
+
+  //def list[T]: Constraint[List[T]] = Constraint(None, Seq())( json => JsError[List[T]](json) )
 }
 
-object JsValidator {
-  def apply[T, A1](constraint1: (JsPath, Constraint[A1]))
+object JsMapper {
+  def apply[T, A1](jsc1: (JsPath, Constraint[A1]))
            (apply: Function1[A1, T])(unapply: Function1[T, Option[A1]])
            (implicit w1: Writes[A1]) = {
     new Format[T] {
-      def reads(json: JsValue): JsResult[T] = constraint1 match {
-        case (path, constr) => path(json) match {
-          case Nil => JsError(json, json, Some(Json.arr(JsErrorObj(json, "validation.error.missing-path", JsString(constraint1._1.toString)))))
-          case List(js) => constr(js).fold( 
-            valid = a1 => JsSuccess(apply(a1)), 
-            invalid = (o, e, g) => JsError(o, path.set(json, e), g)
-          )
+      def reads(json: JsValue): JsResult[T] = jsc1._1.asSingleJsResult(json).flatMap(jsc1._2(_)).fold(
+        valid = a1 => JsSuccess(apply(a1)),
+        invalid = (o, e, g) => JsError(json, e, g)
+      )
+      
+      def writes(t: T): JsValue = {
+        unapply(t) match {
+          case Some(a1) => jsc1._1.set(Json.obj(), Json.toJson(a1))
+          case _ => JsUndefined("couldn't find the right type when calling unapply")
         }
-      }  
+      }
+    }
+  }
+
+  def apply[T, A1, A2](jsc1: (JsPath, Constraint[A1]),
+              jsc2: (JsPath, Constraint[A2]))
+           (apply: (A1, A2) => T)(unapply: T => Option[Product2[A1, A2]])
+           (implicit w1: Writes[A1], w2: Writes[A2]) = {
+    new Format[T] {
+      def reads(json: JsValue): JsResult[T] = product(
+        jsc1._1.asSingleJsResult(json), 
+        jsc2._1.asSingleJsResult(json)
+      ).flatMap{ case (js1, js2) => product(
+        jsc1._2(js1), 
+        jsc2._2(js2)
+      )}.fold(
+        valid = { case (a1, a2) => JsSuccess(apply(a1, a2)) },
+        invalid = (o, e, g) => JsError(json, e, g)
+      )
 
       def writes(t: T): JsValue = {
         unapply(t) match {
-          case Some(a1) => constraint1._1.set(Json.obj(), Json.toJson(a1))
+          case Some((a1, a2)) => jsc2._1.set(jsc1._1.set(Json.obj(), Json.toJson(a1)), Json.toJson(a2))
+          case _ => JsUndefined("couldn't find the right type when calling unapply")
+        }
+      }
+    }
+  }
+
+  def apply[T, A1, A2, A3](jsc1: (JsPath, Constraint[A1]),
+              jsc2: (JsPath, Constraint[A2]),
+              jsc3: (JsPath, Constraint[A3]))
+           (apply: (A1, A2, A3) => T)(unapply: T => Option[Product3[A1, A2, A3]])
+           (implicit w1: Writes[A1], w2: Writes[A2], w3: Writes[A3]) = {
+    new Format[T] {
+      def reads(json: JsValue): JsResult[T] = product(
+        jsc1._1.asSingleJsResult(json), 
+        jsc2._1.asSingleJsResult(json), 
+        jsc3._1.asSingleJsResult(json)
+      ).flatMap{ case (js1, js2, js3) => 
+       product(
+        jsc1._2(js1), 
+        jsc2._2(js2), 
+        jsc3._2(js3)
+      ) }.fold(
+        valid = { case(a1, a2, a3) => JsSuccess(apply(a1, a2, a3)) },
+        invalid = (o, e, g) => JsError(json, e, g)
+      )
+
+      def writes(t: T): JsValue = {
+        unapply(t) match {
+          case Some((a1, a2, a3)) => 
+            jsc3._1.set(
+              jsc2._1.set(
+                jsc1._1.set(Json.obj(), Json.toJson(a1)), 
+                Json.toJson(a2)
+              ),
+              Json.toJson(a3)
+            )
           case _ => JsUndefined("couldn't find the right type when calling unapply")
         }
       }

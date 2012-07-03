@@ -10,9 +10,10 @@ import scala.collection._
 
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
+import play.api.data.validation.ValidationError
 
 
-case class JsResultException(orig: JsValue, error: JsValue, globalErrors: Option[JsValue] = None) extends RuntimeException( "JsResultException(original:%s, error:%s, globals:%s)".format(orig, error, globalErrors) )
+case class JsResultException(original: JsValue, errors: Seq[(JsPath, Seq[ValidationError])], globalErrors: Seq[ValidationError]) extends RuntimeException( "JsResultException(original:%s, errors:%s, globalErrors:%s)".format(original, errors, globalErrors) )
 
 /**
  * Generic json value

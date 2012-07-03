@@ -1,21 +1,30 @@
 package play.api.libs.json
 
+import play.api.data.validation.ValidationError
+
 sealed trait PathNode {
   def apply(json: JsValue): List[JsValue]
+
   def recursive: Boolean = false
   def splitChildren(json: JsValue): List[Either[(PathNode, JsValue), (PathNode, JsValue)]]
   def set(json: JsValue, transform: JsValue => JsValue): JsValue
   def toJsonField(value: JsValue): JsValue
+
+  def toJsonString: String
 }
  
 case class KeyPathNode(key: String, override val recursive: Boolean = false) extends PathNode{
 
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => if(recursive) (json \\ key).toList else List(json \ key)
+    case obj: JsObject => (if(recursive) (json \\ key).toList else List(json \ key)).filterNot{ 
+      case JsUndefined(_) => true 
+      case _ => false
+    }
     case _ => List()
   }
 
   override def toString = (if(recursive) "//" else "/") + key
+  def toJsonString = (if(recursive) "*." else ".") + key
 
   def splitChildren(json: JsValue) = json match {
     case obj: JsObject => obj.fields.toList.map{ case (k,v) => 
@@ -54,6 +63,7 @@ case class IdxPathNode(idx: Int) extends PathNode {
   }
 
   override def toString = "(%d)".format(idx)
+  def toJsonString = "[%d]".format(idx)
 
   def splitChildren(json: JsValue) = json match {
     case arr: JsArray => arr.value.toList.zipWithIndex.map{ case (js, j) => 
@@ -107,7 +117,17 @@ case class JsPath(path: List[PathNode] = List()) {
     step(path, json)
   }
 
+  def asSingleJsResult(json: JsValue): JsResult[JsValue] = this(json) match {
+    case Nil => JsError(json, this -> Seq(ValidationError("validation.error.missing-path")))
+    case List(js) => JsSuccess(js)
+    case head :: tail => JsError(json, this -> Seq(ValidationError("validation.error.multiple-result-path")))
+  }
+
   override def toString = path.foldLeft("")((acc, p) => acc + p.toString)
+  def toJsonString = path.foldLeft("obj")((acc, p) => acc + p.toJsonString)
+
+  def compose(other: JsPath) = JsPath(path ++ other.path)
+  def ++(other: JsPath) = this compose other
 
   def set(origin: JsValue, newElt: JsValue): JsValue = set(origin, js => newElt)
 

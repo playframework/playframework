@@ -8,6 +8,8 @@ import play.api.libs.json.JsResultHelpers._
 import play.api.libs.json.Reads._
 import scala.util.control.Exception._
 import java.text.ParseException
+import play.api.data.validation.ValidationError
+import Constraint._
 
 object JsonValidSpec extends Specification {
   "JSON reads" should {
@@ -22,9 +24,9 @@ object JsonValidSpec extends Specification {
     }
 
     "invalidate wrong simple type conversion" in {
-      JsString("string").validate[Long] must equalTo(JsError(JsString("string"), JsErrorObj(JsString("string"), "validate.error.expected.jsnumber")))
-      JsNumber(5).validate[String] must equalTo(JsError(JsNumber(5), JsErrorObj(JsNumber(5), "validate.error.expected.jsstring")))
-      JsBoolean(false).validate[Double] must equalTo(JsError(JsBoolean(false), JsErrorObj(JsBoolean(false), "validate.error.expected.jsnumber")))
+      JsString("string").validate[Long] must equalTo(JsError(JsString("string"), JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      JsNumber(5).validate[String] must equalTo(JsError(JsNumber(5), JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
+      JsBoolean(false).validate[Double] must equalTo(JsError(JsBoolean(false), JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
 
     "validate simple numbered type conversion" in {
@@ -45,20 +47,17 @@ object JsonValidSpec extends Specification {
       Json.obj("key1" -> "value1", "key2" -> "value2", "key3" -> "value3").validate[Map[String, Int]] must equalTo(
         JsError(
           Json.obj("key1" -> "value1", "key2" -> "value2", "key3" -> "value3"),
-          Json.obj(
-            "key1" -> JsErrorObj(JsString("value1"), "validate.error.expected.jsnumber"),
-            "key2" -> JsErrorObj(JsString("value2"), "validate.error.expected.jsnumber"),
-            "key3" -> JsErrorObj(JsString("value3"), "validate.error.expected.jsnumber")
-          ))
+          JsPath \ "key1" -> Seq(ValidationError("validate.error.expected.jsnumber")),
+          JsPath \ "key2" -> Seq(ValidationError("validate.error.expected.jsnumber")),
+          JsPath \ "key3" -> Seq(ValidationError("validate.error.expected.jsnumber"))
+        )
       )
 
       Json.obj("key1" -> "value1", "key2" -> 5, "key3" -> true).validate[Map[String, Int]] must equalTo(
         JsError(
           Json.obj("key1" -> "value1", "key2" -> 5, "key3" -> true),
-          Json.obj(
-            "key1" -> JsErrorObj(JsString("value1"), "validate.error.expected.jsnumber"),
-            "key3" -> JsErrorObj(JsBoolean(true), "validate.error.expected.jsnumber")
-          )
+          JsPath \ "key1" -> Seq(ValidationError("validate.error.expected.jsnumber")),
+          JsPath \  "key3" -> Seq(ValidationError("validate.error.expected.jsnumber"))
         )
       )
     }
@@ -74,21 +73,17 @@ object JsonValidSpec extends Specification {
       Json.arr("alpha", "beta", "delta").validate[List[Int]] must equalTo(
         JsError(
           Json.arr("alpha", "beta", "delta"),
-          Json.arr(
-            JsErrorObj(JsString("alpha"), "validate.error.expected.jsnumber"),
-            JsErrorObj(JsString("beta"), "validate.error.expected.jsnumber"),
-            JsErrorObj(JsString("delta"), "validate.error.expected.jsnumber")
-          )
+          JsPath(0) -> Seq(ValidationError("validate.error.expected.jsnumber")),
+          JsPath(1) -> Seq(ValidationError("validate.error.expected.jsnumber")),
+          JsPath(2) -> Seq(ValidationError("validate.error.expected.jsnumber"))
         )
       )
 
       Json.arr("alpha", 5, true).validate[List[Int]] must equalTo(
         JsError(
           Json.arr("alpha", 5, true),
-          Json.arr(
-            JsErrorObj(JsString("alpha"), "validate.error.expected.jsnumber"),
-            JsErrorObj(JsBoolean(true), "validate.error.expected.jsnumber")
-          )
+          JsPath(0) -> Seq(ValidationError("validate.error.expected.jsnumber")),
+          JsPath(1) -> Seq(ValidationError("validate.error.expected.jsnumber"))
         )
       )
     }
@@ -109,7 +104,7 @@ object JsonValidSpec extends Specification {
 
       val badObj = Json.obj("key1" -> 5, "key2" -> true, "key3" -> List(1.234F, 4.543F, 8.987F))
       // AT THE END SHOULD BE badObj.validate[(Int, String, List[Float])] must equalTo(JsError(badObj, JsErrorObj(JsBoolean(true), "validate.error.expected.jsstring")))
-      badObj.validate[(Int, String, List[Float])] must equalTo(JsError(JsBoolean(true), JsErrorObj(JsBoolean(true), "validate.error.expected.jsstring")))
+      badObj.validate[(Int, String, List[Float])] must equalTo(JsError(badObj, JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
 
   }
@@ -117,12 +112,12 @@ object JsonValidSpec extends Specification {
   case class User(name: String)
 
   def minLength(length: Int): Constraint[String] = Constraint[String]("constraint.js.minLength", length) { 
-    case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsErrorObj(js, "validation.error.minLength", JsNumber(length)))
-    case js => JsError(js, JsErrorObj(js, "error.expected.jsstring"))
+    case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validation.error.minLength", JsNumber(length))))
+    case js => JsError(js, JsPath() -> Seq(ValidationError("error.expected.jsstring")))
   }
   
-  implicit val UserFormat = JsValidator(
-    JsPath \ "name" -> minLength(5)
+  implicit val UserFormat = JsMapper(
+    JsPath \ "name" -> of[String]
   )(User)(User.unapply)
 
 
@@ -137,7 +132,7 @@ object JsonValidSpec extends Specification {
       val bob = User("bob")
       val js = Json.toJson(bob)
       // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
-      js.validate[User] must equalTo(JsError(JsString("bob"), Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
+      js.validate[User] must equalTo(JsError(JsString("bob"), JsPath \ "name" -> Seq(ValidationError("validation.error.minLength", JsNumber(5)))))
     }
 
     "fail validation when field missing" in {
@@ -146,8 +141,8 @@ object JsonValidSpec extends Specification {
       js.validate[User] must equalTo(
         JsError(
           js, 
-          Json.obj("nick" -> "bob"), 
-          Some(Json.arr(JsErrorObj(js, "validation.error.missing-path", JsString("/name"))))))
+          Seq(), 
+          Seq(ValidationError("validation.error.missing-path", JsString("/name")))))
     }
   }
 
