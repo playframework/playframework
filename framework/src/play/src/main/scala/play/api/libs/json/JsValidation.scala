@@ -3,31 +3,16 @@ package play.api.libs.json
 import play.api.data.validation.ValidationError
 import JsResultHelpers._
 
-case class Constraint[T](name: Option[String], args: Seq[Any])(f: (JsValue => JsResult[T])) {
-
-  /**
-   * Run the constraint validation.
-   *
-   * @param t the value to validate
-   * @return the validation result
-   */
-  def apply(json: JsValue): JsResult[T] = f(json)
-}
-
 object Constraint {
-  def apply[T](name: String, args: Any*)(f: (JsValue => JsResult[T])): Constraint[T] = Constraint(Some(name), args.toSeq)(f)
-
-  def of[T](implicit r: Reads[T]): Constraint[T] = Constraint(None, Seq())(js => r.reads(js))
-
-  //def list[T]: Constraint[List[T]] = Constraint(None, Seq())( json => JsError[List[T]](json) )
+  def of[T](implicit r: Reads[T]): Reads[T] = r
 }
 
 object JsMapper {
-  def apply[T, A1](jsc1: (JsPath, Constraint[A1]))
+  def apply[T, A1](jsc1: (JsPath, Reads[A1]))
            (apply: Function1[A1, T])(unapply: Function1[T, Option[A1]])
            (implicit w1: Writes[A1]) = {
     new Format[T] {
-      def reads(json: JsValue): JsResult[T] = jsc1._1.asSingleJsResult(json).flatMap(jsc1._2(_).repath(jsc1._1)).map(apply(_)).rebase(json)
+      def reads(json: JsValue): JsResult[T] = jsc1._1.asSingleJsResult(json).flatMap(jsc1._2.reads(_).repath(jsc1._1)).map(apply(_)).rebase(json)
       
       def writes(t: T): JsValue = {
         unapply(t) match {
@@ -38,8 +23,8 @@ object JsMapper {
     }
   }
 
-  def apply[T, A1, A2](jsc1: (JsPath, Constraint[A1]),
-              jsc2: (JsPath, Constraint[A2]))
+  def apply[T, A1, A2](jsc1: (JsPath, Reads[A1]),
+              jsc2: (JsPath, Reads[A2]))
            (apply: (A1, A2) => T)(unapply: T => Option[Product2[A1, A2]])
            (implicit w1: Writes[A1], w2: Writes[A2]) = {
     new Format[T] {
@@ -47,8 +32,8 @@ object JsMapper {
         jsc1._1.asSingleJsResult(json), 
         jsc2._1.asSingleJsResult(json)
       ).flatMap{ case (js1, js2) => product(
-        jsc1._2(js1).repath(jsc1._1), 
-        jsc2._2(js2).repath(jsc2._1)
+        jsc1._2.reads(js1).repath(jsc1._1), 
+        jsc2._2.reads(js2).repath(jsc2._1)
       )}.map{ case(a1, a2) => apply(a1, a2) }.rebase(json)
 
       def writes(t: T): JsValue = {
@@ -60,9 +45,9 @@ object JsMapper {
     }
   }
 
-  def apply[T, A1, A2, A3](jsc1: (JsPath, Constraint[A1]),
-              jsc2: (JsPath, Constraint[A2]),
-              jsc3: (JsPath, Constraint[A3]))
+  def apply[T, A1, A2, A3](jsc1: (JsPath, Reads[A1]),
+              jsc2: (JsPath, Reads[A2]),
+              jsc3: (JsPath, Reads[A3]))
            (apply: (A1, A2, A3) => T)(unapply: T => Option[Product3[A1, A2, A3]])
            (implicit w1: Writes[A1], w2: Writes[A2], w3: Writes[A3]) = {
     new Format[T] {
@@ -72,9 +57,9 @@ object JsMapper {
         jsc3._1.asSingleJsResult(json)
       ).flatMap{ case (js1, js2, js3) => 
        product(
-        jsc1._2(js1).repath(jsc1._1), 
-        jsc2._2(js2).repath(jsc2._1), 
-        jsc3._2(js3).repath(jsc3._1)
+        jsc1._2.reads(js1).repath(jsc1._1), 
+        jsc2._2.reads(js2).repath(jsc2._1), 
+        jsc3._2.reads(js3).repath(jsc3._1)
       ) }.map{ case(a1, a2, a3) => apply(a1, a2, a3) }.rebase(json)
 
       def writes(t: T): JsValue = {

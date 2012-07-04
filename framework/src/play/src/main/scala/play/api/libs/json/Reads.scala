@@ -9,6 +9,7 @@ import play.api.data.validation.ValidationError
 case class JsSuccess[T](value: T) extends JsResult[T] {
   def get[T] = value
 }
+
 case class JsError[T](original: JsValue, errors: Seq[(JsPath, Seq[ValidationError])], globalErrors: Seq[ValidationError]) extends JsResult[T] {
   def get[T] = throw new NoSuchElementException("JsError[T].get")
 
@@ -47,6 +48,30 @@ sealed trait JsResult[T] {
     }
   }
 
+  def and(other: JsResult[T]): JsResult[T] = {
+    (this, other) match {
+      case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
+      case (JsError(o, e, g), JsSuccess(v)) => JsError[T](o, e, g)
+      case (JsSuccess(v), JsError(o, e, g)) => JsError[T](o, e, g)
+      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[T](o ++ o2, 
+        (e ++ e2).distinct.groupBy{ case(path, _) => path }.map{ case(k, v) => k -> v.map(_._2).flatten }.toSeq,
+        g ++ g2)
+      case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
+    }
+  }
+
+  def or(other: JsResult[T]): JsResult[T] = {
+    (this, other) match {
+      case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
+      case (JsError(o, e, g), JsSuccess(t)) => JsSuccess(t)
+      case (JsSuccess(t), JsError(o, e, g)) => JsSuccess(t)
+      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[T](o ++ o2, 
+        (e ++ e2).distinct.groupBy{ case(path, _) => path }.map{ case(k, v) => k -> v.map(_._2).flatten }.toSeq,
+        g ++ g2)
+      case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
+    }
+  }
+
   def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
   def repath(path: JsPath): JsResult[T] = fold(valid = JsSuccess(_), invalid = (o, e, g) => JsError(o, e.map{ case (p, s) => path ++ p -> s }, g))
 
@@ -77,12 +102,19 @@ sealed trait JsResult[T] {
   "No Json deserializer found for type ${T}. Try to implement an implicit Reads or Format for this type."
 )
 trait Reads[T] {
-
+  self =>
   /**
    * Convert the JsValue into a T
    */
   def reads(json: JsValue): JsResult[T]
 
+  def and(other: Reads[T]) = new Reads[T] {
+    def reads(json: JsValue): JsResult[T] = self.reads(json) and other.reads(json)
+  }
+
+  def or(other: Reads[T]) = new Reads[T] {
+    def reads(json: JsValue): JsResult[T] = self.reads(json) or other.reads(json)
+  }
 
   /**
    * builds a JsErrorObj JsObject
