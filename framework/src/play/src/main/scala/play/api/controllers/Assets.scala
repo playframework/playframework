@@ -10,7 +10,8 @@ import Play.current
 import java.io._
 import java.net.JarURLConnection
 import scalax.io.{ Resource }
-import java.text.SimpleDateFormat
+import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
+import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 
 /**
@@ -34,6 +35,16 @@ import collection.JavaConverters._
  */
 object Assets extends Controller {
 
+  //Dateformatter is immutable and threadsafe
+  private val df: DateTimeFormatter = 
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss zzz").withLocale(java.util.Locale.ENGLISH).withZoneUTC
+  
+  //Dateformatter is immutable and threadsafe
+  private val dfp: DateTimeFormatter = 
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZoneUTC
+  
+  private val parsableTimezoneCode = " "+dfp.getZone
+
   /**
    * Generates an `Action` that serves a static resource.
    *
@@ -41,6 +52,16 @@ object Assets extends Controller {
    * @param file the file part extracted from the URL
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
+    // -- LastModified handling
+
+      
+    def parseDate(date: String): Option[java.util.Date] = try {
+      //jodatime does not parse timezones, so we handle that manually
+      val d = dfp.parseDateTime(date.replace(parsableTimezoneCode,"")).toDate
+      Some(d)
+    } catch {
+      case _: Exception => None
+    }
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
 
@@ -72,12 +93,11 @@ object Assets extends Controller {
           if(length == 0) {
             NotFound
           } else {
-            
-             request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch => 
+            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch => 
               etagFor(url).filter(_ == ifNoneMatch)
             }.map (_ => NotModified).getOrElse {
-              request.headers.get(IF_MODIFIED_SINCE).flatMap { ifModifiedSince =>
-                lastModifiedFor(url).filterNot(lastModified => dateFormatter.parse(lastModified).after(dateFormatter.parse(ifModifiedSince)))
+              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
+                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
               }.map (_ => NotModified).getOrElse {
 
                 // Prepare a streamed response
@@ -98,7 +118,7 @@ object Assets extends Controller {
 
                 // Add Etag if we are able to compute it
                 val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified, DATE -> dateFormatter.format(new java.util.Date))).getOrElse(taggedResponse)
+                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified, DATE -> df.print({new java.util.Date}.getTime))).getOrElse(taggedResponse)
 
                 // Add Cache directive if configured
                 val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
@@ -115,8 +135,8 @@ object Assets extends Controller {
             }
 
           }
-            
-        }  
+
+        }
 
       }.getOrElse(NotFound)
 
@@ -124,20 +144,12 @@ object Assets extends Controller {
 
   }
 
-  // -- LastModified handling
-
-  private val dateFormatter = {
-    val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-    formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
-    formatter
-  }
-
-  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
+  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeLastModified = resource.getProtocol match {
-        case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
+        case "file" => Some(df.print({new java.util.Date(new java.io.File(resource.getPath).lastModified).getTime}))
         case "jar" => {
             resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
               Option(resource.openConnection)
@@ -145,7 +157,7 @@ object Assets extends Controller {
                .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
                .map(_.getTime)
                .filterNot(_ == 0)
-               .map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
+               .map(lastModified => df.print({new java.util.Date(lastModified)}.getTime)) 
             }
         }
         case _ => None
@@ -157,7 +169,7 @@ object Assets extends Controller {
 
   // -- ETags handling
 
-  private val etags = (new java.util.concurrent.ConcurrentHashMap[String,String]()).asScala
+  private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
   private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
@@ -168,4 +180,3 @@ object Assets extends Controller {
   }
 
 }
-
