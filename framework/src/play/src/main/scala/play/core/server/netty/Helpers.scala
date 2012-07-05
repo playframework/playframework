@@ -1,27 +1,15 @@
 package play.core.server.netty
 
-import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
-import org.jboss.netty.bootstrap._
-import org.jboss.netty.channel.Channels._
 import org.jboss.netty.handler.codec.http._
-import org.jboss.netty.channel.socket.nio._
-import org.jboss.netty.handler.stream._
-import org.jboss.netty.handler.codec.http.HttpHeaders._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 
-import org.jboss.netty.channel.group._
-import java.util.concurrent._
 
-import play.core._
-import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
+import collection.immutable.TreeMap
 
 private[netty] trait Helpers {
 
@@ -39,15 +27,27 @@ private[netty] trait Helpers {
     Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
   }
 
+  object CaseInsensitiveOrdered extends Ordering[String]
+  {
+    def compare(x: String, y: String): Int = x.compareToIgnoreCase(y)
+  }
+
   def getHeaders(nettyRequest: HttpRequest): Headers = {
 
-    val headers: Map[String, Seq[String]] = nettyRequest.getHeaderNames.asScala.map { key =>
-      key.toUpperCase -> nettyRequest.getHeaders(key).asScala
-    }.toMap
+    //note: the underlying netty map is case insensitive on the key & very efficient
+    //todo: it would be nice to get to that same level of efficiency, either by wrapping
+    //      or with something more efficient than TreeMap (does that matter?)
+    val headers: Map[String, Seq[String]] = {
+      val pairs = nettyRequest.getHeaderNames.asScala.map { key =>
+        key -> nettyRequest.getHeaders(key).asScala
+      }
+      TreeMap(pairs.toSeq: _*)(CaseInsensitiveOrdered)
+    }
 
     new Headers {
-      def getAll(key: String) = headers.get(key.toUpperCase).flatten.toSeq
+      def getAll(key: String) = headers.get(key).flatten.toSeq
       def keys = headers.keySet
+      def toMap: Map[String, Seq[String]] = headers
       override def toString = headers.toString
     }
 
