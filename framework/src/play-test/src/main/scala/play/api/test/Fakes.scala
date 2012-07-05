@@ -21,6 +21,10 @@ case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Heade
    */
   def getAll(key: String): Seq[String] = data.get(key).getOrElse(Seq.empty)
 
+  /**
+   * Transform the Headers to a Map
+   */
+  def toMap = data
 }
 
 /**
