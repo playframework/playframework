@@ -87,6 +87,12 @@ sealed trait JsValue {
    * Prepend an element to this JsValue (only works for JsObject/JsArray).
    */
   def +:(el: JsValue): JsValue = JsUndefined("+:" + " can only be applied on JsObject/JsArray")
+
+  /**
+   * Prune the Json AST according to the provided JsPath
+   */
+  def prune(path: JsPath): JsValue = path.prune(this)
+
 }
 
 /**
@@ -215,6 +221,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     case o @ JsObject(_) => this ++ o
     case _ => super.:+(el)
   }  
+
 }
 
 // -- Serializers.

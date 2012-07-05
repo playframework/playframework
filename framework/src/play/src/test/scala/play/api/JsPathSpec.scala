@@ -276,7 +276,163 @@ object JsPathSpec extends Specification {
       ))
     }    
 
-  
+    "prune simple path" in {
+      val obj = Json.obj( "key1" -> Json.obj("key11" -> "value11"), "key2" -> "value2")
+
+      (JsPath \ "key1" \ "key11").prune(obj) must equalTo(Json.obj( "key1" -> Json.obj(), "key2" -> "value2"))
+    }
+
+    "prune another simple path" in {
+      val obj = Json.obj( "key1" -> Json.obj("key11" -> "value11"), "key2" -> "value2")
+
+      (JsPath \ "key2" ).prune(obj) must equalTo(Json.obj( "key1" -> Json.obj("key11" -> "value11")))
+    }
+
+    "prune root path" in {
+      val obj = Json.obj( "key1" -> Json.obj("key11" -> "value11"), "key2" -> "value2")
+
+      JsPath().prune(obj) must equalTo(JsNull)
+    }
+
+    "prune simple path in JsArray" in {
+      val obj = Json.obj( "key1" -> Json.arr("alpha", 5, true, Json.obj("key" -> "value"), "beta"))
+
+      (JsPath \ "key1")(3).prune(obj) must equalTo(Json.obj( "key1" -> Json.arr("alpha", 5, true, "beta")))
+    }
+
+    "prune 1-level recursive path" in {
+      val obj = Json.obj( 
+        "key1" -> Json.obj(
+          "key11" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))
+        ), 
+        "key2" -> Json.obj(
+          "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+        ),
+        "key3" -> "blabla"
+      )
+
+      (JsPath \\ "tags").prune(obj) must equalTo(Json.obj( 
+        "key1" -> Json.obj(
+          "key11" -> Json.obj()
+        ), 
+        "key2" -> Json.obj(
+          "key21" -> Json.obj()
+        ),
+        "key3" -> "blabla"
+      )) 
+    }
+
+    "prune 2-level recursive path" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.obj(
+            "key11" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          ),
+          "key3" -> "blabla"
+        ),
+        "level2" -> 5
+      )
+
+      (JsPath \ "level1" \\ "tags").prune(obj) must equalTo(Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.obj(
+            "key11" -> Json.obj()
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj()
+          ),
+          "key3" -> "blabla"
+        ),
+        "level2" -> 5
+      )) 
+    }
+
+    "prune 2-level middle recursive path" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.obj(
+            "key11" -> Json.obj("tags" -> Json.obj("sub" -> "alpha1"))
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.obj("sub" -> "beta2"))
+          )
+        ),
+        "level2" -> 5
+      )
+
+      (JsPath \\ "tags" \ "sub").prune(obj) must equalTo(Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.obj(
+            "key11" -> Json.obj("tags" -> Json.obj())
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.obj())
+          )
+        ),
+        "level2" -> 5
+      )) 
+    }
+
+    "prune 2-level recursive indexed path" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.obj(
+            "key11" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )
+
+      (JsPath \ "level1" \\ "tags")(1).prune(obj) must equalTo(Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.obj(
+            "key11" -> Json.obj("tags" -> Json.arr("alpha1", "gamma1"))
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )) 
+
+    }
+
+    "prune 2-level recursive indexed path" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )
+
+      ((JsPath \ "level1" \ "key1")(1) \\ "tags").prune(obj) must equalTo(Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj()),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )) 
+
+    }
   }
 
 }

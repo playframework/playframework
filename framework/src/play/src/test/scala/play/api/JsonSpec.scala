@@ -69,7 +69,7 @@ object JsonSpec extends Specification {
       jsonMario.as[User] must equalTo(mario)
       //(jsonMario \\ "name") must equalTo(Seq(JsString("Mario"), JsString("Luigi"), JsString("Kinopio"), JsString("Yoshi")))
     }
-    /*"Complete JSON should create full Post object" in {
+    "Complete JSON should create full Post object" in {
       val postJson = """{"body": "foobar", "created_at": "2011-04-22T13:33:48Z"}"""
       val expectedPost = Post("foobar", Some(dateParser.parse("2011-04-22T13:33:48Z")))
       val resultPost = Json.parse(postJson).as[Post]
@@ -150,7 +150,38 @@ object JsonSpec extends Specification {
 
       obj.validate[User] must equalTo(JsError(obj, JsPath \ 'friends -> Seq(ValidationError("validate.error.expected.jsarray"))))
     }
-*/
+
+    "prune branches of Json AST" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )
+
+      obj.prune((JsPath \ "level1" \ "key1")(1) \\ "tags") must equalTo(Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj()),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )) 
+
+    }
+
   }
 
 }
