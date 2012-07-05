@@ -9,8 +9,6 @@ import Play.current
 
 import java.io._
 import java.net.JarURLConnection
-import scalax.io.{ Resource }
-import java.text.SimpleDateFormat
 import collection.JavaConverters._
 
 /**

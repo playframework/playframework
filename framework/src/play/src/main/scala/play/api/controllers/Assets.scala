@@ -10,7 +10,8 @@ import Play.current
 import java.io._
 import java.net.JarURLConnection
 import scalax.io.{ Resource }
-import java.text.SimpleDateFormat
+import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
+import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 
 /**
@@ -34,6 +35,16 @@ import collection.JavaConverters._
  */
 object Assets extends Controller {
 
+  //Dateformatter is immutable and threadsafe
+  private val df: DateTimeFormatter = 
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss zzz").withLocale(java.util.Locale.ENGLISH).withZoneUTC
+  
+  //Dateformatter is immutable and threadsafe
+  private val dfp: DateTimeFormatter = 
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZoneUTC
+  
+  private val parsableTimezoneCode = " "+dfp.getZone
+
   /**
    * Generates an `Action` that serves a static resource.
    *
@@ -43,13 +54,11 @@ object Assets extends Controller {
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
     // -- LastModified handling
 
-    implicit def dateFormatter = {
-      val formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.ENGLISH)
-      formatter.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
-      formatter
-    }
+      
     def parseDate(date: String): Option[java.util.Date] = try {
-      Option(dateFormatter.parse(date))
+      //jodatime does not parse timezones, so we handle that manually
+      val d = dfp.parseDateTime(date.replace(parsableTimezoneCode,"")).toDate
+      Some(d)
     } catch {
       case _: Exception => None
     }
@@ -109,7 +118,7 @@ object Assets extends Controller {
 
                 // Add Etag if we are able to compute it
                 val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified, DATE -> dateFormatter.format(new java.util.Date))).getOrElse(taggedResponse)
+                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified, DATE -> df.print({new java.util.Date}.getTime))).getOrElse(taggedResponse)
 
                 // Add Cache directive if configured
                 val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
@@ -137,10 +146,10 @@ object Assets extends Controller {
 
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def lastModifiedFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
+  private def lastModifiedFor(resource: java.net.URL): Option[String] = {
     lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeLastModified = resource.getProtocol match {
-        case "file" => Some(dateFormatter.format(new java.util.Date(new java.io.File(resource.getPath).lastModified)))
+        case "file" => Some(df.print({new java.util.Date(new java.io.File(resource.getPath).lastModified).getTime}))
         case "jar" => {
             resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
               Option(resource.openConnection)
@@ -148,7 +157,7 @@ object Assets extends Controller {
                .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
                .map(_.getTime)
                .filterNot(_ == 0)
-               .map(lastModified => dateFormatter.format(new java.util.Date(lastModified))) 
+               .map(lastModified => df.print({new java.util.Date(lastModified)}.getTime)) 
             }
         }
         case _ => None
@@ -162,7 +171,7 @@ object Assets extends Controller {
 
   private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def etagFor(resource: java.net.URL)(implicit dateFormatter: SimpleDateFormat): Option[String] = {
+  private def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\""+Codecs.sha1(_)+"\"")
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))

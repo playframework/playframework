@@ -41,6 +41,7 @@ class FunctionalSpec extends Specification {
         // -- Etags
 
         val format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH)
+        format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
         val h = await(WS.url("http://localhost:9001/public/stylesheets/main.css").get)
         h.header("Last-Modified").isDefined must equalTo(true)
         h.header("Etag").get.startsWith("\"") must equalTo(true)
