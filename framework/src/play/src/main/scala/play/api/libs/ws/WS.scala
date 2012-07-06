@@ -3,7 +3,6 @@ package play.api.libs.ws
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.api.libs.json._
 import play.api.http.{ Writeable, ContentTypeOf }
 import com.ning.http.client.{
   AsyncHttpClient,
@@ -16,7 +15,6 @@ import com.ning.http.client.{
   Response => AHCResponse,
   PerRequestConfig
 }
-import java.util.concurrent.Executor
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
 
