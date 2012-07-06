@@ -36,7 +36,7 @@ object SqlParser {
       meta <- row.metaData.getAliased(aliasName)
         .toRight(ColumnNotFound(aliasName, row.metaData.availableColumns))
       value <- row.getAliased(aliasName)
-      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3, meta._4))
+      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3))
     } yield result).fold(e => Error(e), a => Success(a))
   }
 
@@ -47,7 +47,7 @@ object SqlParser {
       meta <- row.metaData.get(columnName)
         .toRight(ColumnNotFound(columnName, row.metaData.availableColumns))
       value <- row.get1(columnName)
-      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3, meta._4))
+      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3))
     } yield result).fold(e => Error(e), a => Success(a))
   }
 

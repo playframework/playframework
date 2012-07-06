@@ -50,13 +50,13 @@ package anorm
     }
 
     def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
-      case (value, meta @ MetaDataItem(qualified, _, _, _)) =>
-        if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
+      case (value, meta @ MetaDataItem(qualified, _, _)) =>
+        if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified.toString))
     }
 
     implicit def rowToString: Column[String] = {
       Column.nonNull[String] { (value, meta) =>
-        val MetaDataItem(qualified, nullable, clazz, _) = meta
+        val MetaDataItem(qualified, nullable, clazz) = meta
         value match {
           case string: String => Right(string)
           case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
@@ -66,7 +66,7 @@ package anorm
     }
 
     implicit def rowToInt: Column[Int] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case int: Int => Right(int)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Int for column " + qualified))
@@ -74,7 +74,7 @@ package anorm
     }
 
     implicit def rowToDouble: Column[Double] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case d: Double => Right(d)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Double for column " + qualified))
@@ -82,7 +82,7 @@ package anorm
     }
 
     implicit def rowToShort: Column[Short] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case short: Short => Right(short)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Short for column " + qualified))
@@ -90,7 +90,7 @@ package anorm
     }
 
     implicit def rowToByte: Column[Byte] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case byte: Byte => Right(byte)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte for column " + qualified))
@@ -98,7 +98,7 @@ package anorm
     }
 
     implicit def rowToBoolean: Column[Boolean] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bool: Boolean => Right(bool)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Boolean for column " + qualified))
@@ -106,7 +106,7 @@ package anorm
     }
 
     implicit def rowToLong: Column[Long] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case int: Int => Right(int: Long)
         case long: Long => Right(long)
@@ -116,7 +116,7 @@ package anorm
 
     implicit def rowToBigInteger: Column[java.math.BigInteger] = Column.nonNull { (value, meta) =>
       import java.math.BigInteger
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bi: BigInteger => Right(bi)
         case int: Int => Right(BigInteger.valueOf(int))
@@ -127,7 +127,7 @@ package anorm
 
     implicit def rowToBigDecimal: Column[java.math.BigDecimal] = Column.nonNull { (value, meta) =>
       import java.math.BigDecimal
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bi: java.math.BigDecimal => Right(bi)
         case double: Double => Right(new java.math.BigDecimal(double))
@@ -136,7 +136,7 @@ package anorm
     }
 
     implicit def rowToDate: Column[Date] = Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz, _) = meta
+      val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case date: Date => Right(date)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Date for column " + qualified))
@@ -200,7 +200,8 @@ package anorm
     def unapplySeq(row: Row): Option[List[Any]] = Some(row.asList)
   }
 
-  case class MetaDataItem(column: String, nullable: Boolean, clazz: String, alias: Option[String]) 
+  case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String) 
+  case class ColumnName(qualified: String, alias: Option[String])
 
   case class MetaData(ms: List[MetaDataItem]) {
     def get(columnName: String) = {
@@ -214,20 +215,20 @@ package anorm
       aliasedDictionary.get(columnUpper)
     }
     
-    private lazy val dictionary: Map[String, (String, Boolean, String, Option[String])] =
-      ms.map(m => (m.column.toUpperCase(), (m.column, m.nullable, m.clazz, m.alias))).toMap
+    private lazy val dictionary: Map[String, (ColumnName, Boolean, String)] =
+      ms.map(m => (m.column.qualified.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
 
-    private lazy val dictionary2: Map[String, (String, Boolean, String, Option[String])] = {
+    private lazy val dictionary2: Map[String, (ColumnName, Boolean, String)] = {
       ms.map(m => {
-        val column = m.column.split('.').last;
-        (column.toUpperCase(), (m.column, m.nullable, m.clazz, m.alias))
+        val column = m.column.qualified.split('.').last;
+        (column.toUpperCase(), (m.column, m.nullable, m.clazz))
       }).toMap
     }
     
-     private lazy val aliasedDictionary: Map[String, (String, Boolean, String, Option[String])] = {
+     private lazy val aliasedDictionary: Map[String, (ColumnName, Boolean, String)] = {
         ms.flatMap(m => {
-          m.alias.map{ a =>
-            Map(a.toUpperCase() -> (m.column, m.nullable, m.clazz, m.alias))
+          m.column.alias.map{ a =>
+            Map(a.toUpperCase() -> (m.column, m.nullable, m.clazz))
           }.getOrElse(Map.empty)
           
         }).toMap
@@ -235,7 +236,7 @@ package anorm
 
     lazy val columnCount = ms.size
 
-    lazy val availableColumns: List[String] = ms.flatMap(i => i.column :: i.alias.toList)
+    lazy val availableColumns: List[String] = ms.flatMap(i => i.column.qualified :: i.column.alias.toList)
 
   }
 
@@ -249,7 +250,7 @@ package anorm
 
     lazy val asList = data.zip(metaData.ms.map(_.nullable)).map(i => if (i._2) Option(i._1) else i._1)
 
-    lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.column).zip(asList).toMap
+    lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.column.qualified).zip(asList).toMap
 
     def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] = SqlParser.get(a)(c)(this) match {
       case Success(a) => Right(a)
@@ -263,21 +264,21 @@ package anorm
       case _ => Class.forName(t)
     }
 
-    private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.column.toUpperCase()).zip(data).toMap
-    private lazy val AliasesDictionary: Map[String, Any] = metaData.ms.flatMap(_.alias.map(_.toUpperCase())).zip(data).toMap
+    private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
+    private lazy val AliasesDictionary: Map[String, Any] = metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
     private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] = {
       for (
         meta <- metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-        val (qualified, nullable, clazz, _) = meta;
-        result <- ColumnsDictionary.get(qualified.toUpperCase()).toRight(ColumnNotFound(qualified, metaData.availableColumns))
+        val (column, nullable, clazz) = meta;
+        result <- ColumnsDictionary.get(column.qualified.toUpperCase()).toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
       ) yield result
     }
     
     private[anorm] def getAliased(a: String): MayErr[SqlRequestError, Any] = {
       for (
         meta <- metaData.getAliased(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-        val (qualified, nullable, clazz, alias) = meta;
-        result <- alias.flatMap(a => AliasesDictionary.get(a.toUpperCase())).toRight(ColumnNotFound(alias.getOrElse(a), metaData.availableColumns))
+        val (column, nullable, clazz) = meta;
+        result <- column.alias.flatMap(a => AliasesDictionary.get(a.toUpperCase())).toRight(ColumnNotFound(column.alias.getOrElse(a), metaData.availableColumns))
       ) yield result
     }
 
@@ -494,7 +495,7 @@ package anorm
       val meta = rs.getMetaData()
       val nbColumns = meta.getColumnCount()
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = ({
+        MetaDataItem(column = ColumnName({
 
           // HACK FOR POSTGRES
           if (meta.getClass.getName.startsWith("org.postgresql.")) {
@@ -503,10 +504,9 @@ package anorm
             meta.getTableName(i)
           }
 
-        } + "." + meta.getColumnName(i)),
+        } + "." + meta.getColumnName(i), alias = Option(meta.getColumnLabel(i))),
           nullable = meta.isNullable(i) == columnNullable,
-          clazz = meta.getColumnClassName(i),
-          alias = Option(meta.getColumnLabel(i)))))
+          clazz = meta.getColumnClassName(i))))
     }
 
     def resultSetToStream(rs: java.sql.ResultSet): Stream[SqlRow] = {
