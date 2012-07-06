@@ -30,9 +30,7 @@ private[netty] trait Helpers {
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {
 
-    //note: the underlying netty map is case insensitive on the key & very efficient
-    //todo: it would be nice to get to that same level of efficiency, either by wrapping
-    //      or with something more efficient than TreeMap (does that matter?)
+    //todo: wrap the underlying map in a structure more efficient than TreeMap
     val headers: Map[String, Seq[String]] = {
       val pairs = nettyRequest.getHeaderNames.asScala.map { key =>
         key -> nettyRequest.getHeaders(key).asScala
