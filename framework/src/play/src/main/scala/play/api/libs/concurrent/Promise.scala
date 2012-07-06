@@ -57,7 +57,7 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
     result.future
   }
 
-  def extend1[B](k: Function1[NotWaiting[A], B]): Promise[B] = extend[B](p => k(p.value1))
+  def extend1[B](k: Function1[NotWaiting[A], B]): Promise[B] = extend[B](p => k(p.value.get.fold(Thrown(_),Redeemed(_))))
 
   def value1 = await
 

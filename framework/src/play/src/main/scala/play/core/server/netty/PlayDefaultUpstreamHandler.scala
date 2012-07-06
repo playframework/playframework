@@ -238,13 +238,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         handler match {
 
           //execute normal action
-          case Right((action: Action[_], app)) => {
+          case Right((action: EssentialAction, app)) => {
 
             Logger("play").trace("Serving this request with: " + action)
 
-            val bodyParser = action.parser
-
-            val eventuallyBodyParser = server.getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
+            val eventuallyBodyParser = scala.concurrent.Future(action(requestHeader))
 
             val _ =
               eventuallyBodyParser.flatMap { bodyParser =>
@@ -255,6 +253,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       case Step.Done(_, _) => ()
                       case Step.Cont(k) => {
                         val continue = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
+                        //TODO wait for the promise of the write
                         e.getChannel.write(continue)
 
                       }
@@ -265,7 +264,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 }
               }
 
-            val eventuallyResultOrBody = if (nettyHttpRequest.isChunked) {
+            val eventuallyResultIteratee = if (nettyHttpRequest.isChunked) {
 
               val (result, handler) = newRequestBodyHandler(eventuallyBodyParser, allChannels, server)
 
@@ -286,41 +285,44 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 Enumerator(body).andThen(Enumerator.enumInput(EOF))
               }
 
-              eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): Promise[Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]
+              eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): Promise[Iteratee[Array[Byte], Result]]
 
             }
 
-            val eventuallyResultOrRequest =
-              eventuallyResultOrBody
-                .flatMap(it => it.run)
-                .map {
-                  _.right.map(b =>
-                    new Request[action.BODY_CONTENT] {
-                      def uri = nettyHttpRequest.getUri
-                      def path = nettyUri.getPath
-                      def method = nettyHttpRequest.getMethod.getName
-                      def queryString = parameters
-                      def headers = rHeaders
-                      lazy val remoteAddress = rRemoteAddress
-                      def username = None
-                      val body = b
-                    })
-                }
 
-            eventuallyResultOrRequest.extend1 {
-              case Redeemed(Left(result)) => {
-                Logger("play").trace("Got direct result from the BodyParser: " + result)
+            val eventuallyResult = eventuallyResultIteratee.flatMap(it => it.run)
+
+            eventuallyResult.extend1 {
+              case Redeemed(r) => 
+                // Handle Flash Scope (probably not the good place to do it)
+                val result = r match {
+                  case r: PlainResult => {
+
+                    val header = r.header
+
+                    val flashCookie = {
+                      header.headers.get(SET_COOKIE)
+                      .map(Cookies.decode(_))
+                      .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
+                        Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
+                           play.api.mvc.Cookie(Flash.COOKIE_NAME, "", 0)
+                        }
+                      }
+                    }
+
+                    flashCookie.map { newCookie =>
+                      r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
+                    }.getOrElse(r)
+
+                  }
+                  case r => r
+                }
                 response.handle(result)
-              }
-              case Redeemed(Right(request)) => {
-                Logger("play").trace("Invoking action with request: " + request)
-                server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
-              }
-              case error => {
+
+              case Thrown(error) =>
                 Logger("play").error("Cannot invoke the action, eventually got an error: " + error)
-                response.handle(Results.InternalServerError)
+                response.handle( app.handleError(requestHeader, error))
                 e.getChannel.setReadable(true)
-              }
             }
 
           }

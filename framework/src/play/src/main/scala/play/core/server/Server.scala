@@ -92,7 +92,7 @@ trait Server {
       }
 
   }
-
+/*
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
 import play.api.http.HeaderNames._
     scala.concurrent.Future {
@@ -139,6 +139,7 @@ import play.api.http.HeaderNames._
     scala.concurrent.Future(bodyFunction(requestHeaders))
 
   }
+  */
 
   def applicationProvider: ApplicationProvider
 

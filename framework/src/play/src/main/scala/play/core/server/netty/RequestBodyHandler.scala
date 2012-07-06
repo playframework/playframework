@@ -20,27 +20,28 @@ import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 
 import scala.collection.JavaConverters._
+import play.api.libs.concurrent.execution.defaultContext
 
 private[server] trait RequestBodyHandler {
 
-  def newRequestBodyHandler[R](firstIteratee: Promise[Iteratee[Array[Byte], Either[Result, R]]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
+  def newRequestBodyHandler[R](firstIteratee: Promise[Iteratee[Array[Byte], Result]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Result]], SimpleChannelUpstreamHandler) = {
     import scala.concurrent.stm._
     val redeemed = Ref(false)
-    var p = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
+    var p = Promise[Iteratee[Array[Byte], Result]]()
     val MAX_MESSAGE_WATERMARK = 10
     val MIN_MESSAGE_WATERMARK = 10
     val counter = Ref(0)
 
-    var iteratee: Ref[Iteratee[Array[Byte], Either[Result, R]]] = Ref(Iteratee.flatten(firstIteratee))
+    var iteratee: Ref[Iteratee[Array[Byte], Result]] = Ref(Iteratee.flatten(firstIteratee))
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
       if (counter.single.transformAndGet { _ + 1 } > MAX_MESSAGE_WATERMARK && ctx.getChannel.isOpen() && !redeemed.single())
         ctx.getChannel.setReadable(false)
 
-      val itPromise = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
+      val itPromise = Promise[Iteratee[Array[Byte], Result]]()      
       val current = atomic { implicit txn =>
         if(!redeemed())
-          Some(iteratee.single.swap(Iteratee.flatten(itPromise)))
+          Some(iteratee.single.swap(Iteratee.flatten(itPromise.future)))
         else None
       }
 
@@ -60,13 +61,13 @@ private[server] trait RequestBodyHandler {
         }
       }
 
-      def continue(it:Iteratee[Array[Byte], Either[Result, R]]){
+      def continue(it:Iteratee[Array[Byte], Result]){
         if (counter.single.transformAndGet { _ - 1 } <= MIN_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
           ctx.getChannel.setReadable(true)
         itPromise.redeem(it)
       }
 
-      def finish(it:Iteratee[Array[Byte], Either[Result, R]]){
+      def finish(it:Iteratee[Array[Byte], Result]){
         if (!redeemed.single.swap(true)) {
           p.redeem(it)
           iteratee = null; p = null;

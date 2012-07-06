@@ -154,6 +154,21 @@ package play.api.mvc {
 
   }
 
+
+  object Request {
+
+    def apply[A](rh:RequestHeader,a:A) = new Request[A] {
+           def uri = rh.uri
+           def path = rh.path
+           def method = rh.method
+           def queryString = rh.queryString
+           def headers = rh.headers
+           lazy val remoteAddress = rh.remoteAddress
+           def username = None
+           val body = a
+    }
+  }
+
   /**
    * Wrap an existing request. Useful to extend a request.
    */
