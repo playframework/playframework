@@ -16,6 +16,9 @@ import com.ning.http.client.{
   Response => AHCResponse,
   PerRequestConfig
 }
+import java.util.concurrent.Executor
+import collection.immutable.TreeMap
+import play.core.utils.CaseInsensitiveOrdered
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -110,9 +113,11 @@ object WS {
     private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
       mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
-    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
-      mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-
+    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =  {
+      val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+      //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
+      TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
+    }
     private[libs] def execute: Promise[Response] = {
       import com.ning.http.client.AsyncCompletionHandler
       var result = Promise[Response]()

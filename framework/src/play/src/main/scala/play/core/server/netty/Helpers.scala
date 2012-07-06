@@ -10,6 +10,7 @@ import play.api.libs.iteratee.Input._
 
 import scala.collection.JavaConverters._
 import collection.immutable.TreeMap
+import play.core.utils.CaseInsensitiveOrdered
 
 private[netty] trait Helpers {
 
@@ -25,11 +26,6 @@ private[netty] trait Helpers {
       }
 
     Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
-  }
-
-  object CaseInsensitiveOrdered extends Ordering[String]
-  {
-    def compare(x: String, y: String): Int = x.compareToIgnoreCase(y)
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {

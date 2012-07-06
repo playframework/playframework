@@ -9,6 +9,10 @@ import models.Protocol._
 import org.openqa.selenium.htmlunit.HtmlUnitDriver
 import java.util.Calendar
 import java.util.Locale
+import play.api.libs.iteratee.{Iteratee, Cont, Input, Done}
+import play.api.test.TestServer
+import play.api.libs.ws.ResponseHeaders
+
 
 class FunctionalSpec extends Specification {
   "an Application" should {
@@ -43,8 +47,27 @@ class FunctionalSpec extends Specification {
         val format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH)
         val h = await(WS.url("http://localhost:9001/public/stylesheets/main.css").get)
         h.header("Last-Modified").isDefined must equalTo(true)
+        h.header("LAST-MODIFIED").isDefined must equalTo(true)   //test case insensitivity of hashmap keys
         h.header("Etag").get.startsWith("\"") must equalTo(true)
         h.header("Etag").get.endsWith("\"") must equalTo(true)
+        h.header("ETAG").get.endsWith("\"") must equalTo(true)
+        //the map queries are case insensitive, but the underlying map still contains the original headers
+        val keys = h.getAHCResponse.getHeaders().keySet()
+        keys.contains("Etag")  must equalTo(true)
+        keys.contains("ETAG") must equalTo(false)
+
+        val hp = WS.url("http://localhost:9001/jsonWithContentType").
+          withHeaders("Accept"-> "application/json").
+          get{ header: ResponseHeaders =>
+           val hdrs = header.headers
+           hdrs.get("Content-Type").isDefined must equalTo(true)
+           hdrs.get("CONTENT-TYpe").isDefined must equalTo(true)
+           hdrs.keys.find(header => header == "Content-Type" ).isDefined must equalTo(true)
+           hdrs.keys.find(header => header == "CONTENT-TYpe" ).isDefined must equalTo(false)
+           Iteratee.fold[Array[Byte],StringBuffer](new StringBuffer){ (buf,array) => { buf.append(array); buf }}
+        }
+
+        await(hp.map(_.run)).map(buf => buf.toString must contain("""{"Accept":"application/json"}""") )
 
         val secondRequest = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get)
         secondRequest.status must equalTo(304)
