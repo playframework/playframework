@@ -222,7 +222,7 @@ object Enumeratee {
             case Step.Error(msg, e) => Error(msg, in)
           }
 
-        case Input.EOF => Done(Cont(k), Input.EOF)
+        case Input.EOF => Iteratee.flatten(f.run.map((c:To) => Done(k(Input.El(c)), Input.EOF)))
 
       }
 
