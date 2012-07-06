@@ -7,6 +7,7 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
+import play.api.libs.concurrent.execution.defaultContext
 
 /**
  * A simple HTTP response header, used for standard responses.
