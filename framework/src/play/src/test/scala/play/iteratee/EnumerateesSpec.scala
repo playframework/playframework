@@ -148,23 +148,23 @@ object EnumerateesSpec extends Specification {
         Iteratee.fold("")((s,e) => s + e)
 
       val result = 
-        Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat") &>
+        Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat","!") &>
         Enumeratee.grouped(folderIteratee) ><>
         Enumeratee.map(List(_)) |>>
         Iteratee.consume()
-      result.flatMap(_.run).value.get must equalTo(List("Hello","World"))
+      result.flatMap(_.run).value.get must equalTo(List("Hello","World","!"))
 
     }
 
   }
 
   "Enumeratee.grouped" should {
-    "not throw away left inputs by the folder iteratee" in {
+    "pass along what is consumed by the last folder iteratee on EOF" in {
 
       val upToSpace = Traversable.splitOnceAt[String,Char](c => c != '\n')  &>> Iteratee.consume()
 
       val result = (Enumerator("dasdasdas ", "dadadasda\nshouldb\neinnext") &> Enumeratee.grouped(upToSpace) ><> Enumeratee.map(_+"|")) |>> Iteratee.consume[String]()
-      result.flatMap(_.run).value.get must equalTo("dasdasdas dadadasda|shouldb|")
+      result.flatMap(_.run).value.get must equalTo("dasdasdas dadadasda|shouldb|einnext|")
     }
   }
 
