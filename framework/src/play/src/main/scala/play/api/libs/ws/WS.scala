@@ -66,6 +66,10 @@ object WS {
 
     import scala.collection.JavaConverters._
 
+    def getStringData = body.getOrElse("")
+    protected var body: Option[String] = None
+    override def setBody(s: String) = { this.body = Some(s); super.setBody(s)}
+
     protected var calculator: Option[SignatureCalculator] = _calc
 
     protected var headers: Map[String, Seq[String]] = Map()
