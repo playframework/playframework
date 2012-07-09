@@ -334,7 +334,6 @@ object Forms {
    */
   def default[A](mapping: Mapping[A], value:A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
 
-
   /**
    * Defines a repeated mapping.
    * {{{
