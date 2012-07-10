@@ -14,7 +14,7 @@ object Constraint {
 
   def required[T](implicit r: Reads[T]): Reads[T] = new Reads[T] {
     def reads(json: JsValue): JsResult[T] = json match {
-      case js @ JsUndefined(_) => JsError(json, JsPath() -> Seq(ValidationError("validate.error.required"))) and fromJson(js)
+      case js @ JsUndefined(_) => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.required")))) and fromJson(js)
       case js => fromJson(js)
     }
   }
@@ -28,36 +28,36 @@ object Constraint {
 
   def min(nb: Int): Reads[Int] = new Reads[Int] {
     def reads(json: JsValue): JsResult[Int] = json match {
-      case JsNumber(d) => if (d >= nb) JsSuccess(d.toInt) else JsError(json, JsPath() -> Seq(ValidationError("validate.error.min", nb)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case JsNumber(d) => if (d >= nb) JsSuccess(d.toInt) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.min", nb))))
+      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
   def valueEquals[T](value: T)(implicit r: Reads[T]): Reads[T] = new Reads[T] {
     def reads(json: JsValue): JsResult[T] = fromJson(json)(r).flatMap( t => 
       if(t.equals(value)) JsSuccess(t) 
-      else JsError(json, JsPath() -> Seq(ValidationError("validate.error.equals", value)))
+      else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.equals", value))))
     )
   }
 
   def max(nb: Int): Reads[Int] = new Reads[Int] {
     def reads(json: JsValue): JsResult[Int] = json match {
-      case JsNumber(d) => if (d <= nb) JsSuccess(d.toInt) else JsError(json, JsPath() -> Seq(ValidationError("validate.error.max", nb)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case JsNumber(d) => if (d <= nb) JsSuccess(d.toInt) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.max", nb))))
+      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
   def minLength(length: Int): Reads[String] = new Reads[String] {
     def reads(json: JsValue): JsResult[String] = json match {
-      case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validate.error.minLength", length)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))
+      case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.minLength", length))))
+      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
   }
 
   def maxLength(length: Int): Reads[String] = new Reads[String] {
     def reads(json: JsValue): JsResult[String] = json match {
-      case js @ JsString(s) => if (s.size <= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validate.error.maxLength", length)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))
+      case js @ JsString(s) => if (s.size <= length) JsSuccess(s) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.maxLength", length))))
+      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
   }
   
@@ -65,8 +65,8 @@ object Constraint {
     def reads(json: JsValue): JsResult[String] = json match {      
       case js @ JsString(s) => 
         val regex = """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r
-        regex.findFirstIn(s).map(JsSuccess(_)).getOrElse(JsError(js, JsPath() -> Seq(ValidationError("validate.error.email"))))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))
+        regex.findFirstIn(s).map(JsSuccess(_)).getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.email")))))
+      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
   }
 
@@ -98,7 +98,7 @@ object JsValidator {
 
   def apply[A1 : Writes](jsc1: (JsPath, Format[A1])): Format[A1] = new Format[A1] {
     def reads(json: JsValue): JsResult[A1] = {
-      jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}.rebase(json)
+      jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}
     }
 
     def writes(a1: A1): JsValue = jsc1._1.setIfDef(Json.obj(), toJson(a1))
@@ -110,7 +110,7 @@ object JsValidator {
     def reads(json: JsValue): JsResult[(A1, A2)] = product(
       jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}, 
       jsc2._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc2._2.reads(js).repath(jsc2._1)}
-    ).rebase(json)
+    )
 
     def writes(t:(A1, A2)): JsValue = {
       jsc2._1.setIfDef(
@@ -128,7 +128,7 @@ object JsValidator {
       jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}, 
       jsc2._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc2._2.reads(js).repath(jsc2._1)}, 
       jsc3._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc3._2.reads(js).repath(jsc3._1)}
-    ).rebase(json)
+    )
 
     def writes(t:(A1, A2, A3)): JsValue = {
       jsc3._1.setIfDef(
@@ -151,7 +151,7 @@ object JsValidator {
       jsc2._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc2._2.reads(js).repath(jsc2._1)}, 
       jsc3._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc3._2.reads(js).repath(jsc3._1)}, 
       jsc4._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc4._2.reads(js).repath(jsc4._1)}
-    ).rebase(json)
+    )
 
     def writes(t:(A1, A2, A3, A4)): JsValue = {
       jsc4._1.setIfDef(
@@ -177,7 +177,7 @@ object JsMapper {
     new Format[T] {
       def reads(json: JsValue): JsResult[T] = {
         jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}
-            .map{ apply(_) }.rebase(json)
+            .map{ apply(_) }
       }
       
       def writes(t: T): JsValue = {
@@ -196,7 +196,7 @@ object JsMapper {
       def reads(json: JsValue): JsResult[T] = product(
         jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}, 
         jsc2._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc2._2.reads(js).repath(jsc2._1)}
-      ).map{ case (a1, a2) => apply(a1, a2) }.rebase(json)
+      ).map{ case (a1, a2) => apply(a1, a2) }
 
       def writes(t: T): JsValue = {
         unapply(t) match {
@@ -220,7 +220,7 @@ object JsMapper {
         jsc1._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc1._2.reads(js).repath(jsc1._1)}, 
         jsc2._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc2._2.reads(js).repath(jsc2._1)}, 
         jsc3._1.asSingleJsResult(json).flatMapTryDefault(defaultJs){js => jsc3._2.reads(js).repath(jsc3._1)}
-      ).map{ case(a1, a2, a3) => apply(a1, a2, a3) }.rebase(json)
+      ).map{ case(a1, a2, a3) => apply(a1, a2, a3) }
 
       def writes(t: T): JsValue = {
         unapply(t) match {

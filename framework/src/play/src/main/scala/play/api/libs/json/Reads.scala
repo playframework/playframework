@@ -10,17 +10,15 @@ case class JsSuccess[T](value: T) extends JsResult[T] {
   def get[T] = value
 }
 
-case class JsError[T](original: JsValue, errors: Seq[(JsPath, Seq[ValidationError])], globalErrors: Seq[ValidationError]) extends JsResult[T] {
+case class JsError[T](errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[T] {
   def get[T] = throw new NoSuchElementException("JsError[T].get")
 
-  def toJson: JsValue = original // TODO
-  def toJsonErrorsOnly: JsValue = original // TODO
-  def toFlatForm: Seq[(String, Seq[ValidationError])] = errors.map{ case(path, seq) => path.toJsonString -> seq } :+ ("globals" -> globalErrors) // TODO
+  //def toJson: JsValue = original // TODO
+  //def toJsonErrorsOnly: JsValue = original // TODO
+  //def toFlatForm: Seq[(String, Seq[ValidationError])] = errors.map{ case(path, seq) => path.toJsonString -> seq } :+ ("globals" -> globalErrors) // TODO
 }
 
 object JsError {
-  def apply[T](original: JsValue, errors: (JsPath, Seq[ValidationError])*) = new JsError[T](original, errors, Seq())
-
   def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
     import scala.collection.mutable.ListBuffer
     val lb = ListBuffer[(JsPath, Seq[ValidationError])]() ++ e2
@@ -32,47 +30,37 @@ object JsError {
 }
 
 sealed trait JsResult[T] {
-  def fold[X](valid: T => X, invalid: (JsValue, Seq[(JsPath, Seq[ValidationError])], Seq[ValidationError]) => X): X = this match {
+  def fold[X](valid: T => X, invalid: Seq[(JsPath, Seq[ValidationError])] => X): X = this match {
     case JsSuccess(v) => valid(v)
-    case JsError(o, e, g) => invalid(o, e, g)
-  }
-
-  def fold[X](valid: T => X, invalid: JsError[T] => X): X = this match {
-    case JsSuccess(s) => valid(s)
-    case e @ JsError(_, _, _) => invalid(e)
+    case JsError(e) => invalid(e)
   }
 
   def map[X](f: T => X): JsResult[X] = this match {
     case JsSuccess(v) => JsSuccess(f(v))
-    case JsError(o, e, g) => JsError[X](o, e, g)
+    case JsError(e) => JsError[X](e)
   }
 
   def flatMap[X](f: T => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v) => f(v)
-    case JsError(o, e, g) => JsError[X](o, e, g)
+    case JsError(e) => JsError[X](e)
   }
 
   def flatMapTryDefault[X](defaultValue: T)(f: T => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v) => f(v)
-    case JsError(o, e, g) => 
+    case JsError(e) => 
       // tries with undefined first
       f(defaultValue) match {
         case s @ JsSuccess(_) => s
-        case JsError(o2, e2, g2) => JsError[X](o, 
-          JsError.merge(e, e2),
-          //(e ++ e2).distinct.groupBy{ case(path, _) => path }.map{ case(k, v) => k -> v.map(_._2).flatten }.toSeq,
-          g ++ g2)
+        case JsError(e2) => JsError[X](JsError.merge(e, e2))
       }
   }
 
   def prod[V](other: JsResult[V]): JsResult[(T, V)] = {
     (this, other) match {
       case (JsSuccess(t), JsSuccess(v)) => JsSuccess((t, v))
-      case (JsError(o, e, g), JsSuccess(v)) => JsError[(T, V)](o, e, g)
-      case (JsSuccess(v), JsError(o, e, g)) => JsError[(T, V)](o, e, g)
-      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[(T, V)](o, 
-          JsError.merge(e, e2),
-          g ++ g2)
+      case (JsError(e), JsSuccess(v)) => JsError[(T, V)](e)
+      case (JsSuccess(v), JsError(e)) => JsError[(T, V)](e)
+      case (JsError(e), JsError(e2)) => JsError[(T, V)](JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
@@ -80,11 +68,9 @@ sealed trait JsResult[T] {
   def and(other: JsResult[T]): JsResult[T] = {
     (this, other) match {
       case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
-      case (JsError(o, e, g), JsSuccess(v)) => JsError[T](o, e, g)
-      case (JsSuccess(v), JsError(o, e, g)) => JsError[T](o, e, g)
-      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[T](o ++ o2, 
-        JsError.merge(e, e2),
-        g ++ g2)
+      case (JsError(e), JsSuccess(v)) => JsError[T](e)
+      case (JsSuccess(v), JsError(e)) => JsError[T](e)
+      case (JsError(e), JsError(e2)) => JsError[T](JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
@@ -92,11 +78,9 @@ sealed trait JsResult[T] {
   def andThen[V](other: JsResult[V]): JsResult[V] = {
     (this, other) match {
       case (JsSuccess(t), JsSuccess(v)) => JsSuccess(v)
-      case (JsError(o, e, g), JsSuccess(v)) => JsError[V](o, e, g)
-      case (JsSuccess(t), JsError(o, e, g)) => JsError[V](o, e, g)
-      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[V](o ++ o2, 
-        JsError.merge(e, e2),
-        g ++ g2)
+      case (JsError(e), JsSuccess(v)) => JsError[V](e)
+      case (JsSuccess(t), JsError(e)) => JsError[V](e)
+      case (JsError(e), JsError(e2)) => JsError[V](JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
@@ -104,33 +88,31 @@ sealed trait JsResult[T] {
   def or(other: JsResult[T]): JsResult[T] = {
     (this, other) match {
       case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
-      case (JsError(o, e, g), JsSuccess(t)) => JsSuccess(t)
-      case (JsSuccess(t), JsError(o, e, g)) => JsSuccess(t)
-      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[T](o ++ o2, 
-        JsError.merge(e, e2),
-        g ++ g2)
+      case (JsError(e), JsSuccess(t)) => JsSuccess(t)
+      case (JsSuccess(t), JsError(e)) => JsSuccess(t)
+      case (JsError(e), JsError(e2)) => JsError[T](JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
 
-  def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
-  def repath(path: JsPath): JsResult[T] = fold(valid = JsSuccess(_), invalid = (o, e, g) => JsError(o, e.map{ case (p, s) => path ++ p -> s }, g))
+  //def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
+  def repath(path: JsPath): JsResult[T] = fold(valid = JsSuccess(_), invalid = e => JsError(e.map{ case (p, s) => path ++ p -> s }))
 
   def get[T]
 
   def getOrElse[T](t: T) = this match {
     case JsSuccess(_) => get
-    case JsError(_, _, _) => t
+    case JsError(_) => t
   }
 
   def asOpt[T] = this match {
     case JsSuccess(v) => Some(v)
-    case JsError(_, _, _) => None
+    case JsError(_) => None
   }
 
   def asEither[T] = this match {
     case JsSuccess(v) => Right(v)
-    case JsError(o, e, g) => Left((o, e, g))
+    case JsError(e) => Left(e)
   }  
 }
 
@@ -205,7 +187,7 @@ trait DefaultReads {
   implicit object IntReads extends Reads[Int] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toInt)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
@@ -215,7 +197,7 @@ trait DefaultReads {
   implicit object ShortReads extends Reads[Short] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toShort)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
@@ -225,7 +207,7 @@ trait DefaultReads {
   implicit object LongReads extends Reads[Long] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toLong)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
@@ -235,7 +217,7 @@ trait DefaultReads {
   implicit object FloatReads extends Reads[Float] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toFloat)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
@@ -245,7 +227,7 @@ trait DefaultReads {
   implicit object DoubleReads extends Reads[Double] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toDouble)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
@@ -255,7 +237,7 @@ trait DefaultReads {
   implicit object BigDecimalReads extends Reads[BigDecimal] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
   }
 
@@ -265,7 +247,7 @@ trait DefaultReads {
   implicit object BooleanReads extends Reads[Boolean] {
     def reads(json: JsValue) = json match {
       case JsBoolean(b) => JsSuccess(b)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsboolean")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsboolean"))))
     }
   }
 
@@ -275,7 +257,7 @@ trait DefaultReads {
   implicit object StringReads extends Reads[String] {
     def reads(json: JsValue) = json match {
       case JsString(s) => JsSuccess(s)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
   }
 
@@ -286,14 +268,14 @@ trait DefaultReads {
   implicit object JsObjectReads extends Reads[JsObject] {
     def reads(json: JsValue) = json match {
       case o: JsObject => JsSuccess(o)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsobject")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsobject"))))
     }
   }
 
   implicit object JsArrayReads extends Reads[JsArray] {
     def reads(json: JsValue) = json match {
       case o: JsArray => JsSuccess(o)
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsarray")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsarray"))))
     }
   }
 
@@ -307,7 +289,7 @@ trait DefaultReads {
 
   implicit def OptionReads[T](implicit fmt: Reads[T]): Reads[Option[T]] = new Reads[Option[T]] {
     import scala.util.control.Exception._
-    def reads(json: JsValue) = fmt.reads(json).fold( v => JsSuccess(Some(v)), (o, e, g) => JsSuccess(None) )
+    def reads(json: JsValue) = fmt.reads(json).fold( v => JsSuccess(Some(v)), e => JsSuccess(None) )
   }
 
   /**
@@ -323,22 +305,22 @@ trait DefaultReads {
         val r = m.map { case (key, value) => 
           fromJson[V](value)(fmtv) match {
             case JsSuccess(v) => Right( (key, v, value) )
-            case JsError(o, e, g) =>
+            case JsError(e) =>
               hasErrors = true
-              Left( ( e.map{ case (p, valerr) => (JsPath \ key) ++ p -> valerr }, g) )
+              Left( e.map{ case (p, valerr) => (JsPath \ key) ++ p -> valerr } )
           } 
         }
 
         // if errors, tries to merge them into a single JsError
         if(hasErrors) {
-          val (fulle, fullg) = r.filter( _.isLeft ).map( _.left.get )
-                                .foldLeft(List[(JsPath, Seq[ValidationError])]() -> List[ValidationError]())( (acc, v) => (acc._1 ++ v._1, acc._2 ++ v._2) )
-          JsError(json, fulle, fullg)
+          val fulle = r.filter( _.isLeft ).map( _.left.get )
+                                .foldLeft(List[(JsPath, Seq[ValidationError])]())( (acc, v) => acc ++ v )
+          JsError(fulle)
         }
         // no error, rebuilds the map
         else JsSuccess( r.filter( _.isRight ).map( _.right.get ).map{ v => v._1 -> v._2 }.toMap )
       }
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsobject")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsobject"))))
     }
   }
 
@@ -355,17 +337,17 @@ trait DefaultReads {
         // the aim is to find all errors prod then to merge them all
         val r = ts.zipWithIndex.map { case (elt, idx) => fromJson[A](elt)(ra) match {
             case JsSuccess(v) => Right(v)
-            case JsError(o, e, g) => 
+            case JsError(e) => 
               hasErrors = true
-              Left( ( e.map{ case (p, valerr) => (JsPath(idx)) ++ p -> valerr }, g) )
+              Left( e.map{ case (p, valerr) => (JsPath(idx)) ++ p -> valerr } )
           }
         }
 
         // if errors, tries to merge them into a single JsError
         if(hasErrors) {
-          val (fulle, fullg) = r.filter( _.isLeft ).map( _.left.get )
-                                .foldLeft(List[(JsPath, Seq[ValidationError])]() -> List[ValidationError]())( (acc, v) => (acc._1 ++ v._1, acc._2 ++ v._2) )          
-          JsError(json, fulle, fullg)
+          val fulle = r.filter( _.isLeft ).map( _.left.get )
+                                .foldLeft(List[(JsPath, Seq[ValidationError])]())( (acc, v) => (acc ++ v) )          
+          JsError(fulle)
         }
         // no error, rebuilds the map
         else {
@@ -375,7 +357,7 @@ trait DefaultReads {
         }
 
       }
-      case _ => JsError(json, JsPath() -> Seq(ValidationError("validate.error.expected.jsarray")))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsarray"))))
     }
   }
 

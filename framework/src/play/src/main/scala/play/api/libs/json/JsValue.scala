@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
 
 
-case class JsResultException(original: JsValue, errors: Seq[(JsPath, Seq[ValidationError])], globalErrors: Seq[ValidationError]) extends RuntimeException( "JsResultException(original:%s, errors:%s, globalErrors:%s)".format(original, errors, globalErrors) )
+case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException( "JsResultException(errors:%s)".format(errors) )
 
 /**
  * Generic json value
@@ -51,7 +51,7 @@ sealed trait JsValue {
    */
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = fjs.reads(this).fold(
       valid = v => Some(v),
-      invalid = (_, _, _) => None
+      invalid = _ => None
     ).filter {
     case JsUndefined(_) => false
     case _ => true
@@ -62,7 +62,7 @@ sealed trait JsValue {
    */
   def as[T](implicit fjs: Reads[T]): T = fjs.reads(this).fold(
     valid = identity,
-    invalid = (o, e, g) => throw new JsResultException(o, e, g)
+    invalid = e => throw new JsResultException(e)
   )
 
   /**

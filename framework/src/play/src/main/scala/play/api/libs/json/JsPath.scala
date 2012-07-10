@@ -154,9 +154,9 @@ case class JsPath(path: List[PathNode] = List()) {
   }
 
   def asSingleJsResult(json: JsValue): JsResult[JsValue] = this(json) match {
-    case Nil => JsError(json, this -> Seq(ValidationError("validate.error.missing-path")))
+    case Nil => JsError(Seq(this -> Seq(ValidationError("validate.error.missing-path"))))
     case List(js) => JsSuccess(js)
-    case head :: tail => JsError(json, this -> Seq(ValidationError("validate.error.multiple-result-path")))
+    case head :: tail => JsError(Seq(this -> Seq(ValidationError("validate.error.multiple-result-path"))))
   }
 
   def asSingleJson(json: JsValue): JsValue = this(json) match {

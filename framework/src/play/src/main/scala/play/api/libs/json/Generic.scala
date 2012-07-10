@@ -865,7 +865,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3)] = {
     (t1 prod t2 prod t3) match {
       case JsSuccess(((t1, t2), t3)) => JsSuccess(t1, t2, t3)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -877,7 +877,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4)] = {
     (t1 prod t2 prod t3 prod t4) match {
       case JsSuccess((((t1, t2), t3), t4)) => JsSuccess(t1, t2, t3, t4)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -890,7 +890,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5)] = {
     (t1 prod t2 prod t3 prod t4 prod t5) match {
       case JsSuccess(((((t1, t2), t3), t4), t5)) => JsSuccess(t1, t2, t3, t4, t5)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -904,7 +904,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6) match {
       case JsSuccess((((((t1, t2), t3), t4), t5), t6)) => JsSuccess(t1, t2, t3, t4, t5, t6)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -919,7 +919,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7) match {
       case JsSuccess(((((((t1, t2), t3), t4), t5), t6), t7)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -935,7 +935,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8) match {
       case JsSuccess((((((((t1, t2), t3), t4), t5), t6), t7), t8)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -952,7 +952,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9) match {
       case JsSuccess(((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -970,7 +970,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10) match {
       case JsSuccess((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -989,7 +989,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11) match {
       case JsSuccess(((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -1009,7 +1009,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12) match {
       case JsSuccess((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -1030,7 +1030,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13) match {
       case JsSuccess(((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -1052,7 +1052,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14) match {
       case JsSuccess((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -1075,7 +1075,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15) match {
       case JsSuccess(((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -1099,7 +1099,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16) match {
       case JsSuccess((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   }
 
@@ -1124,7 +1124,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16 prod t17) match {
       case JsSuccess(((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   } 
 
@@ -1150,7 +1150,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16 prod t17 prod t18) match {
       case JsSuccess((((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17), t18)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   } 
 
@@ -1177,7 +1177,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16 prod t17 prod t18 prod t19) match {
       case JsSuccess(((((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17), t18), t19)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18, t19)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   } 
 
@@ -1205,7 +1205,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16 prod t17 prod t18 prod t19 prod t20) match {
       case JsSuccess((((((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17), t18), t19), t20)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18, t19, t20)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   } 
 
@@ -1234,7 +1234,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16 prod t17 prod t18 prod t19 prod t20 prod t21) match {
       case JsSuccess(((((((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17), t18), t19), t20), t21)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18, t19, t20, t21)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   } 
 
@@ -1264,7 +1264,7 @@ trait JsResultHelpers {
   ): JsResult[(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22)] = {
     (t1 prod t2 prod t3 prod t4 prod t5 prod t6 prod t7 prod t8 prod t9 prod t10 prod t11 prod t12 prod t13 prod t14 prod t15 prod t16 prod t17 prod t18 prod t19 prod t20 prod t21 prod t22) match {
       case JsSuccess((((((((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17), t18), t19), t20), t21), t22)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18, t19, t20, t21, t22)
-      case JsError(o, e, g) => JsError(o, e, g)
+      case JsError(e) => JsError(e)
     }
   } 
 

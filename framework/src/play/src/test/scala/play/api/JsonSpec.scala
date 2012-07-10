@@ -39,8 +39,8 @@ object JsonSpec extends Specification {
   implicit object DateFormat extends Reads[Date] {
     def reads(json: JsValue): JsResult[Date] = json match {
         // Need to throw a RuntimeException, ParseException beeing out of scope of asOpt
-        case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).map(JsSuccess(_)).getOrElse(JsError(json, JsPath() -> Seq(ValidationError( "parse.exception" ))))
-        case _ => JsError(json, JsPath() -> Seq(ValidationError( "parse.exception" )))
+        case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).map(JsSuccess(_)).getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError( "parse.exception" )))))
+        case _ => JsError(Seq(JsPath() -> Seq(ValidationError( "parse.exception" ))))
     }
   }
 
@@ -148,7 +148,7 @@ object JsonSpec extends Specification {
         "name" -> "bob", 
         "friends" -> 5)
 
-      obj.validate[User] must equalTo(JsError(obj, JsPath \ 'friends -> Seq(ValidationError("validate.error.expected.jsarray"))))
+      obj.validate[User] must equalTo(JsError(Seq(JsPath \ 'friends -> Seq(ValidationError("validate.error.expected.jsarray")))))
     }
 
     "prune branches of Json AST" in {
