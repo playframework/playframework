@@ -314,7 +314,7 @@ object JsonValidSpec extends Specification {
     implicit val myFormat = JsValidator(
       JsPath \ 'id -> in[Long],
       JsPath \ 'name -> in( required[String] ),
-      JsPath \ 'password -> (in( required[String] ) ++ out( pruned[String] ))
+      JsPath \ 'password -> in( required[String] ) ~ out( pruned[String] )
     )
 
     "validate json to tuple" in {

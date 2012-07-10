@@ -83,7 +83,7 @@ object JsValidator {
     def reads(json: JsValue): JsResult[T] = fromJson(json)(in.getOrElse(fmt))    
     def writes(t: T): JsValue = toJson(t)(out.getOrElse(fmt))
 
-    def ++(other: JsFlow[T])  = (in, out) match {
+    def ~(other: JsFlow[T])  = (in, out) match {
       case (Some(in), None) => JsFlow(Some(in), other.out)
       case (None, Some(out)) => JsFlow(other.in, Some(out))
       case (None, None) => JsFlow(other.in, other.out)
