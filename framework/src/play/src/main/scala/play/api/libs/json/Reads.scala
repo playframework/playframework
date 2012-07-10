@@ -20,12 +20,26 @@ case class JsError[T](original: JsValue, errors: Seq[(JsPath, Seq[ValidationErro
 
 object JsError {
   def apply[T](original: JsValue, errors: (JsPath, Seq[ValidationError])*) = new JsError[T](original, errors, Seq())
+
+  def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
+    import scala.collection.mutable.ListBuffer
+    val lb = ListBuffer[(JsPath, Seq[ValidationError])]() ++ e2
+    e1.map{ case(path, errors) => 
+      val lr = lb.collect{ case elt if(elt._1 == path) => lb-=elt; elt._2 }
+      path -> (errors ++ lr.flatten).distinct
+    } ++ lb
+  }
 }
 
 sealed trait JsResult[T] {
   def fold[X](valid: T => X, invalid: (JsValue, Seq[(JsPath, Seq[ValidationError])], Seq[ValidationError]) => X): X = this match {
     case JsSuccess(v) => valid(v)
     case JsError(o, e, g) => invalid(o, e, g)
+  }
+
+  def fold[X](valid: T => X, invalid: JsError[T] => X): X = this match {
+    case JsSuccess(s) => valid(s)
+    case e @ JsError(_, _, _) => invalid(e)
   }
 
   def map[X](f: T => X): JsResult[X] = this match {
@@ -38,12 +52,27 @@ sealed trait JsResult[T] {
     case JsError(o, e, g) => JsError[X](o, e, g)
   }
 
+  def flatMapTryDefault[X](defaultValue: T)(f: T => JsResult[X]): JsResult[X] = this match {
+    case JsSuccess(v) => f(v)
+    case JsError(o, e, g) => 
+      // tries with undefined first
+      f(defaultValue) match {
+        case s @ JsSuccess(_) => s
+        case JsError(o2, e2, g2) => JsError[X](o, 
+          JsError.merge(e, e2),
+          //(e ++ e2).distinct.groupBy{ case(path, _) => path }.map{ case(k, v) => k -> v.map(_._2).flatten }.toSeq,
+          g ++ g2)
+      }
+  }
+
   def prod[V](other: JsResult[V]): JsResult[(T, V)] = {
     (this, other) match {
       case (JsSuccess(t), JsSuccess(v)) => JsSuccess((t, v))
       case (JsError(o, e, g), JsSuccess(v)) => JsError[(T, V)](o, e, g)
       case (JsSuccess(v), JsError(o, e, g)) => JsError[(T, V)](o, e, g)
-      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[(T, V)](o ++ o2, e ++ e2, g ++ g2)
+      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[(T, V)](o, 
+          JsError.merge(e, e2),
+          g ++ g2)
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
@@ -54,7 +83,19 @@ sealed trait JsResult[T] {
       case (JsError(o, e, g), JsSuccess(v)) => JsError[T](o, e, g)
       case (JsSuccess(v), JsError(o, e, g)) => JsError[T](o, e, g)
       case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[T](o ++ o2, 
-        (e ++ e2).distinct.groupBy{ case(path, _) => path }.map{ case(k, v) => k -> v.map(_._2).flatten }.toSeq,
+        JsError.merge(e, e2),
+        g ++ g2)
+      case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
+    }
+  }
+
+  def andThen[V](other: JsResult[V]): JsResult[V] = {
+    (this, other) match {
+      case (JsSuccess(t), JsSuccess(v)) => JsSuccess(v)
+      case (JsError(o, e, g), JsSuccess(v)) => JsError[V](o, e, g)
+      case (JsSuccess(t), JsError(o, e, g)) => JsError[V](o, e, g)
+      case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[V](o ++ o2, 
+        JsError.merge(e, e2),
         g ++ g2)
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
@@ -66,7 +107,7 @@ sealed trait JsResult[T] {
       case (JsError(o, e, g), JsSuccess(t)) => JsSuccess(t)
       case (JsSuccess(t), JsError(o, e, g)) => JsSuccess(t)
       case (JsError(o, e, g), JsError(o2, e2, g2)) => JsError[T](o ++ o2, 
-        (e ++ e2).distinct.groupBy{ case(path, _) => path }.map{ case(k, v) => k -> v.map(_._2).flatten }.toSeq,
+        JsError.merge(e, e2),
         g ++ g2)
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
@@ -112,9 +153,14 @@ trait Reads[T] {
     def reads(json: JsValue): JsResult[T] = self.reads(json) and other.reads(json)
   }
 
+  def andThen[V](other: Reads[V]) = new Reads[V] {
+    def reads(json: JsValue): JsResult[V] = self.reads(json) andThen other.reads(json)
+  }
+
   def or(other: Reads[T]) = new Reads[T] {
     def reads(json: JsValue): JsResult[T] = self.reads(json) or other.reads(json)
   }
+
 
   /**
    * builds a JsErrorObj JsObject

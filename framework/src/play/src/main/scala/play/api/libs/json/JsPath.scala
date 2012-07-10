@@ -8,6 +8,7 @@ sealed trait PathNode {
   def recursive: Boolean = false
   def splitChildren(json: JsValue): List[Either[(PathNode, JsValue), (PathNode, JsValue)]]
   def set(json: JsValue, transform: JsValue => JsValue): JsValue
+  def setIfDef(json: JsValue, transform: JsValue => JsValue): JsValue
   def prune(json: JsValue): JsValue
 
   def toJsonField(value: JsValue): JsValue
@@ -54,6 +55,22 @@ case class KeyPathNode(key: String, override val recursive: Boolean = false) ext
     case _ => transform(json)
   }
 
+  def setIfDef(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
+    case js @ JsUndefined(_) => json
+    case obj: JsObject => 
+      var found = false 
+      val o = JsObject(obj.fields.map{ case (k,v) => 
+        if(k == this.key) { 
+          found = true
+          k -> transform(v) 
+        }
+        else k -> v 
+      })
+      if(!found) o ++ Json.obj(this.key -> transform(Json.obj()))
+      else o
+    case _ => transform(json)
+  }
+
   def prune(json: JsValue): JsValue = json match {
     case obj: JsObject => 
       JsObject(obj.fields.collect{ case (k,v) if(k != this.key) => k -> v })
@@ -82,6 +99,12 @@ case class IdxPathNode(idx: Int) extends PathNode {
   } 
 
   def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
+    case arr: JsArray => JsArray(arr.value.zipWithIndex.map{ case (js, j) => if(j == idx) transform(js) else js})
+    case _ => transform(json)
+  }
+
+  def setIfDef(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
+    case js @ JsUndefined(_) => json
     case arr: JsArray => JsArray(arr.value.zipWithIndex.map{ case (js, j) => if(j == idx) transform(js) else js})
     case _ => transform(json)
   }
@@ -131,9 +154,15 @@ case class JsPath(path: List[PathNode] = List()) {
   }
 
   def asSingleJsResult(json: JsValue): JsResult[JsValue] = this(json) match {
-    case Nil => JsError(json, this -> Seq(ValidationError("validation.error.missing-path")))
+    case Nil => JsError(json, this -> Seq(ValidationError("validate.error.missing-path")))
     case List(js) => JsSuccess(js)
-    case head :: tail => JsError(json, this -> Seq(ValidationError("validation.error.multiple-result-path")))
+    case head :: tail => JsError(json, this -> Seq(ValidationError("validate.error.multiple-result-path")))
+  }
+
+  def asSingleJson(json: JsValue): JsValue = this(json) match {
+    case Nil => JsUndefined("not.found")
+    case List(js) => js
+    case head::tail => JsUndefined("multiple.result")
   }
 
   override def toString = path.foldLeft("")((acc, p) => acc + p.toString)
@@ -143,6 +172,10 @@ case class JsPath(path: List[PathNode] = List()) {
   def ++(other: JsPath) = this compose other
 
   def set(origin: JsValue, newElt: JsValue): JsValue = set(origin, js => newElt)
+  def setIfDef(origin: JsValue, newElt: JsValue): JsValue = newElt match {
+    case js @ JsUndefined(_) => origin
+    case _ => set(origin, newElt)
+  }
 
   def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {
     def buildLevel(json: JsValue, currentPath: PathNode)(mapF: Either[(PathNode, JsValue), (PathNode, JsValue)] => (PathNode, JsValue)): JsValue = {

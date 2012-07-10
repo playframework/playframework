@@ -6,6 +6,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json.Generic._
 import play.api.libs.json.JsResultHelpers._
 import play.api.libs.json.Reads._
+import play.api.libs.json.JsValidator._
 import scala.util.control.Exception._
 import java.text.ParseException
 import play.api.data.validation.ValidationError
@@ -109,26 +110,12 @@ object JsonValidSpec extends Specification {
 
   }
 
-  case class User(name: String)
+  "JSON JsMapper 1-field case class" should {
+    case class User(name: String)
+    implicit val UserFormat = JsMapper(
+      JsPath \ "name" -> in( minLength(5) )
+    )(User)(User.unapply)
 
-  /*def minLength(length: Int): Constraint[String] = Constraint[String]("constraint.js.minLength", length) { 
-    case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validate.error.minLength", JsNumber(length))))
-    case js => JsError(js, JsPath() -> Seq(ValidationError("error.expected.jsstring")))
-  }*/
-
-  def minLength(length: Int): Reads[String] = new Reads[String] {
-    def reads(json: JsValue): JsResult[String] = json match {
-      case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(js, JsPath() -> Seq(ValidationError("validate.error.minLength", length)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))
-    }
-  }
-  
-  implicit val UserFormat = JsMapper(
-    JsPath \ "name" -> minLength(5)
-  )(User)(User.unapply)
-
-
-  "JSON validators 1-field case class" should {
     "validate simple case class" in {
       val bobby = User("bobby")
       val js = Json.toJson(bobby)
@@ -143,7 +130,7 @@ object JsonValidSpec extends Specification {
     "fail validation when constraints are not respected " in {
       val bob = User("bob")
       val js = Json.toJson(bob)
-      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
+      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validate.error.minLength", JsNumber(5)))))
       js.validate[User] must equalTo(JsError(js, JsPath \ "name" -> Seq(ValidationError("validate.error.minLength", 5))))
     }
 
@@ -153,27 +140,19 @@ object JsonValidSpec extends Specification {
       js.validate[User] must equalTo(
         JsError(
           js, 
-          JsPath \ "name" -> Seq(ValidationError("validation.error.missing-path"))))
-    }
-  }
-
-  def max(nb: Int): Reads[Int] = new Reads[Int] {
-    def reads(json: JsValue): JsResult[Int] = json match {
-      case JsNumber(d) => if (d <= nb) JsSuccess(d.toInt) else JsError(json, JsPath() -> Seq(ValidationError("validate.error.max", nb)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
+          JsPath \ "name" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.expected.jsstring"))))
     }
   }
 
 
-  case class User2(id: Long, name: String, age: Int)
-  implicit val UserFormat2 = JsMapper(
-    JsPath \ 'id -> of[Long],
-    JsPath \ 'name -> minLength(5),
-    JsPath \ 'age -> max(85)
-  )(User2)(User2.unapply)
+  "JSON JsMapper 3-fields case class" should {
+    case class User2(id: Long, name: String, age: Int)
+    implicit val UserFormat2 = JsMapper(
+      JsPath \ 'id -> in( of[Long] ),
+      JsPath \ 'name -> in( minLength(5) ),
+      JsPath \ 'age -> in( max(85) )
+    )(User2)(User2.unapply)
 
-
-  "JSON validators 3-fields case class" should {
     "validate simple case class" in {
       val bobby = User2(1234L, "bobby", 75)
       val js = Json.toJson(bobby)
@@ -190,7 +169,7 @@ object JsonValidSpec extends Specification {
     "fail validation when constraints are not respected " in {
       val bob = User2(1234L, "bob", 86)
       val js = Json.toJson(bob)
-      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
+      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validate.error.minLength", JsNumber(5)))))
       js.validate[User2] must equalTo(JsError(js, 
         JsPath \ "name" -> Seq(ValidationError("validate.error.minLength", 5)), 
         JsPath \ "age" -> Seq(ValidationError("validate.error.max", 85))))
@@ -201,37 +180,22 @@ object JsonValidSpec extends Specification {
       js.validate[User2] must equalTo(
         JsError(
           js, 
-          JsPath \ "name" -> Seq(ValidationError("validation.error.missing-path")),
-          JsPath \ "age" -> Seq(ValidationError("validation.error.missing-path"))
+          JsPath \ "name" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.expected.jsstring")),
+          JsPath \ "age" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.expected.jsnumber"))
         ))
     }
 
 
   }
 
-  def min(nb: Int): Reads[Int] = new Reads[Int] {
-    def reads(json: JsValue): JsResult[Int] = json match {
-      case JsNumber(d) => if (d >= nb) JsSuccess(d.toInt) else JsError(json, JsPath() -> Seq(ValidationError("validate.error.min", nb)))
-      case js => JsError(js, JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))
-    }
-  }
+  "JSON JsMapper 3-fields case class with multiple constraints" should {
+    case class User3(id: Long, name: String, age: Int)
+    implicit val UserFormat3 = JsMapper(
+      JsPath \ 'id -> in( of[Long] ),
+      JsPath \ 'name -> in( minLength(5) or valueEquals[String]("John") ),
+      JsPath \ 'age -> in( max(85) and min(15) )
+    )(User3)(User3.unapply)
 
-  def equals[T](value: T)(implicit r: Reads[T]): Reads[T] = new Reads[T] {
-    def reads(json: JsValue): JsResult[T] = r.reads(json).flatMap( t => 
-      if(t.equals(value)) JsSuccess(t) 
-      else JsError(json, JsPath() -> Seq(ValidationError("validate.error.equals", value)))
-    )
-  }
-
-  case class User3(id: Long, name: String, age: Int)
-  implicit val UserFormat3 = JsMapper(
-    JsPath \ 'id -> of[Long],
-    JsPath \ 'name -> (minLength(5) or equals[String]("John")),
-    JsPath \ 'age -> (max(85) and min(15))
-  )(User3)(User3.unapply)
-
-
-  "JSON validators 3-fields case class with multiple constraints" should {
     "validate simple case class" in {
       val bobby = User3(1234L, "bobby", 75)
       val js = Json.toJson(bobby)
@@ -248,7 +212,7 @@ object JsonValidSpec extends Specification {
     "fail validation when constraints are NOT respected " in {
       val bob = User3(1234L, "bob", 86)
       val js = Json.toJson(bob)
-      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
+      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validate.error.minLength", JsNumber(5)))))
       js.validate[User3] must equalTo(JsError(js, 
         JsPath \ "name" -> Seq(ValidationError("validate.error.minLength", 5), ValidationError("validate.error.equals", "John")), 
         JsPath \ "age" -> Seq(ValidationError("validate.error.max", 85))))
@@ -257,22 +221,117 @@ object JsonValidSpec extends Specification {
     "fail validation when OR constraints are respected " in {
       val bob = User3(1234L, "John", 86)
       val js = Json.toJson(bob)
-      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validation.error.minLength", JsNumber(5)))))
+      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validate.error.minLength", JsNumber(5)))))
       js.validate[User3] must equalTo(JsError(js, 
         JsPath \ "age" -> Seq(ValidationError("validate.error.max", 85))))
     }
 
     "fail validation when field missing" in {
       val js = Json.obj("id" -> 1234L, "nick" -> "bob")
-      js.validate[User2] must equalTo(
+      js.validate[User3] must equalTo(
         JsError(
           js, 
-          JsPath \ "name" -> Seq(ValidationError("validation.error.missing-path")),
-          JsPath \ "age" -> Seq(ValidationError("validation.error.missing-path"))
+          JsPath \ "name" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.expected.jsstring")),
+          JsPath \ "age" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.expected.jsnumber"))
         ))
     }
 
     
   }  
+
+
+  "JSON required constraint" should {
+    case class User4(id: Long, name: String, age: Int)
+    implicit val UserFormat4 = JsMapper(
+      JsPath \ 'id -> in( of[Long] ),
+      JsPath \ 'name -> in( required[String] and minLength(5) ),
+      JsPath \ 'age -> in( max(85) and min(15) )
+    )(User4)(User4.unapply)
+
+   "validate missing field" in {
+      val obj = Json.obj("id" -> 1234L, "age" -> "blabla")
+      obj.validate[User4] must equalTo(
+        JsError(
+          obj, 
+          JsPath \ "name" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.required"), ValidationError("validate.error.expected.jsstring")),
+          JsPath \ "age" -> Seq(ValidationError("validate.error.expected.jsnumber"))
+        ))
+    }
+
+    "validate failed constraints" in {
+      val obj = Json.obj("id" -> 1234L, "name" -> "bob", "age" -> 5)
+      obj.validate[User4] must equalTo(
+        JsError(
+          obj, 
+          JsPath \ "name" -> Seq(ValidationError("validate.error.minLength", 5)),
+          JsPath \ "age" -> Seq(ValidationError("validate.error.min", 15))
+        ))
+    }
+  }
+
+
+  "JSON optional constraint" should {
+    case class User5(id: Long, name: String, age: Option[Int])
+    implicit val UserFormat5 = JsMapper(
+      JsPath \ 'id -> in( of[Long] ),
+      JsPath \ 'name -> in( required[String] ),
+      JsPath \ 'age -> in( optional[Int] )
+    )(User5)(User5.unapply)
+
+    "validate missing optional field" in {
+      val obj = Json.obj("id" -> 1234L, "name" -> "bob")
+      obj.validate[User5] must equalTo(JsSuccess(User5(1234L, "bob", None)))
+    }
+
+    "validate optional field" in {
+      val obj = Json.obj("id" -> 1234L, "name" -> "bob", "age" -> 5)
+      obj.validate[User5] must equalTo(JsSuccess(User5(1234L, "bob", Some(5))))
+    }
+
+     "validate other than optional missing field" in {
+      val obj = Json.obj("id" -> 1234L)
+      obj.validate[User5] must equalTo(
+        JsError(
+          obj, 
+          JsPath \ "name" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.required"), ValidationError("validate.error.expected.jsstring"))
+        ))
+    }
+  }
+
+  "JSON email constraint" should {
+    val myFormat = JsValidator(
+      JsPath \ 'email -> in(email)
+    )
+
+    "validate email" in {
+      val obj = Json.obj("email" -> "pascal.voitot@zenexity.com")
+      obj.validate[String](myFormat) must equalTo(JsSuccess("pascal.voitot@zenexity.com"))
+    }
+
+    "refuse email" in {
+      val obj = Json.obj("email" -> "pascal.voitotnexity.com")
+      obj.validate[String](myFormat) must equalTo(JsError(obj, JsPath \ "email" -> Seq(ValidationError("validate.error.email"))))
+    }
+  }    
+
+
+  "JSON JsValidator 3-fields" should {
+    implicit val myFormat = JsValidator(
+      JsPath \ 'id -> in[Long],
+      JsPath \ 'name -> in( required[String] ),
+      JsPath \ 'password -> (in( required[String] ) ++ out( pruned[String] ))
+    )
+
+    "validate json to tuple" in {
+      val obj = Json.obj("id" -> 1234L, "name" -> "bob", "password" -> "password")
+      obj.validate[(Long, String, String)] must equalTo(JsSuccess((1234L, "bob", "password")))
+    }
+
+    "rewrite tuple to json" in {
+      val obj = Json.obj("id" -> 1234L, "name" -> "bob")
+
+      toJson((1234L, "bob", "password")) must equalTo(obj)
+    }
+  }
 
 }
