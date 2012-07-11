@@ -4,10 +4,7 @@ import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.json.Generic._
-import play.api.libs.json.JsResultHelpers._
-import play.api.libs.json.Reads._
-import play.api.libs.json.Writes._
-import play.api.libs.json.Constraint._
+import play.api.libs.json.Constraints._
 
 import scala.util.control.Exception._
 import java.text.ParseException
@@ -19,9 +16,9 @@ object JsonSpec extends Specification {
   case class User(id: Long, name: String, friends: List[User])
 
   implicit val UserFormat: Format[User] = JsMapper(
-    JsPath \ "id" -> of[Long],
-    JsPath \ "name" -> of[String],
-    JsPath \ "friends" -> of[List[User]]
+    JsPath \ "id" -> in[Long],
+    JsPath \ "name" -> in[String],
+    JsPath \ "friends" -> in[List[User]]
   )(User.apply)(User.unapply)
 
   case class Car(id: Long, models: Map[String, String])

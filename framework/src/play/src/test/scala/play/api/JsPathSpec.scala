@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.json.Generic._
-import play.api.libs.json.JsResultHelpers._
+import play.api.libs.json.Constraints._
 
 import scala.util.control.Exception._
 import java.text.ParseException

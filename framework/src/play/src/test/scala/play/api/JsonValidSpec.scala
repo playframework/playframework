@@ -4,13 +4,10 @@ import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.json.Generic._
-import play.api.libs.json.JsResultHelpers._
-import play.api.libs.json.Reads._
-import play.api.libs.json.JsValidator._
+import play.api.libs.json.Constraints._
 import scala.util.control.Exception._
 import java.text.ParseException
 import play.api.data.validation.ValidationError
-import Constraint._
 
 object JsonValidSpec extends Specification {
   "JSON reads" should {
@@ -83,25 +80,6 @@ object JsonValidSpec extends Specification {
           JsPath(2) -> Seq(ValidationError("validate.error.expected.jsnumber"))
         ))
       )
-    }
-
-    "custom validate reads" in {
-      implicit object myReads extends Reads[(Int, String, List[Float])] {
-        def reads(js: JsValue) = {
-          product(
-            (js \ "key1").validate[Int],
-            (js \ "key2").validate[String],
-            (js \ "key3").validate[List[Float]]
-          )
-        }
-      }
-
-      val obj = Json.obj("key1" -> 5, "key2" -> "blabla", "key3" -> List(1.234F, 4.543F, 8.987F))
-      obj.validate[(Int, String, List[Float])] must equalTo(JsSuccess((5, "blabla", List(1.234F, 4.543F, 8.987F))))
-
-      val badObj = Json.obj("key1" -> 5, "key2" -> true, "key3" -> List(1.234F, 4.543F, 8.987F))
-      // AT THE END SHOULD BE badObj.validate[(Int, String, List[Float])] must equalTo(JsError(badObj, JsErrorObj(JsBoolean(true), "validate.error.expected.jsstring")))
-      badObj.validate[(Int, String, List[Float])] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))))
     }
 
   }
@@ -292,7 +270,7 @@ object JsonValidSpec extends Specification {
   }
 
   "JSON email constraint" should {
-    val myFormat = JsValidator(
+    val myFormat = JsTupler(
       JsPath \ 'email -> in(email)
     )
 
@@ -311,7 +289,7 @@ object JsonValidSpec extends Specification {
 
 
   "JSON JsValidator 3-fields" should {
-    implicit val myFormat = JsValidator(
+    implicit val myFormat = JsTupler(
       JsPath \ 'id -> in[Long],
       JsPath \ 'name -> in( required[String] ),
       JsPath \ 'password -> in( required[String] ) ~ out( pruned[String] )
