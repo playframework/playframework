@@ -132,7 +132,7 @@ object NettyServer {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
-        Option(System.getProperty("http.address")).getOrElse("0.0.0.0")))
+        Option(System.getProperty("http.address")).getOrElse("0.0.0.0"))
         
       Runtime.getRuntime.addShutdownHook(new Thread {
         override def run {
