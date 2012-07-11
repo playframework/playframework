@@ -126,14 +126,6 @@ object EnumerateesSpec extends Specification {
 
     }
 
-    "pass along what is consumed by the last folder iteratee on EOF" in {
-
-      val upToSpace = Traversable.splitOnceAt[String,Char](c => c != '\n')  &>> Iteratee.consume()
-
-      val result = (Enumerator("dasdasdas ", "dadadasda\nshouldb\neinnext") &> Enumeratee.grouped(upToSpace) ><> Enumeratee.map(_+"|")) |>> Iteratee.consume[String]()
-      result.flatMap(_.run).value.get must equalTo("dasdasdas dadadasda|shouldb|einnext|")
-    }
-
   }
 
   "Enumeratee.scanLeft" should {
