@@ -551,15 +551,20 @@ object Enumeratee {
 
     def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
 
-      case in @ Input.El(_) if remaining > 0 =>
+      case in @ Input.El(_) if remaining == 1 => 
+        Done(k(in), Input.Empty)
+      
+      case in @ Input.El(_) if remaining > 1 =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining - 1)(k)) } &> k(in)
 
       case in @ Input.Empty if remaining > 0 =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining)(k)) } &> k(in)
 
-      case Input.EOF => Done(k(Input.EOF), Input.EOF)
+      case Input.EOF => 
+        Done(k(Input.EOF), Input.EOF)
 
-      case in => Done(Cont(k), in)
+      case in => 
+        Done(Cont(k), in)
     }
 
     def continue[A](k: K[E, A]) = Cont(step(count)(k))
@@ -805,8 +810,12 @@ object Enumerator {
 
       val itE1 = iteratee[E1] { case (l, r) => (false, r) }
       val itE2 = iteratee[E2] { case (l, r) => (l, false) }
-      e1 |>> itE1
-      e2 |>> itE2
+      val r1 = e1 |>> itE1
+      val r2 = e2 |>> itE2
+      r1.flatMap(_ => r2).extend1 {
+        case Redeemed(_) => redeemResultIfNotYet()
+        case Thrown(e) => result.throwing(e)
+      }
       result
     }
 
@@ -999,7 +1008,7 @@ object Enumerator {
 
   private def enumerate[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
-      i.map(it => it.pureFlatFold((_, _) => it,
+      i.flatMap(it => it.pureFold((_, _) => it,
         k => k(Input.El(e)),
         (_, _) => it)))
   }
