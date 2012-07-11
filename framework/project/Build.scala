@@ -11,7 +11,7 @@ object PlayBuild extends Build {
     import Generators._
     import LocalSBT._
     import Tasks._
-    val previousVersion = "2.0.1"
+    val previousVersion = "2.0.2"
     lazy val TemplatesProject = Project(
         "Templates",
         file("src/templates"),
