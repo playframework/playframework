@@ -35,15 +35,17 @@ import collection.JavaConverters._
  */
 object Assets extends Controller {
 
+  private val timeZoneCode = "GMT"
+
   //Dateformatter is immutable and threadsafe
   private val df: DateTimeFormatter = 
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss zzz").withLocale(java.util.Locale.ENGLISH).withZoneUTC
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss '"+timeZoneCode+"'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
   
   //Dateformatter is immutable and threadsafe
   private val dfp: DateTimeFormatter = 
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZoneUTC
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
   
-  private val parsableTimezoneCode = " "+dfp.getZone
+  private val parsableTimezoneCode = " "+timeZoneCode
 
   /**
    * Generates an `Action` that serves a static resource.
