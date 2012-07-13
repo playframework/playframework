@@ -230,9 +230,13 @@ case class MessagesApi(messages: Map[String, Map[String, String]]) {
    * @return the formatted message, if this key was defined
    */
   def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
-    messages.get(lang.code).flatMap(_.get(key)).orElse(messages.get("default").flatMap(_.get(key))).map { pattern =>
-      new MessageFormat(pattern, lang.toLocale).format(args.map(_.asInstanceOf[java.lang.Object]).toArray)
-    }
+    val langsToTry: List[Lang] =
+      List(lang, Lang(lang.language, ""), Lang("default", ""))
+    val pattern: Option[String] =
+      langsToTry.foldLeft[Option[String]](None)((res, lang) =>
+        res.orElse(messages.get(lang.code).flatMap(_.get(key))))
+    pattern.map(pattern =>
+      new MessageFormat(pattern, lang.toLocale).format(args.map(_.asInstanceOf[java.lang.Object]).toArray))
   }
 
 }
