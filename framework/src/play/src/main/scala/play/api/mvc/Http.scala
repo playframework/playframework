@@ -277,6 +277,11 @@ package play.api.mvc {
     val maxAge = -1
 
     /**
+     * The cookie domain. Defaults to None.
+     */
+    val domain: Option[String] = None
+
+    /**
      * `true` if the Cookie should have the secure flag, restricting usage to https. Defaults to false.
      */
     val secure = false
@@ -319,7 +324,7 @@ package play.api.mvc {
      */
     def encodeAsCookie(data: T): Cookie = {
       val cookie = encode(serialize(data))
-      Cookie(COOKIE_NAME, cookie, maxAge, "/", None, secure, httpOnly)
+      Cookie(COOKIE_NAME, cookie, maxAge, "/", domain, secure, httpOnly)
     }
 
     /**
@@ -406,6 +411,7 @@ package play.api.mvc {
     override val isSigned = true
     override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
     override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
+    override val domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
