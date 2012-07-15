@@ -45,10 +45,9 @@ private[server] trait RequestBodyHandler {
       }
 
       current.foreach{ i =>
-        i.unflatten.extend1 {
-          case Redeemed(Step.Cont(k)) =>
-            val next = k(chunk)
-            continue(next)
+        i.feed(chunk).flatMap(_.unflatten).extend1 {
+          case Redeemed(c@Step.Cont(k)) =>
+            continue(c.it)
           case Redeemed(finished) =>
             finish(finished.it)
           case Thrown(e) =>
