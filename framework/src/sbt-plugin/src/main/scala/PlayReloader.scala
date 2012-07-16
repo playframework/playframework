@@ -188,8 +188,7 @@ trait PlayReloader {
 
       private def newClassLoader = {
         val loader = new java.net.URLClassLoader(
-          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
-          baseLoader) {
+          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray, baseLoader) {
 
           val version = classLoaderVersion.incrementAndGet
 

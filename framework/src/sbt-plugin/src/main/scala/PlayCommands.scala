@@ -483,13 +483,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
           if (sharedClasses.contains(name)) {
             sbtLoader.loadClass(name)
           } else {
-            try {
-              super.loadClass(name)
-            } catch {
-              case e: ClassNotFoundException => {
-                reloader.currentApplicationClassLoader.map(_.loadClass(name)).getOrElse(throw e)
-              }
-            }
+            super.loadClass(name)
           }
         }
 
