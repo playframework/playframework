@@ -40,4 +40,8 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
     Option(underlying.onBadRequest(r, error)).map(_.getWrappedResult).getOrElse(super.onBadRequest(request, error))
   }
 
+  override def getControllerInstance[A](controllerClass: Class[A]): A = {
+    controllerClass.newInstance();
+  }
+
 }

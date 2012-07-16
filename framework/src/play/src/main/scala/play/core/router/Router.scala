@@ -68,6 +68,17 @@ object Router {
    */
   object RoutesCompiler {
 
+    import java.io.File
+    import scalax.file._
+    import com.typesafe.config._
+
+    // TODO: this doesn't seem like a great way of getting the config
+    val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")));
+    val global = try {
+      config.getString("application.global");
+    } catch { case e: ConfigException.Missing => "Global" }
+    val classFactoryMethodName = global + ".getControllerInstance";
+
     object Hash {
 
       def apply(bytes: Array[Byte]): String = {
@@ -79,9 +90,6 @@ object Router {
       }
 
     }
-
-    import scalax.file._
-    import java.io.File
 
     case class RoutesCompilationError(source: File, message: String, line: Option[Int], column: Option[Int]) extends RuntimeException(message)
 
@@ -165,6 +173,14 @@ object Router {
           throw RoutesCompilationError(
             file,
             "Missing Controller",
+            Some(route.call.pos.line),
+            Some(route.call.pos.column))
+        }
+
+        if (route.call.instantiate && classFactoryMethodName == null) {
+          throw RoutesCompilationError(
+            file,
+            "application.classFactoryMethod must be set to use instantiated controller syntax",
             Some(route.call.pos.line),
             Some(route.call.pos.column))
         }
@@ -274,8 +290,6 @@ object Router {
               |}
               |
               |def prefix = _prefix
-              |
-              |lazy val defaultPrefix = { if(Routes.prefix.endsWith("/")) "" else "/" } 
               |
               |%s 
               |    
@@ -422,7 +436,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
                               route.verb.value,
-                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ Routes.defaultPrefix} + " } + "\"\"\"\"" + route.path.parts.map {
+                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ if(Routes.prefix.endsWith(\"/\")) \"\" else \"/\" } + " } + "\"\"\"\"" + route.path.parts.map {
                                 case StaticPart(part) => " + \"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -461,7 +475,7 @@ object Router {
                               case Seq(route) => {
                                 """ 
                                     |%s
-                                    |def %s : JavascriptReverseRoute = JavascriptReverseRoute(
+                                    |def %s = JavascriptReverseRoute(
                                     |   "%s",
                                     |   %s
                                     |      function(%s) {
@@ -482,7 +496,7 @@ object Router {
                               case Seq(route, routes @ _*) => {
                                 """ 
                                     |%s
-                                    |def %s : JavascriptReverseRoute = JavascriptReverseRoute(
+                                    |def %s = JavascriptReverseRoute(
                                     |   "%s",
                                     |   %s
                                     |      function(%s) {
@@ -590,16 +604,22 @@ object Router {
 
                             val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
 
+                            val controllerCall = if (route.call.instantiate) {
+                              classFactoryMethodName + "(classOf[" + packageName + "." + controller + "])." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                            } else {
+                              packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                            }
+
                             """ 
                                   |%s
-                                  |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
+                                  |def %s(%s) = new play.api.mvc.HandlerRef(
                                   |   %s, HandlerDef(this, "%s", "%s", %s)
                                   |)
                               """.stripMargin.format(
                               markLines(route),
                               route.call.method,
                               reverseSignature,
-                              packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")",
+                              controllerCall,
                               packageName + "." + controller + route.call.field.map(_ + ".").getOrElse(""),
                               route.call.method,
                               "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")")
@@ -684,7 +704,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                               route.verb.value,
-                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { Routes.defaultPrefix} + """ } + route.path.parts.map {
+                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { if(Routes.prefix.endsWith("/")) "" else "/" } + """ } + route.path.parts.map {
                                 case StaticPart(part) => "\"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -724,7 +744,7 @@ object Router {
                               case Seq(route) => {
                                 """ 
                                                             |%s
-                                                            |def %s(%s): Call = {
+                                                            |def %s(%s) = {
                                                             |   %s
                                                             |}
                                                         """.stripMargin.format(
@@ -737,7 +757,7 @@ object Router {
                               case Seq(route, routes @ _*) => {
                                 """ 
                                                             |%s
-                                                            |def %s(%s): Call = {
+                                                            |def %s(%s) = {
                                                             |   (%s) match {
                                                             |%s    
                                                             |   }
@@ -797,13 +817,13 @@ object Router {
         case (r @ Route(_,_,_), i) =>
           """
             |%s
-            |private[this] lazy val %s%s = Route("%s", %s)
+            |lazy val %s%s = Route("%s", %s)
           """.stripMargin.format(
             markLines(r),
             r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
             i,
             r.verb.value,
-            "PathPattern(List(StaticPart(Routes.prefix)" + { if (r.path.parts.isEmpty) "" else """,StaticPart(Routes.defaultPrefix),""" } + r.path.parts.map(_.toString).mkString(",") + "))")
+            "PathPattern(List(StaticPart(Routes.prefix)" + { if (r.path.parts.isEmpty) "" else """,StaticPart(if(Routes.prefix.endsWith("/")) "" else "/"),""" } + r.path.parts.map(_.toString).mkString(",") + "))")
         case (r @ Include(_, _), i) =>
           """
             |%s
@@ -847,7 +867,7 @@ object Router {
               |%s
               |case %s%s(params) => {
               |   call%s { %s
-              |        invokeHandler(_root_.%s%s, %s)
+              |        invokeHandler(%s%s, %s)
               |   }
               |}
           """.stripMargin.format(
@@ -874,7 +894,11 @@ object Router {
             }.map("(" + _ + ") =>").getOrElse(""),
 
             // call
-            r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method,
+            if (r.call.instantiate) {
+              classFactoryMethodName + "(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+            } else {
+              "_root_." + r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+            },
 
             // call parameters
             r.call.parameters.map { params =>
@@ -897,8 +921,9 @@ object Router {
     case class HttpVerb(value: String) {
       override def toString = value
     }
-    case class HandlerCall(packageName: String, controller: String, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
-      override def toString = packageName + "." + controller + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
+    case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
+      val dynamic = if (instantiate) "()" else ""
+      override def toString = packageName + "." + controller + dynamic + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
         "(" + params.mkString(", ") + ")"
       }.getOrElse("")
     }
@@ -1043,15 +1068,18 @@ object Router {
 
       def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def call: Parser[HandlerCall] = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
-        case handler ~ parameters =>
+      def packageName: Parser[List[String]] = namedError(rep1sep("[a-z]+".r, "."), "Package name expected")
+
+      def className: Parser[String] = namedError("[a-zA-Z]+".r, "Class name expected")
+
+      def call: Parser[HandlerCall] = packageName ~ "." ~ className ~ opt("()") ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
+        case pkgName ~ _ ~ className ~ instantiate ~ _ ~ fieldMethod ~ parameters =>
           {
-            val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")
-            val className = try { handler(packageName.split('.').size) } catch { case _ => "" }
-            val rest = handler.drop(packageName.split('.').size + 1)
-            val field = Option(rest.dropRight(1).mkString(".")).filterNot(_.isEmpty)
-            val methodName = rest.takeRight(1).mkString
-            HandlerCall(packageName, className, methodName, field, parameters)
+            val packageName = pkgName.mkString(".")
+            val dynamic = !instantiate.isEmpty
+            val field = Option(fieldMethod.dropRight(1).mkString(".")).filterNot(_.isEmpty)
+            val methodName = fieldMethod.takeRight(1).mkString
+            HandlerCall(packageName, className, dynamic, methodName, field, parameters)
           }
       }
       
@@ -1151,7 +1179,7 @@ object Router {
   }
 
   def queryString(items: List[Option[String]]) = {
-    Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).map(_.reverse.dropWhile(_ == '&').dropWhile(_ == '?').reverse).getOrElse("")
+    Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
   }
 
   // HandlerInvoker
