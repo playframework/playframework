@@ -12,6 +12,7 @@ import akka.util.Timeout
 import akka.pattern.ask
 
 import play.api.Play.current
+import play.api.libs.concurrent.execution.defaultContext
 
 object Robot {
   

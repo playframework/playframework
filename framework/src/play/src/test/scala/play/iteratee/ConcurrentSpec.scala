@@ -21,7 +21,7 @@ object ConcurrentSpec extends Specification {
         Concurrent.buffer(20) |>>>
         slowIteratee
 
-      result.value.get.max must beLessThan(1000L)
+      result.value1.get.max must beLessThan(1000L)
     }
 
     "throw an exception when buffer is full" in {

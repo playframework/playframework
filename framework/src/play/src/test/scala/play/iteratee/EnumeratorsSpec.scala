@@ -64,8 +64,8 @@ object EnumeratorsSpec extends Specification {
     val count = hub.getPatchCord() |>> c
   pp.push(1); pp.push(1); pp.push(1); pp.close()
 
-    sum.flatMap(_.run).value.get must equalTo(4)
-    count.flatMap(_.run).value.get must equalTo(3)
+    sum.flatMap(_.run).value1.get must equalTo(4)
+    count.flatMap(_.run).value1.get must equalTo(3)
 
   }
 
@@ -82,7 +82,7 @@ object EnumeratorsSpec extends Specification {
     val p = pp.future.await.get
     p.patchIn(Enumerator(1,2,3,4))
     p.patchIn(Enumerator.eof)
-    sum.flatMap(_.run).value.get must equalTo(10)
+    sum.flatMap(_.run).value1.get must equalTo(10)
   }
 
 }*/
@@ -94,7 +94,7 @@ object EnumeratorsSpec extends Specification {
       j <- Enumerator((i until i + 10): _*)
     } yield j
     val it = Iteratee.fold[Int, Int](0)((sum, x) => sum + x)
-    (e |>> it).flatMap(_.run).value.get must equalTo ((10 until 40).sum)
+    (e |>> it).flatMap(_.run).value1.get must equalTo ((10 until 40).sum)
   }
 }
 
@@ -106,7 +106,7 @@ object EnumeratorsSpec extends Specification {
 
     val enumerator = Enumerator.generateM( play.api.libs.concurrent.Promise.pure(if(it.hasNext) Some(it.next) else None))
 
-    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value.get must equalTo("012345678910")
+    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value1.get must equalTo("012345678910")
 
   }
 
@@ -120,7 +120,7 @@ object EnumeratorsSpec extends Specification {
 
     val enumerator = Enumerator.generateM( play.api.libs.concurrent.Promise.pure(if(it.hasNext) Some(it.next) else None)) >>> Enumerator(12)
 
-    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value.get must equalTo("01234567891012")
+    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value1.get must equalTo("01234567891012")
 
   }
 
@@ -131,7 +131,7 @@ object EnumeratorsSpec extends Specification {
 
     val enumerator = Enumerator.unfoldM[Int,Int](0)( s => play.api.libs.concurrent.Promise.pure(if(s > 10) None else Some((s+1,s+1)))) >>> Enumerator(12)
 
-    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value.get must equalTo("123456789101112")
+    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value1.get must equalTo("123456789101112")
 
   }
 
@@ -145,7 +145,7 @@ object EnumeratorsSpec extends Specification {
     pushHere.push("beep")
     pushHere.push("beep")
     pushHere.eofAndEnd()
-    results.value.get must equalTo(Range(1,20).map(_ => "beepbeep"))
+    results.value1.get must equalTo(Range(1,20).map(_ => "beepbeep"))
 
   }
 }

@@ -79,7 +79,7 @@ object Concurrent {
           val finished = atomic { implicit txn =>
             redeemed() match {
               case Waiting =>
-                iteratees.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
+                iteratees.transform(_ :+ ((it, (result:Redeemable[Iteratee[E,A]]).asInstanceOf[Redeemable[Iteratee[E, _]]])))
                 None
               case notWaiting:NotWaiting[_] => Some(notWaiting)
             }
@@ -481,7 +481,7 @@ object Concurrent {
           val finished = atomic { implicit txn =>
             redeemed() match {
               case Waiting =>
-                iteratees.transform(_ :+ ((it, result.asInstanceOf[Redeemable[Iteratee[E, _]]])))
+                iteratees.transform(_ :+ ((it, (result:Redeemable[Iteratee[E,A]]).asInstanceOf[Redeemable[Iteratee[E, _]]])))
                 None
               case notWaiting => Some(notWaiting)
             }

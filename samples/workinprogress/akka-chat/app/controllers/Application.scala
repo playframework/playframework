@@ -12,6 +12,7 @@ import actors._
 import actors.ChatRoomActor._
 import akka.util.Timeout
 import akka.pattern.ask
+import play.api.libs.concurrent.execution.defaultContext
 
 object Application extends Controller {
   

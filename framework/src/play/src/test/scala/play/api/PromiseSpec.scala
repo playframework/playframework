@@ -11,7 +11,7 @@ object PromiseSpec extends Specification {
       promise.redeem(6/0)
       
       promise.future.recover{ case e: ArithmeticException => 0 }
-       .value.get must equalTo (0)
+       .value1.get must equalTo (0)
     }
   }
 }

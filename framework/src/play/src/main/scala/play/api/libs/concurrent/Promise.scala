@@ -40,7 +40,7 @@ case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
 
-class PlayRedeemable[-A](p:scala.concurrent.Promise[A]){
+class PlayRedeemable[-A](p:scala.concurrent.Promise[A]) extends Redeemable[A] {
   def redeem(a: => A): Unit = try(p.success(a)) catch {case e => p.failure(e)}
 
   def throwing(t: Throwable): Unit = p.failure(t)
