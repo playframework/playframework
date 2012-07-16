@@ -706,7 +706,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                               route.verb.value,
-                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { if(Routes.prefix.endsWith("/")) "" else "/" } + """ } + route.path.parts.map {
+                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { Routes.defaultPrefix } + """ } + route.path.parts.map {
                                 case StaticPart(part) => "\"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
