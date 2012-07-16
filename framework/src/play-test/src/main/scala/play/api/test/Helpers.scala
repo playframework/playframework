@@ -29,11 +29,13 @@ object Helpers extends Status with HeaderNames {
    * Executes a block of code in a running application.
    */
   def running[T](fakeApp: FakeApplication)(block: => T): T = {
-    try {
-      Play.start(fakeApp)
-      block
-    } finally {
-      Play.stop()
+    synchronized {
+      try {
+        Play.start(fakeApp)
+        block
+      } finally {
+        Play.stop()
+      }    
     }
   }
 
@@ -41,11 +43,13 @@ object Helpers extends Status with HeaderNames {
    * Executes a block of code in a running server.
    */
   def running[T](testServer: TestServer)(block: => T): T = {
-    try {
-      testServer.start()
-      block
-    } finally {
-      testServer.stop()
+    synchronized {
+      try {
+        testServer.start()
+        block
+      } finally {
+        testServer.stop()
+      }
     }
   }
 
@@ -54,15 +58,17 @@ object Helpers extends Status with HeaderNames {
    */
   def running[T, WEBDRIVER <: WebDriver](testServer: TestServer, webDriver: Class[WEBDRIVER])(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
-    try {
-      testServer.start()
-      browser = TestBrowser.of(webDriver)
-      block(browser)
-    } finally {
-      if (browser != null) {
-        browser.quit()
+    synchronized {
+      try {
+        testServer.start()
+        browser = TestBrowser.of(webDriver)
+        block(browser)
+      } finally {
+        if (browser != null) {
+          browser.quit()
+        }
+        testServer.stop()
       }
-      testServer.stop()
     }
   }
 
