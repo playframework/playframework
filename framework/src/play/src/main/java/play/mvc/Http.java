@@ -240,8 +240,15 @@ public class Http {
 
         /**
          * @return The media types set in the request Accept header, not sorted in any particular order.
+         * @deprecated Use {@link #acceptedTypes()} instead.
          */
+        @Deprecated
         public abstract List<String> accept();
+
+        /**
+         * @return The media types set in the request Accept header, sorted in preference order.
+         */
+        public abstract List<play.api.http.MediaRange> acceptedTypes();
 
         /**
          * Check if this request accepts a given media type.

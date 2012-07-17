@@ -57,4 +57,5 @@ trait AcceptExtractors {
  */
 case class Accepting(val mimeType: String) {
   def unapply(request: RequestHeader): Boolean = request.accepts(mimeType)
+  def unapply(mediaRange: play.api.http.MediaRange): Boolean = mediaRange.accepts(mimeType)
 }

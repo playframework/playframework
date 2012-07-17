@@ -92,14 +92,32 @@ package play.api.mvc {
     }
 
     /**
-     * @return The media types set in the request Accept header, not sorted in any particular order.
+     * @return The media types list of the request’s Accept header, not sorted in any particular order.
      */
+    @deprecated("Use acceptedTypes instead", "2.1")
     lazy val accept: Seq[String] = {
       for {
         acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
-        value <- acceptHeader.split(",")
-        contentType <- value.split(";").headOption
+        value <- acceptHeader.split(',')
+        contentType <- value.split(';').headOption
       } yield contentType
+    }
+
+    /**
+     * @return The media types list of the request’s Accept header, sorted by preference.
+     */
+    lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
+      val mediaTypes = for {
+        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
+        mediaRange0 <- acceptHeader.split(",")
+      } yield {
+        val mediaRange = mediaRange0.trim
+        RequestHeader.qPattern.findFirstMatchIn(mediaRange) match {
+          case Some(m) => (m.group(1).toDouble, play.api.http.MediaRange(m.before.toString))
+          case None => (1.0, play.api.http.MediaRange(mediaRange)) // “The default value is q=1.”
+        }
+      }
+      mediaTypes.sorted.map(_._2).reverse
     }
 
     /**
@@ -107,10 +125,7 @@ package play.api.mvc {
      * @return true if `mediaType` matches the Accept header, otherwise false
      */
     def accepts(mediaType: String): Boolean = {
-      accept.isEmpty ||
-      accept.contains(mediaType) ||
-      accept.contains("*/*") ||
-      accept.contains(mediaType.takeWhile(_ != '/') + "/*")
+      acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mediaType)).isDefined
     }
 
     /**
@@ -175,6 +190,11 @@ package play.api.mvc {
       method + " " + uri
     }
 
+  }
+
+  object RequestHeader {
+    // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
+    val qPattern = ";\\s*q=([0-9.]+)".r
   }
 
   /**
