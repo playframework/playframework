@@ -726,6 +726,9 @@ trait Results {
   /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
   val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
 
+  /** Generates a ‘423 LOCKED’ result. */
+  val Locked = new Status(LOCKED)
+
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
