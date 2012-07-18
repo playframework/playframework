@@ -647,6 +647,9 @@ trait Results {
   /** Generates a ‘206 PARTIAL_CONTENT’ result. */
   val PartialContent = new Status(PARTIAL_CONTENT)
 
+  /** Generates a ‘207 MULTI_STATUS’ result. */
+  val MultiStatus = new Status(MULTI_STATUS)
+
   /**
    * Generates a ‘301 MOVED_PERMANENTLY’ simple result.
    *
