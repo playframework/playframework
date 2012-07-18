@@ -8,88 +8,52 @@ import play.api.libs.iteratee._
 import Play.current
 
 import java.io._
-import java.net.JarURLConnection
-import collection.JavaConverters._
 
 /**
- * Controller that serves static resources from an external folder
+ * Controller that serves static resources from an external folder. 
+ * It useful in development mode if you want to serve static assets that shouldn't be part of the build process.
  *
+ * Not that this controller is not intented to be used in production mode and can lead to security issues. 
+ * Therefore it is automatically disabled in production mode.
  *
- * If a gzipped version of a resource is found (Same resource name with the .gz suffix), it is served instead.
- *
- * The default is to serve all assets with max-age=3600, this can be overwritten in application.conf file via
- *
- * {{{
- * assets.defaultCache = "no-cache"
- * }}}
- *
- * You can also set a custom Cache directive for a particular resource if needed 
- * 
- * For example in your application.conf file:
- *
- * {{{
- * assets.cache./public/images/logo.png = "max-age=5200"
- * }}}
+ * All assets are served with max-age=3600 cache directive.
  *
  * You can use this controller in any application, just by declaring the appropriate route. For example:
  * {{{
  * GET     /assets/\uFEFF*file               controllers.ExternalAssets.at(path="/home/peter/myplayapp/external", file)
+ * GET     /assets/\uFEFF*file               controllers.ExternalAssets.at(path="C:\external", file)
+ * GET     /assets/\uFEFF*file               controllers.ExternalAssets.at(path="relativeToYourApp", file)
  * }}}
+ *
  */
 object ExternalAssets extends Controller {
+
+  val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
   /**
    * Generates an `Action` that serves a static resource from an external folder
    *
-   * @param absoluteRootPath the root folder for searching the static resource files such as `"/home/peter/public"` 
-   * (this can be overwritten in Prod mode by configuring `"assets.production.external.dir"` in application.conf)
+   * @param absoluteRootPath the root folder for searching the static resource files such as `"/home/peter/public"`, `C:\external` or `relativeToYourApp`
    * @param file the file part extracted from the URL
    */
-  def at(absoluteRootPath: String, file: String): Action[AnyContent] = Action { request =>
-    val root = Play.mode match {
-        case Mode.Prod => Play.configuration.getString("assets.production.external.dir").getOrElse(absoluteRootPath)
-        case _ => absoluteRootPath
-    }    
-    val relativeResourcePath = if (file.startsWith("/")) file else "/" + file
-    
-    val resourceName = root + relativeResourcePath
-    
-    val fileToServe = new File(resourceName)
-    
-    val defaultCache = Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-    
-    if (fileToServe.isDirectory || !fileToServe.exists) {
-      NotFound
-    } else {
-      val url = {
-        val gzippedFileName = resourceName + ".gz"
-        val gz = new File(gzippedFileName)
-        if (gz.exists && request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip")).getOrElse(false)) {
-          new java.net.URL("file://"+gzippedFileName)
+  def at(rootPath: String, file: String): Action[AnyContent] = Action { request =>
+    Play.mode match {
+      case Mode.Prod => NotFound
+      case _ => {
+
+        val fileToServe = rootPath match {
+          case AbsolutePath(_) => new File(rootPath, file)
+          case _ => new File(Play.application.getFile(rootPath), file)
+        }
+
+        if(fileToServe.exists) {
+          Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
         } else {
-          new java.net.URL("file://"+resourceName)
+          NotFound
         }
-      }
 
-
-      lazy val (length, resourceData) = {
-        val stream = url.openStream()
-        try {
-          (stream.available, Enumerator.fromStream(stream))
-        } catch {
-          case _ => (0, Enumerator[Array[Byte]]())
-        }
       }
-      if (length == 0) 
-        NotFound
-      else {
-        val response = SimpleResult(
-        header = ResponseHeader(OK, Map(
-          CONTENT_LENGTH -> length.toString,
-          CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
-        )), resourceData )
-        response.withHeaders(CACHE_CONTROL -> Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(defaultCache))
-      }  
-    }  
+    }    
   }
+
 }
