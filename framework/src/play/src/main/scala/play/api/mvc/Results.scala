@@ -723,6 +723,9 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
+  val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
+
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
