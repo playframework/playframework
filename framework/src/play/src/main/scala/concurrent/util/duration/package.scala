@@ -1,7 +1,6 @@
 package scala.concurrent.util
 
 import java.util.concurrent.TimeUnit
-//import language.implicitConversions
 
 package object duration {
 

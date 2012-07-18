@@ -9,7 +9,6 @@
 package scala.concurrent
 
 
-
 import java.util.concurrent.{ ConcurrentLinkedQueue, TimeUnit, Callable }
 import java.util.concurrent.TimeUnit.{ NANOSECONDS => NANOS, MILLISECONDS ⇒ MILLIS }
 import java.lang.{ Iterable => JIterable }
@@ -18,14 +17,13 @@ import java.{ lang => jl }
 import java.util.concurrent.atomic.{ AtomicReferenceFieldUpdater, AtomicInteger, AtomicBoolean }
 
 import scala.concurrent.util.Duration
-import scala.concurrent.impl.NonFatal
+import scala.util.control.NonFatal
 import scala.Option
+import scala.util.{Try, Success, Failure}
 
 import scala.annotation.tailrec
-import scala.collection.mutable.Stack
 import scala.collection.mutable.Builder
 import scala.collection.generic.CanBuildFrom
-//import language.higherKinds
 
 
 
@@ -136,7 +134,7 @@ trait Future[+T] extends Awaitable[T] {
    *  $callbackInContext
    */
   def onFailure[U](callback: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Unit = onComplete {
-    case Left(t) if (isFutureThrowable(t) && callback.isDefinedAt(t)) => callback(t)
+    case Left(t) if (impl.Future.isFutureThrowable(t) && callback.isDefinedAt(t)) => callback(t)
     case _ =>
   }(executor)
 
@@ -475,8 +473,6 @@ trait Future[+T] extends Awaitable[T] {
     p.future
   }
 
-
-
   /** Applies the side-effecting function to the result of this future, and returns
    *  a new future with the result of this future.
    *
@@ -557,6 +553,20 @@ object Future {
     classOf[Double]  -> classOf[jl.Double],
     classOf[Unit]    -> classOf[scala.runtime.BoxedUnit]
   )
+
+  /** Creates an already completed Future with the specified exception.
+   *  
+   *  @tparam T       the type of the value in the future
+   *  @return         the newly created `Future` object
+   */
+  def failed[T](exception: Throwable): Future[T] = Promise.failed(exception).future
+
+  /** Creates an already completed Future with the specified result.
+   *  
+   *  @tparam T       the type of the value in the future
+   *  @return         the newly created `Future` object
+   */
+  def successful[T](result: T): Future[T] = Promise.successful(result).future
   
   /** Starts an asynchronous computation and returns a `Future` object with the result of that computation.
   *
@@ -616,7 +626,7 @@ object Future {
       result.future
     }
   }
-/*
+
   /** A non-blocking fold over the specified futures, with the start value of the given zero.
    *  The fold is performed on the thread where the last future is completed,
    *  the result will be the first failure of any of the futures, or any failure in the actual fold,
@@ -627,7 +637,7 @@ object Future {
    *    val result = Await.result(Future.fold(futures)(0)(_ + _), 5 seconds)
    *  }}}
    */
-  def fold[T, R](futures: TraversableOnce[Future[T]])(zero: R)(foldFun: (R, T) => R)(implicit executor: ExecutionContext): Future[R] = {
+  def fold[T, R](futures: Traversable[Future[T]])(zero: R)(foldFun: (R, T) => R)(implicit executor: ExecutionContext): Future[R] = {
     if (futures.isEmpty) Promise.successful(zero).future
     else sequence(futures).map(_.foldLeft(zero)(foldFun))
   }
@@ -639,11 +649,10 @@ object Future {
    *    val result = Await.result(Futures.reduce(futures)(_ + _), 5 seconds)
    *  }}}
    */
-  def reduce[T, R >: T](futures: TraversableOnce[Future[T]])(op: (R, T) => R)(implicit executor: ExecutionContext): Future[R] = {
+  def reduce[T, R >: T](futures: Traversable[Future[T]])(op: (R, T) => R)(implicit executor: ExecutionContext): Future[R] = {
     if (futures.isEmpty) Promise[R].failure(new NoSuchElementException("reduce attempted on empty collection")).future
     else sequence(futures).map(_ reduceLeft op)
   }
-  */
 
   /** Transforms a `TraversableOnce[A]` into a `Future[TraversableOnce[B]]` using the provided function `A => Future[B]`.
    *  This is useful for performing a parallel map. For example, to apply a function to all items of a list
@@ -688,5 +697,12 @@ object Future {
   }
 }
 
-
+/** A marker indicating that a `java.lang.Runnable` provided to `scala.concurrent.ExecutionContext`
+ * wraps a callback provided to `Future.onComplete`.
+ * All callbacks provided to a `Future` end up going through `onComplete`, so this allows an
+ * `ExecutionContext` to special-case callbacks that were executed by `Future` if desired.
+ */
+trait OnCompleteRunnable {
+  self: Runnable =>
+}
 

@@ -1,27 +1,19 @@
 /*                     __                                               *\
 **     ________ ___   / /  ___     Scala API                            **
-**    / __/ __// _ | / /  / _ |    (c) 2003-2011, LAMP/EPFL             **
+**    / __/ __// _ | / /  / _ |    (c) 2002-2011, LAMP/EPFL             **
 **  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
 ** /____/\___/_/ |_/____/_/ | |                                         **
 **                          |/                                          **
 \*                                                                      */
 
-package scala.concurrent
 
 
-/** The `TaskRunner` trait...
- *
- *  @author Philipp Haller
+package scala
+
+/** Throwing this exception can be a temporary replacement for a method
+ *  body that remains to be implemented. For instance, the exception is thrown by
+ *  `Predef.???`.
  */
-@deprecated("Use `ExecutionContext`s instead.", "2.10.0")
-trait TaskRunner {
-
-  type Task[T]
-
-  implicit def functionAsTask[S](fun: () => S): Task[S]
-
-  def execute[S](task: Task[S]): Unit
-
-  def shutdown(): Unit
-
+final class NotImplementedError(msg: String) extends Error(msg) {
+  def this() = this("an implementation is missing")
 }
