@@ -116,7 +116,7 @@ trait Status {
   val SERVICE_UNAVAILABLE = 503
   val GATEWAY_TIMEOUT = 504
   val HTTP_VERSION_NOT_SUPPORTED = 505
-
+  val INSUFFICIENT_STORAGE = 507
 }
 
 /** Defines all standard HTTP headers. */

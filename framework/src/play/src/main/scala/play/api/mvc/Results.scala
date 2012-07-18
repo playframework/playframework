@@ -747,6 +747,9 @@ trait Results {
   /** Generates a ‘503 SERVICE_UNAVAILABLE’ result. */
   val ServiceUnavailable = new Status(SERVICE_UNAVAILABLE)
 
+  /** Generates a ‘507 INSUFFICIENT_STORAGE’ result. */
+  val InsufficientStorage = new Status(INSUFFICIENT_STORAGE)
+
   /**
    * Generates a simple result.
    *
