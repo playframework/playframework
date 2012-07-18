@@ -720,6 +720,9 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
+  val FailedDependency = new Status(FAILED_DEPENDENCY)
+
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
   val TooManyRequest = new Status(TOO_MANY_REQUEST)
 
