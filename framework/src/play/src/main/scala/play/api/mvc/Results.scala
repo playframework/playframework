@@ -747,6 +747,12 @@ trait Results {
   /** Generates a ‘503 SERVICE_UNAVAILABLE’ result. */
   val ServiceUnavailable = new Status(SERVICE_UNAVAILABLE)
 
+  /** Generates a ‘504 GATEWAY_TIMEOUT’ result. */
+  val GatewayTimeout = new Status(GATEWAY_TIMEOUT)
+
+  /** Generates a ‘505 HTTP_VERSION_NOT_SUPPORTED’ result. */
+  val HttpVersionNotSupported = new Status(HTTP_VERSION_NOT_SUPPORTED)
+
   /** Generates a ‘507 INSUFFICIENT_STORAGE’ result. */
   val InsufficientStorage = new Status(INSUFFICIENT_STORAGE)
 
