@@ -153,7 +153,7 @@ trait PlaySettings {
 
     routesImport := Seq.empty[String],
 
-    playHash <<= playHashTask,
+    playMonitoredDirectories <<= playMonitoredDirectoriesTask,
 
     // Assets
 

@@ -96,7 +96,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
     val cacheFile = c / "copy-assets"
 
-    val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
+    val mappings = (r.map(d => (d ***) --- (d ** HiddenFileFilter ***)).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
 
@@ -108,26 +108,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
       }
     }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
 
-    /*
-    Disable GZIP Generation for this release.
-    -----
-     
-    val toZip = mappings.collect { case (resource, _) if resource.isFile && !resource.getName.endsWith(".gz") => resource } x relativeTo(Seq(b, resourcesDirectories))
-
-    val gzipped = toZip.map {
-      case (resource, path) => {
-        s.log.debug("Gzipping " + resource)
-        val zipFile = new File(resourcesDirectories, path + ".gz")
-        IO.gzip(resource, zipFile)
-        zipFile -> new File(t, path + ".gz")
-      }
-    }
-
-    val assetsMapping = mappings ++ gzipped*/
-
     val assetsMapping = mappings ++ externalMappings
 
-    s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
+    s.log.debug("Copy play resource mappings: " + assetsMapping.mkString("\n\t", "\n\t", ""))
 
     Sync(cacheFile)(assetsMapping)
     assetsMapping
@@ -250,17 +233,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     ()
   }
-
-  val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (state, thisProjectRef, playExternalAssets, watchTransitiveSources) map { (s,r, externalAssets, transitiveSources) =>
-    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
-       (base / "public" ** "*")
-    }.foldLeft(PathFinder.empty)(_ +++ _)
-    ((filesToHash +++ externalAssets.map {
-      case (root, paths, _) => paths(root)
-    }.foldLeft(PathFinder.empty)(_ +++ _)).get ++ transitiveSources).map(_.lastModified).mkString(",").hashCode.toString
-  }
-
 
   // ----- Post compile (need to be refactored and fully configurable)
 
@@ -774,6 +746,14 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       }
     }
 
+  }
+
+  val playMonitoredDirectories = TaskKey[Seq[String]]("play-monitored-directories")
+  val playMonitoredDirectoriesTask = (thisProjectRef, state) map { (ref, state) =>
+    val src = inAllDependencies(ref, sourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val resources = inAllDependencies(ref, resourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val assets = inAllDependencies(ref, playAssetsDirectories, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    (src ++ resources ++ assets).map(_.getCanonicalPath).distinct
   }
 
   val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")

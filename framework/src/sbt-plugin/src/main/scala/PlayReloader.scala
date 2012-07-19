@@ -5,6 +5,8 @@ import play.core._
 import Keys._
 import PlayExceptions._
 
+import net.contentobjects.jnotify.{ JNotify, JNotifyListener }
+
 trait PlayReloader {
   this: PlayCommands =>
 
@@ -16,10 +18,9 @@ trait PlayReloader {
 
     new SBTLink {
 
-      def projectPath = extracted.currentProject.base
+      lazy val projectPath = extracted.currentProject.base
 
-      def watchFiles = extracted.runTask(watchTransitiveSources, state)._2
-      
+      lazy val watchFiles = extracted.runTask(watchTransitiveSources, state)._2
 
       // ----- Internal state used for reloading is kept here
 
@@ -28,7 +29,50 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
-      var lastHash = Option.empty[String]
+      var changed = true
+
+      // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
+
+      var targetDirectory = extracted.get(target) 
+      val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
+
+      if(!nativeLibrariesDirectory.exists) {
+        // Unzip  native libraries from the jnotify jar to target/native_libraries
+        this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
+          .map(_.getFile)
+          .find(_.contains("jnotify-"))
+          .map(new File(_))
+          .foreach { jnotify => 
+            IO.unzip(jnotify, targetDirectory, (name: String) => name.startsWith("native_libraries") )
+          }
+      }
+
+      // Hack to set java.library.path
+      System.setProperty("java.library.path", {
+        Option(System.getProperty("java.library.path")).map { existing =>
+          existing + java.io.File.pathSeparator + nativeLibrariesDirectory.getAbsolutePath
+        }.getOrElse(nativeLibrariesDirectory.getAbsolutePath)
+      })
+      import java.lang.reflect._
+      val fieldSysPath = classOf[ClassLoader].getDeclaredField("sys_paths")
+      fieldSysPath.setAccessible(true)
+      fieldSysPath.set(null, null)
+            
+      val watchChanges: Seq[Int] = extracted.runTask(playMonitoredDirectories, state)._2.map { directoryToWatch =>
+        JNotify.addWatch(directoryToWatch, {
+          JNotify.FILE_CREATED | JNotify.FILE_DELETED | JNotify.FILE_MODIFIED | JNotify.FILE_RENAMED
+        }, true, new JNotifyListener {
+          def fileRenamed(wd: Int, rootPath: String, oldName: String, newName: String) { change() }
+          def fileModified(wd: Int, rootPath: String, name: String) { change() }
+          def fileDeleted(wd: Int, rootPath: String, name: String) { change() }
+          def fileCreated(wd: Int, rootPath: String, name: String) { change() }
+          def change() {
+            changed = true
+          }
+        })
+      }
+
+      // --- Utils
 
       def markdownToHtml(markdown: String, link: String => (String, String)) = {
         import org.pegdown._
@@ -45,15 +89,18 @@ trait PlayReloader {
         processor.markdownToHtml(markdown, links)
       }
 
+      // ---
+
       def forceReload() {
         reloadNextTime = true
-        lastHash = None
+        changed = true
       }
 
       def clean() {
         currentApplicationClassLoader = None
         currentProducts = Map.empty[java.io.File, Long]
         currentAnalysis = None
+        watchChanges.foreach(JNotify.removeWatch)
       }
 
       def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
@@ -207,15 +254,11 @@ trait PlayReloader {
 
         PlayProject.synchronized {
 
-          val hash = Project.runTask(playHash, state).map(_._2).get.toEither.right.get
-
-          lastHash.filter(_ == hash).map { _ => Right(None) }.getOrElse {
-
-            lastHash = Some(hash)
-
-            val r = Project.runTask(playReload, state).map(_._2).get.toEither
+          if(changed) {
+            changed = false
+            Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>
-                lastHash = None
+                changed = true
                 Incomplete.allExceptions(incomplete).headOption.map {
                   case e: PlayException => e
                   case e: xsbti.CompileFailed => {
@@ -233,9 +276,8 @@ trait PlayReloader {
                   newClassLoader
                 }
               }
-
-            r
-
+          } else {
+            Right(None)
           }
 
         }

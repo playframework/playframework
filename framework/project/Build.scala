@@ -296,7 +296,9 @@ object PlayBuild extends Build {
             
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
-            "org.pegdown"                       %    "pegdown"                  %   "1.1.0"
+            "org.pegdown"                       %    "pegdown"                  %   "1.1.0",
+
+            "net.contentobjects.jnotify"        %    "jnotify"                  %   "0.94"
         )
 
         val consoleDependencies = Seq(
