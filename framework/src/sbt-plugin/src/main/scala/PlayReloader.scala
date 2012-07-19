@@ -47,11 +47,13 @@ trait PlayReloader {
           }
       }
 
+      val libs = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
+
       // Hack to set java.library.path
       System.setProperty("java.library.path", {
         Option(System.getProperty("java.library.path")).map { existing =>
-          existing + java.io.File.pathSeparator + nativeLibrariesDirectory.getAbsolutePath
-        }.getOrElse(nativeLibrariesDirectory.getAbsolutePath)
+          existing + java.io.File.pathSeparator + libs
+        }.getOrElse(libs)
       })
       import java.lang.reflect._
       val fieldSysPath = classOf[ClassLoader].getDeclaredField("sys_paths")
