@@ -88,7 +88,7 @@ trait PlayReloader {
 
       // --- Utils
 
-      def markdownToHtml(markdown: String, link: String => (String, String)) = {
+      /*def markdownToHtml(markdown: String, link: String => (String, String)) = {
         import org.pegdown._
         import org.pegdown.ast._
 
@@ -101,7 +101,9 @@ trait PlayReloader {
         }
 
         processor.markdownToHtml(markdown, links)
-      }
+      }*/
+
+      def markdownToHtml(markdown: String) = markdown
 
       // ---
 
@@ -145,7 +147,7 @@ trait PlayReloader {
               })
             }
           }.headOption
-        }
+        }.orNull
       }
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
@@ -264,7 +266,7 @@ trait PlayReloader {
         loader
       }
 
-      def reload: Either[Throwable, Option[ClassLoader]] = {
+      def reload: AnyRef = {
 
         PlayProject.synchronized {
 
@@ -289,68 +291,24 @@ trait PlayReloader {
                 updateAnalysis(compilationResult).map { _ =>
                   newClassLoader
                 }
-              }
+              }.fold(
+                oops => oops,
+                maybeClassloader => maybeClassloader.getOrElse(null)
+              )
           } else {
-            Right(None)
+            null
           }
 
         }
 
       }
 
-      def runTask(task: String): Option[Any] = {
-
+      def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
         val Right(sk: ScopedKey[Task[_]]) = complete.DefaultParsers.result(parser, task)
         val result = Project.runTask(sk, state).map(_._2)
 
-        result.flatMap(_.toEither.right.toOption)
-
-      }
-
-      def definedTests: Seq[String] = {
-        Project.runTask(Keys.definedTests in Test, state).map(_._2).get.toEither
-          .left.map { incomplete =>
-            Incomplete.allExceptions(incomplete).headOption.map {
-              case e: PlayException => e
-              case e: xsbti.CompileFailed => {
-                getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                  UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
-                }
-              }
-              case e => UnexpectedException(unexpected = Some(e))
-            }.getOrElse(
-              UnexpectedException(Some("Compilation task failed without any exception!?")))
-          }
-          .right.map(_.map(_.name))
-          .left.map(throw _)
-          .right.get
-      }
-
-      def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean] = {
-
-        try {
-          if (only == Nil) {
-            Command.process("test", state)
-            Right(true)
-          } else {
-            Command.process("test-only " + only.mkString(" "), state)
-            Right(true)
-          }
-        } catch {
-          case incomplete: sbt.Incomplete => {
-            Left({
-              Incomplete.allExceptions(incomplete).headOption.map {
-                case e: xsbti.CompileFailed => "Compilation failed"
-                case e => e.getMessage
-              }.getOrElse("Unexpected failure")
-            })
-          }
-          case unexpected => {
-            Left("Unexpected failure [" + unexpected.getClass.getName + "]")
-          }
-        }
-
+        result.flatMap(_.toEither.right.toOption).getOrElse(null).asInstanceOf[AnyRef]
       }
 
     }
