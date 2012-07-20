@@ -155,6 +155,12 @@ trait PlaySettings {
 
     playMonitoredDirectories <<= playMonitoredDirectoriesTask,
 
+    playDefaultPort := 9000,
+
+    playOnStarted := Nil,
+
+    playOnStopped := Nil,
+
     // Assets
 
     playAssetsDirectories := Seq.empty[File],

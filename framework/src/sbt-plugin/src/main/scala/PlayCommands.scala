@@ -81,6 +81,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   val playVersion = SettingKey[String]("play-version")
+  val playDefaultPort = SettingKey[Int]("play-default-port")
+  val playOnStarted = SettingKey[Seq[(java.net.InetSocketAddress) => Unit]]("play-onStarted")
+  val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
 
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
@@ -401,21 +404,23 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     }
   }
 
-  private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
+  private def filterArgs(args: Seq[String], defaultPort: Int): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
     // collect arguments plus config file property if present 
     val httpPort = Option(System.getProperty("http.port"))
     val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
     //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property 
-    val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(9000)
+    val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(defaultPort)
 
     (javaProperties, port)
   }
 
   val playRunCommand = Command.args("run", "<args>") { (state: State, args: Seq[String]) =>
 
+    val extracted = Project.extract(state)
+
     // Parse HTTP port argument
-    val (properties, port) = filterArgs(args)
+    val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
 
     // Set Java properties
     properties.foreach {
@@ -497,6 +502,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       // Run in DEV
       val server = mainDev.invoke(null, reloader, port: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
 
+      // Notify hooks
+      extracted.get(playOnStarted).foreach(_(server.mainAddress))
+
       println()
       println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
       println()
@@ -576,6 +584,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       server.stop()
       reloader.clean()
 
+      // Notify hooks
+      extracted.get(playOnStopped).foreach(_())
+
       newState
     }
 
@@ -594,10 +605,10 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
-    // Parse HTTP port argument
-    val (properties, port) = filterArgs(args)
-
     val extracted = Project.extract(state)
+
+    // Parse HTTP port argument
+    val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
 
     Project.runTask(compile in Compile, state).get._2.toEither match {
       case Left(_) => {

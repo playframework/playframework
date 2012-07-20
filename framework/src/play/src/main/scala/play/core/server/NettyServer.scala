@@ -14,6 +14,7 @@ import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.ssl._
 
 import java.security._
+import java.net.{ InetSocketAddress }
 import javax.net.ssl._
 import java.util.concurrent._
 
@@ -33,6 +34,7 @@ import scala.collection.JavaConverters._
  */
 trait ServerWithStop {
   def stop(): Unit
+  def mainAddress: InetSocketAddress
 }
 
 /**
@@ -82,7 +84,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   val HTTP = {
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory)
-    val channel = bootstrap.bind(new java.net.InetSocketAddress(address, port))
+    val channel = bootstrap.bind(new InetSocketAddress(address, port))
     allChannels.add(channel)
     (bootstrap, channel)
   }
@@ -91,7 +93,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   val HTTPS = sslPort.map { port =>
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory(secure = true))
-    val channel = bootstrap.bind(new java.net.InetSocketAddress(address, port))
+    val channel = bootstrap.bind(new InetSocketAddress(address, port))
     allChannels.add(channel)
     (bootstrap, channel)
   }
@@ -135,6 +137,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     HTTPS.foreach(_._1.releaseExternalResources())
 
   }
+
+  override lazy val mainAddress = HTTP._2.getLocalAddress.asInstanceOf[InetSocketAddress]
 
 }
 
