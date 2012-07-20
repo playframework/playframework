@@ -8,7 +8,6 @@ import play.api.libs.concurrent.execution.defaultContext
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
  * @type E Type of the input
  */
-
 trait Enumerator[E] {
   parent =>
    
@@ -55,7 +54,8 @@ trait Enumerator[E] {
    */
   def run[A](i: Iteratee[E, A]): Promise[A] = |>>>(i)
   
- /** A variation on `apply` or `|>>` which returns the state of the iteratee rather
+ /** 
+  * A variation on `apply` or `|>>` which returns the state of the iteratee rather
   * than the iteratee itself. This can make your code a little shorter.
   */
   def |>>|[A](i: Iteratee[E, A]): Promise[Step[E,A]] = apply(i).flatMap(_.unflatten)
@@ -96,9 +96,9 @@ trait Enumerator[E] {
    */
   def through[To](enumeratee: Enumeratee[E, To]): Enumerator[To] = &>(enumeratee)
 
-/**
- * Alias for `andThen`
- */
+ /**
+  * Alias for `andThen`
+  */
   def >>>(e: Enumerator[E]): Enumerator[E] = andThen(e)
   
   /**

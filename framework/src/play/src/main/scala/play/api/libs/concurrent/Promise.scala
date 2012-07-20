@@ -20,6 +20,7 @@ import play.api.libs.concurrent.execution.defaultContext
  *The state of a promise; it's waiting, contains a value, or contains an exception.
  */
 sealed trait PromiseValue[+A] {
+  
   /** 
    * true if the promise has either a value or an exception. 
    */
@@ -30,6 +31,7 @@ sealed trait PromiseValue[+A] {
  *A promise state that contains either a value or an exception.
  */
 trait NotWaiting[+A] extends PromiseValue[A] {
+
  /**
   * Return the value or the promise, or throw it if it held an exception.
   */
@@ -37,6 +39,7 @@ trait NotWaiting[+A] extends PromiseValue[A] {
     case Thrown(e) => throw e
     case Redeemed(a) => a
   }
+
   /** 
    *Invoke either onError with the promise's exception or onSuccess with its value. 
    * @param onError contains function that's executed in case of error 
@@ -48,6 +51,7 @@ trait NotWaiting[+A] extends PromiseValue[A] {
   }
 
 }
+
 /**
  * A promise state containing an exception. 
  */
@@ -57,6 +61,7 @@ case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
  * A promise state containing a non-exception value.
  */
 case class Redeemed[+A](a: A) extends NotWaiting[A]
+
 /**
  * A promise state indicating it has not been completed yet.
  */
@@ -68,6 +73,7 @@ class PlayRedeemable[-A](p:scala.concurrent.Promise[A]) extends Redeemable[A] {
   def throwing(t: Throwable): Unit = p.failure(t)
 
 }
+
 /** A promised value that wraps around scala.concurent.Future. 
  * The value of the promise is to be computed asynchronously. 
  * The promise will be completed either with the expected value type or with
@@ -82,7 +88,8 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
    */
   def onRedeem(k: A => Unit): Unit = extend1 { case Redeemed(a) => k(a) ; case  _ => }
 
-  /** Creates a new Promise[B], by running the function k on this promise
+ /** 
+  * Creates a new Promise[B], by running the function k on this promise
   * after it is redeemed with a value or exception. The function may
   * run in another thread. extend() is similar to map() but can modify
   * an exception contained in the promise, not only a successful value.
@@ -93,7 +100,9 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
     fu.onComplete(_ => result.redeem(k(fu)))
     result.future
   }
- /** Like extend() but gives your function the promise's value rather
+
+ /** 
+  * Like extend() but gives your function the promise's value rather
   * than the promise itself.
   * @param k function to be executed on this promise
   */
@@ -105,13 +114,15 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
    */
   def value1 = await
 
- /** Blocks for Promise.defaultTimeout until the promise has a value or an exception;
+ /** 
+  * Blocks for Promise.defaultTimeout until the promise has a value or an exception;
   * throws java.util.concurrent.TimeoutException if the promise is not redeemed within the default timeout period.
   * Unlike Await.result() in Akka, does NOT throw an exception from the Promise itself.
   */
   def await: NotWaiting[A] = await(Promise.defaultTimeout)
 
-  /** Blocks for a specified timeout until the promise has a value or an exception;
+  /** 
+   * Blocks for a specified timeout until the promise has a value or an exception;
    * throws java.util.concurrent.TimeoutException if the promise is not redeemed in
    * time. Unlike Await.result() in Akka, does NOT throw an exception from the Promise itself.
    */
@@ -120,14 +131,17 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
     fu.value.get.fold(e => Thrown(e), a => Redeemed(a))
   }
 
-  /** Computes a new Promise which will be completed with NoSuchElementException
+  /** 
+   * Computes a new Promise which will be completed with NoSuchElementException
    * if the value of this promise does not match the given predicate.
    * The predicate may be run in another thread.
    * @param p predicate 
    */
+
   def filter(p: A => Boolean): Promise[A] = null
 
-   /** Returns a Promise representing the first-completed of this promise
+  /** 
+   * Returns a Promise representing the first-completed of this promise
    * or another promise. The resulting Promise contains either
    * Left(resultOfThisPromise), Right(resultOfOtherPromise), or
    * an exception which could be from either of the two promises.
@@ -187,9 +201,11 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
   * @param unti time unit
   * @return either the timer message or the current promise
   */
+
   def orTimeout[B](message: B): Promise[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)
+
  /**
-  * Creates a timer promise with  Throwable a (using the deafult Promise timeout).  
+  * Creates a timer promise with  Throwable e (using the deafult Promise timeout).  
   * Exception e is shown if timer promise redeemds first
   * @param e exception to be thrown
   * @return a Promise which may throw an exception
@@ -197,22 +213,26 @@ class PlayPromise[+A](fu:scala.concurrent.Future[A]){
   def orTimeout(e: Throwable): Promise[A] = orTimeout(e, Promise.defaultTimeout).map(_.fold(a => a, e => throw e))
 
 }
+
 /** 
  * A redeemable can be completed exactly once with either a value of type A or an exception. 
 */
 trait Redeemable[-A] {
+
   /** 
    * Complete the redeemable with a value. 
    * May only be called one time, and may not be called if throwing() was also called. 
    * If evaluating the value throws an exception, equivalent to calling throwing() on that exception. 
    */
   def redeem(a: => A): Unit
+
   /** 
    * Complete the redeemable with an exception. 
    * May only be called one time, and may not be called if redeem() was also called.
    */
   def throwing(t: Throwable): Unit
 }
+
 /**
  * Represents an already-completed promise by immediately
  * evaluating the parameter. Catches any exception from evaluating its parameter and
@@ -220,6 +240,7 @@ trait Redeemable[-A] {
  * be just a pure value, the Promise wrapper is superflous.
  */
 object PurePromise {
+
   /**
    * factory method for a pure promise
    */
@@ -228,7 +249,7 @@ object PurePromise {
 }
 
 /**
- * useful helper methods to deal with Promises
+ * useful helper methods to create and compose Promises
  */
 object Promise {
 
@@ -239,7 +260,7 @@ object Promise {
 
   private [concurrent] lazy val system = ActorSystem("promise")
   
-  /*
+  /**
    * Synonym for PurePromise.apply
    */
   def pure[A](a: => A): Promise[A] = PurePromise(a)
@@ -251,7 +272,7 @@ object Promise {
 
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses. 
-   * This is useful only in conjunction with other Promises
+   * This is useful only when used in conjunction with other Promises
    * @param message message to be displayed
    * @param duration duration for the timer promise
    * @return a timer promise
@@ -273,7 +294,7 @@ object Promise {
     p.future
   }
 
- /**
+  /**
    * Constructs a promise which will contain value "message" after the given duration elapses. 
    * This is useful only when used in conjunction with other Promises.
    * @return a timer promise
@@ -282,15 +303,15 @@ object Promise {
     timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS )
   } 
 
-   /**
-   * Converts an optional promise into a promise containing an
-   * optional value. i.e. if the original option is None, you get
-   * a Promise[Option[A]] with a value of None, if the original
-   * option is Some, you get a Promise[Option[A]] containing
-   * Some(A). Called "sequence" because its more general form
-   * (see below) can operate on multi-element collections such as
-   * lists.
-    */
+ /**
+  * Converts an optional promise into a promise containing an
+  * optional value. i.e. if the original option is None, you get
+  * a Promise[Option[A]] with a value of None, if the original
+  * option is Some, you get a Promise[Option[A]] containing
+  * Some(A). Called "sequence" because its more general form
+  * (see below) can operate on multi-element collections such as
+  * lists.
+  */
   def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
 
  /** 
@@ -304,7 +325,7 @@ object Promise {
     toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
   }
 
-  /** 
+ /** 
   * Converts an either containing a Promise as its Right into a Promise of an
   * Either with a plain (not-in-a-promise) value on the Right.
   * @param either A or Promise[B]
