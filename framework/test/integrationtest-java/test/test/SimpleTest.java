@@ -187,7 +187,7 @@ public class SimpleTest {
     public void asyncResult() {
 
         class AsyncTestResult implements Result {
-            private final play.api.mvc.Result wrappedResult;
+            private play.api.mvc.Result wrappedResult = null;
 
             @Override
             public play.api.mvc.Result getWrappedResult() {
@@ -197,7 +197,9 @@ public class SimpleTest {
             public AsyncTestResult(Result result) {
                 play.api.mvc.Result wrappedResult = result.getWrappedResult();
                 if (wrappedResult instanceof AsyncResult)
+                    try {
                     this.wrappedResult = scala.concurrent.Await.result(((AsyncResult) wrappedResult).result(),scala.concurrent.util.Duration.Inf());
+                    } catch (Exception e){}
                 else
                     this.wrappedResult = wrappedResult;
             }

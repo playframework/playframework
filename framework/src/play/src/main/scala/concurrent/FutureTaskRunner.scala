@@ -13,7 +13,7 @@ package scala.concurrent
  *
  *  @author Philipp Haller
  */
-@deprecated("Use `ExecutionContext`s instead.", "2.10.0")
+@deprecated("Use `ExecutionContext` instead.", "2.10.0")
 trait FutureTaskRunner extends TaskRunner {
 
   /** The type of the futures that the underlying task runner supports.
@@ -31,6 +31,7 @@ trait FutureTaskRunner extends TaskRunner {
    /* Possibly blocks the current thread, for example, waiting for
     * a lock or condition.
     */
+  @deprecated("Use `blocking` instead.", "2.10.0")
   def managedBlock(blocker: ManagedBlocker): Unit
 
 }
