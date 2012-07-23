@@ -149,7 +149,7 @@ sealed trait WithHeaders[+A <: Result] {
 /**
  * Helper utilities for Result values.
  */
-object Result {
+object PlainResult {
 
   /**
    * Extractor:

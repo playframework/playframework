@@ -171,8 +171,9 @@ object Concurrent {
       Cont(step(inner))
     }
   }
+  def buffer[E](maxBuffer:Int): Enumeratee[E,E] = buffer[E](maxBuffer, length = (_:Input[E]) => 1)
 
-  def buffer[E](maxBuffer:Int): Enumeratee[E,E] = new Enumeratee[E,E] {
+  def buffer[E](maxBuffer:Int, length:Input[E] => Int): Enumeratee[E,E] = new Enumeratee[E,E] {
 
     import scala.collection.immutable.Queue
     import scala.concurrent.stm._
@@ -183,18 +184,18 @@ object Concurrent {
       val last = Promise[Iteratee[E,Iteratee[E,A]]]()
 
       sealed trait State
-      case class Queueing(q:Queue[Input[E]]) extends State
+      case class Queueing(q:Queue[Input[E]],length:Long) extends State
       case class Waiting(p:scala.concurrent.Promise[Input[E]]) extends State
       case class DoneIt(s:Iteratee[E,Iteratee[E,A]]) extends State
 
-      val state: Ref[State] = Ref(Queueing(Queue[Input[E]]()))
+      val state: Ref[State] = Ref(Queueing(Queue[Input[E]](),0))
 
       def step:K[E, Iteratee[E,A]] = {
         case in@Input.EOF =>
           state.single.getAndTransform {
-            case Queueing(q) => Queueing(q.enqueue(in))
+            case Queueing(q,l) => Queueing(q.enqueue(in),l)
 
-            case Waiting(p) => Queueing(Queue())
+            case Waiting(p) => Queueing(Queue(),0)
 
             case d@DoneIt(it) => d
 
@@ -206,13 +207,14 @@ object Concurrent {
           }
           Iteratee.flatten(last.future)
 
-        case other => 
+        case other =>
+          val chunkLength = length(other)
           val s = state.single.getAndTransform {
-            case Queueing(q) if maxBuffer > 0 && q.length <= maxBuffer => Queueing(q.enqueue(other))
+            case Queueing(q,l) if maxBuffer > 0 && l <= maxBuffer => Queueing(q.enqueue(other),l + chunkLength)
 
-            case Queueing(q) => Queueing(Queue(Input.EOF))
+            case Queueing(q,l) => Queueing(Queue(Input.EOF),l)
 
-            case Waiting(p) => Queueing(Queue())
+            case Waiting(p) => Queueing(Queue(),0)
 
             case d@DoneIt(it) => d
 
@@ -222,8 +224,8 @@ object Concurrent {
               p.redeem(other)
               Cont(step)
             case DoneIt(it) => it
-            case Queueing(q) if maxBuffer > 0 && q.length <= maxBuffer => Cont(step)
-            case Queueing(_) => Error("buffer overflow", other)
+            case Queueing(q,l) if maxBuffer > 0 && l <= maxBuffer => Cont(step)
+            case Queueing(_,_) => Error("buffer overflow", other)
 
           }
       }
@@ -231,10 +233,10 @@ object Concurrent {
       def moreInput[A](k: K[E, A]): Iteratee[E,Iteratee[E,A]] = {
         val in: Promise[Input[E]] = atomic { implicit txn =>
             state() match {
-              case Queueing(q) =>
+              case Queueing(q,l) =>
                 if(!q.isEmpty){
                   val (e,newB) = q.dequeue
-                  state() = Queueing(newB)
+                  state() = Queueing(newB,l-length(e))
                   Promise.pure(e)
                 } else {
                   val p = Promise[Input[E]]()

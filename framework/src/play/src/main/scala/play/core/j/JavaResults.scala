@@ -37,13 +37,13 @@ object JavaResultExtractor {
 
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
     case r: AsyncResult => getStatus(new ResultWrapper(r.result.await.get))
-    case Result(status, _) => status
+    case PlainResult(status, _) => status
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
     case r: AsyncResult => getCookies(new ResultWrapper(r.result.await.get))
-    case Result(_, headers) => new JCookies {
+    case PlainResult(_, headers) => new JCookies {
       def get(name: String) = {
         Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
           new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)
@@ -55,7 +55,7 @@ object JavaResultExtractor {
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
     case r: AsyncResult => getHeaders(new ResultWrapper(r.result.await.get))
-    case Result(_, headers) => headers.asJava
+    case PlainResult(_, headers) => headers.asJava
     case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
