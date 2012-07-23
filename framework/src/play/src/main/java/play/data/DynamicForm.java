@@ -75,16 +75,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
     
     /**
-     * Retrieves a field.
-     *
-     * @param key field name
-     * @return the field - even if the field does not exist you get a field
-     */
-    public Field field(String key) {
-        return super.field("data[" + key + "]");
-    }
-    
-    /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
     @SuppressWarnings("rawtypes")
