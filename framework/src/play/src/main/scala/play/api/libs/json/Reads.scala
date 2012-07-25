@@ -10,8 +10,8 @@ case class JsSuccess[T](value: T) extends JsResult[T] {
   def get[T] = value
 }
 
-case class JsError[T](errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[T] {
-  def get[T] = throw new NoSuchElementException("JsError[T].get")
+case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[Nothing] {
+  def get[T] = throw new NoSuchElementException("JsError.get")
 
   //def toJson: JsValue = original // TODO
   //def toJsonErrorsOnly: JsValue = original // TODO
@@ -20,16 +20,11 @@ case class JsError[T](errors: Seq[(JsPath, Seq[ValidationError])]) extends JsRes
 
 object JsError {
   def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
-    import scala.collection.mutable.ListBuffer
-    val lb = ListBuffer[(JsPath, Seq[ValidationError])]() ++ e2
-    e1.map{ case(path, errors) => 
-      val lr = lb.collect{ case elt if(elt._1 == path) => lb-=elt; elt._2 }
-      path -> (errors ++ lr.flatten).distinct
-    } ++ lb
+    (e1 ++ e2).groupBy(_._1).mapValues( _.map(_._2).flatten ).toList
   }
 }
 
-sealed trait JsResult[T] {
+sealed trait JsResult[+T] {
   def fold[X](valid: T => X, invalid: Seq[(JsPath, Seq[ValidationError])] => X): X = this match {
     case JsSuccess(v) => valid(v)
     case JsError(e) => invalid(e)
@@ -37,40 +32,40 @@ sealed trait JsResult[T] {
 
   def map[X](f: T => X): JsResult[X] = this match {
     case JsSuccess(v) => JsSuccess(f(v))
-    case JsError(e) => JsError[X](e)
+    case JsError(e) => JsError(e)
   }
 
   def flatMap[X](f: T => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v) => f(v)
-    case JsError(e) => JsError[X](e)
+    case JsError(e) => JsError(e)
   }
 
-  def flatMapTryDefault[X](defaultValue: T)(f: T => JsResult[X]): JsResult[X] = this match {
+  def flatMapTryDefault[TT >: T,X](defaultValue: TT)(f: TT => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v) => f(v)
     case JsError(e) => 
       // tries with undefined first
       f(defaultValue) match {
         case s @ JsSuccess(_) => s
-        case JsError(e2) => JsError[X](JsError.merge(e, e2))
+        case JsError(e2) => JsError(JsError.merge(e, e2))
       }
   }
 
   def prod[V](other: JsResult[V]): JsResult[(T, V)] = {
     (this, other) match {
       case (JsSuccess(t), JsSuccess(v)) => JsSuccess((t, v))
-      case (JsError(e), JsSuccess(v)) => JsError[(T, V)](e)
-      case (JsSuccess(v), JsError(e)) => JsError[(T, V)](e)
-      case (JsError(e), JsError(e2)) => JsError[(T, V)](JsError.merge(e, e2))
+      case (JsError(e), JsSuccess(v)) => JsError(e)
+      case (JsSuccess(v), JsError(e)) => JsError(e)
+      case (JsError(e), JsError(e2)) => JsError(JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
 
-  def and(other: JsResult[T]): JsResult[T] = {
+  def and[TT >: T](other: JsResult[TT]): JsResult[TT] = {
     (this, other) match {
       case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
-      case (JsError(e), JsSuccess(v)) => JsError[T](e)
-      case (JsSuccess(v), JsError(e)) => JsError[T](e)
-      case (JsError(e), JsError(e2)) => JsError[T](JsError.merge(e, e2))
+      case (JsError(e), JsSuccess(v)) => JsError(e)
+      case (JsSuccess(v), JsError(e)) => JsError(e)
+      case (JsError(e), JsError(e2)) => JsError(JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
@@ -78,19 +73,19 @@ sealed trait JsResult[T] {
   def andThen[V](other: JsResult[V]): JsResult[V] = {
     (this, other) match {
       case (JsSuccess(t), JsSuccess(v)) => JsSuccess(v)
-      case (JsError(e), JsSuccess(v)) => JsError[V](e)
-      case (JsSuccess(t), JsError(e)) => JsError[V](e)
-      case (JsError(e), JsError(e2)) => JsError[V](JsError.merge(e, e2))
+      case (JsError(e), JsSuccess(v)) => JsError(e)
+      case (JsSuccess(t), JsError(e)) => JsError(e)
+      case (JsError(e), JsError(e2)) => JsError(JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
 
-  def or(other: JsResult[T]): JsResult[T] = {
+  def or[TT >: T](other: JsResult[TT]): JsResult[TT] = {
     (this, other) match {
       case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
       case (JsError(e), JsSuccess(t)) => JsSuccess(t)
       case (JsSuccess(t), JsError(e)) => JsSuccess(t)
-      case (JsError(e), JsError(e2)) => JsError[T](JsError.merge(e, e2))
+      case (JsError(e), JsError(e2)) => JsError(JsError.merge(e, e2))
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }

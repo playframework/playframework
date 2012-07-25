@@ -84,8 +84,22 @@ object `package` {
 
     def map[A,B](m:Reads[A], f: A => B):Reads[B] = m.map(f)
 
-    def apply[A,B](mf:Reads[A => B], ma: Reads[A]):Reads[B] = mf.flatMap(f => ma.map(f))
+    def apply[A,B](mf:Reads[A => B], ma: Reads[A]):Reads[B] = new Reads[B]{ def reads(js: JsValue) = applicativeJsResult(mf.reads(js),ma.reads(js)) }
 
+  }
+
+  implicit def applicativeJsResult:Applicative[JsResult] = new Applicative[JsResult] {
+
+    def pure[A](a:A):JsResult[A] = JsSuccess(a)
+
+    def map[A,B](m:JsResult[A], f: A => B):JsResult[B] = m.map(f)
+
+    def apply[A,B](mf:JsResult[A => B], ma: JsResult[A]):JsResult[B] = (mf, ma) match {
+      case (JsSuccess(f), JsSuccess(a)) => JsSuccess(f(a))
+      case (JsError(e1), JsError(e2)) => JsError(JsError.merge(e1, e2))
+      case (JsError(e), _) => JsError(e)
+      case (_, JsError(e)) => JsError(e)
+    }
   }
 
 }
