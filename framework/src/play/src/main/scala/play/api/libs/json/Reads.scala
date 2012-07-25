@@ -143,6 +143,15 @@ trait Reads[T] {
     def reads(json: JsValue): JsResult[T] = self.reads(json) or other.reads(json)
   }
 
+  def map[B](f:T => B):Reads[B] = new Reads[B] {
+    def reads(json: JsValue): JsResult[B] = self.reads(json).map(f)
+  }
+
+  def flatMap[B](f:T => Reads[B]):Reads[B] = new Reads[B] {
+    def reads(json: JsValue): JsResult[B] = self.reads(json).flatMap(t => f(t).reads(json))
+
+  }
+
 
   /**
    * builds a JsErrorObj JsObject
