@@ -1,12 +1,12 @@
 package play.api.libs.json.util
 
-class ApplicativeOps[M[_],A](ma:M[A]){
+class ApplicativeOps[M[_],A](ma:M[A])(implicit  a:Applicative[M]){
 
-  def ~>[B](mb: M[B])(implicit a:Applicative[M]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
-  def <~[B](mb: M[B])(implicit a:Applicative[M]):M[A] = a(a(a.pure((a:A) => (_:B) => a), ma),mb)
-  def <~>[B,C](mb: M[B])(implicit witness: <:<[A,B => C],  a:Applicative[M]):M[C] = apply(mb)
-  def apply[B,C](mb: M[B])(implicit witness: <:<[A,B => C],  a:Applicative[M]):M[C] = a(a.map(ma,witness),mb)
-  def ~[B](mb:M[B])(implicit a:Applicative[M]):ApplicativeBuilder[M]#Builder2[A,B] = { val ab = new ApplicativeBuilder(a); new ab.Builder2(ma,mb) }
+  def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
+  def <~[B](mb: M[B]):M[A] = a(a(a.pure((a:A) => (_:B) => a), ma),mb)
+  def <~>[B,C](mb: M[B])(implicit witness: <:<[A,B => C]):M[C] = apply(mb)
+  def apply[B,C](mb: M[B])(implicit witness: <:<[A,B => C]):M[C] = a(a.map(ma,witness),mb)
+  def ~[B](mb:M[B]):ApplicativeBuilder[M]#Builder2[A,B] = { val ab = new ApplicativeBuilder(a); new ab.Builder2(ma,mb) }
 
 }
 
@@ -50,9 +50,10 @@ trait Applicative[M[_]]{
 
 }
 
-trait AlternativeOps[M[_],A]{
+class AlternativeOps[M[_],A](alt1:M[A])(implicit a:Alternative[M]){
 
-  def |[AA >: A ,B >: AA](alt2 :M[B])(implicit a:Alternative[M]):M[AA]
+  def |[B >: A](alt2 :M[B]):M[B] = a.|(alt1,alt2)
+  def or[B >: A](alt2 :M[B]):M[B] = |(alt2)
 
 }
 
@@ -67,7 +68,9 @@ trait Alternative[M[_]]{
 }
 object `package` {
 
-  implicit def toApplicativeOps[M[_],A](a:M[A]):ApplicativeOps[M,A] = new ApplicativeOps(a)
+  implicit def toAlternativeOps[M[_],A](a:M[A])(implicit app:Alternative[M]):AlternativeOps[M,A] = new AlternativeOps(a)
+
+  implicit def toApplicativeOps[M[_],A](a:M[A])(implicit app:Applicative[M]):ApplicativeOps[M,A] = new ApplicativeOps(a)
 
   implicit def applicativeOption:Applicative[Option] = new Applicative[Option]{
 

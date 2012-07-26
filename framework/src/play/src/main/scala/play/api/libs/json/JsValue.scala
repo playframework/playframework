@@ -219,7 +219,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
    */
   override def +:(el: JsValue): JsValue = el match {
     case o @ JsObject(_) => this ++ o
-    case _ => super.:+(el)
+    case _ => super.+:(el)
   }  
 
 }
