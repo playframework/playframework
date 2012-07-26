@@ -56,9 +56,10 @@ trait AlternativeOps[M[_],A]{
 
 }
 
-trait Alternative[M[_]] extends Applicative[M]{
+trait Alternative[M[_]]{
 
-  def |[A,B >: A](alt1: M[A], alt2 :M[B]):M[A]
+  def app:Applicative[M]
+  def |[A,B >: A](alt1: M[A], alt2 :M[B]):M[B]
   def empty:M[Nothing]
   //def some[A](m:M[A]):M[List[A]]
   //def many[A](m:M[A]):M[List[A]]
@@ -102,6 +103,29 @@ object `package` {
     }
   }
 
+  implicit def alternativeJsResult(implicit a:Applicative[JsResult]):Alternative[JsResult] = new Alternative[JsResult]{
+    val app = a
+    def |[A,B >: A](alt1: JsResult[A], alt2 :JsResult[B]):JsResult[B] = (alt1, alt2) match {
+      case (JsError(e), JsSuccess(t)) => JsSuccess(t)
+      case (JsSuccess(t), _) => JsSuccess(t)
+      case (JsError(e1), JsError(e2)) => JsError(JsError.merge(e1, e2))
+    }
+    def empty:JsResult[Nothing] = JsError(Seq())   
+  }
+
+  implicit def alternativeReads(implicit a:Applicative[Reads]):Alternative[Reads] = new Alternative[Reads]{
+    val app = a
+    def |[A,B >: A](alt1: Reads[A], alt2 :Reads[B]):Reads[B] = new Reads[B] {
+      def reads(js: JsValue) = alt1.reads(js) match {
+        case r@JsSuccess(_) => r
+        case r@JsError(es1) => alt2.reads(js) match {
+          case r2@JsSuccess(_) => r2
+          case r2@JsError(es2) => JsError(JsError.merge(es1,es2))
+        }
+      }
+    }
+    def empty:Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
+  }
 }
 
 
