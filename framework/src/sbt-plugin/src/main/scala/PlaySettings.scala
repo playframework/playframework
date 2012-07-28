@@ -117,7 +117,7 @@ trait PlaySettings {
 
     mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
 
-    compile in (Compile) <<= PostCompile(testScope = false),
+    compile in (Compile) <<= PostCompile(scope = Compile),
 
     dist <<= distTask,
 
@@ -147,13 +147,13 @@ trait PlaySettings {
 
     routesImport := Seq.empty[String],
 
-    playIntellij <<= playIntellijTask,
-
     playHash <<= playHashTask,
 
     // Assets
 
     playAssetsDirectories := Seq.empty[File],
+    
+    playExternalAssets := Seq.empty[(File,File => PathFinder,String)],
 
     playAssetsDirectories <+= baseDirectory / "public",
 

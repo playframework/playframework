@@ -36,13 +36,6 @@ public class Http {
         private final Session session;
         private final Flash flash;
         
-        private Context() {
-            request = null;
-            response = null;
-            session = null;
-            flash = null;
-        }
-        
         
         /**
          * Creates a new HTTP context.
@@ -131,15 +124,18 @@ public class Http {
                 return play.i18n.Lang.preferred(Context.current().request().acceptLanguages());
             }
             
+            /**
+             * Returns the current context.
+             */
+            public static Context ctx() {
+                return Context.current();
+            }
+            
         }
         
     }
     
-    /**
-     * An HTTP request.
-     */
-    public abstract static class Request {
-        
+    public abstract static class RequestHeader {
         /**
          * The complete request URI, containing both path and query string.
          */
@@ -149,6 +145,12 @@ public class Http {
          * The HTTP Method.
          */
         public abstract String method();
+
+        /**
+         * The client IP address.
+         */
+        public abstract String remoteAddress();
+
         
         /**
          * The request host.
@@ -165,15 +167,21 @@ public class Http {
         public abstract List<play.i18n.Lang> acceptLanguages();
         
         /**
+         * @return The media types set in the request Accept header, not sorted in any particular order.
+         */
+        public abstract List<String> accept();
+        
+        /**
+         * Check if this request accepts a given media type.
+         * @returns true if <code>mediaType</code> is in the Accept header, otherwise false
+         */
+        public abstract boolean accepts(String mediaType);
+        
+        /**
          * The query string content.
          */
         public abstract Map<String,String[]> queryString();
-        
-        /**
-         * The request body.
-         */
-        public abstract RequestBody body();
-        
+
         /**
          * @return the request cookies
          */
@@ -202,6 +210,18 @@ public class Http {
             }
             return headers[0];
         }
+
+    }
+    
+    /**
+     * An HTTP request.
+     */
+    public abstract static class Request extends RequestHeader {
+
+        /**
+         * The request body.
+         */
+        public abstract RequestBody body();
 
         // -- username
 
@@ -384,6 +404,7 @@ public class Http {
         /**
          * Cast this RequestBody as T if possible.
          */
+        @SuppressWarnings("unchecked")
         public <T> T as(Class<T> tType) {
             if(this.getClass().isAssignableFrom(tType)) {
                 return (T)this;

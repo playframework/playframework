@@ -8,6 +8,10 @@ import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
 
+import scala.collection.mutable.Builder
+import scala.collection._
+import scala.collection.generic.CanBuildFrom
+
 sealed trait PromiseValue[+A] {
   def isDefined = this match { case Waiting => false; case _ => true }
 }
@@ -27,6 +31,7 @@ trait NotWaiting[+A] extends PromiseValue[A] {
   }
 
 }
+
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
@@ -34,6 +39,12 @@ case object Waiting extends PromiseValue[Nothing]
 trait Promise[+A] {
 
   def onRedeem(k: A => Unit): Unit
+
+  def recover [AA >: A] (pf: PartialFunction[Throwable, AA]): Promise[AA] = extend1{
+    case Thrown(e) if pf.isDefinedAt(e) => pf(e)
+    case Thrown(e) => throw e
+    case Redeemed(a) => a
+  }
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B]
 
@@ -56,34 +67,36 @@ trait Promise[+A] {
 
     val p = Promise[Either[A, B]]()
     val ref = Ref(false)
-    this.onRedeem { v =>
+    this.extend1 { v =>
       if (!ref.single()) {
-        val iRedeemed = atomic { implicit txn =>
-          val before = ref()
-          ref() = true
-          !before
-        }
-        if (iRedeemed) {
-          p.redeem(Left(v))
-        }
+        val iRedeemed = ref.single.getAndTransform(_ => true)
+
+        if (! iRedeemed) { v match {
+          case Redeemed(a) =>
+            p.redeem(Left(a))
+          case Thrown(e) =>
+            p.throwing(e)
+          }
+                        }
       }
     }
-    other.onRedeem { v =>
+    other.extend1 { v =>
       if (!ref.single()) {
-        val iRedeemed = atomic { implicit txn =>
-          val before = ref()
-          ref() = true
-          !before
-        }
-        if (iRedeemed) {
-          p.redeem(Right(v))
-        }
+        val iRedeemed = ref.single.getAndTransform(_ => true)
+
+        if (! iRedeemed) { v match {
+          case Redeemed(a) =>
+            p.redeem(Right(a))
+          case Thrown(e) =>
+            p.throwing(e)
+          }
+                        }
       }
     }
     p
   }
 
-  def orTimeout[B](message: B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
+  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
     or(Promise.timeout(message, duration, unit))
   }
 
@@ -102,7 +115,10 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
     val result = new STMPromise[B]()
-    addAction(p => result.redeem(k(p)))
+    addAction{ p =>
+      val bOrExc = scala.util.control.Exception.allCatch[B].either(k(p))
+      bOrExc.fold( e => result.throwing(e), b => result.redeem(b))
+    }
     result
   }
 
@@ -124,7 +140,7 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
   private def addAction(k: Promise[A] => Unit): Unit = {
     if (redeemed.single().isDefined) {
-      k(this)
+      invoke(this, k)
     } else {
       val ok: Boolean = atomic { implicit txn =>
         if (!redeemed().isDefined) { actions() = actions() :+ k; true }
@@ -194,46 +210,19 @@ class STMPromise[A] extends Promise[A] with Redeemable[A] {
 
 object PurePromise {
 
-  def apply[A](lazyA: => A): Promise[A] = new Promise[A] {
-
-    val a : NotWaiting[A] = scala.util.control.Exception.allCatch[A].either(lazyA).fold(Thrown(_),Redeemed(_))
-
-    private def neverRedeemed[A]: Promise[A] = new Promise[A] {
-      def onRedeem(k: A => Unit): Unit = ()
-
-      def extend[B](k: Function1[Promise[A], B]): Promise[B] = neverRedeemed[B]
-
-      def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = throw new java.util.concurrent.TimeoutException("will never get redeemed")
-
-      def filter(p: A => Boolean): Promise[A] = this
-
-      def map[B](f: A => B): Promise[B] = neverRedeemed[B]
-
-      def flatMap[B](f: A => Promise[B]): Promise[B] = neverRedeemed[B]
-
-    }
-
-    def onRedeem(k: A => Unit): Unit = a.fold(_ => (), k)
-
-    def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = a
-
-    def redeem(a: A) = sys.error("Already redeemed")
-
-    def throwing(t: Throwable) = sys.error("Already redeemed")
-
-    def extend[B](f: (Promise[A] => B)): Promise[B] = {
-      apply(f(this))
-    }
-
-    def filter(p: A => Boolean) = a.fold(_ => this, a => if (p(a)) this else neverRedeemed[A])
-
-    def map[B](f: A => B): Promise[B] = a.fold(e =>  PurePromise[B](throw e), a => PurePromise[B]( f(a)) )
-
-    def flatMap[B](f: A => Promise[B]): Promise[B] = a.fold( e => PurePromise(throw e), a => try { f(a) } catch{case e => PurePromise(throw e)})
-  }
+  def apply[A](lazyA: => A): Promise[A] = 
+    (try (akka.dispatch.Promise.successful(lazyA)(Promise.system.dispatcher))
+     catch{ case e => akka.dispatch.Promise.failed(e)(Promise.system.dispatcher)}).asPromise
 }
 
 object Promise {
+
+  private[concurrent] def invoke[T](t: => T): Promise[T] = akka.dispatch.Future { t }(Promise.system.dispatcher).asPromise
+  
+  /*private [concurrent] lazy val defaultTimeout = 
+    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis */
+
+  private [concurrent] lazy val system = ActorSystem("promise")
 
   def pure[A](a: => A): Promise[A] = PurePromise(a)
 
@@ -249,8 +238,10 @@ object Promise {
     p
   }
 
-  def sequence[A](promises: Seq[Promise[A]]): Promise[Seq[A]] = {
-    promises.foldLeft(Promise.pure(Seq[A]()))((s, p) => s.flatMap(s => p.map(a => s :+ a)))
+  def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map{ v => Some(v)}}.getOrElse { Promise.pure(None)}
+  
+  def sequence[B, M[_]](in: M[Promise[B]])(implicit toTraversableLike : M[Promise[B]] => TraversableLike[Promise[B], M[Promise[B]]], cbf: CanBuildFrom[M[Promise[B]], B, M[B]]): Promise[M[B]] = { 
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa : Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
   }
 }
 

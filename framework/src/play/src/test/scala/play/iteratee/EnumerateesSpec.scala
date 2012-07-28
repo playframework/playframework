@@ -118,11 +118,11 @@ object EnumerateesSpec extends Specification {
         Iteratee.fold("")((s,e) => s + e)
 
       val result = 
-        Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat") &>
+        Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat","!") &>
         Enumeratee.grouped(folderIteratee) ><>
         Enumeratee.map(List(_)) |>>
         Iteratee.consume()
-      result.flatMap(_.run).value.get must equalTo(List("Hello","World"))
+      result.flatMap(_.run).value.get must equalTo(List("Hello","World","!"))
 
     }
 

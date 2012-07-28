@@ -61,6 +61,53 @@ class ApplicationSpec extends Specification {
       }
     }
 
+    "test Accept header mime-types" in {
+      import play.api.http.HeaderNames._
+      "Scala API" in {
+        running(FakeApplication()) {
+          val url = controllers.routes.Application.accept().url
+          val Some(result) = routeAndCall(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))
+          contentAsString(result) must equalTo ("html")
+
+          val Some(result2) = routeAndCall(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/*"))
+          contentAsString(result2) must equalTo ("html")
+
+          val Some(result3) = routeAndCall(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/json"))
+          contentAsString(result3) must equalTo ("json")
+        }
+      }
+      "Java API" in {
+        running(FakeApplication()) {
+          val url = controllers.routes.JavaApi.accept().url
+          val Some(result) = routeAndCall(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))
+          contentAsString(result) must equalTo ("html")
+
+          val Some(result2) = routeAndCall(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/*"))
+          contentAsString(result2) must equalTo ("html")
+
+          val Some(result3) = routeAndCall(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/json"))
+          contentAsString(result3) must equalTo ("json")
+        }
+      }
+    }
+
+    "return jsonp" in {
+      "Scala API" in {
+        running(FakeApplication()) {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.jsonp("baz").url))
+          contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
+          contentType(result) must equalTo (Some("text/javascript"))
+        }
+      }
+      "Java API" in {
+        running(FakeApplication()) {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.JavaApi.jsonpJava("baz").url))
+          contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
+          contentType(result) must equalTo (Some("text/javascript"))
+        }
+      }
+    }
+
   }
-   
+
 }

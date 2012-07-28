@@ -7,7 +7,8 @@ import play.api.Configuration
 import play.api.cache.Cache
 import play.api.libs.json._
 import play.api.libs.json.Json._
-
+import play.api.libs.Jsonp
+import play.api.i18n._
 import models._
 import models.Protocol._
 
@@ -17,6 +18,8 @@ import play.cache.{Cache=>JCache}
 object Application extends Controller {
 
   def index = Action {
+    if (Messages("home.title")(Lang("fr")) != "ffff" ) throw new RuntimeException("i18n does not work")
+    if (Messages("constraint.required") != "Hijacked" ) throw new RuntimeException("can not override default message")
     val conn = play.api.db.DB.getConnection("default")
     Cache.set("hello", "world")
     Ok(views.html.index(Cache.getAs[String]("hello").getOrElse("oh noooz")))
@@ -49,6 +52,7 @@ object Application extends Controller {
   def json = Action {
     Ok(toJson(User(1, "Sadek", List("tea"))))
   }
+  
   def jsonFromJsObject = Action {
     Ok(toJson(JsObject(List("blah" -> JsString("foo"))))) 
   }
@@ -62,7 +66,34 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
+  def takeBool(b: Boolean) = Action {
+    Ok(b.toString())
+  }
+
   def urldecode(fromPath: String, fromQueryString: String) = Action {
     Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
   }
+  
+  def javascriptRoutes = Action { implicit request =>
+    import play.api.Routes
+    Ok(Routes.javascriptRouter("routes")(routes.javascript.Application.javascriptTest)).as("text/javascript")
+  }
+
+  def javascriptTest(name: String) = Action {
+    Ok(views.html.javascriptTest(name))
+  }
+
+  def accept = Action { request =>
+    request match {
+      case Accepts.Json() => Ok("json")
+      case Accepts.Html() => Ok("html")
+      case _ => BadRequest
+    }
+  }
+
+  def jsonp(callback: String) = Action {
+    val json = JsObject(List("foo" -> JsString("bar")))
+    Ok(Jsonp(callback, json))
+  }
+
 }

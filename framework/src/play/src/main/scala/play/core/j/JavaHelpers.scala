@@ -56,6 +56,8 @@ trait JavaHelpers {
 
         def method = req.method
 
+        def remoteAddress = req.remoteAddress
+
         def host = req.host
 
         def path = req.path
@@ -69,6 +71,10 @@ trait JavaHelpers {
         def queryString = {
           req.queryString.mapValues(_.toArray).asJava
         }
+
+        def accept = req.accept.asJava
+
+        def accepts(mediaType: String) = req.accepts(mediaType)
 
         def cookies = new JCookies {
           def get(name: String) = (for (cookie <- req.cookies.get(name))
@@ -101,6 +107,8 @@ trait JavaHelpers {
 
       def method = req.method
 
+      def remoteAddress = req.remoteAddress
+
       def host = req.host
 
       def path = req.path
@@ -110,6 +118,10 @@ trait JavaHelpers {
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+
+      def accept = req.accept.asJava
+
+      def accepts(mediaType: String) = req.accepts(mediaType)
 
       def queryString = {
         req.queryString.mapValues(_.toArray).asJava

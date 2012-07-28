@@ -27,7 +27,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
     
     // --
-    
+    @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest) {
         if(handler instanceof play.core.j.JavaAction) {
             play.api.mvc.Action action = (play.api.mvc.Action)handler;
@@ -137,7 +137,23 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             Scala.asJava(play.api.test.Helpers.flash(result.getWrappedResult()).data())
         );
     }
-    
+
+    /**
+     * Extracts the Session of this Result value.
+     */
+    public static play.mvc.Http.Session session(Result result) {
+        return new play.mvc.Http.Session(
+                Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
+        );
+    }
+        
+    /**
+     * * Extracts a Cookie value from this Result value
+     */    
+    public static play.mvc.Http.Cookie cookie(String name, Result result) {
+        return play.core.j.JavaResultExtractor.getCookies(result).get(name);
+    }
+
     /**
      * Extracts an Header value of this Result value.
      */
@@ -226,6 +242,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Use the Router to determine the Action to call for this request and executes it.
      */
+    @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(FakeRequest fakeRequest) {
         try {
             return routeAndCall((Class<? extends play.core.Router.Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest);

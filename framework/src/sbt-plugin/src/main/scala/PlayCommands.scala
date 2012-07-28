@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 
-trait PlayCommands {
+trait PlayCommands extends PlayEclipse {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -67,7 +67,6 @@ trait PlayCommands {
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
   val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
-
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -94,12 +93,20 @@ trait PlayCommands {
   }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
-  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, t, c, s) =>
+  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
     val cacheFile = c / "copy-assets"
     
-    val mappings:Seq[(java.io.File,java.io.File)] = (r.map(_ ***).reduceLeft(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
+    val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
+    
+    val externalMappings = externals.map {
+      case (root, paths, common) => {
+        paths(root) x relativeTo(root :: Nil) map {
+          case (origin, name) => (origin, new java.io.File(t, common + "/" + name))
+        }
+      }
+    }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
 
     /*
     Disable GZIP Generation for this release.
@@ -118,7 +125,7 @@ trait PlayCommands {
 
     val assetsMapping = mappings ++ gzipped*/
 
-    val assetsMapping = mappings
+    val assetsMapping = mappings ++ externalMappings
 
     s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
 
@@ -157,9 +164,14 @@ trait PlayCommands {
 
     val libs = {
       dependencies.filter(_.data.ext == "jar").map { dependency =>
-        dependency.data -> (packageName + "/lib/" + (dependency.metadata.get(AttributeKey[ModuleID]("module-id")).map { module =>
-          module.organization + "." + module.name + "-" + module.revision + ".jar"
-        }.getOrElse(dependency.data.getName)))
+        val filename = for {
+          module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
+          artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
+        } yield {
+          module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
+        }
+        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        dependency.data -> path
       } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
     }
 
@@ -196,123 +208,16 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     zip
   }
 
-  /**
-   * provides Settings for the eclipse project
-   * @param mainLang mainly scala or java?
-   */
-  def eclipseCommandSettings(mainLang: String) = {
-    import com.typesafe.sbteclipse.core._
-    import com.typesafe.sbteclipse.core.EclipsePlugin._
-    def transformerFactory =
-      new EclipseClasspathEntryTransformerFactory {
-        override def createTransformer(ref: ProjectRef, state: State) =
-          setting(crossTarget in ref)(state) map (ct =>
-            (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
-          )
-      }
-    EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
-      EclipseKeys.createSrc := EclipseCreateSrc.Default,
-      EclipseKeys.preTasks := Seq(compile in Compile),
-      EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
-  }
 
-  // -- Intellij
-
-  val playIntellij = TaskKey[Unit]("idea")
-  val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
-
-    val mainClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes"
-
-    val sl = java.io.File.separator
-
-    val build = IO.read(new File(root + sl + "project" + sl + "Build.scala"))
-
-    val compVersion = "scala-compiler-" + scalaVersion
-
-    lazy val facet =
-      <component name="FacetManager">
-        <facet type="scala" name="Scala">
-          <configuration>
-            <option name="compilerLibraryLevel" value="Global"/>
-            <option name="compilerLibraryName" value={ compVersion }/>
-          </configuration>
-        </facet>
-      </component>
-
-    def sourceRef(s: String, defaultMain: String = "main/src/"): List[String] = {
-      val folder = s.substring(s.lastIndexOf(sl) + 1)
-      //maven layout?
-      if (folder == "java")
-        List("file://$MODULE_DIR$/" + defaultMain + "/java" + "file://$MODULE_DIR$/" + defaultMain + "/scala")
-      else
-        List("file://$MODULE_DIR$/" + folder)
-    }
-
-    def sourceEntry(name: String, test: String = "false") = <sourceFolder url={ name } isTestSource={ test }/>
-
-    def entry(j: String, scope: String = "COMPILE") =
-      <orderEntry type="module-library" scope={ scope }>
-        <library>
-          <CLASSES>
-            <root url={ j }/>
-          </CLASSES>
-          <SOURCES/>
-        </library>
-      </orderEntry>
-
-    //generate project file  
-    val scalaFacet = if (build.contains("mainLang") && build.contains("SCALA")) Some(facet.toString) else None
-
-    val mainLang = scalaFacet.map(_ => "SCALA").getOrElse("JAVA")
-
-    val genClasses = "file://$MODULE_DIR$/target/scala-" + scalaVersion + "/classes_managed"
-
-    val testJars = testDeps.flatMap {
-      case (dep) if dep.data.ext == "jar" =>
-        val ref = "jar://" + dep.data + "!/"
-        entry(ref, "TEST")
-      case _ => None
-    }.mkString("\n")
-
-    //calculate sources, capture both play and standard maven layout in case of multi project setups
-    val sources = (sourceRef(javaSource.getCanonicalPath).map(dir => sourceEntry(dir)) ++ sourceRef(jTestSource.getCanonicalPath, "main/test").map(dir => sourceEntry(dir, test = "true"))).mkString("\n")
-
-    //calculate dependencies
-    val jars = dependencies.flatMap {
-      case (dep) if dep.data.ext == "jar" =>
-        val ref = "jar://" + dep.data + "!/"
-        entry(ref)
-      case _ => None
-    }.mkString("\n") + testJars + entry(genClasses).toString + mainClasses
-
-    val target = new File(root + sl + id + ".iml")
-    s.log.warn(play.console.Console.logo)
-    s.log.info("...about to generate an Intellij project module(" + mainLang + ") called " + target.getName)
-    if (target.exists) s.log.warn(target.toString + " will be overwritten")
-    IO.delete(target)
-    IO.write(target,
-      """|<?xml version="1.0" encoding="UTF-8"?>
-         |<module type="JAVA_MODULE" version="4"> 
-         | %SCALA_FACET% 
-         |  <component name="NewModuleRootManager" inherit-compiler-output="true">
-         |     <exclude-output />
-         |     <content url="file://$MODULE_DIR$">
-         |      %SOURCE%
-         |     </content>
-         |     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
-         |     <orderEntry type="sourceFolder" forTests="false" />
-         |     %JARS%
-         |  </component>
-         |</module>
-         |""".stripMargin)
-
-    play.console.Console.replace(target, "SCALA_FACET" -> scalaFacet.getOrElse(""))
-    play.console.Console.replace(target, "SCALA_VERSION" -> scalaVersion)
-    play.console.Console.replace(target, "JARS" -> jars)
-    play.console.Console.replace(target, "SOURCE" -> sources)
-    s.log.warn(target.getName + " was generated")
-    s.log.warn("If you see unresolved symbols, you might need to run compile first.")
-    s.log.warn("Have fun!")
+  def intellijCommandSettings(mainLang: String) = {
+    import org.sbtidea.SbtIdeaPlugin
+    SbtIdeaPlugin.ideaSettings ++ 
+    Seq(
+      SbtIdeaPlugin.commandName := "idea",
+      SbtIdeaPlugin.addGeneratedClasses := true,
+      SbtIdeaPlugin.includeScalaFacet := {mainLang == SCALA},
+      SbtIdeaPlugin.defaultClassifierPolicy := false
+    )
   }
 
   val playStage = TaskKey[Unit]("stage")
@@ -348,8 +253,13 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
   }
 
   val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (baseDirectory) map { base =>
-    ((base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")).get.map(_.lastModified).mkString(",").hashCode.toString
+  val playHashTask = (state, thisProjectRef, playExternalAssets) map { (s,r, externalAssets) =>
+    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
+      (base / "src" / "main" ** "*") +++ (base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")
+    }.foldLeft(PathFinder.empty)(_ +++ _)
+    ( filesToHash +++ externalAssets.map {
+      case (root, paths, _) => paths(root)
+    }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
   }
 
   // ----- Assets
@@ -440,15 +350,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(testScope: Boolean) = (javaSource in Test, sourceDirectory in Compile, dependencyClasspath in Compile, compile in Compile, javaSource in Compile, sourceManaged in Compile, classDirectory in Compile, ebeanEnabled) map { (testSrc, src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
-
-    // Properties
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
-    val classFilter = if (testScope == true) (testSrc ** "*.java") else (javaSrc ** "*.java")
-
-    val javaClasses = classFilter.get.map { sourceFile =>
+    val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
       analysis.relations.products(sourceFile)
     }.flatten.distinct 
 
@@ -495,21 +401,20 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
       }
     }
+    // Copy managed classes - only needed in Compile scope
+    if (scope.name.toLowerCase == "compile") {
+      val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
 
-    // Copy managed classes
+      val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
+        analysis.relations.products(managedSourceFile)
+      }.flatten x rebase(classes, managedClassesDirectory)
 
-    val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
+      // Copy modified class files
+      val managedSet = IO.copy(managedClasses)
 
-    val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
-      analysis.relations.products(managedSourceFile)
-    }.flatten x rebase(classes, managedClassesDirectory)
-
-    // Copy modified class files
-    val managedSet = IO.copy(managedClasses)
-
-    // Remove deleted class files
-    (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
-
+      // Remove deleted class files
+      (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
+    }
     analysis
   }
 
@@ -621,8 +526,11 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     println()
 
     val sbtLoader = this.getClass.getClassLoader
-    val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
-
+    def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
+        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+        throw commonLoaderEither.left.get
+      }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader
@@ -989,6 +897,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         println()
         state.fail
       }
+
       case Right(dependencies) => {
         println()
         println("Here are the resolved dependencies of your application:")
@@ -997,20 +906,20 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
         import scala.Console._
 
         def asTableRow(module: Map[Symbol, Any]): Seq[(String, String, String, Boolean)] = {
-          val formatted = (Seq(module.get('module).map {
+           val formatted = (Seq(module.get('module).map {
             case (org, name, rev) => org + ":" + name + ":" + rev
           }).flatten,
 
             module.get('requiredBy).map {
-              case callers @ Seq(_*) => callers.map {
-                case (org, name, rev) => org + ":" + name + ":" + rev
+              case callers: Seq[_] => callers.map {
+                case (org, name, rev) => org.toString + ":" + name.toString + ":" + rev.toString
               }
             }.flatten.toSeq,
 
             module.get('evictedBy).map {
               case Some(rev) => Seq("Evicted by " + rev)
               case None => module.get('artifacts).map {
-                case artifacts: Seq[String] => artifacts.map("As " + _)
+                case artifacts: Seq[_] => artifacts.map("As " + _.toString)
               }.flatten
             }.flatten.toSeq)
           val maxLines = Seq(formatted._1.size, formatted._2.size, formatted._3.size).max

@@ -87,7 +87,7 @@ object Router {
     case class GeneratedSource(file: File) {
 
       val lines = if (file.exists) Path(file).slurpString.split('\n').toList else Nil
-      val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path(m.trim.drop(11)))
+      val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path.fromString(m.trim.drop(11)))
 
       def isGenerated: Boolean = source.isDefined
 
@@ -413,7 +413,7 @@ object Router {
                                     queryParams.map { p =>
                                       ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
                                     }.map {
-                                      case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == \"\"\" +  implicitly[JavascriptLitteral[" + typeName.replace(".", "_") + "]].to(" + default + ") + \"\"\" ? null : " + u + ")"
+                                      case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == null ? \"\"\" +  implicitly[JavascriptLitteral[" + typeName + "]].to(" + default + ") + \"\"\" : " + u + ")"
                                       case (u, Parameter(name, typeName, None, None)) => u
                                     }.mkString(", "))
 

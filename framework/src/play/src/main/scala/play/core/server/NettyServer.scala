@@ -106,32 +106,41 @@ object NettyServer {
    * @param applicationPath path to application
    */
   def createServer(applicationPath: File): Option[NettyServer] = {
-
     // Manage RUNNING_PID file
     java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption.map { pid =>
-      val pidFile = new File(applicationPath, "RUNNING_PID")
-
-      if (pidFile.exists) {
-        println("This application is already running (Or delete the RUNNING_PID file).")
-        System.exit(-1)
-      }
+      val pidFile = Option(System.getProperty("pidfile.path")).map(new File(_)).getOrElse(new File(applicationPath.getAbsolutePath, "RUNNING_PID"))
 
       // The Logger is not initialized yet, we print the Process ID on STDOUT
       println("Play server process ID is " + pid)
 
-      new FileOutputStream(pidFile).write(pid.getBytes)
-      Runtime.getRuntime.addShutdownHook(new Thread {
-        override def run {
-          pidFile.delete()
+      if (pidFile.getAbsolutePath != "/dev/null") {
+        if (pidFile.exists) {
+          println("This application is already running (Or delete "+ pidFile.getAbsolutePath +" file).")
+          System.exit(-1)
         }
-      })
+
+        new FileOutputStream(pidFile).write(pid.getBytes)
+        Runtime.getRuntime.addShutdownHook(new Thread {
+          override def run {
+            pidFile.delete()
+          }
+        })
+      }
     }
 
     try {
-      Some(new NettyServer(
+      val server = new NettyServer(
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
-        Option(System.getProperty("http.address")).getOrElse("0.0.0.0")))
+        Option(System.getProperty("http.address")).getOrElse("0.0.0.0"))
+        
+      Runtime.getRuntime.addShutdownHook(new Thread {
+        override def run {
+          server.stop()
+        }
+      })
+      
+      Some(server)
     } catch {
       case e => {
         println("Oops, cannot start the server.")

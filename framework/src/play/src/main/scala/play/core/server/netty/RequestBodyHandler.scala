@@ -22,23 +22,48 @@ import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 
 private[server] trait RequestBodyHandler {
-  def newRequestBodyHandler[R](it: Iteratee[Array[Byte], Either[Result, R]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
+
+  def newRequestBodyHandler[R](firstIteratee: Promise[Iteratee[Array[Byte], Either[Result, R]]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
     var redeemed = false
-    var iteratee: Iteratee[Array[Byte], Either[Result, R]] = it
     var p = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
+    val MAX_MESSAGE_WATERMARK = 10
+    val MIN_MESSAGE_WATERMARK = 10
+    import scala.concurrent.stm._
+    val counter = Ref(0)
+
+    var iteratee: Ref[Iteratee[Array[Byte], Either[Result, R]]] = Ref(Iteratee.flatten(firstIteratee))
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
+
+      if (counter.single.transformAndGet { _ + 1 } > MAX_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
+        ctx.getChannel.setReadable(false)
+
       if (!redeemed) {
-        val next = iteratee.pureFlatFold[Array[Byte], Either[Result, R]](
-          (_, _) => iteratee,
+        val itPromise = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
+        val current = iteratee.single.swap(Iteratee.flatten(itPromise))
+        val next = current.pureFlatFold[Array[Byte], Either[Result, R]](
+          (_, _) => current,
           k => k(chunk),
-          (e, _) => iteratee)
-        iteratee = next
+          (e, _) => current)
+
+        itPromise.redeem(next)
 
         next.pureFold(
-          (a, e) => if (!redeemed) { p.redeem(next); iteratee = null; p = null; redeemed = true },
-          k => (),
-          (msg, e) => if (!redeemed) { p.redeem(Done(Left(Results.InternalServerError), e)); iteratee = null; p = null; redeemed = true })
+          (a, e) => if (!redeemed) {
+            p.redeem(next);
+            iteratee = null; p = null; redeemed = true
+            if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
+          },
+          k =>
+            if (counter.single.transformAndGet { _ - 1 } <= MIN_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
+              ctx.getChannel.setReadable(true),
+
+          (msg, e) =>
+            if (!redeemed) {
+              p.redeem(Done(Left(Results.InternalServerError), e))
+              iteratee = null; p = null; redeemed = true
+              if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
+            })
       }
     }
 

@@ -141,7 +141,7 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
   var testSuite: TestSuite = null
 
   /**Creates the output Dir*/
-  override def doInit() = { targetDir.mkdirs() }
+  override def doInit(): Unit = { targetDir.mkdirs() }
 
   /**
    * Starts a new, initially empty Suite with the given name.

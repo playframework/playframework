@@ -2,17 +2,20 @@ package test
 
 import play.api.test._
 import play.api.test.Helpers._
-
 import play.api.libs.ws._
-
 import org.specs2.mutable._
-
 import models._
 import models.Protocol._
-
+import org.openqa.selenium.htmlunit.HtmlUnitDriver
+import java.util.Calendar
 
 class FunctionalSpec extends Specification {
   "an Application" should {
+    
+        
+    def cal = Calendar.getInstance()
+
+    val startDate = cal.getTime()
 
     "pass functional test with two browsers" in {
       running(TestServer(9002), HTMLUNIT) { browser =>
@@ -22,6 +25,28 @@ class FunctionalSpec extends Specification {
     } 
     "pass functional test" in {
       running(TestServer(9001), HTMLUNIT) { browser =>
+        // -- Etags
+        
+        val format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.ENGLISH)
+        format.setTimeZone(java.util.TimeZone.getTimeZone("GMT"))
+        val h = await(WS.url("http://localhost:9001/public/stylesheets/main.css").get)
+        h.header("Last-Modified").isDefined must equalTo(true)
+        h.header("Etag").get.startsWith("\"") must equalTo(true)
+        h.header("Etag").get.endsWith("\"") must equalTo(true)
+        
+        val secondRequest = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get)
+        secondRequest.status must equalTo(304)
+       
+        val localCal = cal
+        val f = new java.io.File("public/stylesheets/main.css")
+        localCal.setTime(new java.util.Date(f.lastModified))
+        localCal.add(Calendar.HOUR, -1)
+        val earlierDate =  localCal.getTime
+
+        val third = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(earlierDate)).get)
+        third.header("Last-Modified").isDefined must equalTo(true)
+        third.status must equalTo(200)
+
         val content: String = await(WS.url("http://localhost:9001/post").post("param1=foo")).body
         content must contain ("param1")
         content must contain("AnyContentAsText")
@@ -81,6 +106,33 @@ class FunctionalSpec extends Specification {
         browser.goTo("http://localhost:9001/clear/foo")
         browser.getCookies.size must equalTo(0)
 
+        // --- Javascript Reverse Router
+
+        browser.webDriver match {
+          case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
+        }
+        browser.goTo("http://localhost:9001/javascript-test?name=guillaume")
+
+        browser.$("#route-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("/javascript-test?name=world")
+
+        browser.$("#route-abs-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("http://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-abs-secure-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("https://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-abs-secure-url2").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("https://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("ws://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-secure-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-secure-url2").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:9001/javascript-test?name=world")
       }
     }
 

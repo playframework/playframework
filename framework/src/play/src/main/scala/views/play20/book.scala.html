@@ -25,8 +25,8 @@
             var doc = $.ajax({
                 url: '/@@documentation/' + pageName,
                 success: function(data) {
-                    var c = $('#main', data).attr('id', pageName)
-                    $('body').append(c)
+                    var c = $('#main', $(data)[7]).attr('id', pageName)
+                    $(document.body).append(c)
                 },
                 async: false
             })   

@@ -21,7 +21,7 @@ object Application extends Controller {
   
   // -- Comet chat room
   
-  def chatRoom = Action {
+  def chatRoom = Action { implicit request =>
     Ok(views.html.room())
   }
   

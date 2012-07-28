@@ -38,6 +38,11 @@ package play.api.mvc {
     def headers: Headers
 
     /**
+     * The client IP address.
+     */
+    def remoteAddress: String
+
+    /**
      * The HTTP host (domain, optionally port)
      */
     lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
@@ -58,6 +63,25 @@ package play.api.mvc {
       } catch {
         case e => e.printStackTrace(); Nil
       }
+    }
+
+    /**
+     * @return The media types set in the request Accept header, not sorted in any particular order.
+     */
+    lazy val accept: Seq[String] = {
+      for {
+        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
+        value <- acceptHeader.split(",")
+        contentType <- value.split(";").headOption
+      } yield contentType
+    }
+
+    /**
+     * Check if this request accepts a given media type.
+     * @returns true if `mediaType` matches the Accept header, otherwise false
+     */
+    def accepts(mediaType: String): Boolean = {
+      accept.contains(mediaType) || accept.contains("*/*") || accept.contains(mediaType.takeWhile(_ != '/') + "/*")
     }
 
     /**
@@ -119,6 +143,7 @@ package play.api.mvc {
       def method = self.method
       def queryString = self.queryString
       def headers = self.headers
+      def remoteAddress = self.remoteAddress
       lazy val body = f(self.body)
     }
 
@@ -134,6 +159,7 @@ package play.api.mvc {
     def path = request.path
     def uri = request.uri
     def method = request.method
+    def remoteAddress = request.remoteAddress
   }
 
   /**
@@ -241,6 +267,21 @@ package play.api.mvc {
     val isSigned: Boolean = false
 
     /**
+     * `true` if the Cookie should have the httpOnly flag, disabling access from Javascript. Defaults to true.
+     */
+    val httpOnly = true
+
+    /**
+     * The cookie expiration date in seconds, `-1` for a transient cookie
+     *      */
+    val maxAge = -1
+
+    /**
+     * `true` if the Cookie should have the secure flag, restricting usage to https. Defaults to false.
+     */
+    val secure = false
+
+    /**
      * Encodes the data as a `String`.
      */
     def encode(data: Map[String, String]): String = {
@@ -278,7 +319,7 @@ package play.api.mvc {
      */
     def encodeAsCookie(data: T): Cookie = {
       val cookie = encode(serialize(data))
-      Cookie(COOKIE_NAME, cookie)
+      Cookie(COOKIE_NAME, cookie, maxAge, "/", None, secure, httpOnly)
     }
 
     /**
@@ -360,9 +401,12 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    val COOKIE_NAME = "PLAY_SESSION"
+    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
     val emptyCookie = new Session
     override val isSigned = true
+    override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
+    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
+    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -536,7 +580,7 @@ package play.api.mvc {
      * @return a valid Set-Cookie header value
      */
     def merge(cookieHeader: String, cookies: Seq[Cookie], discard: Seq[String] = Nil): String = {
-      encode(decode(cookieHeader) ++ cookies, discard)
+      encode(cookies ++ decode(cookieHeader), discard)
     }
 
   }
