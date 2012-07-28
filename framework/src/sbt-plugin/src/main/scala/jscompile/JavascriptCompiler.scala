@@ -29,7 +29,7 @@ object JavascriptCompiler {
       val defaultOptions = new CompilerOptions()
       defaultOptions.closurePass = true
       defaultOptions.setProcessCommonJSModules(true)
-      defaultOptions.setCommonJSModulePathPrefix(source.getParent() + "/")
+      defaultOptions.setCommonJSModulePathPrefix(source.getParent() + File.separator)
       defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
       simpleCompilerOptions.foreach(_ match {
         case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(defaultOptions)
