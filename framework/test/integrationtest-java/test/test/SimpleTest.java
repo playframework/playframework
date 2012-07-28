@@ -21,6 +21,9 @@ import play.libs.F.*;
 
 import play.api.mvc.AsyncResult;
 
+import models.JCustomer;
+import play.data.Form;
+
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
@@ -31,7 +34,27 @@ public class SimpleTest {
         int a = 1 + 1;
         assertThat(a).isEqualTo(2);
     }
-    
+   @Test
+   public void sessionCookieShouldOverrideOldValue() {   
+
+        running(fakeApplication(), new Runnable() {
+          Boolean shouldNotBeCalled = false;
+          @Override
+          public void run() {
+            FakeRequest req = fakeRequest();
+            for (int i = 0; i < 5; i++) {
+              req = req.withSession("key" + i, "value" + i);
+            }
+            for (int i = 0; i < 5; i++) {
+              if (!req.getWrappedRequest().session().get("key" + i).isDefined()) {
+                shouldNotBeCalled = true;
+              }
+            }
+            assertThat(shouldNotBeCalled).isEqualTo(false);
+          }
+        });
+   }
+
     @Test
     public void renderTemplate() {
         Content html = views.html.index.render("Coco");
@@ -164,7 +187,7 @@ public class SimpleTest {
     public void asyncResult() {
 
         class AsyncTestResult implements Result {
-            private final play.api.mvc.Result wrappedResult;
+            private play.api.mvc.Result wrappedResult = null;
 
             @Override
             public play.api.mvc.Result getWrappedResult() {
@@ -174,8 +197,9 @@ public class SimpleTest {
             public AsyncTestResult(Result result) {
                 play.api.mvc.Result wrappedResult = result.getWrappedResult();
                 if (wrappedResult instanceof AsyncResult)
-                    this.wrappedResult = ((AsyncResult) wrappedResult).result()
-                            .value().get();
+                    try {
+                    this.wrappedResult = scala.concurrent.Await.result(((AsyncResult) wrappedResult).result(),scala.concurrent.util.Duration.Inf());
+                    } catch (Exception e){}
                 else
                     this.wrappedResult = wrappedResult;
             }
@@ -204,6 +228,97 @@ public class SimpleTest {
                         "flash_val");
             }
         });
+    }
+
+    @Test
+    public void nestedContraints() {
+        Form<JCustomer> customerForm = new Form<JCustomer>(JCustomer.class);
+        // email constraints
+        assertThat(customerForm.field("email").constraints().size()).as(
+                "field(\"email\").constraints().size()").isEqualTo(2);
+        assertThat(customerForm.field("email").constraints().get(0)._1).as(
+                "field(\"email\").constraints(0)")
+                .isEqualTo("constraint.email");
+        assertThat(customerForm.field("email").constraints().get(1)._1).as(
+                "field(\"email\").constraints(1)").isEqualTo(
+                "constraint.required");
+        // orders[0].date constraints
+        assertThat(customerForm.field("orders[0].date").constraints().size())
+                .as("field(\"orders[0].date\").constraints().size()")
+                .isEqualTo(1);
+        assertThat(customerForm.field("orders[0].date").constraints().get(0)._1)
+                .as("field(\"orders[0].date\").constraints(0)").isEqualTo(
+                        "constraint.required");
+        // orders[0].date format
+        assertThat(customerForm.field("orders[0].date").format()._1).as(
+                "field(\"orders[0].date\").format()._1").isEqualTo(
+                "format.date");
+        assertThat(customerForm.field("orders[0].date").format()._2.toString())
+                .as("field(\"orders[0].date\").format()._2").isEqualTo(
+                        "[yyyy-MM-dd]");
+        // orders[0].items[0].qty constraints
+        assertThat(
+                customerForm.field("orders[0].items[0].qty").constraints()
+                        .size()).as(
+                "field(\"orders[0].items[0].qty\").constraints().size()")
+                .isEqualTo(2);
+        assertThat(
+                customerForm.field("orders[0].items[0].qty").constraints()
+                        .get(0)._1).as(
+                "field(\"orders[0].items[0].qty\").constraints(0)").isEqualTo(
+                "constraint.min");
+        assertThat(
+                customerForm.field("orders[0].items[0].qty").constraints()
+                        .get(0)._2.toString()).as(
+                "field(\"orders[0].items[0].qty\").constraints(0)._2")
+                .isEqualTo("[1]");
+        assertThat(
+                customerForm.field("orders[0].items[0].qty").constraints()
+                        .get(1)._1).as(
+                "field(\"orders[0].items[0].qty\").constraints(1)").isEqualTo(
+                "constraint.required");
+        // orders[0].items[0].productCode constraints
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().size())
+                .as("field(\"orders[0].items[0].productCode\").constraints().size()")
+                .isEqualTo(2);
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(0)._1).as(
+                "field(\"orders[0].items[0].productCode\").constraints(0)")
+                .isEqualTo("constraint.pattern");
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(0)._2.size()).as(
+                "field(\"orders[0].items[0].productCode\").constraints(0)")
+                .isEqualTo(1);
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(0)._2.get(0)).as(
+                "field(\"orders[0].items[0].productCode\").constraints(0)")
+                .isEqualTo("[A-Z]{4}-[0-9]{3,}");
+        assertThat(
+                customerForm.field("orders[0].items[0].productCode")
+                        .constraints().get(1)._1).as(
+                "field(\"orders[0].items[0].productCode\").constraints(1)")
+                .isEqualTo("constraint.required");
+        // orders[0].items[0].deliveryDate constraints
+        assertThat(
+                customerForm.field("orders[0].items[0].deliveryDate")
+                        .constraints().size())
+                .as("field(\"orders[0].items[0].deliveryDate\").constraints().size()")
+                .isEqualTo(0);
+        // orders[0].items[0].deliveryDate format
+        assertThat(
+                customerForm.field("orders[0].items[0].deliveryDate").format()._1)
+                .as("field(\"orders[0].items[0].deliveryDate\").format()._1")
+                .isEqualTo("format.date");
+        assertThat(
+                customerForm.field("orders[0].items[0].deliveryDate").format()._2
+                        .toString()).as(
+                "field(\"orders[0].items[0].deliveryDate\").format()._2")
+                .isEqualTo("[yyyy-MM-dd]");
     }
 
 }

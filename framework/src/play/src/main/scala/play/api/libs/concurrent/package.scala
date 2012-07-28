@@ -19,4 +19,9 @@ package object concurrent {
    */
   implicit def akkaToPlay[A](future: Future[A]) = new AkkaFuture(future)
 
+  type Promise[+A] = scala.concurrent.Future[A] 
+  implicit def futureToPlayPromise[A](fu:scala.concurrent.Future[A]):PlayPromise[A] = new PlayPromise[A](fu)
+
+  implicit def promiseToRedeemable[A](p:scala.concurrent.Promise[A]):PlayRedeemable[A] = new PlayRedeemable(p)
+
 }

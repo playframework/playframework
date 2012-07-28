@@ -29,11 +29,11 @@ private[server] trait WebSocketHandler {
 
     val enumerator = new Enumerator[A] {
       val iterateeAgent = Agent[Option[Iteratee[A, Any]]](None)
-      private val promise: Promise[Iteratee[A, Any]] with Redeemable[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
+      private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
       def apply[R](i: Iteratee[A, R]) = {
         iterateeAgent.send(_.orElse(Some(i.asInstanceOf[Iteratee[A, Any]])))
-        promise.asInstanceOf[Promise[Iteratee[A, R]]]
+        promise.asInstanceOf[scala.concurrent.Promise[Iteratee[A, R]]].future
       }
 
       def frameReceived(ctx: ChannelHandlerContext, input: Input[A]) {

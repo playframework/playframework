@@ -40,8 +40,10 @@ trait PlayEclipse {
               new RewriteRule {
                 override def transform(node: Node): Seq[Node] = node match {
                   //add classes_managed  
-                  case elem if (elem.label == "classpathentry" && elem.attribute("path").getOrElse(err(elem)).toString.contains("org.scala-ide.sdt.launching.SCALA_CONTAINER")) =>
-                    <classpathentry path={ct + java.io.File.separator + "classes_managed"} kind="lib"></classpathentry>
+                  case elem if (elem.label == "classpathentry" && 
+                                elem.attribute("path").getOrElse(err(elem)).toString.contains("org.scala-ide.sdt.launching.SCALA_CONTAINER") && 
+                                new java.io.File(ct + f + "classes_managed").exists) =>
+                    <classpathentry path={ct + f + "classes_managed"} kind="lib"></classpathentry>
                  case other =>
                     other  
                 }
@@ -93,8 +95,8 @@ trait PlayEclipse {
               new RewriteRule {
                 override def transform(node: Node): Seq[Node] = node match {
                   //add src_managed/main
-                  case elem if (elem.label == "classpath") =>
-                    val newChild = elem.child ++ <classpathentry path={ct + f + "src_managed"+ f + "main" } kind="src"></classpathentry>
+                  case elem if (elem.label == "classpath" && new java.io.File(ct + f + "src_managed"+ f + "main").exists) =>
+                    val newChild = elem.child ++ <classpathentry path={"target" + f + ct.getName + f + "src_managed"+ f + "main" } kind="src"></classpathentry>
                     Elem(elem.prefix, "classpath", elem.attributes, elem.scope, newChild: _*)
                  case other =>
                     other  
@@ -113,10 +115,13 @@ trait PlayEclipse {
     //generate JDT pref file if needed
     generateJavaPrefFile(mainLang)
 
+    val flavor = if (mainLang == SCALA) EclipseProjectFlavor.Scala else EclipseProjectFlavor.Java
+
     //setup sbteclipse
     EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.eclipseOutput := Some(".target"),
+      EclipseKeys.projectFlavor := flavor,
       EclipseKeys.preTasks := Seq(compile in Compile),
       EclipseKeys.projectTransformerFactories := projectTransformers,
       EclipseKeys.classpathTransformerFactories := classPathTransformers)

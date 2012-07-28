@@ -1,5 +1,7 @@
 import sbt._
 import Keys._
+import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
+import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifact
 
 object PlayBuild extends Build {
   
@@ -13,7 +15,8 @@ object PlayBuild extends Build {
     lazy val TemplatesProject = Project(
         "Templates",
         file("src/templates"),
-        settings = buildSettings ++ Seq(
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"templates_"+previousScalaVersion} % previousVersion),
             libraryDependencies := templatesDependencies,
             publishTo := Some(playRepository),
             publishArtifact in (Compile, packageDoc) := false,
@@ -27,7 +30,8 @@ object PlayBuild extends Build {
     lazy val AnormProject = Project(
         "Anorm",
         file("src/anorm"),
-        settings = buildSettings ++ Seq(
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"anorm_"+previousScalaVersion} % previousVersion),
             libraryDependencies := anormDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -39,12 +43,13 @@ object PlayBuild extends Build {
     lazy val PlayProject = Project(
         "Play",
         file("src/play"),
-        settings = buildSettings ++ Seq(
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
             libraryDependencies := runtime,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            javacOptions ++= Seq("-encoding", "UTF-8"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
@@ -56,11 +61,12 @@ object PlayBuild extends Build {
     lazy val PlayTestProject = Project(
       "Play-Test",
       file("src/play-test"),
-      settings = buildSettings ++ Seq(
+      settings = buildSettingsWithMIMA ++ Seq(
+        previousArtifact := Some("play" % {"play-test_"+previousScalaVersion} % previousVersion),
         libraryDependencies := testDependencies,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-        javacOptions  ++= Seq("-encoding", "UTF-8","-Xlint:unchecked", "-Xlint:deprecation"),
+        javacOptions  ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8","-Xlint:unchecked", "-Xlint:deprecation"),
         publishArtifact in (Compile, packageDoc) := false,
         publishArtifact in (Compile, packageSrc) := true,
         resolvers += typesafe
@@ -79,7 +85,7 @@ object PlayBuild extends Build {
         sbtPlugin := true,
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
-        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-M2"),
+        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-RC1"),
         registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
@@ -128,6 +134,8 @@ object PlayBuild extends Build {
         val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.1")
         val buildScalaVersionForSbt = "2.9.1"
         val buildSbtVersion   = "0.11.3"
+        val previousVersion   = "2.0.2"
+        val previousScalaVersion = "2.9.1"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
@@ -136,7 +144,7 @@ object PlayBuild extends Build {
             logManager <<= extraLoggers(PlayLogManager.default),
             ivyLoggingLevel := UpdateLogging.DownloadOnly
         )
-
+        val buildSettingsWithMIMA = buildSettings ++ mimaDefaultSettings
     }
 
     object LocalSBT {
@@ -176,7 +184,7 @@ object PlayBuild extends Build {
     object Dependencies {
 
         val runtime = Seq(
-            "io.netty"                          %    "netty"                    %   "3.3.0.Final",
+            "io.netty"                          %    "netty"                    %   "3.5.0.Final",
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
             "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.4",
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
@@ -235,7 +243,8 @@ object PlayBuild extends Build {
             ,
             
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
-            "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
+            "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.1",
+            "com.codahale"                      %   "jerkson_2.9.1"             %   "0.5.0",
             
             ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
               .exclude("com.google.guava", "guava")
@@ -268,7 +277,7 @@ object PlayBuild extends Build {
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "rhino"                             %    "js"                       %   "1.7R2",
             
-            ("com.google.javascript"            %    "closure-compiler"         %   "r1810" notTransitive())
+            ("com.google.javascript"            %    "closure-compiler"         %   "r2079" notTransitive())
               .exclude("args4j", "args4j")
               .exclude("com.google.guava", "guava")
               .exclude("org.json", "json")
@@ -287,7 +296,9 @@ object PlayBuild extends Build {
             
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
-            "org.pegdown"                       %    "pegdown"                  %   "1.1.0"
+            "org.pegdown"                       %    "pegdown"                  %   "1.1.0",
+
+            "net.contentobjects.jnotify"        %    "jnotify"                  %   "0.94"
         )
 
         val consoleDependencies = Seq(

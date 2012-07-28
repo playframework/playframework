@@ -1,6 +1,7 @@
 package play.api.mvc
 
 import play.api.libs.iteratee._
+import play.api._
 
 /**
  * An Handler handles a request.
@@ -32,6 +33,8 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
 
 }
 
+trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte],Result]) with Handler
+
 /**
  * An action is essentially a (Request[A] => Result) function that
  * handles a request and generates a result to be sent to the client.
@@ -45,7 +48,7 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
  *
  * @tparam A the type of the request body
  */
-trait Action[A] extends (Request[A] => Result) with Handler {
+trait Action[A] extends EssentialAction {
 
   /**
    * Type of the request body.
@@ -66,6 +69,24 @@ trait Action[A] extends (Request[A] => Result) with Handler {
    * @return the result to be sent to the client
    */
   def apply(request: Request[A]): Result
+
+  //TODO make sure you use the right execution context
+  def apply(rh:RequestHeader):Iteratee[Array[Byte],Result] = parser(rh).map {
+    case Left(r) =>
+      Logger("play").trace("Got direct result from the BodyParser: " + r)
+      r
+    case Right(a) =>
+      val request = Request(rh,a)
+      Logger("play").trace("Invoking action with request: " + request)
+      Play.maybeApplication.map { app =>
+       // try {
+          play.utils.Threads.withContextClassLoader(app.classloader) {
+          apply(request)
+          }
+       // } catch { case e => app.handleError(rh, e) }
+      }.getOrElse(Results.InternalServerError)
+
+  }
 
   /**
    * Returns itself, for better support in the routes file.

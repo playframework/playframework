@@ -2,14 +2,14 @@
 
 set -e
 
-if [ $# -ne 1 ]; then  
+if [ $# -lt 1 ]; then  
     echo "[\033[31merror\033[0m] Usage: package VERSION"
     exit -1
 else
     export PLAY_VERSION=$1
 fi
 
-if test "$1" != "test"; then
+if test "$1" != "test" -a "$2" != "incremental"; then
     `dirname $0`/cleanEverything
     `dirname $0`/build clean 
 fi

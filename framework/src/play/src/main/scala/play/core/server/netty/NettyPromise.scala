@@ -2,6 +2,8 @@ package play.core.server.netty
 
 import org.jboss.netty.channel.ChannelFuture
 import play.api.libs.concurrent._
+import scala.concurrent.{ ExecutionContext, CanAwait}
+import scala.concurrent.util.Duration
 import java.util.concurrent.TimeUnit
 import org.jboss.netty.channel.ChannelFutureListener
 
@@ -11,79 +13,38 @@ import org.jboss.netty.channel.ChannelFutureListener
  */
 object NettyPromise {
 
-  def apply(channelPromise: ChannelFuture) = new play.api.libs.concurrent.Promise[Unit] {
+  def apply(channelPromise: ChannelFuture) = new scala.concurrent.Future[Unit] {
     parent =>
 
-    def onRedeem(k: Unit => Unit) {
-      channelPromise.addListener(new ChannelFutureListener {
+    def isCompleted: Boolean = channelPromise.isDone
+
+    def onComplete[U](func: (Either[Throwable, Unit]) ⇒ U)(implicit executor: ExecutionContext): Unit = channelPromise.addListener(new ChannelFutureListener {
         def operationComplete(future: ChannelFuture) {
-          if (future.isSuccess()) k()
+          val r = if (future.isSuccess()) Right(()) else Left(future.getCause())
+          executor.execute(new Runnable() { def run() { func(r) } })
         }
       })
+
+    def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
+      if(channelPromise.await(atMost.toMillis))
+        this
+      else throw new scala.concurrent.TimeoutException("netty channel future await timeout after: "+atMost)
     }
 
-    def extend[B](k: Function1[Promise[Unit], B]): Promise[B] = {
-      val p = Promise[B]()
-      channelPromise.addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) {
-          p.redeem(k(parent))
-        }
-      })
-      p
-    }
-
-    def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[Unit] = {
-
-      if (channelPromise.await(timeout, unit))
-        if (channelPromise.isSuccess()) Redeemed(())
-        else Thrown(channelPromise.getCause())
-      else {
-        throw new java.util.concurrent.TimeoutException("Promise timed out after " + timeout + " : " + unit)
+    def result(atMost: Duration)(implicit permit: CanAwait): Unit = {
+      val done = (channelPromise.await(atMost.toMillis))
+      (done, channelPromise.isSuccess) match {
+        case (false,_) => throw new scala.concurrent.TimeoutException("netty channel future await timeout after: "+atMost)
+        case (true,false) => throw channelPromise.getCause
+        case (true,true) => ()
 
       }
     }
 
-    def filter(predicate: Unit => Boolean): Promise[Unit] = {
-      val p = Promise[Unit]()
-      channelPromise.addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) {
-          if (future.isSuccess()) {
-            if (predicate()) p.redeem(Unit)
-          } else p.throwing(future.getCause())
-
-        }
-      })
-      p
+    def value: Option[Either[Throwable, Unit]] = (channelPromise.isDone,channelPromise.isSuccess) match {
+      case (true,true) => Some(Right(()))
+      case (true,false) => Some(Left(channelPromise.getCause))
+      case _ => None
     }
-
-    def map[B](f: Unit => B): Promise[B] = {
-      val p = Promise[B]()
-      channelPromise.addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) {
-          if (future.isSuccess()) {
-            p.redeem(f())
-          } else p.throwing(future.getCause())
-
-        }
-      })
-      p
-    }
-
-    def flatMap[B](f: Unit => Promise[B]): Promise[B] = {
-      val p = Promise[B]()
-      channelPromise.addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) {
-          if (future.isSuccess()) {
-            f().extend1 {
-              case Redeemed(b) => p.redeem(b)
-              case Thrown(e) => p.throwing(e)
-            }
-          } else p.throwing(future.getCause())
-        }
-      })
-      p
-    }
-
   }
-
 }

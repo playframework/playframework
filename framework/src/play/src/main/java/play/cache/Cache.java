@@ -24,7 +24,8 @@ public class Cache {
    * @param expiration expiration period in seconds.
    * @return value 
    */
-  public static <T> T getOrElse(String key, Callable<T> block, int expiration) throws Exception{
+  @SuppressWarnings("unchecked")
+public static <T> T getOrElse(String key, Callable<T> block, int expiration) throws Exception{
      Object r = play.libs.Scala.orNull(play.api.cache.Cache.get(key,play.api.Play.unsafeApplication()));
      if (r == null) {
          T value = block.call();

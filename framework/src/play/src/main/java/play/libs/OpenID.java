@@ -12,6 +12,8 @@ import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 
+import static play.core.j.JavaPromise.defaultContext;
+
 /**
  * provides support for OpenID
  */
@@ -63,13 +65,13 @@ public class OpenID {
      */
     public static F.Promise<UserInfo> verifiedId() {
         Request request = Http.Context.current().request();
-        Promise<UserInfo> scalaPromise = play.api.libs.openid.OpenID.verifiedId(request.queryString()).map(
+        scala.concurrent.Future<UserInfo> scalaPromise = play.api.libs.openid.OpenID.verifiedId(request.queryString()).map(
                 new AbstractFunction1<play.api.libs.openid.UserInfo, UserInfo>() {
                     @Override
                     public UserInfo apply(play.api.libs.openid.UserInfo scalaUserInfo) {
                         return new UserInfo(scalaUserInfo.id(), JavaConversions.mapAsJavaMap(scalaUserInfo.attributes()));
                     }
-                });
+                },defaultContext());
         return new F.Promise<UserInfo>(scalaPromise);
     }
 
@@ -81,6 +83,7 @@ public class OpenID {
             this.attributes = new HashMap<String, String>();
         }
         public UserInfo(String id, Map<String, String> attributes) {
+            this.id = id;
             this.attributes = attributes;
         }
     }

@@ -9,7 +9,6 @@ import java.lang.annotation.*;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
-import play.libs.F;
 import play.mvc.Http;
 import static play.libs.F.*;
 
@@ -19,8 +18,6 @@ import org.springframework.beans.*;
 import org.springframework.validation.*;
 import org.springframework.validation.beanvalidation.*;
 import org.springframework.context.support.*;
-
-import org.hibernate.validator.engine.*;
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -36,16 +33,16 @@ public class Form<T> {
         String name();
         String[] attributes() default {};
     }
-    
+
     // --
-    
+
     private final String rootName;
     private final Class<T> backedType;
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
     private final Option<T> value;
     private final Class<?> groups;
-    
+
     private T blankInstance() {
         try {
             return backedType.newInstance();
@@ -53,7 +50,7 @@ public class Form<T> {
             throw new RuntimeException("Cannot instantiate " + backedType + ". It must have a default constructor", e);
         }
     }
-    
+
     /**
      * Creates a new <code>Form</code>.
      *
@@ -62,19 +59,21 @@ public class Form<T> {
     public Form(Class<T> clazz) {
         this(null, clazz);
     }
-    
+
+    @SuppressWarnings("unchecked")
     public Form(String name, Class<T> clazz) {
         this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None(),  null);
     }
 
-	public Form(String name, Class<T> clazz, Class<?> groups) {
+    @SuppressWarnings("unchecked")
+    public Form(String name, Class<T> clazz, Class<?> groups) {
         this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None(), groups);
     }
-     	
-	public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
-		this(rootName, clazz, data, errors, value, null);
-	}
-	
+
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
+        this(rootName, clazz, data, errors, value, null);
+    }
+
     /**
      * Creates a new <code>Form</code>.
      *
@@ -89,21 +88,21 @@ public class Form<T> {
         this.data = data;
         this.errors = errors;
         this.value = value;
-		this.groups = groups;
+        this.groups = groups;
     }
-    
+
     protected Map<String,String> requestData(Http.Request request) {
-        
+
         Map<String,String[]> urlFormEncoded = new HashMap<String,String[]>();
         if(request.body().asFormUrlEncoded() != null) {
             urlFormEncoded = request.body().asFormUrlEncoded();
         }
-        
+
         Map<String,String[]> multipartFormData = new HashMap<String,String[]>();
         if(request.body().asMultipartFormData() != null) {
             multipartFormData = request.body().asMultipartFormData().asFormUrlEncoded();
         }
-        
+
         Map<String,String> jsonData = new HashMap<String,String>();
         if(request.body().asJson() != null) {
             jsonData = play.libs.Scala.asJava(
@@ -114,11 +113,11 @@ public class Form<T> {
                 )
             );
         }
-        
+
         Map<String,String[]> queryString = request.queryString();
-        
+
         Map<String,String> data = new HashMap<String,String>();
-        
+
         for(String key: urlFormEncoded.keySet()) {
             String[] values = urlFormEncoded.get(key);
             if(key.endsWith("[]")) {
@@ -132,7 +131,7 @@ public class Form<T> {
                 }
             }
         }
-        
+
         for(String key: multipartFormData.keySet()) {
             String[] values = multipartFormData.get(key);
             if(key.endsWith("[]")) {
@@ -150,7 +149,7 @@ public class Form<T> {
         for(String key: jsonData.keySet()) {
             data.put(key, jsonData.get(key));
         }
-        
+
         for(String key: queryString.keySet()) {
             String[] values = queryString.get(key);
             if(key.endsWith("[]")) {
@@ -167,7 +166,7 @@ public class Form<T> {
 
         return data;
     }
-    
+
     /**
      * Binds request data to this form - that is, handles form submission.
      *
@@ -228,29 +227,29 @@ public class Form<T> {
         );
     }
 
-	private static final Set<String> internalAnnotationAttributes = new HashSet<String>(3);
-	static {
-			internalAnnotationAttributes.add("message");
-			internalAnnotationAttributes.add("groups");
-			internalAnnotationAttributes.add("payload");
-	}
+    private static final Set<String> internalAnnotationAttributes = new HashSet<String>(3);
+    static {
+        internalAnnotationAttributes.add("message");
+        internalAnnotationAttributes.add("groups");
+        internalAnnotationAttributes.add("payload");
+    }
 
-	protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
-	        List<Object> arguments = new LinkedList<Object>();
-	        String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};
-	        arguments.add(new DefaultMessageSourceResolvable(codes, field));
-	        // Using a TreeMap for alphabetical ordering of attribute names
-	        Map<String, Object> attributesToExpose = new TreeMap<String, Object>();
-	        for (Map.Entry<String, Object> entry : descriptor.getAttributes().entrySet()) {
-	            String attributeName = entry.getKey();
-	            Object attributeValue = entry.getValue();
-				if (!internalAnnotationAttributes.contains(attributeName)) {
-	            	attributesToExpose.put(attributeName, attributeValue);
-				}
-	        }
-	        arguments.addAll(attributesToExpose.values());
-	        return arguments.toArray(new Object[arguments.size()]);
-	    }
+    protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
+        List<Object> arguments = new LinkedList<Object>();
+        String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};
+        arguments.add(new DefaultMessageSourceResolvable(codes, field));
+        // Using a TreeMap for alphabetical ordering of attribute names
+        Map<String, Object> attributesToExpose = new TreeMap<String, Object>();
+        for (Map.Entry<String, Object> entry : descriptor.getAttributes().entrySet()) {
+            String attributeName = entry.getKey();
+            Object attributeValue = entry.getValue();
+            if (!internalAnnotationAttributes.contains(attributeName)) {
+                attributesToExpose.put(attributeName, attributeValue);
+            }
+        }
+        arguments.addAll(attributesToExpose.values());
+        return arguments.toArray(new Object[arguments.size()]);
+    }
 
     /**
      * Binds data to this form - that is, handles form submission.
@@ -258,8 +257,9 @@ public class Form<T> {
      * @param data data to submit
      * @return a copy of this form filled with the new data
      */
+    @SuppressWarnings("unchecked")
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
-        
+
         DataBinder dataBinder = null;
         Map<String, String> objectData = data;
         if(rootName == null) {
@@ -276,39 +276,38 @@ public class Form<T> {
         if(allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
-		SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
+        SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
         dataBinder.bind(new MutablePropertyValues(objectData));
-		Set<ConstraintViolation<Object>> validationErrors;
-		if (groups != null) {
-        	validationErrors = validator.validate(dataBinder.getTarget(), groups);
-		} else {
-			validationErrors = validator.validate(dataBinder.getTarget());
-		}
+        Set<ConstraintViolation<Object>> validationErrors;
+        if (groups != null) {
+            validationErrors = validator.validate(dataBinder.getTarget(), groups);
+        } else {
+            validationErrors = validator.validate(dataBinder.getTarget());
+        }
 
-		BindingResult result = dataBinder.getBindingResult();
+        BindingResult result = dataBinder.getBindingResult();
 
-	 	for (ConstraintViolation<Object> violation : validationErrors) {
-	            String field = violation.getPropertyPath().toString();
-	            FieldError fieldError = result.getFieldError(field);
-	            if (fieldError == null || !fieldError.isBindingFailure()) {
-	                try {
-	                    result.rejectValue(field,
-	                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
-	                            getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
-	                            violation.getMessage());
-	                }
-	                catch (NotReadablePropertyException ex) {
-	                    throw new IllegalStateException("JSR-303 validated property '" + field +
-	                            "' does not have a corresponding accessor for data binding - " +
-	                            "check your DataBinder's configuration (bean property versus direct field access)", ex);
-	                }
-	    	}
-	    }
+        for (ConstraintViolation<Object> violation : validationErrors) {
+            String field = violation.getPropertyPath().toString();
+            FieldError fieldError = result.getFieldError(field);
+            if (fieldError == null || !fieldError.isBindingFailure()) {
+                try {
+                    result.rejectValue(field,
+                            violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                            getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
+                            violation.getMessage());
+                }
+                catch (NotReadablePropertyException ex) {
+                    throw new IllegalStateException("JSR-303 validated property '" + field +
+                            "' does not have a corresponding accessor for data binding - " +
+                            "check your DataBinder's configuration (bean property versus direct field access)", ex);
+                }
+            }
+        }
 
-        
         if(result.hasErrors()) {
             Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
             for(FieldError error: result.getFieldErrors()) {
@@ -354,52 +353,53 @@ public class Form<T> {
             return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
         }
     }
-    
+
     /**
      * Retrieves the actual form data.
      */
     public Map<String,String> data() {
         return data;
     }
-    
+
     public String name() {
         return rootName;
     }
-    
+
     /**
      * Retrieves the actual form value.
      */
     public Option<T> value() {
         return value;
     }
-    
+
     /**
      * Populates this form with an existing value, used for edit forms.
      *
      * @param value existing value of type <code>T</code> used to fill this form
      * @return a copy of this form filled with the new data
      */
+    @SuppressWarnings("unchecked")
     public Form<T> fill(T value) {
         if(value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
         return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value), groups);
     }
-    
+
     /**
      * Returns <code>true<code> if there are any errors related to this form.
      */
     public boolean hasErrors() {
         return !errors.isEmpty();
     }
-    
+
     /**
      * Returns <code>true<code> if there any global errors related to this form.
      */
     public boolean hasGlobalErrors() {
         return errors.containsKey("") && !errors.get("").isEmpty();
     }
-    
+
     /**
      * Retrieve all global errors - errors without a key.
      *
@@ -412,7 +412,7 @@ public class Form<T> {
         }
         return e;
     }
-    
+
     /**
      * Retrieves the first global error (an error without any key), if it exists.
      *
@@ -426,7 +426,7 @@ public class Form<T> {
             return errors.get(0);
         }
     }
-    
+
     /**
      * Returns all errors.
      *
@@ -435,7 +435,7 @@ public class Form<T> {
     public Map<String,List<ValidationError>> errors() {
         return errors;
     }
-    
+
     /**
      * Retrieve an error by key.
      */
@@ -447,14 +447,14 @@ public class Form<T> {
             return err.get(0);
         }
     }
-    
+
     /**
      * Returns the form errors serialized as Json.
      */
     public org.codehaus.jackson.JsonNode errorsAsJson() {
         return errorsAsJson(Http.Context.Implicit.lang());
     }
-    
+
     /**
      * Returns the form errors serialized as Json using the given Lang.
      */
@@ -472,15 +472,14 @@ public class Form<T> {
         }
         return play.libs.Json.toJson(allMessages);
     }
-    
-    
+
     /**
      * Gets the concrete value if the submission was a success.
      */
     public T get() {
         return value.get();
     }
-    
+
     /**
      * Adds an error to this form.
      *
@@ -492,7 +491,7 @@ public class Form<T> {
         }
         errors.get(error.key()).add(error);
     }
-    
+
     /**
      * Adds an error to this form.
      *
@@ -513,7 +512,7 @@ public class Form<T> {
     public void reject(String key, String error) {
         reject(key, error, new ArrayList<Object>());
     }
-    
+
     /**
      * Adds a global error to this form.
      *
@@ -549,7 +548,7 @@ public class Form<T> {
     public Field apply(String key) {
         return field(key);
     }
-    
+
     /**
      * Retrieve a field.
      *
@@ -557,7 +556,7 @@ public class Form<T> {
      * @return the field (even if the field does not exist you get a field)
      */
     public Field field(String key) {
-        
+
         // Value
         String fieldValue = null;
         if(data.containsKey(key)) {
@@ -578,13 +577,13 @@ public class Form<T> {
                 }
             }
         }
-        
+
         // Error
         List<ValidationError> fieldErrors = errors.get(key);
         if(fieldErrors == null) {
             fieldErrors = new ArrayList<ValidationError>();
         }
-        
+
         // Format
         Tuple<String,List<Object>> format = null;
         BeanWrapper beanWrapper = new BeanWrapperImpl(blankInstance());
@@ -609,33 +608,47 @@ public class Form<T> {
             }
         } catch(NullPointerException e) {}
 
-        
         // Constraints
-        PropertyDescriptor property = play.data.validation.Validation.getValidator().getConstraintsForClass(backedType).getConstraintsForProperty(key);
         List<Tuple<String,List<Object>>> constraints = new ArrayList<Tuple<String,List<Object>>>();
-        if(property != null) {
-            constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
+        Class<?> classType = backedType;
+        String leafKey = key;
+        if(rootName != null && leafKey.startsWith(rootName + ".")) {
+            leafKey = leafKey.substring(rootName.length() + 1);
         }
-        
+        int p = leafKey.lastIndexOf('.');
+        if (p > 0) {
+            classType = beanWrapper.getPropertyType(leafKey.substring(0, p));
+            leafKey = leafKey.substring(p + 1);
+        }
+        if (classType != null) {
+            BeanDescriptor beanDescriptor = play.data.validation.Validation.getValidator().getConstraintsForClass(classType);
+            if (beanDescriptor != null) {
+                PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
+                if(property != null) {
+                    constraints = Constraints.displayableConstraint(property.getConstraintDescriptors());
+                }
+            }
+        }
+
         return new Field(this, key, constraints, format, fieldErrors, fieldValue);
     }
-    
+
     public String toString() {
         return "Form(of=" + backedType + ", data=" + data + ", value=" + value +", errors=" + errors + ")";
     }
-    
+
     /**
      * A form field.
      */
     public static class Field {
-        
+
         private final Form<?> form;
         private final String name;
         private final List<Tuple<String,List<Object>>> constraints;
         private final Tuple<String,List<Object>> format;
         private final List<ValidationError> errors;
         private final String value;
-        
+
         /**
          * Creates a form field.
          *
@@ -653,7 +666,7 @@ public class Form<T> {
             this.errors = errors;
             this.value = value;
         }
-        
+
         /**
          * Returns the field name.
          *
@@ -662,7 +675,7 @@ public class Form<T> {
         public String name() {
             return name;
         }
-        
+
         /**
          * Returns the field value, if defined.
          *
@@ -671,14 +684,14 @@ public class Form<T> {
         public String value() {
             return value;
         }
-        
+
         public String valueOr(String or) {
             if(value == null) {
                 return or;
             }
             return value;
         }
-        
+
         /**
          * Returns all the errors associated with this field.
          *
@@ -687,7 +700,7 @@ public class Form<T> {
         public List<ValidationError> errors() {
             return errors;
         }
-        
+
         /**
          * Returns all the constraints associated with this field.
          *
@@ -696,7 +709,7 @@ public class Form<T> {
         public List<Tuple<String,List<Object>>> constraints() {
             return constraints;
         }
-        
+
         /**
          * Returns the expected format for this field.
          * 
@@ -705,10 +718,11 @@ public class Form<T> {
         public Tuple<String,List<Object>> format() {
             return format;
         }
-        
+
         /**
          * Return the indexes available for this field (for repeated fields ad List)
          */
+        @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
             List<Integer> result = new ArrayList<Integer>();
             if(form.value().isDefined()) {
@@ -737,7 +751,7 @@ public class Form<T> {
             }
             return result;
         }
-        
+
         /**
          * Get a sub-field, with a key relative to the current field.
          */
@@ -750,11 +764,11 @@ public class Form<T> {
             }
             return form.field(subKey);
         }
-        
+
         public String toString() {
             return "Form.Field(" + name + ")";
         }
-    
+
     }
-    
+
 }

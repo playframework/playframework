@@ -29,6 +29,17 @@ object SqlParser {
 
   def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[Column[Date]])
 
+  def getAliased[T](aliasName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
+    import MayErr._
+
+    (for {
+      meta <- row.metaData.getAliased(aliasName)
+        .toRight(ColumnNotFound(aliasName, row.metaData.availableColumns))
+      value <- row.getAliased(aliasName)
+      result <- extractor(value, MetaDataItem(meta._1, meta._2, meta._3))
+    } yield result).fold(e => Error(e), a => Success(a))
+  }
+
   def get[T](columnName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
     import MayErr._
 

@@ -153,7 +153,13 @@ trait PlaySettings {
 
     routesImport := Seq.empty[String],
 
-    playHash <<= playHashTask,
+    playMonitoredDirectories <<= playMonitoredDirectoriesTask,
+
+    playDefaultPort := 9000,
+
+    playOnStarted := Nil,
+
+    playOnStopped := Nil,
 
     // Assets
 

@@ -231,7 +231,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param error Error to add
    * @returns a copy of this form with the added error
    */
-  def withError(error: FormError): Form[T] = this.copy(errors = errors :+ error)
+  def withError(error: FormError): Form[T] = this.copy(errors = errors :+ error, value = None)
 
   /**
    * Convenient overloaded method adding an error to this form

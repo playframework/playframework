@@ -51,6 +51,7 @@ public class GlobalSettings {
      * @param actionMethod The action method containing the user code for this Action.
      * @return The default implementation returns a raw Action calling the method.
      */
+    @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
         return new Action.Simple() {
             public Result call(Context ctx) throws Throwable {

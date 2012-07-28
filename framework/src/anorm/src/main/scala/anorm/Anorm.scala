@@ -2,6 +2,7 @@ package anorm
 
   import MayErr._
   import java.util.Date
+  import collection.TraversableOnce
 
   abstract class SqlRequestError
   case class ColumnNotFound(columnName: String, possibilities: List[String]) extends SqlRequestError {
@@ -50,7 +51,7 @@ package anorm
 
     def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
       case (value, meta @ MetaDataItem(qualified, _, _)) =>
-        if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified))
+        if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified.toString))
     }
 
     implicit def rowToString: Column[String] = {
@@ -199,7 +200,8 @@ package anorm
     def unapplySeq(row: Row): Option[List[Any]] = Some(row.asList)
   }
 
-  case class MetaDataItem(column: String, nullable: Boolean, clazz: String)
+  case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String) 
+  case class ColumnName(qualified: String, alias: Option[String])
 
   case class MetaData(ms: List[MetaDataItem]) {
     def get(columnName: String) = {
@@ -207,18 +209,34 @@ package anorm
       dictionary2.get(columnUpper)
         .orElse(dictionary.get(columnUpper))
     }
-    private lazy val dictionary: Map[String, (String, Boolean, String)] =
-      ms.map(m => (m.column.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
+    
+    def getAliased(aliasName: String) = {
+      val columnUpper = aliasName.toUpperCase()
+      aliasedDictionary.get(columnUpper)
+    }
+    
+    private lazy val dictionary: Map[String, (ColumnName, Boolean, String)] =
+      ms.map(m => (m.column.qualified.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
 
-    private lazy val dictionary2: Map[String, (String, Boolean, String)] = {
+    private lazy val dictionary2: Map[String, (ColumnName, Boolean, String)] = {
       ms.map(m => {
-        val column = m.column.split('.').last;
+        val column = m.column.qualified.split('.').last;
         (column.toUpperCase(), (m.column, m.nullable, m.clazz))
       }).toMap
     }
+    
+     private lazy val aliasedDictionary: Map[String, (ColumnName, Boolean, String)] = {
+        ms.flatMap(m => {
+          m.column.alias.map{ a =>
+            Map(a.toUpperCase() -> (m.column, m.nullable, m.clazz))
+          }.getOrElse(Map.empty)
+          
+        }).toMap
+      }
 
     lazy val columnCount = ms.size
-    lazy val availableColumns: List[String] = ms.map(i => i.column)
+
+    lazy val availableColumns: List[String] = ms.flatMap(i => i.column.qualified :: i.column.alias.toList)
 
   }
 
@@ -232,7 +250,7 @@ package anorm
 
     lazy val asList = data.zip(metaData.ms.map(_.nullable)).map(i => if (i._2) Option(i._1) else i._1)
 
-    lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.column).zip(asList).toMap
+    lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.column.qualified).zip(asList).toMap
 
     def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] = SqlParser.get(a)(c)(this) match {
       case Success(a) => Right(a)
@@ -246,12 +264,21 @@ package anorm
       case _ => Class.forName(t)
     }
 
-    private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.column.toUpperCase()).zip(data).toMap
+    private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
+    private lazy val AliasesDictionary: Map[String, Any] = metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
     private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] = {
       for (
         meta <- metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-        val (qualified, nullable, clazz) = meta;
-        result <- ColumnsDictionary.get(qualified.toUpperCase()).toRight(ColumnNotFound(qualified, metaData.availableColumns))
+        val (column, nullable, clazz) = meta;
+        result <- ColumnsDictionary.get(column.qualified.toUpperCase()).toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
+      ) yield result
+    }
+    
+    private[anorm] def getAliased(a: String): MayErr[SqlRequestError, Any] = {
+      for (
+        meta <- metaData.getAliased(a).toRight(ColumnNotFound(a, metaData.availableColumns));
+        val (column, nullable, clazz) = meta;
+        result <- column.alias.flatMap(a => AliasesDictionary.get(a.toUpperCase())).toRight(ColumnNotFound(column.alias.getOrElse(a), metaData.availableColumns))
       ) yield result
     }
 
@@ -373,8 +400,10 @@ package anorm
   case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]) {
 
     def addBatch(args: (String, ParameterValue[_])*): BatchSql = this.copy(params = (this.params) :+ args)
+    def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue[_])]]) : BatchSql = this.copy(params = (this.params) ++ paramsMapList)
 
     def addBatchParams(args: ParameterValue[_]*): BatchSql = this.copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
+    def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue[_]]]): BatchSql = this.copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
 
     def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
       val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
@@ -466,7 +495,7 @@ package anorm
       val meta = rs.getMetaData()
       val nbColumns = meta.getColumnCount()
       MetaData(List.range(1, nbColumns + 1).map(i =>
-        MetaDataItem(column = ({
+        MetaDataItem(column = ColumnName({
 
           // HACK FOR POSTGRES
           if (meta.getClass.getName.startsWith("org.postgresql.")) {
@@ -475,7 +504,7 @@ package anorm
             meta.getTableName(i)
           }
 
-        } + "." + meta.getColumnName(i)),
+        } + "." + meta.getColumnName(i), alias = Option(meta.getColumnLabel(i))),
           nullable = meta.isNullable(i) == columnNullable,
           clazz = meta.getColumnClassName(i))))
     }

@@ -2,7 +2,6 @@ package play.data;
 
 import java.util.*;
 
-import play.libs.F;
 import static play.libs.F.*;
 
 import play.data.validation.*;
@@ -34,7 +33,19 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * Gets the concrete value if the submission was a success.
      */
     public String get(String key) {
-        return (String)get().getData().get(key);
+        try {
+            return (String)get().getData().get(asNormalKey(key));
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Fille with existing data.
+     */
+    public DynamicForm fill(Map value) {
+        Form<Dynamic> form = super.fill(new Dynamic(value));
+        return new DynamicForm(form.data(), form.errors(), form.value());
     }
     
     /**
@@ -66,7 +77,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         {
             Map<String,String> newData = new HashMap<String,String>();
             for(String key: data.keySet()) {
-                newData.put("data[" + key + "]", data.get(key));
+                String dkey = asDynamicKey(key);
+                newData.put(dkey, data.get(dkey));
             }
             data = newData;
         }
@@ -82,15 +94,74 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @return the field - even if the field does not exist you get a field
      */
     public Field field(String key) {
-        return super.field("data[" + key + "]");
+        Field field = super.field(asDynamicKey(key));
+        return new Field(this, field.name(), field.constraints(), field.format(), field.errors(), 
+            field.value() == null ? get(key) : field.value()
+        );
     }
+
+    /**
+     * Retrieve an error by key.
+     */
+    public ValidationError error(String key) {
+        return super.error(asDynamicKey(key));
+    }
+
+    /**
+     * Adds an error to this form.
+     *
+     * @param key the error key
+     * @param error the error message
+     * @param args the errot arguments
+     */
+    public void reject(String key, String error, List<Object> args) {
+        super.reject(asDynamicKey(key), error, args);
+    }
+
+    /**
+     * Adds an error to this form.
+     *
+     * @param key the error key
+     * @param error the error message
+     */    
+    public void reject(String key, String error) {
+        super.reject(asDynamicKey(key), error);
+    }
+
+    // -- tools
+
+    static String asDynamicKey(String key) {
+        if(key.isEmpty() || key.matches("^data\\[.+\\]$")) {
+           return key;
+        } else {
+            return "data[" + key + "]";
+        }
+    }
+
+    static String asNormalKey(String key) {
+        if(key.matches("^data\\[.+\\]$")) {
+           return key.substring(5, key.length() - 1);
+        } else {
+            return key;
+        }
+    }
+
+    // -- /
     
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
+    @SuppressWarnings("rawtypes")
     public static class Dynamic {
 
         private Map data = new HashMap();
+
+        public Dynamic() {
+        }
+
+        public Dynamic(Map data) {
+            this.data = data;
+        }
 
         /**
          * Retrieves the data.

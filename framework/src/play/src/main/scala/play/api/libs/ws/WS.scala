@@ -38,16 +38,18 @@ object WS {
    * The underlying HTTP client.
    */
   lazy val client = {
-    import play.api.Play.current
-    val config = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
-      .setRequestTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
-      .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
-      .setUseProxyProperties(current.configuration.getBoolean("ws.useProxyProperties").getOrElse(true))
-    current.configuration.getString("ws.useragent").map { useragent =>
-      config.setUserAgent(useragent)
+    val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+      .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+      .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+    playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+      asyncHttpConfig.setUserAgent(useragent)
     }
-    new AsyncHttpClient(config.build())
+    
+    new AsyncHttpClient(asyncHttpConfig.build())
   }
 
   /**
@@ -126,7 +128,7 @@ object WS {
           result.redeem(throw t)
         }
       })
-      result
+      result.future
     }
 
     /**
@@ -138,7 +140,7 @@ object WS {
     }
 
     /**
-     * Add an HTTP header (used for headers with mutiple values).
+     * Add an HTTP header (used for headers with multiple values).
      */
     override def addHeader(name: String, value: String) = {
       headers = headers + (name -> (headers.get(name).getOrElse(List()) :+ value))
@@ -249,7 +251,7 @@ object WS {
           iterateeP.redeem(throw t)
         }
       })
-      iterateeP
+      iterateeP.future
     }
 
   }

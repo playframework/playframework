@@ -11,6 +11,8 @@ import play.api.data.Form
 import play.api.data.Forms.{ of, text, optional }
 import play.api.mvc.Request
 
+import play.api.libs.concurrent.execution.defaultContext
+
 case class OpenIDServer(url: String, delegate: Option[String])
 
 case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)

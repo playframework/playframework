@@ -40,6 +40,7 @@ public class EbeanPlugin extends Plugin {
                 
                 ServerConfig config = new ServerConfig();
                 config.setName(key);
+                config.loadFromProperties();
                 try {
                     config.setDataSource(new WrappingDatasource(DB.getDataSource(key)));
                 } catch(Exception e) {
@@ -58,8 +59,7 @@ public class EbeanPlugin extends Plugin {
                 for(String load: toLoad) {
                     load = load.trim();
                     if(load.endsWith(".*")) {
-                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length()-2), javax.persistence.Entity.class));
-                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length()-2), javax.persistence.Embeddable.class));
+                        classes.addAll(application.getTypes(load.substring(0, load.length()-2)));
                     } else {
                         classes.add(load);
                     }

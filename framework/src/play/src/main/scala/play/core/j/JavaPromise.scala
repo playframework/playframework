@@ -6,7 +6,11 @@ import scala.collection.JavaConverters
 import play.libs.F
 import java.util.concurrent.TimeoutException
 
+import play.api.libs.concurrent.execution.defaultContext
+
 object JavaPromise {
+
+  def defaultContext = play.api.libs.concurrent.execution.defaultContext
 
   def sequence[A](promises: JList[F.Promise[_ <: A]]): Promise[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))
