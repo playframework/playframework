@@ -266,6 +266,7 @@ object Concurrent {
 
   def dropInputIfNotReady[E](duration: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
+    val busy = scala.concurrent.stm.Ref(false)
     def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
       def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
@@ -275,18 +276,23 @@ object Concurrent {
             Done(inner, Input.Empty)
 
           case in =>
+            if(! busy.single()){
             val readyOrNot: Promise[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]] {
               case Step.Done(a, e) => Done(Done(a, e), Input.Empty)
               case Step.Cont(k) => Cont { in =>
                 val next = k(in)
                 Cont(step(next))
               }
-              case Step.Error(msg, e) => Done(Error(msg, e), Input.Empty)}.orTimeout((), duration, unit)
+              case Step.Error(msg, e) => Done(Error(msg, e), Input.Empty)}.map(i => { busy.single() = false;i}).orTimeout((), duration, unit)
 
             Iteratee.flatten(readyOrNot.map {
-              case Left(ready) => Iteratee.flatten(ready.feed(in))
-              case Right(_) => Cont(step(inner))
+              case Left(ready) =>
+                Iteratee.flatten(ready.feed(in))
+              case Right(_) =>
+                busy.single() = true
+                Cont(step(inner))
             })
+            } else  Cont(step(inner))
         }
       }
 
@@ -363,7 +369,7 @@ object Concurrent {
 
   }
 
-  def broadcast[E](e: Enumerator[E],interestIsDownToZero: => Unit = ()): (Enumerator[E],Broadcaster) = {val h = hub(e,() => interestIsDownToZero); (h.getPatchCord(),h) }
+  def broadcast[E](e: Enumerator[E], interestIsDownToZero:Broadcaster => Unit= _=>()): (Enumerator[E],Broadcaster) = {lazy val h:Hub[E] = hub(e,() => interestIsDownToZero(h)); (h.getPatchCord(),h) }
 
   trait Broadcaster {
     def noCords(): Boolean

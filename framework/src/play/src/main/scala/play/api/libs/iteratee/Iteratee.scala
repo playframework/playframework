@@ -119,10 +119,10 @@ object Iteratee {
   def consume[E] = new {
     def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
       fold[E, Seq[E]](Seq.empty) { (els, chunk) =>
-        els :+ chunk
+        chunk +: els
       }.mapDone { elts =>
         val builder = bf()
-        elts.foreach(builder ++= _)
+        elts.reverse.foreach(builder ++= _)
         builder.result()
       }
     }
@@ -138,7 +138,7 @@ object Iteratee {
       Cont(step)
   }
 
-  def getChunks[E]: Iteratee[E,List[E]] = fold[E, List[E]](Nil) { (els, chunk) => els :+ chunk }
+  def getChunks[E]: Iteratee[E,List[E]] = fold[E, List[E]](Nil) { (els, chunk) => chunk +: els }.map(_.reverse)
 
   def skipToEof[E]: Iteratee[E,Unit] = {
     def cont: Iteratee[E,Unit] = Cont {
