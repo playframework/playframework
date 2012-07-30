@@ -3,7 +3,7 @@ package play.libs;
 import java.util.List;
 import java.util.Map;
 
-import org.jaxen.dom.DOMXPath;
+import javax.xml.xpath.*;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
@@ -23,11 +23,12 @@ public class XPath {
      */
     @SuppressWarnings("unchecked")
     public static List<Node> selectNodes(String path, Object node, Map<String, String> namespaces) {
-        try {
+        /*try {
             return getDOMXPath(path, namespaces).selectNodes(node);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
+        return null;
     }
 
     /**
@@ -38,11 +39,12 @@ public class XPath {
      * @return
      */
     public static List<Node> selectNodes(String path, Object node) {
-        return selectNodes(path, node, null);
+        /*return selectNodes(path, node, null);*/
+        return null;
     }
 
     public static Node selectNode(String path, Object node, Map<String, String> namespaces) {
-        try {
+        /*try {
             List<Node> nodes = selectNodes(path, node, namespaces);
             if (nodes.size() == 0) {
                 return null;
@@ -50,11 +52,13 @@ public class XPath {
             return nodes.get(0);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
+        return null;
     }
 
     public static Node selectNode(String path, Object node) {
-        return selectNode(path, node, null);
+        /*return selectNode(path, node, null);*/
+        return null;
     }
 
     /**
@@ -63,7 +67,7 @@ public class XPath {
      * @param node the node, node-set or Context object for evaluation. This value can be null.
      */
     public static String selectText(String path, Object node, Map<String, String> namespaces) {
-        try {
+        /*try {
             Node rnode = (Node) getDOMXPath(path, namespaces).selectSingleNode(node);
             if (rnode == null) {
                 return null;
@@ -77,7 +81,8 @@ public class XPath {
             return ((Text) rnode).getData();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
+        return null;
     }
 
     /**
@@ -86,17 +91,8 @@ public class XPath {
      * @param node the node, node-set or Context object for evaluation. This value can be null.
      */
     public static String selectText(String path, Object node) {
-        return selectText(path, node, null);
-    }
-
-    private static DOMXPath getDOMXPath(String path, Map<String, String> namespaces) throws Exception {
-        DOMXPath xpath = new DOMXPath(path);
-        if (namespaces != null) {
-            for (String prefix: namespaces.keySet()) {
-                xpath.addNamespace(prefix, namespaces.get(prefix));
-            }
-        }
-        return xpath;
+        /*return selectText(path, node, null);*/
+        return null;
     }
 
 }
