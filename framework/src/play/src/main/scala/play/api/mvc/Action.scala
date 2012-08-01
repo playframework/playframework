@@ -33,7 +33,16 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
 
 }
 
-trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte],Result]) with Handler
+trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte],Result]) with Handler {
+
+  /**
+   * Returns itself, for better support in the routes file.
+   *
+   * @return itself
+   */
+  def apply() = this
+
+}
 
 /**
  * An action is essentially a (Request[A] => Result) function that
@@ -87,13 +96,6 @@ trait Action[A] extends EssentialAction {
       }.getOrElse(Results.InternalServerError)
 
   }
-
-  /**
-   * Returns itself, for better support in the routes file.
-   *
-   * @return itself
-   */
-  def apply() = this
 
   override def toString = {
     "Action(parser=" + parser + ")"
