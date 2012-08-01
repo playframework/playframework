@@ -35,7 +35,7 @@ trait PlayReloader {
 
         var jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
           .map(_.getFile)
-          .find(_.startsWith("jnotify"))
+          .find(_.contains("/jnotify"))
           .map(new File(_))
           .getOrElse(sys.error("Missing JNotify?"))
 
