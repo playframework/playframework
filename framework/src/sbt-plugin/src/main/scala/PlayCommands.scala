@@ -303,8 +303,6 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
         import com.avaje.ebean.enhance.agent._
         import com.avaje.ebean.enhance.ant._
-        import collection.JavaConverters._
-        import com.typesafe.config._
 
         val cl = ClassLoader.getSystemClassLoader
 
@@ -312,16 +310,17 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
         val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
 
-        val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")))
+        val config = play.api.Configuration.load(null)
 
-        val models = try {
-          config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
-        } catch { case e: ConfigException.Missing => "models.*" }
-
-        try {
-          ft.process(models)
-        } catch {
-          case _ =>
+        config.getConfig("ebean").map { ebeanConfig =>
+          val (recursed, other) = ebeanConfig.underlying.entrySet.asScala.map(_.getValue.unwrapped)
+              .foldLeft(Set[String]()){_ ++ _.toString.split(',')}
+              .partition(_.endsWith(".*"))
+          val models = recursed ++ other.filterNot { o =>
+            o.indexOf('.') <= 0 || recursed.exists(r => o.startsWith(r.substring(0, r.length - 1)))
+          }.map(o => o.substring(0, o.lastIndexOf('.')))
+          if (!models.isEmpty)
+            ft.process(models.mkString(","))
         }
 
       } catch {
