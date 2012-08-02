@@ -97,6 +97,15 @@ trait Action[A] extends EssentialAction {
 
   }
 
+  /**
+   * Returns itself, for better support in the routes file.
+   *
+   * @return itself
+   */
+  override def apply(): Action[A] = this
+
+
+
   override def toString = {
     "Action(parser=" + parser + ")"
   }
