@@ -63,12 +63,16 @@ object LessCompiler {
                     var dependencies = [source];
 
                     window.less.Parser.importer = function(path, paths, fn, env) {
+                        if (!/^([a-z]+:)?\//.test(path) && paths.length > 0) {
+                            path = paths[0] + path;
+                        }
                         var imported = LessCompiler.resolve(source, path);
                         var input = String(LessCompiler.readContent(imported)); 
                         dependencies.push(imported)
                         new(window.less.Parser)({
                             optimization:3,
-                            filename:path
+                            filename:path,
+                            paths: [path.replace(/[\w\.-]+$/, '')]
                         }).parse(input, function (e, root) {
                             if(e instanceof Object) {
                                 throw e;
