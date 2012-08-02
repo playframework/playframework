@@ -339,7 +339,7 @@ object Promise {
   */
   def sequenceEither1[A, B](e: Either[Promise[A], Promise[B]]): Promise[Either[A, B]] = e.fold(_.map(Left(_)), _.map(Right(_)))
   
-  @deprecated("use sequence instead")
+  @deprecated("use sequence instead","2.1")
   def sequenceOption[A](o: Option[Promise[A]]): Promise[Option[A]] = o.map(_.map(Some(_))).getOrElse(Promise.pure(None))
 
 }
