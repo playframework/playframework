@@ -2,6 +2,19 @@ package sbt
 
 trait PlayKeys {
 
+
+  val playVersion = SettingKey[String]("play-version")
+  
+  val playDefaultPort = SettingKey[Int]("play-default-port")
+  
+  val requireSubFolder = SettingKey[String]("play-require-subfolder")
+
+  val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
+  
+  val playOnStarted = SettingKey[Seq[(java.net.InetSocketAddress) => Unit]]("play-onStarted")
+  
+  val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
+
   val distDirectory = SettingKey[File]("play-dist")
 
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")

@@ -51,8 +51,8 @@ trait PlaySettings {
 
       "views.%format%._"))
 
-  def closureCompilerSettings(c: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
-    resourceGenerators in Compile <<= JavascriptCompiler(Some(c))(Seq(_)),
+  def closureCompilerSettings(optionCompilerOptions: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
+    resourceGenerators in Compile <<= JavascriptCompiler(Some(optionCompilerOptions))(Seq(_)),
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= CoffeescriptCompiler
   )
@@ -168,6 +168,14 @@ trait PlaySettings {
     playExternalAssets := Seq.empty[(File, File => PathFinder, String)],
 
     playAssetsDirectories <+= baseDirectory / "public",
+
+    requireSubFolder := "rjs",
+
+    requireNativePath := None,
+
+    buildRequire <<= buildRequireTask,
+
+    buildRequireAndPackage <<= buildRequireAndPackageTask,
 
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= CoffeescriptCompiler,
