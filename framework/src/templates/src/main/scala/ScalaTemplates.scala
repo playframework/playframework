@@ -391,8 +391,7 @@ package play.templates {
       }
 
       def importExpression: Parser[Simple] = {
-        positioned(
-          at ~> """import .*(\r)?\n""".r ^^ {
+          at ~> positioned("""import .*(\r)?\n""".r ^^ {
             case stmt => Simple(stmt)
           })
       }
