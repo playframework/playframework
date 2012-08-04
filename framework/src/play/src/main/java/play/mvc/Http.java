@@ -901,6 +901,7 @@ public class Http {
         int UPGRADE_REQUIRED = 426;
         int PRECONDITION_REQUIRED = 428;
         int TOO_MANY_REQUESTS = 429;
+        int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
         int INTERNAL_SERVER_ERROR = 500;
         int NOT_IMPLEMENTED = 501;
         int BAD_GATEWAY = 502;
