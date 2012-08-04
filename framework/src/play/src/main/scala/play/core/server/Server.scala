@@ -72,11 +72,11 @@ trait Server {
       Logger.error(
         """
         |
-        |! %sInternal server error, for request [%s] ->
+        |! %sInternal server error, for (%s) [%s] ->
         |""".stripMargin.format(e match {
           case p: PlayException => "@" + p.id + " - "
           case _ => ""
-        }, request),
+        }, request.method, request.uri),
         e)
 
       DefaultGlobal.onError(request, e)
