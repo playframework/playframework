@@ -167,6 +167,64 @@ object XmlFormat extends Format[Xml] {
 
 }
 
+/**
+ * Content type used in default JSON templates.
+ *
+ * @param text The JSON text.
+ */
+case class Json(text: String) extends Appendable[Json] with Content with play.mvc.Content {
+  val buffer = new StringBuilder(text)
+
+  /**
+   * Appends this json fragment to another.
+   */
+  def +(other: Json): this.type = {
+    buffer.append(other.buffer)
+    this
+  }
+
+  override def toString = buffer.toString
+
+  /**
+   * Content type of text (`text/json`).
+   */
+  def contentType = "text/json"
+
+  def body = toString
+
+}
+
+/**
+ * Helper for utilities JSON methods.
+ */
+object Json {
+
+  /**
+   * Creates an empty JSON fragment.
+   */
+  def empty = Json("")
+
+}
+
+/**
+ * Formatter for text content.
+ */
+object JsonFormat extends Format[Json] {
+
+  /**
+   * Create a text fragment.
+   */
+  def raw(text: String) = Json(text)
+
+  /**
+   * Create a safe (escaped) text fragment.
+   */
+  def escape(text: String) = Json(org.apache.commons.lang3.StringEscapeUtils.escapeEcmaScript(text))
+
+}
+
+
+
 /** Defines a magic helper for Play templates. */
 object PlayMagic {
 
