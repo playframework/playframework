@@ -194,7 +194,8 @@ object PlayBuild extends Build {
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.2",
             
-            ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
+            ("com.google.guava"                 %    "guava"                    %   "12.0" notTransitive())
+              // Note: this exclusion will no longer be needed with Guava 13
               .exclude("com.google.code.findbugs", "jsr305")
             ,
             
