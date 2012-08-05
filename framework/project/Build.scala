@@ -193,12 +193,8 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.2",
-            
-            ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
-              .exclude("com.google.code.findbugs", "jsr305")
-            ,
-            
-            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
+            "com.google.guava"                  %    "guava"                    %   "13.0",
+            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
             
             ("org.avaje"                        %    "ebean"                    %   "2.7.5" notTransitive())
               .exclude("javax.persistence", "persistence-api")
