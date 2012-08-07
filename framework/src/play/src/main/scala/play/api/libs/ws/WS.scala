@@ -34,23 +34,36 @@ object WS {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 
+  private var clientHolder: Option[AsyncHttpClient] = None
+  
   /**
-   * The underlying HTTP client.
+   * resets the underlying AsyncHttpClient
    */
-  lazy val client = {
-    val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-      .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-      .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
-
-    playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-      asyncHttpConfig.setUserAgent(useragent)
-    }
-    
-    new AsyncHttpClient(asyncHttpConfig.build())
+  def resetClient(): Unit = {
+    clientHolder.map{clientRef =>
+      clientRef.close()
+    }.getOrElse(play.api.Logger.debug("WS client was reset without being used"))
+    clientHolder = None
   }
+  /**
+   * retrieves or creates underlying HTTP client.
+   */
+  def client = 
+    clientHolder.getOrElse{
+        val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+        val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+          .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+          .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+          .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+          .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+        playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+          asyncHttpConfig.setUserAgent(useragent)
+        }
+        val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
+        clientHolder = Some(innerClient)
+        innerClient
+    }
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.

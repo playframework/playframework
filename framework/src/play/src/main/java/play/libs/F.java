@@ -75,6 +75,25 @@ public class F {
      */
     public static class Promise<A> {
 
+        private final scala.concurrent.Future<A> promise;
+
+        /**
+         * Create a new promise wrapping the given Scala promise
+         *
+         * @param promise The scala promise to wrap
+         */
+        public Promise( scala.concurrent.Future<A> promise) {
+            this.promise = promise;
+        }
+
+        /*
+         * reset underlying shared actors
+         * useful for mainly in tests
+         */
+        public static void resetActors() {
+            actors = null;
+        }
+
         /**
          * Combine the given promises into a single promise for the list of results.
          *
@@ -147,17 +166,6 @@ public class F {
          */
         public static <A> Promise<A> throwing(Throwable throwable) {
             return new Promise<A>(play.core.j.JavaPromise.<A>throwing(throwable));
-        }
-
-        private final scala.concurrent.Future<A> promise;
-
-        /**
-         * Create a new promise wrapping the given Scala promise
-         *
-         * @param promise The scala promise to wrap
-         */
-        public Promise( scala.concurrent.Future<A> promise) {
-            this.promise = promise;
         }
 
         /**

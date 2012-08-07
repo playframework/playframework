@@ -58,6 +58,7 @@ trait PlaySettings {
   )
 
   lazy val defaultSettings = Seq[Setting[_]](
+    
 
     resolvers ++= Seq(
       "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -86,7 +87,9 @@ trait PlaySettings {
     libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     parallelExecution in Test := false,
-
+    
+    fork in Test := true,
+    
     testOptions in Test += Tests.Setup { loader =>
       loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
     },

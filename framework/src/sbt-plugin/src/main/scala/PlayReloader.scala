@@ -158,6 +158,7 @@ trait PlayReloader {
           case play.templates.MaybeGeneratedSource(generatedSource) => {
             new xsbti.Problem {
               def message = problem.message
+              def category = ""
               def position = new xsbti.Position {
                 def line = {
                   problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
@@ -183,6 +184,7 @@ trait PlayReloader {
           case play.core.Router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
             new xsbti.Problem {
               def message = problem.message
+              def category = ""
               def position = new xsbti.Position {
                 def line = {
                   problem.position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
@@ -204,8 +206,18 @@ trait PlayReloader {
 
       }
 
+      private def allProblems(inc: Incomplete): Seq[xsbti.Problem] =
+        allProblems(inc :: Nil)
+      private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] =
+            problems(Incomplete.allExceptions(incs).toSeq)
+      private def problems(es: Seq[Throwable]): Seq[xsbti.Problem]  =
+            es flatMap {
+                case cf: xsbti.CompileFailed => cf.problems
+                case _ => Nil
+            }
+
       def getProblems(incomplete: Incomplete): Seq[xsbti.Problem] = {
-        (Compiler.allProblems(incomplete) ++ {
+        (allProblems(incomplete) ++ {
           Incomplete.linearize(incomplete).filter(i => i.node.isDefined && i.node.get.isInstanceOf[ScopedKey[_]]).flatMap { i =>
             val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
             val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
@@ -230,6 +242,7 @@ trait PlayReloader {
             }.collect {
               case (Some(error), maybePosition) => new xsbti.Problem {
                 def message = error._3
+                def category = ""
                 def position = new xsbti.Position {
                   def line = xsbti.Maybe.just(error._2.toInt)
                   def lineContent = ""

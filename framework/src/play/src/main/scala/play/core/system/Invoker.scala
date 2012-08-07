@@ -53,7 +53,7 @@ object Invoker {
   private def invoker: Invoker = invokerOption.getOrElse {
     val default = new Invoker()
     invokerOption = Some(default)
-    Logger.warn("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
+    Logger.info("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
     default
   }
 

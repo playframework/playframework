@@ -133,6 +133,8 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     }
     server.stop()
     server = null
+    play.api.libs.concurrent.Promise.resetSystem()
+    play.api.libs.ws.WS.resetClient()
   }
 
 }

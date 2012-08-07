@@ -22,6 +22,7 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
 
+
   //- mainly scala, mainly java or none
 
   val JAVA = "java"
@@ -169,6 +170,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>
     analysises.reduceLeft(_ ++ _)
   }
+
 
   val dist = TaskKey[File]("dist", "Build the standalone application package")
   val distTask = (distDirectory, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (dist, root, packaged, dependencies, target, id, version) =>
@@ -560,7 +562,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
             case e: Exception =>
               val log = s.log
               log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
-              BuiltinCommands.handleException(e, s, log)
               (false, watchState, s.fail)
           }
 

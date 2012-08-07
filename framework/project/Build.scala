@@ -32,7 +32,6 @@ object PlayBuild extends Build {
         file("src/anorm"),
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"anorm_"+previousScalaVersion} % previousVersion),
-            libraryDependencies := anormDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             publishArtifact in (Compile, packageDoc) := false,
@@ -73,10 +72,7 @@ object PlayBuild extends Build {
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
 
-    def registerPlugin(module: ModuleID, localScalaVersion: String= buildScalaVersionForSbt) = 
-        libraryDependencies <+= (sbtVersion) {
-            sbtVersion => Defaults.sbtPluginExtra(module, sbtVersion, localScalaVersion)
-        }
+  
 
     lazy val SbtPluginProject = Project(
       "SBT-Plugin",
@@ -85,8 +81,8 @@ object PlayBuild extends Build {
         sbtPlugin := true,
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
-        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-RC1"),
-        registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0"),
+        addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -131,11 +127,11 @@ object PlayBuild extends Build {
 
         val buildOrganization = "play"
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
-        val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.1")
-        val buildScalaVersionForSbt = "2.9.1"
-        val buildSbtVersion   = "0.11.3"
-        val previousVersion   = "2.0.2"
+        val previousVersion   = "2.0.3"
         val previousScalaVersion = "2.9.1"
+        val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.2")
+        val buildScalaVersionForSbt = "2.9.2"
+        val buildSbtVersion   = "0.12.0"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
@@ -150,7 +146,6 @@ object PlayBuild extends Build {
     object LocalSBT {
 
         import BuildSettings._
-
         def isJar(f:java.io.File) = f.getName.endsWith(".jar")
 
         val sbtJars:Seq[java.io.File] = {
@@ -162,7 +157,6 @@ object PlayBuild extends Build {
         val compilerJar:java.io.File = {
           file("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/scala-compiler.jar")
         }
-
     }
 
     object Resolvers {
@@ -300,9 +294,6 @@ object PlayBuild extends Build {
         val templatesDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
             "org.specs2"                        %%   "specs2"                   %   "1.9"    %   "test"
-        )
-
-        val anormDependencies = Seq(
         )
 
         val testDependencies = Seq(
