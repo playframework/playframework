@@ -36,6 +36,9 @@ class FunctionalSpec extends Specification {
         
         val secondRequest = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get)
         secondRequest.status must equalTo(304)
+
+        // return Date header with 304 response
+        secondRequest.header(DATE) must beSome
        
         val localCal = cal
         val f = new java.io.File("public/stylesheets/main.css")

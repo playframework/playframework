@@ -100,13 +100,16 @@ object Assets extends Controller {
             }.map (_ => NotModified).getOrElse {
               request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
                 lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-              }.map (_ => NotModified).getOrElse {
+              }.map (_ => NotModified.withHeaders(
+                DATE -> df.print({new java.util.Date}.getTime)
+              )).getOrElse {
 
                 // Prepare a streamed response
                 val response = SimpleResult(
                   header = ResponseHeader(OK, Map(
                     CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY)
+                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY),
+                    DATE -> df.print({new java.util.Date}.getTime)
                   )),
                   resourceData
                 )
@@ -120,7 +123,7 @@ object Assets extends Controller {
 
                 // Add Etag if we are able to compute it
                 val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified, DATE -> df.print({new java.util.Date}.getTime))).getOrElse(taggedResponse)
+                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
 
                 // Add Cache directive if configured
                 val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
