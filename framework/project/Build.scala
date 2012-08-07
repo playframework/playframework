@@ -233,7 +233,7 @@ object PlayBuild extends Build {
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
             "org.apache.ws.commons"             %    "ws-commons-util"          %   "1.0.1",
             
-            ("com.ning"                         %    "async-http-client"        %   "1.7.0" notTransitive())
+            ("com.ning"                         %    "async-http-client"        %   "1.7.5" notTransitive())
               .exclude("org.jboss.netty", "netty")
             ,
             
