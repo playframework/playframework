@@ -191,6 +191,9 @@ trait HeaderNames {
   val WWW_AUTHENTICATE = "WWW-Authenticate"
 
   val X_FORWARDED_FOR = "X-Forwarded-For"
+  val X_FORWARDED_HOST = "X-Forwarded-Host"
+  val X_FORWARDED_PORT = "X-Forwarded-Port"
+  val X_FORWARDED_PROTO = "X-Forwarded-Proto"
   
   val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
   val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
