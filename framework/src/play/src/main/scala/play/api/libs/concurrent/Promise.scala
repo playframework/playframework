@@ -259,9 +259,18 @@ object Promise {
   
   private [concurrent] lazy val defaultTimeout = 
     Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis 
+    
+  /**
+   * actor system for Promises  
+   */
+  private [concurrent] def system = underlyingSystem.getOrElse{
+    val a = ActorSystem("promise")
+    underlyingSystem = Some(a)
+    a
+  }
 
   /**
-   * resets the underlying promise Actor System and clears the Java actor references 
+   * resets the underlying promise Actor System and clears Java actor references 
    */
   def resetSystem(): Unit = {
     underlyingSystem.filter(_.isTerminated == false).map{s =>
@@ -270,15 +279,6 @@ object Promise {
       }.getOrElse(play.api.Logger.debug("trying to reset Promise actor system that was not started yet"))
     play.libs.F.Promise.resetActors()
     underlyingSystem = None
-  }
-    
-  /**
-   * actor system for Promises  
-   */
-  def system = underlyingSystem.getOrElse{
-    val a = ActorSystem("promise")
-    underlyingSystem = Some(a)
-    a
   }
 
   /**
