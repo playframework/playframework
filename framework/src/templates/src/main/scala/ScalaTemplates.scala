@@ -343,7 +343,7 @@ package play.templates {
       }
 
       def expressionPart: Parser[ScalaExpPart] = {
-        chainedMethods | block | (whiteSpaceNoBreak ~> scalaBlockChained) | elseCall | (parentheses ^^ { case code => Simple(code) })
+        chainedMethods | block | (whiteSpaceNoBreak ~> scalaBlockChained) | elseCall | positioned[Simple]((parentheses ^^ { case code => Simple(code) }))
       }
 
       def chainedMethods: Parser[Simple] = {
