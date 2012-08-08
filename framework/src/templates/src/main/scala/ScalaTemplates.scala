@@ -369,8 +369,8 @@ package play.templates {
         }
         val complexExpr = positioned(parentheses ^^ { expr => (Simple(expr)) }) ^^ { List(_) }
 
-        at ~> ((simpleExpr | complexExpr) ~ whiteSpaceNoBreak ~ "match" ^^ {
-          case e ~ w ~ m => e ++ Seq(Simple(w + m))
+        at ~> ((simpleExpr | complexExpr) ~ positioned((whiteSpaceNoBreak ~ "match" ^^ {case w ~ m => Simple(w + m)})) ^^ {
+          case e ~ m => e ++ Seq(m)
         }) ~ block ^^ {
           case expr ~ block => Display(ScalaExp(expr ++ Seq(block)))
         }
