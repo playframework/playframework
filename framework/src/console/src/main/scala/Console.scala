@@ -1,3 +1,4 @@
+
 package play.console
 
 import jline._
@@ -97,6 +98,7 @@ object Console {
           consoleReader.printNewline
           consoleReader.printString(Colors.cyan("> "))
           consoleReader.putString(defaultName)
+          consoleReader.flushConsole()
           val name = Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(defaultName)
           consoleReader.printNewline
 
@@ -112,6 +114,7 @@ object Console {
 
           consoleReader.printNewline
           consoleReader.printString(Colors.cyan("> "))
+          consoleReader.flushConsole()
           consoleReader.putString("")
 
           val templateNotFound = new RuntimeException("play.home system property is not set, so can not find template")
