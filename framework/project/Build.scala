@@ -82,7 +82,7 @@ object PlayBuild extends Build {
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
         addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0"),
-        addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
+        addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
