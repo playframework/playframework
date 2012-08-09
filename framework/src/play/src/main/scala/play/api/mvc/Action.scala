@@ -44,6 +44,16 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte],Result]) wi
 
 }
 
+object EssentialAction {
+
+  def apply(f:RequestHeader => Iteratee[Array[Byte],Result]):EssentialAction = new EssentialAction {
+
+    def apply(rh:RequestHeader) = f(rh)
+
+  }
+}
+
+
 /**
  * An action is essentially a (Request[A] => Result) function that
  * handles a request and generates a result to be sent to the client.

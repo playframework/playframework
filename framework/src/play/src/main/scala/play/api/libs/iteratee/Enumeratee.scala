@@ -133,6 +133,49 @@ object Enumeratee {
     }
   }
 
+  def mapConcatInput[From] = new {
+    def apply[To](f: From => Seq[Input[To]]) = mapInputFlatten[From]( in => Enumerator.enumerateSeq2(f(in)))
+  }
+
+  def mapConcat[From] = new {
+    def apply[To](f: From => Seq[To]) = mapFlatten[From]( in => Enumerator.enumerateSeq1(f(in)))
+  }
+
+  def mapFlatten[From] = new {
+    def apply[To](f: From => Enumerator[To]) = new CheckDone[From, To] {
+
+      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+        case Input.El(e) =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(e)(Cont(k)))
+
+        case in@Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+      }
+
+      def continue[A](k: K[To, A]) = Cont(step(k))
+    }
+  }
+
+  def mapInputFlatten[From] = new {
+    def apply[To](f: From => Enumerator[To]) = new CheckDone[From, To] {
+
+      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+        case Input.El(e) =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(e)(Cont(k)))
+
+        case in@Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+      }
+
+      def continue[A](k: K[To, A]) = Cont(step(k))
+    }
+  }
+
+
   def mapInputM[From] = new {
     def apply[To](f: Input[From] => Promise[Input[To]]) = new CheckDone[From, To] {
 
@@ -367,7 +410,7 @@ object Enumeratee {
 
   def onIterateeDone[E](action: () => Unit): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E](iteratee).map { a => action(); a }
+    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E](iteratee).map ( _.map { a => action();a})
 
   }
 

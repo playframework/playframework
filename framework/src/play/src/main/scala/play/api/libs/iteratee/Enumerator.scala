@@ -560,6 +560,21 @@ object Enumerator {
         case _ => it
       }))
   }
+
+  private[iteratee] def enumerateSeq1[E](s:Seq[E]):Enumerator[E] = checkContinue1(s)(new TreatCont1[E,Seq[E]]{
+    def apply[A](loop: (Iteratee[E,A],Seq[E]) => Promise[Iteratee[E,A]], s:Seq[E], k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]] =
+      if(!s.isEmpty)
+        loop(k(Input.El(s.head)),s.tail)
+      else Promise.pure(Cont(k))
+  })
+
+  private[iteratee] def enumerateSeq2[E](s:Seq[Input[E]]):Enumerator[E] = checkContinue1(s)(new TreatCont1[E,Seq[Input[E]]]{
+    def apply[A](loop: (Iteratee[E,A],Seq[Input[E]]) => Promise[Iteratee[E,A]], s:Seq[Input[E]], k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]] =
+      if(!s.isEmpty)
+        loop(k(s.head),s.tail)
+      else Promise.pure(Cont(k))
+  })
+
 }
 
 @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")

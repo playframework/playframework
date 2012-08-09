@@ -38,7 +38,7 @@ object Iteratee {
 
       case Input.EOF => Done(s, Input.EOF)
       case Input.Empty => Cont[E, A](i => step(s)(i))
-      case Input.El(e) => { val s1 = f(s, e); Cont[E, A](i => step(s1)(i)) }
+      case Input.El(e) => {  val s1 = f(s, e); Cont[E, A](i => step(s1)(i)) }
     }
     (Cont[E, A](i => step(state)(i)))
   }
@@ -452,7 +452,7 @@ object Done {
    * @param a Result
    * @param e Remaining unused input
    */
-  def apply[E, A](a: A, e: Input[E]): Iteratee[E, A] = new Iteratee[E, A] {
+  def apply[E, A](a: A, e: Input[E] = Input.Empty): Iteratee[E, A] = new Iteratee[E, A] {
 
     def fold[B](folder: Step[E,A] => Promise[B]): Promise[B] = folder(Step.Done(a,e))
 
