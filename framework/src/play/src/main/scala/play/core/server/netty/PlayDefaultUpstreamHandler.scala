@@ -153,7 +153,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   val channelBuffer = ChannelBuffers.dynamicBuffer(512)
                   val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
                   val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-                  val p = body |>>| Enumeratee.grouped(stringIteratee) &>> Cont { 
+                  val p = (body >>> Enumerator.eof) |>>| Enumeratee.grouped(stringIteratee) &>> Cont { 
                     case Input.El(buffer) =>
                       nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
                       nettyResponse.setContent(buffer)
