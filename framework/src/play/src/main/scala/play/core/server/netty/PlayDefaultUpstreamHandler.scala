@@ -140,7 +140,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                         .map( _ => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty:Input[r.BODY_CONTENT])))
                   }
 
-                  (body |>>| bodyIteratee).extend1 {
+                  (body |>>> bodyIteratee).extend1 {
                     case Redeemed(_) =>
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
@@ -153,7 +153,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   val channelBuffer = ChannelBuffers.dynamicBuffer(512)
                   val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
                   val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-                  val p = (body >>> Enumerator.eof) |>>| Enumeratee.grouped(stringIteratee) &>> Cont { 
+                  val p = (body |>>> Enumeratee.grouped(stringIteratee) &>> Cont { 
                     case Input.El(buffer) =>
                       nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
                       nettyResponse.setContent(buffer)
@@ -163,7 +163,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       Iteratee.flatten(p.map(_ => Done(1,Input.Empty:Input[org.jboss.netty.buffer.ChannelBuffer])))
 
                     case other => Error("unexepected input",other)
-                  }
+                  })
                   p.extend1 {
                     case Redeemed(_) =>
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
