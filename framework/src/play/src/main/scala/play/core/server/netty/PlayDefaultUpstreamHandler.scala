@@ -126,37 +126,34 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                 // Stream the result
                 headers.get(CONTENT_LENGTH).map { contentLength =>
-
-                  val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => {
-                    if (e.getChannel.isConnected())
-                      NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
-                        .extend1 { case Redeemed(()) => (); case Thrown(ex) => Logger("play").debug(ex.toString) }
-                    else Promise.pure(())
-                  }
-
                   val bodyIteratee = {
-                    val writeIteratee = Iteratee.fold1(
-                      if (e.getChannel.isConnected())
-                        NettyPromise(e.getChannel.write(nettyResponse))
-                        .extend1 { case Redeemed(()) => (); case Thrown(ex) => Logger("play").debug(ex.toString) }
-                      else Promise.pure(()))((_, e: r.BODY_CONTENT) => writer(e))
-
-                    Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected()).transform(writeIteratee).mapDone { _ =>
-                      if (e.getChannel.isConnected()) {
-                        if (!keepAlive) e.getChannel.close()
-                      }
+                    def step(in:Input[r.BODY_CONTENT]):Iteratee[r.BODY_CONTENT,Unit] = (e.getChannel.isConnected(),in) match {
+                      case (true,Input.El(x)) =>
+                         Iteratee.flatten(
+                           NettyPromise(e.getChannel.write(ChannelBuffers.wrappedBuffer(r.writeable.transform(x))))
+                             .map(_ => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty)))
+                      case (true,Input.Empty) => Cont(step)
+                      case (_,in) => Done((),in)
                     }
+                    Iteratee.flatten(
+                      NettyPromise(e.getChannel.write(nettyResponse))
+                        .map( _ => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty:Input[r.BODY_CONTENT])))
                   }
 
-                  body |>>> (bodyIteratee)
-
+                  (body |>>| bodyIteratee).extend1 {
+                    case Redeemed(_) =>
+                      if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
+                    case Thrown(ex) =>
+                      Logger("play").debug(ex.toString) 
+                      if(e.getChannel.isConnected())  e.getChannel.close()
+                  }
                 }.getOrElse {
 
                   // No Content-Length header specified, buffer in-memory
                   val channelBuffer = ChannelBuffers.dynamicBuffer(512)
                   val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
                   val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-                  val p = body |>>> Enumeratee.grouped(stringIteratee) &>> Cont { 
+                  val p = body |>>| Enumeratee.grouped(stringIteratee) &>> Cont { 
                     case Input.El(buffer) =>
                       nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
                       nettyResponse.setContent(buffer)
@@ -167,8 +164,14 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                     case other => Error("unexepected input",other)
                   }
+                  p.extend1 {
+                    case Redeemed(_) =>
+                      if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
+                    case Thrown(ex) =>
+                      Logger("play").debug(ex.toString) 
+                      if(e.getChannel.isConnected())  e.getChannel.close()
+                  }
                 }
-
               }
 
               case r @ ChunkedResult(ResponseHeader(status, headers), chunks) => {

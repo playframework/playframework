@@ -118,6 +118,11 @@ trait GlobalSettings {
     BadRequest(views.html.defaultpages.badRequest(request, error))
   }
 
+  def onRequestCompletion(request:RequestHeader){
+
+
+  }
+
 }
 
 /**

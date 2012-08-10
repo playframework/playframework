@@ -91,6 +91,12 @@ trait Enumerator[E] {
 
   }
 
+  def onDoneEnumerating(callback: => Unit) = new Enumerator[E]{
+
+    def apply[A](it:Iteratee[E,A]):Promise[Iteratee[E,A]] = parent.apply(it).map{ a => callback; a}
+
+  }
+
   /**
    * Compose this Enumerator with an Enumeratee
    */
