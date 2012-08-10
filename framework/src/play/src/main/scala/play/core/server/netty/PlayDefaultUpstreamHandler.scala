@@ -39,6 +39,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
     }
   }
 
+  override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+    val rh = ctx.getAttachment
+    if(rh!=null) play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(rh.asInstanceOf[RequestHeader]))
+    ctx.setAttachment(null)
+  }
+
   override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     allChannels.add(e.getChannel)
   }
@@ -49,7 +55,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
       case nettyHttpRequest: HttpRequest =>
 
         Logger("play").trace("Http request received by netty: " + nettyHttpRequest)
-
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
         var version = nettyHttpRequest.getProtocolVersion
@@ -84,6 +89,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           lazy val remoteAddress = rRemoteAddress
           def username = None
         }
+        //attach the request to the channel context for after cleaning
+        ctx.setAttachment(requestHeader)
 
         // converting netty response to play's
         val response = new Response {
@@ -142,6 +149,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                   (body |>>> bodyIteratee).extend1 {
                     case Redeemed(_) =>
+                      play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
+                      ctx.setAttachment(null)
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
                       Logger("play").debug(ex.toString) 
@@ -166,6 +175,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   })
                   p.extend1 {
                     case Redeemed(_) =>
+                      play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
+                      ctx.setAttachment(null)
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
                       Logger("play").debug(ex.toString) 
@@ -200,31 +211,39 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                 nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
                 nettyResponse.setChunked(true)
-
-                val writer: Function1[r.BODY_CONTENT, Promise[Unit]] = x => {
-                  if (e.getChannel.isConnected())
-                    NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
-                      .extend1 { case Redeemed(()) => (); case Thrown(ex) => Logger("play").debug(ex.toString) }
-                  else Promise.pure(())
+                val bodyIteratee = {
+                    def step(in:Input[r.BODY_CONTENT]):Iteratee[r.BODY_CONTENT,Unit] = (e.getChannel.isConnected(),in) match {
+                      case (true,Input.El(x)) =>
+                         Iteratee.flatten(
+                           NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
+                             .extend1{ 
+                               case Redeemed(_) => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty)
+                               case Thrown(ex) =>
+                                 Logger("play").debug(ex.toString) 
+                                 if(e.getChannel.isConnected())  e.getChannel.close()
+                                 throw ex
+                             })
+                      case (true,Input.Empty) => Cont(step)
+                      case (_,in) => Done((),in)
+                    }
+                    Iteratee.flatten(
+                      NettyPromise(e.getChannel.write(nettyResponse))
+                        .extend1{ 
+                          case Redeemed(_) => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty:Input[r.BODY_CONTENT])
+                          case Thrown(ex) =>
+                            Logger("play").debug(ex.toString) 
+                            if(e.getChannel.isConnected())  e.getChannel.close()
+                            throw ex
+                        })
                 }
 
-                val chunksIteratee = {
-                  val writeIteratee = Iteratee.fold1(
-                    if (e.getChannel.isConnected())
-                      NettyPromise(e.getChannel.write(nettyResponse))
-                      .extend1 { case Redeemed(()) => (); case Thrown(ex) => Logger("play").debug(ex.toString) }
-                    else Promise.pure(()))((_, e: r.BODY_CONTENT) => writer(e))
-
-                  Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { _ =>
-                    if (e.getChannel.isConnected()) {
-                      val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
-                      if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
-                    }
+                chunks apply bodyIteratee.map { _ =>
+                  play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
+                  if (e.getChannel.isConnected()) {
+                    val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
+                    if (!keepAlive)  f.addListener(ChannelFutureListener.CLOSE)
                   }
                 }
-
-                chunks(chunksIteratee)
-
               }
 
               case _ =>
