@@ -96,6 +96,8 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     val rjnewDir = new java.io.File(rjoldDir.getAbsolutePath + "-min")
     val jsFiles = (rjoldDir  ** "*.js").filter (_.getName.endsWith("min.js") == false).get.toSet
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
+	val relativeModulePath = (file: File) => file.getPath().replace(rjoldDir.getPath() + java.io.File.separator, "").replace(".js", "")
+	
     if (jsFiles.isEmpty == false) {
       IO.write(buildDesc,
         """({
@@ -103,7 +105,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
               baseUrl: ".",
               dir:""""+ prefix + rjnewDir.getName + """",
               modules: ["""
-           +       jsFiles.map(f=> "{name: \""+f.getName.replace(".js","")+"\"}").mkString(",")+"""
+           +       jsFiles.map(f=> "{name: \""+relativeModulePath(f)+"\"}").mkString(",")+"""
               ]
            })""".stripMargin
 
