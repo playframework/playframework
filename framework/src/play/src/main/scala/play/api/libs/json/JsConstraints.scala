@@ -16,11 +16,11 @@ case class JsFlow[T](in: Option[Reads[T]] = None, out: Option[Writes[T]] = None)
   }
 }
 
-object Constraints extends JsFlowHelpers with ConstraintReads with ConstraintWrites with JsResultProducts {
+object Constraints extends JsFlowHelpers with ConstraintReads with ConstraintWrites /*with JsResultProducts*/ {
     val defaultJs = JsUndefined("default")
 }
 
-object JsResultProducts extends JsResultProducts
+//object JsResultProducts extends JsResultProducts
 
 trait JsFlowHelpers {
   def in[T](implicit fmt: Format[T]): JsFlow[T] = JsFlow(Some(fmt), None)
@@ -30,66 +30,41 @@ trait JsFlowHelpers {
 }
 
 trait ConstraintReads {
-  def of[T](implicit fmt: Format[T]): Format[T] = new Format[T] {
-    def reads(json: JsValue): JsResult[T] = fmt.reads(json)
-    def writes(t: T): JsValue = fmt.writes(t)
-  }
+  def of[T](implicit fmt: Format[T]): Format[T] = fmt
 
-  def required[T](implicit r: Reads[T]): Reads[T] = new Reads[T] {
-    def reads(json: JsValue): JsResult[T] = json match {
-      case js @ JsUndefined(_) => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.required")))) and fromJson(js)
-      case js => fromJson(js)
-    }
-  }
+  def required(path:JsPath): Reads[JsValue] = Reads[JsValue] ( path.asSingleJsResult )
 
-  def optional[T](implicit r: Reads[Option[T]]): Reads[Option[T]] = new Reads[Option[T]] {
-    def reads(json: JsValue): JsResult[Option[T]] = json match {
-      case JsUndefined(_) => JsSuccess(None)
-      case js => fromJson(js)
-    }
-  }
+  def at[A](path:JsPath)(implicit reads:Reads[A]): Reads[A] =
+    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads))
 
-  def min(nb: Int): Reads[Int] = new Reads[Int] {
-    def reads(json: JsValue): JsResult[Int] = json match {
-      case JsNumber(d) => if (d >= nb) JsSuccess(d.toInt) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.min", nb))))
-      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
-    }
-  }
+  def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
+    Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).map(Some(_))))
 
-  def valueEquals[T](value: T)(implicit r: Reads[T]): Reads[T] = new Reads[T] {
-    def reads(json: JsValue): JsResult[T] = fromJson(json)(r).flatMap( t => 
-      if(t.equals(value)) JsSuccess(t) 
-      else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.equals", value))))
-    )
-  }
+  def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
+    Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
-  def max(nb: Int): Reads[Int] = new Reads[Int] {
-    def reads(json: JsValue): JsResult[Int] = json match {
-      case JsNumber(d) => if (d <= nb) JsSuccess(d.toInt) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.max", nb))))
-      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
-    }
-  }
+  def min(m:Int)(implicit reads:Reads[Int]) =
+    filterNot[Int](ValidationError("validate.error.min"))(_ < m)(reads)
 
-  def minLength(length: Int): Reads[String] = new Reads[String] {
-    def reads(json: JsValue): JsResult[String] = json match {
-      case js @ JsString(s) => if (s.size >= length) JsSuccess(s) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.minLength", length))))
-      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
-    }
-  }
+  def max(m:Int)(implicit reads:Reads[Int]) =
+    filterNot[Int](ValidationError("validate.error.min"))(_ > m)(reads)
 
-  def maxLength(length: Int): Reads[String] = new Reads[String] {
-    def reads(json: JsValue): JsResult[String] = json match {
-      case js @ JsString(s) => if (s.size <= length) JsSuccess(s) else JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.maxLength", length))))
-      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
-    }
-  }
-  
-  def email : Reads[String] = new Reads[String] {
-    def reads(json: JsValue): JsResult[String] = json match {      
-      case js @ JsString(s) => 
-        val regex = """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r
-        regex.findFirstIn(s).map(JsSuccess(_)).getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.email")))))
-      case js => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
+  def filterNot[A](error:ValidationError)(p:A => Boolean)(implicit reads:Reads[A]) = 
+    Reads[A](js => reads.reads(js).filterNot(error)(p))
+
+  def filter[A](otherwise: ValidationError)(p:A => Boolean)(implicit reads:Reads[A]) = 
+    Reads[A](js => reads.reads(js).filter(otherwise)(p))
+
+  def minLength[M](m:Int)(implicit reads:Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
+    filterNot[M](ValidationError(""))(_.size < m)
+
+  def maxLength[M](m:Int)(implicit reads:Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
+    filterNot[M](ValidationError(""))(_.size > m)
+
+  private val Email = """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r
+  def email(implicit reads:Reads[String]) : Reads[String] = Reads[String] { js =>
+    reads.reads(js).collect(ValidationError("validate.error.email")) {
+      case Email(e) => e
     }
   }
 }
@@ -99,7 +74,7 @@ trait ConstraintWrites {
     def writes(t: T): JsValue = JsUndefined("pruned")
   }
 }
-
+/*
 
 object JsTupler {
   import Constraints.defaultJs
@@ -663,6 +638,7 @@ trait JsResultProducts {
       case JsSuccess((((((((((((((((((((((t1, t2), t3), t4), t5), t6), t7), t8), t9), t10), t11), t12), t13), t14), t15), t16), t17), t18), t19), t20), t21), t22)) => JsSuccess(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18, t19, t20, t21, t22)
       case JsError(e) => JsError(e)
     }
-  } 
+    } 
 
 }
+*/

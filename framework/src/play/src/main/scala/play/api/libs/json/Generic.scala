@@ -5,6 +5,8 @@ import Json._
 /**
  * Generic Json formatters to handle Product types.
  */
+
+/*
 object Generic {
   import JsResultProducts._
 
@@ -846,7 +848,8 @@ def productFormat22[S, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
           fromJson[T22](o \ lbl22)).map( apply.tupled(_) )
       case _ => throw new RuntimeException("object expected")
     }
-  }  
+    } 
 
 }
+*/
 

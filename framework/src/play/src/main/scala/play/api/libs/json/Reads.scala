@@ -7,11 +7,11 @@ import play.api.data.validation.ValidationError
 
 
 case class JsSuccess[T](value: T) extends JsResult[T] {
-  def get[T] = value
+  def get:T = value
 }
 
 case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[Nothing] {
-  def get[T] = throw new NoSuchElementException("JsError.get")
+  def get:Nothing = throw new NoSuchElementException("JsError.get")
 
   //def toJson: JsValue = original // TODO
   //def toJsonErrorsOnly: JsValue = original // TODO
@@ -19,13 +19,16 @@ case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult
 }
 
 object JsError {
+
+  def apply(error:ValidationError):JsError = JsError(Seq(JsPath() -> Seq(error)))
+
   def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
     (e1 ++ e2).groupBy(_._1).mapValues( _.map(_._2).flatten ).toList
   }
 }
 
 sealed trait JsResult[+T] {
-  def fold[X](valid: T => X, invalid: Seq[(JsPath, Seq[ValidationError])] => X): X = this match {
+  def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: T => X): X = this match {
     case JsSuccess(v) => valid(v)
     case JsError(e) => invalid(e)
   }
@@ -35,21 +38,22 @@ sealed trait JsResult[+T] {
     case JsError(e) => JsError(e)
   }
 
+  def filterNot(error:ValidationError)(p: T => Boolean) =
+    this.flatMap { a => if(p(a)) JsError(error) else JsSuccess(a) }
+
+  def filter(otherwise:ValidationError)(p: T => Boolean) =
+    this.flatMap { a => if(p(a)) JsSuccess(a) else JsError(otherwise) }
+
+  def collect[B](otherwise:ValidationError)(p:PartialFunction[T,B]): JsResult[B] = flatMap {
+    case t if p.isDefinedAt(t) => JsSuccess(p(t))
+    case _ => JsError(otherwise)
+  }
+
   def flatMap[X](f: T => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v) => f(v)
     case JsError(e) => JsError(e)
   }
-
-  def flatMapTryDefault[TT >: T,X](defaultValue: TT)(f: TT => JsResult[X]): JsResult[X] = this match {
-    case JsSuccess(v) => f(v)
-    case JsError(e) => 
-      // tries with undefined first
-      f(defaultValue) match {
-        case s @ JsSuccess(_) => s
-        case JsError(e2) => JsError(JsError.merge(e, e2))
-      }
-  }
-
+/*
   def prod[V](other: JsResult[V]): JsResult[(T, V)] = {
     (this, other) match {
       case (JsSuccess(t), JsSuccess(v)) => JsSuccess((t, v))
@@ -59,7 +63,7 @@ sealed trait JsResult[+T] {
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
-
+  
   def and[TT >: T](other: JsResult[TT]): JsResult[TT] = {
     (this, other) match {
       case (JsSuccess(t1), JsSuccess(t2)) => JsSuccess(t1)
@@ -89,23 +93,23 @@ sealed trait JsResult[+T] {
       case _ => throw new RuntimeException("JsValue.prod operator can't be applied on other ")
     }
   }
-
+*/
   //def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
   def repath(path: JsPath): JsResult[T] = fold(valid = JsSuccess(_), invalid = e => JsError(e.map{ case (p, s) => path ++ p -> s }))
 
-  def get[T]
+  def get:T
 
-  def getOrElse[T](t: T) = this match {
-    case JsSuccess(_) => get
+  def getOrElse[TT >: T](t: => TT):TT = this match {
+    case JsSuccess(a) => a 
     case JsError(_) => t
   }
 
-  def asOpt[T] = this match {
+  def asOpt = this match {
     case JsSuccess(v) => Some(v)
     case JsError(_) => None
   }
 
-  def asEither[T] = this match {
+  def asEither = this match {
     case JsSuccess(v) => Right(v)
     case JsError(e) => Left(e)
   }  
@@ -125,7 +129,7 @@ trait Reads[T] {
    * Convert the JsValue into a T
    */
   def reads(json: JsValue): JsResult[T]
-
+/*
   def and(other: Reads[T]) = new Reads[T] {
     def reads(json: JsValue): JsResult[T] = self.reads(json) and other.reads(json)
   }
@@ -137,7 +141,7 @@ trait Reads[T] {
   def or(other: Reads[T]) = new Reads[T] {
     def reads(json: JsValue): JsResult[T] = self.reads(json) or other.reads(json)
   }
-
+*/
   def map[B](f:T => B):Reads[B] = new Reads[B] {
     def reads(json: JsValue): JsResult[B] = self.reads(json).map(f)
   }
@@ -162,7 +166,13 @@ trait Reads[T] {
 /**
  * Default deserializer type classes.
  */
-object Reads extends DefaultReads
+object Reads extends DefaultReads {
+
+  def apply[A](reads: JsValue => JsResult[A]): Reads[A] = new Reads[A] {
+    def reads(json: JsValue) = reads(json)
+  }
+
+}
 
 /**
  * Default deserializer type classes.
@@ -293,7 +303,7 @@ trait DefaultReads {
 
   implicit def OptionReads[T](implicit fmt: Reads[T]): Reads[Option[T]] = new Reads[Option[T]] {
     import scala.util.control.Exception._
-    def reads(json: JsValue) = fmt.reads(json).fold( v => JsSuccess(Some(v)), e => JsSuccess(None) )
+    def reads(json: JsValue) = fmt.reads(json).fold( e => JsSuccess(None), v => JsSuccess(Some(v)))
   }
 
   /**

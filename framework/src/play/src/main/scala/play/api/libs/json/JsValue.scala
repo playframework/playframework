@@ -91,7 +91,7 @@ sealed trait JsValue {
   /**
    * Prune the Json AST according to the provided JsPath
    */
-  def prune(path: JsPath): JsValue = path.prune(this)
+  //def prune(path: JsPath): JsValue = path.prune(this)
 
 }
 
