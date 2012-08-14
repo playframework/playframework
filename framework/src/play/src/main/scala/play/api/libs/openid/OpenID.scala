@@ -56,7 +56,7 @@ object UserInfo {
  */
 object OpenID extends OpenIDClient(WS.url)
 
-private[openid] class OpenIDClient(ws: (String) => WSRequestHolder) {
+private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
 
   val discovery = new Discovery(ws)
 
@@ -117,13 +117,13 @@ private[openid] class OpenIDClient(ws: (String) => WSRequestHolder) {
 
   private def axParameters(axRequired: Seq[(String, String)],
                            axOptional: Seq[(String, String)]): Seq[(String, String)] = {
-    if (axRequired.length == 0 && axOptional.length == 0)
+    if (axRequired.isEmpty && axOptional.isEmpty)
       Nil
     else {
-      val axRequiredParams = if (axRequired.size == 0) Nil
+      val axRequiredParams = if (axRequired.isEmpty) Nil
       else Seq("openid.ax.required" -> axRequired.map(_._1).mkString(","))
 
-      val axOptionalParams = if (axOptional.size == 0) Nil
+      val axOptionalParams = if (axOptional.isEmpty) Nil
       else Seq("openid.ax.if_available" -> axOptional.map(_._1).mkString(","))
 
       val definitions = (axRequired ++ axOptional).map(attribute => ("openid.ax.type." + attribute._1 -> attribute._2))
@@ -164,6 +164,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
     def resolve(response:Response):Option[OpenIDServer]
   }
 
+  // TODO: Verify schema, namespace and support verification of XML signatures
   class XrdsResolver extends Resolver {
     // http://openid.net/specs/openid-authentication-2_0.html#service_elements and
     // OpenID 1 compatibility: http://openid.net/specs/openid-authentication-2_0.html#anchor38
