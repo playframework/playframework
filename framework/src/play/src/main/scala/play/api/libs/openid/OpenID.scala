@@ -66,8 +66,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
   def redirectURL(openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
-    axOptional: Seq[(String, String)] = Seq.empty,
-    realm: Option[String] = None): Promise[String] = {
+    axOptional: Seq[(String, String)] = Seq.empty): Promise[String] = {
 
     val claimedId = discovery.normalizeIdentifier(openID)
     discovery.discoverServer(openID).map({server =>
@@ -77,7 +76,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
         "openid.claimed_id" -> claimedId,
         "openid.identity" -> server.delegate.getOrElse(claimedId),
         "openid.return_to" -> callbackURL
-      ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
+      ) ++ axParameters(axRequired, axOptional)
       val separator = if (server.url.contains("?")) "&" else "?"
       server.url + separator + parameters.map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8")).mkString("&")
     })

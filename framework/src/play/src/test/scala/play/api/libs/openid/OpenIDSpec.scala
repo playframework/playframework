@@ -42,18 +42,6 @@ object OpenIDSpec extends Specification with Mockito {
       query.get("openid.realm") must beNone
     }
 
-    "generate a valid redirectUrl including the realm" in {
-      val ws = createMockWithValidOpDiscoveryAndVerification
-      val openId = new OpenIDClient(ws.url)
-      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto", realm = Some("http://*.bar.com")).value.get
-
-      val query = parseQueryString(redirectUrl)
-
-      isValidOpenIDRequest(query)
-
-      query.get("openid.realm") must beSome(Seq("http://*.bar.com"))
-    }
-
     "generate a valid redirectUrl with a proper required extended attributes request" in {
       val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
