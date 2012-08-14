@@ -4,7 +4,7 @@ import play.api.data.validation.ValidationError
 
 sealed trait PathNode {
   def apply(json: JsValue): List[JsValue]
-  def toJsonString
+  def toJsonString: String
 }
 
 case class RecursiveSearch(key: String) extends PathNode {
