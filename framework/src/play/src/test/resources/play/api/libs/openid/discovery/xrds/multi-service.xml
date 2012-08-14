@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)"
+           xmlns:openid="http://openid.net/xmlns/1.0">
+    <XRD ref="xri://=example">
+        <Query>*example</Query>
+        <Status ceid="off" cid="verified" code="100"/>
+        <Expires>2008-05-05T00:15:00.000Z</Expires>
+        <ProviderID>xri://=</ProviderID>
+        <!-- synonym section -->
+        <LocalID priority="10">!4C72.6C81.D78F.90B2</LocalID>
+        <EquivID priority="10">http://example.com/example-user</EquivID>
+        <EquivID priority="15">http://example.net/blog</EquivID>
+        <CanonicalID>xri://=!4C72.6C81.D78F.90B2</CanonicalID>
+        <!-- service section -->
+        <Service>
+            <!-- XRI resolution service -->
+            <ProviderID>xri://=!F83.62B1.44F.2813</ProviderID>
+            <Type>xri://$res*auth*($v*2.0)</Type>
+            <MediaType>application/xrds+xml</MediaType>
+            <URI priority="10">http://resolve.example.com</URI>
+            <URI priority="15">http://resolve2.example.com</URI>
+            <URI>https://resolve.example.com</URI>
+        </Service>
+        <!-- OpenID 2.0 login service -->
+        <Service priority="10">
+            <Type>http://specs.openid.net/auth/2.0/signon</Type>
+            <URI>http://www.myopenid.com/server</URI>
+            <LocalID>http://example.myopenid.com/</LocalID>
+        </Service>
+        <!-- OpenID 1.0 login service -->
+        <Service priority="20">
+            <Type>http://openid.net/server/1.0</Type>
+            <URI>http://www.livejournal.com/openid/server.bml</URI>
+            <openid:Delegate>http://www.livejournal.com/users/example/</openid:Delegate>
+        </Service>
+        <!-- untyped service for access to files of media type JPEG -->
+        <Service priority="10">
+            <Type match="null"/>
+            <Path select="true">/media/pictures</Path>
+            <MediaType select="true">image/jpeg</MediaType>
+            <URI append="path">http://pictures.example.com</URI>
+        </Service>
+    </XRD>
+</xrds:XRDS>
