@@ -99,19 +99,25 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
     (queryString.get("openid.mode").flatMap(_.headOption),
       queryString.get("openid.claimed_id").flatMap(_.headOption)) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
       case (Some("id_res"), Some(id)) => {
-        // Must perform discovery on the claimedId to resolve the op_endpoint.
-        val server: Promise[String] = discovery.discoverServer(id).map(_.url)
-        server.flatMap(url => {
-          val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
-          ws(url).post(fields).map(response => {
-            if (response.status == 200 && response.body.contains("is_valid:true")) {
-              UserInfo(queryString)
-            } else throw Errors.AUTH_ERROR
-          })
-        })
+        // MUST perform discovery on the claimedId to resolve the op_endpoint.
+        val server: Promise[OpenIDServer] = discovery.discoverServer(id)
+        server.flatMap(directVerification(queryString))
       }
+      case (Some("cancel"), _) => PurePromise(throw Errors.AUTH_CANCEL)
       case _ => PurePromise(throw Errors.BAD_RESPONSE)
     }
+  }
+
+  /**
+   * Perform direct verification (see 11.4.2. Verifying Directly with the OpenID Provider)
+   */
+  private def directVerification(queryString: Map[String, Seq[String]])(server:OpenIDServer) = {
+    val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
+    ws(server.url).post(fields).map(response => {
+      if (response.status == 200 && response.body.contains("is_valid:true")) {
+        UserInfo(queryString)
+      } else throw Errors.AUTH_ERROR
+    })
   }
 
   private def axParameters(axRequired: Seq[(String, String)],
