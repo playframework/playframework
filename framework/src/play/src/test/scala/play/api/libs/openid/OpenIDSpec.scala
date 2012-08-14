@@ -5,9 +5,9 @@ import scala.Predef._
 import org.specs2.mock.Mockito
 import org.mockito._
 import play.api.mvc.Request
-import play.api.http.{ContentTypeOf, Writeable, HeaderNames}
+import play.api.http._
+import play.api.http.Status._
 import play.api.libs.openid.Errors.{BAD_RESPONSE, AUTH_ERROR}
-import scala.Some
 
 object OpenIDSpec extends Specification with Mockito {
 
@@ -84,13 +84,14 @@ object OpenIDSpec extends Specification with Mockito {
     "verify an OpenID 1.1 response that is missing the \"openid.op_endpoint\" parameter" in {
       val ws = new WSMock
 
-      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("text/plain")
+      ws.response.status returns OK thenReturns OK
+      ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml") thenReturns Some("text/plain")
+      ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
       ws.response.body returns "is_valid:true\n" // http://openid.net/specs/openid-authentication-2_0.html#kvform
 
       val openId = new OpenIDClient(ws.url)
 
       val responseQueryString = (openIdResponse - "openid.op_endpoint")
-
 
       val userInfo = openId.verifiedId(setupMockRequest(responseQueryString)).value.get
 
