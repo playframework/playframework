@@ -5,6 +5,7 @@ import play.api.test.Helpers._
 
 import org.specs2.mutable._
 import models._
+import play.api.mvc.AnyContentAsEmpty
 
 class ApplicationSpec extends Specification {
 
@@ -73,10 +74,14 @@ class ApplicationSpec extends Specification {
 
     "execute json with content type" in {
      running(FakeApplication()) {
-         val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithContentType"))
+       // here we just test the case insensitivity of FakeHeaders, which is not that
+       // interesting, ...
+         val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithContentType",
+           FakeHeaders(Map("Accept"-> Seq("application/json"))), AnyContentAsEmpty))
          status(result) must equalTo(OK)
          contentType(result) must equalTo(Some("application/json"))
          charset(result) must equalTo(None)
+         contentAsString(result) must contain("""{"Accept":"application/json"}""")
          play.test.Helpers.charset(javaResult(result)) must equalTo(null)
        }
      }

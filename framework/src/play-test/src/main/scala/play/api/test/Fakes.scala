@@ -1,26 +1,32 @@
 package play.api.test;
 
 import play.api.mvc._
-import org.codehaus.jackson.JsonNode
 import play.api.libs.json.JsValue
+import play.api.libs.concurrent.Promise
+import collection.immutable.TreeMap
+import play.core.utils.CaseInsensitiveOrdered
 
 /**
  * Fake HTTP headers implementation.
  *
  * @param data Headers data.
  */
-case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Headers {
+case class FakeHeaders (private val data: Map[String, Seq[String]] = Map.empty) extends Headers {
 
   /**
    * All header keys.
    */
-  lazy val keys = data.keySet
+  lazy val keys = toMap.keySet
 
   /**
    * Get all header values defined for this key.
    */
-  def getAll(key: String): Seq[String] = data.get(key).getOrElse(Seq.empty)
+  def getAll(key: String): Seq[String] = toMap.get(key).getOrElse(Seq.empty)
 
+  /**
+   * Transform the Headers to a Map
+   */
+  val toMap = { TreeMap(data.toSeq: _*)(CaseInsensitiveOrdered) }
 }
 
 /**
@@ -50,7 +56,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
     copy(headers = FakeHeaders(
-      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
+      headers.toMap ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
     ))
   }
 
@@ -91,6 +97,8 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
     copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
+
+  def certs = Promise.pure(IndexedSeq.empty)
 
   /**
    * Sets a JSON body to this request.
