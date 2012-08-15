@@ -155,9 +155,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
         } yield {
           module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
         }
-        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        val path = ("lib/" + filename.getOrElse(dependency.data.getName))
         dependency.data -> path
-      } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
+      } ++ packaged.map(jar => jar -> ("lib/" + jar.getName))
     }
 
     val start = target / "start"
@@ -167,8 +167,8 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
     IO.write(start,
       """#!/usr/bin/env sh
-
-exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+classpath=""" + libs.map { case (jar, path) => path }.mkString("\"", ":", "\"") + """
+exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
 """ /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
@@ -182,7 +182,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       Seq(productionConfig -> (packageName + "/" + customConfigFile.getName))
     }.getOrElse(Nil)
 
-    IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
+    IO.zip(libs.map { case (jar, path) => jar -> (packageName + "/" + path) } ++ scripts ++ other ++ prodApplicationConf, zip)
     IO.delete(start)
     IO.delete(productionConfig)
 
