@@ -12,6 +12,7 @@ import java.util.Locale
 import play.api.libs.iteratee.{Iteratee, Cont, Input, Done}
 import play.api.test.TestServer
 import play.api.libs.ws.ResponseHeaders
+import play.api.libs.concurrent.execution.defaultContext
 
 
 class FunctionalSpec extends Specification {
