@@ -177,28 +177,17 @@ object Helpers extends Status with HeaderNames {
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
-  def routeAndCall[T](request: FakeRequest[T]): Option[Result] = {
-    routeAndCall(this.getClass.getClassLoader.loadClass("Routes").asInstanceOf[Class[play.core.Router.Routes]], request)
-  }
+  def routeAndGet(rh: RequestHeader): Option[Result] = routeAndGet(Play.current, rh)
 
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
-  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Result] = {
-    val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
-    routes.routes.lift(request).map {
-      case a: Action[_] => 
-        val action = a.asInstanceOf[Action[T]]
-        val parsedBody: Option[Either[play.api.mvc.Result,T]] = action.parser(request).fold1(
-          (a,in) => Promise.pure(Some(a)),
-          k => Promise.pure(None),
-          (msg,in) => Promise.pure(None)).await.get
-        parsedBody.map{resultOrT =>
-          resultOrT.right.toOption.map{innerBody => 
-            action(FakeRequest(request.method, request.uri, request.headers, innerBody))
-          }.getOrElse(resultOrT.left.get)
-        }.getOrElse(action(request))
-        
+  def routeAndGet(app: Application, rh: RequestHeader): Option[Result] = {
+    app.global.onRouteRequest(rh).flatMap {
+      case a: EssentialAction => {
+        Some(AsyncResult(app.global.doFilter(a.asInstanceOf[EssentialAction])(rh).run))
+      }
+      case _ => None
     }
   }
 
