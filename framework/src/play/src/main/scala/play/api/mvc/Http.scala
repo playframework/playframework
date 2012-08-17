@@ -243,17 +243,23 @@ package play.api.mvc {
     /**
      * Retrieve all header values associated with the given key.
      */
-    def getAll(key: String): Seq[String]
+    def getAll(key: String): Seq[String] = toMap.get(key).flatten.toSeq
 
     /**
      * Retrieve all header keys
      */
-    def keys: Set[String]
+    def keys: Set[String] = toMap.keySet
 
     /**
      * Transform the Headers to a Map
      */
-    def toMap: Map[String, Seq[String]]
+    lazy val toMap: Map[String, Seq[String]] = { 
+      import collection.immutable.TreeMap
+      import play.core.utils.CaseInsensitiveOrdered
+      TreeMap(data: _*)(CaseInsensitiveOrdered)
+    }
+
+    protected def data:Seq[(String,Seq[String])]
 
     /**
      * Transform the Headers to a Map by ignoring multiple values.
@@ -261,6 +267,8 @@ package play.api.mvc {
     def toSimpleMap: Map[String, String] = keys.map { headerKey =>
       (headerKey, apply(headerKey))
     }.toMap
+
+    override def toString = toMap.toString
 
   }
 

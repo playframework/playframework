@@ -11,23 +11,7 @@ import play.core.utils.CaseInsensitiveOrdered
  *
  * @param data Headers data.
  */
-case class FakeHeaders (private val data: Map[String, Seq[String]] = Map.empty) extends Headers {
-
-  /**
-   * All header keys.
-   */
-  lazy val keys = toMap.keySet
-
-  /**
-   * Get all header values defined for this key.
-   */
-  def getAll(key: String): Seq[String] = toMap.get(key).getOrElse(Seq.empty)
-
-  /**
-   * Transform the Headers to a Map
-   */
-  val toMap = { TreeMap(data.toSeq: _*)(CaseInsensitiveOrdered) }
-}
+case class FakeHeaders (val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
 
 /**
  * Fake HTTP request implementation.
@@ -56,7 +40,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
     copy(headers = FakeHeaders(
-      headers.toMap ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
+      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2)).toSeq
     ))
   }
 

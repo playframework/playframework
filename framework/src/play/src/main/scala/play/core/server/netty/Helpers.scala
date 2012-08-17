@@ -31,19 +31,11 @@ private[netty] trait Helpers {
   def getHeaders(nettyRequest: HttpRequest): Headers = {
 
     //todo: wrap the underlying map in a structure more efficient than TreeMap
-    val headers: Map[String, Seq[String]] = {
-      val pairs = nettyRequest.getHeaderNames.asScala.map { key =>
-        key -> nettyRequest.getHeaders(key).asScala
-      }
-      TreeMap(pairs.toSeq: _*)(CaseInsensitiveOrdered)
+    val pairs = nettyRequest.getHeaderNames.asScala.map { key =>
+      key -> nettyRequest.getHeaders(key).asScala
     }
 
-    new Headers {
-      def getAll(key: String) = headers.get(key).flatten.toSeq
-      def keys = headers.keySet
-      def toMap: Map[String, Seq[String]] = headers
-      override def toString = headers.toString
-    }
+    new Headers { val data = pairs.toSeq }
 
   }
 

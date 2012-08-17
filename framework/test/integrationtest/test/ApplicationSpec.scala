@@ -77,7 +77,7 @@ class ApplicationSpec extends Specification {
        // here we just test the case insensitivity of FakeHeaders, which is not that
        // interesting, ...
          val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithContentType",
-           FakeHeaders(Map("Accept"-> Seq("application/json"))), AnyContentAsEmpty))
+           FakeHeaders(Seq("Accept"-> Seq("application/json"))), AnyContentAsEmpty))
          status(result) must equalTo(OK)
          contentType(result) must equalTo(Some("application/json"))
          charset(result) must equalTo(None)
