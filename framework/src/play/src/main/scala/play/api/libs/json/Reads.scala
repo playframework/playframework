@@ -5,6 +5,106 @@ import Json._
 import scala.annotation.implicitNotFound
 import play.api.data.validation.ValidationError
 
+case class JsSuccess[T](value: T, path: JsPath = JsPath()) extends JsResult[T] {
+  def get:T = value
+}
+
+case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[Nothing] {
+  def get:Nothing = throw new NoSuchElementException("JsError.get")
+
+  //def toJson: JsValue = original // TODO
+  //def toJsonErrorsOnly: JsValue = original // TODO
+  //def toFlatForm: Seq[(String, Seq[ValidationError])] = errors.map{ case(path, seq) => path.toJsonString -> seq } :+ ("globals" -> globalErrors) // TODO
+}
+
+object JsError {
+
+  def apply(error:ValidationError):JsError = JsError(Seq(JsPath() -> Seq(error)))
+
+  def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
+    (e1 ++ e2).groupBy(_._1).mapValues( _.map(_._2).flatten ).toList
+  }
+}
+
+sealed trait JsResult[+T] {
+  def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: T => X): X = this match {
+    case JsSuccess(v,_) => valid(v)
+    case JsError(e) => invalid(e)
+  }
+
+  def map[X](f: T => X): JsResult[X] = this match {
+    case JsSuccess(v,_) => JsSuccess(f(v))
+    case JsError(e) => JsError(e)
+  }
+
+  def filterNot(error:ValidationError)(p: T => Boolean) =
+    this.flatMap { a => if(p(a)) JsError(error) else JsSuccess(a) }
+
+  def filter(otherwise:ValidationError)(p: T => Boolean) =
+    this.flatMap { a => if(p(a)) JsSuccess(a) else JsError(otherwise) }
+
+  def collect[B](otherwise:ValidationError)(p:PartialFunction[T,B]): JsResult[B] = flatMap {
+    case t if p.isDefinedAt(t) => JsSuccess(p(t))
+    case _ => JsError(otherwise)
+  }
+
+  def flatMap[X](f: T => JsResult[X]): JsResult[X] = this match {
+    case JsSuccess(v, path) => f(v).repath(path)
+    case JsError(e) => JsError(e)
+  }
+
+  //def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
+  def repath(path: JsPath): JsResult[T] = this match {
+    case JsSuccess(a,p) => JsSuccess(a,path ++ p)
+    case JsError(es) => JsError(es.map{ case (p, s) => path ++ p -> s })
+  }
+
+  def get:T
+
+  def getOrElse[TT >: T](t: => TT):TT = this match {
+    case JsSuccess(a,_) => a 
+    case JsError(_) => t
+  }
+
+  def asOpt = this match {
+    case JsSuccess(v,_) => Some(v)
+    case JsError(_) => None
+  }
+
+  def asEither = this match {
+    case JsSuccess(v,_) => Right(v)
+    case JsError(e) => Left(e)
+  }  
+}
+
+object JsResult {
+
+  import play.api.libs.json.util._
+
+  implicit def alternativeJsResult(implicit a:Applicative[JsResult]):Alternative[JsResult] = new Alternative[JsResult]{
+    val app = a
+    def |[A,B >: A](alt1: JsResult[A], alt2 :JsResult[B]):JsResult[B] = (alt1, alt2) match {
+      case (JsError(e), JsSuccess(t,p)) => JsSuccess(t,p)
+      case (JsSuccess(t,p), _) => JsSuccess(t,p)
+      case (JsError(e1), JsError(e2)) => JsError(JsError.merge(e1, e2))
+    }
+    def empty:JsResult[Nothing] = JsError(Seq())   
+  }
+
+  implicit val applicativeJsResult:Applicative[JsResult] = new Applicative[JsResult] {
+
+    def pure[A](a:A):JsResult[A] = JsSuccess(a)
+
+    def map[A,B](m:JsResult[A], f: A => B):JsResult[B] = m.map(f)
+
+    def apply[A,B](mf:JsResult[A => B], ma: JsResult[A]):JsResult[B] = (mf, ma) match {
+      case (JsSuccess(f,_), JsSuccess(a,_)) => JsSuccess(f(a))
+      case (JsError(e1), JsError(e2)) => JsError(JsError.merge(e1, e2))
+      case (JsError(e), _) => JsError(e)
+      case (_, JsError(e)) => JsError(e)
+    }
+  }
+}
 
 /**
  * Json deserializer: write an implicit to define a deserializer for any type.
@@ -56,6 +156,32 @@ trait Reads[T] {
  * Default deserializer type classes.
  */
 object Reads extends DefaultReads {
+
+  import play.api.libs.json.util._
+
+  implicit def applicativeReads(implicit applicativeJsResult:Applicative[JsResult]):Applicative[Reads] = new Applicative[Reads]{
+
+    def pure[A](a:A):Reads[A] = new Reads[A] { def reads(js: JsValue) = JsSuccess(a) }
+
+    def map[A,B](m:Reads[A], f: A => B):Reads[B] = m.map(f)
+
+    def apply[A,B](mf:Reads[A => B], ma: Reads[A]):Reads[B] = new Reads[B]{ def reads(js: JsValue) = applicativeJsResult(mf.reads(js),ma.reads(js)) }
+
+  }
+
+  implicit def alternativeReads(implicit a:Applicative[Reads]):Alternative[Reads] = new Alternative[Reads]{
+    val app = a
+    def |[A,B >: A](alt1: Reads[A], alt2 :Reads[B]):Reads[B] = new Reads[B] {
+      def reads(js: JsValue) = alt1.reads(js) match {
+        case r@JsSuccess(_,_) => r
+        case r@JsError(es1) => alt2.reads(js) match {
+          case r2@JsSuccess(_,_) => r2
+          case r2@JsError(es2) => JsError(JsError.merge(es1,es2))
+        }
+      }
+    }
+    def empty:Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
+  }
 
   def apply[A](reads: JsValue => JsResult[A]): Reads[A] = new Reads[A] {
     def reads(json: JsValue) = reads(json)
@@ -207,7 +333,7 @@ trait DefaultReads {
 
         val r = m.map { case (key, value) => 
           fromJson[V](value)(fmtv) match {
-            case JsSuccess(v) => Right( (key, v, value) )
+            case JsSuccess(v,_) => Right( (key, v, value) )
             case JsError(e) =>
               hasErrors = true
               Left( e.map{ case (p, valerr) => (JsPath \ key) ++ p -> valerr } )
@@ -239,7 +365,7 @@ trait DefaultReads {
         // first validates prod separates JsError / JsResult in an Seq[Either]
         // the aim is to find all errors prod then to merge them all
         val r = ts.zipWithIndex.map { case (elt, idx) => fromJson[A](elt)(ra) match {
-            case JsSuccess(v) => Right(v)
+            case JsSuccess(v,_) => Right(v)
             case JsError(e) => 
               hasErrors = true
               Left( e.map{ case (p, valerr) => (JsPath(idx)) ++ p -> valerr } )
@@ -272,7 +398,3 @@ trait DefaultReads {
   }
 
 }
-
-
-
-

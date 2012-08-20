@@ -206,6 +206,10 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     case _ => super.++(other)
   }
 
+  def ++(other: JsObject): JsObject = other match {
+    case o @ JsObject(_) => JsObject(fields.filterNot(field => o.keys(field._1)) ++ o.fields)
+  }
+
   /**
    * Append an element to this object (only a JsObject).
    */

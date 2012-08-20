@@ -19,10 +19,52 @@ trait Writes[-T] {
 
 }
 
+trait OWrites[-T] extends Writes[T]{
+
+ def writes(o: T): JsObject
+
+}
+
+object OWrites {
+  import play.api.libs.json.util._
+
+  implicit val functionalCanBuildWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
+
+    def apply[A,B](wa: OWrites[A], wb:OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
+
+  }
+
+  implicit val contravariantfunctorOWrites:ContravariantFunctor[OWrites] = new ContravariantFunctor[OWrites] {
+
+    def contramap[A,B](wa:OWrites[A], f: B => A):OWrites[B] = OWrites[B]( b => wa.writes(f(b)) )
+
+  }
+
+  def apply[A](f: A => JsObject):OWrites[A] = new OWrites[A] {
+    def writes(a:A):JsObject = f(a)
+  }
+
+}
 /**
  * Default Serializers.
  */
-object Writes extends DefaultWrites
+object Writes extends DefaultWrites {
+
+  import play.api.libs.json.util._
+
+  implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
+
+    def contramap[A,B](wa:Writes[A], f: B => A):Writes[B] = Writes[B]( b => wa.writes(f(b)) )
+
+  }
+
+  def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
+
+    def writes(a:A):JsValue = f(a)
+
+  }
+
+}
 
 /**
  * Default Serializers.
@@ -95,8 +137,8 @@ trait DefaultWrites {
   /**
    * Serializer for Map[String,V] types.
    */
-  implicit def mapWrites[V](implicit fmtv: Writes[V]): Writes[collection.immutable.Map[String, V]] = new Writes[collection.immutable.Map[String, V]] {
-    def writes(ts: collection.immutable.Map[String, V]) = JsObject(ts.map { case (k, v) => (k, toJson(v)(fmtv)) }.toList)
+  implicit def mapWrites[V](implicit fmtv: Writes[V]): OWrites[collection.immutable.Map[String, V]] = OWrites[collection.immutable.Map[String, V]] { ts =>
+    JsObject(ts.map { case (k, v) => (k, toJson(v)(fmtv)) }.toList)
   }
 
   /**
