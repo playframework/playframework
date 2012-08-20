@@ -103,7 +103,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       router
     }
   } catch {
-    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName => 
+    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName =>
       throw configuration.reportError("application.router", "Router not found: " + routerName)
     }
     case e => throw e

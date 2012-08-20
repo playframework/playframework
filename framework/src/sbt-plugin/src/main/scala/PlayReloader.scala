@@ -44,12 +44,12 @@ trait PlayReloader {
         method.setAccessible(true)
         method.invoke(sbtLoader, jnotifyJarFile.toURI.toURL)
 
-        val targetDirectory = extracted.get(target) 
+        val targetDirectory = extracted.get(target)
         val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
 
-        if(!nativeLibrariesDirectory.exists) {
+        if (!nativeLibrariesDirectory.exists) {
           // Unzip native libraries from the jnotify jar to target/native_libraries
-          IO.unzip(jnotifyJarFile, targetDirectory, (name: String) => name.startsWith("native_libraries") )
+          IO.unzip(jnotifyJarFile, targetDirectory, (name: String) => name.startsWith("native_libraries"))
         }
 
         val libs = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
@@ -82,7 +82,7 @@ trait PlayReloader {
           }
           def removeWatch(id: Int): Unit = removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
         }
-      } 
+      }
 
       val watchChanges: Seq[Int] = extracted.runTask(playMonitoredDirectories, state)._2.map(jnotify.addWatch)
 
@@ -209,12 +209,12 @@ trait PlayReloader {
       private def allProblems(inc: Incomplete): Seq[xsbti.Problem] =
         allProblems(inc :: Nil)
       private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] =
-            problems(Incomplete.allExceptions(incs).toSeq)
-      private def problems(es: Seq[Throwable]): Seq[xsbti.Problem]  =
-            es flatMap {
-                case cf: xsbti.CompileFailed => cf.problems
-                case _ => Nil
-            }
+        problems(Incomplete.allExceptions(incs).toSeq)
+      private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] =
+        es flatMap {
+          case cf: xsbti.CompileFailed => cf.problems
+          case _ => Nil
+        }
 
       def getProblems(incomplete: Incomplete): Seq[xsbti.Problem] = {
         (allProblems(incomplete) ++ {
@@ -283,7 +283,7 @@ trait PlayReloader {
 
         PlayProject.synchronized {
 
-          if(changed) {
+          if (changed) {
             changed = false
             Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>

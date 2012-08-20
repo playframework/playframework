@@ -24,30 +24,31 @@ object UserInfo {
 
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
     val extractor = new UserInfoExtractor(queryString)
-    val id = extractor.id getOrElse(throw Errors.BAD_RESPONSE)
+    val id = extractor.id getOrElse (throw Errors.BAD_RESPONSE)
     new UserInfo(id, extractor.axAttributes)
   }
 
-  /** Extract the values required to create an instance of the UserInfo
+  /**
+   * Extract the values required to create an instance of the UserInfo
    *
    * The UserInfoExtractor ensures that attributes returned via OpenId attribute exchange are signed
    * (i.e. listed in the openid.signed field) and verified in the check_authentication step.
    */
-  private[openid] class UserInfoExtractor(params:Map[String, Seq[String]]) {
-    val AxAttribute =  """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
-    val extractAxAttribute: PartialFunction[String, (String,String)] = {
+  private[openid] class UserInfoExtractor(params: Map[String, Seq[String]]) {
+    val AxAttribute = """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
+    val extractAxAttribute: PartialFunction[String, (String, String)] = {
       case AxAttribute(fullKey, key, num) => (fullKey, key) // fullKey e.g. 'ext1.value.email', shortKey e.g. 'email' or 'fav_movie.2'
     }
 
-    private lazy val signedFields = params.get("openid.signed") flatMap {_.headOption map {_.split(",")}} getOrElse(Array())
+    private lazy val signedFields = params.get("openid.signed") flatMap { _.headOption map { _.split(",") } } getOrElse (Array())
 
     def id = params.get("openid.claimed_id").flatMap(_.headOption).orElse(params.get("openid.identity").flatMap(_.headOption))
 
-    def axAttributes = params.foldLeft(Map[String,String]()) {
+    def axAttributes = params.foldLeft(Map[String, String]()) {
       case (result, (key, values)) => extractAxAttribute.lift(key) flatMap {
-        case (fullKey, shortKey) if signedFields.contains(fullKey) => values.headOption map {value => Map(shortKey -> value)}
+        case (fullKey, shortKey) if signedFields.contains(fullKey) => values.headOption map { value => Map(shortKey -> value) }
         case _ => None
-      } map(result ++ _) getOrElse result
+      } map (result ++ _) getOrElse result
     }
   }
 

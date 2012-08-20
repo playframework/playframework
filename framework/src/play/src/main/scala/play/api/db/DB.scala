@@ -231,7 +231,6 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    */
   def api: DBApi = dbApi
 
-
   /**
    * Reads the configuration and connects to every data source.
    */
@@ -343,9 +342,9 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         datasource.setJdbcUrl("jdbc:postgresql://%s/%s".format(host, dbname))
         datasource.setUsername(username)
         datasource.setPassword(password)
-      case  Some(url @ MysqlFullUrl(username, password, host, dbname)) =>
+      case Some(url @ MysqlFullUrl(username, password, host, dbname)) =>
         val defaultProperties = """?useUnicode=yes&characterEncoding=UTF-8&connectionCollation=utf8_general_ci"""
-        val addDefaultPropertiesIfNeeded = MysqlCustomProperties.findFirstMatchIn(url).map(_ => "").getOrElse(defaultProperties)        
+        val addDefaultPropertiesIfNeeded = MysqlCustomProperties.findFirstMatchIn(url).map(_ => "").getOrElse(defaultProperties)
         datasource.setJdbcUrl("jdbc:mysql://%s/%s".format(host, dbname + addDefaultPropertiesIfNeeded))
         datasource.setUsername(username)
         datasource.setPassword(password)

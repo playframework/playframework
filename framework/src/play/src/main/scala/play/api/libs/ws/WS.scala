@@ -36,12 +36,12 @@ object WS {
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 
   private var clientHolder: Option[AsyncHttpClient] = None
-  
+
   /**
    * resets the underlying AsyncHttpClient
    */
   def resetClient(): Unit = {
-    clientHolder.map{clientRef =>
+    clientHolder.map { clientRef =>
       clientRef.close()
     }.getOrElse(play.api.Logger.debug("WS client was reset without being used"))
     clientHolder = None
@@ -49,21 +49,21 @@ object WS {
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client = 
-    clientHolder.getOrElse{
-        val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-        val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-          .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-          .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-          .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-          .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+  def client =
+    clientHolder.getOrElse {
+      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
 
-        playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-          asyncHttpConfig.setUserAgent(useragent)
-        }
-        val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-        clientHolder = Some(innerClient)
-        innerClient
+      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+        asyncHttpConfig.setUserAgent(useragent)
+      }
+      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
+      clientHolder = Some(innerClient)
+      innerClient
     }
 
   /**
@@ -126,7 +126,7 @@ object WS {
     private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
       mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
-    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =  {
+    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) = {
       val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
       //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
       TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)

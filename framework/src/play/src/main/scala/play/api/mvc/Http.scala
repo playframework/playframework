@@ -154,18 +154,17 @@ package play.api.mvc {
 
   }
 
-
   object Request {
 
-    def apply[A](rh:RequestHeader,a:A) = new Request[A] {
-           def uri = rh.uri
-           def path = rh.path
-           def method = rh.method
-           def queryString = rh.queryString
-           def headers = rh.headers
-           lazy val remoteAddress = rh.remoteAddress
-           def username = None
-           val body = a
+    def apply[A](rh: RequestHeader, a: A) = new Request[A] {
+      def uri = rh.uri
+      def path = rh.path
+      def method = rh.method
+      def queryString = rh.queryString
+      def headers = rh.headers
+      lazy val remoteAddress = rh.remoteAddress
+      def username = None
+      val body = a
     }
   }
 
@@ -253,13 +252,13 @@ package play.api.mvc {
     /**
      * Transform the Headers to a Map
      */
-    lazy val toMap: Map[String, Seq[String]] = { 
+    lazy val toMap: Map[String, Seq[String]] = {
       import collection.immutable.TreeMap
       import play.core.utils.CaseInsensitiveOrdered
       TreeMap(data: _*)(CaseInsensitiveOrdered)
     }
 
-    protected def data:Seq[(String,Seq[String])]
+    protected def data: Seq[(String, Seq[String])]
 
     /**
      * Transform the Headers to a Map by ignoring multiple values.

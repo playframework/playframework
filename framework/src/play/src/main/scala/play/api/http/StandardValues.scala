@@ -191,7 +191,7 @@ trait HeaderNames {
   val WWW_AUTHENTICATE = "WWW-Authenticate"
 
   val X_FORWARDED_FOR = "X-Forwarded-For"
-  
+
   val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
   val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
   val ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"
@@ -201,5 +201,5 @@ trait HeaderNames {
 
   val ORIGIN = "Origin"
   val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
-  val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"  
+  val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
 }

@@ -55,7 +55,7 @@ trait GlobalSettings {
    * Called Just before the action is used.
    *
    */
-  def doFilter(a:EssentialAction):EssentialAction = a
+  def doFilter(a: EssentialAction): EssentialAction = a
 
   /**
    * Called when an HTTP request has been received.
@@ -118,8 +118,7 @@ trait GlobalSettings {
     BadRequest(views.html.defaultpages.badRequest(request, error))
   }
 
-  def onRequestCompletion(request:RequestHeader){
-
+  def onRequestCompletion(request: RequestHeader) {
 
   }
 

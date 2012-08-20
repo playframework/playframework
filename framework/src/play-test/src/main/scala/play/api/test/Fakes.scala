@@ -11,7 +11,7 @@ import play.core.utils.CaseInsensitiveOrdered
  *
  * @param data Headers data.
  */
-case class FakeHeaders (val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
 
 /**
  * Fake HTTP request implementation.

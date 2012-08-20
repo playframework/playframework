@@ -12,7 +12,7 @@ import play.api.db._
 import play.api.libs._
 import play.api.libs.Codecs._
 import javax.sql.DataSource
-import java.sql.{Statement, Date, Connection, SQLException}
+import java.sql.{ Statement, Date, Connection, SQLException }
 import scala.util.control.Exception._
 
 /**

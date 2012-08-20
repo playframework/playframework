@@ -58,7 +58,6 @@ trait PlaySettings {
   )
 
   lazy val defaultSettings = Seq[Setting[_]](
-    
 
     resolvers ++= Seq(
       "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -87,10 +86,10 @@ trait PlaySettings {
     libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     parallelExecution in Test := false,
-    
+
     //TODO: this should be re-enabled once we know more about xsbt/issues/512
     fork in Test := false,
-    
+
     testOptions in Test += Tests.Setup { loader =>
       loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
     },
@@ -101,7 +100,7 @@ trait PlaySettings {
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
 
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit,"junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "junitxml", "console"),
 
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
@@ -112,7 +111,7 @@ trait PlaySettings {
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
     // Adds config directory's source files to continuous hot reloading 
-    watchSources <+= confDirectory map {all => all},
+    watchSources <+= confDirectory map { all => all },
 
     sourceGenerators in Compile <+= (sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 

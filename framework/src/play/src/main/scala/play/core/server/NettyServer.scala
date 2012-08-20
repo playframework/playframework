@@ -68,7 +68,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("compressor", new HttpContentCompressor())
-      newPipeline.addLast("decompressor", new HttpContentDecompressor())	  
+      newPipeline.addLast("decompressor", new HttpContentDecompressor())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
@@ -164,7 +164,7 @@ object NettyServer {
 
       if (pidFile.getAbsolutePath != "/dev/null") {
         if (pidFile.exists) {
-          println("This application is already running (Or delete "+ pidFile.getAbsolutePath +" file).")
+          println("This application is already running (Or delete " + pidFile.getAbsolutePath + " file).")
           System.exit(-1)
         }
 
@@ -184,13 +184,13 @@ object NettyServer {
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
-        
+
       Runtime.getRuntime.addShutdownHook(new Thread {
         override def run {
           server.stop()
         }
       })
-      
+
       Some(server)
     } catch {
       case e => {

@@ -38,16 +38,16 @@ private[server] trait RequestBodyHandler {
       if (counter.single.transformAndGet { _ + 1 } > MAX_MESSAGE_WATERMARK && ctx.getChannel.isOpen() && !redeemed.single())
         ctx.getChannel.setReadable(false)
 
-      val itPromise = Promise[Iteratee[Array[Byte], Result]]()      
+      val itPromise = Promise[Iteratee[Array[Byte], Result]]()
       val current = atomic { implicit txn =>
-        if(!redeemed())
+        if (!redeemed())
           Some(iteratee.single.swap(Iteratee.flatten(itPromise.future)))
         else None
       }
 
-      current.foreach{ i =>
+      current.foreach { i =>
         i.feed(chunk).flatMap(_.unflatten).extend1 {
-          case Redeemed(c@Step.Cont(k)) =>
+          case Redeemed(c @ Step.Cont(k)) =>
             continue(c.it)
           case Redeemed(finished) =>
             finish(finished.it)
@@ -61,13 +61,13 @@ private[server] trait RequestBodyHandler {
         }
       }
 
-      def continue(it:Iteratee[Array[Byte], Result]){
+      def continue(it: Iteratee[Array[Byte], Result]) {
         if (counter.single.transformAndGet { _ - 1 } <= MIN_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
           ctx.getChannel.setReadable(true)
         itPromise.redeem(it)
       }
 
-      def finish(it:Iteratee[Array[Byte], Result]){
+      def finish(it: Iteratee[Array[Byte], Result]) {
         if (!redeemed.single.swap(true)) {
           p.redeem(it)
           iteratee = null; p = null;

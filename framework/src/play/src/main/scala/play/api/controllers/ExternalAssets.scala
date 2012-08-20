@@ -10,10 +10,10 @@ import Play.current
 import java.io._
 
 /**
- * Controller that serves static resources from an external folder. 
+ * Controller that serves static resources from an external folder.
  * It useful in development mode if you want to serve static assets that shouldn't be part of the build process.
  *
- * Not that this controller is not intented to be used in production mode and can lead to security issues. 
+ * Not that this controller is not intented to be used in production mode and can lead to security issues.
  * Therefore it is automatically disabled in production mode.
  *
  * All assets are served with max-age=3600 cache directive.
@@ -46,14 +46,14 @@ object ExternalAssets extends Controller {
           case _ => new File(Play.application.getFile(rootPath), file)
         }
 
-        if(fileToServe.exists) {
+        if (fileToServe.exists) {
           Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
         } else {
           NotFound
         }
 
       }
-    }    
+    }
   }
 
 }

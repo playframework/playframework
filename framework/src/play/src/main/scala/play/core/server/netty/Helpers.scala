@@ -3,7 +3,6 @@ package play.core.server.netty
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 
-
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._

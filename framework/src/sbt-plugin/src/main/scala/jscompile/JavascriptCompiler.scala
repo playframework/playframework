@@ -22,7 +22,7 @@ object JavascriptCompiler {
    */
   def compile(source: File, simpleCompilerOptions: Seq[String], fullCompilerOptions: Option[CompilerOptions]): (String, Option[String], Seq[File]) = {
     import scala.util.control.Exception._
-    
+
     val simpleCheck = simpleCompilerOptions.contains("rjs")
 
     val origin = Path(source).slurpString
@@ -51,7 +51,7 @@ object JavascriptCompiler {
     val input = if (!simpleCheck) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
 
     catching(classOf[Exception]).either(compiler.compile(Array[JSSourceFile](), input, options).success) match {
-      case Right(true) => (origin, {if (!simpleCheck) Some(compiler.toSource()) else None}, all)
+      case Right(true) => (origin, { if (!simpleCheck) Some(compiler.toSource()) else None }, all)
       case Right(false) => {
         val error = compiler.getErrors().head
         val errorFile = all.find(f => f.getAbsolutePath() == error.sourceName)
@@ -82,14 +82,14 @@ object JavascriptCompiler {
     }
   }
 
-   case class CompilationException(message: String, jsFile: File, atLine: Option[Int]) extends PlayException(
+  case class CompilationException(message: String, jsFile: File, atLine: Option[Int]) extends PlayException(
     "JS Compilation error", message) with PlayException.ExceptionSource {
     def line = atLine
     def position = None
     def input = Some(scalax.file.Path(jsFile))
     def sourceName = Some(jsFile.getAbsolutePath)
   }
-  
+
   /*
    * execute a native compiler for given command
    */
@@ -103,7 +103,7 @@ object JavascriptCompiler {
       val eRegex = """.*Parse error on line (\d+):.*""".r
       val errReverse = err.reverse
       val r = eRegex.unapplySeq(errReverse.mkString("")).map(_.head.toInt)
-      val error = "error in: "+ in +" \n" + errReverse.mkString("\n")
+      val error = "error in: " + in + " \n" + errReverse.mkString("\n")
 
       throw CompilationException(error, source, r)
     }
@@ -119,14 +119,14 @@ object JavascriptCompiler {
 
     import scalax.file._
 
-   lazy val compiler = {
+    lazy val compiler = {
       val ctx = Context.enter; ctx.setOptimizationLevel(-1)
       val global = new Global; global.init(ctx)
-      val scope  = ctx.initStandardObjects(global)
+      val scope = ctx.initStandardObjects(global)
 
-      val defineArguments = """arguments = ['-o', '""" + source.getAbsolutePath + "']" 
-      ctx.evaluateString(scope, defineArguments, null, 
-1, null)
+      val defineArguments = """arguments = ['-o', '""" + source.getAbsolutePath + "']"
+      ctx.evaluateString(scope, defineArguments, null,
+        1, null)
       ctx.evaluateReader(scope, new InputStreamReader(
         this.getClass.getClassLoader.getResource("r.js").openConnection().getInputStream()),
         "require", 1, null)
@@ -135,7 +135,7 @@ object JavascriptCompiler {
     }
 
     try {
-        compiler
+      compiler
     } catch {
       case e: JavaScriptException => {
 
@@ -182,9 +182,5 @@ object JavascriptCompiler {
   private def toModuleName(filename: String) = {
     "module$" + filename.replaceAll("^\\./", "").replaceAll("/", "\\$").replaceAll("\\.js$", "").replaceAll("-", "_");
   }
-
-
-
-  
 
 }
