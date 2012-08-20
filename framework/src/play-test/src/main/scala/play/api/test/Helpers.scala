@@ -177,12 +177,42 @@ object Helpers extends Status with HeaderNames {
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
-  def routeAndGet(rh: RequestHeader): Option[Result] = routeAndGet(Play.current, rh)
+  @deprecated("Use `route` instead.", "2.10.0")
+  def routeAndCall[T](request: FakeRequest[T]): Option[Result] = {
+    routeAndCall(this.getClass.getClassLoader.loadClass("Routes").asInstanceOf[Class[play.core.Router.Routes]], request)
+  }
 
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
-  def routeAndGet(app: Application, rh: RequestHeader): Option[Result] = {
+  @deprecated("Use `route` instead.", "2.10.0")
+  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Result] = {
+    val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
+    routes.routes.lift(request).map {
+      case a: Action[_] => 
+        val action = a.asInstanceOf[Action[T]]
+        val parsedBody: Option[Either[play.api.mvc.Result,T]] = action.parser(request).fold1(
+          (a,in) => Promise.pure(Some(a)),
+          k => Promise.pure(None),
+          (msg,in) => Promise.pure(None)).await.get
+        parsedBody.map{resultOrT =>
+          resultOrT.right.toOption.map{innerBody => 
+            action(FakeRequest(request.method, request.uri, request.headers, innerBody))
+          }.getOrElse(resultOrT.left.get)
+        }.getOrElse(action(request))
+
+    }
+  }
+
+  /**
+   * Use the Router to determine the Action to call for this request and executes it.
+   */
+  def route(rh: RequestHeader): Option[Result] = route(Play.current, rh)
+
+  /**
+   * Use the Router to determine the Action to call for this request and executes it.
+   */
+  def route(app: Application, rh: RequestHeader): Option[Result] = {
     app.global.onRouteRequest(rh).flatMap {
       case a: EssentialAction => {
         Some(AsyncResult(app.global.doFilter(a.asInstanceOf[EssentialAction])(rh).run))
@@ -190,6 +220,19 @@ object Helpers extends Status with HeaderNames {
       case _ => None
     }
   }
+
+  def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = {
+    app.global.onRouteRequest(rh).flatMap {
+      case a: EssentialAction => {
+        Some(AsyncResult(app.global.doFilter(
+          a.asInstanceOf[EssentialAction])(rh).feed(Input.El(w.transform(body))).flatMap(_.run)
+        ))
+      }
+      case _ => None
+    }
+  }
+
+  def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = route(Play.current, rh, body)
 
   /**
    * Block until a Promise is redeemed.
