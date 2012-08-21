@@ -177,7 +177,7 @@ object Helpers extends Status with HeaderNames {
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
-  @deprecated("Use `route` instead.", "2.10.0")
+  @deprecated("Use `route` instead.", "2.1.0")
   def routeAndCall[T](request: FakeRequest[T]): Option[Result] = {
     routeAndCall(this.getClass.getClassLoader.loadClass("Routes").asInstanceOf[Class[play.core.Router.Routes]], request)
   }
@@ -185,7 +185,7 @@ object Helpers extends Status with HeaderNames {
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
-  @deprecated("Use `route` instead.", "2.10.0")
+  @deprecated("Use `route` instead.", "2.1.0")
   def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Result] = {
     val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
     routes.routes.lift(request).map {
@@ -220,6 +220,10 @@ object Helpers extends Status with HeaderNames {
       case _ => None
     }
   }
+
+  // Java compatibility
+  def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Result] = route(app, rh, body)(Writeable.wBytes)
+  def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Result] = jRoute(Play.current, rh, body)
 
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = {
     app.global.onRouteRequest(rh).flatMap {
