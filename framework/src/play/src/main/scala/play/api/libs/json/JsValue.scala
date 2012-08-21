@@ -206,9 +206,68 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     case _ => super.++(other)
   }
 
-  def ++(other: JsObject): JsObject = other match {
-    case o @ JsObject(_) => JsObject(fields.filterNot(field => o.keys(field._1)) ++ o.fields)
+  def ++(other: JsObject): JsObject = JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
+  
+  /**
+   * merges everything in depth and doesn't stop at first level as ++
+   * TODO : improve because coding is nasty there
+   */
+  def deepMerge(other: JsObject): JsObject = {
+    def step(fields: List[(String, JsValue)], others: List[(String, JsValue)]): Seq[(String, JsValue)] = {
+      others match {
+        case List() => fields
+        case List(sv) => 
+          var found = false
+          val newFields = fields match {
+            case List() => List(sv)
+            case _ => fields.foldLeft(List[(String, JsValue)]()){ (acc, field) => field match {
+              case (key, obj: JsObject) if(key == sv._1) => 
+                found = true
+                acc :+ key -> {
+                  sv._2 match {
+                    case o @ JsObject(_) => obj.deepMerge(o) 
+                    case js => js
+                  }
+              }
+              case (key, value) if(key == sv._1) => 
+                found = true
+                acc :+ key -> sv._2
+              case (key, value) => acc :+ key -> value
+            } }
+          }
+          
+          if(!found) fields :+ sv
+          else newFields
+
+        case head :: tail => 
+          var found = false
+          val headFields = fields match {
+            case List() => List(head)
+              case _ => fields.foldLeft(List[(String, JsValue)]()){ (acc, field) => field match {
+              case (key, obj: JsObject) if(key == head._1) => 
+                found = true
+                acc :+ key -> {
+                  head._2 match {
+                    case o @ JsObject(_) => obj.deepMerge(o) 
+                    case js => js
+                  }
+                }
+              case (key, value) if(key == head._1) => 
+                found = true
+                acc :+ key -> head._2
+              case (key, value) => acc :+ key -> value
+            } }
+          }
+
+          if(!found) step(fields :+ head, tail)
+          else step(headFields, tail)
+          
+      }
+    }
+
+    JsObject(step(fields.toList, other.fields.toList))
   }
+
 
   /**
    * Append an element to this object (only a JsObject).

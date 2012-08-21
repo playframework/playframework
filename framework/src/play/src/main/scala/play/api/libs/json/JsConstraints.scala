@@ -55,5 +55,11 @@ trait ConstraintWrites {
   }
 
   def at[A](path:JsPath)(implicit writes:Writes[A]): OWrites[A] =
-    OWrites[A]( a => Json.obj(path.toString -> writes.writes(a)))
+    OWrites[A]{ a => JsPath.createObj(path -> writes.writes(a))
+      /*Json.obj( "toto" -> writes.writes(a) )*/
+
+      /*val js: JsObject = Json.obj()
+      val obj: JsObject = path.set(js, js => writes.writes(a))
+      obj*/
+    }
 }

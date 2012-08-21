@@ -107,7 +107,17 @@ object JsonValidSpec extends Specification {
       JsString("alphabeta").validate[String](ConstraintReads.minLength(5)) must equalTo(JsSuccess("alphabeta"))
     }
 
-    /*"validate simple case class reads/writes" in {
+    "test JsPath.create" in {
+      val obj = JsPath.createObj( 
+        JsPath \ "toto" \ "toto1" -> JsString("alpha"),
+        JsPath \ "titi" \ "titi1" -> JsString("beta"),
+        JsPath \ "titi" \ "titi2" -> JsString("beta2")
+      )
+      print("OBJ:%s".format(obj))
+      success
+    }
+    
+    "validate simple case class reads/writes" in {
       val bobby = User("bobby", 54)
 
       implicit val userReads = 
@@ -123,7 +133,7 @@ object JsonValidSpec extends Specification {
       println("JSON:%s".format(js))
       
       js.validate[User] must equalTo(JsSuccess(bobby))
-    }*/
+    }
     
 
     /*"fail validation when type are not respected " in {
