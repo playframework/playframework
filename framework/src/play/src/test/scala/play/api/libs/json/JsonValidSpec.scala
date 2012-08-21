@@ -7,6 +7,9 @@ import scala.util.control.Exception._
 import java.text.ParseException
 import play.api.data.validation.ValidationError
 
+import play.api.libs.json.{ConstraintReads => CR}
+import play.api.libs.json.{ConstraintWrites => CW}
+
 
 object JsonValidSpec extends Specification {
   "JSON reads" should {
@@ -120,13 +123,23 @@ object JsonValidSpec extends Specification {
     "validate simple case class reads/writes" in {
       val bobby = User("bobby", 54)
 
-      implicit val userReads = 
-        (ConstraintReads.at[String](JsPath \ "name")(ConstraintReads.minLength(5)) ~
-        ConstraintReads.at[Int](JsPath \ "age")(ConstraintReads.min(40)))(User.apply _)
+      /*implicit val userReads = 
+        (ConstraintReads.at[String](JsPath \ "name")(ConstraintReads.minLength[String](5) ) ~
+        ConstraintReads.at[Int](JsPath \ "age")(ConstraintReads.min(40)))(User.apply _)*/
+      
+      implicit val userReads = { import ConstraintReads._
+      (
+        at(JsPath \ "name")(minLength[String](5)) 
+        and 
+        at(JsPath \ "age")(min(40))
+      )(User) }
 
-      implicit val userWrites = 
-        (ConstraintWrites.at[String](JsPath \ "name") ~
-        ConstraintWrites.at[Int](JsPath \ "age"))(Function.unlift(User.unapply)) /*{ u: User => User.unapply(u).get }*/
+      implicit val userWrites = { import ConstraintWrites._
+      (
+        at[String](JsPath \ "name")
+        and 
+        at[Int](JsPath \ "age")
+      )(unlift(User.unapply)) }
 
       val js = Json.toJson(bobby)
 

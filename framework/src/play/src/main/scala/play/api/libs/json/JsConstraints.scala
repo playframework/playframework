@@ -50,6 +50,8 @@ trait ConstraintReads {
 object ConstraintWrites extends ConstraintWrites
 
 trait ConstraintWrites {
+  def unlift[A, B](f: A => Option[B]) = Function.unlift(f)
+
   def pruned[T](implicit w: Writes[T]): Writes[T] = new Writes[T] {
     def writes(t: T): JsValue = JsUndefined("pruned")
   }

@@ -19,6 +19,7 @@ class FunctionalBuilderOps[M[_],A](ma:M[A])(implicit fcb:FunctionalCanBuild[M]){
     new b.CanBuild2(ma,mb)
   }
 
+  def and[B](mb:M[B]):FunctionalBuilder[M]#CanBuild2[A,B] = this.~(mb)
 }
 
 trait Applicative[M[_]]{
@@ -91,7 +92,6 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         canBuild(m1, m2),  {case a1 ~ a2 => f1(a1, a2)}, 
         (b:B) => { val (a1, a2) = f2(b); new ~(a1, a2)}
       )
-
   }
 
   class CanBuild3[A1,A2,A3](m1:M[A1 ~ A2], m2:M[A3]){
