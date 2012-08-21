@@ -3,7 +3,9 @@ package play.api.libs.json
 import play.api.data.validation.ValidationError
 import Json._
 
-object Constraints extends ConstraintReads with ConstraintWrites
+//object Constraints extends ConstraintReads with ConstraintWrites
+
+object ConstraintReads extends ConstraintReads
 
 trait ConstraintReads {
   def of[T](implicit fmt: Format[T]): Format[T] = fmt
@@ -11,7 +13,7 @@ trait ConstraintReads {
   def required(path:JsPath): Reads[JsValue] = Reads[JsValue] ( path.asSingleJsResult )
 
   def at[A](path:JsPath)(implicit reads:Reads[A]): Reads[A] =
-    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads))
+    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads) )
 
   def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).map(Some(_))))
@@ -52,6 +54,6 @@ trait ConstraintWrites {
     def writes(t: T): JsValue = JsUndefined("pruned")
   }
 
-  /*def at[A](path:JsPath)(implicit writes:Writes[A]): OWrites[A] =
-    OWrites[A]( a => Json.obj(path.toString -> writes.writes(a))) */
+  def at[A](path:JsPath)(implicit writes:Writes[A]): OWrites[A] =
+    OWrites[A]( a => Json.obj(path.toString -> writes.writes(a)))
 }

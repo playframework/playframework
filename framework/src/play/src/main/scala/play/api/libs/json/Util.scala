@@ -3,7 +3,11 @@ package play.api.libs.json.util
 class ApplicativeOps[M[_],A](ma:M[A])(implicit  a:Applicative[M]){
 
   def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
+  def andKeep[B](mb: M[B]):M[B] = ~>(mb)
+
   def <~[B](mb: M[B]):M[A] = a(a(a.pure((a:A) => (_:B) => a), ma),mb)
+  def keepAnd[B](mb: M[B]):M[A] = <~(mb)
+
   def <~>[B,C](mb: M[B])(implicit witness: <:<[A,B => C]):M[C] = apply(mb)
   def apply[B,C](mb: M[B])(implicit witness: <:<[A,B => C]):M[C] = a(a.map(ma,witness),mb)
 }
@@ -72,34 +76,48 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
 
   class CanBuild2[A1,A2](m1:M[A1], m2:M[A2]){
 
-    def ~[A3](m3:M[A3]) = new CanBuild3(canBuild(m1,m2),m3)
+    def ~[A3](m3:M[A3]) = new CanBuild3(canBuild(m1, m2), m3)
 
-    def apply[B](f:(A1,A2) => B)(implicit fu:Functor[M]):M[B] =
-      fu.fmap[A1 ~ A2, B](canBuild(m1,m2), {case a1 ~ a2 => f(a1,a2)} )
+    def and[A3](m3:M[A3]) = this.~(m3)
+
+    def apply[B](f: (A1,A2) => B)(implicit fu:Functor[M]):M[B] =
+      fu.fmap[A1 ~ A2, B](canBuild(m1, m2), {case a1 ~ a2 => f(a1, a2)} )
 
     def apply[B](f: B => (A1,A2))(implicit fu:ContravariantFunctor[M]):M[B] =
-      fu.contramap(canBuild(m1,m2), (b:B) => { val (a1,a2) = f(b); new ~(a1,a2)})
+      fu.contramap(canBuild(m1, m2), (b: B) => { val (a1, a2) = f(b); new ~(a1, a2)})
 
-    def apply[B](f1:(A1,A2) => B, f2: B => (A1,A2))(implicit fu:InvariantFunctor[M]):M[B] =
-      fu.inmap[A1 ~ A2, B](canBuild(m1,m2),  {case a1 ~ a2 => f1(a1,a2)}, (b:B) => { val (a1,a2) = f2(b); new ~(a1,a2)})
+    def apply[B](f1: (A1,A2) => B, f2: B => (A1,A2))(implicit fu:InvariantFunctor[M]):M[B] =
+      fu.inmap[A1 ~ A2, B](
+        canBuild(m1, m2),  {case a1 ~ a2 => f1(a1, a2)}, 
+        (b:B) => { val (a1, a2) = f2(b); new ~(a1, a2)}
+      )
 
   }
 
   class CanBuild3[A1,A2,A3](m1:M[A1 ~ A2], m2:M[A3]){
 
-    def ~[A4](m3:M[A4]) = new CanBuild4(canBuild(m1,m2),m3)
+    def ~[A4](m3:M[A4]) = new CanBuild4(canBuild(m1, m2), m3)
 
-    def apply[B](f:(A1,A2,A3) => B)(implicit fu:Functor[M]):M[B] =  null.asInstanceOf[M[B]]
+    def and[A3](m3:M[A3]) = this.~(m3)
 
-    def apply[B](f: B => (A1,A2,A3))(implicit fu:ContravariantFunctor[M]):M[B] =  null.asInstanceOf[M[B]]
+    def apply[B](f: (A1,A2,A3) => B)(implicit fu:Functor[M]):M[B] =  /*null.asInstanceOf[M[B]]*/
+      fu.fmap[A1 ~ A2 ~ A3, B](canBuild(m1, m2), { case a1 ~ a2 ~ a3 => f(a1, a2, a3) })
 
-    def apply[B](f1:(A1,A2,A3) => B, f2: B => (A1,A2,A3))(implicit fu:InvariantFunctor[M]):M[B] =  null.asInstanceOf[M[B]]
+    def apply[B](f: B => (A1,A2,A3))(implicit fu:ContravariantFunctor[M]):M[B] =  /*null.asInstanceOf[M[B]]*/
+      fu.contramap(canBuild(m1, m2), (b: B) => { val (a1, a2, a3) = f(b); new ~(new ~(a1, a2), a3)})
 
+    def apply[B](f1: (A1,A2,A3) => B, f2: B => (A1,A2,A3))(implicit fu:InvariantFunctor[M]):M[B] =  /*null.asInstanceOf[M[B]]*/
+      fu.inmap[A1 ~ A2 ~ A3, B](
+        canBuild(m1, m2),  {case a1 ~ a2 ~ a3 => f1(a1, a2, a3)}, 
+        (b:B) => { val (a1, a2, a3) = f2(b); new ~(new ~(a1, a2), a3) }
+      )
   }
 
   class CanBuild4[A1,A2,A3,A4](m1:M[A1 ~ A2 ~ A3], m2:M[A4]){
 
     def ~[A5](m3:M[A5]) = new CanBuild4(canBuild(m1,m2),m3)
+
+    def and[A5](m3:M[A5]) = this.~(m3)
 
   }
 
@@ -136,6 +154,8 @@ object `package` {
     def apply[A,B](mf:Option[A => B], ma: Option[A]):Option[B] = mf.flatMap(f => ma.map(f))
 
   }
+
+  def unapply[B, A](f: B => Option[A]) = { b: B => f(b).get }
 }
 
 
