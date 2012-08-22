@@ -7,8 +7,7 @@ import scala.util.control.Exception._
 import java.text.ParseException
 import play.api.data.validation.ValidationError
 
-import play.api.libs.json.{ConstraintReads => CR}
-import play.api.libs.json.{ConstraintWrites => CW}
+import play.api.libs.json.Constraints._
 
 
 object JsonValidSpec extends Specification {
@@ -107,7 +106,7 @@ object JsonValidSpec extends Specification {
     }
 
     "validate simple constraints" in {
-      JsString("alphabeta").validate[String](ConstraintReads.minLength(5)) must equalTo(JsSuccess("alphabeta"))
+      JsString("alphabeta").validate[String](minLength(5)) must equalTo(JsSuccess("alphabeta"))
     }
 
     "test JsPath.create" in {
@@ -127,14 +126,14 @@ object JsonValidSpec extends Specification {
         (ConstraintReads.at[String](JsPath \ "name")(ConstraintReads.minLength[String](5) ) ~
         ConstraintReads.at[Int](JsPath \ "age")(ConstraintReads.min(40)))(User.apply _)*/
       
-      implicit val userReads = { import ConstraintReads._
+      implicit val userReads = { import PathReads._
       (
         at(JsPath \ "name")(minLength[String](5)) 
         and 
         at(JsPath \ "age")(min(40))
       )(User) }
 
-      implicit val userWrites = { import ConstraintWrites._
+      implicit val userWrites = { import PathWrites._
       (
         at[String](JsPath \ "name")
         and 
@@ -147,7 +146,54 @@ object JsonValidSpec extends Specification {
       
       js.validate[User] must equalTo(JsSuccess(bobby))
     }
+
+    "validate simple case class format" in {
+      val bobby = User("bobby", 54)
+
+      implicit val userFormats = { import PathFormat._
+      (
+        at(JsPath \ "name")(minLength[String](5), of[String]) 
+        and 
+        at(JsPath \ "age")(min(40), of[Int])
+      )(User, unlift(User.unapply)) }
+
+      val js = Json.toJson(bobby)
+
+      println("JSON:%s".format(js))
+      
+      js.validate[User] must equalTo(JsSuccess(bobby))
+    }
     
+    "JsObject tuple reads" in {
+      implicit val dataReads: Reads[(String, Int)] = { import PathReads._
+        (
+          at[String]( __ \ "uuid" ) and 
+          at[Int]( __ \ "nb" )
+        ) tupled
+      }
+
+      val js = Json.obj(
+        "uuid" -> "550e8400-e29b-41d4-a716-446655440000",
+        "nb" -> 654
+      )
+
+      js.validate[(String, Int)] must equalTo(JsSuccess("550e8400-e29b-41d4-a716-446655440000" -> 654))
+    }
+
+    "Format simpler syntax" in {
+      val bobby = User("bobby", 54)
+
+      implicit val userFormats = { 
+      (
+        (__ \ 'name).format(minLength[String](5)) 
+        and 
+        (__ \ 'age).format(min(40))
+      )(User, unlift(User.unapply)) }
+
+      val js = Json.toJson(bobby)
+
+      js.validate[User] must equalTo(JsSuccess(bobby))
+    }
 
     /*"fail validation when type are not respected " in {
       val obj = Json.obj("name" -> 5)

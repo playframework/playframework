@@ -15,9 +15,19 @@ object OFormat {
 
   import play.api.libs.json.util._
 
+  implicit def functionalCanBuildFormats(implicit rcb: FunctionalCanBuild[Reads], wcb: FunctionalCanBuild[OWrites]): FunctionalCanBuild[OFormat] = new FunctionalCanBuild[OFormat] {
+
+    def apply[A,B](fa: OFormat[A], fb: OFormat[B]): OFormat[A~B] = 
+      OFormat[A~B](
+        rcb(fa, fb),
+        wcb(fa, fb)
+      )
+
+  }
+
   implicit val invariantFunctorOFormat:InvariantFunctor[OFormat] = new InvariantFunctor[OFormat] {
 
-    def inmap[A,B](fa:OFormat[A], f1:A => B, f2: B => A):OFormat[B] = OFormat[B](js => fa.reads(js).map(f1), b => fa.writes(f2(b)))
+    def inmap[A,B](fa:OFormat[A], f1:A => B, f2: B => A):OFormat[B] = OFormat[B]( (js: JsValue) => fa.reads(js).map(f1), (b: B) => fa.writes(f2(b)))
 
   }
 
@@ -29,6 +39,11 @@ object OFormat {
 
   }
 
+  def apply[A](r: Reads[A], w: OWrites[A]):OFormat[A] = new OFormat[A] {
+    def reads(js:JsValue):JsResult[A] = r.reads(js)
+
+    def writes(a:A):JsObject = w.writes(a)    
+  }
 }
 
 /**

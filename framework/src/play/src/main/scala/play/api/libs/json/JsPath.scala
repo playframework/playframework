@@ -120,6 +120,8 @@ case class IdxPathNode(idx: Int) extends PathNode {
 
 }
 
+object __ extends JsPath
+
 object JsPath {
   def \(child: String) = JsPath() \ child
   def \(child: Symbol) = JsPath() \ child
@@ -188,7 +190,19 @@ case class JsPath(path: List[PathNode] = List()) {
   def compose(other: JsPath) = JsPath(path ++ other.path)
   def ++(other: JsPath) = this compose other
 
-  def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {
+  /**
+   * Reads/Writes/Format builders
+   */
+  def read[T](implicit r: Reads[T]): Reads[T] = PathReads.at[T](this)(r)
+  def readOpt[T](implicit r: Reads[T]): Reads[Option[T]] = PathReads.optional[T](this)(r)
+
+  def write[T](implicit w: Writes[T]): Writes[T] = PathWrites.at[T](this)(w)
+
+  def format[T](r: Reads[T])(implicit w: Writes[T]) = PathFormat.at[T](this)(r, w)
+  def format[T](w: Writes[T])(implicit r: Reads[T]) = PathFormat.at[T](this)(r, w)
+
+  // TODO
+  private[json] def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {
     def buildLevel(json: JsValue, currentPath: PathNode)(mapF: Either[(PathNode, JsValue), (PathNode, JsValue)] => (PathNode, JsValue)): JsValue = {
       val nodes = currentPath.splitChildren(json).map( mapF )
 

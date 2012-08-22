@@ -92,6 +92,8 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         canBuild(m1, m2),  {case a1 ~ a2 => f1(a1, a2)}, 
         (b:B) => { val (a1, a2) = f2(b); new ~(a1, a2)}
       )
+
+    def tupled(implicit fu:Functor[M]): M[(A1, A2)] = apply{ (a1: A1, a2: A2) => (a1, a2) }(fu)
   }
 
   class CanBuild3[A1,A2,A3](m1:M[A1 ~ A2], m2:M[A3]){
@@ -111,6 +113,8 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         canBuild(m1, m2),  {case a1 ~ a2 ~ a3 => f1(a1, a2, a3)}, 
         (b:B) => { val (a1, a2, a3) = f2(b); new ~(new ~(a1, a2), a3) }
       )
+
+    def tupled(implicit fu:Functor[M]): M[(A1, A2, A3)] = apply{ (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }(fu)
   }
 
   class CanBuild4[A1,A2,A3,A4](m1:M[A1 ~ A2 ~ A3], m2:M[A4]){
@@ -156,6 +160,9 @@ object `package` {
   }
 
   def unapply[B, A](f: B => Option[A]) = { b: B => f(b).get }
+
+  def unlift[A, B](f: A => Option[B]): A => B = Function.unlift(f)
+
 }
 
 

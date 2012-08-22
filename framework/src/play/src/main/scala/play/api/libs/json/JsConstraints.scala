@@ -5,12 +5,24 @@ import Json._
 
 //object Constraints extends ConstraintReads with ConstraintWrites
 
-object ConstraintReads extends ConstraintReads
+object Constraints extends ConstraintReads with ConstraintWrites
 
-trait ConstraintReads {
-  def of[T](implicit fmt: Format[T]): Format[T] = fmt
+object PathFormat extends PathFormat
 
-  def required(path:JsPath): Reads[JsValue] = Reads[JsValue] ( path.asSingleJsResult )
+trait PathFormat {
+  def of[A](implicit fmt: Format[A]): Format[A] = fmt
+
+  def at[A](path: JsPath)(implicit r: Reads[A], w: Writes[A]) = 
+    OFormat[A](PathReads.at(path)(r), PathWrites.at(path)(w)) 
+
+}
+
+object PathReads extends PathReads
+
+trait PathReads {
+  
+  //def required(path:JsPath): Reads[JsValue] = Reads[JsValue] ( path.asSingleJsResult )
+  def required[A](path:JsPath): Reads[JsValue] = at(path)
 
   def at[A](path:JsPath)(implicit reads:Reads[A]): Reads[A] =
     Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads) )
@@ -18,6 +30,9 @@ trait ConstraintReads {
   def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).map(Some(_))))
 
+}
+
+trait ConstraintReads {
   def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
     Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
@@ -47,21 +62,19 @@ trait ConstraintReads {
   }
 }
 
-object ConstraintWrites extends ConstraintWrites
+object PathWrites extends PathWrites
 
+trait PathWrites {
+  def at[A](path:JsPath)(implicit writes:Writes[A]): OWrites[A] =
+    OWrites[A]{ a => JsPath.createObj(path -> writes.writes(a)) }
+
+  def optional[A](path:JsPath)(implicit writes:Writes[Option[A]]): OWrites[Option[A]] =
+    OWrites[Option[A]]{ a => JsPath.createObj(path -> writes.writes(a)) }  
+}
 trait ConstraintWrites {
-  def unlift[A, B](f: A => Option[B]) = Function.unlift(f)
 
   def pruned[T](implicit w: Writes[T]): Writes[T] = new Writes[T] {
     def writes(t: T): JsValue = JsUndefined("pruned")
   }
 
-  def at[A](path:JsPath)(implicit writes:Writes[A]): OWrites[A] =
-    OWrites[A]{ a => JsPath.createObj(path -> writes.writes(a))
-      /*Json.obj( "toto" -> writes.writes(a) )*/
-
-      /*val js: JsObject = Json.obj()
-      val obj: JsObject = path.set(js, js => writes.writes(a))
-      obj*/
-    }
 }

@@ -52,11 +52,11 @@ object Writes extends DefaultWrites {
 
   import play.api.libs.json.util._
 
-  implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
+  /*implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
 
     def contramap[A,B](wa:Writes[A], f: B => A):Writes[B] = Writes[B]( b => wa.writes(f(b)) )
 
-  }
+  }*/
 
   def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
 
