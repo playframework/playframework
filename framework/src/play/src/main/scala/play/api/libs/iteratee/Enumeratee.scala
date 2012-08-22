@@ -408,6 +408,23 @@ object Enumeratee {
     def continue[A](k: K[M, A]) = Cont(step(k))
   }
 
+  def heading[E](es: Enumerator[E]) = new Enumeratee[E,E] {
+
+    def applyOn[A](it:Iteratee[E,A]): Iteratee[E, Iteratee[E,A]] = passAlong[E] &> Iteratee.flatten(es(it))
+
+  }
+
+  def trailing[M](es: Enumerator[M]) =  new Enumeratee.CheckDone[M, M] {
+
+    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+
+      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+
+      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map(it  => Done(it, Input.EOF)))
+    }
+    def continue[A](k: K[M, A]) = Cont(step(k))
+  }
+
   def onIterateeDone[E](action: () => Unit): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E](iteratee).map(_.map { a => action(); a })
