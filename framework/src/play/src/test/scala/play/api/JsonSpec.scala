@@ -124,6 +124,10 @@ object JsonSpec extends Specification {
       val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
     }
+    "Can parse NaN as null" in {
+      val js = Json.parse("""[1.0, 2.0, NaN]""")
+      js === JsArray(JsNumber(1.0) :: JsNumber(2.0) :: JsNull :: Nil)
+    }
   }
 
 }
