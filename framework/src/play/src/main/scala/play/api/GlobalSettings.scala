@@ -81,7 +81,7 @@ trait GlobalSettings {
    */
   def onError(request: RequestHeader, ex: Throwable): Result = {
     InternalServerError(Play.maybeApplication.map {
-      case app if app.mode == Mode.Dev => views.html.defaultpages.devError.f
+      case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
       case app => views.html.defaultpages.error.f
     }.getOrElse(views.html.defaultpages.devError.f) {
       ex match {
@@ -101,7 +101,7 @@ trait GlobalSettings {
    */
   def onHandlerNotFound(request: RequestHeader): Result = {
     NotFound(Play.maybeApplication.map {
-      case app if app.mode == Mode.Dev => views.html.defaultpages.devNotFound.f
+      case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
     }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.flatMap(_.routes)))
   }
