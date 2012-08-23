@@ -92,7 +92,7 @@ object JsonSpec extends Specification {
       (jsonM \ "timestamp").as[Long] must equalTo(t)
       (jsonM.toString must equalTo("{\"timestamp\":1330950829160}"))
     }
-    
+
     "Serialize and deserialize BigDecimals" in {
       val n = BigDecimal("12345678901234567890.42")
       val json = toJson(n)
@@ -137,6 +137,14 @@ object JsonSpec extends Specification {
       val parsedJson = Json.parse(postJson)
       val expectedJson = JsArray(List(JsNull))
       parsedJson must equalTo(expectedJson)
+    }
+    "Can parse Array containing NaN as null" in {
+      val js = Json.parse("""[1.0, 2.0, NaN]""")
+      js === JsArray(JsNumber(1.0) :: JsNumber(2.0) :: JsNull :: Nil)
+    }
+    "Can parse bare NaN as null" in {
+      val js = Json.parse("""NaN""")
+      js === JsNull
     }
   }
 
