@@ -265,20 +265,30 @@ object JsonValidSpec extends Specification {
 
       val jsonTransformer = (
         (__ \ "key1").json.copy and
-        (__ \ "key2").json.build(
-          ((__ \ "key21").json.copy and
-          (__ \ "key22").json.transform( js => js \ "key222" )) flattened
+        (__ \ "key2").json.modify(
+          (
+            (__ \ "key21").json.copy and
+            (__ \ "key22").json.transform( js => js \ "key222" )
+          ) flattened
         ) and
-        (__ \ "key3").json.transform( js => js ++ Json.arr("delta"))
+        (__ \ "key3").json.transform( js => js ++ Json.arr("delta")) and
+        (__ \ "key4").json.create(
+          (
+            (__ \ "key41").json.write(JsNumber(345)) and
+            (__ \ "key42").json.write(JsString("alpha"))
+          ) flattened
+        )
       ) flattened
 
       val res = Json.obj(
         "key1" -> "value1",
         "key2" -> Json.obj(
           "key21" -> 123,
-          "key22" -> "blabla"
+          "key22" -> "blabla",
+          "key23" -> true
          ),
-        "key3" -> Json.arr("alpha", "beta", "gamma", "delta")
+        "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),
+        "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha")
       )
 
       js.transform(jsonTransformer) must beEqualTo(res)

@@ -7,7 +7,7 @@ sealed trait PathNode {
   def toJsonString: String
 
   private[json] def splitChildren(json: JsValue): List[Either[(PathNode, JsValue), (PathNode, JsValue)]]
-  private[json] def set(json: JsValue, transform: JsValue => JsValue): JsValue
+  def set(json: JsValue, transform: JsValue => JsValue): JsValue
 
   private[json] def toJsonField(value: JsValue): JsValue = value
 
@@ -27,7 +27,7 @@ case class RecursiveSearch(key: String) extends PathNode {
   /**
    * First found, first set and never goes down after setting
    */
-  private[json] def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
+  def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
     case obj: JsObject => 
       var found = false 
       val o = JsObject(obj.fields.map{ case (k,v) => 
@@ -67,7 +67,7 @@ case class KeyPathNode(key: String) extends PathNode{
   override def toString = "/" + key
   def toJsonString = "." + key
 
-  private[json] def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
+  def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
     case obj: JsObject => 
       var found = false 
       val o = JsObject(obj.fields.map{ case (k,v) => 
@@ -103,7 +103,7 @@ case class IdxPathNode(idx: Int) extends PathNode {
   override def toString = "(%d)".format(idx)
   def toJsonString = "[%d]".format(idx)
 
-  private[json] def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
+  def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
     case arr: JsArray => JsArray(arr.value.zipWithIndex.map{ case (js, j) => if(j == idx) transform(js) else js})
     case _ => transform(json)
   }
@@ -137,7 +137,10 @@ object JsPath {
     def buildSubPath(path: JsPath, value: JsValue) = {
       def step(path: List[PathNode], value: JsValue): JsObject = {
         path match {
-          case List() => throw new RuntimeException("expected non empty JsPath")
+          case List() => value match {
+            case obj @ JsObject(_) => obj
+            case _ => throw new RuntimeException("when empty JsPath, expecting JsObject")
+          }
           case List(p) => p match {
             case KeyPathNode(key) => Json.obj(key -> value)
             case _ => throw new RuntimeException("expected KeyPathNode")
@@ -155,7 +158,6 @@ object JsPath {
     pathValues.foldLeft(Json.obj()){ (obj, pv) => 
       val (path, value) = (pv._1, pv._2)
       val subobj = buildSubPath(path, value)
-      println("SUBOBJ: %s".format(subobj))
       obj.deepMerge(subobj)
     }
   }
@@ -202,20 +204,21 @@ case class JsPath(path: List[PathNode] = List()) {
   def format[T](r: Reads[T])(implicit _r: Reads[T], w: Writes[T]) = PathFormat.at[T](this)(r, w)
   def format[T](w: Writes[T])(implicit r: Reads[T]) = PathFormat.at[T](this)(r, w)
 
-  def json = {
+  lazy val json = {
     val self = this
     new {
       def copy = PathWrites.copyJson(self)
-      def build(implicit w: OWrites[JsValue]) = PathWrites.buildJson(self)(w)
+      def create(w: OWrites[JsValue]) = PathWrites.createJson(self)(w)
+      def modify(w: OWrites[JsValue]) = PathWrites.modifyJson(self)(w)
       def transform(f: JsValue => JsValue) = PathWrites.transformJson(self, f)  
+      def write(js: JsValue)(implicit w: Writes[JsValue]) = self.write(js)
     }
   }
   
-
   def write[T](t: T)(implicit w: Writes[T]) = PathWrites.fixedValue(this, t)
 
   // TODO
-  private[json] def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {
+  def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {
     def buildLevel(json: JsValue, currentPath: PathNode)(mapF: Either[(PathNode, JsValue), (PathNode, JsValue)] => (PathNode, JsValue)): JsValue = {
       val nodes = currentPath.splitChildren(json).map( mapF )
 
