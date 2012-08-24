@@ -193,13 +193,26 @@ case class JsPath(path: List[PathNode] = List()) {
   /**
    * Reads/Writes/Format builders
    */
-  def read[T](implicit r: Reads[T]): Reads[T] = PathReads.at[T](this)(r)
-  def readOpt[T](implicit r: Reads[T]): Reads[Option[T]] = PathReads.optional[T](this)(r)
+  def read[T](implicit r: Reads[T]) = PathReads.at[T](this)(r)
+  def readOpt[T](implicit r: Reads[T]) = PathReads.optional[T](this)(r)
 
-  def write[T](implicit w: Writes[T]): Writes[T] = PathWrites.at[T](this)(w)
+  def write[T](implicit w: Writes[T]) = PathWrites.at[T](this)(w)
 
-  def format[T](r: Reads[T])(implicit w: Writes[T]) = PathFormat.at[T](this)(r, w)
+  def format[T](implicit r: Reads[T], w: Writes[T]) = PathFormat.at[T](this)(r, w)
+  def format[T](r: Reads[T])(implicit _r: Reads[T], w: Writes[T]) = PathFormat.at[T](this)(r, w)
   def format[T](w: Writes[T])(implicit r: Reads[T]) = PathFormat.at[T](this)(r, w)
+
+  def json = {
+    val self = this
+    new {
+      def copy = PathWrites.copyJson(self)
+      def build(implicit w: OWrites[JsValue]) = PathWrites.buildJson(self)(w)
+      def transform(f: JsValue => JsValue) = PathWrites.transformJson(self, f)  
+    }
+  }
+  
+
+  def write[T](t: T)(implicit w: Writes[T]) = PathWrites.fixedValue(this, t)
 
   // TODO
   private[json] def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {

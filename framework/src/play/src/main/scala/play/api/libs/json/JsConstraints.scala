@@ -5,13 +5,15 @@ import Json._
 
 //object Constraints extends ConstraintReads with ConstraintWrites
 
-object Constraints extends ConstraintReads with ConstraintWrites
+object Constraints extends ConstraintFormat with ConstraintReads with ConstraintWrites
 
 object PathFormat extends PathFormat
 
-trait PathFormat {
-  def of[A](implicit fmt: Format[A]): Format[A] = fmt
+trait ConstraintFormat {
+    def of[A](implicit fmt: Format[A]): Format[A] = fmt
+}
 
+trait PathFormat {
   def at[A](path: JsPath)(implicit r: Reads[A], w: Writes[A]) = 
     OFormat[A](PathReads.at(path)(r), PathWrites.at(path)(w)) 
 
@@ -60,16 +62,51 @@ trait ConstraintReads {
       case Email(e) => e
     }
   }
+
+  def verifying[T](cond: T => Boolean)(implicit _reads: Reads[T]) = new Reads[T] {
+    def reads(json: JsValue) = 
+      _reads
+      .reads(json)
+      .filter(ValidationError("validation.error.condition.not.verified"))(cond)
+  }
+
+  def verifyingIf[T](cond: T => Boolean)(subreads: Reads[_])(implicit _reads: Reads[T]) = new Reads[T] {
+    def reads(json: JsValue) = _reads.reads(json).flatMap { t => 
+      (scala.util.control.Exception.catching(classOf[MatchError]) opt cond(t)).flatMap { b =>
+        if(b) Some(subreads.reads(json).map( _ => t ))
+        else None
+      }.getOrElse(JsSuccess(t))
+    }
+  }
 }
 
 object PathWrites extends PathWrites
 
 trait PathWrites {
-  def at[A](path:JsPath)(implicit writes:Writes[A]): OWrites[A] =
-    OWrites[A]{ a => JsPath.createObj(path -> writes.writes(a)) }
+  def at[A](path: JsPath)(implicit _writes:Writes[A]): OWrites[A] =
+    OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(a)) }
 
-  def optional[A](path:JsPath)(implicit writes:Writes[Option[A]]): OWrites[Option[A]] =
-    OWrites[Option[A]]{ a => JsPath.createObj(path -> writes.writes(a)) }  
+  def optional[A](path: JsPath)(implicit _writes:Writes[Option[A]]): OWrites[Option[A]] =
+    OWrites[Option[A]]{ a => JsPath.createObj(path -> _writes.writes(a)) }  
+
+  //def copy(path: JsPath): OWrites[JsObject] =
+  //  OWrites[JsObject]{ obj => val ret = JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)); println("COPY: path:%s ret:%s".format(path, ret)); ret }  
+
+  /*def copy(path: JsPath)(implicit _writes: Writes[JsValue]): OWrites[JsObject] =
+    OWrites[JsObject]{ obj => val ret = JsPath.createObj(path -> path(obj).headOption.map( _writes.writes ).getOrElse(JsNull)); println("COPY: path:%s ret:%s".format(path, ret)); ret }  
+  */
+
+  def copyJson(path: JsPath): OWrites[JsValue] =
+    OWrites[JsValue]{ obj => val ret = JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)); println("COPY: path:%s ret:%s".format(path, ret)); ret }  
+
+  def buildJson(path: JsPath)(implicit _writes: OWrites[JsValue]): OWrites[JsValue] =
+    OWrites[JsValue]{ obj => val ret = JsPath.createObj(path -> path(obj).headOption.map( _writes.writes ).getOrElse(JsNull)); println("COPY: path:%s ret:%s".format(path, ret)); ret }  
+
+  def transformJson(path: JsPath, f: JsValue => JsValue): OWrites[JsValue] =
+    OWrites[JsValue]{ obj => val ret = JsPath.createObj(path -> f(path(obj).headOption.getOrElse(JsNull)));println("TRANSFORM: path:%s ret:%s".format(path, ret)); ret }  
+
+  def fixedValue[A](path: JsPath, a: A)(implicit _writes:Writes[A]) =
+    OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(a)) }    
 }
 trait ConstraintWrites {
 

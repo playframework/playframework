@@ -68,7 +68,9 @@ sealed trait JsValue {
   /**
    * Tries to convert the node into a JsResult[T] (Success or Error). An implicit Reads[T] must be defined.
    */
-  def validate[T](implicit fjs: Reads[T]): JsResult[T] = fjs.reads(this)
+  def validate[T](implicit _reads: Reads[T]): JsResult[T] = _reads.reads(this)
+
+  def transform(implicit _writes: Writes[JsValue]): JsValue = _writes.writes(this)
 
   override def toString = Json.stringify(this)
 

@@ -164,7 +164,7 @@ object JsonValidSpec extends Specification {
       js.validate[User] must equalTo(JsSuccess(bobby))
     }
     
-    "JsObject tuple reads" in {
+    "JsObject tupled reads" in {
       implicit val dataReads: Reads[(String, Int)] = { import PathReads._
         (
           at[String]( __ \ "uuid" ) and 
@@ -180,19 +180,108 @@ object JsonValidSpec extends Specification {
       js.validate[(String, Int)] must equalTo(JsSuccess("550e8400-e29b-41d4-a716-446655440000" -> 654))
     }
 
-    "Format simpler syntax" in {
+    "JsObject tupled reads new syntax" in {
+      implicit val dataReads: Reads[(String, Int)] = (
+        ( __ \ "uuid" ).read[String] and 
+        ( __ \ "nb" ).read[Int]
+      ) tupled
+
+      val js = Json.obj(
+        "uuid" -> "550e8400-e29b-41d4-a716-446655440000",
+        "nb" -> 654
+      )
+
+      js.validate[(String, Int)] must equalTo(JsSuccess("550e8400-e29b-41d4-a716-446655440000" -> 654))
+    }
+
+    "JsObject tupled writes" in {
+      implicit val dataWrites: Writes[(String, Int)] = (
+        ( __ \ "uuid" ).write[String] and
+        ( __ \ "nb" ).write[Int]
+      ) tupled
+
+      val js = Json.obj(
+        "uuid" -> "550e8400-e29b-41d4-a716-446655440000",
+        "nb" -> 654
+      )
+
+      Json.toJson("550e8400-e29b-41d4-a716-446655440000" -> 654) must equalTo(js)
+    }
+
+    "JsObject tupled format" in {
+      implicit val dataFormat: Format[(String, Int)] = (
+        ( __ \ "uuid" ).format[String] and
+        ( __ \ "nb" ).format[Int]
+      ) tupled
+
+      val js = Json.obj(
+        "uuid" -> "550e8400-e29b-41d4-a716-446655440000",
+        "nb" -> 654
+      )
+
+      Json.toJson("550e8400-e29b-41d4-a716-446655440000" -> 654) must equalTo(js)
+      js.validate[(String, Int)] must equalTo(JsSuccess("550e8400-e29b-41d4-a716-446655440000" -> 654))
+    }
+
+    "Format simpler syntax without constraints" in {
       val bobby = User("bobby", 54)
 
       implicit val userFormats = { 
       (
-        (__ \ 'name).format(minLength[String](5)) 
+        (__ \ 'name).format[String] 
         and 
-        (__ \ 'age).format(min(40))
+        (__ \ 'age).format[Int]
       )(User, unlift(User.unapply)) }
 
       val js = Json.toJson(bobby)
 
       js.validate[User] must equalTo(JsSuccess(bobby))
+    }
+
+    "Format simpler syntax with constraints" in {
+      val bobby = User("bobby", 54)
+
+      implicit val userFormats = (
+        (__ \ 'name).format(minLength[String](5)) 
+        and 
+        (__ \ 'age).format(min(40))
+      )(User, unlift(User.unapply))
+
+      val js = Json.toJson(bobby)
+
+      js.validate[User] must equalTo(JsSuccess(bobby))
+    }
+
+    "Building JSON from JSON using Writes flattened" in {
+      val js = Json.obj(
+        "key1" -> "value1",
+        "key2" -> Json.obj(
+          "key21" -> 123,
+          "key22" -> Json.obj("key222" -> "blabla"),
+          "key23" -> true
+        ),
+        "key3" -> Json.arr("alpha", "beta", "gamma")
+      )
+
+      val jsonTransformer = (
+        (__ \ "key1").json.copy and
+        (__ \ "key2").json.build(
+          ((__ \ "key21").json.copy and
+          (__ \ "key22").json.transform( js => js \ "key222" )) flattened
+        ) and
+        (__ \ "key3").json.transform( js => js ++ Json.arr("delta"))
+      ) flattened
+
+      val res = Json.obj(
+        "key1" -> "value1",
+        "key2" -> Json.obj(
+          "key21" -> 123,
+          "key22" -> "blabla"
+         ),
+        "key3" -> Json.arr("alpha", "beta", "gamma", "delta")
+      )
+
+      js.transform(jsonTransformer) must beEqualTo(res)
     }
 
     /*"fail validation when type are not respected " in {
