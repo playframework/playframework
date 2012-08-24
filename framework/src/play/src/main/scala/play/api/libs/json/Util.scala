@@ -3,10 +3,10 @@ package play.api.libs.json.util
 class ApplicativeOps[M[_],A](ma:M[A])(implicit  a:Applicative[M]){
 
   def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
-  def andKeep[B](mb: M[B]):M[B] = ~>(mb)
+  def andThen[B](mb: M[B]):M[B] = ~>(mb)
 
   def <~[B](mb: M[B]):M[A] = a(a(a.pure((a:A) => (_:B) => a), ma),mb)
-  def keepAnd[B](mb: M[B]):M[A] = <~(mb)
+  def provided[B](mb: M[B]):M[A] = <~(mb)
 
   def <~>[B,C](mb: M[B])(implicit witness: <:<[A,B => C]):M[C] = apply(mb)
   def apply[B,C](mb: M[B])(implicit witness: <:<[A,B => C]):M[C] = a(a.map(ma,witness),mb)
@@ -53,19 +53,21 @@ trait FunctionalCanBuild[M[_]]{
 
 }
 
-trait Functor[M[_]]{
+trait Variant[M[_]]
+
+trait Functor[M[_]] extends Variant[M]{
 
   def fmap[A,B](m:M[A], f: A => B): M[B]
 
 }
 
-trait InvariantFunctor[M[_]]{
+trait InvariantFunctor[M[_]] extends Variant[M]{
 
   def inmap[A,B](m:M[A], f1: A => B, f2: B => A):M[B]
 
 }
 
-trait ContravariantFunctor[M[_]]{
+trait ContravariantFunctor[M[_]] extends Variant[M]{
 
   def contramap[A,B](m:M[A], f1: B => A):M[B]
 
@@ -81,19 +83,30 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
 
     def and[A3](m3:M[A3]) = this.~(m3)
 
-    def apply[B](f: (A1,A2) => B)(implicit fu:Functor[M]):M[B] =
+    def apply[B](f: (A1,A2) => B)(implicit fu: Functor[M]): M[B] =
       fu.fmap[A1 ~ A2, B](canBuild(m1, m2), {case a1 ~ a2 => f(a1, a2)} )
 
-    def apply[B](f: B => (A1,A2))(implicit fu:ContravariantFunctor[M]):M[B] =
+    def apply[B](f: B => (A1,A2))(implicit fu: ContravariantFunctor[M]): M[B] =
       fu.contramap(canBuild(m1, m2), (b: B) => { val (a1, a2) = f(b); new ~(a1, a2)})
 
-    def apply[B](f1: (A1,A2) => B, f2: B => (A1,A2))(implicit fu:InvariantFunctor[M]):M[B] =
+    def apply[B](f1: (A1,A2) => B, f2: B => (A1,A2))(implicit fu: InvariantFunctor[M]): M[B] =
       fu.inmap[A1 ~ A2, B](
         canBuild(m1, m2),  {case a1 ~ a2 => f1(a1, a2)}, 
         (b:B) => { val (a1, a2) = f2(b); new ~(a1, a2)}
       )
 
-    def tupled(implicit fu:Functor[M]): M[(A1, A2)] = apply{ (a1: A1, a2: A2) => (a1, a2) }(fu)
+    /**
+     * Writes[A] and Writes[A] flattened => Writes[A] applying same object A on both writers
+     */
+    def flattened(implicit witness: =:=[A1, A2], fu: ContravariantFunctor[M]): M[A1] = 
+      apply[A1]( (a1: A1) => (a1, a1: A2) )(fu)
+
+    def tupled(implicit v:Variant[M]): M[(A1, A2)] = v match {
+      case fu: Functor[M] => apply{ (a1: A1, a2: A2) => (a1, a2) }(fu)
+      case fu: ContravariantFunctor[M] => apply[(A1, A2)]{ (a: (A1, A2)) => (a._1, a._2) }(fu)
+      case fu: InvariantFunctor[M] => apply[(A1, A2)]({ (a1: A1, a2: A2) => (a1, a2) }, { (a: (A1, A2)) => (a._1, a._2) })(fu)
+    } 
+
   }
 
   class CanBuild3[A1,A2,A3](m1:M[A1 ~ A2], m2:M[A3]){
@@ -114,7 +127,17 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         (b:B) => { val (a1, a2, a3) = f2(b); new ~(new ~(a1, a2), a3) }
       )
 
-    def tupled(implicit fu:Functor[M]): M[(A1, A2, A3)] = apply{ (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }(fu)
+    /**
+     * Writes[A] and Writes[A] and Writes[A] flattened => Writes[A] applying same object A on both writers
+     */
+    def flattened(implicit witness1: =:=[A1, A2], witness2: =:=[A1, A3], fu: ContravariantFunctor[M]): M[A1] = 
+      apply[A1]( (a1: A1) => (a1, a1: A2, a1: A3) )(fu)
+
+    def tupled(implicit v:Variant[M]): M[(A1, A2, A3)] = v match {
+      case fu: Functor[M] => apply{ (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }(fu)
+      case fu: ContravariantFunctor[M] => apply[(A1, A2, A3)]{ (a: (A1, A2, A3)) => (a._1, a._2, a._3) }(fu)
+      case fu: InvariantFunctor[M] => apply[(A1, A2, A3)]({ (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }, { (a: (A1, A2, A3)) => (a._1, a._2, a._3) })(fu)
+    } 
   }
 
   class CanBuild4[A1,A2,A3,A4](m1:M[A1 ~ A2 ~ A3], m2:M[A4]){
