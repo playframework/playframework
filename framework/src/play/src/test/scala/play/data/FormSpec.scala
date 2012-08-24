@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._
 class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Request {
   def uri() = "/test"
   def method() = "GET"
+  def version() = "HTTP/1.1"
   def path() = "test"
   def host() = "localhost"
   def acceptLanguages = new java.util.ArrayList[play.i18n.Lang]

@@ -56,6 +56,8 @@ trait JavaHelpers {
 
       def method = req.method
 
+      def version = req.version
+
       def remoteAddress = req.remoteAddress
 
       def host = req.host
@@ -106,6 +108,8 @@ trait JavaHelpers {
       def uri = req.uri
 
       def method = req.method
+
+      def version = req.version
 
       def remoteAddress = req.remoteAddress
 
