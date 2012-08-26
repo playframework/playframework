@@ -57,8 +57,8 @@ trait ConstraintFormat {
 }
 
 trait PathFormat {
-  def at[A](path: JsPath)(implicit r: Reads[A], w: Writes[A]) = 
-    OFormat[A](PathReads.at(path)(r), PathWrites.at(path)(w)) 
+  def at[A](path: JsPath)(implicit f:Format[A]) = 
+    OFormat[A](PathReads.at(path)(f), PathWrites.at(path)(f)) 
 
 }
 

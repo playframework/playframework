@@ -152,9 +152,26 @@ object JsonValidSpec extends Specification {
 
       implicit val userFormats = { import PathFormat._
       (
-        at(JsPath \ "name")(minLength[String](5), of[String]) 
+        at(JsPath \ "name")(Format(minLength[String](5), of[String]))
         and 
-        at(JsPath \ "age")(min(40), of[Int])
+        at(JsPath \ "age")(Format(min(40), of[Int]))
+      )(User, unlift(User.unapply)) }
+
+      val js = Json.toJson(bobby)
+
+      println("JSON:%s".format(js))
+      
+      js.validate[User] must equalTo(JsSuccess(bobby))
+    }
+
+    "validate simple case class format" in {
+      val bobby = User("bobby", 54)
+
+      implicit val userFormats = { import PathFormat._
+      (
+        (__ \ "name").rw(minLength[String](5), of[String])
+        and 
+        (__ \ "age").rw(min(40), of[Int])
       )(User, unlift(User.unapply)) }
 
       val js = Json.toJson(bobby)

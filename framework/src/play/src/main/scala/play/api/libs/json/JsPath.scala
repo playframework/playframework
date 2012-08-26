@@ -199,10 +199,10 @@ case class JsPath(path: List[PathNode] = List()) {
   def readOpt[T](implicit r: Reads[T]) = PathReads.optional[T](this)(r)
 
   def write[T](implicit w: Writes[T]) = PathWrites.at[T](this)(w)
-
-  def format[T](implicit r: Reads[T], w: Writes[T]) = PathFormat.at[T](this)(r, w)
-  def format[T](r: Reads[T])(implicit _r: Reads[T], w: Writes[T]) = PathFormat.at[T](this)(r, w)
-  def format[T](w: Writes[T])(implicit r: Reads[T]) = PathFormat.at[T](this)(r, w)
+  def rw[T](implicit r:Reads[T], w:Writes[T]) = PathFormat.at[T](this)(Format(r, w))
+  def format[T](implicit f: Format[T]) = PathFormat.at[T](this)(f)
+  def format[T](r: Reads[T])(implicit w: Writes[T]) = PathFormat.at[T](this)(Format(r, w))
+  def format[T](w: Writes[T])(implicit r: Reads[T]) = PathFormat.at[T](this)(Format(r, w))
 
   lazy val json = {
     val self = this

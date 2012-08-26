@@ -31,6 +31,8 @@ object OFormat {
 
   }
 
+  implicit def GenericOFormat[T](implicit fjs: Reads[T], tjs: OWrites[T]): Format[T] = apply(fjs,tjs)
+
   def apply[A](read: JsValue => JsResult[A], write: A => JsObject):OFormat[A] = new OFormat[A] {
 
     def reads(js:JsValue):JsResult[A] = read(js)
@@ -49,7 +51,16 @@ object OFormat {
 /**
  * Default Json formatters.
  */
-object Format extends DefaultFormat
+object Format extends DefaultFormat {
+
+  def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = {
+    new Format[A] {
+      def reads(json: JsValue) = fjs.reads(json)
+      def writes(o: A) = tjs.writes(o)
+    }
+  }
+
+}
 
 /**
  * Default Json formatters.
@@ -62,13 +73,5 @@ trait DefaultFormat {
       def writes(o: T) = tjs.writes(o)
     }
   }
-
-  implicit def GenericOFormat[T](implicit fjs: Reads[T], tjs: OWrites[T]): Format[T] = {
-    new OFormat[T] {
-      def reads(json: JsValue) = fjs.reads(json)
-      def writes(o: T) = tjs.writes(o)
-    }
-  }
-
 }
 
