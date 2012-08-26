@@ -9,36 +9,24 @@ import play.api.data.validation.ValidationError
  * Json deserializer: write an implicit to define a deserializer for any type.
  */
 @implicitNotFound(
-  "No Json deserializer found for type ${T}. Try to implement an implicit Reads or Format for this type."
+  "No Json deserializer found for type ${A}. Try to implement an implicit Reads or Format for this type."
 )
-trait Reads[T] {
+trait Reads[A] {
   self =>
   /**
-   * Convert the JsValue into a T
+   * Convert the JsValue into a A
    */
-  def reads(json: JsValue): JsResult[T]
-/*
-  def and(other: Reads[T]) = new Reads[T] {
-    def reads(json: JsValue): JsResult[T] = self.reads(json) and other.reads(json)
+  def reads(json: JsValue): JsResult[A]
+
+  def map[B](f:A => B):Reads[B] =
+    Reads[B] { json => self.reads(json).map(f) }
+
+  def flatMap[B](f:A => Reads[B]):Reads[B] = Reads[B] { json =>
+    self.reads(json).flatMap(t => f(t).reads(json))
   }
 
-  def andThen[V](other: Reads[V]) = new Reads[V] {
-    def reads(json: JsValue): JsResult[V] = self.reads(json) andThen other.reads(json)
-  }
-
-  def or(other: Reads[T]) = new Reads[T] {
-    def reads(json: JsValue): JsResult[T] = self.reads(json) or other.reads(json)
-  }
-*/
-  def map[B](f:T => B):Reads[B] = new Reads[B] {
-    def reads(json: JsValue): JsResult[B] = self.reads(json).map(f)
-  }
-
-  def flatMap[B](f:T => Reads[B]):Reads[B] = new Reads[B] {
-    def reads(json: JsValue): JsResult[B] = self.reads(json).flatMap(t => f(t).reads(json))
-
-  }
-
+  def collect[B](error:ValidationError)(f: PartialFunction[A,B]) =
+    Reads[B] { json => self.reads(json).collect(error)(f) }
 
   /**
    * builds a JsErrorObj JsObject
@@ -60,7 +48,7 @@ object Reads extends DefaultReads {
 
   implicit def applicativeReads(implicit applicativeJsResult:Applicative[JsResult]):Applicative[Reads] = new Applicative[Reads]{
 
-    def pure[A](a:A):Reads[A] = new Reads[A] { def reads(js: JsValue) = JsSuccess(a) }
+    def pure[A](a:A):Reads[A] = Reads[A] { _ => JsSuccess(a) }
 
     def map[A,B](m:Reads[A], f: A => B):Reads[B] = m.map(f)
 

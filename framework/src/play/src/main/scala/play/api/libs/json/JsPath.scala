@@ -207,7 +207,7 @@ case class JsPath(path: List[PathNode] = List()) {
   lazy val json = {
     val self = this
     new {
-      def copy = PathWrites.copyJson(self)
+      def pick = PathWrites.pick(self)
       def create(w: OWrites[JsValue]) = PathWrites.createJson(self)(w)
       def modify(w: OWrites[JsValue]) = PathWrites.modifyJson(self)(w)
       def transform(f: JsValue => JsValue) = PathWrites.transformJson(self, f)  

@@ -106,21 +106,9 @@ trait ConstraintReads {
     }
   }
 
-  def verifying[T](cond: T => Boolean)(implicit _reads: Reads[T]) = new Reads[T] {
-    def reads(json: JsValue) = 
-      _reads
-      .reads(json)
-      .filter(ValidationError("validation.error.condition.not.verified"))(cond)
-  }
+  def verifying[A](cond: A => Boolean)(implicit _reads: Reads[A]) =
+    filter[A](ValidationError("validation.error.condition.not.verified"))(cond)(_reads)
 
-  def verifyingIf[T](cond: T => Boolean)(subreads: Reads[_])(implicit _reads: Reads[T]) = new Reads[T] {
-    def reads(json: JsValue) = _reads.reads(json).flatMap { t => 
-      (scala.util.control.Exception.catching(classOf[MatchError]) opt cond(t)).flatMap { b =>
-        if(b) Some(subreads.reads(json).map( _ => t ))
-        else None
-      }.getOrElse(JsSuccess(t))
-    }
-  }
 }
 
 object PathWrites extends PathWrites
@@ -130,13 +118,13 @@ trait PathWrites {
     OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(a)) }
 
   def optional[A](path: JsPath)(implicit _writes:Writes[Option[A]]): OWrites[Option[A]] =
-    OWrites[Option[A]]{ a => JsPath.createObj(path -> _writes.writes(a)) }  
+    at[Option[A]](path)
 
-  def copyJson(path: JsPath): OWrites[JsValue] =
+  def pick(path: JsPath): OWrites[JsValue] =
     OWrites[JsValue]{ obj => JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)) }
 
   def createJson(path: JsPath)(_writes: OWrites[JsValue]): OWrites[JsValue] =
-    OWrites[JsValue]{ obj => JsPath.createObj(path -> _writes.writes(obj)) }  
+    at[JsValue](path)(_writes)
 
   def modifyJson(path: JsPath)(_writes: OWrites[JsValue]): OWrites[JsValue] =
     OWrites[JsValue]{ obj => obj match {

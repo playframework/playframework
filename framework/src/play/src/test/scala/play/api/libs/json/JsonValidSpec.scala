@@ -264,10 +264,10 @@ object JsonValidSpec extends Specification {
       )
 
       val jsonTransformer = (
-        (__ \ "key1").json.copy and
+        (__ \ "key1").json.pick and
         (__ \ "key2").json.modify(
           (
-            (__ \ "key21").json.copy and
+            (__ \ "key21").json.pick and
             (__ \ "key22").json.transform( js => js \ "key222" )
           ) flattened
         ) and

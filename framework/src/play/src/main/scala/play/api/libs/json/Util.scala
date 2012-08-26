@@ -1,6 +1,12 @@
 package play.api.libs.json.util
 
-class ApplicativeOps[M[_],A](ma:M[A])(implicit  a:Applicative[M]){
+class FunctorOps[M[_],A](ma:M[A])(implicit fu:Functor[M]){
+
+  def fmap[B](f: A => B):M[B] = fu.fmap(ma,f)
+
+}
+
+class ApplicativeOps[M[_],A](ma:M[A])(implicit a:Applicative[M]){
 
   def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
   def andThen[B](mb: M[B]):M[B] = ~>(mb)
