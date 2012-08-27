@@ -22,7 +22,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static String HEAD = "HEAD";
 
     // --
-    
+
     public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
     public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
 
@@ -83,7 +83,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Build a new fake application.
      */
     public static FakeApplication fakeApplication() {
-        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,String>(), new ArrayList<String>());
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), new HashMap<String,Object>(), new ArrayList<String>());
     }
 
     /**
@@ -103,15 +103,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Build a new fake application.
      */
-    public static FakeApplication fakeApplication(Map<String,String> additionalConfiguration) {
+    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, new ArrayList<String>());
     }
-    
+
 
     /**
      * Build a new fake application.
      */
-    public static FakeApplication fakeApplication(Map<String,String> additionalConfiguration, List<String> additionalPlugin) {
+    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugin) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin);
     }
 
@@ -268,14 +268,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             throw e;
         } catch(Throwable t) {
             throw new RuntimeException(t);
-        } 
+        }
     }
 
     /**
      * Starts a new application.
      */
     public static void start(FakeApplication fakeApplication) {
-      
+
         play.api.Play.start(fakeApplication.getWrappedApplication());
     }
 
