@@ -297,8 +297,9 @@ object PlayBuild extends Build {
         )
 
         val testDependencies = Seq(
+            "junit"                             %    "junit-dep"                %   "4.10",
             "org.specs2"                        %%   "specs2"                   %   "1.9",
-            "com.novocode"                      %    "junit-interface"          %   "0.8",
+            "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
             // junit is literally evil because it bundles hamcrest classes that creates classloader hell.
             // junit-interface brings in junit-dep, which fixes this silliness, so we just exclude it from
             // FluentLenium, until https://github.com/FluentLenium/FluentLenium/pull/43 is accepted and
