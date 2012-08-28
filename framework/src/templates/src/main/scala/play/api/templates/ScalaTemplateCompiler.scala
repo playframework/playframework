@@ -545,7 +545,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
     
     """ :+ extra._2 :+ """
     
-    def ref = this
+    def ref: this.type = this
 
 }"""
       }
@@ -589,11 +589,12 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
           case a => filterType(a.tpt.toString)
         }.mkString(",") + ")").mkString(" => ") + " => " + returnType + ")"
 
-        val renderCall = "def render%s = apply%s".format(
+        val renderCall = "def render%s: %s = apply%s".format(
           "(" + params.flatten.map {
             case a if a.mods.isByNameParam => a.name.toString + ":" + a.tpt.children(1).toString
             case a => a.name.toString + ":" + filterType(a.tpt.toString)
           }.mkString(",") + ")",
+           returnType,
           params.map(group => "(" + group.map { p =>
             p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ":_*").getOrElse("")
           }.mkString(",") + ")").mkString)
