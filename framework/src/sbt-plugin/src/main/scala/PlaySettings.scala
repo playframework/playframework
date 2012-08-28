@@ -4,7 +4,7 @@ import Keys._
 import PlayKeys._
 
 trait PlaySettings {
-  this: PlayCommands =>
+  this: PlayCommands with PlayPositionMapper =>
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
@@ -117,6 +117,8 @@ trait PlaySettings {
     testResultReporterReset <<= testResultReporterResetTask,
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
+
+    sourcePositionMappers in Compile := playPositionMappers,
 
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
