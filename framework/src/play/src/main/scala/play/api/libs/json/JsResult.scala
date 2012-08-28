@@ -7,7 +7,7 @@ case class JsSuccess[T](value: T, path: JsPath = JsPath()) extends JsResult[T] {
   def get:T = value
 }
 
-case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[Nothing] {
+case class JsError(errors: Seq[(JsPath, Seq[ValidationError])] = Seq()) extends JsResult[Nothing] {
   def get:Nothing = throw new NoSuchElementException("JsError.get")
 
   //def toJson: JsValue = original // TODO
@@ -24,42 +24,48 @@ object JsError {
   }
 }
 
-sealed trait JsResult[+T] {
-  def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: T => X): X = this match {
+sealed trait JsResult[+A] {
+  def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: A => X): X = this match {
     case JsSuccess(v,_) => valid(v)
     case JsError(e) => invalid(e)
   }
 
-  def map[X](f: T => X): JsResult[X] = this match {
+  def map[X](f: A => X): JsResult[X] = this match {
     case JsSuccess(v,_) => JsSuccess(f(v))
     case JsError(e) => JsError(e)
   }
 
-  def filterNot(error:ValidationError)(p: T => Boolean) =
+  def filterNot(error:ValidationError)(p: A => Boolean): JsResult[A] =
     this.flatMap { a => if(p(a)) JsError(error) else JsSuccess(a) }
 
-  def filter(otherwise:ValidationError)(p: T => Boolean) =
+  def filterNot(p: A => Boolean): JsResult[A] =
+    this.flatMap { a => if(p(a)) JsError() else JsSuccess(a) }
+
+  def filter(p: A => Boolean): JsResult[A] =
+    this.flatMap { a => if(p(a)) JsSuccess(a) else JsError() }
+
+  def filter(otherwise:ValidationError)(p: A => Boolean): JsResult[A] =
     this.flatMap { a => if(p(a)) JsSuccess(a) else JsError(otherwise) }
 
-  def collect[B](otherwise:ValidationError)(p:PartialFunction[T,B]): JsResult[B] = flatMap {
+  def collect[B](otherwise:ValidationError)(p:PartialFunction[A,B]): JsResult[B] = flatMap {
     case t if p.isDefinedAt(t) => JsSuccess(p(t))
     case _ => JsError(otherwise)
   }
 
-  def flatMap[X](f: T => JsResult[X]): JsResult[X] = this match {
+  def flatMap[X](f: A => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v, path) => f(v).repath(path)
     case JsError(e) => JsError(e)
   }
 
-  //def rebase(json: JsValue): JsResult[T] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
-  def repath(path: JsPath): JsResult[T] = this match {
+  //def rebase(json: JsValue): JsResult[A] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
+  def repath(path: JsPath): JsResult[A] = this match {
     case JsSuccess(a,p) => JsSuccess(a,path ++ p)
     case JsError(es) => JsError(es.map{ case (p, s) => path ++ p -> s })
   }
 
-  def get:T
+  def get:A
 
-  def getOrElse[TT >: T](t: => TT):TT = this match {
+  def getOrElse[AA >: A](t: => AA):AA = this match {
     case JsSuccess(a,_) => a 
     case JsError(_) => t
   }

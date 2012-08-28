@@ -172,7 +172,8 @@ object JsonValidSpec extends Specification {
         (__ \ "name").rw(minLength[String](5), of[String])
         and 
         (__ \ "age").rw(min(40), of[Int])
-      )(User, unlift(User.unapply)) }
+      ) apply (User, unlift(User.unapply))
+     }
 
       val js = Json.toJson(bobby)
 

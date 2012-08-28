@@ -25,6 +25,18 @@ trait Reads[A] {
     self.reads(json).flatMap(t => f(t).reads(json))
   }
 
+  def filter(f: A => Boolean):Reads[A] =
+    Reads[A] { json => self.reads(json).filter(f) }
+
+  def filter(error:ValidationError)(f: A => Boolean): Reads[A] =
+    Reads[A] { json => self.reads(json).filter(error)(f) }
+
+  def filterNot(f: A => Boolean): Reads[A] =
+    Reads[A] { json => self.reads(json).filterNot(f) }
+
+  def filterNot(error:ValidationError)(f: A => Boolean): Reads[A] =
+    Reads[A] { json => self.reads(json).filterNot(error)(f) }
+
   def collect[B](error:ValidationError)(f: PartialFunction[A,B]) =
     Reads[B] { json => self.reads(json).collect(error)(f) }
 
