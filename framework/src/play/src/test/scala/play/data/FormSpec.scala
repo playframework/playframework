@@ -81,6 +81,17 @@ object ScalaForms {
       )
     )
 
+    val repeatedFormWithFormats = Form(
+      single(
+        "people" -> list(
+          tuple(
+            "name" -> nonEmptyText,
+            "dob" -> jodaDate("yyyy-MM-dd")
+          )
+        )
+      )
+    )
+
     val form = Form(
           "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
@@ -172,6 +183,13 @@ object FormSpec extends Specification {
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")) ).hasErrors must equalTo(true)
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+  }
+
+  "read repeated field constraints & formats" in {
+    ScalaForms.repeatedFormWithFormats("people[0].name").constraints.length must equalTo(1)
+    ScalaForms.repeatedFormWithFormats("people[0].name").constraints(0)._1 must equalTo("constraint.required")
+    ScalaForms.repeatedFormWithFormats("people[0].dob").format must beSome
+    ScalaForms.repeatedFormWithFormats("people[0].dob").format.get must equalTo("format.date", Seq("yyyy-MM-dd"))
   }
 
   "support repeated values for Java binding" in {

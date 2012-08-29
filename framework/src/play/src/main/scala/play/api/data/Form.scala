@@ -145,8 +145,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   def apply(key: String): Field = Field(
     this,
     key,
-    constraints.get(key).getOrElse(Nil),
-    formats.get(key),
+    constraints.get(key.replaceAll("""\[\d+\]""", "[]")).getOrElse(Nil),
+    formats.get(key.replaceAll("""\[\d+\]""", "[]")),
     errors.collect { case e if e.key == key => e },
     data.get(key))
 
@@ -687,7 +687,7 @@ case class RepeatedMapping[T](wrapped: Mapping[T], val key: String = "", val con
   /**
    * Sub-mappings (these can be seen as sub-keys).
    */
-  val mappings: Seq[Mapping[_]] = wrapped.mappings
+  val mappings: Seq[Mapping[_]] = wrapped.withPrefix(key + "[]").mappings
 
 }
 
