@@ -326,13 +326,17 @@ object QueryStringBindable {
    * QueryString binder for Boolean.
    */
   implicit object bindableBoolean extends Parsing[Boolean](
-    _.toInt match {
-      case 1 => true
-      case 0 => false
-    }, value => if (value) "1" else "0",
-    (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be 0 or 1".format(key)
+    _.trim match {
+      case "true" => true
+      case "false" => false
+      case b => b.toInt match {
+        case 1 => true
+        case 0 => false
+      }
+    }, _.toString,
+    (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be true, false, 0 or 1".format(key)
   ) {
-    override def javascriptUnbind = """function(k,v){return k+'='+(v?1:0)}"""
+    override def javascriptUnbind = """function(k,v){return k+'='+(!!v)}"""
   }
 
   /**
@@ -524,13 +528,17 @@ object PathBindable {
    * Path binder for Boolean.
    */
   implicit object bindableBoolean extends Parsing[Boolean](
-    _.toInt match {
-      case 1 => true
-      case 0 => false
-    }, value => if (value) "1" else "0",
-    (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be 0 or 1".format(key)
+    _.trim match {
+      case "true" => true
+      case "false" => false
+      case b => b.toInt match {
+        case 1 => true
+        case 0 => false
+      }
+    }, _.toString,
+    (key: String, e: Exception) => "Cannot parse parameter %s as Boolean: should be true, false, 0 or 1".format(key)
   ) {
-    override def javascriptUnbind = """function(k,v){return v?1:0}"""
+    override def javascriptUnbind = """function(k,v){return !!v}"""
   }
 
   /**
