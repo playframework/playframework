@@ -81,7 +81,7 @@ object JavaParsers extends BodyParsers {
 
   }
 
-  def anyContent(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.anyContent).map { body =>
+  def anyContent(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.anyContent).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { anyContent =>
@@ -95,7 +95,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def json(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.json).map { body =>
+  def json(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.json(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { json =>
@@ -103,7 +103,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def tolerantJson(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.tolerantJson).map { body =>
+  def tolerantJson(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantJson(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { json =>
@@ -111,7 +111,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def xml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.xml).map { body =>
+  def xml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.xml(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { xml =>
@@ -119,7 +119,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def tolerantXml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.tolerantXml).map { body =>
+  def tolerantXml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantXml(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { xml =>
@@ -127,7 +127,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def text(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.text).map { body =>
+  def text(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.text(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { text =>
@@ -135,7 +135,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def tolerantText(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.tolerantText).map { body =>
+  def tolerantText(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantText(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { text =>
@@ -143,7 +143,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def formUrlEncoded(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.urlFormEncoded).map { body =>
+  def formUrlEncoded(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.urlFormEncoded(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { urlFormEncoded =>
@@ -151,7 +151,7 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def multipartFormData(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.multipartFormData).map { body =>
+  def multipartFormData(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.multipartFormData).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { multipart =>
@@ -159,12 +159,14 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
-  def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(maxLength, parse.raw).map { body =>
+  def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.raw(Integer.MAX_VALUE)).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { raw =>
         DefaultRequestBody(raw = Some(raw))
       }.fold(identity, identity)
   }
+
+  private def orDefault(maxLength: Int) = if (maxLength < 0) BodyParsers.parse.DEFAULT_MAX_TEXT_LENGTH else maxLength
 
 }

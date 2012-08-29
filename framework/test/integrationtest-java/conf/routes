@@ -7,10 +7,12 @@ GET     /key                        controllers.Application.key
 GET     /async                      controllers.Application.asyncResult
 GET     /lang/:code                 controllers.Application.setLang(code)
 GET     /hello                      controllers.Application.hello()
-GET     /:name                      controllers.Application.index(name)
-
 POST    /json                       controllers.Application.getIdenticalJson()
 
+POST    /parsers/json               controllers.BodyParsers.json()
+POST    /parsers/limitedjson        controllers.BodyParsers.limitedJson()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+GET     /:name                      controllers.Application.index(name)
