@@ -15,6 +15,10 @@ public class Application {
     
     private final play.api.Application application;
     
+    public play.api.Application getWrappedApplication() {
+      return application;
+    }
+
     /**
      * Creates an application from a Scala Application value.
      */
