@@ -2,6 +2,9 @@ package sbt
 
 import xsbti.Position
 
+/**
+ * Maps positions from compile errors on generated sources to positions in the original sources
+ */
 trait PlayPositionMapper {
   val templatePositionMapper: Position => Option[Position] = position => {
     position.sourceFile collect {
@@ -39,7 +42,7 @@ trait PlayPositionMapper {
 
   val routesPositionMapper: Position => Option[Position] = position => {
     position.sourceFile collect {
-      case play.core.Router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
+      case play.router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
         new xsbti.Position {
           lazy val line = {
             position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
@@ -61,5 +64,10 @@ trait PlayPositionMapper {
     }
   }
 
+  /** Sequence of position mappers. For using with SBT 0.13 sourcePositionMappers feature */
   val playPositionMappers = Seq(templatePositionMapper, routesPositionMapper)
+  /** Single function for mapping positions. For use with reloader and now */
+  val playPositionMapper = playPositionMappers.reduceLeft { (m1, m2) =>
+    pos: xsbti.Position => m1(pos).orElse(m2(pos))
+  }
 }

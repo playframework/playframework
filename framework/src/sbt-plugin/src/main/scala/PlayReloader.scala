@@ -151,9 +151,7 @@ trait PlayReloader {
       }
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
-        val mappedPosition = playPositionMappers.reduceLeft { (m1, m2) =>
-          pos: xsbti.Position => m1(pos).orElse(m2(pos))
-        }(problem.position)
+        val mappedPosition = playPositionMapper(problem.position)
         mappedPosition.map { pos => new xsbti.Problem {
             def message = problem.message
             def category = ""

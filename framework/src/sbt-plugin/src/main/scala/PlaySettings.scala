@@ -118,8 +118,6 @@ trait PlaySettings {
 
     sourceGenerators in Compile <+= (confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
 
-    sourcePositionMappers in Compile := playPositionMappers,
-
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
 
@@ -160,7 +158,7 @@ trait PlaySettings {
 
     ebeanEnabled := false,
 
-    logManager <<= extraLoggers(PlayLogManager.default),
+    logManager <<= extraLoggers(PlayLogManager.default(playPositionMapper)),
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
