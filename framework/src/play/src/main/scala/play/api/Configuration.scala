@@ -2,7 +2,7 @@ package play.api
 
 import java.io._
 
-import com.typesafe.config.{ Config, ConfigFactory, ConfigList, ConfigParseOptions, ConfigSyntax, ConfigObject, ConfigOrigin, ConfigException }
+import com.typesafe.config._
 
 import scala.collection.JavaConverters._
 
@@ -523,7 +523,13 @@ case class Configuration(underlying: Config) {
    * }}}
    * @return the set of direct sub-keys available in this configuration
    */
-  def subKeys: Set[String] = keys.map(_.split('.').head)
+  def subKeys: Set[String] = underlying.root().keySet().asScala.toSet
+
+  /**
+   * Returns every path as a set of key to value pairs, by recursively iterating through the
+   * config objects.
+   */
+  def entrySet: Set[(String, ConfigValue)] = underlying.entrySet().asScala.map(e => e.getKey -> e.getValue).toSet
 
   /**
    * Creates a configuration error for a specific configuration key.
