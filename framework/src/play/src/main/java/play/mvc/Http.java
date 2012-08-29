@@ -871,6 +871,8 @@ public class Http {
         int NO_CONTENT = 204;
         int RESET_CONTENT = 205;
         int PARTIAL_CONTENT = 206;
+        int MULTI_STATUS = 207;
+        int IM_USED = 226;
         int MULTIPLE_CHOICES = 300;
         int MOVED_PERMANENTLY = 301;
         int FOUND = 302;
@@ -896,12 +898,22 @@ public class Http {
         int UNSUPPORTED_MEDIA_TYPE = 415;
         int REQUESTED_RANGE_NOT_SATISFIABLE = 416;
         int EXPECTATION_FAILED = 417;
+        int UNPROCESSABLE_ENTITY = 422;
+        int LOCKED = 423;
+        int FAILED_DEPENDENCY = 424;
+        int UPGRADE_REQUIRED = 426;
+        int PRECONDITION_REQUIRED = 428;
+        int TOO_MANY_REQUESTS = 429;
+        int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
         int INTERNAL_SERVER_ERROR = 500;
         int NOT_IMPLEMENTED = 501;
         int BAD_GATEWAY = 502;
         int SERVICE_UNAVAILABLE = 503;
         int GATEWAY_TIMEOUT = 504;
         int HTTP_VERSION_NOT_SUPPORTED = 505;
+        int INSUFFICIENT_STORAGE = 507;
+        int NOT_EXTENDED = 510;
+        int NETWORK_AUTHENTICATION_REQUIRED = 511;
     }
 
 }
