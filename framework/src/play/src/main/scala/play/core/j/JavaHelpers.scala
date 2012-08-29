@@ -139,5 +139,27 @@ trait JavaHelpers {
       req.flash.data.asJava)
   }
 
+  /**
+   * Invoke the given function with the right context set, converting the scala request to a
+   * Java request, and converting the resulting Java result to a Scala result, before returning
+   * it.
+   *
+   * This is intended for use by methods in the JavaGlobalSettingsAdapter, which need to be handled
+   * like Java actions, but are not Java actions.
+   *
+   * @param request The request
+   * @param f The function to invoke
+   * @return The result
+   */
+  def invokeWithContext(request: RequestHeader, f: JRequest => Option[JResult]): Option[Result] = {
+    val javaContext = createJavaContext(request)
+    try {
+      JContext.current.set(javaContext)
+      f(javaContext.request()).map(result => createResult(javaContext, result))
+    } finally {
+      JContext.current.remove()
+    }
+  }
+
 }
 object JavaHelpers extends JavaHelpers

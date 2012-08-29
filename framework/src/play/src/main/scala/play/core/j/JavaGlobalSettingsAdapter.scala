@@ -26,18 +26,18 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
   }
 
   override def onError(request: RequestHeader, ex: Throwable): Result = {
-    val r = JavaHelpers.createJavaRequest(request)
-    Option(underlying.onError(r, ex)).map(_.getWrappedResult).getOrElse(super.onError(request, ex))
+    JavaHelpers.invokeWithContext(request, req => Option(underlying.onError(req, ex)))
+      .getOrElse(super.onError(request, ex))
   }
 
   override def onHandlerNotFound(request: RequestHeader): Result = {
-    val r = JavaHelpers.createJavaRequest(request)
-    Option(underlying.onHandlerNotFound(r)).map(_.getWrappedResult).getOrElse(super.onHandlerNotFound(request))
+    JavaHelpers.invokeWithContext(request, req => Option(underlying.onHandlerNotFound(req)))
+      .getOrElse(super.onHandlerNotFound(request))
   }
 
   override def onBadRequest(request: RequestHeader, error: String): Result = {
-    val r = JavaHelpers.createJavaRequest(request)
-    Option(underlying.onBadRequest(r, error)).map(_.getWrappedResult).getOrElse(super.onBadRequest(request, error))
+    JavaHelpers.invokeWithContext(request, req => Option(underlying.onBadRequest(req, error)))
+      .getOrElse(super.onBadRequest(request, error))
   }
 
 }
