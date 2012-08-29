@@ -59,18 +59,16 @@ object ResultsSpec extends Specification {
     }
 
     "support session helper" in {
-
       Session.decode("  ").isEmpty must be_==(true)
       import java.io.File
       import play.api._
       import play.core._
       val cl = Thread.currentThread().getContextClassLoader()
-
-      implicit val app: Application = new Application(new File("."), cl, None, Mode.Test) {
+      implicit val app: Application = new Application(new File("./src/play/src/test"), cl, None, Mode.Test) {
         override lazy val configuration = Configuration.from(Map("application.secret" -> "pass"))
       }
       Play.start(app)
-
+      
       val data = Map("user" -> "kiki", "bad:key" -> "yop", "langs" -> "fr:en:de")
       val encodedSession = Session.encode(data)
       val decodedSession = Session.decode(encodedSession)
