@@ -195,10 +195,15 @@ public class Http {
          */
         public abstract String uri();
 
-        /**
-         * The HTTP Method.
-         */
-        public abstract String method();
+      /**
+       * The HTTP Method.
+       */
+      public abstract String method();
+
+       /**
+        * The HTTP version.
+        */
+        public abstract String version();
 
         /**
          * The client IP address.

@@ -23,7 +23,7 @@ case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1") extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1") extends Request[A] {
 
   /**
    * The request path.

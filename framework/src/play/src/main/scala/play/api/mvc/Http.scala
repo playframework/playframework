@@ -28,6 +28,11 @@ package play.api.mvc {
     def method: String
 
     /**
+     * The HTTP version.
+     */
+    def version: String
+
+    /**
      * The parsed query string.
      */
     def queryString: Map[String, Seq[String]]
@@ -150,6 +155,7 @@ package play.api.mvc {
       def uri = self.uri
       def path = self.path
       def method = self.method
+      def version = self.version
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
@@ -164,6 +170,7 @@ package play.api.mvc {
       def uri = rh.uri
       def path = rh.path
       def method = rh.method
+      def version = rh.version
       def queryString = rh.queryString
       def headers = rh.headers
       lazy val remoteAddress = rh.remoteAddress
@@ -182,6 +189,7 @@ package play.api.mvc {
     def path = request.path
     def uri = request.uri
     def method = request.method
+    def version = request.version
     def remoteAddress = request.remoteAddress
   }
 
