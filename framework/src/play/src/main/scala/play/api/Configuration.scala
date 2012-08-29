@@ -5,7 +5,6 @@ import java.io._
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
-import scala.Some
 
 /**
  * This object provides a set of operations to create `Configuration` values.
