@@ -16,7 +16,7 @@ public interface BodyParser {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Of {
         Class<? extends BodyParser> value();
-        int maxLength() default Integer.MAX_VALUE;
+        int maxLength() default -1;
     }
 
     /**

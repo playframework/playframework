@@ -34,7 +34,9 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class WS {
 
-    private static AsyncHttpClient client = play.api.libs.ws.WS.client();
+    private static AsyncHttpClient client() {
+        return play.api.libs.ws.WS.client();
+    }
 
     /**
      * Prepare a new request. You can then construct it by chaining calls.
@@ -140,7 +142,7 @@ public class WS {
         private Promise<Response> execute() {
             final scala.concurrent.Promise<Response> scalaPromise = scala.concurrent.Promise$.MODULE$.<Response>apply();
             try {
-                WS.client.executeRequest(request, new AsyncCompletionHandler<com.ning.http.client.Response>() {
+                WS.client().executeRequest(request, new AsyncCompletionHandler<com.ning.http.client.Response>() {
                     @Override
                     public com.ning.http.client.Response onCompleted(com.ning.http.client.Response response) {
                         final com.ning.http.client.Response ahcResponse = response;
