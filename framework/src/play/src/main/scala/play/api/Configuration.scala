@@ -28,7 +28,7 @@ object Configuration {
       val file = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
       ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file, parseOpts))
     } catch {
-      case e: ConfigException.IO => 
+      case e: ConfigException.IO =>
         throw configError(e.origin, """application.conf not found. If you're running tests using FakeApplication or TestServer, add the path parameter: FakeApplication(path = new java.io.File("path/to/application/folder"))""", Some(e))
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
@@ -36,6 +36,35 @@ object Configuration {
 
   private val parseOpts = ConfigParseOptions.defaults().setAllowMissing(false)
   private val resolveOpts = ConfigResolveOptions.defaults()
+
+  // Basically duplicate ConfigFactory#loadDefaultConfig
+  // see: #713
+  private def getConf: Config = {
+    println("GET CONF")
+    val resource = Option(System.getProperty("config.resource")).map{ r =>
+      if (r.startsWith("/"))
+        r.substring(1)
+      else r
+    }
+    val file = Option(System.getProperty("config.file"))
+    val url = Option(System.getProperty("config.url"))
+
+    val all = resource :: file :: url :: Nil
+
+    if(all.flatten.size > 1){
+      throw new ConfigException.Generic("You set more than one of config.file='" + file
+              + "', config.url='" + url + "', config.resource='" + resource
+              + "'; don't know which one to use!");
+    }
+
+    val confs = all.zip(List[String => Config](
+      r => ConfigFactory.load(r, parseOpts, resolveOpts),
+      f => ConfigFactory.parseFile(new File(f), parseOpts),
+      u => ConfigFactory.parseURL(new java.net.URL(u), parseOpts)
+    )).map{ case (o, f) => o.map(f) }.flatten
+
+    confs.headOption.getOrElse(ConfigFactory.load("application", parseOpts, resolveOpts))
+  }
 
   /**
    * Loads a new `Configuration` either from the classpath or from
@@ -52,7 +81,7 @@ object Configuration {
   def load(appPath: File, mode: Mode.Mode = Mode.Dev) = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load("application", parseOpts, resolveOpts)) else Configuration(loadDev(appPath))
+      if (currentMode == Mode.Prod) Configuration(getConf) else Configuration(loadDev(appPath))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
       case e => throw e
