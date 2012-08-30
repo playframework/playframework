@@ -1,10 +1,15 @@
 package play.api.mvc
 
 import org.specs2.mutable._
+import org.specs2.specification.{AroundOutside, Scope}
+import org.specs2.execute.{Result => SpecsResult}
+import play.api.Application
 
 object ResultsSpec extends Specification {
 
   import play.api.mvc.Results._
+
+  sequential
 
   "SimpleResult" should {
 
@@ -58,18 +63,9 @@ object ResultsSpec extends Specification {
       setCookies("logged").maxAge must be_==(0)
     }
 
-    "support session helper" in {
+    "support session helper" in new WithApplication {
 
       Session.decode("  ").isEmpty must be_==(true)
-      import java.io.File
-      import play.api._
-      import play.core._
-      val cl = Thread.currentThread().getContextClassLoader()
-
-      implicit val app: Application = new Application(new File("."), cl, None, Mode.Test) {
-        override lazy val configuration = Configuration.from(Map("application.secret" -> "pass"))
-      }
-      Play.start(app)
 
       val data = Map("user" -> "kiki", "bad:key" -> "yop", "langs" -> "fr:en:de")
       val encodedSession = Session.encode(data)
@@ -98,6 +94,32 @@ object ResultsSpec extends Specification {
       playSession.data must havePair("langs" -> "fr:en:de")
     }
 
+    "ignore session cookies that have been tampered with" in new WithApplication {
+      val data = Map("user" -> "alice")
+      val encodedSession = Session.encode(data)
+      // Change a value in the session
+      val maliciousSession = encodedSession.replaceFirst("user%3Aalice", "user%3Amallory")
+      val decodedSession = Session.decode(maliciousSession)
+      decodedSession must beEmpty
+    }
   }
 
+  trait WithApplication extends Around with Scope {
+    import play.api._
+    import java.io.File
+
+    implicit val app: Application = new Application(new File("."), Thread.currentThread.getContextClassLoader, None, Mode.Test) {
+      override lazy val configuration = Configuration.from(Map("application.secret" -> "pass",
+        "ehcacheplugin" -> "disabled"))
+    }
+
+    def around[T <% SpecsResult](t: => T) = {
+      Play.start(app)
+      try {
+        t
+      } finally {
+        Play.stop()
+      }
+    }
+  }
 }
