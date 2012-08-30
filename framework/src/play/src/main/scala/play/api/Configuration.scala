@@ -26,16 +26,11 @@ object Configuration {
   private[play] def loadDev(appPath: File) = {
     try {
       val file = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
-      ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file, parseOpts))
+      ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
     } catch {
-      case e: ConfigException.IO => 
-        throw configError(e.origin, """application.conf not found. If you're running tests using FakeApplication or TestServer, add the path parameter: FakeApplication(path = new java.io.File("path/to/application/folder"))""", Some(e))
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
   }
-
-  private val parseOpts = ConfigParseOptions.defaults().setAllowMissing(false)
-  private val resolveOpts = ConfigResolveOptions.defaults()
 
   /**
    * Loads a new `Configuration` either from the classpath or from
@@ -52,7 +47,7 @@ object Configuration {
   def load(appPath: File, mode: Mode.Mode = Mode.Dev) = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load("application", parseOpts, resolveOpts)) else Configuration(loadDev(appPath))
+      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev(appPath))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
       case e => throw e
