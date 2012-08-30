@@ -40,7 +40,6 @@ object Configuration {
   // Basically duplicate ConfigFactory#loadDefaultConfig
   // see: #713
   private def getConf: Config = {
-    println("GET CONF")
     val resource = Option(System.getProperty("config.resource")).map{ r =>
       if (r.startsWith("/"))
         r.substring(1)
