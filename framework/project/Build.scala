@@ -260,6 +260,7 @@ object PlayBuild extends Build {
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             
             "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
+            "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             
             "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.5.6"      %  "test"

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
+    <XRD>
+        <Service>
+            <Type>http://specs.openid.net/auth/2.0/server</Type>
+            <URI>https://www.google.com/a/example.com/o8/ud?be=o8</URI>
+        </Service>
+    </XRD>
+</xrds:XRDS>

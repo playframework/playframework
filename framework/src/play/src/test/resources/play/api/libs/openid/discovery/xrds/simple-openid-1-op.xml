@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
+    <XRD>
+        <Service>
+            <Type>http://openid.net/server/1.0</Type>
+            <URI>http://openidprovider-server-1.example.com</URI>
+        </Service>
+    </XRD>
+</xrds:XRDS>
