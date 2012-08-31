@@ -237,9 +237,9 @@ object PlayBuild extends Build {
               .exclude("org.jboss.netty", "netty")
             ,
             
-            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
-            "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.1",
-            "com.codahale"                      %   "jerkson_2.9.1"             %   "0.5.0",
+            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.2",
+            "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.2",
+            "com.codahale"                      %%   "jerkson"                  %   "0.5.0",
             
             ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
               .exclude("com.google.guava", "guava")
