@@ -259,39 +259,39 @@ object PlayBuild extends Build {
      
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.5.2.Final",
-            "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
-            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.4",
-            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.4",
-            "ch.qos.logback"                    %    "logback-core"             %   "1.0.3",
-            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.3",
+            "org.slf4j"                         %    "slf4j-api"                %   "1.6.6",
+            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.6",
+            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.6",
+            "ch.qos.logback"                    %    "logback-core"             %   "1.0.7",
+            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.7",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
             "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
             "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
 
-            ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
+            ("com.google.guava"                 %    "guava"                    %   "13.0.1" notTransitive())
               .exclude("com.google.code.findbugs", "jsr305")
             ,
 
-            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
+            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
 
             ("org.avaje"                        %    "ebean"                    %   "2.8.1" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
 
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
-            "com.h2database"                    %    "h2"                       %   "1.3.158",
+            "com.h2database"                    %    "h2"                       %   "1.3.168",
             
-                "org.scala-tools"               %    "scala-stm_2.10.0-M7"      %   "0.6",
+            "org.scala-tools"                   %    "scala-stm_2.10.0-M7"      %   "0.6",
 
             ("com.jolbox"                       %    "bonecp"                   %   "0.7.1.RELEASE" notTransitive())
               .exclude("com.google.guava", "guava")
               .exclude("org.slf4j", "slf4j-api")
             ,
 
-            "org.yaml"                          %    "snakeyaml"                %   "1.9",
-            "org.hibernate"                     %    "hibernate-validator"      %   "4.2.0.Final",
+            "org.yaml"                          %    "snakeyaml"                %   "1.10",
+            "org.hibernate"                     %    "hibernate-validator"      %   "4.3.0.Final",
 
-            ("org.springframework"              %    "spring-context"           %   "3.0.7.RELEASE" notTransitive())
+            ("org.springframework"              %    "spring-context"           %   "3.1.2.RELEASE" notTransitive())
               .exclude("org.springframework", "spring-aop")
               .exclude("org.springframework", "spring-beans")
               .exclude("org.springframework", "spring-core")
@@ -299,12 +299,12 @@ object PlayBuild extends Build {
               .exclude("org.springframework", "spring-asm")
             ,
 
-            ("org.springframework"              %    "spring-core"              %   "3.0.7.RELEASE" notTransitive())
+            ("org.springframework"              %    "spring-core"              %   "3.1.2.RELEASE" notTransitive())
               .exclude("org.springframework", "spring-asm")
               .exclude("commons-logging", "commons-logging")
             ,
 
-            ("org.springframework"              %    "spring-beans"             %   "3.0.7.RELEASE" notTransitive())
+            ("org.springframework"              %    "spring-beans"             %   "3.1.2.RELEASE" notTransitive())
               .exclude("org.springframework", "spring-core")
             ,
 
@@ -318,12 +318,11 @@ object PlayBuild extends Build {
               .exclude("org.jboss.netty", "netty")
             ,
 
-            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
-            "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.1",
-            "org.codehaus.jackson"        %   "jackson-core-asl"              %   "1.9.9",
-            "org.codehaus.jackson"        %   "jackson-mapper-asl"              %   "1.9.9",
-
-            ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
+            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.2",
+            "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.2",
+            "org.codehaus.jackson"              %   "jackson-core-asl"          %   "1.9.9",
+            "org.codehaus.jackson"              %   "jackson-mapper-asl"        %   "1.9.9",
+            ("org.reflections"                  %    "reflections"              %   "0.9.8" notTransitive())
               .exclude("com.google.guava", "guava")
               .exclude("javassist", "javassist")
             ,
@@ -332,33 +331,33 @@ object PlayBuild extends Build {
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
 
-            "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
+            "net.sf.ehcache"                    %    "ehcache-core"             %   "2.6.0",
 
-              "org.specs2"                        %   "specs2_2.10.0-M7"        %   "1.12.1.1"     %  "test",
+            "org.specs2"                        %   "specs2_2.10.0-M7"          %   "1.12.1.1" %  "test",
 
-              "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
-              "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
+            "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
 
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test"
         )
 
         val link = Seq(
             "org.javassist"                     %    "javassist"                %   "3.16.1-GA"
         )
 
-        
+
         val routersCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1"
         )
 
         val templatesCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
-            "org.specs2"                        %%   "specs2"                   %   "1.11"    %   "test"
+            "org.specs2"                        %%   "specs2"                   %   "1.12.1"    %   "test"
         )
         
         
         val sbtDependencies = Seq(
-            "com.typesafe.config"               %    "config"                   %   "0.2.1",
+            "com.typesafe"                      %    "config"                   %   "0.5.0",
             "rhino"                             %    "js"                       %   "1.7R2",
 
             ("com.google.javascript"            %    "closure-compiler"         %   "rr2079.1" notTransitive())
@@ -382,8 +381,8 @@ object PlayBuild extends Build {
               .exclude("javax.persistence", "persistence-api")
             ,
 
-            "com.h2database"                    %    "h2"                       %   "1.3.158",
-            "javassist"                         %    "javassist"                %   "3.12.1.GA",
+            "com.h2database"                    %    "h2"                       %   "1.3.168",
+            "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
             "org.pegdown"                       %    "pegdown"                  %   "1.1.0",
 
             "net.contentobjects.jnotify"        %    "jnotify"                  %   "0.94"
@@ -396,19 +395,15 @@ object PlayBuild extends Build {
 
         val templatesDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
-            "org.specs2"                        %%   "specs2"                   %   "1.11"    %   "test"
+            "org.specs2"                        %    "specs2_2.10.0-M7"         %   "1.12.1.1"    %   "test"
         )
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
-            "org.specs2"                        %   "specs2_2.10.0-M7"        %   "1.12.1.1",
+            "org.specs2"                        %    "specs2_2.10.0-M7"         %   "1.12.1.1",
             "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
 
-            // junit is literally evil because it bundles hamcrest classes that creates classloader hell.
-            // junit-interface brings in junit-dep, which fixes this silliness, so we just exclude it from
-            // FluentLenium, until https://github.com/FluentLenium/FluentLenium/pull/43 is accepted and
-            // released. So when you upgrade FluentLenium, check that, then you can remove the exclude
-            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.6.0" exclude ("junit", "junit")
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"
         )
 
     }
