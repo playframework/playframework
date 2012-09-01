@@ -869,7 +869,7 @@ object Router {
               |%s
               |case %s%s(params) => {
               |   call%s { %s
-              |        invokeHandler(_root_.%s%s, %s)
+              |        invokeHandler(%s%s, %s)
               |   }
               |}
           """.stripMargin.format(
@@ -899,7 +899,7 @@ object Router {
             if (r.call.instantiate) {
               classFactoryMethodName + "(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
             } else {
-              "_root_." + r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+              r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
             },
 
             // call parameters
@@ -1074,8 +1074,8 @@ object Router {
 
       def className: Parser[String] = namedError("[a-zA-Z]+".r, "Class name expected")
 
-      def call: Parser[HandlerCall] = packageName ~ "." ~ className ~ opt("()") ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
-        case pkgName ~ _ ~ className ~ instantiate ~ _ ~ fieldMethod ~ parameters =>
+      def call: Parser[HandlerCall] = opt("new[ \t]+".r) ~ packageName ~ "." ~ className ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
+        case instantiate ~ pkgName ~ _ ~ className ~ _ ~ fieldMethod ~ parameters =>
           {
             val packageName = pkgName.mkString(".")
             val dynamic = !instantiate.isEmpty

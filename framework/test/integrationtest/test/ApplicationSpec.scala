@@ -179,9 +179,16 @@ class ApplicationSpec extends Specification {
 
     "instantiate controllers" in {
       running(FakeApplication()) {
-        val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.JavaControllerInstance.index().url))
-        contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
-        contentType(result) must equalTo (Some("application/json"))
+        "Java controller instance" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.JavaControllerInstance.index().url))
+          contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
+          contentType(result) must equalTo (Some("application/json"))
+        }
+        "Scala controller instance" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.ScalaControllerInstance.index().url))
+          contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
+          contentType(result) must equalTo (Some("application/json"))
+        }
       }
     }
 
