@@ -54,11 +54,15 @@ trait Reads[A] {
 /**
  * Default deserializer type classes.
  */
-object Reads extends DefaultReads {
+object Reads extends ConstraintReads with PathReads with DefaultReads {
+
+  val constraints: ConstraintReads = this
+
+  val path: PathReads = this
 
   import play.api.libs.json.util._
 
-  implicit def applicativeReads(implicit applicativeJsResult:Applicative[JsResult]):Applicative[Reads] = new Applicative[Reads]{
+  implicit def applicative(implicit applicativeJsResult:Applicative[JsResult]):Applicative[Reads] = new Applicative[Reads]{
 
     def pure[A](a:A):Reads[A] = Reads[A] { _ => JsSuccess(a) }
 
@@ -68,7 +72,7 @@ object Reads extends DefaultReads {
 
   }
 
-  implicit def alternativeReads(implicit a: Applicative[Reads]):Alternative[Reads] = new Alternative[Reads]{
+  implicit def alternative(implicit a: Applicative[Reads]):Alternative[Reads] = new Alternative[Reads]{
     val app = a
     def |[A,B >: A](alt1: Reads[A], alt2 :Reads[B]):Reads[B] = new Reads[B] {
       def reads(js: JsValue) = alt1.reads(js) match {
@@ -82,8 +86,8 @@ object Reads extends DefaultReads {
     def empty:Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
   }
 
-  def apply[A](_reads: JsValue => JsResult[A]): Reads[A] = new Reads[A] {
-    def reads(json: JsValue) = _reads(json)
+  def apply[A](f: JsValue => JsResult[A]): Reads[A] = new Reads[A] {
+    def reads(json: JsValue) = f(json)
   }
 
   implicit def functorReads(implicit a: Applicative[Reads]) = new Functor[Reads]{
@@ -171,6 +175,41 @@ trait DefaultReads {
       case JsNumber(n) => JsSuccess(n)
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
     }
+  }
+
+  implicit object DateReads extends Reads[java.util.Date] {
+    def reads(json: JsValue): JsResult[java.util.Date] = json match {
+      case JsNumber(d) => JsSuccess(new java.util.Date(d.toInt))
+      case JsString(s) => parseDate(s) match {
+        case Some(d) => JsSuccess(d)
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date.isoformat"))))
+      }
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
+    }
+
+    private def parseDate(input: String): Option[java.util.Date] = {
+      //NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ which breaks
+      //things a bit.  Before we go on we have to repair this.
+      val df = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssz" )
+      
+      //this is zero time so we need to add that TZ indicator for 
+      val inputStr = if ( input.endsWith( "Z" ) ) {
+          input.substring( 0, input.length() - 1) + "GMT-00:00"
+        } else {
+            val inset = 6
+        
+            val s0 = input.substring( 0, input.length - inset )
+            val s1 = input.substring( input.length - inset, input.length )
+
+            s0 + "GMT" + s1
+        }
+      
+      try { Some(df.parse( input )) } catch {
+        case _: java.text.ParseException => None
+      }
+      
+    }
+
   }
 
   /**

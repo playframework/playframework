@@ -195,67 +195,28 @@ case class JsPath(path: List[PathNode] = List()) {
   /**
    * Reads/Writes/Format builders
    */
-  def read[T](implicit r: Reads[T]) = PathReads.at[T](this)(r)
-  def readOpt[T](implicit r: Reads[T]) = PathReads.optional[T](this)(r)
+  def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
+  def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
 
-  def write[T](implicit w: Writes[T]) = PathWrites.at[T](this)(w)
-  def rw[T](implicit r:Reads[T], w:Writes[T]) = PathFormat.at[T](this)(Format(r, w))
-  def format[T](implicit f: Format[T]) = PathFormat.at[T](this)(f)
-  def format[T](r: Reads[T])(implicit w: Writes[T]) = PathFormat.at[T](this)(Format(r, w))
-  def format[T](w: Writes[T])(implicit r: Reads[T]) = PathFormat.at[T](this)(Format(r, w))
+  def write[T](implicit w: Writes[T]) = Writes.at[T](this)(w)
+  def rw[T](implicit r:Reads[T], w:Writes[T]) = Format.at[T](this)(Format(r, w))
+  def format[T](implicit f: Format[T]) = Format.at[T](this)(f)
+  def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
+  def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
 
-  lazy val json = {
-    val self = this
-    new {
-      def pick = PathWrites.pick(self)
-      def create(w: OWrites[JsValue]) = PathWrites.createJson(self)(w)
-      def modify(w: OWrites[JsValue]) = PathWrites.modifyJson(self)(w)
-      def transform(f: JsValue => JsValue) = PathWrites.transformJson(self, f)  
-      def write(js: JsValue)(implicit w: Writes[JsValue]) = self.write(js)
-    }
+  private val self = this
+
+  object json {
+    def pick: OWrites[JsValue] = Writes.pick(self)
+    def put(w: Writes[JsValue]): OWrites[JsValue] = Writes.at(self)(w)
+    def put(js: JsValue)(implicit w: Writes[JsValue]): OWrites[JsValue] = self.write(js)
+    def modify(w: Writes[JsValue]): OWrites[JsValue] = Writes.modifyJson(self)(w)
+    def transform(f: JsValue => JsValue): OWrites[JsValue] = Writes.transformJson(self, f)  
   }
   
-  def write[T](t: T)(implicit w: Writes[T]) = PathWrites.fixedValue(this, t)
+  def write[T](t: T)(implicit w: Writes[T]) = Writes.fixedValue(this, t)
 
   // TODO
-  def set(origin: JsValue, transform: JsValue => JsValue): JsValue = {
-    def buildLevel(json: JsValue, currentPath: PathNode)(mapF: Either[(PathNode, JsValue), (PathNode, JsValue)] => (PathNode, JsValue)): JsValue = {
-      val nodes = currentPath.splitChildren(json).map( mapF )
 
-      json match {
-        case obj: JsObject => nodes.foldLeft(Json.obj()){ (acc, nodejs) => (acc ++ nodejs._1.toJsonField(nodejs._2)).as[JsObject] } 
-        case arr: JsArray => nodes.foldLeft(Json.arr()){ (acc, nodejs) => (acc :+ nodejs._1.toJsonField(nodejs._2)).as[JsArray] }
-        case _ => json
-      }
-    }
-
-    def step(path: List[PathNode], json: JsValue): JsValue = path match {
-      case Nil => transform(json)
-      case List(pathnode) => 
-        pathnode match {
-          case RecursiveSearch(_) => 
-            buildLevel(json, pathnode){
-              case Left((locpath, js)) => locpath -> step(path, js)
-              case Right((locpath, js)) => locpath -> transform(js)
-            }
-          case _ => pathnode.set(json, transform)
-        }
-      case pathnode :: tail => 
-        pathnode match {
-          case RecursiveSearch(_) => 
-            buildLevel(json, pathnode){
-              case Left((locpath, js)) => locpath -> step(path, js)
-              case Right((locpath, js)) => locpath -> step(tail, js)
-            }
-          case _ => pathnode(json) match {
-            case Nil => json
-            case List(js) => pathnode.set(json, js => step(tail, js)) 
-            case js :: jstail => pathnode.set(js, js => step(tail, js)) // shall not happen 
-          }
-        }
-    }
-
-    step(path, origin)
-  }
 
 }

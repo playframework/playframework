@@ -6,9 +6,7 @@ import play.api.libs.json.Json._
 import scala.util.control.Exception._
 import java.text.ParseException
 import play.api.data.validation.ValidationError
-
-import play.api.libs.json.Constraints._
-
+import Reads.constraints._
 
 object JsonValidSpec extends Specification {
   "JSON reads" should {
@@ -106,7 +104,7 @@ object JsonValidSpec extends Specification {
     }
 
     "validate simple constraints" in {
-      JsString("alphabeta").validate[String](minLength(5)) must equalTo(JsSuccess("alphabeta"))
+      JsString("alphabeta").validate[String](Reads.minLength(5)) must equalTo(JsSuccess("alphabeta"))
     }
 
     "test JsPath.create" in {
@@ -126,14 +124,14 @@ object JsonValidSpec extends Specification {
         (ConstraintReads.at[String](JsPath \ "name")(ConstraintReads.minLength[String](5) ) ~
         ConstraintReads.at[Int](JsPath \ "age")(ConstraintReads.min(40)))(User.apply _)*/
       
-      implicit val userReads = { import PathReads._
+      implicit val userReads = { import Reads.path._
       (
         at(JsPath \ "name")(minLength[String](5)) 
         and 
         at(JsPath \ "age")(min(40))
       )(User) }
 
-      implicit val userWrites = { import PathWrites._
+      implicit val userWrites = { import Writes.constraints._
       (
         at[String](JsPath \ "name")
         and 
@@ -150,7 +148,7 @@ object JsonValidSpec extends Specification {
     "validate simple case class format" in {
       val bobby = User("bobby", 54)
 
-      implicit val userFormats = { import PathFormat._
+      implicit val userFormats = { import Format.constraints._
       (
         at(JsPath \ "name")(Format(minLength[String](5), of[String]))
         and 
@@ -167,7 +165,7 @@ object JsonValidSpec extends Specification {
     "validate simple case class format" in {
       val bobby = User("bobby", 54)
 
-      implicit val userFormats = { import PathFormat._
+      implicit val userFormats = { import Format.constraints._
       (
         (__ \ "name").rw(minLength[String](5), of[String])
         and 
@@ -183,7 +181,7 @@ object JsonValidSpec extends Specification {
     }
     
     "JsObject tupled reads" in {
-      implicit val dataReads: Reads[(String, Int)] = { import PathReads._
+      implicit val dataReads: Reads[(String, Int)] = { import Reads.path._
         (
           at[String]( __ \ "uuid" ) and 
           at[Int]( __ \ "nb" )
@@ -287,16 +285,16 @@ object JsonValidSpec extends Specification {
           (
             (__ \ "key21").json.pick and
             (__ \ "key22").json.transform( js => js \ "key222" )
-          ) flattened
+          ) join
         ) and
-        (__ \ "key3").json.transform( js => js ++ Json.arr("delta")) and
-        (__ \ "key4").json.create(
+        (__ \ "key3").json.transform( js => js.as[JsArray] ++ Json.arr("delta")) and
+        (__ \ "key4").json.put(
           (
-            (__ \ "key41").json.write(JsNumber(345)) and
-            (__ \ "key42").json.write(JsString("alpha"))
-          ) flattened
+            (__ \ "key41").json.put(JsNumber(345)) and
+            (__ \ "key42").json.put(JsString("alpha"))
+          ) join
         )
-      ) flattened
+      ) join
 
       val res = Json.obj(
         "key1" -> "value1",

@@ -19,13 +19,16 @@ trait Writes[-T] {
 
 }
 
+@implicitNotFound(
+  "No Json deserializer as JsObject found for type ${T}. Try to implement an implicit OWrites or Format for this type."
+)
 trait OWrites[-T] extends Writes[T]{
 
  def writes(o: T): JsObject
 
 }
 
-object OWrites {
+object OWrites extends PathWrites with ConstraintWrites {
   import play.api.libs.json.util._
 
   implicit val functionalCanBuildWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
@@ -48,7 +51,9 @@ object OWrites {
 /**
  * Default Serializers.
  */
-object Writes extends DefaultWrites {
+object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
+
+  val constraints: ConstraintWrites with PathWrites = this
 
   import play.api.libs.json.util._
 
@@ -111,6 +116,12 @@ trait DefaultWrites {
    */
   implicit object BigDecimalWrites extends Writes[BigDecimal] {
     def writes(o: BigDecimal) = JsNumber(o)
+  }
+
+  implicit object DateWrites extends Writes[java.util.Date] {    
+
+    def writes(d: java.util.Date) = JsNumber(d.getTime)
+
   }
 
   /**

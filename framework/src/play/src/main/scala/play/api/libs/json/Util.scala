@@ -101,10 +101,7 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         (b:B) => { val (a1, a2) = f2(b); new ~(a1, a2)}
       )
 
-    /**
-     * Writes[A] and Writes[A] flattened => Writes[A] applying same object A on both writers
-     */
-    def flattened[A >: A1](implicit witness1: <:<[A, A1], witness2: <:<[A, A2], fu: ContravariantFunctor[M]): M[A] = 
+    def join[A >: A1](implicit witness1: <:<[A, A1], witness2: <:<[A, A2], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2)] = v match {
@@ -133,9 +130,6 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         (b:B) => { val (a1, a2, a3) = f2(b); new ~(new ~(a1, a2), a3) }
       )
 
-    /**
-     * Writes[A] and Writes[A] and Writes[A] flattened => Writes[A] applying same object A on both writers
-     */
     def flattened[A >: A1](implicit witness1: <%<[A, A1], witness2: <%<[A, A2], witness3: <%<[A, A3], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2, a: A3) )(fu)
 
@@ -164,10 +158,7 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         (b:B) => { val (a1, a2, a3, a4) = f2(b); new ~(new ~(new ~(a1, a2), a3), a4) }
       )
 
-    /**
-     * Writes[A] and Writes[A] and Writes[A] flattened => Writes[A] applying same object A on both writers
-     */
-    def flattened[A >: A1](implicit witness1: <%<[A, A1], witness2: <%<[A, A2], witness3: <%<[A, A3], witness4: <%<[A, A4], fu: ContravariantFunctor[M]): M[A] = 
+    def join[A >: A1](implicit witness1: <%<[A, A1], witness2: <%<[A, A2], witness3: <%<[A, A3], witness4: <%<[A, A4], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2, a: A3, a: A4) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2, A3, A4)] = v match {

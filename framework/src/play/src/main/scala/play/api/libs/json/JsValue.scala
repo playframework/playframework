@@ -74,22 +74,6 @@ sealed trait JsValue {
 
   override def toString = Json.stringify(this)
 
-
-  /**
-   * Concatenates this JsValue with another JsValue (only works for JsObject/JsArray).
-   */
-  def ++(other: JsValue): JsValue = JsUndefined("++" + " can only be applied on JsObject/JsArray")
-
-  /**
-   * Append an element to this JsValue (only works for JsObject/JsArray).
-   */
-  def :+(el: JsValue): JsValue = JsUndefined(":+" + " can only be applied on JsObject/JsArray")
-
-  /**
-   * Prepend an element to this JsValue (only works for JsObject/JsArray).
-   */
-  def +:(el: JsValue): JsValue = JsUndefined("+:" + " can only be applied on JsObject/JsArray")
-
   /**
    * Prune the Json AST according to the provided JsPath
    */
@@ -146,20 +130,18 @@ case class JsArray(value: Seq[JsValue] = List()) extends JsValue{
   /**
    * Concatenates this array with the elements of an other array.
    */
-  override def ++(other: JsValue): JsValue = other match { 
-    case JsArray(v) => JsArray(value ++ v)
-    case _ => super.++(other)
-  }
+  def ++(other: JsArray): JsArray =
+    JsArray(value ++ other.value)
 
   /**
    * Append an element to this array.
    */
-  override def :+(el: JsValue): JsArray = JsArray(value :+ el)
+  def :+(el: JsValue): JsArray = JsArray(value :+ el)
 
   /**
    * Prepend an element to this array.
    */
-  override def +:(el: JsValue): JsArray = JsArray(el +: value)
+  def +:(el: JsValue): JsArray = JsArray(el +: value)
 
 }
 
@@ -203,13 +185,9 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
   /**
    * Merge this object with an other one. Values from other override value of the current object.
    */
-  override def ++(other: JsValue): JsValue = other match {
-    case o @ JsObject(_) => JsObject(fields.filterNot(field => o.keys(field._1)) ++ o.fields)
-    case _ => super.++(other)
-  }
+  def ++(other: JsObject): JsObject =
+    JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
 
-  def ++(other: JsObject): JsObject = JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
-  
   /**
    * merges everything in depth and doesn't stop at first level as ++
    * TODO : improve because coding is nasty there
@@ -269,23 +247,6 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
     JsObject(step(fields.toList, other.fields.toList))
   }
-
-
-  /**
-   * Append an element to this object (only a JsObject).
-   */
-  override def :+(el: JsValue): JsValue = el match {
-    case o @ JsObject(_) => o ++ this
-    case _ => super.:+(el)
-  }
-
-  /**
-   * Prepend an element to this object (only a JsObject).
-   */
-  override def +:(el: JsValue): JsValue = el match {
-    case o @ JsObject(_) => this ++ o
-    case _ => super.+:(el)
-  }  
 
 }
 

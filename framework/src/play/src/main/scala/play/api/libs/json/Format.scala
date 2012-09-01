@@ -51,7 +51,9 @@ object OFormat {
 /**
  * Default Json formatters.
  */
-object Format extends DefaultFormat {
+object Format extends PathFormat with ConstraintFormat with DefaultFormat {
+
+  val constraints: ConstraintFormat with PathFormat = this
 
   def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = {
     new Format[A] {
@@ -73,5 +75,7 @@ trait DefaultFormat {
       def writes(o: T) = tjs.writes(o)
     }
   }
+
+
 }
 
