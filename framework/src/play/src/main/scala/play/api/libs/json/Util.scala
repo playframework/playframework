@@ -130,7 +130,7 @@ class FunctionalBuilder[M[_]](canBuild:FunctionalCanBuild[M]){
         (b:B) => { val (a1, a2, a3) = f2(b); new ~(new ~(a1, a2), a3) }
       )
 
-    def flattened[A >: A1](implicit witness1: <%<[A, A1], witness2: <%<[A, A2], witness3: <%<[A, A3], fu: ContravariantFunctor[M]): M[A] = 
+    def join[A >: A1](implicit witness1: <%<[A, A1], witness2: <%<[A, A2], witness3: <%<[A, A3], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2, a: A3) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2, A3)] = v match {
