@@ -28,6 +28,11 @@ package play.api.mvc {
     def method: String
 
     /**
+     * The HTTP version.
+     */
+    def version: String
+
+    /**
      * The parsed query string.
      */
     def queryString: Map[String, Seq[String]]
@@ -44,6 +49,10 @@ package play.api.mvc {
 
     /**
      * The client IP address.
+     *
+     * If the `X-Forwarded-For` header is present, then this method will return the value in that header
+     * if either the local address is 127.0.0.1, or if `trustxforwarded` is configured to be true in the
+     * application configuration file.
      */
     def remoteAddress: String
 
@@ -146,12 +155,28 @@ package play.api.mvc {
       def uri = self.uri
       def path = self.path
       def method = self.method
+      def version = self.version
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
       lazy val body = f(self.body)
     }
 
+  }
+
+  object Request {
+
+    def apply[A](rh: RequestHeader, a: A) = new Request[A] {
+      def uri = rh.uri
+      def path = rh.path
+      def method = rh.method
+      def version = rh.version
+      def queryString = rh.queryString
+      def headers = rh.headers
+      lazy val remoteAddress = rh.remoteAddress
+      def username = None
+      val body = a
+    }
   }
 
   /**
@@ -164,6 +189,7 @@ package play.api.mvc {
     def path = request.path
     def uri = request.uri
     def method = request.method
+    def version = request.version
     def remoteAddress = request.remoteAddress
   }
 
@@ -228,19 +254,23 @@ package play.api.mvc {
     /**
      * Retrieve all header values associated with the given key.
      */
-    def getAll(key: String): Seq[String]
+    def getAll(key: String): Seq[String] = toMap.get(key).flatten.toSeq
 
     /**
      * Retrieve all header keys
      */
-    def keys: Set[String]
+    def keys: Set[String] = toMap.keySet
 
     /**
      * Transform the Headers to a Map
      */
-    def toMap: Map[String, Seq[String]] = keys.map { headerKey =>
-      (headerKey, getAll(headerKey))
-    }.toMap
+    lazy val toMap: Map[String, Seq[String]] = {
+      import collection.immutable.TreeMap
+      import play.core.utils.CaseInsensitiveOrdered
+      TreeMap(data: _*)(CaseInsensitiveOrdered)
+    }
+
+    protected def data: Seq[(String, Seq[String])]
 
     /**
      * Transform the Headers to a Map by ignoring multiple values.
@@ -248,6 +278,8 @@ package play.api.mvc {
     def toSimpleMap: Map[String, String] = keys.map { headerKey =>
       (headerKey, apply(headerKey))
     }.toMap
+
+    override def toString = toMap.toString
 
   }
 
@@ -304,11 +336,26 @@ package play.api.mvc {
 
       def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
 
+      // Do not change this unless you understand the security issues behind timing attacks.
+      // This method intentionally runs in constant time if the two strings have the same length.
+      // If it didn't, it would be vulnerable to a timing attack.
+      def safeEquals(a: String, b: String) = {
+        if (a.length != b.length) {
+          false
+        } else {
+          var equal = 0
+          for (i <- Array.range(0, a.length)) {
+            equal |= a(i) ^ b(i)
+          }
+          equal == 0
+        }
+      }
+
       try {
         if (isSigned) {
           val splitted = data.split("-")
           val message = splitted.tail.mkString("-")
-          if (splitted(0) == Crypto.sign(message))
+          if (safeEquals(splitted(0), Crypto.sign(message)))
             urldecode(message)
           else
             Map.empty[String, String]

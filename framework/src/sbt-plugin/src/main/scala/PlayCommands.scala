@@ -80,23 +80,60 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     commonClassLoader
   }
 
-  val playVersion = SettingKey[String]("play-version")
-
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
     inAllDependencies(r, (compile in Compile).task, Project structure s).join
   }
 
+  val buildRequire = TaskKey[Seq[(java.io.File, java.io.File)]]("play-build-require-assets")
+  val buildRequireTask = (copyResources in Compile, crossTarget, requireSubFolder, requireNativePath) map { (cr, crossTarget, requireSubFolder, requireNativePath) =>
+    val buildDescName = "app.build.js"
+    val prefix = "javascripts" + java.io.File.separator
+    val subDir = prefix + requireSubFolder
+    val rjoldDir = crossTarget / "classes" / "public" / subDir
+    val rjnewDir = new java.io.File(rjoldDir.getAbsolutePath + "-min")
+    val jsFiles = (rjoldDir ** "*.js").filter(_.getName.endsWith("min.js") == false).get.toSet
+    val buildDesc = crossTarget / "classes" / "public" / buildDescName
+    val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
+    if (jsFiles.isEmpty == false) {
+      IO.write(buildDesc,
+        """({
+              appDir: """" + subDir + """",
+              baseUrl: ".",
+              dir:"""" + prefix + rjnewDir.getName + """",
+              modules: ["""
+          + jsFiles.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """
+              ]
+           })""".stripMargin
+
+      )
+      //run requireJS
+      requireNativePath.map(nativePath =>
+        println(play.core.jscompile.JavascriptCompiler.executeNativeCompiler(nativePath + " -o " + buildDesc.getAbsolutePath, buildDesc))
+      ).getOrElse {
+        play.core.jscompile.JavascriptCompiler.require(buildDesc)
+      }
+      //clean-up
+      IO.delete(buildDesc)
+      IO.delete(rjoldDir)
+      rjnewDir.renameTo(rjoldDir)
+    }
+    cr
+  }
+
+  val buildRequireAndPackage = TaskKey[File]("play-build-require-and-package")
+  val buildRequireAndPackageTask = (packageBin in Compile).dependsOn(buildRequire)
+
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
-  val playPackageEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
-    inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
+  val playPackageEverythingTask = (state, thisProjectRef, crossTarget) flatMap { (s, r, crossTarget) =>
+    inAllDependencies(r, buildRequireAndPackage.task, Project structure s).join
   }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
-  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
+  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>
     val cacheFile = c / "copy-assets"
 
-    val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
+    val mappings = (r.map(d => (d ***) --- (d ** HiddenFileFilter ***)).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
 
@@ -108,26 +145,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
       }
     }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
 
-    /*
-    Disable GZIP Generation for this release.
-    -----
-     
-    val toZip = mappings.collect { case (resource, _) if resource.isFile && !resource.getName.endsWith(".gz") => resource } x relativeTo(Seq(b, resourcesDirectories))
-
-    val gzipped = toZip.map {
-      case (resource, path) => {
-        s.log.debug("Gzipping " + resource)
-        val zipFile = new File(resourcesDirectories, path + ".gz")
-        IO.gzip(resource, zipFile)
-        zipFile -> new File(t, path + ".gz")
-      }
-    }
-
-    val assetsMapping = mappings ++ gzipped*/
-
     val assetsMapping = mappings ++ externalMappings
 
-    s.log.debug("Copy play resource mappings: " + mappings.mkString("\n\t", "\n\t", ""))
+    s.log.debug("Copy play resource mappings: " + assetsMapping.mkString("\n\t", "\n\t", ""))
 
     Sync(cacheFile)(assetsMapping)
     assetsMapping
@@ -169,9 +189,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
         } yield {
           module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
         }
-        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        val path = ("lib/" + filename.getOrElse(dependency.data.getName))
         dependency.data -> path
-      } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
+      } ++ packaged.map(jar => jar -> ("lib/" + jar.getName))
     }
 
     val start = target / "start"
@@ -181,8 +201,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
     IO.write(start,
       """#!/usr/bin/env sh
-
-exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+scriptdir=`dirname $0`
+classpath=""" + libs.map { case (jar, path) => "$scriptdir/" + path }.mkString("\"", ":", "\"") + """
+exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
 """ /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
@@ -196,7 +217,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       Seq(productionConfig -> (packageName + "/" + customConfigFile.getName))
     }.getOrElse(Nil)
 
-    IO.zip(libs ++ scripts ++ other ++ prodApplicationConf, zip)
+    IO.zip(libs.map { case (jar, path) => jar -> (packageName + "/" + path) } ++ scripts ++ other ++ prodApplicationConf, zip)
     IO.delete(start)
     IO.delete(productionConfig)
 
@@ -206,7 +227,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     zip
   }
-
 
   def intellijCommandSettings(mainLang: String) = {
     import org.sbtidea.SbtIdeaPlugin
@@ -250,17 +270,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     ()
   }
-
-  val playHash = TaskKey[String]("play-hash")
-  val playHashTask = (state, thisProjectRef, playExternalAssets, watchTransitiveSources) map { (s,r, externalAssets, transitiveSources) =>
-    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
-       (base / "public" ** "*")
-    }.foldLeft(PathFinder.empty)(_ +++ _)
-    ((filesToHash +++ externalAssets.map {
-      case (root, paths, _) => paths(root)
-    }.foldLeft(PathFinder.empty)(_ +++ _)).get ++ transitiveSources).map(_.lastModified).mkString(",").hashCode.toString
-  }
-
 
   // ----- Post compile (need to be refactored and fully configurable)
 
@@ -429,21 +438,23 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
     }
   }
 
-  private def filterArgs(args: Seq[String]): (Seq[(String, String)], Int) = {
+  private def filterArgs(args: Seq[String], defaultPort: Int): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
     // collect arguments plus config file property if present 
     val httpPort = Option(System.getProperty("http.port"))
     val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
     //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property 
-    val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(9000)
+    val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(defaultPort)
 
     (javaProperties, port)
   }
 
   val playRunCommand = Command.args("run", "<args>") { (state: State, args: Seq[String]) =>
 
+    val extracted = Project.extract(state)
+
     // Parse HTTP port argument
-    val (properties, port) = filterArgs(args)
+    val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
 
     // Set Java properties
     properties.foreach {
@@ -454,10 +465,10 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
     val sbtLoader = this.getClass.getClassLoader
     def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
-    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
-        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
-        throw commonLoaderEither.left.get
-      }
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse {
+      state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+      throw commonLoaderEither.left.get
+    }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader
@@ -483,13 +494,7 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
           if (sharedClasses.contains(name)) {
             sbtLoader.loadClass(name)
           } else {
-            try {
-              super.loadClass(name)
-            } catch {
-              case e: ClassNotFoundException => {
-                reloader.currentApplicationClassLoader.map(_.loadClass(name)).getOrElse(throw e)
-              }
-            }
+            super.loadClass(name)
           }
         }
 
@@ -531,6 +536,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       // Run in DEV
       val server = mainDev.invoke(null, reloader, port: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
 
+      // Notify hooks
+      extracted.get(playOnStarted).foreach(_(server.mainAddress))
+
       println()
       println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
       println()
@@ -552,7 +560,6 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
             case e: Exception =>
               val log = s.log
               log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
-              BuiltinCommands.handleException(e, s, log)
               (false, watchState, s.fail)
           }
 
@@ -610,6 +617,9 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       server.stop()
       reloader.clean()
 
+      // Notify hooks
+      extracted.get(playOnStopped).foreach(_())
+
       newState
     }
 
@@ -628,10 +638,10 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
-    // Parse HTTP port argument
-    val (properties, port) = filterArgs(args)
-
     val extracted = Project.extract(state)
+
+    // Parse HTTP port argument
+    val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
 
     Project.runTask(compile in Compile, state).get._2.toEither match {
       case Left(_) => {
@@ -643,6 +653,8 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       case Right(_) => {
 
         Project.runTask(dependencyClasspath in Runtime, state).get._2.toEither.right.map { dependencies =>
+          //trigger a require build if needed
+          Project.runTask(buildRequire, state).get._2
 
           val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
 
@@ -780,6 +792,16 @@ exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.f
       }
     }
 
+  }
+
+  val playMonitoredDirectories = TaskKey[Seq[String]]("play-monitored-directories")
+  val playMonitoredDirectoriesTask = (thisProjectRef, state) map { (ref, state) =>
+    val src = inAllDependencies(ref, sourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val resources = inAllDependencies(ref, resourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val assets = inAllDependencies(ref, playAssetsDirectories, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    (src ++ resources ++ assets).map { f =>
+      if (!f.exists) f.mkdirs(); f
+    }.map(_.getCanonicalPath).distinct
   }
 
   val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")

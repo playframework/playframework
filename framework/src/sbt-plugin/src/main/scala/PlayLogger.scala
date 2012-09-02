@@ -26,9 +26,14 @@ object PlayLogManager {
 }
 
 class PlayLogManager(extra: ScopedKey[_] => Seq[AbstractLogger]) extends LogManager {
+  //reintroduce missing methods
+  def defaultScreen: AbstractLogger = ConsoleLogger()
+  //reintroduce missing methods
+  def defaultBacked(useColor: Boolean = ConsoleLogger.formatEnabled): java.io.PrintWriter => ConsoleLogger =
+    to => ConsoleLogger(ConsoleLogger.printWriterOut(to), useColor = useColor)
 
-  val screen = LogManager.defaultScreen
-  val backed = LogManager.defaultBacked()
+  val screen = defaultScreen
+  val backed = defaultBacked()
 
   def apply(data: Settings[Scope], state: State, task: ScopedKey[_], to: java.io.PrintWriter): Logger = {
     new FilterLogger(

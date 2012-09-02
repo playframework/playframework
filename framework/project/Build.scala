@@ -32,7 +32,6 @@ object PlayBuild extends Build {
         file("src/anorm"),
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"anorm_"+previousScalaVersion} % previousVersion),
-            libraryDependencies := anormDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             publishArtifact in (Compile, packageDoc) := false,
@@ -73,10 +72,7 @@ object PlayBuild extends Build {
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
 
-    def registerPlugin(module: ModuleID, localScalaVersion: String= buildScalaVersionForSbt) = 
-        libraryDependencies <+= (sbtVersion) {
-            sbtVersion => Defaults.sbtPluginExtra(module, sbtVersion, localScalaVersion)
-        }
+  
 
     lazy val SbtPluginProject = Project(
       "SBT-Plugin",
@@ -85,8 +81,8 @@ object PlayBuild extends Build {
         sbtPlugin := true,
         publishMavenStyle := false,
         libraryDependencies := sbtDependencies,
-        registerPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.1.0-RC1"),
-        registerPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-M2-TYPESAFE"),
+        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0"),
+        addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0-TYPESAFE"),
         unmanagedJars in Compile ++= sbtJars,
         publishTo := Some(playIvyRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -131,11 +127,11 @@ object PlayBuild extends Build {
 
         val buildOrganization = "play"
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
-        val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.1")
-        val buildScalaVersionForSbt = "2.9.1"
-        val buildSbtVersion   = "0.11.3"
-        val previousVersion   = "2.0.2"
+        val previousVersion   = "2.0.3"
         val previousScalaVersion = "2.9.1"
+        val buildScalaVersion = Option(System.getProperty("scala.version")).getOrElse("2.9.2")
+        val buildScalaVersionForSbt = "2.9.2"
+        val buildSbtVersion   = "0.12.0"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
             organization   := buildOrganization,
@@ -150,7 +146,6 @@ object PlayBuild extends Build {
     object LocalSBT {
 
         import BuildSettings._
-
         def isJar(f:java.io.File) = f.getName.endsWith(".jar")
 
         val sbtJars:Seq[java.io.File] = {
@@ -162,7 +157,6 @@ object PlayBuild extends Build {
         val compilerJar:java.io.File = {
           file("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/scala-compiler.jar")
         }
-
     }
 
     object Resolvers {
@@ -237,6 +231,7 @@ object PlayBuild extends Build {
             "org.joda"                          %    "joda-convert"             %   "1.2",
             "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
+            "org.apache.ws.commons"             %    "ws-commons-util"          %   "1.0.1" exclude("junit", "junit"),
             
             ("com.ning"                         %    "async-http-client"        %   "1.7.0" notTransitive())
               .exclude("org.jboss.netty", "netty")
@@ -255,19 +250,10 @@ object PlayBuild extends Build {
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             
-            ("jaxen"                            %    "jaxen"                    %   "1.1.3" notTransitive())
-              .exclude("maven-plugins", "maven-cobertura-plugin")
-              .exclude("maven-plugins", "maven-findbugs-plugin")
-              .exclude("dom4j", "dom4j")
-              .exclude("jdom", "jdom")
-              .exclude("xml-apis", "xml-apis")
-              .exclude("xerces", "xercesImpl")
-              .exclude("xom", "xom")
-            ,
-            
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             
             "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
+            "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             
             "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
@@ -277,7 +263,7 @@ object PlayBuild extends Build {
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "rhino"                             %    "js"                       %   "1.7R2",
             
-            ("com.google.javascript"            %    "closure-compiler"         %   "r2079" notTransitive())
+            ("com.google.javascript"            %    "closure-compiler"         %   "rr2079.1" notTransitive())
               .exclude("args4j", "args4j")
               .exclude("com.google.guava", "guava")
               .exclude("org.json", "json")
@@ -296,7 +282,9 @@ object PlayBuild extends Build {
             
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
-            "org.pegdown"                       %    "pegdown"                  %   "1.1.0"
+            "org.pegdown"                       %    "pegdown"                  %   "1.1.0",
+
+            "net.contentobjects.jnotify"        %    "jnotify"                  %   "0.94"
         )
 
         val consoleDependencies = Seq(
@@ -309,14 +297,15 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.9"    %   "test"
         )
 
-        val anormDependencies = Seq(
-        )
-
         val testDependencies = Seq(
+            "junit"                             %    "junit-dep"                %   "4.10",
             "org.specs2"                        %%   "specs2"                   %   "1.9",
-            "com.novocode"                      %    "junit-interface"          %   "0.8",
-            
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"
+            "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
+            // junit is literally evil because it bundles hamcrest classes that creates classloader hell.
+            // junit-interface brings in junit-dep, which fixes this silliness, so we just exclude it from
+            // FluentLenium, until https://github.com/FluentLenium/FluentLenium/pull/43 is accepted and
+            // released. So when you upgrade FluentLenium, check that, then you can remove the exclude
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.6.0" exclude ("junit", "junit")
         )
 
     }

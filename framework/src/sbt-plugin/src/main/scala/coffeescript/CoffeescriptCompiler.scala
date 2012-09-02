@@ -57,7 +57,7 @@ object CoffeescriptCompiler {
   def compile(source: File, options: Seq[String]): String = {
     try {
       if (options.size == 2 && options.headOption.filter(_ == "native").isDefined)
-        executeNativeCompiler(options.last + " " + source.getAbsolutePath, source)
+        play.core.jscompile.JavascriptCompiler.executeNativeCompiler(options.last + " " + source.getAbsolutePath, source)
       else
         compiler(source, options.contains("bare"))
     } catch {

@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
+import com.typesafe.config.ConfigValue;
 import scala.collection.JavaConverters;
 
 import play.libs.Scala;
@@ -254,6 +255,35 @@ public class Configuration {
      */
     public Set<String> keys() {
         return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
+    }
+    
+    /**
+     * Retrieves the set of direct sub-keys available in this configuration.
+     *
+     * @return the set of direct sub-keys available in this configuration
+     */
+    public Set<String> subKeys() {
+        return JavaConverters.setAsJavaSetConverter(conf.subKeys()).asJava();
+    }
+
+    /**
+     * Returns the config as a map of plain old Java maps, lists and values.
+     *
+     * @return The config map
+     */
+    public Map<String, Object> asMap() {
+        return conf.underlying().root().unwrapped();
+    }
+
+    /**
+     * Returns the config as a set of full paths to config values.  This is
+     * different to {@link asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
+     * objects, and keys are recursively expanded to be pull path keys.
+     *
+     * @return The config as an entry set
+     */
+    public Set<Map.Entry<String, ConfigValue>> entrySet() {
+        return conf.underlying().entrySet();
     }
     
     /**
@@ -576,5 +606,5 @@ public class Configuration {
           out = defaultObject;
         }
         return out;
-    }       
+    }
 }

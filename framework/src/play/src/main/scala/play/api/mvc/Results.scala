@@ -7,6 +7,7 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
+import play.api.libs.concurrent.execution.defaultContext
 
 /**
  * A simple HTTP response header, used for standard responses.
@@ -148,7 +149,7 @@ sealed trait WithHeaders[+A <: Result] {
 /**
  * Helper utilities for Result values.
  */
-object Result {
+object PlainResult {
 
   /**
    * Extractor:
@@ -362,8 +363,17 @@ case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[
    * @param f The transformation function
    * @return The transformed `AsyncResult`
    */
-  def transform(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
+  def transform(f: PlainResult => Result): AsyncResult = AsyncResult (result.map {
+      case AsyncResult(r) => AsyncResult(r.map{
+        case r:PlainResult => f(r)
+        case r:AsyncResult => r.transform(f)})
+      case r:PlainResult => f(r)
+  })
 
+  def unflatten:Promise[PlainResult] = result.flatMap {
+      case r:PlainResult => Promise.pure(r)
+      case r@AsyncResult(_) => r.unflatten
+  }
 
   def map(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
 

@@ -195,16 +195,24 @@ public class Http {
          */
         public abstract String uri();
 
-        /**
-         * The HTTP Method.
-         */
-        public abstract String method();
+      /**
+       * The HTTP Method.
+       */
+      public abstract String method();
+
+       /**
+        * The HTTP version.
+        */
+        public abstract String version();
 
         /**
          * The client IP address.
+         *
+         * If the <code>X-Forwarded-For</code> header is present, then this method will return the value in that header
+         * if either the local address is 127.0.0.1, or if <code>trustxforwarded</code> is configured to be true in the
+         * application configuration file.
          */
         public abstract String remoteAddress();
-
 
         /**
          * The request host.

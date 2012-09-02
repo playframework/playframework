@@ -52,6 +52,12 @@ trait GlobalSettings {
   def configuration: Configuration = Configuration.empty
 
   /**
+   * Called Just before the action is used.
+   *
+   */
+  def doFilter(a: EssentialAction): EssentialAction = a
+
+  /**
    * Called when an HTTP request has been received.
    *
    * The default is to use the application router to find the appropriate action.
@@ -75,7 +81,7 @@ trait GlobalSettings {
    */
   def onError(request: RequestHeader, ex: Throwable): Result = {
     InternalServerError(Play.maybeApplication.map {
-      case app if app.mode == Mode.Dev => views.html.defaultpages.devError.f
+      case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
       case app => views.html.defaultpages.error.f
     }.getOrElse(views.html.defaultpages.devError.f) {
       ex match {
@@ -95,7 +101,7 @@ trait GlobalSettings {
    */
   def onHandlerNotFound(request: RequestHeader): Result = {
     NotFound(Play.maybeApplication.map {
-      case app if app.mode == Mode.Dev => views.html.defaultpages.devNotFound.f
+      case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
     }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.flatMap(_.routes)))
   }
@@ -110,6 +116,10 @@ trait GlobalSettings {
    */
   def onBadRequest(request: RequestHeader, error: String): Result = {
     BadRequest(views.html.defaultpages.badRequest(request, error))
+  }
+
+  def onRequestCompletion(request: RequestHeader) {
+
   }
 
   /**

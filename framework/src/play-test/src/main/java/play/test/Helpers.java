@@ -1,5 +1,7 @@
 package play.test;
 
+import play.*;
+
 import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
@@ -241,6 +243,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Use the Router to determine the Action to call for this request and executes it.
+     * @deprecated
+     * @see #route instead
      */
     @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(FakeRequest fakeRequest) {
@@ -255,6 +259,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     /**
      * Use the Router to determine the Action to call for this request and executes it.
+     * @deprecated
+     * @see #route instead
      */
     public static Result routeAndCall(Class<? extends play.core.Router.Routes> router, FakeRequest fakeRequest) {
         try {
@@ -271,10 +277,43 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         } 
     }
 
+    public static Result route(FakeRequest fakeRequest) {
+      return route(play.Play.application(), fakeRequest);
+    }
+
+    public static Result route(Application app, FakeRequest fakeRequest) {
+      final play.api.mvc.Result r = play.api.test.Helpers.route(app.getWrappedApplication(), fakeRequest.getWrappedRequest()).getOrElse(null);
+      if(r != null){
+        return new Result() {
+          public play.api.mvc.Result getWrappedResult(){
+            return r;
+          }
+        };
+      }
+      return null;
+    }
+
+    public static <T> Result route(Application app, FakeRequest fakeRequest, byte[] body) {
+      final play.api.mvc.Result r = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body).getOrElse(null);
+      if(r != null){
+        return new Result() {
+          public play.api.mvc.Result getWrappedResult(){
+            return r;
+          }
+        };
+      }
+      return null;
+    }
+
+    public static <T> Result route(FakeRequest fakeRequest, byte[] body) {
+      return route(play.Play.application(), fakeRequest, body);
+    }
+
     /**
      * Starts a new application.
      */
     public static void start(FakeApplication fakeApplication) {
+      
         play.api.Play.start(fakeApplication.getWrappedApplication());
     }
 
@@ -294,8 +333,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             block.run();
         } finally {
             stop(fakeApplication);
+            play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
+            play.core.Invoker$.MODULE$.system().shutdown();
+            play.core.Invoker$.MODULE$.uninit();
+            play.api.libs.ws.WS$.MODULE$.resetClient();
         }
     }
+
 
     /**
      * Creates a new Test server.

@@ -5,6 +5,7 @@ import play.api.test.Helpers._
 
 import org.specs2.mutable._
 import models._
+import play.api.mvc.AnyContentAsEmpty
 
 class ApplicationSpec extends Specification {
 
@@ -73,10 +74,14 @@ class ApplicationSpec extends Specification {
 
     "execute json with content type" in {
      running(FakeApplication()) {
-         val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithContentType"))
+       // here we just test the case insensitivity of FakeHeaders, which is not that
+       // interesting, ...
+         val Some(result) = routeAndCall(FakeRequest(GET, "/jsonWithContentType",
+           FakeHeaders(Seq("Accept"-> Seq("application/json"))), AnyContentAsEmpty))
          status(result) must equalTo(OK)
          contentType(result) must equalTo(Some("application/json"))
          charset(result) must equalTo(None)
+         contentAsString(result) must contain("""{"Accept":"application/json"}""")
          play.test.Helpers.charset(javaResult(result)) must equalTo(null)
        }
      }
@@ -111,30 +116,36 @@ class ApplicationSpec extends Specification {
 
     "reverse routes containing boolean parameters" in {
       "in the query string" in {
-        controllers.routes.Application.takeBool(true).url must equalTo ("/take-bool?b=1")
-        controllers.routes.Application.takeBool(false).url must equalTo ("/take-bool?b=0")
+        controllers.routes.Application.takeBool(true).url must equalTo ("/take-bool?b=true")
+        controllers.routes.Application.takeBool(false).url must equalTo ("/take-bool?b=false")
       }
       "in the  path" in {
-        controllers.routes.Application.takeBool2(true).url must equalTo ("/take-bool-2/1")
-        controllers.routes.Application.takeBool2(false).url must equalTo ("/take-bool-2/0")
+        controllers.routes.Application.takeBool2(true).url must equalTo ("/take-bool-2/true")
+        controllers.routes.Application.takeBool2(false).url must equalTo ("/take-bool-2/false")
       }
     }
 
     "bind boolean parameters" in {
       "from the query string" in {
         running(FakeApplication()) {
-          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool(true).url))
+          val Some(result) = routeAndCall(FakeRequest(GET, "/take-bool?b=true"))
           contentAsString(result) must equalTo ("true")
-          val Some(result2) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool(false).url))
+          val Some(result2) = routeAndCall(FakeRequest(GET, "/take-bool?b=false"))
           contentAsString(result2) must equalTo ("false")
+          // Bind boolean values from 1 and 0 integers too
+          contentAsString(routeAndCall(FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
+          contentAsString(routeAndCall(FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
         }
       }
       "from the path" in {
         running(FakeApplication()) {
-          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool2(true).url))
+          val Some(result) = routeAndCall(FakeRequest(GET, "/take-bool-2/true"))
           contentAsString(result) must equalTo ("true")
-          val Some(result2) = routeAndCall(FakeRequest(GET, controllers.routes.Application.takeBool2(false).url))
+          val Some(result2) = routeAndCall(FakeRequest(GET, "/take-bool-2/false"))
           contentAsString(result2) must equalTo ("false")
+          // Bind boolean values from 1 and 0 integers too
+          contentAsString(routeAndCall(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
+          contentAsString(routeAndCall(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
         }
       }
     }

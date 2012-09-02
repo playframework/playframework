@@ -16,6 +16,8 @@ import akka.pattern.Patterns.ask
 import akka.util.duration._
 import akka.util.Timeout
 
+import play.api.libs.concurrent.execution.defaultContext
+
 trait WebSocketable {
   def getHeader(header: String): String
   def check: Boolean
@@ -90,15 +92,54 @@ trait Server {
       }
 
   }
-
+  /*
   def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
-    invoker.actionInvoker ! Invoker.HandleAction(request, response, action, app)
+import play.api.http.HeaderNames._
+    scala.concurrent.Future {
+ val result = try {
+         play.utils.Threads.withContextClassLoader(app.classloader) {
+          action(request)
+        }
+      } catch {
+        case e => app.handleError(request, e)
+      }
+
+      response.handle {
+
+        // Handle Flash Scope (probably not the good place to do it)
+        result match {
+          case r: PlainResult => {
+
+            val header = r.header
+
+            val flashCookie = {
+              header.headers.get(SET_COOKIE)
+                .map(Cookies.decode(_))
+                .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
+                  Option(request.flash).filterNot(_.isEmpty).map { _ =>
+                    Cookie(Flash.COOKIE_NAME, "", 0)
+                  }
+                }
+            }
+
+            flashCookie.map { newCookie =>
+              r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
+            }.getOrElse(r)
+
+          }
+          case r => r
+        }
+
+      }
+
+    }
   }
 
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    val future = ask(invoker.actionInvoker, Invoker.GetBodyParser(requestHeaders, bodyFunction), bodyParserTimeout)
-    future.asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
+    scala.concurrent.Future(bodyFunction(requestHeaders))
+
   }
+  */
 
   def applicationProvider: ApplicationProvider
 

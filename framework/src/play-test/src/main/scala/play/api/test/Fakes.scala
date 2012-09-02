@@ -1,27 +1,17 @@
 package play.api.test;
 
 import play.api.mvc._
-import org.codehaus.jackson.JsonNode
 import play.api.libs.json.JsValue
+import play.api.libs.concurrent.Promise
+import collection.immutable.TreeMap
+import play.core.utils.CaseInsensitiveOrdered
 
 /**
  * Fake HTTP headers implementation.
  *
  * @param data Headers data.
  */
-case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Headers {
-
-  /**
-   * All header keys.
-   */
-  lazy val keys = data.keySet
-
-  /**
-   * Get all header values defined for this key.
-   */
-  def getAll(key: String): Seq[String] = data.get(key).getOrElse(Seq.empty)
-
-}
+case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
 
 /**
  * Fake HTTP request implementation.
@@ -33,7 +23,7 @@ case class FakeHeaders(data: Map[String, Seq[String]] = Map.empty) extends Heade
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1") extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1") extends Request[A] {
 
   /**
    * The request path.
@@ -50,7 +40,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
     copy(headers = FakeHeaders(
-      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2))
+      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2)).toSeq
     ))
   }
 
@@ -91,6 +81,8 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
     copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
+
+  def certs = Promise.pure(IndexedSeq.empty)
 
   /**
    * Sets a JSON body to this request.

@@ -33,8 +33,12 @@ public class GlobalSettings {
     }
 
     /**
-     * Returns a Result that could be a custom error page.
-     * The default implementation returns <code>null</code>, so that the Scala engine handles the excepetion and show an error page.
+     * Called when an exception occurred.
+     * 
+     * The default is to send the framework's default error page. This is achieved by returning <code>null</code>, 
+     * so that the Scala engine handles the excepetion and shows an error page.
+     *
+     * By overriding this method one can provide an alternative error page.
      *
      * @param t is any throwable
      * @return null as the default implementation
@@ -76,8 +80,12 @@ public class GlobalSettings {
     }
 
     /**
-     * Triggered when a resource was requested but not found. The default implementation returns <code>null</code>, so that
-     * the Scala engine handles the <code>onActionNotFound</code>.
+     * Called when no action was found to serve a request.
+     *
+     * The default behavior is to render the framework's default 404 page. This is achieved by returning <code>null</code>, 
+     * so that the Scala engine handles <code>onHandlerNotFound</code>. 
+     *
+     * By overriding this method one can provide an alternative 404 page.
      *
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
@@ -87,8 +95,12 @@ public class GlobalSettings {
     }
     
     /**
-     * Triggered when a resource was requested but not found, the default implementation returns <code>null</code>, so that
-     * the Scala engine handles the <code>onBadRequest</code>.
+     * Called when an action has been found, but the request parsing has failed.
+     *
+     * The default behavior is to render the framework's default 400 page. This is achieved by returning <code>null</code>, 
+     * so that the Scala engine handles <code>onBadRequest</code>.
+     *
+     * By overriding this method one can provide an alternative 400 page.
      *
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.

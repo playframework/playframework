@@ -3,7 +3,6 @@ package play.api.libs.ws
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.api.libs.json._
 import play.api.http.{ Writeable, ContentTypeOf }
 import com.ning.http.client.{
   AsyncHttpClient,
@@ -16,6 +15,8 @@ import com.ning.http.client.{
   Response => AHCResponse,
   PerRequestConfig
 }
+import collection.immutable.TreeMap
+import play.core.utils.CaseInsensitiveOrdered
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -34,21 +35,36 @@ object WS {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 
+  private var clientHolder: Option[AsyncHttpClient] = None
+
   /**
-   * The underlying HTTP client.
+   * resets the underlying AsyncHttpClient
    */
-  lazy val client = {
-    import play.api.Play.current
-    val config = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
-      .setRequestTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
-      .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
-      .setUseProxyProperties(current.configuration.getBoolean("ws.useProxyProperties").getOrElse(true))
-    current.configuration.getString("ws.useragent").map { useragent =>
-      config.setUserAgent(useragent)
-    }
-    new AsyncHttpClient(config.build())
+  def resetClient(): Unit = {
+    clientHolder.map { clientRef =>
+      clientRef.close()
+    }.getOrElse(play.api.Logger.debug("WS client was reset without being used"))
+    clientHolder = None
   }
+  /**
+   * retrieves or creates underlying HTTP client.
+   */
+  def client =
+    clientHolder.getOrElse {
+      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+        asyncHttpConfig.setUserAgent(useragent)
+      }
+      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
+      clientHolder = Some(innerClient)
+      innerClient
+    }
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
@@ -110,9 +126,11 @@ object WS {
     private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
       mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
-    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) =
-      mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-
+    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) = {
+      val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+      //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
+      TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
+    }
     private[libs] def execute: Promise[Response] = {
       import com.ning.http.client.AsyncCompletionHandler
       var result = Promise[Response]()
@@ -126,7 +144,7 @@ object WS {
           result.redeem(throw t)
         }
       })
-      result
+      result.future
     }
 
     /**
@@ -249,7 +267,7 @@ object WS {
           iterateeP.redeem(throw t)
         }
       })
-      iterateeP
+      iterateeP.future
     }
 
   }

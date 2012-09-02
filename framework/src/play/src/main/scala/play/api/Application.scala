@@ -103,7 +103,7 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
       router
     }
   } catch {
-    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName => 
+    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName =>
       throw configuration.reportError("application.router", "Router not found: " + routerName)
     }
     case e => throw e
@@ -298,6 +298,29 @@ class Application(val path: File, val classloader: ClassLoader, val sources: Opt
    * @return an existing file
    */
   def getExistingFile(relativePath: String): Option[File] = Option(getFile(relativePath)).filter(_.exists)
+
+  /**
+   * Scans the application classloader to retrieve all types within a specific package.
+   *
+   * This method is useful for some plugins, for example the EBean plugin will automatically detect all types
+   * within the models package, using:
+   * {{{
+   * val entities = application.getTypes("models")
+   * }}}
+   *
+   * Note that it is better to specify a very specific package to avoid expensive searches.
+   *
+   * @param packageName the root package to scan
+   * @return a set of types names specifying the condition
+   */
+  def getTypes(packageName: String): Set[String] = {
+    import org.reflections._
+    new Reflections(
+      new util.ConfigurationBuilder()
+        .addUrls(util.ClasspathHelper.forPackage(packageName, classloader))
+        .filterInputsBy(new util.FilterBuilder().include(util.FilterBuilder.prefix(packageName + ".")))
+        .setScanners(new scanners.TypesScanner())).getStore.get(classOf[scanners.TypesScanner]).keySet.asScala.toSet
+  }
 
   /**
    * Scans the application classloader to retrieve all types annotated with a specific annotation.

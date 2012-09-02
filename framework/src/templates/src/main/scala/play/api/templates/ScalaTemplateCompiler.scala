@@ -1,3 +1,5 @@
+import scala.util.parsing.input.OffsetPosition
+
 package play.api.templates {
 
   trait Template0[Result] { def render(): Result }
@@ -101,7 +103,7 @@ package play.templates {
       // A generated source already exist but
       source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
         (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
-    )
+        )
 
     def mapPosition(generatedPosition: Int): Int = {
       matrix.indexWhere(p => p._1 > generatedPosition) match {
@@ -178,7 +180,7 @@ package play.templates {
     case class Comment(msg: String) extends TemplateTree with Positional
     case class ScalaExp(parts: Seq[ScalaExpPart]) extends TemplateTree with Positional
     case class Simple(code: String) extends ScalaExpPart with Positional
-    case class Block(whitespace: String, args: Option[String], content: Seq[TemplateTree]) extends ScalaExpPart with Positional
+    case class Block(whitespace: String, args: Option[PosString], content: Seq[TemplateTree]) extends ScalaExpPart with Positional
     case class Value(ident: PosString, block: Block) extends Positional
 
     def compile(source: File, sourceDirectory: File, generatedDirectory: File, resultType: String, formatterType: String, additionalImports: String = "") = {
@@ -233,7 +235,9 @@ package play.templates {
       }
     }
 
-    val templateParser = new JavaTokenParsers {
+    val templateParser = new TemplateParser
+
+    class TemplateParser extends JavaTokenParsers {
 
       def as[T](parser: Parser[T], error: String) = {
         Parser(in => parser(in) match {
@@ -299,7 +303,7 @@ package play.templates {
       }
 
       def comment: Parser[Comment] = {
-        (at ~ "*") ~> ((not("*@") ~> any *) ^^ { case chars => Comment(chars.mkString) }) <~ ("*" ~ at)
+        positioned((at ~ "*") ~> ((not("*@") ~> any *) ^^ { case chars => Comment(chars.mkString) }) <~ ("*" ~ at))
       }
 
       def brackets: Parser[String] = {
@@ -325,7 +329,8 @@ package play.templates {
           })
       }
 
-      def blockArgs: Parser[String] = (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => args.mkString + arrow }
+//      def blockArgs: Parser[String] = (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => args.mkString + arrow }
+      def blockArgs: Parser[PosString] = positioned( (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => PosString(args.mkString + arrow) } )
 
       def methodCall: Parser[String] = identifier ~ (squareBrackets?) ~ (parentheses?) ^^ {
         case methodName ~ types ~ args => methodName + types.getOrElse("") + args.getOrElse("")
@@ -338,7 +343,7 @@ package play.templates {
       }
 
       def expressionPart: Parser[ScalaExpPart] = {
-        chainedMethods | block | (whiteSpaceNoBreak ~> scalaBlockChained) | elseCall | (parentheses ^^ { case code => Simple(code) })
+        chainedMethods | block | (whiteSpaceNoBreak ~> scalaBlockChained) | elseCall | positioned[Simple]((parentheses ^^ { case code => Simple(code) }))
       }
 
       def chainedMethods: Parser[Simple] = {
@@ -364,8 +369,8 @@ package play.templates {
         }
         val complexExpr = positioned(parentheses ^^ { expr => (Simple(expr)) }) ^^ { List(_) }
 
-        at ~> ((simpleExpr | complexExpr) ~ whiteSpaceNoBreak ~ "match" ^^ {
-          case e ~ w ~ m => e ++ Seq(Simple(w + m))
+        at ~> ((simpleExpr | complexExpr) ~ positioned((whiteSpaceNoBreak ~ "match" ^^ {case w ~ m => Simple(w + m)})) ^^ {
+          case e ~ m => e ++ Seq(m)
         }) ~ block ^^ {
           case expr ~ block => Display(ScalaExp(expr ++ Seq(block)))
         }
@@ -386,8 +391,7 @@ package play.templates {
       }
 
       def importExpression: Parser[Simple] = {
-        positioned(
-          at ~> """import .*(\r)?\n""".r ^^ {
+          at ~> positioned("""import .*(\r)?\n""".r ^^ {
             case stmt => Simple(stmt)
           })
       }
@@ -409,9 +413,24 @@ package play.templates {
         }
       }
 
+      def positionalLiteral(s: String): Parser[Plain] = new Parser[Plain] {
+        def apply(in: Input) = {
+          val offset = in.offset
+          val result = literal(s)(in)
+          result match {
+            case Success(s, r) => {
+              val plainString = Plain(s)
+              plainString.pos = new OffsetPosition(in.source, offset)
+              Success(plainString, r)
+            }
+            case Failure(s, t) => Failure(s, t)
+          }
+        }
+      }
+
       def mixed: Parser[Seq[TemplateTree]] = {
         ((comment | scalaBlockDisplayed | caseExpression | matchExpression | forExpression | safeExpression | plain | expression) ^^ { case t => List(t) }) |
-          ("{" ~ several(mixed) ~ "}") ^^ { case p1 ~ content ~ p2 => Plain(p1) +: content.flatten :+ Plain(p2) }
+          (positionalLiteral("{") ~ several(mixed) ~ positionalLiteral("}")) ^^ { case p1 ~ content ~ p2 => { p1 +: content.flatten :+ p2 } }
       }
 
       def template: Parser[Template] = {
@@ -526,7 +545,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
     
     """ :+ extra._2 :+ """
     
-    def ref = this
+    def ref: this.type = this
 
 }"""
       }
@@ -570,11 +589,12 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
           case a => filterType(a.tpt.toString)
         }.mkString(",") + ")").mkString(" => ") + " => " + returnType + ")"
 
-        val renderCall = "def render%s = apply%s".format(
+        val renderCall = "def render%s: %s = apply%s".format(
           "(" + params.flatten.map {
             case a if a.mods.isByNameParam => a.name.toString + ":" + a.tpt.children(1).toString
             case a => a.name.toString + ":" + filterType(a.tpt.toString)
           }.mkString(",") + ")",
+           returnType,
           params.map(group => "(" + group.map { p =>
             p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ":_*").getOrElse("")
           }.mkString(",") + ")").mkString)

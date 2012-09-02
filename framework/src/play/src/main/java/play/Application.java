@@ -15,6 +15,10 @@ public class Application {
     
     private final play.api.Application application;
     
+    public play.api.Application getWrappedApplication() {
+      return application;
+    }
+
     /**
      * Creates an application from a Scala Application value.
      */
@@ -84,6 +88,23 @@ public class Application {
      */
     public <T> T plugin(Class<T> pluginClass) {
         return Scala.orNull(application.plugin(pluginClass));
+    }
+    
+    /**
+     * Scans the application classloader to retrieve all types within a specific package.
+     * <p>
+     * This method is useful for some plug-ins, for example the EBean plugin will automatically detect all types
+     * within the models package.
+     * <p>
+     * Note that it is better to specify a very specific package to avoid expensive searches.
+     *
+     * @param packageName the root package to scan
+     * @return a set of types names satisfying the condition
+     */
+    public Set<String> getTypes(String packageName) {
+        return scala.collection.JavaConverters.setAsJavaSetConverter(
+            application.getTypes(packageName)
+        ).asJava();
     }
     
     /**

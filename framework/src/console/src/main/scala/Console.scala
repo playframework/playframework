@@ -1,3 +1,4 @@
+
 package play.console
 
 import jline._
@@ -31,9 +32,9 @@ object Console {
     }
   }
 
-  private def interact(params: Map[String, String]):Map[String, String] = {
-    params.map{e =>
-      consoleReader.printString(e._1+"["+e._2+"]:".stripMargin)
+  private def interact(params: Map[String, String]): Map[String, String] = {
+    params.map { e =>
+      consoleReader.printString(e._1 + "[" + e._2 + "]:".stripMargin)
       consoleReader.putString("")
       e._1 -> Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(e._2)
     }
@@ -65,13 +66,13 @@ object Console {
       "APPLICATION_SECRET" -> newSecret)
   }
 
-  private def haveFun(name: String) = 
+  private def haveFun(name: String) =
     """|OK, application %s is created.
                   |
                   |Have fun!
                   |""".stripMargin.format(name).trim
 
-  private def addG8(g8: String) =  if (g8.endsWith(".g8")) g8 else g8+".g8"
+  private def addG8(g8: String) = if (g8.endsWith(".g8")) g8 else g8 + ".g8"
 
   /**
    * Creates a new play app skeleton either based on local templates on g8 templates fetched from github
@@ -91,66 +92,69 @@ object Console {
     if (path.exists) {
       (Colors.red("The directory already exists, cannot create a new application here."), -1)
     } else {
-      val template: (String, String) = if (args.length == 3 && args(1) =="--g8") (addG8(args.last),defaultName)
-        else {
-          consoleReader.printString("What is the application name? ")
-          consoleReader.printNewline
-          consoleReader.printString(Colors.cyan("> "))
-          consoleReader.putString(defaultName)
-          val name = Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(defaultName)
-          consoleReader.printNewline
+      val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (addG8(args.last), defaultName)
+      else {
+        consoleReader.printString("What is the application name? ")
+        consoleReader.printNewline
+        consoleReader.printString(Colors.cyan("> "))
+        consoleReader.putString(defaultName)
+        consoleReader.flushConsole()
+        val name = Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(defaultName)
+        consoleReader.printNewline
 
-          consoleReader.printString("Which template do you want to use for this new application? ")
-          consoleReader.printNewline
-          consoleReader.printString(
-            """|
+        consoleReader.printString("Which template do you want to use for this new application? ")
+        consoleReader.printNewline
+        consoleReader.printString(
+          """|
                |  1             - Create a simple Scala application
                |  2             - Create a simple Java application
                |  3             - Create an empty project
                |  <g8 template> - Create an app based on the g8 template hosted on Github
                |""".stripMargin)
 
+        consoleReader.printNewline
+        consoleReader.printString(Colors.cyan("> "))
+        consoleReader.flushConsole()
+        consoleReader.putString("")
+
+        val templateNotFound = new RuntimeException("play.home system property is not set, so can not find template")
+        val fs = java.io.File.separator
+        val templateToUse = Option(consoleReader.readLine()).map(_.trim).getOrElse("") match {
+          case "1" => "scala-skel"
+          case "2" => "java-skel"
+          case "3" => "empty-skel"
+          case g8 @ _ => addG8(g8)
+        }
+        (templateToUse, name)
+      }
+      try {
+        //either generate templates based on local skeletons or use g8 templates
+        if (template._1.endsWith("-skel")) {
+          generateLocalTemplate(template._1, template._2, path)
+          (haveFun(template._2), 0)
+        } else {
+          //this is necessary because g8 only provides an option to either pass params or use interactive session to populate fields
+          //but in our case we have the application_name (and path) already
+          val defaults: Map[String, String] = Giter8.fetchInfo(template._1, Some("master")).right.toOption.map {
+            case (defaults, templates) => defaults
+            case _ => Map[String, String]()
+          }.getOrElse(Map[String, String]())
           consoleReader.printNewline
-          consoleReader.printString(Colors.cyan("> "))
-          consoleReader.putString("")
+          consoleReader.printString(defaults.get("description").getOrElse(template._1))
+          consoleReader.printNewline
+          consoleReader.printNewline
+          // populate defaults (application_name is coming from play so that's already populated)
+          val params: Array[String] = interact(defaults.filter(e => e._1 != "application_name" && e._1 != "description")).map(e => "--" + e._1 + "=" + e._2).toArray
 
-          val templateNotFound = new RuntimeException("play.home system property is not set, so can not find template")
-          val fs = java.io.File.separator
-          val templateToUse = Option(consoleReader.readLine()).map(_.trim).getOrElse("") match {
-            case "1" => "scala-skel"
-            case "2" => "java-skel"
-            case "3" => "empty-skel"
-            case g8 @ _ => addG8(g8)
-          }
-          (templateToUse, name)
-     }
-     try {
-          //either generate templates based on local skeletons or use g8 templates
-          if (template._1.endsWith("-skel")) {
-              generateLocalTemplate(template._1, template._2, path)
-              (haveFun(template._2), 0)            
-          } else {
-            //this is necessary because g8 only provides an option to either pass params or use interactive session to populate fields
-            //but in our case we have the application_name (and path) already
-            val defaults: Map[String,String] = Giter8.fetchInfo(template._1, Some("master")).right.toOption.map{
-              case (defaults, templates) => defaults
-              case _ => Map[String,String]()
-            }.getOrElse(Map[String,String]())
-            consoleReader.printNewline
-            consoleReader.printString(defaults.get("description").getOrElse(template._1))
-            consoleReader.printNewline
-            consoleReader.printNewline
-            // populate defaults (application_name is coming from play so that's already populated)
-            val params: Array[String] = interact(defaults.filter(e => e._1 != "application_name" && e._1 != "description")).map(e=>"--"+e._1+"="+e._2).toArray
-
-            val exitCode = Giter8.run(Array(template._1,"--application_name="+template._2) ++ params)
-            if (exitCode == 0) 
-              (haveFun(template._2), exitCode) 
-            else 
-              ("something went wrong while processing g8 template", exitCode)
-          }
-      } catch {case ex: Exception => 
-        ("Ooops - Something went wrong! Exception:"+ex.toString, -1)
+          val exitCode = Giter8.run(Array(template._1, "--application_name=" + template._2) ++ params)
+          if (exitCode == 0)
+            (haveFun(template._2), exitCode)
+          else
+            ("something went wrong while processing g8 template", exitCode)
+        }
+      } catch {
+        case ex: Exception =>
+          ("Ooops - Something went wrong! Exception:" + ex.toString, -1)
       }
     }
 

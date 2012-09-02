@@ -16,10 +16,9 @@ trait PlayReloader {
 
     new SBTLink {
 
-      def projectPath = extracted.currentProject.base
+      lazy val projectPath = extracted.currentProject.base
 
-      def watchFiles = extracted.runTask(watchTransitiveSources, state)._2
-      
+      lazy val watchFiles = extracted.runTask(watchTransitiveSources, state)._2
 
       // ----- Internal state used for reloading is kept here
 
@@ -28,9 +27,68 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
-      var lastHash = Option.empty[String]
+      var changed = true
 
-      def markdownToHtml(markdown: String, link: String => (String, String)) = {
+      // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
+
+      lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
+
+        var jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
+          .map(_.getFile)
+          .find(_.contains("/jnotify"))
+          .map(new File(_))
+          .getOrElse(sys.error("Missing JNotify?"))
+
+        val sbtLoader = this.getClass.getClassLoader.getParent.asInstanceOf[java.net.URLClassLoader]
+        val method = classOf[java.net.URLClassLoader].getDeclaredMethod("addURL", classOf[java.net.URL])
+        method.setAccessible(true)
+        method.invoke(sbtLoader, jnotifyJarFile.toURI.toURL)
+
+        val targetDirectory = extracted.get(target)
+        val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
+
+        if (!nativeLibrariesDirectory.exists) {
+          // Unzip native libraries from the jnotify jar to target/native_libraries
+          IO.unzip(jnotifyJarFile, targetDirectory, (name: String) => name.startsWith("native_libraries"))
+        }
+
+        val libs = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
+
+        // Hack to set java.library.path
+        System.setProperty("java.library.path", {
+          Option(System.getProperty("java.library.path")).map { existing =>
+            existing + java.io.File.pathSeparator + libs
+          }.getOrElse(libs)
+        })
+        import java.lang.reflect._
+        val fieldSysPath = classOf[ClassLoader].getDeclaredField("sys_paths")
+        fieldSysPath.setAccessible(true)
+        fieldSysPath.set(null, null)
+
+        val jnotifyClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotify")
+        val jnotifyListenerClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
+        val addWatchMethod = jnotifyClass.getMethod("addWatch", classOf[String], classOf[Int], classOf[Boolean], jnotifyListenerClass)
+        val removeWatchMethod = jnotifyClass.getMethod("removeWatch", classOf[Int])
+        val listener = java.lang.reflect.Proxy.newProxyInstance(sbtLoader, Seq(jnotifyListenerClass).toArray, new java.lang.reflect.InvocationHandler {
+          def invoke(proxy: AnyRef, m: java.lang.reflect.Method, args: scala.Array[AnyRef]): AnyRef = {
+            changed = true
+            null
+          }
+        })
+
+        new {
+          def addWatch(directoryToWatch: String): Int = {
+            addWatchMethod.invoke(null, directoryToWatch, 15: java.lang.Integer, true: java.lang.Boolean, listener).asInstanceOf[Int]
+          }
+          def removeWatch(id: Int): Unit = removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
+        }
+      }
+
+      val watchChanges: Seq[Int] = extracted.runTask(playMonitoredDirectories, state)._2.map(jnotify.addWatch)
+
+      // --- Utils
+
+      /*def markdownToHtml(markdown: String, link: String => (String, String)) = {
         import org.pegdown._
         import org.pegdown.ast._
 
@@ -43,17 +101,22 @@ trait PlayReloader {
         }
 
         processor.markdownToHtml(markdown, links)
-      }
+      }*/
+
+      def markdownToHtml(markdown: String) = markdown
+
+      // ---
 
       def forceReload() {
         reloadNextTime = true
-        lastHash = None
+        changed = true
       }
 
       def clean() {
         currentApplicationClassLoader = None
         currentProducts = Map.empty[java.io.File, Long]
         currentAnalysis = None
+        watchChanges.foreach(jnotify.removeWatch)
       }
 
       def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
@@ -84,7 +147,7 @@ trait PlayReloader {
               })
             }
           }.headOption
-        }
+        }.orNull
       }
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
@@ -95,6 +158,7 @@ trait PlayReloader {
           case play.templates.MaybeGeneratedSource(generatedSource) => {
             new xsbti.Problem {
               def message = problem.message
+              def category = ""
               def position = new xsbti.Position {
                 def line = {
                   problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
@@ -120,6 +184,7 @@ trait PlayReloader {
           case play.core.Router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
             new xsbti.Problem {
               def message = problem.message
+              def category = ""
               def position = new xsbti.Position {
                 def line = {
                   problem.position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
@@ -141,8 +206,18 @@ trait PlayReloader {
 
       }
 
+      private def allProblems(inc: Incomplete): Seq[xsbti.Problem] =
+        allProblems(inc :: Nil)
+      private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] =
+        problems(Incomplete.allExceptions(incs).toSeq)
+      private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] =
+        es flatMap {
+          case cf: xsbti.CompileFailed => cf.problems
+          case _ => Nil
+        }
+
       def getProblems(incomplete: Incomplete): Seq[xsbti.Problem] = {
-        (Compiler.allProblems(incomplete) ++ {
+        (allProblems(incomplete) ++ {
           Incomplete.linearize(incomplete).filter(i => i.node.isDefined && i.node.get.isInstanceOf[ScopedKey[_]]).flatMap { i =>
             val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
             val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
@@ -167,6 +242,7 @@ trait PlayReloader {
             }.collect {
               case (Some(error), maybePosition) => new xsbti.Problem {
                 def message = error._3
+                def category = ""
                 def position = new xsbti.Position {
                   def line = xsbti.Maybe.just(error._2.toInt)
                   def lineContent = ""
@@ -188,8 +264,7 @@ trait PlayReloader {
 
       private def newClassLoader = {
         val loader = new java.net.URLClassLoader(
-          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray,
-          baseLoader) {
+          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray, baseLoader) {
 
           val version = classLoaderVersion.incrementAndGet
 
@@ -204,19 +279,15 @@ trait PlayReloader {
         loader
       }
 
-      def reload: Either[Throwable, Option[ClassLoader]] = {
+      def reload: AnyRef = {
 
         PlayProject.synchronized {
 
-          val hash = Project.runTask(playHash, state).map(_._2).get.toEither.right.get
-
-          lastHash.filter(_ == hash).map { _ => Right(None) }.getOrElse {
-
-            lastHash = Some(hash)
-
-            val r = Project.runTask(playReload, state).map(_._2).get.toEither
+          if (changed) {
+            changed = false
+            Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>
-                lastHash = None
+                changed = true
                 Incomplete.allExceptions(incomplete).headOption.map {
                   case e: PlayException => e
                   case e: xsbti.CompileFailed => {
@@ -233,69 +304,24 @@ trait PlayReloader {
                 updateAnalysis(compilationResult).map { _ =>
                   newClassLoader
                 }
-              }
-
-            r
-
+              }.fold(
+                oops => oops,
+                maybeClassloader => maybeClassloader.getOrElse(null)
+              )
+          } else {
+            null
           }
 
         }
 
       }
 
-      def runTask(task: String): Option[Any] = {
-
+      def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
         val Right(sk: ScopedKey[Task[_]]) = complete.DefaultParsers.result(parser, task)
         val result = Project.runTask(sk, state).map(_._2)
 
-        result.flatMap(_.toEither.right.toOption)
-
-      }
-
-      def definedTests: Seq[String] = {
-        Project.runTask(Keys.definedTests in Test, state).map(_._2).get.toEither
-          .left.map { incomplete =>
-            Incomplete.allExceptions(incomplete).headOption.map {
-              case e: PlayException => e
-              case e: xsbti.CompileFailed => {
-                getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                  UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
-                }
-              }
-              case e => UnexpectedException(unexpected = Some(e))
-            }.getOrElse(
-              UnexpectedException(Some("Compilation task failed without any exception!?")))
-          }
-          .right.map(_.map(_.name))
-          .left.map(throw _)
-          .right.get
-      }
-
-      def runTests(only: Seq[String], callback: Any => Unit): Either[String, Boolean] = {
-
-        try {
-          if (only == Nil) {
-            Command.process("test", state)
-            Right(true)
-          } else {
-            Command.process("test-only " + only.mkString(" "), state)
-            Right(true)
-          }
-        } catch {
-          case incomplete: sbt.Incomplete => {
-            Left({
-              Incomplete.allExceptions(incomplete).headOption.map {
-                case e: xsbti.CompileFailed => "Compilation failed"
-                case e => e.getMessage
-              }.getOrElse("Unexpected failure")
-            })
-          }
-          case unexpected => {
-            Left("Unexpected failure [" + unexpected.getClass.getName + "]")
-          }
-        }
-
+        result.flatMap(_.toEither.right.toOption).getOrElse(null).asInstanceOf[AnyRef]
       }
 
     }

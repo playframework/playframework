@@ -14,6 +14,7 @@ import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.ssl._
 
 import java.security._
+import java.net.{ InetSocketAddress }
 import javax.net.ssl._
 import java.util.concurrent._
 
@@ -33,6 +34,7 @@ import scala.collection.JavaConverters._
  */
 trait ServerWithStop {
   def stop(): Unit
+  def mainAddress: InetSocketAddress
 }
 
 /**
@@ -66,7 +68,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("compressor", new HttpContentCompressor())
-      newPipeline.addLast("decompressor", new HttpContentDecompressor())	  
+      newPipeline.addLast("decompressor", new HttpContentDecompressor())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
@@ -79,27 +81,29 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
 
   // The HTTP server channel
-  val HTTP: Bootstrap = {
+  val HTTP = {
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory)
-    allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
-    bootstrap
+    val channel = bootstrap.bind(new InetSocketAddress(address, port))
+    allChannels.add(channel)
+    (bootstrap, channel)
   }
 
   // Maybe the HTTPS server channel
-  val HTTPS: Option[Bootstrap] = sslPort.map { port =>
+  val HTTPS = sslPort.map { port =>
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory(secure = true))
-    allChannels.add(bootstrap.bind(new java.net.InetSocketAddress(address, port)))
-    bootstrap
+    val channel = bootstrap.bind(new InetSocketAddress(address, port))
+    allChannels.add(channel)
+    (bootstrap, channel)
   }
 
   mode match {
     case Mode.Test =>
     case _ => {
-      Logger("play").info("Listening for HTTP on port %s...".format(port))
-      sslPort.foreach { port =>
-        Logger("play").info("Listening for HTTPS on port %s...".format(port))
+      Logger("play").info("Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
+      HTTPS.foreach { https =>
+        Logger("play").info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
     }
   }
@@ -127,12 +131,14 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     allChannels.close().awaitUninterruptibly()
 
     // Release the HTTP server
-    HTTP.releaseExternalResources()
+    HTTP._1.releaseExternalResources()
 
     // Release the HTTPS server if needed
-    HTTPS.foreach(_.releaseExternalResources())
+    HTTPS.foreach(_._1.releaseExternalResources())
 
   }
+
+  override lazy val mainAddress = HTTP._2.getLocalAddress.asInstanceOf[InetSocketAddress]
 
 }
 
@@ -158,7 +164,7 @@ object NettyServer {
 
       if (pidFile.getAbsolutePath != "/dev/null") {
         if (pidFile.exists) {
-          println("This application is already running (Or delete "+ pidFile.getAbsolutePath +" file).")
+          println("This application is already running (Or delete " + pidFile.getAbsolutePath + " file).")
           System.exit(-1)
         }
 
@@ -176,14 +182,15 @@ object NettyServer {
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
-        Option(System.getProperty("http.address")).getOrElse("0.0.0.0"))
-        
+        Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
+      )
+
       Runtime.getRuntime.addShutdownHook(new Thread {
         override def run {
           server.stop()
         }
       })
-      
+
       Some(server)
     } catch {
       case e => {

@@ -1,7 +1,7 @@
 package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
-
+import play.api.libs.concurrent.execution.defaultContext
 
 /**
  * Combines the roles of an Iteratee[From] and a Enumerator[To]
@@ -52,7 +52,6 @@ trait Enumeratee[From, To] {
   def >+>[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = composeConcat[X](other)
 
 }
-
 
 object Enumeratee {
 
@@ -125,6 +124,48 @@ object Enumeratee {
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case in @ (Input.El(_) | Input.Empty) =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(f(in))
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+      }
+
+      def continue[A](k: K[To, A]) = Cont(step(k))
+    }
+  }
+
+  def mapConcatInput[From] = new {
+    def apply[To](f: From => Seq[Input[To]]) = mapInputFlatten[From](in => Enumerator.enumerateSeq2(f(in)))
+  }
+
+  def mapConcat[From] = new {
+    def apply[To](f: From => Seq[To]) = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))
+  }
+
+  def mapFlatten[From] = new {
+    def apply[To](f: From => Enumerator[To]) = new CheckDone[From, To] {
+
+      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+        case Input.El(e) =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(e)(Cont(k)))
+
+        case in @ Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+
+        case Input.EOF => Done(Cont(k), Input.EOF)
+      }
+
+      def continue[A](k: K[To, A]) = Cont(step(k))
+    }
+  }
+
+  def mapInputFlatten[From] = new {
+    def apply[To](f: From => Enumerator[To]) = new CheckDone[From, To] {
+
+      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+        case Input.El(e) =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(e)(Cont(k)))
+
+        case in @ Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
       }
@@ -213,16 +254,18 @@ object Enumeratee {
         case in @ (Input.El(_) | Input.Empty) =>
 
           Iteratee.flatten(f.feed(in)).pureFlatFold {
-            case Step.Done(a, left) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = 
-              (left match {
-                case Input.El(_) => step(folder)(k)(left)
-                case _ => Cont(step(folder)(k))
-              })} &> k(Input.El(a))
+            case Step.Done(a, left) => new CheckDone[From, To] {
+              def continue[A](k: K[To, A]) =
+                (left match {
+                  case Input.El(_) => step(folder)(k)(left)
+                  case _ => Cont(step(folder)(k))
+                })
+            } &> k(Input.El(a))
             case Step.Cont(kF) => Cont(step(Cont(kF))(k))
             case Step.Error(msg, e) => Error(msg, in)
           }
 
-        case Input.EOF => Iteratee.flatten(f.run.map((c:To) => Done(k(Input.El(c)), Input.EOF)))
+        case Input.EOF => Iteratee.flatten(f.run.map((c: To) => Done(k(Input.El(c)), Input.EOF)))
 
       }
 
@@ -275,19 +318,19 @@ object Enumeratee {
     }
   }
 
-  def drop[E](count: Int): Enumeratee[E, E] = new CheckDone[E,E] {
+  def drop[E](count: Int): Enumeratee[E, E] = new CheckDone[E, E] {
 
     def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
 
       case in @ Input.El(_) if remaining == 1 => passAlong[E](Cont(k))
 
-      case in @ Input.El(_) if remaining > 1 => Cont(step(remaining-1)(k))
+      case in @ Input.El(_) if remaining > 1 => Cont(step(remaining - 1)(k))
 
       case in @ Input.Empty if remaining > 0 => Cont(step(remaining)(k))
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 
-      case in => passAlong[E] &> k(in) 
+      case in => passAlong[E] &> k(in)
 
     }
 
@@ -295,7 +338,7 @@ object Enumeratee {
 
   }
 
-  def dropWhile[E](p: E => Boolean): Enumeratee[E, E] = new CheckDone[E,E] {
+  def dropWhile[E](p: E => Boolean): Enumeratee[E, E] = new CheckDone[E, E] {
 
     def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
 
@@ -322,7 +365,7 @@ object Enumeratee {
       case in @ Input.El(e) =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
 
-      case in @ Input.Empty  =>
+      case in @ Input.Empty =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
@@ -365,9 +408,26 @@ object Enumeratee {
     def continue[A](k: K[M, A]) = Cont(step(k))
   }
 
+  def heading[E](es: Enumerator[E]) = new Enumeratee[E,E] {
+
+    def applyOn[A](it:Iteratee[E,A]): Iteratee[E, Iteratee[E,A]] = passAlong[E] &> Iteratee.flatten(es(it))
+
+  }
+
+  def trailing[M](es: Enumerator[M]) =  new Enumeratee.CheckDone[M, M] {
+
+    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+
+      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+
+      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map(it  => Done(it, Input.EOF)))
+    }
+    def continue[A](k: K[M, A]) = Cont(step(k))
+  }
+
   def onIterateeDone[E](action: () => Unit): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E](iteratee).map { a => action(); a }
+    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E](iteratee).map(_.map { a => action(); a })
 
   }
 

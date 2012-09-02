@@ -30,8 +30,9 @@ object MimeTypes {
     application.configuration.getConfig("mimetype").map { config =>
       config.subKeys.map { key =>
         (key, config.getString(key))
-      }.collect { case ((key, Some(value))) =>
-        (key, value)
+      }.collect {
+        case ((key, Some(value))) =>
+          (key, value)
       }.toMap
     }
   }.getOrElse(Map.empty)

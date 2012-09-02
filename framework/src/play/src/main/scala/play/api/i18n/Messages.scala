@@ -53,7 +53,7 @@ object Lang {
    */
   def apply(code: String): Lang = {
     get(code).getOrElse(
-                   sys.error("Unrecognized language: %s".format(code))
+      sys.error("Unrecognized language: %s".format(code))
     )
   }
 
@@ -172,17 +172,17 @@ object Messages {
     def comment = """#.*""".r ^^ { case s => Comment(s) }
 
     def messageKey = namedError("""[a-zA-Z0-9_.]+""".r, "Message key expected")
-    
+
     def messagePattern = namedError(
       rep(
         """\""" ~> ("\r"?) ~> "\n" ^^ (_ => "") | // Ignore escaped end of lines \
-        """\n""" ^^ (_ => "\n") | // Translate literal \n to real newline
-        """\\""" ^^ (_ => """\""") | // Handle escaped \\
-        """.""".r // Or any character
-      ) ^^ { case chars => chars.mkString }, 
+          """\n""" ^^ (_ => "\n") | // Translate literal \n to real newline
+          """\\""" ^^ (_ => """\""") | // Handle escaped \\
+          """.""".r // Or any character
+      ) ^^ { case chars => chars.mkString },
       "Message pattern expected"
     )
-    
+
     def message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
       case (_ ~ k ~ _ ~ v) => Messages.Message(k, v.trim, messageInput, messageSourceName)
     }
