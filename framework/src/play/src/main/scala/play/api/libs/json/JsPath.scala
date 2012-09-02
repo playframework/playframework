@@ -216,7 +216,5 @@ case class JsPath(path: List[PathNode] = List()) {
   
   def write[T](t: T)(implicit w: Writes[T]) = Writes.fixedValue(this, t)
 
-  // TODO
-
 
 }

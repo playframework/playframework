@@ -189,6 +189,18 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
 
   /**
+   * removes one field from JsObject
+   */
+  def -(otherField: String): JsObject =
+    JsObject(fields.filterNot( _._1 == otherField ))
+
+  /**
+   * adds one field from JsObject
+   */
+  def +(otherField: (String, JsValue)): JsObject =
+    JsObject(fields :+ otherField)  
+
+  /**
    * merges everything in depth and doesn't stop at first level as ++
    * TODO : improve because coding is nasty there
    */
