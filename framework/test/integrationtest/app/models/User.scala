@@ -15,11 +15,11 @@ object Protocol {
             )
         )
 
-        def reads(json: JsValue): User = User(
+        def reads(json: JsValue): JsResult[User] = JsSuccess(User(
             (json \ "id").as[Long],
             (json \ "name").as[String],
             (json \ "favThings").as[List[String]]
-        )
+        ))
 
     }
 
