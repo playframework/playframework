@@ -26,7 +26,8 @@ case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult
 object JsError {
 
   def apply(): JsError = JsError(Seq(JsPath() -> Seq()))
-  def apply(error:ValidationError): JsError = JsError(Seq(JsPath() -> Seq(error)))
+  def apply(error: ValidationError): JsError = JsError(Seq(JsPath() -> Seq(error)))
+  def apply(error: String): JsError = JsError(ValidationError(error))
   def apply(error: (JsPath, ValidationError)): JsError = JsError(Seq(error._1 -> Seq(error._2)))
   def apply(path: JsPath, error: ValidationError): JsError = JsError(path -> error)
   def apply(path: JsPath, error: String): JsError = JsError(path -> ValidationError(error))

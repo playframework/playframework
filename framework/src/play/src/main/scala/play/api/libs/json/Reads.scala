@@ -177,40 +177,101 @@ trait DefaultReads {
     }
   }
 
-  implicit object DateReads extends Reads[java.util.Date] {
+
+  /**
+   * Reads for the `java.util.Date` type.
+   *
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
+   */
+  def dateReads(pattern: String, corrector: String => String = identity): Reads[java.util.Date] = new Reads[java.util.Date] {
+    val df = new java.text.SimpleDateFormat(pattern)
+    
     def reads(json: JsValue): JsResult[java.util.Date] = json match {
-      case JsNumber(d) => JsSuccess(new java.util.Date(d.toInt))
-      case JsString(s) => parseDate(s) match {
+      case JsNumber(d) => JsSuccess(new java.util.Date(d.toLong))
+      case JsString(s) => parseDate(corrector(s)) match {
         case Some(d) => JsSuccess(d)
-        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date.isoformat"))))
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date.isoformat", pattern))))
       }
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
     }
 
     private def parseDate(input: String): Option[java.util.Date] = {
-      //NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ which breaks
-      //things a bit.  Before we go on we have to repair this.
-      val df = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssz" )
-      
-      //this is zero time so we need to add that TZ indicator for 
-      val inputStr = if ( input.endsWith( "Z" ) ) {
-          input.substring( 0, input.length() - 1) + "GMT-00:00"
-        } else {
-            val inset = 6
-        
-            val s0 = input.substring( 0, input.length - inset )
-            val s1 = input.substring( input.length - inset, input.length )
-
-            s0 + "GMT" + s1
-        }
-      
+      df.setLenient(false)
       try { Some(df.parse( input )) } catch {
         case _: java.text.ParseException => None
       }
-      
     }
 
   }
+
+  /**
+   * the default implicit java.util.Date reads
+   */ 
+  implicit val DefaultDateReads = dateReads("yyyy-MM-dd")
+
+  /**
+   * ISO 8601 Reads
+   */
+  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input => 
+    // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
+    // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
+    // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
+    if ( input.endsWith( "Z" ) ) {
+      input.substring( 0, input.length() - 1) + "GMT-00:00"
+    } else {
+      val inset = 6
+  
+      val s0 = input.substring( 0, input.length - inset )
+      val s1 = input.substring( input.length - inset, input.length )
+
+      s0 + "GMT" + s1
+    }
+  })
+
+  /**
+   * Reads for the `org.joda.time.DateTime` type.
+   *
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
+   */
+  def jodaDateReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.DateTime] = new Reads[org.joda.time.DateTime] {
+    import org.joda.time.DateTime
+
+    val df = org.joda.time.format.DateTimeFormat.forPattern(pattern)
+    
+    def reads(json: JsValue): JsResult[DateTime] = json match {
+      case JsNumber(d) => JsSuccess(new DateTime(d.toLong))
+      case JsString(s) => parseDate(corrector(s)) match {
+        case Some(d) => JsSuccess(d)
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jodadate.format", pattern))))
+      }
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
+    }
+
+    private def parseDate(input: String): Option[DateTime] =
+      scala.util.control.Exception.allCatch[DateTime] opt (DateTime.parse(input, df))
+
+  }
+ 
+  /**
+   * the default implicit JodaDate reads
+   */ 
+  implicit val DefaultJodaDateReads = jodaDateReads("yyyy-MM-dd")
+
+  /**
+   * Reads for the `java.sql.Date` type.
+   *
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
+   */
+  def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] = 
+    dateReads(pattern, corrector).map(d => new java.sql.Date(d.getTime))
+
+  /**
+   * the default implicit JodaDate reads
+   */ 
+  implicit val DefaultSqlDateReads = sqlDateReads("yyyy-MM-dd")
 
   /**
    * Deserializer for Boolean types.

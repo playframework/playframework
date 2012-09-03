@@ -3,17 +3,8 @@ package play.api.libs.json
 import play.api.data.validation.ValidationError
 import Json._
 
-//object Constraints extends ConstraintReads with ConstraintWrites
-
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
-
-  /**
-   * Date Format
-   *  - can read date as Int or Iso format _yyyy-MM-dd'T'HH:mm:ssz_
-   *  - write date as Int
-   */
-
 }
 
 trait PathFormat {
@@ -39,10 +30,10 @@ trait ConstraintReads {
     Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
   def min(m:Int)(implicit reads:Reads[Int]) =
-    filterNot[Int](ValidationError("validate.error.min"))(_ < m)(reads)
+    filterNot[Int](ValidationError("validate.error.min", m))(_ < m)(reads)
 
   def max(m:Int)(implicit reads:Reads[Int]) =
-    filterNot[Int](ValidationError("validate.error.min"))(_ > m)(reads)
+    filterNot[Int](ValidationError("validate.error.max", m))(_ > m)(reads)
 
   def filterNot[A](error:ValidationError)(p:A => Boolean)(implicit reads:Reads[A]) = 
     Reads[A](js => reads.reads(js).filterNot(error)(p))
@@ -51,17 +42,21 @@ trait ConstraintReads {
     Reads[A](js => reads.reads(js).filter(otherwise)(p))
 
   def minLength[M](m:Int)(implicit reads:Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
-    filterNot[M](ValidationError(""))(_.size < m)
+    filterNot[M](ValidationError("validate.error.minlength", m))(_.size < m)
 
   def maxLength[M](m:Int)(implicit reads:Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
-    filterNot[M](ValidationError(""))(_.size > m)
+    filterNot[M](ValidationError("validate.error.maxlength", m))(_.size > m)
 
-  private val Email = """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r
-  def email(implicit reads:Reads[String]) : Reads[String] = Reads[String] { js =>
-    reads.reads(js).collect(ValidationError("validate.error.email")) {
-      case Email(e) => e
-    }
-  }
+  /**
+   * Defines a regular expression constraint for `String` values, i.e. the string must match the regular expression pattern
+   */
+  def pattern(regex: => scala.util.matching.Regex, error: String = "error.pattern")(implicit reads:Reads[String]) = 
+    Reads[String]( js => reads.reads(js).flatMap { o =>
+      regex.unapplySeq(o).map( _ => JsSuccess(o) ).getOrElse(JsError(error))
+    }) 
+
+  def email(implicit reads:Reads[String]) : Reads[String] = 
+    pattern( """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r, "validate.error.email" )
 
   def verifying[A](cond: A => Boolean)(implicit _reads: Reads[A]) =
     filter[A](ValidationError("validation.error.condition.not.verified"))(cond)(_reads)

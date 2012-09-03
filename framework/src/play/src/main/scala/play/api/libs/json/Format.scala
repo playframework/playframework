@@ -53,7 +53,8 @@ object OFormat {
  */
 object Format extends PathFormat with ConstraintFormat with DefaultFormat {
 
-  val constraints: ConstraintFormat with PathFormat = this
+  val constraints: ConstraintFormat = this
+  val path: PathFormat = this
 
   def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = {
     new Format[A] {

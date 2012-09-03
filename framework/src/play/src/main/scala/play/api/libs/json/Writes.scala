@@ -53,7 +53,8 @@ object OWrites extends PathWrites with ConstraintWrites {
  */
 object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
 
-  val constraints: ConstraintWrites with PathWrites = this
+  val constraints: ConstraintWrites = this
+  val path: PathWrites = this
 
   import play.api.libs.json.util._
 
@@ -118,12 +119,6 @@ trait DefaultWrites {
     def writes(o: BigDecimal) = JsNumber(o)
   }
 
-  implicit object DateWrites extends Writes[java.util.Date] {    
-
-    def writes(d: java.util.Date) = JsNumber(d.getTime)
-
-  }
-
   /**
    * Serializer for Boolean types.
    */
@@ -175,6 +170,44 @@ trait DefaultWrites {
       case Some(value) => fmt.writes(value)
       case None => JsNull
     }
+  }
+
+  /**
+   * Serializer for java.util.Date
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def dateWrites(pattern: String): Writes[java.util.Date] = new Writes[java.util.Date] {
+    def writes(d: java.util.Date): JsValue = JsString(new java.text.SimpleDateFormat(pattern).format(d))
+  }
+
+  /**
+   * Default Serializer java.uti.Date -> JsNumber(d.getTime (nb of ms))
+   */
+  implicit object DefaultDateWrites extends Writes[java.util.Date] {
+    def writes(d: java.util.Date): JsValue = JsNumber(d.getTime) 
+  }
+
+  /**
+   * Serializer for org.joda.time.DateTime
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def jodaDateWrites(pattern: String): Writes[org.joda.time.DateTime] = new Writes[org.joda.time.DateTime] {
+    def writes(d: org.joda.time.DateTime): JsValue = JsString(d.toString(pattern))
+  }
+
+  /**
+   * Default Serializer org.joda.time.DateTime -> JsNumber(d.getMillis (nb of ms))
+   */
+  implicit object DefaultJodaDateWrites extends Writes[org.joda.time.DateTime] {
+    def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis) 
+  }
+
+  /**
+   * Serializer for java.sql.Date
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def sqlDateWrites(pattern: String): Writes[java.sql.Date] = new Writes[java.sql.Date] {
+    def writes(d: java.sql.Date): JsValue = JsString(new java.text.SimpleDateFormat(pattern).format(d))
   }
 
 }

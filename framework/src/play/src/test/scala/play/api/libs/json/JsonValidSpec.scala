@@ -83,6 +83,45 @@ object JsonValidSpec extends Specification {
       )
     }
 
+    "validate Dates" in {
+      val d = new java.util.Date()
+      val df = new java.text.SimpleDateFormat("yyyy-MM-dd")
+      val dd = df.parse(df.format(d))
+
+      Json.toJson[java.util.Date](dd).validate[java.util.Date] must beEqualTo(JsSuccess(dd))
+      JsNumber(dd.getTime).validate[java.util.Date] must beEqualTo(JsSuccess(dd))
+
+      val dj = new org.joda.time.DateTime()
+      val dfj = org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd")
+      val ddj = org.joda.time.DateTime.parse(dfj.print(dj), dfj)
+
+      Json.toJson[org.joda.time.DateTime](ddj).validate[org.joda.time.DateTime] must beEqualTo(JsSuccess(ddj))
+      JsNumber(ddj.getMillis).validate[org.joda.time.DateTime] must beEqualTo(JsSuccess(ddj))
+
+      val ds = new java.sql.Date(dd.getTime())
+
+      Json.toJson[java.sql.Date](ds).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))
+      JsNumber(dd.getTime).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))
+
+      // very poor test to do really crappy java date APIs
+      val c = java.util.Calendar.getInstance()
+      c.setTime(new java.util.Date(d.getTime - d.getTime % 1000))
+      val tz = c.getTimeZone().getOffset(c.getTime.getTime).toInt / 3600000
+      val js = JsString(
+        "%04d-%02d-%02dT%02d:%02d:%02d%s%02d:00".format(
+          c.get(java.util.Calendar.YEAR), 
+          c.get(java.util.Calendar.MONTH) + 1, 
+          c.get(java.util.Calendar.DAY_OF_MONTH), 
+          c.get(java.util.Calendar.HOUR_OF_DAY), 
+          c.get(java.util.Calendar.MINUTE), 
+          c.get(java.util.Calendar.SECOND),
+          if(tz>0) "+" else "-",
+          tz
+        )
+      )
+      js.validate[java.util.Date](Reads.IsoDateReads) must beEqualTo(JsSuccess(c.getTime))
+    }
+
   }
 
   "JSON caseclass/tuple validation" should {
@@ -127,7 +166,7 @@ object JsonValidSpec extends Specification {
         at(JsPath \ "age")(min(40))
       )(User) }
 
-      implicit val userWrites = { import Writes.constraints._
+      implicit val userWrites = { import Writes.path._
       (
         at[String](JsPath \ "name")
         and 
@@ -144,7 +183,7 @@ object JsonValidSpec extends Specification {
     "validate simple case class format" in {
       val bobby = User("bobby", 54)
 
-      implicit val userFormats = { import Format.constraints._
+      implicit val userFormats = { import Format.path._; import Format.constraints._
       (
         at(JsPath \ "name")(Format(minLength[String](5), of[String]))
         and 
@@ -161,7 +200,7 @@ object JsonValidSpec extends Specification {
     "validate simple case class format" in {
       val bobby = User("bobby", 54)
 
-      implicit val userFormats = { import Format.constraints._
+      implicit val userFormats = { import Format.path._; import Format.constraints._
       (
         (__ \ "name").rw(minLength[String](5), of[String])
         and 
@@ -310,17 +349,22 @@ object JsonValidSpec extends Specification {
 
   }
 
-  /*"JSON Reads" should {
+  "JSON Reads" should {
     "mix reads constraints" in {
       case class User(id: Long, email: String, age: Int)
 
       implicit val UserReads = (
         (__ \ 'id).read[Long] and
-        (__ \ 'email).read( minLength(5) ),
-        JsPath \ 'age -> in( max(85) )
-      )(User2)(User2.unapply)
+        (__ \ 'email).read( email provided minLength[String](5) ) and
+        (__ \ 'age).read( max(55) or min(65) )
+      )(User)
+
+
+      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError(ValidationError("validate.error.max", 55)) ++ JsError(ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError(ValidationError("validate.error.email")) ++ JsError(ValidationError("validate.error.max", 55)) ++ JsError(ValidationError("validate.error.min", 65)))
     }
-  }*/
+  }
   /*
   "JSON JsMapper 3-fields case class" should {
     case class User2(id: Long, name: String, age: Int)
