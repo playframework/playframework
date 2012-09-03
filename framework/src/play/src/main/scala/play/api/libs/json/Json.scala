@@ -33,7 +33,7 @@ object Json {
    *
    * @param json Json value to transform as an instance of T.
    */
-  def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): T = fjs.reads(json)
+  def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): JsResult[T] = fjs.reads(json)
 
   /**
    * Next is the trait that allows Simplified Json syntax :

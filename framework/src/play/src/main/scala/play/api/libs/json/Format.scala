@@ -9,10 +9,61 @@ import scala.annotation.implicitNotFound
 )
 trait Format[T] extends Writes[T] with Reads[T]
 
+trait OFormat[T] extends OWrites[T] with Reads[T] with Format[T]
+
+object OFormat {
+
+  import play.api.libs.json.util._
+
+  implicit def functionalCanBuildFormats(implicit rcb: FunctionalCanBuild[Reads], wcb: FunctionalCanBuild[OWrites]): FunctionalCanBuild[OFormat] = new FunctionalCanBuild[OFormat] {
+
+    def apply[A,B](fa: OFormat[A], fb: OFormat[B]): OFormat[A~B] = 
+      OFormat[A~B](
+        rcb(fa, fb),
+        wcb(fa, fb)
+      )
+
+  }
+
+  implicit val invariantFunctorOFormat:InvariantFunctor[OFormat] = new InvariantFunctor[OFormat] {
+
+    def inmap[A,B](fa:OFormat[A], f1:A => B, f2: B => A):OFormat[B] = OFormat[B]( (js: JsValue) => fa.reads(js).map(f1), (b: B) => fa.writes(f2(b)))
+
+  }
+
+  implicit def GenericOFormat[T](implicit fjs: Reads[T], tjs: OWrites[T]): Format[T] = apply(fjs,tjs)
+
+  def apply[A](read: JsValue => JsResult[A], write: A => JsObject):OFormat[A] = new OFormat[A] {
+
+    def reads(js:JsValue):JsResult[A] = read(js)
+
+    def writes(a:A):JsObject = write(a)
+
+  }
+
+  def apply[A](r: Reads[A], w: OWrites[A]):OFormat[A] = new OFormat[A] {
+    def reads(js:JsValue):JsResult[A] = r.reads(js)
+
+    def writes(a:A):JsObject = w.writes(a)    
+  }
+}
+
 /**
  * Default Json formatters.
  */
-object Format extends DefaultFormat
+object Format extends PathFormat with ConstraintFormat with DefaultFormat {
+
+  val constraints: ConstraintFormat = this
+  val path: PathFormat = this
+
+  def apply[A](fjs: Reads[A], tjs: Writes[A]): Format[A] = {
+    new Format[A] {
+      def reads(json: JsValue) = fjs.reads(json)
+      def writes(o: A) = tjs.writes(o)
+    }
+  }
+
+}
 
 /**
  * Default Json formatters.
@@ -26,4 +77,6 @@ trait DefaultFormat {
     }
   }
 
+
 }
+

@@ -19,10 +19,58 @@ trait Writes[-T] {
 
 }
 
+@implicitNotFound(
+  "No Json deserializer as JsObject found for type ${T}. Try to implement an implicit OWrites or Format for this type."
+)
+trait OWrites[-T] extends Writes[T]{
+
+ def writes(o: T): JsObject
+
+}
+
+object OWrites extends PathWrites with ConstraintWrites {
+  import play.api.libs.json.util._
+
+  implicit val functionalCanBuildWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
+
+    def apply[A,B](wa: OWrites[A], wb:OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
+
+  }
+
+  implicit val contravariantfunctorOWrites:ContravariantFunctor[OWrites] = new ContravariantFunctor[OWrites] {
+
+    def contramap[A,B](wa:OWrites[A], f: B => A):OWrites[B] = OWrites[B]( b => wa.writes(f(b)) )
+
+  }
+
+  def apply[A](f: A => JsObject):OWrites[A] = new OWrites[A] {
+    def writes(a:A):JsObject = f(a)
+  }
+
+}
 /**
  * Default Serializers.
  */
-object Writes extends DefaultWrites
+object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
+
+  val constraints: ConstraintWrites = this
+  val path: PathWrites = this
+
+  import play.api.libs.json.util._
+
+  /*implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
+
+    def contramap[A,B](wa:Writes[A], f: B => A):Writes[B] = Writes[B]( b => wa.writes(f(b)) )
+
+  }*/
+
+  def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
+
+    def writes(a:A):JsValue = f(a)
+
+  }
+
+}
 
 /**
  * Default Serializers.
@@ -95,8 +143,8 @@ trait DefaultWrites {
   /**
    * Serializer for Map[String,V] types.
    */
-  implicit def mapWrites[V](implicit fmtv: Writes[V]): Writes[collection.immutable.Map[String, V]] = new Writes[collection.immutable.Map[String, V]] {
-    def writes(ts: collection.immutable.Map[String, V]) = JsObject(ts.map { case (k, v) => (k, toJson(v)(fmtv)) }.toList)
+  implicit def mapWrites[V](implicit fmtv: Writes[V]): OWrites[collection.immutable.Map[String, V]] = OWrites[collection.immutable.Map[String, V]] { ts =>
+    JsObject(ts.map { case (k, v) => (k, toJson(v)(fmtv)) }.toList)
   }
 
   /**
@@ -122,6 +170,44 @@ trait DefaultWrites {
       case Some(value) => fmt.writes(value)
       case None => JsNull
     }
+  }
+
+  /**
+   * Serializer for java.util.Date
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def dateWrites(pattern: String): Writes[java.util.Date] = new Writes[java.util.Date] {
+    def writes(d: java.util.Date): JsValue = JsString(new java.text.SimpleDateFormat(pattern).format(d))
+  }
+
+  /**
+   * Default Serializer java.uti.Date -> JsNumber(d.getTime (nb of ms))
+   */
+  implicit object DefaultDateWrites extends Writes[java.util.Date] {
+    def writes(d: java.util.Date): JsValue = JsNumber(d.getTime) 
+  }
+
+  /**
+   * Serializer for org.joda.time.DateTime
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def jodaDateWrites(pattern: String): Writes[org.joda.time.DateTime] = new Writes[org.joda.time.DateTime] {
+    def writes(d: org.joda.time.DateTime): JsValue = JsString(d.toString(pattern))
+  }
+
+  /**
+   * Default Serializer org.joda.time.DateTime -> JsNumber(d.getMillis (nb of ms))
+   */
+  implicit object DefaultJodaDateWrites extends Writes[org.joda.time.DateTime] {
+    def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis) 
+  }
+
+  /**
+   * Serializer for java.sql.Date
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def sqlDateWrites(pattern: String): Writes[java.sql.Date] = new Writes[java.sql.Date] {
+    def writes(d: java.sql.Date): JsValue = JsString(new java.text.SimpleDateFormat(pattern).format(d))
   }
 
 }
