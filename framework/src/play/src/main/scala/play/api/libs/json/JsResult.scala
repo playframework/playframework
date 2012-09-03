@@ -7,8 +7,16 @@ case class JsSuccess[T](value: T, path: JsPath = JsPath()) extends JsResult[T] {
   def get:T = value
 }
 
-case class JsError(errors: Seq[(JsPath, Seq[ValidationError])] = Seq()) extends JsResult[Nothing] {
-  def get:Nothing = throw new NoSuchElementException("JsError.get")
+case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult[Nothing] {
+  def get: Nothing = throw new NoSuchElementException("JsError.get")
+
+  def ++(error: JsError): JsError = JsError.merge(this, error)
+  
+  def :+(error: (JsPath, ValidationError) ): JsError = JsError.merge(this, JsError(error))
+  def append(error: (JsPath, ValidationError) ): JsError = this.:+(error)
+
+  def +:(error: (JsPath, ValidationError) ): JsError = JsError.merge(JsError(error), this)
+  def prepend(error: (JsPath, ValidationError) ): JsError = this.+:(error)
 
   //def toJson: JsValue = original // TODO
   //def toJsonErrorsOnly: JsValue = original // TODO
@@ -17,10 +25,18 @@ case class JsError(errors: Seq[(JsPath, Seq[ValidationError])] = Seq()) extends 
 
 object JsError {
 
-  def apply(error:ValidationError):JsError = JsError(Seq(JsPath() -> Seq(error)))
+  def apply(): JsError = JsError(Seq(JsPath() -> Seq()))
+  def apply(error:ValidationError): JsError = JsError(Seq(JsPath() -> Seq(error)))
+  def apply(error: (JsPath, ValidationError)): JsError = JsError(Seq(error._1 -> Seq(error._2)))
+  def apply(path: JsPath, error: ValidationError): JsError = JsError(path -> error)
+  def apply(path: JsPath, error: String): JsError = JsError(path -> ValidationError(error))
 
   def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
     (e1 ++ e2).groupBy(_._1).mapValues( _.map(_._2).flatten ).toList
+  }
+
+  def merge(e1: JsError, e2: JsError): JsError = {
+    JsError(merge(e1.errors, e2.errors))
   }
 }
 

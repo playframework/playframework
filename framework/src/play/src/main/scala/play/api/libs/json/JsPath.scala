@@ -199,7 +199,10 @@ case class JsPath(path: List[PathNode] = List()) {
   def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
 
   def write[T](implicit w: Writes[T]) = Writes.at[T](this)(w)
+  def write[T](t: T)(implicit w: Writes[T]) = Writes.fixedValue(this, t)
+
   def rw[T](implicit r:Reads[T], w:Writes[T]) = Format.at[T](this)(Format(r, w))
+
   def format[T](implicit f: Format[T]) = Format.at[T](this)(f)
   def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
   def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
@@ -214,7 +217,6 @@ case class JsPath(path: List[PathNode] = List()) {
     def transform(f: JsValue => JsValue): OWrites[JsValue] = Writes.transformJson(self, f)  
   }
   
-  def write[T](t: T)(implicit w: Writes[T]) = Writes.fixedValue(this, t)
 
 
 }

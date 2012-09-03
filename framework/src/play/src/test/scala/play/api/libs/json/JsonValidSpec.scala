@@ -7,6 +7,8 @@ import scala.util.control.Exception._
 import java.text.ParseException
 import play.api.data.validation.ValidationError
 import Reads.constraints._
+import play.api.libs.json.util._
+
 
 object JsonValidSpec extends Specification {
   "JSON reads" should {
@@ -83,9 +85,7 @@ object JsonValidSpec extends Specification {
 
   }
 
-  import play.api.libs.json.util._
-
-  "JSON JsMapper 1-field case class" should {
+  "JSON caseclass/tuple validation" should {
     case class User(name: String, age: Int)
 
     /*implicit val UserFormat = new Format[User]{
@@ -120,10 +120,6 @@ object JsonValidSpec extends Specification {
     "validate simple case class reads/writes" in {
       val bobby = User("bobby", 54)
 
-      /*implicit val userReads = 
-        (ConstraintReads.at[String](JsPath \ "name")(ConstraintReads.minLength[String](5) ) ~
-        ConstraintReads.at[Int](JsPath \ "age")(ConstraintReads.min(40)))(User.apply _)*/
-      
       implicit val userReads = { import Reads.path._
       (
         at(JsPath \ "name")(minLength[String](5)) 
@@ -267,8 +263,10 @@ object JsonValidSpec extends Specification {
 
       js.validate[User] must equalTo(JsSuccess(bobby))
     }
+  }
 
-    "Building JSON from JSON using Writes flattened" in {
+  "JSON Writes tools for Json" should {
+    "Build JSON from JSON using Writes flattened" in {
       val js = Json.obj(
         "key1" -> "value1",
         "key2" -> Json.obj(
@@ -310,29 +308,19 @@ object JsonValidSpec extends Specification {
       js.transform(jsonTransformer) must beEqualTo(res)
     }
 
-    /*"fail validation when type are not respected " in {
-      val obj = Json.obj("name" -> 5)
-      obj.validate[User] must equalTo(JsError(Seq(JsPath \ 'name -> Seq(ValidationError("validate.error.expected.jsstring")))))
-    }
-
-    "fail validation when constraints are not respected " in {
-      val bob = User("bob")
-      val js = Json.toJson(bob)
-      // SHOULD BE AT THE END js.validate[User] must equalTo(JsError(js, Json.obj("name" -> JsErrorObj(JsString("bob"), "validate.error.minLength", JsNumber(5)))))
-      js.validate[User] must equalTo(JsError(Seq(JsPath \ "name" -> Seq(ValidationError("validate.error.minLength", 5)))))
-    }
-
-    "fail validation when field missing" in {
-      val bob = User("bob")
-      val js = Json.obj("nick" -> "bob")
-      js.validate[User] must equalTo(
-        JsError(Seq(
-          JsPath \ "name" -> Seq(ValidationError("validate.error.missing-path"), ValidationError("validate.error.expected.jsstring"))
-        ))
-      )
-    }*/
   }
 
+  /*"JSON Reads" should {
+    "mix reads constraints" in {
+      case class User(id: Long, email: String, age: Int)
+
+      implicit val UserReads = (
+        (__ \ 'id).read[Long] and
+        (__ \ 'email).read( minLength(5) ),
+        JsPath \ 'age -> in( max(85) )
+      )(User2)(User2.unapply)
+    }
+  }*/
   /*
   "JSON JsMapper 3-fields case class" should {
     case class User2(id: Long, name: String, age: Int)

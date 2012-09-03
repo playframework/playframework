@@ -137,11 +137,13 @@ case class JsArray(value: Seq[JsValue] = List()) extends JsValue{
    * Append an element to this array.
    */
   def :+(el: JsValue): JsArray = JsArray(value :+ el)
+  def append(el: JsValue): JsArray = this.:+(el)
 
   /**
    * Prepend an element to this array.
    */
   def +:(el: JsValue): JsArray = JsArray(el +: value)
+  def prepend(el: JsValue): JsArray = this.+:(el)
 
 }
 
