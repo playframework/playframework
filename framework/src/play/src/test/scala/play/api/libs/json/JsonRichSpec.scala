@@ -3,7 +3,6 @@ package play.api.libs.json
 import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
-import play.api.libs.json.Generic._
 
 import scala.util.control.Exception._
 import java.text.ParseException
