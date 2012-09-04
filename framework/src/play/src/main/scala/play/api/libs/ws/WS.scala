@@ -71,7 +71,7 @@ object WS {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
 
   /**
    * A WS Request.
@@ -281,7 +281,8 @@ object WS {
       calc: Option[SignatureCalculator],
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
-      timeout: Option[Int]) {
+      timeout: Option[Int],
+      virtualHost: Option[String]) {
 
     /**
      * sets the signature calculator for the request
@@ -327,6 +328,10 @@ object WS {
      */
     def withTimeout(timeout: Int): WSRequestHolder =
       this.copy(timeout = Some(timeout))
+
+    def withVirtualHost(vh: String): WSRequestHolder = {
+      this.copy(virtualHost = Some(vh))
+    }
 
     /**
      * performs a get with supplied body
@@ -388,6 +393,9 @@ object WS {
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
+      virtualHost.map { v =>
+        request.setVirtualHost(v)
+      }
       request
     }
 
@@ -401,6 +409,9 @@ object WS {
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
+      }
+      virtualHost.map { v =>
+        request.setVirtualHost(v)
       }
       request
     }
