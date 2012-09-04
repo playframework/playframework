@@ -202,6 +202,7 @@ trait PlaySettings {
       case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
       case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
       case "xml" => ("play.api.templates.Xml", "play.api.templates.XmlFormat")
+      case "json" => ("play.api.templates.Json", "play.api.templates.JsonFormat")
     })
 
 }
