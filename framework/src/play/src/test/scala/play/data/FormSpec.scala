@@ -52,6 +52,13 @@ object ScalaForms {
       )
     )
 
+    val defaultValuesForm = Form(
+      tuple(
+        "pos" -> default(number, 42),
+        "name" -> default(text, "default text")
+      )
+    )
+
     val helloForm = Form(
       tuple(
         "name" -> nonEmptyText,
@@ -164,6 +171,16 @@ object FormSpec extends Specification {
   "render form using field[Type] syntax" in {
     val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
     ScalaForms.loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
+  }
+
+  "support default values" in {
+    ScalaForms.defaultValuesForm.bindFromRequest( Map() ).get must equalTo(42, "default text")
+    ScalaForms.defaultValuesForm.bindFromRequest( Map("name" -> Seq("another text") ) ).get must equalTo(42, "another text")
+    ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123")) ).get must equalTo(123, "default text")
+    ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123"), "name" -> Seq("another text")) ).get must equalTo(123, "another text")
+    
+    val f1 = ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("abc")) )
+    f1.errors.size must equalTo (1)
   }
 
   "support repeated values" in {
