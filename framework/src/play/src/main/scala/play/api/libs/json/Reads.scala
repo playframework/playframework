@@ -185,7 +185,6 @@ trait DefaultReads {
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
   def dateReads(pattern: String, corrector: String => String = identity): Reads[java.util.Date] = new Reads[java.util.Date] {
-    val df = new java.text.SimpleDateFormat(pattern)
     
     def reads(json: JsValue): JsResult[java.util.Date] = json match {
       case JsNumber(d) => JsSuccess(new java.util.Date(d.toLong))
@@ -197,6 +196,8 @@ trait DefaultReads {
     }
 
     private def parseDate(input: String): Option[java.util.Date] = {
+      // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
+      val df = new java.text.SimpleDateFormat(pattern)
       df.setLenient(false)
       try { Some(df.parse( input )) } catch {
         case _: java.text.ParseException => None
@@ -400,4 +401,8 @@ trait DefaultReads {
     def reads(json: JsValue) = json.validate[List[T]].map( _.toArray )
   }
 
+
+  def recursive[T](explicitReads: => Reads[T]) = new Reads[T] {
+    def reads(json: JsValue) = explicitReads.reads(json)
+  }
 }

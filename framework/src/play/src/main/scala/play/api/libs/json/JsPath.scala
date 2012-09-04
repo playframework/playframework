@@ -196,14 +196,17 @@ case class JsPath(path: List[PathNode] = List()) {
    * Reads/Writes/Format builders
    */
   def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
+  def lazyRead[T](r: => Reads[T]) = Reads( js => Reads.at[T](this)(r).reads(js) )
   def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
 
   def write[T](implicit w: Writes[T]) = Writes.at[T](this)(w)
+  def lazyWrite[T](w: => Writes[T]) = OWrites( (t:T) => Writes.at[T](this)(w).writes(t) )
   def write[T](t: T)(implicit w: Writes[T]) = Writes.fixedValue(this, t)
 
   def rw[T](implicit r:Reads[T], w:Writes[T]) = Format.at[T](this)(Format(r, w))
 
   def format[T](implicit f: Format[T]) = Format.at[T](this)(f)
+  def lazyFormat[T](f: => Format[T]) = OFormat[T]( lazyRead(f), lazyWrite(f) )
   def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
   def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
 

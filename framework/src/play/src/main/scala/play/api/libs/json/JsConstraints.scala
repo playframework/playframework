@@ -5,6 +5,8 @@ import Json._
 
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
+
+  def optional[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optional(fmt), Writes.optional(fmt) )
 }
 
 trait PathFormat {
@@ -61,6 +63,14 @@ trait ConstraintReads {
   def verifying[A](cond: A => Boolean)(implicit _reads: Reads[A]) =
     filter[A](ValidationError("validation.error.condition.not.verified"))(cond)(_reads)
 
+  def verifyingIf[A](cond: A => Boolean)(subreads: Reads[_])(implicit _reads: Reads[A]) = 
+    Reads[A] { js => _reads.reads(js).flatMap { t => 
+      (scala.util.control.Exception.catching(classOf[MatchError]) opt cond(t)).flatMap { b =>
+        if(b) Some(subreads.reads(js).map( _ => t ))
+        else None
+      }.getOrElse(JsSuccess(t))
+    } }
+
 }
 
 trait PathWrites {
@@ -89,9 +99,14 @@ trait PathWrites {
 }
 
 trait ConstraintWrites {
+  def optional[A](implicit wa: Writes[A]): Writes[Option[A]] = Writes[Option[A]] { a => a match {
+      case None => Json.obj()
+      case Some(av) => wa.writes(av)
+    }
+  }
 
-  def pruned[T](implicit w: Writes[T]): Writes[T] = new Writes[T] {
-    def writes(t: T): JsValue = JsUndefined("pruned")
+  def pruned[A](implicit w: Writes[A]): Writes[A] = new Writes[A] {
+    def writes(a: A): JsValue = JsUndefined("pruned")
   }
 
 }
