@@ -401,8 +401,4 @@ trait DefaultReads {
     def reads(json: JsValue) = json.validate[List[T]].map( _.toArray )
   }
 
-
-  def recursive[T](explicitReads: => Reads[T]) = new Reads[T] {
-    def reads(json: JsValue) = explicitReads.reads(json)
-  }
 }
