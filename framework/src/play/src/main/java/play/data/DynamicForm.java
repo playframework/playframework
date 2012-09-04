@@ -78,7 +78,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
             Map<String,String> newData = new HashMap<String,String>();
             for(String key: data.keySet()) {
                 String dkey = asDynamicKey(key);
-                newData.put(dkey, data.get(dkey));
+                newData.put(dkey, data.get(key));
             }
             data = newData;
         }
