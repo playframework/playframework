@@ -135,7 +135,7 @@ case class FakeApplication(
     override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
     val additionalPlugins: Seq[String] = Nil,
     val withoutPlugins: Seq[String] = Nil,
-    val additionalConfiguration: Map[String, String] = Map.empty) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
+    val additionalConfiguration: Map[String, _ <: Any] = Map.empty) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
 
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
