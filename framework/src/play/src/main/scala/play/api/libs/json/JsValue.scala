@@ -70,6 +70,9 @@ sealed trait JsValue {
    */
   def validate[T](implicit _reads: Reads[T]): JsResult[T] = _reads.reads(this)
 
+  /**
+   * Transforms a JsValue into another JsValue using given Writes[JsValue]
+   */
   def transform(implicit _writes: Writes[JsValue]): JsValue = _writes.writes(this)
 
   override def toString = Json.stringify(this)

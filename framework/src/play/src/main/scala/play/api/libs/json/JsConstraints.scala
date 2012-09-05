@@ -31,6 +31,11 @@ trait ConstraintReads {
   def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
     Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
+  def list[A](implicit reads:Reads[A]): Reads[List[A]] = Reads.traversableReads[List, A]
+  def set[A](implicit reads:Reads[A]): Reads[Set[A]] = Reads.traversableReads[Set, A]
+  def seq[A](implicit reads:Reads[A]): Reads[Seq[A]] = Reads.traversableReads[Seq, A]
+  def map[A](implicit reads:Reads[A]): Reads[collection.immutable.Map[String, A]] = Reads.mapReads[A]
+
   def min(m:Int)(implicit reads:Reads[Int]) =
     filterNot[Int](ValidationError("validate.error.min", m))(_ < m)(reads)
 
@@ -71,6 +76,9 @@ trait ConstraintReads {
       }.getOrElse(JsSuccess(t))
     } }
 
+  def pure[A](a: A) = new Reads[A] {
+    def reads(json: JsValue) = JsSuccess(a)
+  }
 }
 
 trait PathWrites {
@@ -94,7 +102,7 @@ trait PathWrites {
   def transformJson(path: JsPath, f: JsValue => JsValue): OWrites[JsValue] =
     OWrites[JsValue]{ obj => JsPath.createObj(path -> f(path(obj).headOption.getOrElse(JsNull))) }  
 
-  def fixedValue[A](path: JsPath, fixed: A)(implicit _writes:Writes[A]) =
+  def pure[A](path: JsPath, fixed: A)(implicit _writes:Writes[A]) =
     OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(fixed)) }    
 }
 
