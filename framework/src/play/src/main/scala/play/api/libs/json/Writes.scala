@@ -17,6 +17,15 @@ trait Writes[-T] {
    */
   def writes(o: T): JsValue
 
+  /**
+   * transforms the resulting JsValue using transformer function
+   */
+  def transform(transformer: JsValue => JsValue): Writes[T] = Writes[T]{ t => transformer(this.writes(t)) }
+
+  /**
+   * transforms resulting JsValue using Writes[JsValue] 
+   */
+  def transform(transformer: Writes[JsValue]): Writes[T] = Writes[T]{ t => transformer.writes(this.writes(t)) }
 }
 
 @implicitNotFound(

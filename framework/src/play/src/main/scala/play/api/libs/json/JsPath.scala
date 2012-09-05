@@ -1,6 +1,7 @@
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
+import scala.collection.generic.CanBuildFrom
 
 sealed trait PathNode {
   def apply(json: JsValue): List[JsValue]
@@ -196,12 +197,13 @@ case class JsPath(path: List[PathNode] = List()) {
    * Reads/Writes/Format builders
    */
   def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
-  def lazyRead[T](r: => Reads[T]) = Reads( js => Reads.at[T](this)(r).reads(js) )
   def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
-
+  
+  def lazyRead[T](r: => Reads[T]) = Reads( js => Reads.at[T](this)(r).reads(js) )
+  
   def write[T](implicit w: Writes[T]) = Writes.at[T](this)(w)
   def lazyWrite[T](w: => Writes[T]) = OWrites( (t:T) => Writes.at[T](this)(w).writes(t) )
-  def write[T](t: T)(implicit w: Writes[T]) = Writes.fixedValue(this, t)
+  def write[T](t: T)(implicit w: Writes[T]) = Writes.pure(this, t)
 
   def rw[T](implicit r:Reads[T], w:Writes[T]) = Format.at[T](this)(Format(r, w))
 
@@ -213,11 +215,49 @@ case class JsPath(path: List[PathNode] = List()) {
   private val self = this
 
   object json {
+    /**
+     * (__ \ 'key).pick is a Writes[JsValue] that:
+     * - picks the given JsValue at the given JsPath from the input JS 
+     * - creates an new JsObject with only this JsPath and JsValue
+     * It's useful to create new JsValue keeping only specific parts of input JsValue
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+    js.transform( (__ \ 'key1).json.pick ) 
+    => Json.obj("key1" -> "value1")
+    }}}
+     */
     def pick: OWrites[JsValue] = Writes.pick(self)
+
+    /**
+     * (__ \ 'field).put(myWrites) is a Writes[JsValue] that creates a new JsObject and writes at the given JsPath 
+     * the result of the given Writes[JsValue] applied on the input JsValue.
+     * It's useful to create a new JsValue modifying the whole input JsValue
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "123", "key2" -> "value2") 
+    js.transform( (__ \ 'key).json.put( Writes[JsValue]( js => js.as[JsObject] ++ Json.obj("key3" -> "value3") ) ) ) 
+    => Json.obj("key" -> Json.obj("key1" -> "123", "key2" -> "value2", "key3" -> "value3") )
+    }}}
+     */
     def put(w: Writes[JsValue]): OWrites[JsValue] = Writes.at(self)(w)
-    def put(js: JsValue)(implicit w: Writes[JsValue]): OWrites[JsValue] = self.write(js)
-    def modify(w: Writes[JsValue]): OWrites[JsValue] = Writes.modifyJson(self)(w)
-    def transform(f: JsValue => JsValue): OWrites[JsValue] = Writes.transformJson(self, f)  
+
+    /**
+     * (__ \ 'field).put(JsString("toto")) creates a new JsObject containing JsString("toto") value 
+     * at the given JsPath.
+     * Actually this Writes[JsValue] doesn't care about the input JsValue and is mainly used
+     * to create output JsValue from scratch
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+    js.transform( (__ \ 'key1).json.put(JsString("toto")) ) 
+    => Json.obj("key1" -> "toto")
+    }}}
+     */
+    def put(js: JsValue): OWrites[JsValue] = self.write(js)(Writes( js => js ))
   }
   
 
