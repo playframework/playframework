@@ -1,7 +1,6 @@
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
-import scala.collection.generic.CanBuildFrom
 
 sealed trait PathNode {
   def apply(json: JsValue): List[JsValue]
