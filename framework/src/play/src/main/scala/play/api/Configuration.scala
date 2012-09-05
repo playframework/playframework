@@ -62,7 +62,7 @@ object Configuration {
   /**
    * Create a ConfigFactory object from the data passed as a Map.
    */
-  def from(data: Map[String, String]) = {
+  def from(data: Map[String, Any]) = {
     Configuration(ConfigFactory.parseMap(data.asJava))
   }
 
