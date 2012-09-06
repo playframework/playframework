@@ -68,17 +68,6 @@ object Router {
    */
   object RoutesCompiler {
 
-    import java.io.File
-    import scalax.file._
-    import com.typesafe.config._
-
-    // TODO: this doesn't seem like a great way of getting the config
-    val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("conf/application.conf")));
-    val global = try {
-      config.getString("application.global");
-    } catch { case e: ConfigException.Missing => "Global" }
-    val classFactoryMethodName = global + ".getControllerInstance";
-
     object Hash {
 
       def apply(bytes: Array[Byte]): String = {
@@ -90,6 +79,9 @@ object Router {
       }
 
     }
+
+    import scalax.file._
+    import java.io.File
 
     case class RoutesCompilationError(source: File, message: String, line: Option[Int], column: Option[Int]) extends RuntimeException(message)
 
@@ -173,14 +165,6 @@ object Router {
           throw RoutesCompilationError(
             file,
             "Missing Controller",
-            Some(route.call.pos.line),
-            Some(route.call.pos.column))
-        }
-
-        if (route.call.instantiate && classFactoryMethodName == null) {
-          throw RoutesCompilationError(
-            file,
-            "application.classFactoryMethod must be set to use instantiated controller syntax",
             Some(route.call.pos.line),
             Some(route.call.pos.column))
         }
@@ -607,7 +591,7 @@ object Router {
                             val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
 
                             val controllerCall = if (route.call.instantiate) {
-                              classFactoryMethodName + "(classOf[" + packageName + "." + controller + "])." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                              "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + packageName + "." + controller + "])." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
                             } else {
                               packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
                             }
@@ -897,7 +881,7 @@ object Router {
 
             // call
             if (r.call.instantiate) {
-              classFactoryMethodName + "(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+              "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
             } else {
               r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
             },
@@ -924,8 +908,8 @@ object Router {
       override def toString = value
     }
     case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
-      val dynamic = if (instantiate) "()" else ""
-      override def toString = packageName + "." + controller + dynamic + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
+      val dynamic = if (instantiate) "new " else ""
+      override def toString = dynamic + packageName + "." + controller + dynamic + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
         "(" + params.mkString(", ") + ")"
       }.getOrElse("")
     }
