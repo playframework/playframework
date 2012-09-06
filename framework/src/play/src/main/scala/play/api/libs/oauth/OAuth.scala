@@ -124,7 +124,7 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
 
     override def getContentType(): String = getHeader("Content-Type")
 
-    override def getMessagePayload() = null
+    override def getMessagePayload() = new java.io.ByteArrayInputStream(request.getStringData.getBytes)
 
     override def getMethod(): String = this.request.method
 
