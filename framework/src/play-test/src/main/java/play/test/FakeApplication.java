@@ -21,14 +21,22 @@ public class FakeApplication {
      * @param additionalPlugins Additional plugins
      */
     @SuppressWarnings("unchecked")
-    public FakeApplication(File path, ClassLoader classloader, Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins) {
+    public FakeApplication(File path, ClassLoader classloader, Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, play.GlobalSettings global) {
+        play.api.GlobalSettings g = null;
+        if(global != null)
+          g = new play.core.j.JavaGlobalSettingsAdapter(global);
         wrappedApplication = new play.api.test.FakeApplication(
                 path,
                 classloader,
                 Scala.toSeq(additionalPlugins),
                 Scala.<String>emptySeq(),
-                Scala.asScala((Map<String, Object>)additionalConfiguration)
+                Scala.asScala((Map<String, Object>)additionalConfiguration),
+                scala.Option.apply(g)
                 );
+    }
+
+    public FakeApplication(File path, ClassLoader classloader, Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins) {
+      this(path, classloader, additionalConfiguration, additionalPlugins, null);
     }
 
     public play.api.test.FakeApplication getWrappedApplication() {

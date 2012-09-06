@@ -1,4 +1,4 @@
-package play.api.test;
+package play.api.test
 
 import play.api.mvc._
 import play.api.libs.json.JsValue
@@ -146,12 +146,18 @@ object FakeRequest {
  * @param withoutPlugins Plugins class names to disable
  * @param additionalConfiguration Additional configuration
  */
+
+import  play.api.{Application, WithDefaultConfiguration, WithDefaultGlobal, WithDefaultPlugins}
 case class FakeApplication(
     override val path: java.io.File = new java.io.File("."),
     override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
     val additionalPlugins: Seq[String] = Nil,
     val withoutPlugins: Seq[String] = Nil,
-    val additionalConfiguration: Map[String, _ <: Any] = Map.empty) extends play.api.Application(path, classloader, None, play.api.Mode.Test) {
+    val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+    val withGlobal: Option[play.api.GlobalSettings] = None) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
+
+  override val sources = None
+  override val mode = play.api.Mode.Test
 
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
@@ -160,5 +166,9 @@ case class FakeApplication(
   override def configuration = {
     super.configuration ++ play.api.Configuration.from(additionalConfiguration)
   }
+
+  lazy val defaultGlobal = super.global
+
+  override lazy val global = withGlobal.getOrElse(super.global)
 
 }
