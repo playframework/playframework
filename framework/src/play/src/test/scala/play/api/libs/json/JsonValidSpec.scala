@@ -436,6 +436,40 @@ object JsonValidSpec extends Specification {
       Json.toJson(User(123L, "bob", Some(User(124L, "john", None)))) must beEqualTo(js)
       success
     }
+
+    "lots of fields to read" in {
+      val myReads = (
+        (__ \ 'field1).read[String] and
+        (__ \ 'field2).read[Long] and
+        (__ \ 'field3).read[Float] and
+        (__ \ 'field4).read[Boolean] and
+        (__ \ 'field5).read[List[String]] and
+        (__ \ 'field6).read[String] and
+        (__ \ 'field7).read[String] and
+        (__ \ 'field8).read[String] and
+        (__ \ 'field9).read[String] and
+        (__ \ 'field10).read[String] and
+        (__ \ 'field11).read[String] and
+        (__ \ 'field12).read[String]
+      ) tupled
+
+      Json.obj(
+        "field1" -> "val1",
+        "field2" -> 123L,
+        "field3" -> 123.456F,
+        "field4" -> true,
+        "field5" -> Json.arr("alpha", "beta"),
+        "field6" -> "val6",
+        "field7" -> "val7",
+        "field8" -> "val8",
+        "field9" -> "val9",
+        "field10" -> "val10",
+        "field11" -> "val11",
+        "field12" -> "val12"
+      ).validate(myReads) must beEqualTo(
+        JsSuccess(( "val1", 123L, 123.456F, true, List("alpha", "beta"), "val6", "val7", "val8", "val9", "val10", "val11", "val12"))
+      )
+    }
   }
 
 }
