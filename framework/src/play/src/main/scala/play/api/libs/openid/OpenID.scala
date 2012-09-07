@@ -150,6 +150,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
  *   * The Discovery doesn't support XRIs at the moment
  */
 private[openid] class Discovery(ws: (String) => WSRequestHolder) {
+  import Discovery._
 
   case class UrlIdentifier(url: String) {
     def normalize = catching(classOf[MalformedURLException], classOf[URISyntaxException]) opt {
@@ -169,8 +170,27 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
     }
   }
 
+  def normalizeIdentifier(openID: String) = {
+      val trimmed = openID.trim
+      UrlIdentifier(trimmed).normalize getOrElse trimmed
+    }
+
+  /**
+   * Resolve the OpenID server from the user's OpenID
+   */
+  def discoverServer(openID:String): Promise[OpenIDServer] = {
+    val discoveryUrl = normalizeIdentifier(openID)
+    ws(discoveryUrl).get().map(response => {
+      val maybeOpenIdServer = new XrdsResolver().resolve(response) orElse new HtmlResolver().resolve(response)
+      maybeOpenIdServer.getOrElse(throw Errors.NETWORK_ERROR)
+    })
+  }
+}
+
+private[openid] object Discovery {
+
   trait Resolver {
-    def resolve(response:Response):Option[OpenIDServer]
+    def resolve(response: Response): Option[OpenIDServer]
   }
 
   // TODO: Verify schema, namespace and support verification of XML signatures
@@ -213,20 +233,4 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
         orElse(new Regex( """href='([^']*)'""").findFirstMatchIn(link).map(_.group(1).trim))
   }
 
-  def normalizeIdentifier(openID: String) = {
-      val trimmed = openID.trim
-      UrlIdentifier(trimmed).normalize getOrElse trimmed
-    }
-
-  /**
-   * Resolve the OpenID server from the user's OpenID
-   */
-  def discoverServer(openID:String): Promise[OpenIDServer] = {
-    val discoveryUrl = normalizeIdentifier(openID)
-    ws(discoveryUrl).get().map(response => {
-      val maybeOpenIdServer = new XrdsResolver().resolve(response) orElse new HtmlResolver().resolve(response)
-      maybeOpenIdServer.getOrElse(throw Errors.NETWORK_ERROR)
-    })
-  }
 }
-
