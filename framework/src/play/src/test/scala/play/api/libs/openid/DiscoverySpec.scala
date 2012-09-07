@@ -6,6 +6,7 @@ import java.net.URL
 import play.api.http.HeaderNames
 import play.api.http.Status._
 import org.specs2.control.NoStackTraceFilter
+import play.api.libs.ws.Response
 
 object DiscoverySpec extends Specification with Mockito {
 
@@ -74,6 +75,20 @@ object DiscoverySpec extends Specification with Mockito {
         normalize("http://example.com#thefragment") must be equalTo "http://example.com/"
         normalize("https://example.com/#thefragment") must be equalTo "https://example.com/"
       }
+    }
+  }
+
+  "The XRDS resolver" should {
+
+    import Discovery._
+
+    val response = mock[Response]
+    response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+    "parse a Google account response" in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/google-account-response.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/accounts/o8/ud")
     }
   }
 
