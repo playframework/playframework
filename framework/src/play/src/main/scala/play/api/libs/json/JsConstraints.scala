@@ -20,10 +20,10 @@ trait PathReads {
   def required(path:JsPath): Reads[JsValue] = at(path)
 
   def at[A](path:JsPath)(implicit reads:Reads[A]): Reads[A] =
-    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads) )
+    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)))
 
   def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
-    Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).map(Some(_))))
+    Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).repath(path).map(Some(_))))
 
 }
 
