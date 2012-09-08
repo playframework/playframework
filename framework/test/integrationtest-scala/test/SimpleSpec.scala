@@ -33,18 +33,22 @@ class SimpleSpec extends Specification {
     }
     
     "do not respond to a wrong url" in {
-      val result = routeAndCall(FakeRequest(POST, "/"))
-      
-      result must equalTo(None)
+      running(FakeApplication()) {
+        val result = route(FakeRequest(POST, "/"))
+        
+        result must equalTo(None)
+      }
     }
     
     "respond to the GET /Kiki request" in {
-      val Some(result) = routeAndCall(FakeRequest(GET, "/Kiki"))
-      
-      status(result) must equalTo(OK)
-      contentType(result) must equalTo(Some("text/html"))
-      charset(result) must equalTo(Some("utf-8"))
-      contentAsString(result) must contain("Hello Kiki")
+      running(FakeApplication()) {
+        val Some(result) = route(FakeRequest(GET, "/Kiki"))
+        
+        status(result) must equalTo(OK)
+        contentType(result) must equalTo(Some("text/html"))
+        charset(result) must equalTo(Some("utf-8"))
+        contentAsString(result) must contain("Hello Kiki")
+      }
     }
     
     "respond to the key Action" in {

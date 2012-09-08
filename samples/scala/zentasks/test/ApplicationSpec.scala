@@ -13,13 +13,13 @@ class ApplicationSpec extends Specification {
     
     "go to login page without credentials" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        val result  = routeAndCall( FakeRequest( GET, "/")).get
+        val result  = route( FakeRequest( GET, "/")).get
         status(result) must equalTo(303)
       }      
     }
     "list the secured product page with credentials" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        val result  = routeAndCall( FakeRequest( GET, "/").withSession("email"->"guillaume@sample.com")).get
+        val result  = route( FakeRequest( GET, "/").withSession("email"->"guillaume@sample.com")).get
         status(result) must equalTo(200)
       }      
     }
