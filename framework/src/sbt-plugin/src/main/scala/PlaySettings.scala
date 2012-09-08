@@ -178,7 +178,7 @@ trait PlaySettings {
 
     buildRequire <<= buildRequireTask,
 
-    buildRequireAndPackage <<= buildRequireAndPackageTask,
+    packageBin in Compile <<= (packageBin in Compile).dependsOn(buildRequire),
 
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= CoffeescriptCompiler,

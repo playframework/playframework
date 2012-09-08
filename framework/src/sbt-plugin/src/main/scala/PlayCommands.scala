@@ -91,11 +91,11 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     val prefix = "javascripts" + java.io.File.separator
     val subDir = prefix + requireSubFolder
     val rjoldDir = crossTarget / "classes" / "public" / subDir
-    val rjnewDir = new java.io.File(rjoldDir.getAbsolutePath + "-min")
     val jsFiles = (rjoldDir ** "*.js").filter(_.getName.endsWith("min.js") == false).get.toSet
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
-    val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
     if (jsFiles.isEmpty == false) {
+      val rjnewDir = new java.io.File(rjoldDir.getAbsolutePath + "-min")
+      val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
       IO.write(buildDesc,
         """({
               appDir: """" + subDir + """",
@@ -121,12 +121,10 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     cr
   }
 
-  val buildRequireAndPackage = TaskKey[File]("play-build-require-and-package")
-  val buildRequireAndPackageTask = (packageBin in Compile).dependsOn(buildRequire)
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
   val playPackageEverythingTask = (state, thisProjectRef, crossTarget) flatMap { (s, r, crossTarget) =>
-    inAllDependencies(r, buildRequireAndPackage.task, Project structure s).join
+    inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
   }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
