@@ -14,7 +14,7 @@ object ApplicationBuild extends Build {
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
       // Add your own project settings here      
       
-      // Add additinol resolvers here like this.
+      // Add additional resolvers here like this.
       // resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
     )
 }
