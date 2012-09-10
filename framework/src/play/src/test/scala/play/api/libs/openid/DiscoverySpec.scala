@@ -13,12 +13,13 @@ import play.api.libs.ws.Response
 
 object DiscoverySpec extends Specification with Mockito {
 
-
-  val ws = new WSMock
-  val discovery = new Discovery(ws.url)
   val dur = Duration(10, TimeUnit.SECONDS)
 
-  private def normalize(s: String) = discovery.normalizeIdentifier(s)
+  private def normalize(s: String) = {
+    val ws = new WSMock
+    val discovery = new Discovery(ws.url)
+    discovery.normalizeIdentifier(s)
+  }
 
   "Discovery normalization" should {
     // Adapted from org.openid4java.discovery.NormalizationTest
@@ -86,22 +87,25 @@ object DiscoverySpec extends Specification with Mockito {
 
     import Discovery._
 
-    val response = mock[Response]
-    response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
-
     "parse a Google account response" in {
+      val response = mock[Response]
+      response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/google-account-response.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/accounts/o8/ud")
     }
 
     "parse an XRDS response with a single Service element" in {
+      val response = mock[Response]
+      response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/a/example.com/o8/ud?be=o8")
     }
 
     "parse an XRDS response with multiple Service elements" in {
+      val response = mock[Response]
+      response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://www.myopenid.com/server")
@@ -109,18 +113,24 @@ object DiscoverySpec extends Specification with Mockito {
 
     // See 7.3.2.2.  Extracting Authentication Data
     "return the OP Identifier over the Claimed Identifier if both are present" in {
+      val response = mock[Response]
+      response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-opid.example.com")
     }
 
     "extract and use OpenID Authentication 1.0 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
+      val response = mock[Response]
+      response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1-op.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.example.com")
     }
 
     "extract and use OpenID Authentication 1.1 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
+      val response = mock[Response]
+      response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.1.example.com")
