@@ -165,10 +165,16 @@ package play.templates {
     }
 
   }
-  
-  case class GeneratedSourceVirtual(val content: String) extends AbstractGeneratedSource{
-  }
 
+  case class VirtualFile(path: String) extends File(path) {
+    override def getAbsolutePath = path
+    override def getName = path.substring(path.lastIndexOf(File.separator) + 1)
+    override def getParentFile = VirtualFile(path.substring(0, path.lastIndexOf(File.separator)))
+    override def isFile = path.endsWith(".scala.html")
+  }
+  
+  case class GeneratedSourceVirtual(val content: String, file: VirtualFile) extends AbstractGeneratedSource
+  
   object ScalaTemplateCompiler {
 
     import scala.util.parsing.input.Positional
@@ -242,7 +248,7 @@ package play.templates {
         }
       }
 
-      GeneratedSourceVirtual(generated)
+      GeneratedSourceVirtual(generated, VirtualFile(templateName.mkString("/") + ".template.scala"))
     }
 
     def generatedFile(template: File, sourceDirectory: File, generatedDirectory: File) = {
@@ -257,11 +263,7 @@ package play.templates {
       templateName
     }
     
-    case class VirtualFile(path: String) extends File(path) {
-      override def getName = path.substring(path.lastIndexOf(File.separator)+1)
-      override def getParentFile = VirtualFile(path.substring(0, path.lastIndexOf(File.separator)))
-      override def isFile = path.endsWith(".scala.html")
-    }
+  
     
     @tailrec
     def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = "", topDirectory: String = "views", setExt: Boolean = true): String = {
