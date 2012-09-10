@@ -35,41 +35,13 @@ object Configuration {
   }
 
   private val parseOpts = ConfigParseOptions.defaults().setAllowMissing(false)
-  private val resolveOpts = ConfigResolveOptions.defaults()
-
-  // Basically duplicate ConfigFactory#loadDefaultConfig
-  // see: #713
-  private def getConf: Config = {
-    val resource = Option(System.getProperty("config.resource")).map{ r =>
-      if (r.startsWith("/"))
-        r.substring(1)
-      else r
-    }
-    val file = Option(System.getProperty("config.file"))
-    val url = Option(System.getProperty("config.url"))
-
-    val all = resource :: file :: url :: Nil
-
-    if(all.flatten.size > 1){
-      throw new ConfigException.Generic("You set more than one of config.file='" + file
-              + "', config.url='" + url + "', config.resource='" + resource
-              + "'; don't know which one to use!");
-    }
-
-    val confs = all.zip(List[String => Config](
-      r => ConfigFactory.load(r, parseOpts, resolveOpts),
-      f => ConfigFactory.parseFile(new File(f), parseOpts),
-      u => ConfigFactory.parseURL(new java.net.URL(u), parseOpts)
-    )).map{ case (o, f) => o.map(f) }.flatten
-
-    confs.headOption.getOrElse(ConfigFactory.load("application", parseOpts, resolveOpts))
-  }
+  private def getConf: Config = ConfigFactory.load(parseOpts)
 
   /**
    * Loads a new `Configuration` either from the classpath or from
    * `conf/application.conf` depending on the application's Mode.
    *
-   * The provieded mode is used if the application is not ready
+   * The provided mode is used if the application is not ready
    * yet, just like when calling this method from `play.api.Application`.
    *
    * Defaults to Mode.Dev
