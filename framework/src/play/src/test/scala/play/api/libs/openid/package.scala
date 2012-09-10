@@ -25,7 +25,9 @@ package object openid {
     def hostAndPath = new URL(url.getProtocol, url.getHost, url.getPort, url.getPath).toExternalForm
   }
 
-  def readFixture(filePath: String) = Source.fromInputStream(this.getClass.getResourceAsStream(filePath)).mkString
+  def readFixture(filePath: String) = this.synchronized {
+    Source.fromInputStream(this.getClass.getResourceAsStream(filePath)).mkString
+  }
 
   def parseQueryString(url: String): Params = {
     catching(classOf[MalformedURLException]) opt new URL(url) map {
