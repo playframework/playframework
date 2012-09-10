@@ -78,7 +78,7 @@ object DiscoverySpec extends Specification with Mockito {
     }
   }
 
-  /*"The XRDS resolver" should {
+  "The XRDS resolver" should {
 
     import Discovery._
 
@@ -121,8 +121,7 @@ object DiscoverySpec extends Specification with Mockito {
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
       maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.1.example.com")
     }
-  
-  }*/
+  }
 
   "OpenID.redirectURL" should {
 
