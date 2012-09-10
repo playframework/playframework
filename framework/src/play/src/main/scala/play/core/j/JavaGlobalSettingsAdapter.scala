@@ -41,7 +41,8 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
   }
 
   override def getControllerInstance[A](controllerClass: Class[A]): A = {
-    controllerClass.newInstance();
+    Option(underlying.getControllerInstance(controllerClass))
+      .getOrElse(super.getControllerInstance(controllerClass))
   }
 
 }

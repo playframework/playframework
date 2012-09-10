@@ -119,14 +119,13 @@ trait GlobalSettings {
   }
 
   def onRequestCompletion(request: RequestHeader) {
-
   }
 
   /**
-   * Returns the appropriate instance for the given injection key.
+   * Manages controllers instantiation.
    *
-   * @param controllerClass the instance type to construct
-   * @return the appropriate instance for the given injection key
+   * @param controllerClass the controller class to instantiate.
+   * @return the appropriate instance for the given controller class.
    */
   def getControllerInstance[A](controllerClass: Class[A]): A = {
     controllerClass.newInstance();

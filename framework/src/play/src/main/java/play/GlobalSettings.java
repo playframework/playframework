@@ -108,4 +108,14 @@ public class GlobalSettings {
     public Result onBadRequest(RequestHeader request, String error) {
         return null;
     }
+
+    /**
+     * Manages controllers instantiation.
+     *
+     * @param controllerClass the controller class to instantiate.
+     * @return the appropriate instance for the given controller class.
+     */
+    public <A> A getControllerInstance(Class<A> controllerClass) throws Exception {
+        return null;
+    }
 }
