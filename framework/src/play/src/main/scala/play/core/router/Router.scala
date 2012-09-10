@@ -911,7 +911,7 @@ object Router {
       override def toString = value
     }
     case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
-      val dynamic = if (instantiate) "new " else ""
+      val dynamic = if (instantiate) "@" else ""
       override def toString = dynamic + packageName + "." + controller + dynamic + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
         "(" + params.mkString(", ") + ")"
       }.getOrElse("")
@@ -1061,7 +1061,7 @@ object Router {
 
       def className: Parser[String] = namedError("[a-zA-Z]+".r, "Class name expected")
 
-      def call: Parser[HandlerCall] = opt("new[ \t]+".r) ~ packageName ~ "." ~ className ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
+      def call: Parser[HandlerCall] = opt("@") ~ packageName ~ "." ~ className ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
         case instantiate ~ pkgName ~ _ ~ className ~ _ ~ fieldMethod ~ parameters =>
           {
             val packageName = pkgName.mkString(".")
