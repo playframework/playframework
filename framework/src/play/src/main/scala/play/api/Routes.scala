@@ -5,6 +5,15 @@ package play.api {
    */
   object Routes {
 
+    // -- TAGS
+
+    val ROUTE_VERB = "ROUTE_VERB"
+    val ROUTE_PATTERN = "ROUTE_PATTERN"
+    val ROUTE_CONTROLLER = "ROUTE_CONTROLLER"
+    val ROUTE_ACTION_METHOD = "ROUTE_ACTION_METHOD"
+
+    // --
+
     import play.core.Router._
     import play.api.mvc.RequestHeader
 

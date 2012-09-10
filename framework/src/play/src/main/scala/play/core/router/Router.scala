@@ -593,7 +593,7 @@ object Router {
                             """ 
                                   |%s
                                   |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
-                                  |   %s, HandlerDef(this, "%s", "%s", %s)
+                                  |   %s, HandlerDef(this, "%s", "%s", %s, "%s", Routes.prefix + "%s")
                                   |)
                               """.stripMargin.format(
                               markLines(route),
@@ -602,7 +602,10 @@ object Router {
                               packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")",
                               packageName + "." + controller + route.call.field.map(_ + ".").getOrElse(""),
                               route.call.method,
-                              "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")")
+                              "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
+                              route.verb,
+                              route.path
+                              )
 
                         }.mkString("\n"),
 
@@ -884,7 +887,7 @@ object Router {
             // definition
             """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + r.call.field.map("." + _).getOrElse("") + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
               params.map("classOf[" + _.typeName + "]").mkString(", ")
-            }.map("Seq(" + _ + ")").getOrElse("Nil") + """)""")
+            }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", Routes.prefix + """" + r.path + """")""")
       }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 
         """Map.empty""" // Empty partial function
@@ -1136,7 +1139,7 @@ object Router {
 
   }
 
-  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]]) {
+  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, path: String) {
 
     def getControllerClass: Class[_] = {
       Option(controller.split('.').takeRight(1).head).filter(p => p.charAt(0).toUpper != p.charAt(0)).map { field =>
@@ -1343,8 +1346,31 @@ object Router {
       routes.lift(request)
     }
 
+    private def tagRequest(rh: RequestHeader, handler: HandlerDef): RequestHeader = rh.copy(tags = rh.tags ++ Map(
+      play.api.Routes.ROUTE_PATTERN -> handler.path,
+      play.api.Routes.ROUTE_VERB -> handler.verb,
+      play.api.Routes.ROUTE_CONTROLLER -> handler.controller,
+      play.api.Routes.ROUTE_ACTION_METHOD -> handler.method
+    ))
+
     def invokeHandler[T](call: => T, handler: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {
-      d.call(call, handler)
+      d.call(call, handler) match {
+        case javaAction: play.core.j.JavaAction => new play.core.j.JavaAction {
+          def invocation = javaAction.invocation
+          def controller = javaAction.controller
+          def method = javaAction.method
+          override def apply(req: Request[play.mvc.Http.RequestBody]): Result = {
+            javaAction(Request(tagRequest(req, handler), req.body))
+          }
+        }
+        case action: EssentialAction => new EssentialAction {
+          def apply(rh: RequestHeader) = action(tagRequest(rh, handler))
+        }
+        case ws @ WebSocket(f) => {
+          WebSocket[ws.FRAMES_TYPE](rh => f(tagRequest(rh, handler)))(ws.frameFormatter)
+        }
+        case handler => handler
+      }
     }
 
   }

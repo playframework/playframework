@@ -33,9 +33,7 @@ public class Http {
 
         //
 
-        private static java.util.concurrent.atomic.AtomicLong idGenerator = new java.util.concurrent.atomic.AtomicLong();
-        private final Long id = idGenerator.incrementAndGet();
-
+        private final Long id;
         private final Request request;
         private final Response response;
         private final Session session;
@@ -51,11 +49,13 @@ public class Http {
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
          */
-        public Context(Request request, Map<String,String> sessionData, Map<String,String> flashData) {
+        public Context(Long id, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
+            this.id = id;
             this.request = request;
             this.response = new Response();
             this.session = new Session(sessionData);
             this.flash = new Flash(flashData);
+            this.args = new HashMap<String,Object>(args);
         }
 
         /**
@@ -132,7 +132,7 @@ public class Http {
         /** 
          * Free space to store your request specific data
          */
-        public Map<String, Object> args = new HashMap<String, Object>(16);
+        public Map<String, Object> args;
 
         /**
          * Import in templates to get implicit HTTP context.

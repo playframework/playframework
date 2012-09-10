@@ -103,7 +103,6 @@ trait Action[A] extends EssentialAction {
         }
         // } catch { case e => app.handleError(rh, e) }
       }.getOrElse(Results.InternalServerError)
-
   }
 
   /**

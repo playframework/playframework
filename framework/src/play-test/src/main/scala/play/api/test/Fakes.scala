@@ -23,7 +23,23 @@ case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1") extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String,String] = Map.empty[String,String]) extends Request[A] {
+
+  private def _copy[B](
+    id: Long = this.id,
+    tags: Map[String,String] = this.tags,
+    uri: String = this.uri,
+    path: String = this.path,
+    method: String = this.method,
+    version: String = this.version,
+    headers: FakeHeaders = this.headers,
+    remoteAddress: String = this.remoteAddress,
+    body: B = this.body
+  ): FakeRequest[B] = {
+    new FakeRequest[B](
+      method, uri, headers, body, remoteAddress, version, id, tags
+    )
+  }
 
   /**
    * The request path.
@@ -39,7 +55,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * Constructs a new request with additional headers.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    copy(headers = FakeHeaders(
+    _copy(headers = FakeHeaders(
       headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2)).toSeq
     ))
   }
@@ -79,7 +95,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * Set a Form url encoded body to this request.
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
+    _copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 
   def certs = Promise.pure(IndexedSeq.empty)
@@ -94,7 +110,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * @return the current fake request
    */
   def withJsonBody(node: JsValue, _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
-    copy(method = _method, body = AnyContentAsJson(node))
+    _copy(method = _method, body = AnyContentAsJson(node))
       .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
   }
 

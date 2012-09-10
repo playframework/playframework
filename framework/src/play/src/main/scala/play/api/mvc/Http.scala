@@ -13,6 +13,16 @@ package play.api.mvc {
   trait RequestHeader {
 
     /**
+     * The request ID.
+     */
+    def id: Long 
+
+    /**
+     * The request Tags.
+     */
+    def tags: Map[String,String]
+
+    /**
      * The complete request URI, containing both path and query string.
      */
     def uri: String
@@ -38,11 +48,6 @@ package play.api.mvc {
     def queryString: Map[String, Seq[String]]
 
     /**
-     * Helper method to access a queryString parameter.
-     */
-    def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
-
-    /**
      * The HTTP headers.
      */
     def headers: Headers
@@ -55,6 +60,13 @@ package play.api.mvc {
      * application configuration file.
      */
     def remoteAddress: String
+
+    // -- Computed
+
+    /**
+     * Helper method to access a queryString parameter.
+     */
+    def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
 
     /**
      * The HTTP host (domain, optionally port)
@@ -128,6 +140,34 @@ package play.api.mvc {
      */
     lazy val charset: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').tail.headOption).map(_.toLowerCase.trim).filter(_.startsWith("charset=")).flatMap(_.split('=').tail.headOption)
 
+    /**
+     * Copy the request.
+     */
+    def copy(
+      id: Long = this.id,
+      tags: Map[String,String] = this.tags,
+      uri: String = this.uri,
+      path: String = this.path,
+      method: String = this.method,
+      version: String = this.version,
+      queryString: Map[String, Seq[String]] = this.queryString,
+      headers: Headers = this.headers,
+      remoteAddress: String = this.remoteAddress
+    ): RequestHeader = {
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress)
+      new RequestHeader {
+        val id = _id
+        val tags = _tags
+        val uri = _uri
+        val path = _path
+        val method = _method
+        val version = _version
+        val queryString = _queryString
+        val headers = _headers
+        val remoteAddress = _remoteAddress
+      }
+    }
+
     override def toString = {
       method + " " + uri
     }
@@ -152,6 +192,8 @@ package play.api.mvc {
      * Transform the request body.
      */
     def map[B](f: A => B): Request[B] = new Request[B] {
+      def id = self.id
+      def tags = self.tags
       def uri = self.uri
       def path = self.path
       def method = self.method
@@ -167,6 +209,8 @@ package play.api.mvc {
   object Request {
 
     def apply[A](rh: RequestHeader, a: A) = new Request[A] {
+      def id = rh.id
+      def tags = rh.tags
       def uri = rh.uri
       def path = rh.path
       def method = rh.method
@@ -183,6 +227,8 @@ package play.api.mvc {
    * Wrap an existing request. Useful to extend a request.
    */
   class WrappedRequest[A](request: Request[A]) extends Request[A] {
+    def id = request.id
+    def tags = request.tags
     def body = request.body
     def headers = request.headers
     def queryString = request.queryString

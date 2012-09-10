@@ -7,6 +7,11 @@ import play.libs.Scala;
  */
 public class Routes {
 
+    public final static String ROUTE_VERB = "ROUTE_VERB";
+    public final static String ROUTE_PATTERN = "ROUTE_PATTERN";
+    public final static String ROUTE_CONTROLLER = "ROUTE_CONTROLLER";
+    public final static String ROUTE_ACTION_METHOD = "ROUTE_ACTION_METHOD";
+
     /**
      * Generates a JavaScript router.
      */

@@ -93,9 +93,13 @@ trait JavaHelpers {
    * @param request
    */
   def createJavaContext(req: RequestHeader): JContext = {
-    new JContext(createJavaRequest(req),
+    new JContext(
+      req.id,
+      createJavaRequest(req),
       req.session.data.asJava,
-      req.flash.data.asJava)
+      req.flash.data.asJava,
+      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava
+    )
   }
 
   /**
@@ -103,7 +107,7 @@ trait JavaHelpers {
    * @param request
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
-    new JContext(new JRequest {
+    new JContext(req.id, new JRequest {
 
       def uri = req.uri
 
@@ -140,7 +144,8 @@ trait JavaHelpers {
 
     },
       req.session.data.asJava,
-      req.flash.data.asJava)
+      req.flash.data.asJava,
+      req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava)
   }
 
   /**

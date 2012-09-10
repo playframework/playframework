@@ -51,7 +51,7 @@ public class FakeRequest {
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
         AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
-        fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version());
+        fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
         return this;
     }
 
@@ -70,7 +70,7 @@ public class FakeRequest {
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
         AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
-        fake = new play.api.test.FakeRequest(method, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version());
+        fake = new play.api.test.FakeRequest(method, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
         return this;
     }
 

@@ -14,6 +14,8 @@ import play.api.libs.concurrent.execution.defaultContext
  */
 case class WebSocket[A](f: RequestHeader => (Enumerator[A], Iteratee[A, Unit]) => Unit)(implicit val frameFormatter: WebSocket.FrameFormatter[A]) extends Handler {
 
+  type FRAMES_TYPE = A
+
   /**
    * Returns itself, for better support in the routes file.
    *

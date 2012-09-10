@@ -28,6 +28,8 @@ import play.api.libs.concurrent.execution.defaultContext
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
 
+  private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
+
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
     Logger.trace("Exception caught in Netty", e.getCause)
     e.getChannel.close()
@@ -81,6 +83,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         //mapping netty request to Play's
 
         val requestHeader = new RequestHeader {
+          val id = requestIDs.incrementAndGet
+          val tags = Map.empty[String,String]
           def uri = nettyHttpRequest.getUri
           def path = nettyUri.getPath
           def method = nettyHttpRequest.getMethod.getName
