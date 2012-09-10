@@ -60,15 +60,16 @@ package play.templates {
     }
 
   }
-
-  case class GeneratedSource(file: File) {
-
+  
+  sealed trait AbstractGeneratedSource {
+    def content: String
+    
     lazy val meta: Map[String, String] = {
       val Meta = """([A-Z]+): (.*)""".r
       val UndefinedMeta = """([A-Z]+):""".r
       Map.empty[String, String] ++ {
         try {
-          Path(file).slurpString.split("-- GENERATED --")(1).trim.split('\n').map { m =>
+          content.split("-- GENERATED --")(1).trim.split('\n').map { m =>
             m.trim match {
               case Meta(key, value) => (key -> value)
               case UndefinedMeta(key) => (key -> "")
@@ -80,7 +81,7 @@ package play.templates {
         }
       }
     }
-
+    
     lazy val matrix: Seq[(Int, Int)] = {
       for (pos <- meta("MATRIX").split('|'); val c = pos.split("->"))
         yield try {
@@ -89,7 +90,7 @@ package play.templates {
         case _ => (0, 0) // Skip if MATRIX meta is corrupted
       }
     }
-
+    
     lazy val lines: Seq[(Int, Int)] = {
       for (pos <- meta("LINES").split('|'); val c = pos.split("->"))
         yield try {
@@ -98,13 +99,7 @@ package play.templates {
         case _ => (0, 0) // Skip if LINES meta is corrupted
       }
     }
-
-    def needRecompilation: Boolean = (!file.exists ||
-      // A generated source already exist but
-      source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
-        (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
-        )
-
+    
     def mapPosition(generatedPosition: Int): Int = {
       matrix.indexWhere(p => p._1 > generatedPosition) match {
         case 0 => 0
@@ -132,6 +127,17 @@ package play.templates {
         }
       }
     }
+  }
+
+  case class GeneratedSource(file: File) extends AbstractGeneratedSource{
+    
+    def content = Path(file).slurpString
+
+    def needRecompilation: Boolean = (!file.exists ||
+      // A generated source already exist but
+      source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
+        (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
+        )
 
     def toSourcePosition(marker: Int): (Int, Int) = {
       try {
@@ -158,6 +164,9 @@ package play.templates {
       }
     }
 
+  }
+  
+  case class GeneratedSourceVirtual(val content: String) extends AbstractGeneratedSource{
   }
 
   object ScalaTemplateCompiler {
@@ -213,11 +222,47 @@ package play.templates {
       }
     }
 
+    def compileVirtual(content: String, absolutePath: String, sourcePath: String, resultType: String, formatterType: String, additionalImports: String = "") = {
+      val templateName = generatedFileVirtual(content, absolutePath, sourcePath)
+      val generated = templateParser.parser(new CharSequenceReader(content)) match {
+        case templateParser.Success(parsed, rest) if rest.atEnd => {
+          generateFinalTemplateVirtual(absolutePath, content,
+            templateName.dropRight(1).mkString("."),
+            templateName.takeRight(1).mkString,
+            parsed,
+            resultType,
+            formatterType,
+            additionalImports)
+        }
+        case templateParser.Success(_, rest) => {
+          throw new TemplateCompilationError(new File(absolutePath), "Not parsed?", rest.pos.line, rest.pos.column)
+        }
+        case templateParser.NoSuccess(message, input) => {
+          throw new TemplateCompilationError(new File(absolutePath), message, input.pos.line, input.pos.column)
+        }
+      }
+
+      GeneratedSourceVirtual(generated)
+    }
+
     def generatedFile(template: File, sourceDirectory: File, generatedDirectory: File) = {
       val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head).split('.')
       templateName -> GeneratedSource(new File(generatedDirectory, templateName.mkString("/") + ".template.scala"))
     }
 
+    def generatedFileVirtual(content: String, absolutePath: String, sourcePath: String) = {
+      val template = VirtualFile(absolutePath)
+      val sourceDirectory = VirtualFile(sourcePath)
+      val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head).split('.')
+      templateName
+    }
+    
+    case class VirtualFile(path: String) extends File(path) {
+      override def getName = path.substring(path.lastIndexOf(File.separator)+1)
+      override def getParentFile = VirtualFile(path.substring(0, path.lastIndexOf(File.separator)))
+      override def isFile = path.endsWith(".scala.html")
+    }
+    
     @tailrec
     def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = "", topDirectory: String = "views", setExt: Boolean = true): String = {
       val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
@@ -329,7 +374,6 @@ package play.templates {
           })
       }
 
-//      def blockArgs: Parser[String] = (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => args.mkString + arrow }
       def blockArgs: Parser[PosString] = positioned( (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => PosString(args.mkString + arrow) } )
 
       def methodCall: Parser[String] = identifier ~ (squareBrackets?) ~ (parentheses?) ^^ {
@@ -518,9 +562,8 @@ package play.templates {
 
       Nil :+ imports :+ "\n" :+ defs :+ "\n" :+ "Seq[Any](" :+ visit(template.content, Nil) :+ ")"
     }
-
-    def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
-
+    
+    def generateCode(packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String) = {
       val extra = TemplateAsFunctionCompiler.getFunctionMapping(
         root.params.str,
         resultType)
@@ -549,8 +592,19 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
 }"""
       }
+      generated
+    }
+
+    def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
+      val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
 
       Source.finalSource(template, generated)
+    }
+
+    def generateFinalTemplateVirtual(absolutePath: String, contents: String, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
+      val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
+
+      Source.finalSource(absolutePath, contents.toCharArray map (_.toByte), generated)
     }
 
     object TemplateAsFunctionCompiler {
@@ -701,7 +755,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     import scala.collection.mutable.ListBuffer
 
-    def finalSource(template: File, generatedTokens: Seq[Any]): String = {
+    def finalSource(absolutePath: String, contents: Array[Byte], generatedTokens: Seq[Any]): String = {
       val scalaCode = new StringBuilder
       val positions = ListBuffer.empty[(Int, Int)]
       val lines = ListBuffer.empty[(Int, Int)]
@@ -710,8 +764,8 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                 /*
                     -- GENERATED --
                     DATE: """ + new java.util.Date + """
-                    SOURCE: """ + template.getAbsolutePath.replace(File.separator, "/") + """
-                    HASH: """ + Hash(Path(template).byteArray) + """
+                    SOURCE: """ + absolutePath.replace(File.separator, "/") + """
+                    HASH: """ + Hash(contents) + """
                     MATRIX: """ + positions.map { pos =>
         pos._1 + "->" + pos._2
       }.mkString("|") + """
@@ -721,6 +775,10 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                     -- GENERATED --
                 */
             """
+    }
+    
+    def finalSource(template: File, generatedTokens: Seq[Any]): String = {
+      finalSource(template.getAbsolutePath, Path(template).byteArray, generatedTokens)
     }
 
     private def serialize(parts: Seq[Any], source: StringBuilder, positions: ListBuffer[(Int, Int)], lines: ListBuffer[(Int, Int)]) {
