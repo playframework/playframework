@@ -344,6 +344,18 @@ object JsonValidSpec extends Specification {
   }
 
   "JSON Reads" should {
+    "report correct path for validation errors" in {
+      case class User(email: String, phone: Option[String])
+
+      implicit val UserReads = (
+        (__ \ 'email).read(email) and
+        (__ \ 'phone).readOpt(minLength[String](8))
+      )(User)
+
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("validate.error.minlength", 8)))
+    }
+
     "mix reads constraints" in {
       case class User(id: Long, email: String, age: Int)
 
@@ -353,10 +365,8 @@ object JsonValidSpec extends Specification {
         (__ \ 'age).read( max(55) or min(65) )
       )(User)
 
-
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError(ValidationError("validate.error.max", 55)) ++ JsError(ValidationError("validate.error.min", 65)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError(ValidationError("validate.error.email")) ++ JsError(ValidationError("validate.error.max", 55)) ++ JsError(ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError(__ \ "age", ValidationError("validate.error.max", 55)) ++ JsError(__ \ "age", ValidationError("validate.error.min", 65)))
     }
 
     "verifyingIf reads" in {
@@ -372,7 +382,7 @@ object JsonValidSpec extends Specification {
       val d = (new java.util.Date()).getTime()
       Json.obj("type" -> "coucou", "data" -> Json.obj()).validate(TupleReads) must beEqualTo(JsSuccess("coucou" -> Json.obj()))
       Json.obj("type" -> "coucou", "data" -> Json.obj( "title" -> "blabla", "created" -> d)).validate(TupleReads) must beEqualTo(JsSuccess("coucou" -> Json.obj( "title" -> "blabla", "created" -> d)))
-      Json.obj("type" -> "coucou", "data" -> Json.obj( "title" -> "blabla")).validate(TupleReads) must beEqualTo(JsError( __ \ "created", "validate.error.missing-path"))
+      Json.obj("type" -> "coucou", "data" -> Json.obj( "title" -> "blabla")).validate(TupleReads) must beEqualTo(JsError( __ \ "data" \ "created", "validate.error.missing-path"))
     }
 
     "recursive reads" in {
