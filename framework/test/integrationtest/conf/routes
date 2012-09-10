@@ -14,6 +14,9 @@ GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
 
+GET     /json_java_instance     new controllers.JavaControllerInstance.index()
+GET     /json_scala_instance    new controllers.ScalaControllerInstance.index()
+
 GET     /notintercepted         controllers.JavaApi.notIntercepted()
 GET     /intercepted-with       controllers.JavaApi.interceptedUsingWith()
 GET     /intercepted            controllers.JavaApi.intercepted()

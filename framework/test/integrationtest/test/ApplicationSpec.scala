@@ -195,6 +195,21 @@ class ApplicationSpec extends Specification {
       }
     }
 
+    "instantiate controllers" in {
+      running(FakeApplication()) {
+        "Java controller instance" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.JavaControllerInstance.index().url))
+          contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
+          contentType(result) must equalTo (Some("application/json"))
+        }
+        "Scala controller instance" in {
+          val Some(result) = routeAndCall(FakeRequest(GET, controllers.routes.ScalaControllerInstance.index().url))
+          contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
+          contentType(result) must equalTo (Some("application/json"))
+        }
+      }
+    }
+
     "urldecode correctly parameters from path and query string" in {
       running(FakeApplication()) {
         val Some(result) = route(FakeRequest(GET, "/urldecode/2%2B2?q=2%2B2"))

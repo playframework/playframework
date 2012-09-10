@@ -422,7 +422,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
                               route.verb.value,
-                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ Routes.defaultPrefix} + " } + "\"\"\"\"" + route.path.parts.map {
+                              "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ Routes.defaultPrefix } + " } + "\"\"\"\"" + route.path.parts.map {
                                 case StaticPart(part) => " + \"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -590,6 +590,12 @@ object Router {
 
                             val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
 
+                            val controllerCall = if (route.call.instantiate) {
+                              "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + packageName + "." + controller + "])." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                            } else {
+                              packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                            }
+
                             """ 
                                   |%s
                                   |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
@@ -599,7 +605,7 @@ object Router {
                               markLines(route),
                               route.call.method,
                               reverseSignature,
-                              packageName + "." + controller + "." + route.call.field.map(_ + ".").getOrElse("") + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")",
+                              controllerCall,
                               packageName + "." + controller + route.call.field.map(_ + ".").getOrElse(""),
                               route.call.method,
                               "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
@@ -687,7 +693,7 @@ object Router {
 
                             def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                               route.verb.value,
-                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { Routes.defaultPrefix} + """ } + route.path.parts.map {
+                              "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { Routes.defaultPrefix } + """ } + route.path.parts.map {
                                 case StaticPart(part) => "\"" + part + "\""
                                 case DynamicPart(name, _) => {
                                   route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -850,7 +856,7 @@ object Router {
               |%s
               |case %s%s(params) => {
               |   call%s { %s
-              |        invokeHandler(_root_.%s%s, %s)
+              |        invokeHandler(%s%s, %s)
               |   }
               |}
           """.stripMargin.format(
@@ -877,7 +883,11 @@ object Router {
             }.map("(" + _ + ") =>").getOrElse(""),
 
             // call
-            r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method,
+            if (r.call.instantiate) {
+              "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+            } else {
+              r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+            },
 
             // call parameters
             r.call.parameters.map { params =>
@@ -900,8 +910,9 @@ object Router {
     case class HttpVerb(value: String) {
       override def toString = value
     }
-    case class HandlerCall(packageName: String, controller: String, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
-      override def toString = packageName + "." + controller + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
+    case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, field: Option[String], parameters: Option[Seq[Parameter]]) extends Positional {
+      val dynamic = if (instantiate) "new " else ""
+      override def toString = dynamic + packageName + "." + controller + dynamic + "." + field.map(_ + ".").getOrElse("") + method + parameters.map { params =>
         "(" + params.mkString(", ") + ")"
       }.getOrElse("")
     }
@@ -1046,15 +1057,18 @@ object Router {
 
       def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def call: Parser[HandlerCall] = namedError(rep1sep(identifier, "."), "Action call expected") ~ opt(parameters) ^^ {
-        case handler ~ parameters =>
+      def packageName: Parser[List[String]] = namedError(rep1sep("[a-z]+".r, "."), "Package name expected")
+
+      def className: Parser[String] = namedError("[a-zA-Z]+".r, "Class name expected")
+
+      def call: Parser[HandlerCall] = opt("new[ \t]+".r) ~ packageName ~ "." ~ className ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
+        case instantiate ~ pkgName ~ _ ~ className ~ _ ~ fieldMethod ~ parameters =>
           {
-            val packageName = handler.takeWhile(p => p.charAt(0).toUpper != p.charAt(0)).mkString(".")
-            val className = try { handler(packageName.split('.').size) } catch { case _ => "" }
-            val rest = handler.drop(packageName.split('.').size + 1)
-            val field = Option(rest.dropRight(1).mkString(".")).filterNot(_.isEmpty)
-            val methodName = rest.takeRight(1).mkString
-            HandlerCall(packageName, className, methodName, field, parameters)
+            val packageName = pkgName.mkString(".")
+            val dynamic = !instantiate.isEmpty
+            val field = Option(fieldMethod.dropRight(1).mkString(".")).filterNot(_.isEmpty)
+            val methodName = fieldMethod.takeRight(1).mkString
+            HandlerCall(packageName, className, dynamic, methodName, field, parameters)
           }
       }
 

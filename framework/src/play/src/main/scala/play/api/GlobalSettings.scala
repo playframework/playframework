@@ -122,6 +122,16 @@ trait GlobalSettings {
 
   }
 
+  /**
+   * Returns the appropriate instance for the given injection key.
+   *
+   * @param controllerClass the instance type to construct
+   * @return the appropriate instance for the given injection key
+   */
+  def getControllerInstance[A](controllerClass: Class[A]): A = {
+    controllerClass.newInstance();
+  }
+
 }
 
 /**
