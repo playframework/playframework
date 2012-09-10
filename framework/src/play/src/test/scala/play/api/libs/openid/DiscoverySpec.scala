@@ -6,6 +6,7 @@ import java.net.URL
 import play.api.http.HeaderNames
 import play.api.http.Status._
 import org.specs2.control.NoStackTraceFilter
+import play.api.libs.ws.Response
 
 object DiscoverySpec extends Specification with Mockito {
 
@@ -77,7 +78,52 @@ object DiscoverySpec extends Specification with Mockito {
     }
   }
 
-  "Discovery" should {
+  "The XRDS resolver" should {
+
+    import Discovery._
+
+    val response = mock[Response]
+    response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+    "parse a Google account response" in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/google-account-response.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/accounts/o8/ud")
+    }
+
+    "parse an XRDS response with a single Service element" in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("https://www.google.com/a/example.com/o8/ud?be=o8")
+    }
+
+    "parse an XRDS response with multiple Service elements" in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("http://www.myopenid.com/server")
+    }
+
+    // See 7.3.2.2.  Extracting Authentication Data
+    "return the OP Identifier over the Claimed Identifier if both are present" in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-opid.example.com")
+    }
+
+    "extract and use OpenID Authentication 1.0 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1-op.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.example.com")
+    }
+
+    "extract and use OpenID Authentication 1.1 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
+      response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml"))
+      val maybeOpenIdServer = new XrdsResolver().resolve(response)
+      maybeOpenIdServer.map(_.url) must beSome("http://openidprovider-server-1.1.example.com")
+    }
+  }
+
+  "OpenID.redirectURL" should {
 
     "resolve an OpenID server via Yadis" in {
       "with a single service element" in {
@@ -92,39 +138,6 @@ object DiscoverySpec extends Specification with Mockito {
         there was one(ws.request).get()
 
         new URL(redirectUrl).hostAndPath must be equalTo "https://www.google.com/a/example.com/o8/ud"
-
-        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
-      }
-
-      "with multiple service elements" in {
-        val ws = new WSMock
-        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml"))
-        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
-
-        val returnTo = "http://foo.bar.com/openid"
-        val openId = "http://abc.example.com/foo"
-        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
-
-        there was one(ws.request).get()
-
-        new URL(redirectUrl).hostAndPath must be equalTo "http://www.myopenid.com/server"
-
-        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
-      }
-
-      // See 7.3.2.2.  Extracting Authentication Data
-      "returning the OP Identifier over the Claimed Identifier if both are present" in {
-        val ws = new WSMock
-        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
-        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
-
-        val returnTo = "http://foo.bar.com/openid"
-        val openId = "http://abc.example.com/foo"
-        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
-
-        there was one(ws.request).get()
-
-        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider-opid.example.com"
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
@@ -162,36 +175,6 @@ object DiscoverySpec extends Specification with Mockito {
         there was one(ws.request).get()
 
         new URL(redirectUrl).hostAndPath must be equalTo "https://www.example.com/openidserver/openid.server-1"
-
-        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
-      }
-
-      "Relying Parties SHOULD extract and use OpenID Authentication 1.0 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
-        val ws = new WSMock
-        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1-op.xml"))
-        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
-
-        val returnTo = "http://foo.bar.com/openid"
-        val openId = "http://abc.example.com/foo"
-        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
-
-        there was one(ws.request).get()
-        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider-server-1.example.com"
-
-        verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
-      }
-
-      "Relying Parties SHOULD extract and use OpenID Authentication 1.1 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
-        val ws = new WSMock
-        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml"))
-        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
-
-        val returnTo = "http://foo.bar.com/openid"
-        val openId = "http://abc.example.com/foo"
-        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
-
-        there was one(ws.request).get()
-        new URL(redirectUrl).hostAndPath must be equalTo "http://openidprovider-server-1.1.example.com"
 
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
