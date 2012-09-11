@@ -5,7 +5,6 @@ import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 
 import scala.collection.JavaConverters._
-import java.util.concurrent.{ TimeUnit, Callable }
 /**
  *
  * provides helper methods that manage java to scala Result and scala to java Context
@@ -17,9 +16,6 @@ trait JavaHelpers {
   import play.mvc.Http.RequestBody
 
 
-  def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): play.api.libs.concurrent.Promise[A] =
-    play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)
-    
   /**
    * creates a scala result from java context and result objects
    * @param javaContext
