@@ -5,10 +5,14 @@ import play.api.libs.concurrent._
 import scala.collection.JavaConverters
 import play.libs.F
 import java.util.concurrent.TimeoutException
-
 import play.api.libs.concurrent.execution.defaultContext
+import java.util.concurrent.{ TimeUnit, Callable }
 
 object JavaPromise {
+
+  def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): play.api.libs.concurrent.Promise[A] =
+    play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)
+    
 
   def defaultContext = play.api.libs.concurrent.execution.defaultContext
 

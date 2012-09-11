@@ -12,16 +12,44 @@ object PlayBuild extends Build {
     import LocalSBT._
     import Tasks._
 
+     lazy val PlayUtilsProject = Project(
+      "Utils",
+      file("src/play-utils"),
+      settings = buildSettings ++ Seq(
+        previousArtifact := Some("play" % {"utils_"+previousScalaVersion} % previousVersion),
+        publishTo := Some(playRepository),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+        publishArtifact in (Compile, packageDoc) := false,
+        publishArtifact in (Compile, packageSrc) := true,
+        resolvers += typesafe
+      )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+
+
     lazy val TemplatesProject = Project(
         "Templates",
         file("src/templates"),
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"templates_"+previousScalaVersion} % previousVersion),
-            libraryDependencies := templatesDependencies,
             publishTo := Some(playRepository),
+            libraryDependencies := templatesDependencies,
             publishArtifact in (Compile, packageDoc) := false,
             publishArtifact in (Compile, packageSrc) := false,
             unmanagedJars in Compile <+= (baseDirectory) map { b => compilerJar(b / "../..") },
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+
+    lazy val RoutesCompilerProject = Project(
+        "Routes-Compiler",
+        file("src/routes-compiler"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"routes-compiler_"+previousScalaVersion} % previousVersion),
+            publishTo := Some(playRepository),
+            libraryDependencies := routersCompilerDependencies,
+            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in (Compile, packageSrc) := false,
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             resolvers += typesafe
         )
@@ -55,7 +83,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
             compile in (Compile) <<= PostCompile
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(TemplatesProject, AnormProject)
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(RoutesCompilerProject, PlayUtilsProject, TemplatesProject, AnormProject)
 
     lazy val PlayTestProject = Project(
       "Play-Test",
@@ -90,7 +118,9 @@ object PlayBuild extends Build {
         publishArtifact in (Compile, packageSrc) := false,
         resolvers += typesafe
       )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayUtilsProject, RoutesCompilerProject, PlayProject,  TemplatesProject, ConsoleProject)
+
+   
 
     lazy val ConsoleProject = Project(
       "Console",
@@ -105,7 +135,7 @@ object PlayBuild extends Build {
         publishArtifact in (Compile, packageSrc) := true,
         resolvers += typesafe
       )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayUtilsProject)
 
     val Root = Project(
         "Root",
@@ -117,11 +147,11 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
+            publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject, publish in PlayUtilsProject, publish in RoutesCompilerProject) map { (_,_,_,_,_,_,_,_) => },
+            publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayUtilsProject, publishLocal in RoutesCompilerProject) map { (_,_,_,_,_,_,_) => }
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-     .dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
+     .dependsOn(PlayProject).aggregate(PlayUtilsProject, AnormProject, TemplatesProject, RoutesCompilerProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
 
     object BuildSettings {
 
@@ -177,6 +207,7 @@ object PlayBuild extends Build {
     }
 
     object Dependencies {
+     
 
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.5.0.Final",
@@ -259,7 +290,9 @@ object PlayBuild extends Build {
 
             "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
         )
-
+        val routersCompilerDependencies = Seq(
+               "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0"
+            )
         val sbtDependencies = Seq(
             "com.typesafe.config"               %    "config"                   %   "0.2.1",
             "rhino"                             %    "js"                       %   "1.7R2",

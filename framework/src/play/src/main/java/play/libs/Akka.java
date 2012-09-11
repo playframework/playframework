@@ -38,7 +38,7 @@ public class Akka {
      * Returns a Promise which is redeemed after a period of time.
      */
     public static <T> Promise<T> timeout(java.util.concurrent.Callable<T> callable, Long duration, java.util.concurrent.TimeUnit unit) {
-        return new Promise(play.utils.Conversions.timeout(callable,duration,unit));
+        return new Promise(play.core.j.JavaPromise.timeout(callable,duration,unit));
     }
 
 }

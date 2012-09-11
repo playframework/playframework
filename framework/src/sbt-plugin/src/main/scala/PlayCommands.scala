@@ -350,7 +350,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
   // ----- Source generators
 
   val RouteFiles = (confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
-    import play.core.Router.RoutesCompiler._
+    import play.router.RoutesCompiler._
 
     ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
     try {

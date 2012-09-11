@@ -181,7 +181,7 @@ trait PlayReloader {
           }
 
           // Routes files
-          case play.core.Router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
+          case play.router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
             new xsbti.Problem {
               def message = problem.message
               def category = ""
