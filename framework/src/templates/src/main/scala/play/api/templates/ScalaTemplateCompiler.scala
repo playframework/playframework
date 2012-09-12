@@ -166,14 +166,19 @@ package play.templates {
 
   }
 
-  case class VirtualFile(path: String) extends File(path) {
+  case class VirtualFile(path: String, var content: String = "") extends File(path) {
     override def getAbsolutePath = path
     override def getName = path.substring(path.lastIndexOf(File.separator) + 1)
     override def getParentFile = VirtualFile(path.substring(0, path.lastIndexOf(File.separator)))
     override def isFile = path.endsWith(".scala.html")
   }
   
-  case class GeneratedSourceVirtual(val content: String, file: VirtualFile) extends AbstractGeneratedSource
+  case class GeneratedSourceVirtual(file: VirtualFile) extends AbstractGeneratedSource {
+    def content = file.content
+    def setContent(newContent: String) {
+      file.content = newContent
+    }
+  }
   
   object ScalaTemplateCompiler {
 
@@ -201,24 +206,7 @@ package play.templates {
     def compile(source: File, sourceDirectory: File, generatedDirectory: File, resultType: String, formatterType: String, additionalImports: String = "") = {
       val (templateName, generatedSource) = generatedFile(source, sourceDirectory, generatedDirectory)
       if (generatedSource.needRecompilation) {
-        val generated = templateParser.parser(new CharSequenceReader(Path(source).slurpString)) match {
-          case templateParser.Success(parsed, rest) if rest.atEnd => {
-            generateFinalTemplate(
-              source,
-              templateName.dropRight(1).mkString("."),
-              templateName.takeRight(1).mkString,
-              parsed,
-              resultType,
-              formatterType,
-              additionalImports)
-          }
-          case templateParser.Success(_, rest) => {
-            throw new TemplateCompilationError(source, "Not parsed?", rest.pos.line, rest.pos.column)
-          }
-          case templateParser.NoSuccess(message, input) => {
-            throw new TemplateCompilationError(source, message, input.pos.line, input.pos.column)
-          }
-        }
+        val generated = parseAndGenerateCode(templateName, Path(source).slurpString, source.getAbsolutePath, resultType, formatterType, additionalImports)
 
         Path(generatedSource.file).write(generated.toString)
 
@@ -229,10 +217,17 @@ package play.templates {
     }
 
     def compileVirtual(content: String, absolutePath: String, sourcePath: String, resultType: String, formatterType: String, additionalImports: String = "") = {
-      val templateName = generatedFileVirtual(content, absolutePath, sourcePath)
-      val generated = templateParser.parser(new CharSequenceReader(content)) match {
+      val (templateName, generatedSource) = generatedFileVirtual(content, absolutePath, sourcePath)
+      val generated = parseAndGenerateCode(templateName, content, absolutePath, resultType, formatterType, additionalImports)
+      generatedSource.setContent(generated)
+      generatedSource
+    }
+    
+    def parseAndGenerateCode(templateName: Array[String], content: String, absolutePath: String, resultType: String, formatterType: String, additionalImports: String) = {
+      templateParser.parser(new CharSequenceReader(content)) match {
         case templateParser.Success(parsed, rest) if rest.atEnd => {
-          generateFinalTemplateVirtual(absolutePath, content,
+          generateFinalTemplate(absolutePath, 
+            content,
             templateName.dropRight(1).mkString("."),
             templateName.takeRight(1).mkString,
             parsed,
@@ -247,8 +242,6 @@ package play.templates {
           throw new TemplateCompilationError(new File(absolutePath), message, input.pos.line, input.pos.column)
         }
       }
-
-      GeneratedSourceVirtual(generated, VirtualFile(templateName.mkString("/") + ".template.scala"))
     }
 
     def generatedFile(template: File, sourceDirectory: File, generatedDirectory: File) = {
@@ -260,13 +253,12 @@ package play.templates {
       val template = VirtualFile(absolutePath)
       val sourceDirectory = VirtualFile(sourcePath)
       val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head).split('.')
-      templateName
+      templateName -> GeneratedSourceVirtual(VirtualFile(templateName.mkString("/") + ".template.scala"))
     }
-    
-  
     
     @tailrec
     def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = "", topDirectory: String = "views", setExt: Boolean = true): String = {
+      // if any change is made here, appropriate changes should be made in VirtualFile class as well.
       val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
       (f, f.getName) match {
         case (f, _) if f == sourceDirectory => {
@@ -597,13 +589,12 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
       generated
     }
 
+    @deprecated("use generateFinalTemplate with 8 parameters instead", "Play 2.0.4")
     def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
-      val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
-
-      Source.finalSource(template, generated)
+      generateFinalTemplate(template.getAbsolutePath, Path(template).slurpString, packageName, name, root, resultType, formatterType, additionalImports)
     }
 
-    def generateFinalTemplateVirtual(absolutePath: String, contents: String, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
+    def generateFinalTemplate(absolutePath: String, contents: String, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
       val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
 
       Source.finalSource(absolutePath, contents.toCharArray map (_.toByte), generated)
@@ -779,6 +770,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
             """
     }
     
+    @deprecated("use finalSource with 3 parameters instead", "Play 2.0.4")
     def finalSource(template: File, generatedTokens: Seq[Any]): String = {
       finalSource(template.getAbsolutePath, Path(template).byteArray, generatedTokens)
     }
