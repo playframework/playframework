@@ -225,13 +225,13 @@ object PlayBuild extends Build {
             ("org.springframework"              %    "spring-beans"             %   "3.0.7.RELEASE" notTransitive())
               .exclude("org.springframework", "spring-core")
             ,
-            
+
             "joda-time"                         %    "joda-time"                %   "2.0",
             "org.joda"                          %    "joda-convert"             %   "1.1",
             "javassist"                         %    "javassist"                %   "3.12.1.GA",
             "commons-lang"                      %    "commons-lang"             %   "2.6",
             
-            ("com.ning"                         %    "async-http-client"        %   "1.7.0" notTransitive())
+            ("com.ning"                         %    "async-http-client"        %   "1.7.6" notTransitive())
               .exclude("org.jboss.netty", "netty")
             ,
             
