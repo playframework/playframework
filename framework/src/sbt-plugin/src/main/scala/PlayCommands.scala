@@ -514,9 +514,9 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
           findResources.setAccessible(true)
           val resources1 = reloader.currentApplicationClassLoader.map(findResources.invoke(_, name).asInstanceOf[java.util.Enumeration[java.net.URL]]).getOrElse(new java.util.Vector[java.net.URL]().elements)
           val resources2 = super.getResources(name)
-          val resources = new java.util.Vector[java.net.URL]
-          while (resources1.hasMoreElements) resources.add(resources1.nextElement)
-          while (resources2.hasMoreElements) resources.add(resources2.nextElement)
+          val resources = new java.util.Vector[java.net.URL](
+            (resources1.asScala.toList ++ resources2.asScala.toList).distinct.asJava
+          )
           resources.elements
         }
 

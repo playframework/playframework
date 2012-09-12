@@ -268,6 +268,13 @@ trait PlayReloader {
 
           val version = classLoaderVersion.incrementAndGet
 
+          override def getResources(name: String): java.util.Enumeration[java.net.URL] = {
+            import scala.collection.JavaConverters._
+            new java.util.Vector[java.net.URL](
+              super.getResources(name).asScala.toList.distinct.asJava
+            ).elements
+          }
+
           override def toString = {
             "ReloadableClassLoader(v" + version + ") {" + {
               getURLs.map(_.toString).mkString(", ")
