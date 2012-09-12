@@ -167,8 +167,6 @@ case class FakeApplication(
     super.configuration ++ play.api.Configuration.from(additionalConfiguration)
   }
 
-  lazy val defaultGlobal = super.global
-
   override lazy val global = withGlobal.getOrElse(super.global)
 
 }
