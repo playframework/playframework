@@ -20,6 +20,7 @@ public class FakeApplication {
      * @param additionalConfiguration Additional configuration
      * @param additionalPlugins Additional plugins
      */
+    @SuppressWarnings("unchecked")
     public FakeApplication(File path, ClassLoader classloader, Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins) {
         wrappedApplication = new play.api.test.FakeApplication(
                 path,
