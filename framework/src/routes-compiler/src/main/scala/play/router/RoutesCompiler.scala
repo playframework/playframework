@@ -214,7 +214,7 @@ import scala.util.matching._
           }.collect {
             case (Some(r@Route(_,_,_,_)), comments) => r.copy(comments = comments)
             case (Some(i@Include(_,_)),_) => i
-          }.reverse
+          }
       }
 
       def parse(text: String): ParseResult[List[Rule]] = {
