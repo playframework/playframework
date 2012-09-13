@@ -24,7 +24,7 @@ import scala.util.matching._
 
     sealed trait Rule extends Positional
 
-    case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall) extends Rule
+    case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall, comments: List[Comment] = List()) extends Rule
     case class Include(prefix: String, router: String) extends Rule
 
     case class Comment(comment: String)
@@ -96,13 +96,13 @@ import scala.util.matching._
 
       def end: util.matching.Regex = """\s*""".r
 
-      def comment: Parser[Comment] = "#" <~ ".*".r ^^ {
+      def comment: Parser[Comment] = "#" ~> ".*".r ^^ {
         case c => Comment(c)
       }
 
       def newLine: Parser[String] = namedError((("\r"?) ~> "\n"), "End of line expected")
 
-      def blankLine: Parser[Comment] = ignoreWhiteSpace ~> newLine ^^ { case _ => Comment("") }
+      def blankLine: Parser[Unit] = ignoreWhiteSpace ~> newLine ^^ { case _ => () }
 
       def parentheses: Parser[String] = {
         "(" ~ (several((parentheses | not(")") ~> """.""".r))) ~ commit(")") ^^ {
@@ -204,10 +204,17 @@ import scala.util.matching._
       def sentence: Parser[Product with Serializable] = namedError((comment | positioned(include) | positioned(route)), "HTTP Verb (GET, POST, ...), include (->) or comment (#) expected") <~ (newLine | EOF)
 
       def parser: Parser[List[Rule]] = phrase((blankLine | sentence *) <~ end) ^^ {
-        case routes => routes.collect {
-          case r @ Route(_, _, _) => r
-          case i @ Include(_, _) => i
-        }
+        case routes => 
+          routes.reverse.foldLeft(List[(Option[Rule],List[Comment])]()) {
+            case (s,r@Route(_,_,_,_)) => (Some(r),List()) :: s
+            case (s,i@Include(_,_)) => (Some(i),List()) :: s
+            case ( s, c@()) => (None, List()) :: s
+            case ( (r,comments) :: others, c@Comment(_)) => (r, c:: comments) :: others
+            case (s,_) => s
+          }.collect {
+            case (Some(r@Route(_,_,_,_)), comments) => r.copy(comments = comments)
+            case (Some(i@Include(_,_)),_) => i
+          }.reverse
       }
 
       def parse(text: String): ParseResult[List[Rule]] = {
@@ -738,7 +745,7 @@ import scala.util.matching._
                             """ 
                                   |%s
                                   |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
-                                  |   %s, HandlerDef(this, "%s", "%s", %s, "%s", Routes.prefix + "%s")
+                                  |   %s, HandlerDef(this, "%s", "%s", %s, "%s", "%s",  Routes.prefix + "%s")
                                   |)
                               """.stripMargin.format(
                               markLines(route),
@@ -749,6 +756,7 @@ import scala.util.matching._
                               route.call.method,
                               "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
                               route.verb,
+                              "\"\"\""+route.comments.map(_.comment).mkString("\n")+"\"\"\"",
                               route.path
                               )
 
@@ -942,7 +950,7 @@ import scala.util.matching._
      */
     def routeDefinitions(rules: List[Rule]): String = {
       rules.zipWithIndex.map {
-        case (r @ Route(_, _, _), i) =>
+        case (r @ Route(_, _, _, _), i) =>
           """
             |%s
             |private[this] lazy val %s%s = Route("%s", %s)
@@ -970,8 +978,8 @@ import scala.util.matching._
            |}}
         """.stripMargin.format(
           rules.map {
-            case Route(verb, path, call) if path.parts.isEmpty => "(\"\"\"" + verb + "\"\"\", prefix,\"\"\"" + call + "\"\"\")"
-            case Route(verb, path, call) => "(\"\"\"" + verb + "\"\"\", prefix + (if(prefix.endsWith(\"/\")) \"\" else \"/\") + \"\"\"" + path + "\"\"\",\"\"\"" + call + "\"\"\")"
+            case Route(verb, path, call, _) if path.parts.isEmpty => "(\"\"\"" + verb + "\"\"\", prefix,\"\"\"" + call + "\"\"\")"
+            case Route(verb, path, call, _) => "(\"\"\"" + verb + "\"\"\", prefix + (if(prefix.endsWith(\"/\")) \"\" else \"/\") + \"\"\"" + path + "\"\"\",\"\"\"" + call + "\"\"\")"
             case Include(prefix, router) => router + ".documentation"
           }.mkString(","))
     }
@@ -990,7 +998,7 @@ import scala.util.matching._
             r.router.replace(".", "_"),
             i
           )
-        case (r @ Route(_, _, _), i) =>
+        case (r @ Route(_, _, _, _), i) =>
           """
               |%s
               |case %s%s(params) => {
@@ -1036,7 +1044,7 @@ import scala.util.matching._
             // definition
             """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + r.call.field.map("." + _).getOrElse("") + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
               params.map("classOf[" + _.typeName + "]").mkString(", ")
-            }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", Routes.prefix + """" + r.path + """")""")
+            }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\""+ """ , Routes.prefix + """" + r.path + """")""")
       }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 
         """Map.empty""" // Empty partial function

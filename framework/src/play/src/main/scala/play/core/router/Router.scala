@@ -62,7 +62,7 @@ object Router {
 
   }
 
-  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, path: String) {
+  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String) {
 
     def getControllerClass: Class[_] = {
       Option(controller.split('.').takeRight(1).head).filter(p => p.charAt(0).toUpper != p.charAt(0)).map { field =>
@@ -273,7 +273,8 @@ object Router {
       play.api.Routes.ROUTE_PATTERN -> handler.path,
       play.api.Routes.ROUTE_VERB -> handler.verb,
       play.api.Routes.ROUTE_CONTROLLER -> handler.controller,
-      play.api.Routes.ROUTE_ACTION_METHOD -> handler.method
+      play.api.Routes.ROUTE_ACTION_METHOD -> handler.method,
+      play.api.Routes.ROUTE_COMMENTS -> handler.comments
     ))
 
     def invokeHandler[T](call: => T, handler: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {

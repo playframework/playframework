@@ -25,7 +25,7 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean test
+$PLAY "$@" clean-all test
 cd $CURRENT
 
 cd ./test/integrationtest-java
@@ -34,7 +34,7 @@ echo "[info]"
 echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean test
+$PLAY "$@" clean-all test
 cd $CURRENT
 
 cd ./test/integrationtest-scala
@@ -43,7 +43,7 @@ echo "[info]"
 echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean test
+$PLAY "$@" clean-all test
 
 cd $CURRENT
 
@@ -58,7 +58,7 @@ do
   echo "[info] ---- TESTING ${i/app/}"
   echo "[info]"
   cd ${i/app/}
-  $PLAY "$@" clean test
+  $PLAY "$@" clean-all test
   cd $CURRENT
 done
 
