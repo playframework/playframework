@@ -88,7 +88,6 @@ trait Enumerator[E] {
       xx.flatMap(_.run)
 
     }
-
   }
 
   def onDoneEnumerating(callback: => Unit) = new Enumerator[E]{

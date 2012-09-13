@@ -300,7 +300,7 @@ object Concurrent {
 
   def unicast[E](
     onStart: Channel[E] => Unit,
-    onComplete: => Unit,
+    onComplete: => Unit = (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
     def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
