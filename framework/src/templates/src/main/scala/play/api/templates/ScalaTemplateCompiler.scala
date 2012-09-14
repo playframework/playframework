@@ -580,7 +580,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
       generated
     }
 
-    @deprecated("use generateFinalTemplate with 8 parameters instead", "Play 2.0.4")
+    @deprecated("use generateFinalTemplate with 8 parameters instead", "Play 2.1")
     def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
       generateFinalTemplate(template.getAbsolutePath, Path(template).slurpString, packageName, name, root, resultType, formatterType, additionalImports)
     }
@@ -761,7 +761,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
             """
     }
     
-    @deprecated("use finalSource with 3 parameters instead", "Play 2.0.4")
+    @deprecated("use finalSource with 3 parameters instead", "Play 2.1")
     def finalSource(template: File, generatedTokens: Seq[Any]): String = {
       finalSource(template.getAbsolutePath, Path(template).byteArray, generatedTokens)
     }
