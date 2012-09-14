@@ -44,5 +44,7 @@ trait PlayKeys {
 
   val javascriptEntryPoints = SettingKey[PathFinder]("play-javascript-entry-points")
 
+  val playPlugin = SettingKey[Boolean]("play-plugin")
+
 }
 object PlayKeys extends PlayKeys
