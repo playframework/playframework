@@ -14,12 +14,12 @@ object Console {
   val consoleReader = new jline.ConsoleReader
 
   val logo = Colors.yellow(
-    """|       _            _ 
+    """|       _            _
            | _ __ | | __ _ _  _| |
            || '_ \| |/ _' | || |_|
            ||  __/|_|\____|\__ (_)
-           ||_|            |__/ 
-           |             
+           ||_|            |__/
+           |
            |""".stripMargin) + ("play! " + play.core.PlayVersion.current + ", http://www.playframework.org")
 
   // -- Commands
@@ -133,24 +133,27 @@ object Console {
           generateLocalTemplate(template._1, template._2, path)
           (haveFun(template._2), 0)
         } else {
+
+          import giter8._
+          import G8Helpers.Regs._
+
+          val repo = template._1
+          val appName = template._2
+
           //this is necessary because g8 only provides an option to either pass params or use interactive session to populate fields
           //but in our case we have the application_name (and path) already
-          val defaults: Map[String, String] = Giter8.fetchInfo(template._1, Some("master")).right.toOption.map {
-            case (defaults, templates) => defaults
-            case _ => Map[String, String]()
-          }.getOrElse(Map[String, String]())
-          consoleReader.printNewline
-          consoleReader.printString(defaults.get("description").getOrElse(template._1))
-          consoleReader.printNewline
-          consoleReader.printNewline
-          // populate defaults (application_name is coming from play so that's already populated)
-          val params: Array[String] = interact(defaults.filter(e => e._1 != "application_name" && e._1 != "description")).map(e => "--" + e._1 + "=" + e._2).toArray
+          val result = Giter8.clone(repo, Some("master")).right.map { f =>
+            val (parameters, templates, templatesRoot) = G8Helpers.fetchInfo(f.jfile, Some("src/main/g8"))
+            val ps = G8Helpers.interact(parameters - "application_name") + ("application_name" -> appName)
+            val base = new File(G8.normalize(appName))
+            G8Helpers.write(templatesRoot, templates, ps, base)
+          }
 
-          val exitCode = Giter8.run(Array(template._1, "--application_name=" + template._2) ++ params)
-          if (exitCode == 0)
-            (haveFun(template._2), exitCode)
-          else
-            ("something went wrong while processing g8 template", exitCode)
+          result.fold(
+            ex => ("something went wrong while processing g8 template", -1),
+            _ => (haveFun(appName), 0)
+          )
+
         }
       } catch {
         case ex: Exception =>
@@ -182,7 +185,7 @@ object Console {
       command(args.drop(1))
     }.getOrElse {
       (Colors.red("\nThis is not a play application!\n") + ("""|
-           |Use `play new` to create a new Play application in the current directory, 
+           |Use `play new` to create a new Play application in the current directory,
            |or go to an existing application and launch the development console using `play`.
            |
            |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin), -1)
