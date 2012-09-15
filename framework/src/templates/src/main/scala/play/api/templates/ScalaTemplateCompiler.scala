@@ -588,7 +588,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
     def generateFinalTemplate(absolutePath: String, contents: String, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
       val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
 
-      Source.finalSource(absolutePath, contents.toCharArray map (_.toByte), generated)
+      Source.finalSource(absolutePath, contents.getBytes, generated)
     }
 
     object TemplateAsFunctionCompiler {
