@@ -59,6 +59,8 @@ trait PlaySettings {
 
   lazy val defaultSettings = Seq[Setting[_]](
 
+    scalaVersion := play.core.PlayVersion.scalaVersion,
+
     playPlugin := false,
 
     resolvers ++= Seq(
@@ -132,7 +134,7 @@ trait PlaySettings {
 
     copyResources in Compile <<= (copyResources in Compile, playCopyAssets) map { (r, pr) => r ++ pr },
 
-    mainClass in (Compile, run) := Some(classOf[play.core.server.NettyServer].getName),
+    mainClass in (Compile, run) := Some("play.core.server.NettyServer"),
 
     compile in (Compile) <<= PostCompile(scope = Compile),
 

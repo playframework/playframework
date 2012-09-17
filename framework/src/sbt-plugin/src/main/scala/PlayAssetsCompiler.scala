@@ -115,14 +115,14 @@ trait PlayAssetsCompiler {
     coffeescriptOptions
   )
 
-  def reportCompilationError(state: State, error: PlayException with PlayException.ExceptionSource) = {
+  def reportCompilationError(state: State, error: PlayException.ExceptionSource) = {
     val log = state.log
     // log the source file and line number with the error message
-    log.error(error.sourceName.getOrElse("") + error.line.map(":" + _).getOrElse("") + ": " + error.getMessage)
-    error.interestingLines(0).flatMap(_._2.headOption) map { line =>
+    log.error(Option(error.sourceName).getOrElse("") + Option(error.line).map(":" + _).getOrElse("") + ": " + error.getMessage)
+    Option(error.interestingLines(0).focus).flatMap(_.headOption) map { line =>
       // log the line
       log.error(line)
-      error.position map { pos =>
+      Option(error.position).map { pos =>
       // print a carat under the offending character
         val spaces = (line: Seq[Char]).take(pos).map {
           case '\t' => '\t'

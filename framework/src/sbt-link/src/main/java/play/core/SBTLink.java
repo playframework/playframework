@@ -16,8 +16,11 @@ public interface SBTLink {
 	// - null -> if nothing changed
 	public Object reload();
 
-	// Can return null
-	public File findSource(String className);
+	// Will return either:
+	// - [File, Integer]
+	// - [File, null]
+	// - null
+	public Object[] findSource(String className, Integer line);
 
 	public File projectPath();
 

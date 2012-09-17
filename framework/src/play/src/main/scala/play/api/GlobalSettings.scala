@@ -80,15 +80,22 @@ trait GlobalSettings {
    * @return The result to send to the client
    */
   def onError(request: RequestHeader, ex: Throwable): Result = {
-    InternalServerError(Play.maybeApplication.map {
-      case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
-      case app => views.html.defaultpages.error.f
-    }.getOrElse(views.html.defaultpages.devError.f) {
-      ex match {
-        case e: PlayException.UsefulException => e
-        case e => UnexpectedException(unexpected = Some(e))
+    try {
+      InternalServerError(Play.maybeApplication.map {
+        case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
+        case app => views.html.defaultpages.error.f
+      }.getOrElse(views.html.defaultpages.devError.f) {
+        ex match {
+          case e: UsefulException => e
+          case e => UnexpectedException(unexpected = Some(e))
+        }
+      })
+    } catch {
+      case e: Throwable => {
+        Logger.error("Error while rendering default error page", e)
+        InternalServerError
       }
-    })
+    } 
   }
 
   /**

@@ -2,7 +2,7 @@
  * Default page for 500 Internal Server Error responses, in development mode.
  * This page display the error in the source code context.
  *@
-@(error: play.api.PlayException.UsefulException)
+@(error: play.api.UsefulException)
 
 <!DOCTYPE html>
 <html>
@@ -125,27 +125,27 @@
 
 			case source:play.api.PlayException.ExceptionSource => {
 
-				@source.sourceName.map { name =>
+				@Option(source.sourceName).map { name =>
 					<h2>
-						In @name @source.line.map { line =>
+						In @name @Option(source.line).map { line =>
 							at line @line.
 						}
 					</h2>
 
                     <div id="source-code">
-    					@source.interestingLines().map { 
+    					@Option(source.interestingLines(4)).map { 
 
-    						case (first,lines,errorIndex) => {
+    						case interesting => {
 
-    							@lines.zipWithIndex.map { 
+    							@interesting.focus.zipWithIndex.map { 
 
-    								case (line,index) if index == errorIndex => {
-    									<pre class="error" data-file="@name" data-line="@(first+index)" @source.position.map { c => data-column="@c" }><span class="line">@(first+index)</span><span class="code">@(source.position.map(pos => (line+" ").zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</span></pre>
+    								case (line,index) if index == interesting.errorLine => {
+    									<pre class="error" data-file="@name" data-line="@(interesting.firstLine+index)" @Option(source.position).map { c => data-column="@c" }><span class="line">@(interesting.firstLine+index)</span><span class="code">@(Option(source.position).map(pos => (line+" ").zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</span></pre>
 
     								}
 
     								case (line, index) => {
-    									<pre data-file="@name" data-line="@(first+index)"><span class="line">@(first+index)</span><span class="code">@line</span></pre>
+    									<pre data-file="@name" data-line="@(interesting.firstLine+index)"><span class="line">@(interesting.firstLine+index)</span><span class="code">@line</span></pre>
     								}
 
     							}
@@ -174,7 +174,7 @@
 			    
 			}
 			
-			case play.api.PlayException(_, _ , Some(throwable)) => {
+			case exception: play.api.PlayException if exception.cause != null => {
 			    
 			    <h2>
 			        No source available, here is the exception stack trace:
@@ -182,9 +182,9 @@
 			    
 			    <div>
 			        
-			        <pre class="error"><span class="line">-></span><span class="code">@throwable.getClass.getName: @throwable.getMessage</span></pre>
+			        <pre class="error"><span class="line">-></span><span class="code">@exception.cause.getClass.getName: @exception.cause.getMessage</span></pre>
 			        
-			        @throwable.getStackTrace.map { line =>
+			        @exception.cause.getStackTrace.map { line =>
 						<pre><span class="line">&nbsp;</span><span class="code">    @line</span></pre>
 			        }
 			    </div>

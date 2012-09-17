@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 import scala.xml.{ Elem, Node, XML }
 import org.scalatools.testing.{ Event => TEvent, Result => TResult, Logger => TLogger }
 
-import play.utils.Colors
+import play.console.Colors
 
 /**
  * A tests listener that outputs the results it receives in junit xml

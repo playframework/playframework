@@ -9,9 +9,9 @@ object TemplateCompilerSpec extends Specification {
 
   import Helper._
 
-  val sourceDir = new File("src/templates/src/test/templates")
-  val generatedDir = new File("src/templates/target/test/generated-templates")
-  val generatedClasses = new File("src/templates/target/test/generated-classes")
+  val sourceDir = new File("src/templates-compiler/src/test/templates")
+  val generatedDir = new File("src/templates-compiler/target/test/generated-templates")
+  val generatedClasses = new File("src/templates-compiler/target/test/generated-classes")
   scalax.file.Path(generatedDir).deleteRecursively()
   scalax.file.Path(generatedClasses).deleteRecursively()
   scalax.file.Path(generatedClasses).createDirectory()

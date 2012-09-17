@@ -88,21 +88,6 @@ trait PlayReloader {
 
       // --- Utils
 
-      /*def markdownToHtml(markdown: String, link: String => (String, String)) = {
-        import org.pegdown._
-        import org.pegdown.ast._
-
-        val processor = new PegDownProcessor(Extensions.ALL)
-        val links = new LinkRenderer {
-          override def render(node: WikiLinkNode) = {
-            val (href, text) = link(node.getText)
-            new LinkRenderer.Rendering(href, text)
-          }
-        }
-
-        processor.markdownToHtml(markdown, links)
-      }*/
-
       def markdownToHtml(markdown: String) = markdown
 
       // ---
@@ -137,16 +122,26 @@ trait PlayReloader {
         updated
       }
 
-      def findSource(className: String) = {
+      def findSource(className: String, line: java.lang.Integer): Array[java.lang.Object] = {
         val topType = className.split('$').head
         currentAnalysis.flatMap { analysis =>
           analysis.apis.internal.flatMap {
             case (sourceFile, source) => {
               source.api.definitions.find(defined => defined.name == topType).map(_ => {
                 sourceFile: java.io.File
-              })
+              } -> line)
             }
-          }.headOption
+          }.headOption.map { 
+            case (source, maybeLine) => {
+              play.templates.MaybeGeneratedSource.unapply(source).map { generatedSource =>
+                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l):java.lang.Integer).orNull
+              }.getOrElse(source -> maybeLine)
+            }
+          }     
+        }.map {
+          case (file, line) => {
+            Array[java.lang.Object](file, line)
+          }
         }.orNull
       }
 
@@ -161,15 +156,20 @@ trait PlayReloader {
         } getOrElse problem
       }
 
-      private def allProblems(inc: Incomplete): Seq[xsbti.Problem] =
+      private def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
         allProblems(inc :: Nil)
-      private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] =
+      }
+        
+      private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] = {
         problems(Incomplete.allExceptions(incs).toSeq)
-      private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] =
+      }
+        
+      private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] = {
         es flatMap {
           case cf: xsbti.CompileFailed => cf.problems
           case _ => Nil
         }
+      }
 
       def getProblems(incomplete: Incomplete): Seq[xsbti.Problem] = {
         (allProblems(incomplete) ++ {

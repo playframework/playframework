@@ -10,7 +10,7 @@ import sbinary.DefaultProtocol.StringFormat
 import play.api._
 import play.core._
 
-import play.utils.Colors
+import play.console.Colors
 
 import PlayExceptions._
 import PlayKeys._
@@ -66,13 +66,13 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   private[this] var commonClassLoader: ClassLoader = _
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
-  val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
+  val playCommonClassloaderTask = (dependencyClasspath in Compile) map { classpath =>
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
 
     if (commonClassLoader == null) {
-      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, si.loader) {
+      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */) {
         override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
       }
     }
@@ -484,7 +484,10 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         val sharedClasses = Seq(
           classOf[play.core.SBTLink].getName,
           classOf[play.core.server.ServerWithStop].getName,
-          classOf[play.api.PlayException.UsefulException].getName,
+          classOf[play.api.UsefulException].getName,
+          classOf[play.api.PlayException].getName,
+          classOf[play.api.PlayException.InterestingLines].getName,
+          classOf[play.api.PlayException.RichDescription].getName,
           classOf[play.api.PlayException.ExceptionSource].getName,
           classOf[play.api.PlayException.ExceptionAttachment].getName)
 
@@ -528,7 +531,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
       lazy val reloader = newReloader(state, playReload, applicationLoader)
 
-      val mainClass = applicationLoader.loadClass(classOf[play.core.server.NettyServer].getName)
+      val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
       val mainDev = mainClass.getMethod("mainDev", classOf[SBTLink], classOf[Int])
 
       // Run in DEV

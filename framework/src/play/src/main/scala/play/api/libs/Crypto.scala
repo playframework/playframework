@@ -28,7 +28,7 @@ object Crypto {
    */
   def sign(message: String): String = {
     secret.map(secret => sign(message, secret.getBytes)).getOrElse {
-      throw PlayException("Configuration error", "Missing application.secret")
+      throw new PlayException("Configuration error", "Missing application.secret")
     }
   }
 
@@ -39,7 +39,7 @@ object Crypto {
    */
   def encryptAES(value: String): String = {
     secret.map(secret => encryptAES(value, secret.substring(0, 16))).getOrElse {
-      throw PlayException("Configuration error", "Missing application.secret")
+      throw new PlayException("Configuration error", "Missing application.secret")
     }
   }
 
@@ -64,7 +64,7 @@ object Crypto {
    */
   def decryptAES(value: String): String = {
     secret.map(secret => decryptAES(value, secret.substring(0, 16))).getOrElse {
-      throw PlayException("Configuration error", "Missing application.secret")
+      throw new PlayException("Configuration error", "Missing application.secret")
     }
   }
 

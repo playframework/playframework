@@ -196,14 +196,14 @@ object Messages {
     }
 
     def parse = {
-      parser(new CharSequenceReader(messageInput.slurpString + "\n")) match {
+      parser(new CharSequenceReader(messageInput.string + "\n")) match {
         case Success(messages, _) => messages
         case NoSuccess(message, in) => {
-          throw new PlayException("Configuration error", message) with PlayException.ExceptionSource {
-            def line = Some(in.pos.line)
-            def position = Some(in.pos.column - 1)
-            def input = Some(messageInput)
-            def sourceName = Some(messageSourceName)
+          throw new PlayException.ExceptionSource("Configuration error", message) {
+            def line = in.pos.line
+            def position = in.pos.column - 1
+            def input = messageInput.string
+            def sourceName = messageSourceName
           }
         }
       }

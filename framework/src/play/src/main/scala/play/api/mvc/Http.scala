@@ -300,7 +300,7 @@ package play.api.mvc {
     /**
      * Retrieve all header values associated with the given key.
      */
-    def getAll(key: String): Seq[String] = toMap.get(key).flatten.toSeq
+    def getAll(key: String): Seq[String] = (toMap.get(key):Option[Seq[String]]).flatten.toSeq
 
     /**
      * Retrieve all header keys

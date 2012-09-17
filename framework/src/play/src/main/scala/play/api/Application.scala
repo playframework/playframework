@@ -52,10 +52,11 @@ trait WithDefaultGlobal {
       javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
     } catch {
       case e: PlayException => throw e
-      case e => throw PlayException(
+      case e => throw new PlayException(
         "Cannot init the Global object",
         e.getMessage,
-        Some(e))
+        e
+      )
     }
   }
 
@@ -76,6 +77,7 @@ trait WithDefaultConfiguration {
   }
 
   def configuration: Configuration = fullConfiguration
+
 }
 
 trait WithDefaultPlugins {
@@ -92,7 +94,7 @@ trait WithDefaultPlugins {
     val pluginFiles = self.classloader.getResources("play.plugins").asScala.toList ++ self.classloader.getResources("conf/play.plugins").asScala.toList
 
     pluginFiles.distinct.map { plugins =>
-      (plugins.asInput.slurpString.split("\n").map(_.trim)).filterNot(_.isEmpty).map {
+      (plugins.asInput.string.split("\n").map(_.trim)).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => (priority.toInt, className)
       }
     }.flatten.sortBy(_._1).map(_._2)
@@ -133,21 +135,21 @@ trait WithDefaultPlugins {
             if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: PlayException => throw e
-            case e => throw PlayException(
+            case e => throw new PlayException(
               "Cannot load plugin",
               "Plugin [" + className + "] cannot been instantiated.",
-              Some(e))
+              e)
           }
         }
-        case e: InvocationTargetException => throw PlayException(
+        case e: InvocationTargetException => throw new PlayException(
           "Cannot load plugin",
           "An exception occurred during Plugin [" + className + "] initialization",
-          Some(e.getTargetException))
+          e.getTargetException)
         case e: PlayException => throw e
-        case e => throw PlayException(
+        case e => throw new PlayException(
           "Cannot load plugin",
           "Plugin [" + className + "] cannot been instantiated.",
-          Some(e))
+          e)
       }
     }.flatten
 
@@ -262,19 +264,19 @@ trait Application {
    */
   private[play] def handleError(request: RequestHeader, e: Throwable): Result = try {
     e match {
-      case e: PlayException.UsefulException => throw e
+      case e: UsefulException => throw e
       case e: Throwable => {
 
         val source = sources.flatMap(_.sourceFor(e))
 
-        throw new PlayException(
+        throw new PlayException.ExceptionSource(
           "Execution exception",
           "[%s: %s]".format(e.getClass.getSimpleName, e.getMessage),
-          Some(e)) with PlayException.ExceptionSource {
-          def line = source.map(_._2)
-          def position = None
-          def input = source.map(_._1).map(scalax.file.Path(_))
-          def sourceName = source.map(_._1.getAbsolutePath)
+          e) {
+          def line = source.flatMap(_._2).map(_.asInstanceOf[java.lang.Integer]).orNull
+          def position = null
+          def input = source.map(_._1).map(scalax.file.Path(_).string).orNull
+          def sourceName = source.map(_._1.getAbsolutePath).orNull
         }
       }
     }
@@ -288,8 +290,8 @@ trait Application {
           case p: PlayException => "@" + p.id + " - "
           case _ => ""
         }, request.method, request.uri),
-        e)
-
+        e
+      )
       global.onError(request, e)
     } catch {
       case e => DefaultGlobal.onError(request, e)

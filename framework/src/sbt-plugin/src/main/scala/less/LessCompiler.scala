@@ -128,7 +128,7 @@ object LessCompiler {
     }
   }
 
-  def readContent(file: File) = Path(file).slurpString.replace("\r", "")
+  def readContent(file: File) = Path(file).string.replace("\r", "")
   def resolve(originalSource: File, imported: String) = new File(originalSource.getParentFile, imported)
 
 }

@@ -25,7 +25,7 @@ object JavascriptCompiler {
 
     val simpleCheck = simpleCompilerOptions.contains("rjs")
 
-    val origin = Path(source).slurpString
+    val origin = Path(source).string
 
     val options = fullCompilerOptions.getOrElse {
       val defaultOptions = new CompilerOptions()
@@ -82,12 +82,12 @@ object JavascriptCompiler {
     }
   }
 
-  case class CompilationException(message: String, jsFile: File, atLine: Option[Int]) extends PlayException(
-    "JS Compilation error", message) with PlayException.ExceptionSource {
-    def line = atLine
-    def position = None
-    def input = Some(scalax.file.Path(jsFile))
-    def sourceName = Some(jsFile.getAbsolutePath)
+  case class CompilationException(message: String, jsFile: File, atLine: Option[Int]) extends PlayException.ExceptionSource(
+    "JS Compilation error", message) {
+    def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
+    def position = null
+    def input = scalax.file.Path(jsFile).string
+    def sourceName = jsFile.getAbsolutePath
   }
 
   /*

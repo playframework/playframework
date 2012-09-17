@@ -4,7 +4,6 @@ import java.io._
 import play.api._
 import sbt.PlayExceptions.AssetCompilationException
 
-
 object CoffeescriptCompiler {
 
   import org.mozilla.javascript._
@@ -33,7 +32,7 @@ object CoffeescriptCompiler {
     Context.exit
 
     (source: File, bare: Boolean) => {
-      val coffeeCode = Path(source).slurpString.replace("\r", "")
+      val coffeeCode = Path(source).string.replace("\r", "")
       val options = ctx.newObject(scope)
       options.put("bare", options, bare)
       Context.call(null, compilerFunction, scope, scope, Array(coffeeCode, options)).asInstanceOf[String]

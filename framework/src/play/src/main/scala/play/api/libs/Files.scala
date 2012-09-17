@@ -82,7 +82,7 @@ object Files {
    * @param path the file to read.
    * @return the file contents
    */
-  def readFile(path: File): String = Path(path).slurpString
+  def readFile(path: File): String = Path(path).string
 
   /**
    * Write a file’s contents as a `String`.

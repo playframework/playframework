@@ -361,7 +361,7 @@ object Evolutions {
       Option(new File(path, "conf/evolutions/" + db + "/" + revision + ".sql")).filter(_.exists).map(new FileInputStream(_)).orElse {
         Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql"))
       }.map { stream =>
-        (revision + 1, (revision, stream.asInput.slurpString))
+        (revision + 1, (revision, stream.asInput.string))
       }
     }.sortBy(_._1).map {
       case (revision, script) => {
@@ -545,10 +545,9 @@ object OfflineEvolutions {
  * @param db the database name
  * @param script the script to be run to resolve the conflict.
  */
-case class InvalidDatabaseRevision(db: String, script: String) extends PlayException(
+case class InvalidDatabaseRevision(db: String, script: String) extends PlayException.RichDescription(
   "Database '" + db + "' needs evolution!",
-  "An SQL script need to be run on your database.",
-  None) with PlayException.ExceptionAttachment with PlayException.RichDescription {
+  "An SQL script need to be run on your database.") {
 
   def subTitle = "This SQL script must be run:"
   def content = script
@@ -571,10 +570,9 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
  *
  * @param db the database name
  */
-case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException(
+case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException.RichDescription(
   "Database '" + db + "' is in inconsistent state!",
-  "An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved.",
-  None) with PlayException.ExceptionAttachment with PlayException.RichDescription {
+  "An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved.") {
 
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
   def content = script

@@ -20,13 +20,13 @@ object Console {
            ||  __/|_|\____|\__ (_)
            ||_|            |__/
            |
-           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + ", http://www.playframework.org")
+           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + " (using Scala " + play.core.PlayVersion.scalaVersion + "), http://www.playframework.org")
 
   // -- Commands
 
   def replace(file: File, tokens: (String, String)*) {
     if (file.exists) {
-      Path(file).write(tokens.foldLeft(Path(file).slurpString) { (state, token) =>
+      Path(file).write(tokens.foldLeft(Path(file).string) { (state, token) =>
         state.replace("%" + token._1 + "%", token._2)
       })
     }
