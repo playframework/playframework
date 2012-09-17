@@ -407,3 +407,10 @@ trait Application {
   }
 
 }
+
+class DefaultApplication(
+  override val path: File,
+  override val classloader: ClassLoader,
+  override val sources: Option[SourceMapper],
+  override val mode: Mode.Mode
+) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins

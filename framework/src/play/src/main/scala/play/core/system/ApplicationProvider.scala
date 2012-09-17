@@ -46,12 +46,7 @@ trait ApplicationProvider {
  */
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
 
-  val application = new Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
-    override val path = applicationPath
-    override val classloader = this.getClass.getClassLoader
-    override val sources = None
-    override val mode = Mode.Prod
-  }
+  val application = new DefaultApplication(applicationPath, this.getClass.getClassLoader, None, Mode.Prod)
 
   Play.start(application)
 
@@ -116,14 +111,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
               val reloadable = this
 
-              val newApplication = new Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
-                override val path = reloadable.path
-                override val classloader = projectClassloader
-                override val sources =  Some(new SourceMapper {
-                  def sourceOf(className: String) = Option(sbtLink.findSource(className))
-                })
-                override val mode = Mode.Dev
-              }
+              val newApplication = new DefaultApplication(reloadable.path, projectClassloader, Some(new SourceMapper {
+                def sourceOf(className: String) = Option(sbtLink.findSource(className))
+              }),Mode.Dev)
 
               Play.start(newApplication)
 

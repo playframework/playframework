@@ -154,11 +154,10 @@ case class FakeApplication(
     val additionalPlugins: Seq[String] = Nil,
     val withoutPlugins: Seq[String] = Nil,
     val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    val withGlobal: Option[play.api.GlobalSettings] = None) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
-
+    val withGlobal: Option[play.api.GlobalSettings] = None) extends {
   override val sources = None
   override val mode = play.api.Mode.Test
-
+} with Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
   }
@@ -168,5 +167,4 @@ case class FakeApplication(
   }
 
   override lazy val global = withGlobal.getOrElse(super.global)
-
 }
