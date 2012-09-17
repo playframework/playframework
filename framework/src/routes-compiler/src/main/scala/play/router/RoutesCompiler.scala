@@ -212,7 +212,7 @@ import scala.util.matching._
             case ( (r,comments) :: others, c@Comment(_)) => (r, c:: comments) :: others
             case (s,_) => s
           }.collect {
-            case (Some(r@Route(_,_,_,_)), comments) => r.copy(comments = comments)
+            case (Some(r@Route(_,_,_,_)), comments) => r.copy(comments = comments).setPos(r.pos)
             case (Some(i@Include(_,_)),_) => i
           }
       }
