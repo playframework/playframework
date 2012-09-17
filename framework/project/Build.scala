@@ -226,7 +226,7 @@ object PlayBuild extends Build {
 
             "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
 
-            ("org.avaje"                        %    "ebean"                    %   "2.7.5" notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.8.1" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
 
@@ -310,7 +310,7 @@ object PlayBuild extends Build {
 
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
 
-            ("org.avaje"                        %    "ebean"                    %   "2.7.3"  notTransitive())
+            ("org.avaje"                        %    "ebean"                    %   "2.8.1"  notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
 

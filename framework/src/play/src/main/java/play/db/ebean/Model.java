@@ -204,8 +204,7 @@ public class Model {
         private final Class<I> idType;
         private final Class<T> type;
         private final String serverName;
-        private Query<T> query;
-        
+
         /**
          * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>.
          */
@@ -477,34 +476,6 @@ public class Model {
         }
 
         /**
-         * Same as {@link #fetch(String)}
-         */
-        public Query<T> join(String path) {
-            return query().join(path);
-        }
-
-        /**
-         * Same as {@link #fetch(String, FetchConfig)}
-         */
-        public Query<T> join(String path, JoinConfig joinConfig) {
-            return query().join(path, joinConfig);
-        }
-
-        /**
-         * Same as {@link #fetch(String, String)}.
-         */
-        public Query<T> join(String assocProperty, String fetchProperties) {
-            return query().join(assocProperty, fetchProperties);
-        }
-
-        /**
-         * Additionally specifies a <code>JoinConfig</code> to specify a 'query join' and or define the lazy loading query.
-         */
-        public Query<T> join(String assocProperty, String fetchProperties, JoinConfig joinConfig) {
-            return query().join(assocProperty, fetchProperties, joinConfig);
-        }
-
-        /**
          * Returns the <code>order by</code> clause so that you can append an ascending or descending property to the <code>order by</code> clause.
          * <p>
          * This is exactly the same as {@link #orderBy}.
@@ -650,10 +621,10 @@ public class Model {
         }
 
         /**
-         * Deprecated.
+         * Sets the OQL query to run
          */
         public Query<T> setQuery(String oql) {
-            return query().setQuery(oql);
+            return server().createQuery(type, oql);
         }
 
         /**

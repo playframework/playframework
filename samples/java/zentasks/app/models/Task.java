@@ -42,7 +42,7 @@ public class Task extends Model {
      * Retrieve todo tasks for the user.
      */
     public static List<Task> findTodoInvolving(String user) {
-       return find.join("project")
+       return find.fetch("project")
            .where()
                 .eq("done", false)
                 .eq("project.members.email", user)
