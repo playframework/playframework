@@ -108,10 +108,11 @@ object ResultsSpec extends Specification {
     import play.api._
     import java.io.File
 
-    implicit val app: Application = new Application(new File("./src/play/src/test"), Thread.currentThread.getContextClassLoader, None, Mode.Test) {
-      override lazy val configuration = Configuration.from(Map("application.secret" -> "pass",
-        "ehcacheplugin" -> "disabled"))
-    }
+    implicit val app: Application =
+      new DefaultApplication(new File("./src/play/src/test"), Thread.currentThread.getContextClassLoader, None, play.api.Mode.Test){
+        override lazy val configuration = Configuration.from(Map("application.secret" -> "pass",
+          "ehcacheplugin" -> "disabled"))
+      }
 
     def around[T <% SpecsResult](t: => T) = {
       Play.start(app)
