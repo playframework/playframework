@@ -18,9 +18,6 @@ case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult
   def +:(error: (JsPath, ValidationError) ): JsError = JsError.merge(JsError(error), this)
   def prepend(error: (JsPath, ValidationError) ): JsError = this.+:(error)
 
-  //def toJson: JsValue = original // TODO
-  //def toJsonErrorsOnly: JsValue = original // TODO
-  //def toFlatForm: Seq[(String, Seq[ValidationError])] = errors.map{ case(path, seq) => path.toJsonString -> seq } :+ ("globals" -> globalErrors) // TODO
 }
 
 object JsError {
@@ -39,6 +36,30 @@ object JsError {
   def merge(e1: JsError, e2: JsError): JsError = {
     JsError(merge(e1.errors, e2.errors))
   }
+
+    //def toJson: JsValue = original // TODO
+  //def toJsonErrorsOnly: JsValue = original // TODO
+  def toFlatForm(e: JsError): Seq[(String, Seq[ValidationError])] = e.errors.map{ case(path, seq) => path.toJsonString -> seq }
+  def toFlatJson(e: JsError): JsObject = toFlatJson(e.errors)
+  def toFlatJson(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
+    errors.foldLeft(Json.obj()){ (obj, error) => 
+      obj ++ Json.obj(error._1.toJsonString -> error._2.foldLeft(Json.arr()){ (arr, err) =>
+        arr :+ Json.obj(
+          "msg" -> err.message,
+          "args" -> err.args.foldLeft(Json.arr()){ (arr, arg) => arr :+ (arg match {
+            case s: String => JsString(s)
+            case nb: Int => JsNumber(nb)
+            case nb: Short => JsNumber(nb)
+            case nb: Long => JsNumber(nb)
+            case nb: Double => JsNumber(nb)
+            case nb: Float => JsNumber(nb)
+            case b: Boolean => JsBoolean(b)
+            case js: JsValue => js
+            case x => JsString(x.toString)
+          }) }
+        )
+      })
+    }
 }
 
 sealed trait JsResult[+A] { self =>

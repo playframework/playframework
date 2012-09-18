@@ -5,11 +5,10 @@ import scala.annotation.implicitNotFound
  * Json formatter: write an implicit to define both a serializer and a deserializer for any type.
  */
 @implicitNotFound(
-  "No Json formatter found for type ${T}. Try to implement an implicit Format for this type."
+  "No Json formatter found for type ${A}. Try to implement an implicit Format for this type."
 )
-trait Format[T] extends Writes[T] with Reads[T]
-
-trait OFormat[T] extends OWrites[T] with Reads[T] with Format[T]
+trait Format[A] extends Writes[A] with Reads[A]
+trait OFormat[A] extends OWrites[A] with Reads[A] with Format[A] 
 
 object OFormat {
 
@@ -27,7 +26,7 @@ object OFormat {
 
   implicit val invariantFunctorOFormat:InvariantFunctor[OFormat] = new InvariantFunctor[OFormat] {
 
-    def inmap[A,B](fa:OFormat[A], f1:A => B, f2: B => A):OFormat[B] = OFormat[B]( (js: JsValue) => fa.reads(js).map(f1), (b: B) => fa.writes(f2(b)))
+    def inmap[A,B](fa:OFormat[A], f1:A => B, f2: B => A): OFormat[B] = OFormat[B]( (js: JsValue) => fa.reads(js).map(f1), (b: B) => fa.writes(f2(b)))
 
   }
 

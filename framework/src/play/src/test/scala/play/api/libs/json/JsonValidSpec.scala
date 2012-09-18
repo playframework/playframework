@@ -366,7 +366,8 @@ object JsonValidSpec extends Specification {
       )(User)
 
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError(__ \ "age", ValidationError("validate.error.max", 55)) ++ JsError(__ \ "age", ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("validate.error.max", 55)) ++ JsError((__ \ 'age), ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("validate.error.email")) ++ JsError((__ \ 'age), ValidationError("validate.error.max", 55)) ++ JsError((__ \ 'age), ValidationError("validate.error.min", 65)))
     }
 
     "verifyingIf reads" in {
@@ -479,6 +480,60 @@ object JsonValidSpec extends Specification {
       ).validate(myReads) must beEqualTo(
         JsSuccess(( "val1", 123L, 123.456F, true, List("alpha", "beta"), "val6", "val7", "val8", "val9", "val10", "val11", "val12"))
       )
+    }
+
+    "single field case class" in {
+      case class Test(field: String)
+      val myFormat = (__ \ 'field).format[String].inmap(Test, unlift(Test.unapply))
+
+      myFormat.reads(Json.obj("field" -> "blabla")) must beEqualTo(JsSuccess(Test("blabla")))
+      myFormat.reads(Json.obj()) must beEqualTo(JsError( __ \ 'field, "validate.error.missing-path" ) )
+      myFormat.writes(Test("blabla")) must beEqualTo(Json.obj("field" -> "blabla"))
+    }
+
+    "append Reads[JsValue]" in {
+      val myReads = 
+        (__ \ 'field1).json.obj[JsString] and
+        (__ \ 'field2).json.obj[JsObject]
+        append
+    }
+
+    "serialize JsError to flat json" in {
+      val jserr = JsError( Seq(
+        (__ \ 'field1 \ 'field11) -> Seq(
+          ValidationError("msg1.msg11", "arg11", 123L, 123.456F), 
+          ValidationError("msg2.msg21.msg22", 456, 123.456, true, 123)
+        ),
+        (__ \ 'field2 \ 'field21) -> Seq(
+          ValidationError("msg1.msg21", "arg1", Json.obj("test" -> "test2")),
+          ValidationError("msg2", "arg1", "arg2") 
+        )
+      ))
+
+      val flatJson = Json.obj(
+        "obj.field1.field11" -> Json.arr(
+          Json.obj( 
+            "msg" -> "msg1.msg11", 
+            "args" -> Json.arr("arg11",123,123.456F) 
+          ),
+          Json.obj(
+            "msg" ->"msg2.msg21.msg22",
+            "args" -> Json.arr(456,123.456,true,123)
+          )
+        ),
+        "obj.field2.field21" -> Json.arr(
+          Json.obj(
+            "msg" -> "msg1.msg21",
+            "args" -> Json.arr("arg1", Json.obj("test" -> "test2"))
+          ),
+          Json.obj(
+            "msg" -> "msg2",
+            "args" -> Json.arr("arg1","arg2")
+          )
+        )
+      )
+
+      JsError.toFlatJson(jserr) should beEqualTo(flatJson)
     }
   }
 
