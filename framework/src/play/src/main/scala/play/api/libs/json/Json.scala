@@ -11,7 +11,7 @@ object Json {
    * @param input a String to parse
    * @return the JsValue representing the string
    */
-  def parse(input: String): JsValue = JerksonJson.parse[JsValue](input)
+  def parse(input: String): JsValue = JacksonJson.parseJsValue(input)
 
   /**
    * Convert a JsValue to its string representation.
@@ -19,7 +19,7 @@ object Json {
    * @param json the JsValue to convert
    * @return a String with the json representation
    */
-  def stringify(json: JsValue): String = JerksonJson.generate(json)
+  def stringify(json: JsValue): String = JacksonJson.generateFromJsValue(json)
 
   /**
    * Provided a Reads implicit for its type is available, convert any object into a JsValue.
