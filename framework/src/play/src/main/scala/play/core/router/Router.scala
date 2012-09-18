@@ -1010,7 +1010,11 @@ object Router {
 
   object Route {
 
-    def apply(method: String, pathPattern: PathPattern) = new {
+    trait ParamsExtractor {
+      def unapply(request: RequestHeader): Option[RouteParams]
+    }
+
+    def apply(method: String, pathPattern: PathPattern) = new ParamsExtractor{
 
       def unapply(request: RequestHeader): Option[RouteParams] = {
         if (method == request.method) {
