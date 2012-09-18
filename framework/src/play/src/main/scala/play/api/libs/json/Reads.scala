@@ -41,6 +41,8 @@ trait Reads[A] {
   def collect[B](error:ValidationError)(f: PartialFunction[A,B]) =
     Reads[B] { json => self.reads(json).collect(error)(f) }
 
+  def apply[B](f: A => B): Reads[B] = this.map(f)
+
   /**
    * builds a JsErrorObj JsObject
    * {
@@ -95,6 +97,16 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
     def fmap[A, B](reads: Reads[A], f: A => B): Reads[B] = a.map(reads, f)
   }
 
+
+  implicit object JsObjectMonoid extends Monoid[JsObject] {
+    def append(o1: JsObject, o2: JsObject) = o1 ++ o2
+    def identity = JsObject(Seq())
+  }
+
+  implicit object JsArrayMonoid extends Monoid[JsArray] {
+    def append(a1: JsArray, a2: JsArray) = a1 ++ a2
+    def identity = JsArray()
+  }
 }
 
 /**
@@ -313,13 +325,33 @@ trait DefaultReads {
     }
   }
 
-
   /**
    * Deserializer for JsValue.
    */
   implicit object JsValueReads extends Reads[JsValue] {
     def reads(json: JsValue) = JsSuccess(json)
   }
+
+  /*implicit object JsStringReads extends Reads[JsString] {
+    def reads(json: JsValue) = json match {
+      case s: JsString => JsSuccess(s)
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
+    }
+  }
+
+  implicit object JsNumberReads extends Reads[JsNumber] {
+    def reads(json: JsValue) = json match {
+      case n: JsNumber => JsSuccess(n)
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+    }
+  }
+
+  implicit object JsBooleanReads extends Reads[JsBoolean] {
+    def reads(json: JsValue) = json match {
+      case b: JsBoolean => JsSuccess(b)
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsboolean"))))
+    }
+  }*/
 
   implicit def OptionReads[T](implicit fmt: Reads[T]): Reads[Option[T]] = new Reads[Option[T]] {
     import scala.util.control.Exception._

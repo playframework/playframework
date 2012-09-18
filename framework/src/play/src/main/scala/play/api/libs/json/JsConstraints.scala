@@ -17,14 +17,16 @@ trait PathFormat {
 
 trait PathReads {
   
-  def required(path:JsPath): Reads[JsValue] = at(path)
+  def required(path:JsPath)(implicit reads:Reads[JsValue]): Reads[JsValue] = at(path)
 
   def at[A](path:JsPath)(implicit reads:Reads[A]): Reads[A] =
-    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)))
+    Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)) )
 
   def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).repath(path).map(Some(_))))
 
+  def jsobj[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] =
+    Reads[JsObject]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)).map( jsv => JsPath.createObj(path -> jsv) ) )
 }
 
 trait ConstraintReads {
@@ -91,6 +93,9 @@ trait PathWrites {
   def pick(path: JsPath): OWrites[JsValue] =
     OWrites[JsValue]{ obj => JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)) }
 
+  def pure[A](path: JsPath, fixed: A)(implicit _writes:Writes[A]) =
+    OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(fixed)) }    
+
   def modifyJson(path: JsPath)(_writes: Writes[JsValue]): OWrites[JsValue] =
     OWrites[JsValue]{ obj => obj match {
       // if JsObject, try to aggregate
@@ -102,8 +107,6 @@ trait PathWrites {
   def transformJson(path: JsPath, f: JsValue => JsValue): OWrites[JsValue] =
     OWrites[JsValue]{ obj => JsPath.createObj(path -> f(path(obj).headOption.getOrElse(JsNull))) }  
 
-  def pure[A](path: JsPath, fixed: A)(implicit _writes:Writes[A]) =
-    OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(fixed)) }    
 }
 
 trait ConstraintWrites {

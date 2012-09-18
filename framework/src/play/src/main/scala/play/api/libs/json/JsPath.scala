@@ -197,6 +197,7 @@ case class JsPath(path: List[PathNode] = List()) {
    */
   def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
   def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
+  def read[T](t: T) = Reads.pure(t)
   
   def lazyRead[T](r: => Reads[T]) = Reads( js => Reads.at[T](this)(r).reads(js) )
   
@@ -257,6 +258,9 @@ case class JsPath(path: List[PathNode] = List()) {
     }}}
      */
     def put(js: JsValue): OWrites[JsValue] = self.write(js)(Writes( js => js ))
+
+
+    def obj[A <: JsValue](implicit r: Reads[A]): Reads[JsObject] = Reads.jsobj(self)(r)
   }
   
 
