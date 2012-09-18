@@ -55,11 +55,11 @@ object JavascriptCompiler {
       case Right(false) => {
         val error = compiler.getErrors().head
         val errorFile = all.find(f => f.getAbsolutePath() == error.sourceName)
-        throw AssetCompilationException(errorFile, error.description, error.lineNumber, 0)
+        throw AssetCompilationException(errorFile, error.description, Some(error.lineNumber), None)
       }
       case Left(exception) =>
         exception.printStackTrace()
-        throw AssetCompilationException(Some(source), "Internal Closure Compiler error (see logs)", 0, 0)
+        throw AssetCompilationException(Some(source), "Internal Closure Compiler error (see logs)", None, None)
     }
   }
 
@@ -77,7 +77,7 @@ object JavascriptCompiler {
       case true => compiler.toSource()
       case false => {
         val error = compiler.getErrors().head
-        throw AssetCompilationException(None, error.description, error.lineNumber, 0)
+        throw AssetCompilationException(None, error.description, Some(error.lineNumber), None)
       }
     }
   }

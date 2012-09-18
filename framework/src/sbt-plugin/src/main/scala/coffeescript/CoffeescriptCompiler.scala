@@ -2,6 +2,8 @@ package play.core.coffeescript
 
 import java.io._
 import play.api._
+import sbt.PlayExceptions.AssetCompilationException
+
 
 object CoffeescriptCompiler {
 
@@ -49,7 +51,7 @@ object CoffeescriptCompiler {
       val eRegex = """.*Parse error on line (\d+):.*""".r
       val errReverse = err.reverse
       val r = eRegex.unapplySeq(errReverse.mkString("")).map(_.head.toInt)
-      throw CompilationException(errReverse.mkString("\n"), source, r)
+      throw AssetCompilationException(Some(source), errReverse.mkString("\n"), r, None)
     }
     out.reverse.mkString("\n")
   }
@@ -67,26 +69,12 @@ object CoffeescriptCompiler {
         val error = e.getValue.asInstanceOf[Scriptable]
 
         throw ScriptableObject.getProperty(error, "message").asInstanceOf[String] match {
-          case msg @ line(l) => CompilationException(
-            msg,
-            source,
-            Some(Integer.parseInt(l)))
-          case msg => CompilationException(
-            msg,
-            source,
-            None)
+          case msg @ line(l) => AssetCompilationException(Some(source), msg, Some(Integer.parseInt(l)), None)
+          case msg => AssetCompilationException(Some(source), msg, None, None)
         }
 
       }
     }
   }
 
-}
-
-case class CompilationException(message: String, coffeeFile: File, atLine: Option[Int]) extends PlayException(
-  "Compilation error", message) with PlayException.ExceptionSource {
-  def line = atLine
-  def position = None
-  def input = Some(scalax.file.Path(coffeeFile))
-  def sourceName = Some(coffeeFile.getAbsolutePath)
 }

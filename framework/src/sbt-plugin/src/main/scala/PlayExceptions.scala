@@ -22,7 +22,7 @@ trait PlayExceptions {
   }
 
   case class TemplateCompilationException(source: File, message: String, atLine: Int, column: Int) extends PlayException(
-    "Compilation error", message) with PlayException.ExceptionSource {
+    "Compilation error", message) with PlayException.ExceptionSource with FeedbackProvidedException {
     def line = Some(atLine)
     def position = Some(column)
     def input = Some(scalax.file.Path(source))
@@ -30,17 +30,17 @@ trait PlayExceptions {
   }
 
   case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException(
-    "Compilation error", message) with PlayException.ExceptionSource {
+    "Compilation error", message) with PlayException.ExceptionSource with FeedbackProvidedException {
     def line = atLine
     def position = column
     def input = Some(scalax.file.Path(source))
     def sourceName = Some(source.getAbsolutePath)
   }
 
-  case class AssetCompilationException(source: Option[File], message: String, atLine: Int, atColumn: Int) extends PlayException(
-    "Compilation error", message) with PlayException.ExceptionSource {
-    def line = Some(atLine)
-    def position = Some(atColumn)
+  case class AssetCompilationException(source: Option[File], message: String, atLine: Option[Int], atColumn: Option[Int]) extends PlayException(
+    "Compilation error", message) with PlayException.ExceptionSource with FeedbackProvidedException {
+    def line = atLine
+    def position = atColumn
     def input = source.filter(_.exists()).map(scalax.file.Path(_))
     def sourceName = source.map(_.getAbsolutePath)
   }
