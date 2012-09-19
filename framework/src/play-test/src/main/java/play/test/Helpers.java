@@ -327,7 +327,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running application.
      */
-    public static void running(FakeApplication fakeApplication, final Runnable block) {
+    public static synchronized void running(FakeApplication fakeApplication, final Runnable block) {
         try {
             start(fakeApplication);
             block.run();
@@ -372,7 +372,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server.
      */
-    public static void running(TestServer server, final Runnable block) {
+    public static synchronized void running(TestServer server, final Runnable block) {
         try {
             start(server);
             block.run();
@@ -384,7 +384,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server, with a test browser.
      */
-    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
+    public static synchronized void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
         TestBrowser browser = null;
         TestServer startedServer = null;
         try {
