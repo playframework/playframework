@@ -48,7 +48,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
     lazy val playSettings =
       PlayProject.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings(mainLang) ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
-        javacOptions ++= Seq("-encoding", "utf8", "-g"),
+        javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
         version := applicationVersion,
         libraryDependencies ++= dependencies
       )
