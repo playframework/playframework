@@ -193,11 +193,11 @@ import scala.util.matching._
         case parts => parts.mkString(".")
       }
 
-      def route = httpVerb ~ separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
+      def route = httpVerb ~! separator ~ path ~ separator ~ positioned(call) ~ ignoreWhiteSpace ^^ {
         case v ~ _ ~ p ~ _ ~ c ~ _ => Route(v, p, c)
       }
 
-      def include = "->" ~ separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
+      def include = "->" ~! separator ~ path ~ separator ~ router ~ ignoreWhiteSpace ^^ {
         case _ ~ _ ~ p ~ _ ~ r ~ _ => Include(p.toString, r)
       }
 

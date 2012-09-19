@@ -6,7 +6,7 @@ import Keys._
 import PlayExceptions._
 
 trait PlayReloader {
-  this: PlayCommands =>
+  this: PlayCommands with PlayPositionMapper =>
 
   // ----- Reloader
 
@@ -151,59 +151,14 @@ trait PlayReloader {
       }
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
-
-        problem.position.sourceFile.collect {
-
-          // Templates
-          case play.templates.MaybeGeneratedSource(generatedSource) => {
-            new xsbti.Problem {
-              def message = problem.message
-              def category = ""
-              def position = new xsbti.Position {
-                def line = {
-                  problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                }
-                def lineContent = ""
-                def offset = xsbti.Maybe.nothing[java.lang.Integer]
-                def pointer = {
-                  problem.position.offset.map { offset =>
-                    generatedSource.mapPosition(offset.asInstanceOf[Int]) - IO.read(generatedSource.source.get).split('\n').take(problem.position.line.map(l => generatedSource.mapLine(l.asInstanceOf[Int])).get - 1).mkString("\n").size - 1
-                  }.map { p =>
-                    xsbti.Maybe.just(p.asInstanceOf[java.lang.Integer])
-                  }.getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                }
-                def pointerSpace = xsbti.Maybe.nothing[String]
-                def sourceFile = xsbti.Maybe.just(generatedSource.source.get)
-                def sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
-              }
-              def severity = problem.severity
-            }
+        val mappedPosition = playPositionMapper(problem.position)
+        mappedPosition.map { pos => new xsbti.Problem {
+            def message = problem.message
+            def category = ""
+            def position = pos
+            def severity = problem.severity
           }
-
-          // Routes files
-          case play.router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
-            new xsbti.Problem {
-              def message = problem.message
-              def category = ""
-              def position = new xsbti.Position {
-                def line = {
-                  problem.position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
-                }
-                def lineContent = ""
-                def offset = xsbti.Maybe.nothing[java.lang.Integer]
-                def pointer = xsbti.Maybe.nothing[java.lang.Integer]
-                def pointerSpace = xsbti.Maybe.nothing[String]
-                def sourceFile = xsbti.Maybe.just(new File(generatedSource.source.get.path))
-                def sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
-              }
-              def severity = problem.severity
-            }
-          }
-
-        }.getOrElse {
-          problem
-        }
-
+        } getOrElse problem
       }
 
       private def allProblems(inc: Incomplete): Seq[xsbti.Problem] =

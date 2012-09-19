@@ -82,6 +82,7 @@ object PlayException {
       }
     }
 
+    override def toString = "in " + sourceName.getOrElse("") + line.map(":" + _).getOrElse("") + " - " + super.toString()
   }
 
   /**

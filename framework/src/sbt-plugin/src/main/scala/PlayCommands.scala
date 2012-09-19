@@ -349,7 +349,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   // ----- Source generators
 
-  val RouteFiles = (confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
+  val RouteFiles = (state: State, confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
     import play.router.RoutesCompiler._
 
     ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
@@ -359,7 +359,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       }
     } catch {
       case RoutesCompilationError(source, message, line, column) => {
-        throw RoutesCompilationException(source, message, line, column.map(_ - 1))
+        throw reportCompilationError(state, RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
       case e => throw e
     }
@@ -368,7 +368,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   }
 
-  val ScalaTemplates = (sourceDirectory: File, generatedDir: File, templateTypes: PartialFunction[String, (String, String)], additionalImports: Seq[String]) => {
+  val ScalaTemplates = (state: State, sourceDirectory: File, generatedDir: File, templateTypes: PartialFunction[String, (String, String)], additionalImports: Seq[String]) => {
     import play.templates._
 
     val templateExt: PartialFunction[File, (File, String, String, String)] = {
@@ -392,7 +392,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       }
     } catch {
       case TemplateCompilationError(source, message, line, column) => {
-        throw TemplateCompilationException(source, message, line, column - 1)
+        throw reportCompilationError(state, TemplateCompilationException(source, message, line, column - 1))
       }
       case e => throw e
     }

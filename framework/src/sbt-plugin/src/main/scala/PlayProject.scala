@@ -8,7 +8,8 @@ import play.core._
 
 import play.utils.Colors
 
-object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands with PlaySettings {
+object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
+    with PlaySettings with PlayPositionMapper {
 
   Option(System.getProperty("play.version")).map {
     case badVersion if badVersion != play.core.PlayVersion.current => {
