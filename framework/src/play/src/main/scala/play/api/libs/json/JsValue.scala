@@ -277,7 +277,13 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
       case JsNumber(v) => json.writeNumber(v.bigDecimal)
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
-      case JsArray(elements) => json.writeObject(elements)
+      case JsArray(elements) => {
+        json.writeStartArray()
+        elements.foreach { t =>
+          json.writeObject(t)
+        }
+        json.writeEndArray()
+      }
       case JsObject(values) => {
         json.writeStartObject()
         values.foreach { t =>
