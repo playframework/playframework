@@ -122,8 +122,8 @@ object LessCompiler {
         val file = if (filename == source.getAbsolutePath()) source else resolve(source, filename)
         throw AssetCompilationException(Some(file),
           ScriptableObject.getProperty(error, "message").asInstanceOf[String],
-          ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue,
-          ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue)
+          Some(ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue),
+          Some(ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue))
       }
     }
   }
