@@ -713,7 +713,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         |reload                     Reload the current application build file.
         |run <port>                 Run the current application in DEV mode.
         |test                       Run Junit tests and/or Specs from the command line
-        |eclipsify                  generate eclipse project file
+        |eclipse                    generate eclipse project file
         |idea                       generate Intellij IDEA project file
         |sh <command to run>        execute a shell command 
         |start <port>               Start the current application in another JVM in PROD mode.

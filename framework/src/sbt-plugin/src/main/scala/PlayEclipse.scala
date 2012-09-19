@@ -116,7 +116,7 @@ trait PlayEclipse {
     val flavor = if (mainLang == SCALA) EclipseProjectFlavor.Scala else EclipseProjectFlavor.Java
 
     //setup sbteclipse
-    EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
+    EclipsePlugin.eclipseSettings ++ Seq(
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.eclipseOutput := Some(".target"),
       EclipseKeys.projectFlavor := flavor,
