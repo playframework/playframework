@@ -423,7 +423,7 @@ object Forms {
    * }}}
    */
   val email: Mapping[String] = of[String] verifying Constraints.pattern(
-    """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r,
+    """\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r,
     "constraint.email",
     "error.email")
 
