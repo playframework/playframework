@@ -7,6 +7,7 @@ import java.lang.annotation.*;
  * @param key The cache key
  * @param duration Cache duration in seconds
  */
+@With(CachedAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cached {
