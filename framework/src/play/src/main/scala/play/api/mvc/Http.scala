@@ -629,6 +629,8 @@ package play.api.mvc {
     // We use netty here but just as an API to handle cookies encoding
     import org.jboss.netty.handler.codec.http.{ CookieEncoder, CookieDecoder, DefaultCookie }
 
+    val path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+
     /**
      * Extract cookies from the Set-Cookie header.
      */
@@ -679,7 +681,7 @@ package play.api.mvc {
      */
     def decode(cookieHeader: String): Seq[Cookie] = {
       new CookieDecoder().decode(cookieHeader).asScala.map { c =>
-        Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+        Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath).getOrElse(path), Option(c.getDomain), c.isSecure, c.isHttpOnly)
       }.toSeq
     }
 
