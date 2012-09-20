@@ -32,10 +32,10 @@ package play.templates {
     }
 
   }
-  
+
   sealed trait AbstractGeneratedSource {
     def content: String
-    
+
     lazy val meta: Map[String, String] = {
       val Meta = """([A-Z]+): (.*)""".r
       val UndefinedMeta = """([A-Z]+):""".r
@@ -53,7 +53,7 @@ package play.templates {
         }
       }
     }
-    
+
     lazy val matrix: Seq[(Int, Int)] = {
       for (pos <- meta("MATRIX").split('|'); val c = pos.split("->"))
         yield try {
@@ -62,7 +62,7 @@ package play.templates {
         case _ => (0, 0) // Skip if MATRIX meta is corrupted
       }
     }
-    
+
     lazy val lines: Seq[(Int, Int)] = {
       for (pos <- meta("LINES").split('|'); val c = pos.split("->"))
         yield try {
@@ -71,7 +71,7 @@ package play.templates {
         case _ => (0, 0) // Skip if LINES meta is corrupted
       }
     }
-    
+
     def mapPosition(generatedPosition: Int): Int = {
       matrix.indexWhere(p => p._1 > generatedPosition) match {
         case 0 => 0
@@ -101,15 +101,15 @@ package play.templates {
     }
   }
 
-  case class GeneratedSource(file: File) extends AbstractGeneratedSource{
-    
+  case class GeneratedSource(file: File) extends AbstractGeneratedSource {
+
     def content = Path(file).string
 
     def needRecompilation: Boolean = (!file.exists ||
       // A generated source already exist but
       source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
         (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
-        )
+    )
 
     def toSourcePosition(marker: Int): (Int, Int) = {
       try {
@@ -137,7 +137,7 @@ package play.templates {
     }
 
   }
-  
+
   case class GeneratedSourceVirtual(path: String) extends AbstractGeneratedSource {
     var _content = ""
     def setContent(newContent: String) {
@@ -145,7 +145,7 @@ package play.templates {
     }
     def content = _content
   }
-  
+
   object ScalaTemplateCompiler {
 
     import scala.util.parsing.input.Positional
@@ -188,11 +188,11 @@ package play.templates {
       generatedSource.setContent(generated)
       generatedSource
     }
-    
+
     def parseAndGenerateCode(templateName: Array[String], content: String, absolutePath: String, resultType: String, formatterType: String, additionalImports: String) = {
       templateParser.parser(new CharSequenceReader(content)) match {
         case templateParser.Success(parsed, rest) if rest.atEnd => {
-          generateFinalTemplate(absolutePath, 
+          generateFinalTemplate(absolutePath,
             content,
             templateName.dropRight(1).mkString("."),
             templateName.takeRight(1).mkString,
@@ -219,7 +219,7 @@ package play.templates {
       val templateName = source2TemplateName(template, sourceDirectory, template.getName.split('.').takeRight(1).head).split('.')
       templateName -> GeneratedSourceVirtual(templateName.mkString("/") + ".template.scala")
     }
-    
+
     @tailrec
     def source2TemplateName(f: File, sourceDirectory: File, ext: String, suffix: String = "", topDirectory: String = "views", setExt: Boolean = true): String = {
       val Name = """([a-zA-Z0-9_]+)[.]scala[.]([a-z]+)""".r
@@ -331,7 +331,7 @@ package play.templates {
           })
       }
 
-      def blockArgs: Parser[PosString] = positioned( (not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => PosString(args.mkString + arrow) } )
+      def blockArgs: Parser[PosString] = positioned((not("=>" | newLine) ~> any *) ~ "=>" ^^ { case args ~ arrow => PosString(args.mkString + arrow) })
 
       def methodCall: Parser[String] = identifier ~ (squareBrackets?) ~ (parentheses?) ^^ {
         case methodName ~ types ~ args => methodName + types.getOrElse("") + args.getOrElse("")
@@ -370,7 +370,7 @@ package play.templates {
         }
         val complexExpr = positioned(parentheses ^^ { expr => (Simple(expr)) }) ^^ { List(_) }
 
-        at ~> ((simpleExpr | complexExpr) ~ positioned((whiteSpaceNoBreak ~ "match" ^^ {case w ~ m => Simple(w + m)})) ^^ {
+        at ~> ((simpleExpr | complexExpr) ~ positioned((whiteSpaceNoBreak ~ "match" ^^ { case w ~ m => Simple(w + m) })) ^^ {
           case e ~ m => e ++ Seq(m)
         }) ~ block ^^ {
           case expr ~ block => Display(ScalaExp(expr ++ Seq(block)))
@@ -392,9 +392,9 @@ package play.templates {
       }
 
       def importExpression: Parser[Simple] = {
-          at ~> positioned("""import .*(\r)?\n""".r ^^ {
-            case stmt => Simple(stmt)
-          })
+        at ~> positioned("""import .*(\r)?\n""".r ^^ {
+          case stmt => Simple(stmt)
+        })
       }
 
       def scalaBlock: Parser[Simple] = {
@@ -519,7 +519,7 @@ package play.templates {
 
       Nil :+ imports :+ "\n" :+ defs :+ "\n" :+ "Seq[Any](" :+ visit(template.content, Nil) :+ ")"
     }
-    
+
     def generateCode(packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String) = {
       val extra = TemplateAsFunctionCompiler.getFunctionMapping(
         root.params.str,
@@ -604,7 +604,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
             case a if a.mods.isByNameParam => a.name.toString + ":" + a.tpt.children(1).toString
             case a => a.name.toString + ":" + filterType(a.tpt.toString)
           }.mkString(",") + ")",
-           returnType,
+          returnType,
           params.map(group => "(" + group.map { p =>
             p.name.toString + Option(p.tpt.toString).filter(_.startsWith("_root_.scala.<repeated>")).map(_ => ":_*").getOrElse("")
           }.mkString(",") + ")").mkString)
@@ -732,7 +732,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                 */
             """
     }
-    
+
     @deprecated("use finalSource with 3 parameters instead", "Play 2.1")
     def finalSource(template: File, generatedTokens: Seq[Any]): String = {
       finalSource(template.getAbsolutePath, Path(template).byteArray, generatedTokens)

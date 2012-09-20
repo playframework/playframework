@@ -363,16 +363,17 @@ case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[
    * @param f The transformation function
    * @return The transformed `AsyncResult`
    */
-  def transform(f: PlainResult => Result): AsyncResult = AsyncResult (result.map {
-      case AsyncResult(r) => AsyncResult(r.map{
-        case r:PlainResult => f(r)
-        case r:AsyncResult => r.transform(f)})
-      case r:PlainResult => f(r)
+  def transform(f: PlainResult => Result): AsyncResult = AsyncResult(result.map {
+    case AsyncResult(r) => AsyncResult(r.map {
+      case r: PlainResult => f(r)
+      case r: AsyncResult => r.transform(f)
+    })
+    case r: PlainResult => f(r)
   })
 
-  def unflatten:Promise[PlainResult] = result.flatMap {
-      case r:PlainResult => Promise.pure(r)
-      case r@AsyncResult(_) => r.unflatten
+  def unflatten: Promise[PlainResult] = result.flatMap {
+    case r: PlainResult => Promise.pure(r)
+    case r @ AsyncResult(_) => r.unflatten
   }
 
   def map(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
@@ -512,7 +513,6 @@ case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[
   }
 
 }
-
 
 /**
  * A Codec handle the conversion of String to Byte arrays.
@@ -734,7 +734,7 @@ trait Results {
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
-  
+
   /** Generates a ‘501 NOT_IMPLEMENTED’ result. */
   val NotImplemented = new Status(NOT_IMPLEMENTED)
 

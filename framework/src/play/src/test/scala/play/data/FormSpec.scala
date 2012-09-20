@@ -51,6 +51,13 @@ object ScalaForms {
         "password" -> of[Int]
       )
     )
+    
+    val emailForm = Form(
+      tuple(
+        "email" -> email,
+        "name" -> of[String]
+      )
+    )
 
     val defaultValuesForm = Form(
       tuple(
@@ -163,7 +170,28 @@ object FormSpec extends Specification {
 
         val f4 = ScalaForms.form.fillAndValidate(333)
         f4.errors.size must equalTo (1)
-        f4.errors.find(_.message == "number.42") must beSome
+        f4.errors.find(_.message == "number.42") must beSome        
+        
+        "when given a malformed email" in {
+          val f5 = ScalaForms.emailForm.fillAndValidate("john", "John")
+          f5.errors.size must equalTo (1)
+          f5.errors.find(_.message == "error.email") must beSome
+          
+          val f6 = ScalaForms.emailForm.fillAndValidate("john@zen....com", "John")
+          f6.errors.size must equalTo (1)
+          f6.errors.find(_.message == "error.email") must beSome
+        }
+        
+        "when given a well-formed email" in {
+          val f7 = ScalaForms.emailForm.fillAndValidate("john@zen.com", "John")
+          f7.errors.size must equalTo (0)
+          
+          val f8 = ScalaForms.emailForm.fillAndValidate("john@mail.zen.com", "John")
+          f8.errors.size must equalTo (0)
+          
+          val f9 = ScalaForms.emailForm.fillAndValidate("john@zen.museum", "John")
+          f9.errors.size must equalTo (0)
+        }
       }
     }
   }

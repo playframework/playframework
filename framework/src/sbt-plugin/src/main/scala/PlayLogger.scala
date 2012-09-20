@@ -1,6 +1,6 @@
 package sbt
 
-import xsbti.{Maybe, Position}
+import xsbti.{ Maybe, Position }
 
 object InPlaceLogger {
 
@@ -74,15 +74,14 @@ class PlayLogManager(extra: ScopedKey[_] => Seq[AbstractLogger], playPositionMap
  */
 class PlaySourcePositionFilter(val playPositionMapper: Position => Option[Position]) {
   import scala.collection.mutable
-  import play.templates.{MaybeGeneratedSource => TemplateSource}
-  import play.router.RoutesCompiler.{MaybeGeneratedSource => RoutesSource}
+  import play.templates.{ MaybeGeneratedSource => TemplateSource }
+  import play.router.RoutesCompiler.{ MaybeGeneratedSource => RoutesSource }
 
   val CompileError = """(?s)(.*\.scala):(\d+): (.*)""".r
   val Pointer = """([\t ]*)\^""".r
   val CompilationFailed = """.*Compilation failed"""
   private val buffer = mutable.ArrayBuffer[(Level.Value, String)]()
   private var current: Option[(File, Int, String)] = None
-
 
   def filter(level: Level.Value, message: String)(log: (Level.Value, => String) => Unit) {
     buffer.synchronized {
@@ -124,7 +123,7 @@ class PlaySourcePositionFilter(val playPositionMapper: Position => Option[Positi
   }
 
   def matchCompileError(level: Level.Value, message: String, filename: String, line: String, error: String,
-                        log: (Level.Value, => String) => Unit) {
+    log: (Level.Value, => String) => Unit) {
     val file = new File(filename)
     file match {
       case TemplateSource(generatedSource) => {
@@ -162,9 +161,9 @@ class PlaySourcePositionFilter(val playPositionMapper: Position => Option[Positi
     buffer.slice(1, buffer.size - 1).foreach(m => log(m._1, m._2))
 
     val lineContent = pos.lineContent
-    if(!lineContent.isEmpty) {
+    if (!lineContent.isEmpty) {
       log(level, lineContent)
-      for(space <- m2o(pos.pointerSpace))
+      for (space <- m2o(pos.pointerSpace))
         log(level, space + "^") // pointer to the column position of the error/warning
     }
 

@@ -131,13 +131,13 @@ trait PlayReloader {
                 sourceFile: java.io.File
               } -> line)
             }
-          }.headOption.map { 
+          }.headOption.map {
             case (source, maybeLine) => {
               play.templates.MaybeGeneratedSource.unapply(source).map { generatedSource =>
-                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l):java.lang.Integer).orNull
+                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l): java.lang.Integer).orNull
               }.getOrElse(source -> maybeLine)
             }
-          }     
+          }
         }.map {
           case (file, line) => {
             Array[java.lang.Object](file, line)
@@ -147,7 +147,8 @@ trait PlayReloader {
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
         val mappedPosition = playPositionMapper(problem.position)
-        mappedPosition.map { pos => new xsbti.Problem {
+        mappedPosition.map { pos =>
+          new xsbti.Problem {
             def message = problem.message
             def category = ""
             def position = pos
@@ -159,11 +160,11 @@ trait PlayReloader {
       private def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
         allProblems(inc :: Nil)
       }
-        
+
       private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] = {
         problems(Incomplete.allExceptions(incs).toSeq)
       }
-        
+
       private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] = {
         es flatMap {
           case cf: xsbti.CompileFailed => cf.problems

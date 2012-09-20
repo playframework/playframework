@@ -15,7 +15,6 @@ trait JavaHelpers {
   import play.api.mvc._
   import play.mvc.Http.RequestBody
 
-
   /**
    * creates a scala result from java context and result objects
    * @param javaContext

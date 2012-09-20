@@ -72,7 +72,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     }
 
     if (commonClassLoader == null) {
-      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */) {
+      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
         override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
       }
     }
@@ -120,7 +120,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     }
     cr
   }
-
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
   val playPackageEverythingTask = (state, thisProjectRef, crossTarget) flatMap { (s, r, crossTarget) =>
