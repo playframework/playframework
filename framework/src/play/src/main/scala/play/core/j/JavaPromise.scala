@@ -12,7 +12,6 @@ object JavaPromise {
 
   def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): play.api.libs.concurrent.Promise[A] =
     play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)
-    
 
   def defaultContext = play.api.libs.concurrent.execution.defaultContext
 

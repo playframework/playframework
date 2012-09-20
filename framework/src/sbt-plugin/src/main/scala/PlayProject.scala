@@ -11,7 +11,7 @@ import play.console.Colors
 object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
     with PlaySettings with PlayPositionMapper {
 
-  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
+  if (Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
     println()
     this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
       println(Colors.green(el.toString))

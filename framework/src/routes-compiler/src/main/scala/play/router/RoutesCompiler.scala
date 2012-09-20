@@ -29,7 +29,6 @@ object RoutesCompiler {
 
   case class Comment(comment: String)
 
-
   object Hash {
 
     def apply(bytes: Array[Byte]): String = {
@@ -204,16 +203,16 @@ object RoutesCompiler {
     def sentence: Parser[Product with Serializable] = namedError((comment | positioned(include) | positioned(route)), "HTTP Verb (GET, POST, ...), include (->) or comment (#) expected") <~ (newLine | EOF)
 
     def parser: Parser[List[Rule]] = phrase((blankLine | sentence *) <~ end) ^^ {
-      case routes => 
-        routes.reverse.foldLeft(List[(Option[Rule],List[Comment])]()) {
-          case (s,r@Route(_,_,_,_)) => (Some(r),List()) :: s
-          case (s,i@Include(_,_)) => (Some(i),List()) :: s
-          case ( s, c@()) => (None, List()) :: s
-          case ( (r,comments) :: others, c@Comment(_)) => (r, c:: comments) :: others
-          case (s,_) => s
+      case routes =>
+        routes.reverse.foldLeft(List[(Option[Rule], List[Comment])]()) {
+          case (s, r @ Route(_, _, _, _)) => (Some(r), List()) :: s
+          case (s, i @ Include(_, _)) => (Some(i), List()) :: s
+          case (s, c @ ()) => (None, List()) :: s
+          case ((r, comments) :: others, c @ Comment(_)) => (r, c :: comments) :: others
+          case (s, _) => s
         }.collect {
-          case (Some(r@Route(_,_,_,_)), comments) => r.copy(comments = comments).setPos(r.pos)
-          case (Some(i@Include(_,_)),_) => i
+          case (Some(r @ Route(_, _, _, _)), comments) => r.copy(comments = comments).setPos(r.pos)
+          case (Some(i @ Include(_, _)), _) => i
         }
     }
 
@@ -221,7 +220,6 @@ object RoutesCompiler {
       parser(new CharSequenceReader(text))
     }
   }
-
 
   import scalax.file._
   import java.io.File
@@ -266,7 +264,6 @@ object RoutesCompiler {
     }
 
   }
-
 
   def compile(file: File, generatedDir: File, additionalImports: Seq[String]) {
 
@@ -754,9 +751,9 @@ object RoutesCompiler {
                             route.call.method,
                             "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
                             route.verb,
-                            "\"\"\""+route.comments.map(_.comment).mkString("\n")+"\"\"\"",
+                            "\"\"\"" + route.comments.map(_.comment).mkString("\n") + "\"\"\"",
                             route.path
-                            )
+                          )
 
                       }.mkString("\n"),
 
@@ -1042,14 +1039,13 @@ object RoutesCompiler {
           // definition
           """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + r.call.field.map("." + _).getOrElse("") + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
             params.map("classOf[" + _.typeName + "]").mkString(", ")
-          }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\""+ """ , Routes.prefix + """" + r.path + """")""")
+          }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ + "\"\"\"" + r.comments.map(_.comment).mkString("\n") + "\"\"\"" + """ , Routes.prefix + """" + r.path + """")""")
     }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 
       """Map.empty""" // Empty partial function
 
     }
   }
-
 
 }
 

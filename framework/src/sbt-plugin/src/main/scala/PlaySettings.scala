@@ -87,8 +87,8 @@ trait PlaySettings {
 
     libraryDependencies <+= (playPlugin) { isPlugin =>
       val d = "play" %% "play" % play.core.PlayVersion.current
-      if(isPlugin)
-         d % "provided"
+      if (isPlugin)
+        d % "provided"
       else
         d
     },
