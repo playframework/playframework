@@ -93,6 +93,13 @@ object ScalaForms {
           "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
     )
+    
+    val emailForm = Form(
+      tuple(
+        "email" -> email,
+        "name" -> of[String]
+      )
+    )
 }
 
 object FormSpec extends Specification {
@@ -127,6 +134,26 @@ object FormSpec extends Specification {
       val myForm = Controller.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
 
+    }
+    "have an error due to a malformed email" in {
+      val f5 = ScalaForms.emailForm.fillAndValidate("john@", "John")
+      f5.errors.size must equalTo (1)
+      f5.errors.find(_.message == "error.email") must beSome
+      
+      val f6 = ScalaForms.emailForm.fillAndValidate("john@zen.....com", "John")
+      f6.errors.size must equalTo (1)
+      f6.errors.find(_.message == "error.email") must beSome
+    }
+    
+    "be valid with a well-formed email" in {
+      val f7 = ScalaForms.emailForm.fillAndValidate("john@zen.com", "John")
+      f7.errors.size must equalTo (0)
+      
+      val f8 = ScalaForms.emailForm.fillAndValidate("john@zen.museum", "John")
+      f8.errors.size must equalTo (0)
+      
+      val f9 = ScalaForms.emailForm.fillAndValidate("john@mail.zen.com", "John")
+      f9.errors.size must equalTo(0)
     }
     
     "apply constraints on wrapped mappings" in {
