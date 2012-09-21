@@ -1,6 +1,8 @@
 package play.api.mvc {
 
   import play.api._
+  import play.api.http.{MediaRange, HeaderNames}
+  import play.api.i18n.Lang
   import play.api.libs.iteratee._
   import play.api.libs.Crypto
 
@@ -71,7 +73,7 @@ package play.api.mvc {
     /**
      * The HTTP host (domain, optionally port)
      */
-    lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
+    lazy val host: String = headers.get(HeaderNames.HOST).getOrElse("")
 
     /**
      * The HTTP domain
@@ -82,13 +84,8 @@ package play.api.mvc {
      * The Request Langs, extracted from the Accept-Language header.
      */
     lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
-      try {
-        headers.get(play.api.http.HeaderNames.ACCEPT_LANGUAGE).map { acceptLanguage =>
-          acceptLanguage.split("\\s*,\\s*").map(l => play.api.i18n.Lang(l.split(";").head)).toSeq
-        }.getOrElse(Nil)
-      } catch {
-        case e: Exception => e.printStackTrace(); Nil
-      }
+      val langs = acceptHeader(HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
+      langs.sortBy(_._1).map(_._2).flatten.reverse
     }
 
     /**
@@ -97,7 +94,7 @@ package play.api.mvc {
     @deprecated("Use acceptedTypes instead", "2.1")
     lazy val accept: Seq[String] = {
       for {
-        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
+        acceptHeader <- headers.get(HeaderNames.ACCEPT).toSeq
         value <- acceptHeader.split(',')
         contentType <- value.split(';').headOption
       } yield contentType
@@ -107,17 +104,24 @@ package play.api.mvc {
      * @return The media types list of the request’s Accept header, sorted by preference.
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
-      val mediaTypes = for {
-        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
-        mediaRange0 <- acceptHeader.split(",")
+      val mediaTypes = acceptHeader(HeaderNames.ACCEPT).map(item => (item._1, MediaRange(item._2)))
+      mediaTypes.sorted.map(_._2).reverse
+    }
+
+    /**
+     * @return The items of an Accept* header, with their q-value.
+     */
+    private def acceptHeader(headerName: String): Seq[(Double, String)] = {
+      for {
+        header <- headers.get(headerName).toSeq
+        value0 <- header.split(',')
+        value = value0.trim
       } yield {
-        val mediaRange = mediaRange0.trim
-        RequestHeader.qPattern.findFirstMatchIn(mediaRange) match {
-          case Some(m) => (m.group(1).toDouble, play.api.http.MediaRange(m.before.toString))
-          case None => (1.0, play.api.http.MediaRange(mediaRange)) // “The default value is q=1.”
+        RequestHeader.qPattern.findFirstMatchIn(value) match {
+          case Some(m) => (m.group(1).toDouble, m.before.toString)
+          case None => (1.0, value) // “The default value is q=1.”
         }
       }
-      mediaTypes.sorted.map(_._2).reverse
     }
 
     /**

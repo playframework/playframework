@@ -244,6 +244,16 @@ class ApplicationSpec extends Specification {
         MediaRange("text", "*", None)
       ))
     }
+
+    "sort Accept-Language header values according to their quality factor" in {
+      import play.api.i18n.Lang
+      val r1 = FakeRequest(GET, "/foo").withHeaders(ACCEPT_LANGUAGE -> "da, en-gb;q=0.8, en;q=0.7")
+      r1.acceptLanguages must equalTo (Seq(
+        Lang("da"),
+        Lang("en-gb"),
+        Lang("en")
+      ))
+    }
   }
 
 }
