@@ -97,6 +97,17 @@ trait Monoid[A] {
   def identity: A
 }
 
+/* A practical variant of monoid act/action/operator 
+ * - allows to take an element A to create a B
+ * - allows a prepend/append a A to a B
+ * cf Reducer[JsValue, JsArray]
+ */
+trait Reducer[A, B] {
+  def unit(a: A): B
+  def prepend(a: A, b: B)(implicit m: Monoid[B]) = m.append(unit(a), b)
+  def append(b: B, a: A)(implicit m: Monoid[B]) = m.append(b, unit(a))
+}
+
 case class ~[A,B](_1:A,_2:B)
 
 class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
@@ -122,8 +133,8 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
     def join[A >: A1](implicit witness1: <:<[A, A1], witness2: <:<[A, A2], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2) )(fu)
 
-    def append[A >: A1](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], fu: Functor[M], m: Monoid[A]): M[A] = 
-      apply[A]( (a1: A1, a2: A2) => m.append(a1: A, a2: A) )(fu)
+    def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], fu: Functor[M], reducer: Reducer[A, B], m: Monoid[B]): M[B] = 
+      apply[B]( (a1: A1, a2: A2) => reducer.append(reducer.unit(a1: A), a2: A) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2)] = 
       // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
@@ -156,8 +167,8 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
     def join[A >: A1](implicit witness1: <:<[A, A1], witness2: <:<[A, A2], witness3: <:<[A, A3], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2, a: A3) )(fu)
 
-    def append[A >: A1](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], fu: Functor[M], m: Monoid[A]): M[A] = 
-      apply[A]( (a1: A1, a2: A2, a3: A3) => m.append(a1: A, a2: A, a3: A) )(fu)
+    def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], fu: Functor[M], reducer: Reducer[A, B], m: Monoid[B]): M[B] = 
+      apply[B]( (a1: A1, a2: A2, a3: A3) => reducer.append( reducer.append(reducer.unit(a1: A), a2: A), a3: A) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2, A3)] = 
       // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
@@ -190,8 +201,8 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
     def join[A >: A1](implicit witness1: <:<[A, A1], witness2: <:<[A, A2], witness3: <:<[A, A3], witness4: <:<[A, A4], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2, a: A3, a: A4) )(fu)
 
-    def append[A >: A1](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], fu: Functor[M], m: Monoid[A]): M[A] = 
-      apply[A]( (a1: A1, a2: A2, a3: A3, a4: A4) => m.append(a1: A, a2: A, a3: A, a4: A) )(fu)
+    def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], fu: Functor[M], reducer: Reducer[A, B], m: Monoid[B]): M[B] = 
+      apply[B]( (a1: A1, a2: A2, a3: A3, a4: A4) => reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2, A3, A4)] = 
       // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
@@ -224,8 +235,8 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
     def join[A >: A1](implicit witness1: <:<[A, A1], witness2: <:<[A, A2], witness3: <:<[A, A3], witness4: <:<[A, A4], witness5: <:<[A, A5], fu: ContravariantFunctor[M]): M[A] = 
       apply[A]( (a: A) => (a: A1, a: A2, a: A3, a: A4, a: A5) )(fu)
 
-    def append[A >: A1](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], fu: Functor[M], m: Monoid[A]): M[A] = 
-      apply[A]( (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => m.append(a1: A, a2: A, a3: A, a4: A, a5: A) )(fu)
+    def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], fu: Functor[M], reducer: Reducer[A, B], m: Monoid[B]): M[B] = 
+      apply[B]( (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A) )(fu)
 
     def tupled(implicit v:Variant[M]): M[(A1, A2, A3, A4, A5)] = 
       // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...

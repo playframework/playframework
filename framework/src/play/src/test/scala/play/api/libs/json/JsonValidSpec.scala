@@ -311,7 +311,7 @@ object JsonValidSpec extends Specification {
       )
 
       val jsonTransformer = (
-        (__ \ "key1").json.pick and
+        (__ \ "key1").json.put( (__ \ "key1").json.pick[JsValue] ) and
         /*(__ \ "key2").json.modify(
           (
             (__ \ "key21").json.pick and
@@ -491,11 +491,54 @@ object JsonValidSpec extends Specification {
       myFormat.writes(Test("blabla")) must beEqualTo(Json.obj("field" -> "blabla"))
     }
 
-    "append Reads[JsValue]" in {
-      val myReads = 
+    "reduce Reads[JsObject]" in {
+      import Reads._
+
+      val myReads: Reads[JsObject] = (
         (__ \ 'field1).json.obj[JsString] and
         (__ \ 'field2).json.obj[JsObject]
-        append
+      ) reduce
+
+      val js0 = Json.obj("field1" -> "alpha")
+      val js = js0 ++ Json.obj("field2" -> Json.obj("field21" -> 123, "field22" -> true))    
+      val js2 = js ++ Json.obj("field3" -> "beta")  
+      js.validate(myReads) must beEqualTo(JsSuccess(js))
+      js2.validate(myReads) must beEqualTo(JsSuccess(js))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path"))
+    }
+
+    "reduce Reads[JsArray]" in {
+      import Reads._
+
+      val myReads: Reads[JsArray] = (
+        (__ \ 'field1).json.pick[JsString] and
+        (__ \ 'field2).json.pick[JsNumber] and
+        (__ \ 'field3).json.pick[JsBoolean]
+      ).reduce[JsValue, JsArray]
+
+      val js0 = Json.obj("field1" -> "alpha")
+      val js = js0 ++ Json.obj("field2" -> 123L, "field3" -> false)    
+      val js2 = js ++ Json.obj("field4" -> false)  
+      js.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js2.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path") ++ JsError(__ \ 'field3, "validate.error.missing-path"))
+    }
+
+    "reduce Reads[JsArray] no type" in {
+      import Reads._
+
+      val myReads: Reads[JsArray] = (
+        (__ \ 'field1).json.pick and
+        (__ \ 'field2).json.pick and
+        (__ \ 'field3).json.pick
+      ) reduce
+
+      val js0 = Json.obj("field1" -> "alpha")
+      val js = js0 ++ Json.obj("field2" -> 123L, "field3" -> false)    
+      val js2 = js ++ Json.obj("field4" -> false)  
+      js.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js2.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path") ++ JsError(__ \ 'field3, "validate.error.missing-path"))
     }
 
     "serialize JsError to flat json" in {

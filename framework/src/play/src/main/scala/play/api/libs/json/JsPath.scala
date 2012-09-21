@@ -228,7 +228,8 @@ case class JsPath(path: List[PathNode] = List()) {
     => Json.obj("key1" -> "value1")
     }}}
      */
-    def pick: OWrites[JsValue] = Writes.pick(self)
+    def pick[A <: JsValue](implicit r: Reads[A]): Reads[A] = Reads.jspick(self)
+    def pick: Reads[JsValue] = Reads.jspick(self)
 
     /**
      * (__ \ 'field).put(myWrites) is a Writes[JsValue] that creates a new JsObject and writes at the given JsPath 
@@ -242,7 +243,14 @@ case class JsPath(path: List[PathNode] = List()) {
     => Json.obj("key" -> Json.obj("key1" -> "123", "key2" -> "value2", "key3" -> "value3") )
     }}}
      */
-    def put(w: Writes[JsValue]): OWrites[JsValue] = Writes.at(self)(w)
+    def put[A <: JsValue](w: Writes[A]): OWrites[A] = Writes.at(self)(w)
+
+    def put[A <: JsValue](r: Reads[A]): OWrites[A] = Writes.at(self)(Writes( (js: A) => 
+      r.reads(js).fold(
+        valid = a => a,
+        invalid = e => JsNull
+      )
+    ))
 
     /**
      * (__ \ 'field).put(JsString("toto")) creates a new JsObject containing JsString("toto") value 

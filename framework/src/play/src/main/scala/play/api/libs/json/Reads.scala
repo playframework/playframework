@@ -103,9 +103,17 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
     def identity = JsObject(Seq())
   }
 
+  implicit object JsObjectReducer extends Reducer[JsObject, JsObject] {
+    def unit(o: JsObject) = o
+  }
+
   implicit object JsArrayMonoid extends Monoid[JsArray] {
     def append(a1: JsArray, a2: JsArray) = a1 ++ a2
     def identity = JsArray()
+  }
+
+  implicit object JsArrayReducer extends Reducer[JsValue, JsArray] {
+    def unit(v: JsValue) = JsArray(Seq(v))
   }
 }
 
@@ -332,7 +340,7 @@ trait DefaultReads {
     def reads(json: JsValue) = JsSuccess(json)
   }
 
-  /*implicit object JsStringReads extends Reads[JsString] {
+  implicit object JsStringReads extends Reads[JsString] {
     def reads(json: JsValue) = json match {
       case s: JsString => JsSuccess(s)
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
@@ -351,7 +359,7 @@ trait DefaultReads {
       case b: JsBoolean => JsSuccess(b)
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsboolean"))))
     }
-  }*/
+  }
 
   implicit def OptionReads[T](implicit fmt: Reads[T]): Reads[Option[T]] = new Reads[Option[T]] {
     import scala.util.control.Exception._
