@@ -482,4 +482,27 @@ object JsonValidSpec extends Specification {
     }
   }
 
+  "JsResult" should {
+
+    "be usable in for-comprehensions" in {
+      val res = JsSuccess("foo")
+      val x = for {
+        s <- res
+        if s.size < 5
+      } yield 42
+      x must equalTo (JsSuccess(42))
+    }
+
+    "be a functor" in {
+      "JsSuccess" in {
+        val res1: JsResult[String] = JsSuccess("foo", JsPath(List(KeyPathNode("bar"))))
+        res1.map(identity) must equalTo (res1)
+      }
+
+      "JsError" in {
+        val res2: JsResult[String] = JsError(Seq(JsPath(List(KeyPathNode("bar"))) -> Seq(ValidationError("baz.bah"))))
+        res2.map(identity) must equalTo (res2)
+      }
+    }
+  }
 }
