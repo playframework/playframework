@@ -27,6 +27,8 @@ trait PathReads {
 
   def jsobj[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] =
     Reads[JsObject]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)).map( jsv => JsPath.createObj(path -> jsv) ) )
+
+  def jspick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
 }
 
 trait ConstraintReads {
