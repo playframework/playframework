@@ -41,15 +41,16 @@ object JsError {
   }
 }
 
-sealed trait JsResult[+A] {
+sealed trait JsResult[+A] { self =>
+
   def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: A => X): X = this match {
     case JsSuccess(v,_) => valid(v)
     case JsError(e) => invalid(e)
   }
 
   def map[X](f: A => X): JsResult[X] = this match {
-    case JsSuccess(v,_) => JsSuccess(f(v))
-    case JsError(e) => JsError(e)
+    case JsSuccess(v, path) => JsSuccess(f(v), path)
+    case e: JsError => e
   }
 
   def filterNot(error:ValidationError)(p: A => Boolean): JsResult[A] =
@@ -71,7 +72,34 @@ sealed trait JsResult[+A] {
 
   def flatMap[X](f: A => JsResult[X]): JsResult[X] = this match {
     case JsSuccess(v, path) => f(v).repath(path)
-    case JsError(e) => JsError(e)
+    case e: JsError => e
+  }
+
+  def foreach(f: A => Unit): Unit = this match {
+    case JsSuccess(a, _) => f(a)
+    case _ => ()
+  }
+
+  def withFilter(p: A => Boolean) = new WithFilter(p)
+
+  final class WithFilter(p: A => Boolean) {
+    def map[B](f: A => B): JsResult[B] = self match {
+      case JsSuccess(a, path) =>
+        if (p(a)) JsSuccess(f(a), path)
+        else JsError()
+      case e: JsError => e
+    }
+    def flatMap[B](f: A => JsResult[B]): JsResult[B] = self match {
+      case JsSuccess(a, path) =>
+        if (p(a)) f(a).repath(path)
+        else JsError()
+      case e: JsError => e
+    }
+    def foreach(f: A => Unit): Unit = self match {
+      case JsSuccess(a, _) if p(a) => f(a)
+      case _ => ()
+    }
+    def withFilter(q: A => Boolean) = new WithFilter(a => p(a) && q(a))
   }
 
   //def rebase(json: JsValue): JsResult[A] = fold(valid = JsSuccess(_), invalid = (_, e, g) => JsError(json, e, g))
@@ -80,7 +108,7 @@ sealed trait JsResult[+A] {
     case JsError(es) => JsError(es.map{ case (p, s) => path ++ p -> s })
   }
 
-  def get:A
+  def get: A
 
   def getOrElse[AA >: A](t: => AA):AA = this match {
     case JsSuccess(a,_) => a 
