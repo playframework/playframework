@@ -5,8 +5,6 @@ import play.api.{Play, Application}
 
 object SpecsSpec extends Specification {
 
-  sequential
-
   def fakeApp[A](elems: (String, String)*) = FakeApplication(additionalConfiguration = Map(elems:_*))
   def getConfig(key: String)(implicit app: Application) = app.configuration.getString(key)
 
