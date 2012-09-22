@@ -12,7 +12,7 @@ import org.specs2.execute.Result
  */
 abstract class WithApplication(val app: FakeApplication = FakeApplication()) extends Around with Scope {
   implicit val implicitApp = app
-  def around[T](t: => T)(implicit evidence$1: (T) => Result) = Helpers.running(app)(t)
+  def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(app)(t)
 }
 
 /**
@@ -21,9 +21,10 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  * @param app The fake application
  * @param port The port to run the server on
  */
-abstract class WithServer(implicit val app: FakeApplication = FakeApplication(),
+abstract class WithServer(val app: FakeApplication = FakeApplication(),
                           val port: Int = Helpers.testServerPort) extends Around with Scope {
-  def around[T](t: => T)(implicit evidence$1: (T) => Result) = Helpers.running(TestServer(port, app))(t)
+  implicit val implicitApp = app
+  def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app))(t)
 }
 
 /**
@@ -37,8 +38,9 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
         val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
         implicit val app: FakeApplication = FakeApplication(),
         val port: Int = Helpers.testServerPort) extends Around with Scope {
+  implicit val implicitApp = app
   val browser: TestBrowser = TestBrowser.of(webDriver)
-  def around[T](t: => T)(implicit evidence$1: (T) => Result) = {
+  def around[T](t: => T)(implicit evidence: (T) => Result) = {
     try {
       Helpers.running(TestServer(port, app))(t)
     } finally {
