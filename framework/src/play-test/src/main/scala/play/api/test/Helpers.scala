@@ -81,6 +81,12 @@ object Helpers extends Status with HeaderNames {
   }
 
   /**
+   * The port to use for a test server. Defaults to 19001. May be configured using the system property
+   * testserver.port
+   */
+  lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
+
+  /**
    * Apply pending evolutions for the given DB.
    */
   def evolutionFor(dbName: String, path: java.io.File = new java.io.File(".")) {
