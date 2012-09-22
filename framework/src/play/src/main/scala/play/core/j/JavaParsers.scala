@@ -44,8 +44,8 @@ object JavaParsers extends BodyParsers {
     }
 
     override lazy val asJson = {
-      import org.codehaus.jackson._
-      import org.codehaus.jackson.map._
+      import com.fasterxml.jackson._
+      import com.fasterxml.jackson.databind._
 
       json.map { json =>
         new ObjectMapper().readValue(json.toString, classOf[JsonNode])

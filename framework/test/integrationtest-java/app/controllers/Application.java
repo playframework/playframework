@@ -1,7 +1,7 @@
 package controllers;
 
 import java.util.concurrent.Callable;
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import play.*;
 import play.libs.Akka;
 import play.libs.F.Function;
