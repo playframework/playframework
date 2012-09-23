@@ -154,13 +154,16 @@ object ResultSetParser {
   }
 
   def list[A](p: RowParser[A]): ResultSetParser[List[A]] = {
-
+    // Performance note: sequence produces a List in reverse order, since appending to a
+    // List is an O(n) operation, and this is done n times, yielding O(n2) just to convert the
+    // result set to a List.  Prepending is O(1), so we use prepend, and then reverse the result
+    // in the map function below.
     @scala.annotation.tailrec
     def sequence(results: SqlResult[List[A]], rows: Stream[Row]): SqlResult[List[A]] = {
 
       (results, rows) match {
 
-        case (Success(rs), row #:: tail) => sequence(p(row).map(rs :+ _), tail)
+        case (Success(rs), row #:: tail) => sequence(p(row).map(_ +: rs), tail)
 
         case (r, _) => r
 
@@ -168,7 +171,7 @@ object ResultSetParser {
 
     }
 
-    ResultSetParser { rows => sequence(Success(List()), rows) }
+    ResultSetParser { rows => sequence(Success(List()), rows).map(_.reverse) }
   }
 
   def nonEmptyList[A](p: RowParser[A]): ResultSetParser[List[A]] = ResultSetParser(rows => if (rows.isEmpty) Error(SqlMappingError("Empty Result Set")) else list(p)(rows))
