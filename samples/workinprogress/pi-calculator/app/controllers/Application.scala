@@ -13,6 +13,8 @@ import play.api.libs.concurrent._
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.defaultContext
 
+import akka.dispatch.sip14Adapters._
+
 object Application extends Controller {
   
   val system = ActorSystem("pi")
@@ -25,7 +27,7 @@ object Application extends Controller {
   def compute(start: Int, elements: Int) = Action {
     AsyncResult {
       implicit val timeout= Timeout(5.seconds)
-      (actor ? Work(start, elements) ).mapTo[Double].asPromise.map { result =>
+      (actor ? Work(start, elements) ).mapTo[Double].map { result =>
         Ok(views.html.computingResult(start, elements, result))
       }
     }

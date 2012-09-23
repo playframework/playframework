@@ -1,7 +1,7 @@
 package play.libs;
 
 import akka.actor.*;
-import akka.dispatch.Future;
+import scala.concurrent.Future;
 
 import play.api.*;
 import play.libs.F.*;
@@ -15,9 +15,7 @@ public class Akka {
      * Transform this Akka future to a Play Promise.
      */
     public static <A> Promise<A> asPromise(Future<A> akkaFuture) {
-        return new Promise<A>(
-                new play.api.libs.concurrent.AkkaPromise<A>(akkaFuture)
-                );
+        return new Promise<A>(akkaFuture);
     }
 
     /**
@@ -31,7 +29,7 @@ public class Akka {
      * Executes a block of code asynchronously in the application Akka Actor system.
      */
     public static <T> Promise<T> future(java.util.concurrent.Callable<T> callable) {
-        return asPromise(akka.dispatch.Futures.future(callable, system().dispatcher()));
+        return play.core.j.JavaPromise.akkaFuture(callable);
     }
 
     /**

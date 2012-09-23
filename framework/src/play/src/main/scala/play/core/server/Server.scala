@@ -11,9 +11,8 @@ import play.api.libs.concurrent._
 import akka.actor._
 import akka.actor.Actor._
 import akka.routing._
-import akka.config._
 import akka.pattern.Patterns.ask
-import akka.util.duration._
+import scala.concurrent.util.duration._
 import akka.util.Timeout
 
 import play.api.libs.concurrent.execution.defaultContext

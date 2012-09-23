@@ -1,5 +1,6 @@
 package play.api.libs.iteratee
 
+import scala.concurrent.Future
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.defaultContext
 
@@ -9,17 +10,17 @@ import play.api.libs.concurrent.execution.defaultContext
 object Iteratee {
 
   /**
-   * flatten a [[play.api.libs.concurrent.Promise]] of [[play.api.libs.iteratee.Iteratee]]] into an Iteratee
+   * flatten a [[scala.concurrent.Future]] of [[play.api.libs.iteratee.Iteratee]]] into an Iteratee
    *
    * @param i a promise of iteratee
    */
-  def flatten[E, A](i: Promise[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
+  def flatten[E, A](i: Future[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Promise[B]): Promise[B] = i.flatMap(_.fold(folder))
+    def fold[B](folder: Step[E, A] => Future[B]): Future[B] = i.flatMap(_.fold(folder))
 
   }
 
-  def isDoneOrError[E, A](it: Iteratee[E, A]): Promise[Boolean] = it.pureFold { case Step.Cont(_) => false; case _ => true }
+  def isDoneOrError[E, A](it: Iteratee[E, A]): Future[Boolean] = it.pureFold { case Step.Cont(_) => false; case _ => true }
 
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
@@ -46,13 +47,13 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
+   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new promise of state
    */
-  def fold1[E, A](state: A)(f: (A, E) => Promise[A]): Iteratee[E, A] = {
+  def fold1[E, A](state: A)(f: (A, E) => Future[A]): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
       case Input.EOF => Done(s, Input.EOF)
@@ -65,13 +66,13 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
+   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new promise of state
    */
-  def foldM[E, A](state: A)(f: (A, E) => Promise[A]): Iteratee[E, A] = {
+  def foldM[E, A](state: A)(f: (A, E) => Future[A]): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
       case Input.EOF => Done(s, Input.EOF)
@@ -81,7 +82,7 @@ object Iteratee {
     (Cont[E, A](i => step(state)(i)))
   }
 
-  def fold2[E, A](state: A)(f: (A, E) => Promise[(A, Boolean)]): Iteratee[E, A] = {
+  def fold2[E, A](state: A)(f: (A, E) => Future[(A, Boolean)]): Iteratee[E, A] = {
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
       case Input.EOF => Done(s, Input.EOF)
@@ -94,13 +95,13 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[play.api.libs.concurrent.Promise]] so that promises are combined in a complete reactive flow of logic.
+   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new promise of state
    */
-  def fold1[E, A](state: Promise[A])(f: (A, E) => Promise[A]): Iteratee[E, A] = {
+  def fold1[E, A](state: Future[A])(f: (A, E) => Future[A]): Iteratee[E, A] = {
     flatten(state.map(s => fold1(s)(f)))
   }
 
@@ -284,9 +285,9 @@ trait Iteratee[E, +A] {
    * be used to complete the returned Promise; this indeterminate behavior
    * is inherited from fold().
    *
-   *  @return a [[play.api.libs.concurrent.Promise]] of the eventually computed result
+   *  @return a [[scala.concurrent.Future]] of the eventually computed result
    */
-  def run[AA >: A]: Promise[AA] = fold({
+  def run[AA >: A]: Future[AA] = fold({
     case Step.Done(a, _) => Promise.pure(a)
     case Step.Cont(k) => k(Input.EOF).fold({
       case Step.Done(a1, _) => Promise.pure(a1)
@@ -303,14 +304,14 @@ trait Iteratee[E, +A] {
    * the input).
    * @param in input being sent
    */
-  def feed[AA >: A](in: Input[E]): Promise[Iteratee[E, AA]] = {
+  def feed[AA >: A](in: Input[E]): Future[Iteratee[E, AA]] = {
     Enumerator.enumInput(in) |>> this
   }
 
   /**
    * Converts the Iteratee into a Promise containing its state.
    */
-  def unflatten: Promise[Step[E, A]] = pureFold(identity)
+  def unflatten: Future[Step[E, A]] = pureFold(identity)
 
   /**
    *
@@ -318,11 +319,11 @@ trait Iteratee[E, +A] {
    * @param done a function that will be called if the Iteratee is a Done
    * @param cont a function that will be called if the Iteratee is a Cont
    * @param error a function that will be called if the Iteratee is an Error
-   * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
+   * @return a [[scala.concurrent.Future]] of a value extracted by calling the appropriate provided function
    */
-  def fold1[B](done: (A, Input[E]) => Promise[B],
-    cont: (Input[E] => Iteratee[E, A]) => Promise[B],
-    error: (String, Input[E]) => Promise[B]): Promise[B] = fold({
+  def fold1[B](done: (A, Input[E]) => Future[B],
+    cont: (Input[E] => Iteratee[E, A]) => Future[B],
+    error: (String, Input[E]) => Future[B]): Future[B] = fold({
     case Step.Done(a, e) => done(a, e)
     case Step.Cont(k) => cont(k)
     case Step.Error(msg, e) => error(msg, e)
@@ -338,14 +339,14 @@ trait Iteratee[E, +A] {
    * If the folder function itself is synchronous, it's better to
    * use `pureFold()` instead of `fold()`.
    */
-  def fold[B](folder: Step[E, A] => Promise[B]): Promise[B]
+  def fold[B](folder: Step[E, A] => Future[B]): Future[B]
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
    *
-   * @return a [[play.api.libs.concurrent.Promise]] of a value extracted by calling the appropriate provided function
+   * @return a [[scala.concurrent.Future]] of a value extracted by calling the appropriate provided function
    */
-  def pureFold[B](folder: Step[E, A] => B): Promise[B] = fold(s => Promise.pure(folder(s)))
+  def pureFold[B](folder: Step[E, A] => B): Future[B] = fold(s => Promise.pure(folder(s)))
 
   /**
    * Like pureFold, except taking functions that return an Iteratee
@@ -354,9 +355,9 @@ trait Iteratee[E, +A] {
    */
   def pureFlatFold[B, C](folder: Step[E, A] => Iteratee[B, C]): Iteratee[B, C] = Iteratee.flatten(pureFold(folder))
 
-  def flatFold[B, C](done: (A, Input[E]) => Promise[Iteratee[B, C]],
-    cont: (Input[E] => Iteratee[E, A]) => Promise[Iteratee[B, C]],
-    error: (String, Input[E]) => Promise[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error))
+  def flatFold[B, C](done: (A, Input[E]) => Future[Iteratee[B, C]],
+    cont: (Input[E] => Iteratee[E, A]) => Future[Iteratee[B, C]],
+    error: (String, Input[E]) => Future[Iteratee[B, C]]): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error))
 
   def mapDone[B](f: A => B): Iteratee[E, B] =
     this.pureFlatFold {
@@ -454,7 +455,7 @@ object Done {
    */
   def apply[E, A](a: A, e: Input[E] = Input.Empty): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Promise[B]): Promise[B] = folder(Step.Done(a, e))
+    def fold[B](folder: Step[E, A] => Future[B]): Future[B] = folder(Step.Done(a, e))
 
   }
 
@@ -467,7 +468,7 @@ object Cont {
    */
   def apply[E, A](k: Input[E] => Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Promise[B]): Promise[B] = folder(Step.Cont(k))
+    def fold[B](folder: Step[E, A] => Future[B]): Future[B] = folder(Step.Cont(k))
 
   }
 }
@@ -479,7 +480,7 @@ object Error {
    */
   def apply[E](msg: String, e: Input[E]): Iteratee[E, Nothing] = new Iteratee[E, Nothing] {
 
-    def fold[B](folder: Step[E, Nothing] => Promise[B]): Promise[B] = folder(Step.Error(msg, e))
+    def fold[B](folder: Step[E, Nothing] => Future[B]): Future[B] = folder(Step.Error(msg, e))
 
   }
 }

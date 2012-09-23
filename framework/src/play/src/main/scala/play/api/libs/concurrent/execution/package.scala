@@ -1,7 +1,9 @@
-package play.api.libs.concurrent.execution
+package play.api.libs.concurrent.execution {
 
-object `package` {
+  object `package` {
 
-  implicit val defaultContext: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global //FIXME use a proper ThreadPool for Play from Conf
+    implicit lazy val defaultContext: scala.concurrent.ExecutionContext =
+      scala.concurrent.ExecutionContext.Implicits.global: scala.concurrent.ExecutionContext //FIXME use a proper ThreadPool for Play from Conf
 
+  }
 }

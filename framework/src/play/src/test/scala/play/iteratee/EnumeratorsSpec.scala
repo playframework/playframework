@@ -4,7 +4,7 @@ import org.specs2.mutable._
 
 import play.api.libs.concurrent._
 
-import play.api.libs.concurrent.execution.defaultContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object EnumeratorsSpec extends Specification {
 

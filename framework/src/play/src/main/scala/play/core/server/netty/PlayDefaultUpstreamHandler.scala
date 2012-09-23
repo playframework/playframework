@@ -357,7 +357,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               Enumerator(body).andThen(Enumerator.enumInput(EOF))
             }
 
-            eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): Promise[Iteratee[Array[Byte], Result]]
+            eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): scala.concurrent.Future[Iteratee[Array[Byte], Result]]
 
           }
 

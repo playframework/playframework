@@ -8,7 +8,6 @@
 
 package scala.concurrent
 
-
 import java.util.concurrent.{ ConcurrentLinkedQueue, TimeUnit, Callable }
 import java.util.concurrent.TimeUnit.{ NANOSECONDS => NANOS, MILLISECONDS ⇒ MILLIS }
 import java.lang.{ Iterable => JIterable }
@@ -115,7 +114,7 @@ trait Future[+T] extends Awaitable[T] {
    *  $callbackInContext
    */
   def onSuccess[U](pf: PartialFunction[T, U])(implicit executor: ExecutionContext): Unit = onComplete {
-    case Right(v) if pf isDefinedAt v => pf(v)
+    case Success(v) if pf isDefinedAt v => pf(v)
     case _ =>
   }(executor)
 
@@ -133,7 +132,7 @@ trait Future[+T] extends Awaitable[T] {
    *  $callbackInContext
    */
   def onFailure[U](callback: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Unit = onComplete {
-    case Left(t) if NonFatal(t) && callback.isDefinedAt(t) => callback(t)
+    case Failure(t) if NonFatal(t) && callback.isDefinedAt(t) => callback(t)
     case _ =>
   }(executor)
 
@@ -146,7 +145,7 @@ trait Future[+T] extends Awaitable[T] {
    *  $multipleCallbacks
    *  $callbackInContext
    */
-  def onComplete[U](func: Either[Throwable, T] => U)(implicit executor: ExecutionContext): Unit
+  def onComplete[U](func: Try[T] => U)(implicit executor: ExecutionContext): Unit
 
 
   /* Miscellaneous */
@@ -167,7 +166,7 @@ trait Future[+T] extends Awaitable[T] {
    *  if it contains a valid result, or `Some(Failure(error))` if it contains
    *  an exception.
    */
-  def value: Option[Either[Throwable, T]]
+  def value: Option[Try[T]]
 
 
   /* Projections */
@@ -188,8 +187,8 @@ trait Future[+T] extends Awaitable[T] {
     val p = Promise[Throwable]()
 
     onComplete {
-      case Left(t) => p success t
-      case Right(v) => p failure (new NoSuchElementException("Future.failed not completed with a throwable."))
+      case Failure(t) => p success t
+      case Success(v) => p failure (new NoSuchElementException("Future.failed not completed with a throwable."))
     }
 
     p.future
@@ -203,7 +202,7 @@ trait Future[+T] extends Awaitable[T] {
    *  Will not be called if the future fails.
    */
   def foreach[U](f: T => U)(implicit executor: ExecutionContext): Unit = onComplete {
-    case Right(r) => f(r)
+    case Success(r) => f(r)
     case _  => // do nothing
   }(executor)
 
@@ -225,8 +224,8 @@ trait Future[+T] extends Awaitable[T] {
       case result =>
         try {
           result match {
-            case Left(t)  => p failure f(t)
-            case Right(r) => p success s(r)
+            case Failure(t)  => p failure f(t)
+            case Success(r) => p success s(r)
           }
         } catch {
           case NonFatal(t) => p failure t
@@ -249,8 +248,8 @@ trait Future[+T] extends Awaitable[T] {
       case result =>
         try {
           result match {
-            case Right(r) => p success f(r)
-            case l: Left[_, _] => p complete l.asInstanceOf[Left[Throwable, S]]
+            case Success(r) => p success f(r)
+            case f: Failure[_] => p complete f.asInstanceOf[Failure[S]]
           }
         } catch {
           case NonFatal(t) => p failure t
@@ -271,12 +270,12 @@ trait Future[+T] extends Awaitable[T] {
     val p = Promise[S]()
 
     onComplete {
-      case l: Left[_, _] => p complete l.asInstanceOf[Left[Throwable, S]]
-      case Right(v) =>
+      case f: Failure[_] => p complete f.asInstanceOf[Failure[S]]
+      case Success(v) =>
         try {
           f(v).onComplete({
-            case l: Left[_, _] => p complete l.asInstanceOf[Left[Throwable, S]]
-            case Right(v) => p success v
+            case f: Failure[_] => p complete f.asInstanceOf[Failure[S]]
+            case Success(v) => p success v
           })(internalExecutor)
         } catch {
           case NonFatal(t) => p failure t
@@ -306,11 +305,11 @@ trait Future[+T] extends Awaitable[T] {
     val p = Promise[T]()
 
     onComplete {
-      case l: Left[_, _] => p complete l.asInstanceOf[Left[Throwable, T]]
-      case Right(v) =>
+      case f: Failure[_] => p complete f.asInstanceOf[Failure[T]]
+      case Success(v) =>
         try {
           if (pred(v)) p success v
-          else p failure new NoSuchElementException("Future.filter predicate is not satisfied by: " + v)
+          else p failure new NoSuchElementException("Future.filter predicate is not satisfied")
         } catch {
           case NonFatal(t) => p failure t
         }
@@ -355,8 +354,8 @@ trait Future[+T] extends Awaitable[T] {
     val p = Promise[S]()
 
     onComplete {
-      case l: Left[_, _] => p complete l.asInstanceOf[Left[Throwable, S]]
-      case Right(v) =>
+      case f: Failure[_] => p complete f.asInstanceOf[Failure[S]]
+      case Success(v) =>
         try {
           if (pf.isDefinedAt(v)) p success pf(v)
           else p failure new NoSuchElementException("Future.collect partial function is not defined at: " + v)
@@ -375,22 +374,15 @@ trait Future[+T] extends Awaitable[T] {
    *  Example:
    *
    *  {{{
-   *  future (6 / 0) recover { case e: ArithmeticException ⇒ 0 } // result: 0
-   *  future (6 / 0) recover { case e: NotFoundException   ⇒ 0 } // result: exception
-   *  future (6 / 2) recover { case e: ArithmeticException ⇒ 0 } // result: 3
+   *  future (6 / 0) recover { case e: ArithmeticException => 0 } // result: 0
+   *  future (6 / 0) recover { case e: NotFoundException   => 0 } // result: exception
+   *  future (6 / 2) recover { case e: ArithmeticException => 0 } // result: 3
    *  }}}
    */
   def recover[U >: T](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Future[U] = {
     val p = Promise[U]()
 
-    onComplete {
-      case Left(t) if pf isDefinedAt t =>
-        try { p success pf(t) }
-        catch {
-          case NonFatal(t) => p failure t
-        }
-      case otherwise => p complete otherwise
-    }(executor)
+    onComplete { case tr => p.complete(tr recover pf) }(executor)
 
     p.future
   }
@@ -412,7 +404,7 @@ trait Future[+T] extends Awaitable[T] {
     val p = Promise[U]()
 
     onComplete {
-      case Left(t) if pf isDefinedAt t =>
+      case Failure(t) if pf isDefinedAt t =>
         try {
           p completeWith pf(t)
         } catch {
@@ -436,8 +428,8 @@ trait Future[+T] extends Awaitable[T] {
     val p = Promise[(T, U)]()
     
     this onComplete {
-      case l: Left[_, _] => p complete l.asInstanceOf[Left[Throwable, (T, U)]]
-      case Right(r) =>
+      case f: Failure[_] => p complete f.asInstanceOf[Failure[(T, U)]]
+      case Success(r) =>
         that onSuccess {
           case r2 => p success ((r, r2))
         }
@@ -466,8 +458,8 @@ trait Future[+T] extends Awaitable[T] {
   def fallbackTo[U >: T](that: Future[U]): Future[U] = {
     val p = Promise[U]()
     onComplete {
-      case r @ Right(_) ⇒ p complete r
-      case _            ⇒ p completeWith that
+      case s @ Success(_) => p complete s
+      case _ => p completeWith that
     }
     p.future
   }
@@ -495,7 +487,7 @@ trait Future[+T] extends Awaitable[T] {
    *  }
    *  }}}
    */
-  def andThen[U](pf: PartialFunction[Either[Throwable, T], U])(implicit executor: ExecutionContext): Future[T] = {
+  def andThen[U](pf: PartialFunction[Try[T], U])(implicit executor: ExecutionContext): Future[T] = {
     val p = Promise[T]()
 
     onComplete {
@@ -520,7 +512,7 @@ trait Future[+T] extends Awaitable[T] {
    */
   def either[U >: T](that: Future[U]): Future[U] = {
     val p = Promise[U]()
-    val completePromise: PartialFunction[Either[Throwable, U], _] = { case result => p tryComplete result }
+    val completePromise: PartialFunction[Try[U], _] = { case result => p tryComplete result }
 
     this onComplete completePromise
     that onComplete completePromise
@@ -590,7 +582,7 @@ object Future {
   def firstCompletedOf[T](futures: TraversableOnce[Future[T]])(implicit executor: ExecutionContext): Future[T] = {
     val p = Promise[T]()
 
-    val completeFirst: Either[Throwable, T] => Unit = p tryComplete _
+    val completeFirst: Try[T] => Unit = p tryComplete _
     futures.foreach(_ onComplete completeFirst)
 
     p.future
@@ -604,14 +596,14 @@ object Future {
     else {
       val result = Promise[Option[T]]()
       val ref = new AtomicInteger(futures.size)
-      val search: Either[Throwable, T] => Unit = v => try {
+      val search: Try[T] => Unit = v => try {
         v match {
-          case Right(r) => if (predicate(r)) result tryComplete Right(Some(r))
-          case _        =>
+          case Success(r) => if (predicate(r)) result tryComplete Success(Some(r))
+          case _ =>
         }
       } finally {
         if (ref.decrementAndGet == 0) {
-          result tryComplete Right(None)
+          result tryComplete Success(None)
         }
       }
 
@@ -656,7 +648,7 @@ object Future {
    *    val myFutureList = Future.traverse(myList)(x => Future(myFunc(x)))
    *  }}}
    */
-  def traverse[A, B, M[_] <: TraversableOnce[_]](in: M[A])(fn: A => Future[B])(implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Future[M[B]] =
+  def traverse[A, B, M[_] <: Traversable[_]](in: M[A])(fn: A => Future[B])(implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Future[M[B]] =
     in.foldLeft(Promise.successful(cbf(in)).future) { (fr, a) =>
       val fb = fn(a.asInstanceOf[A])
       for (r <- fr; b <- fb) yield (r += b)
