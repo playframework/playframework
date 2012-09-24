@@ -33,6 +33,7 @@ import com.ning.http.client.AsyncHttpClientConfig
 object WS {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
+  import javax.net.ssl.SSLContext
 
   /**
    * The underlying HTTP client.
@@ -45,6 +46,9 @@ object WS {
       .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
     current.configuration.getString("ws.useragent").map { useragent =>
       config.setUserAgent(useragent)
+    }
+    if (current.configuration.getBoolean("ws.acceptAnyCertificate").getOrElse(false) == false) {
+      config.setSSLContext(SSLContext.getDefault)
     }
     new AsyncHttpClient(config.build())
   }
