@@ -216,61 +216,159 @@ case class JsPath(path: List[PathNode] = List()) {
 
   object json {
     /**
-     * (__ \ 'key).pick is a Writes[JsValue] that:
-     * - picks the given JsValue at the given JsPath from the input JS 
-     * - creates an new JsObject with only this JsPath and JsValue
-     * It's useful to create new JsValue keeping only specific parts of input JsValue
+     * (__ \ 'key).json.pick[A <: JsValue] is a Reads[A] that:
+     * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
+     * - validates this element as an object of type A (inheriting JsValue)
+     * - returns a JsResult[A]
+     * Useful to pick a typed JsValue at a given JsPath
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> 123) 
+    js.validate( (__ \ 'key2).json.pick[JsNumber] ) 
+    => JsSuccess(JsNumber(123))
+    }}}
+     */
+    def pick[A <: JsValue](implicit r: Reads[A]): Reads[A] = Reads.jsPick(self)
+
+    /**
+     * (__ \ 'key).json.pick is a Reads[JsValue] that:
+     * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
+     * - validates this element as an object of type JsValue
+     * - returns a JsResult[JsValue]
+     * Useful to pick a JsValue at a given JsPath
      *
      * Example :
     {{{
     val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.transform( (__ \ 'key1).json.pick ) 
-    => Json.obj("key1" -> "value1")
+    js.validate( (__ \ 'key2).json.pick ) 
+    => JsSuccess(JsString("value2"))
     }}}
      */
-    def pick[A <: JsValue](implicit r: Reads[A]): Reads[A] = Reads.jspick(self)
-    def pick: Reads[JsValue] = Reads.jspick(self)
+    def pick: Reads[JsValue] = pick[JsValue]
 
     /**
-     * (__ \ 'field).put(myWrites) is a Writes[JsValue] that creates a new JsObject and writes at the given JsPath 
-     * the result of the given Writes[JsValue] applied on the input JsValue.
-     * It's useful to create a new JsValue modifying the whole input JsValue
+     * (__ \ 'key).json.copy[A <: JsValue](readsOfA) is a Reads[JsObject] that:
+     * - copies the given JsPath plus relative JsValue from the input JS at this given JsPath
+     * - validates this relative JsValue as an object of type A (inheriting JsValue) potentially modifying it
+     * - creates a JsObject from JsPath and validated JsValue
+     * - returns a JsResult[JsObject]
+     * Useful to create/validate an JsObject from a single JsPath (potentially modifying it)
      *
      * Example :
     {{{
-    val js = Json.obj("key1" -> "123", "key2" -> "value2") 
-    js.transform( (__ \ 'key).json.put( Writes[JsValue]( js => js.as[JsObject] ++ Json.obj("key3" -> "value3") ) ) ) 
-    => Json.obj("key" -> Json.obj("key1" -> "123", "key2" -> "value2", "key3" -> "value3") )
+    val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
+    js.validate( (__ \ 'key2).json.copy[JsString]( (__ \ 'key21').json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
+    => JsSuccess(JsObject(Seq( ("key2", JsString(value23456")) )))
     }}}
      */
-    def put[A <: JsValue](w: Writes[A]): OWrites[A] = Writes.at(self)(w)
+    def copy[A <: JsValue](implicit r: Reads[A]): Reads[JsObject] = Reads.jsCopy(self)(r)
 
-    def put[A <: JsValue](r: Reads[A]): OWrites[A] = Writes.at(self)(Writes( (js: A) => 
+    /**
+     * (__ \ 'key).put( reads ) is a Reads[JsObject] that:
+     * - validates/converts input Js with Reads[A]
+     * - creates a JsObject putting the result of previous validation at given JsPath
+     * - returns a JsResult[JsObject]
+     * Useful to create a new JsObject containing the given part (potentially modified) extracted from input JS
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+    js.validate( (__ \ 'key3).put( (__ \ 'key1).json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "2345") ) ) 
+    => JsSuccess(JsObject(Seq( ("key3", JsString("value12345")) )))
+    }}}
+     */
+    def put[A <: JsValue](r: Reads[A]): Reads[JsObject] = Reads.jsPut(self)(r)
+
+    /*Writes.at(self)(Writes( (js: A) => 
       r.reads(js).fold(
         valid = a => a,
         invalid = e => JsNull
       )
-    ))
+    ))*/
 
     /**
-     * (__ \ 'field).put(JsString("toto")) creates a new JsObject containing JsString("toto") value 
-     * at the given JsPath.
-     * Actually this Writes[JsValue] doesn't care about the input JsValue and is mainly used
-     * to create output JsValue from scratch
+     * (__ \ 'key).put(fixedValue) is a Reads[JsObject] that:
+     * - creates a JsObject setting A (inheriting JsValue) at given JsPath
+     * - returns a JsResult[JsObject]
+     * This Reads doesn't care about the input JS and is mainly used to set a fixed at a given JsPath
+     * Please that A is passed by name allowing to use an expression reevaluated at each time.
      *
      * Example :
     {{{
     val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.transform( (__ \ 'key1).json.put(JsString("toto")) ) 
-    => Json.obj("key1" -> "toto")
+    js.validate( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) ) 
+    => JsSuccess(JsObject(Seq( ("key3", JsNumber(123364687568756)) )))
     }}}
      */
-    def put(js: JsValue): OWrites[JsValue] = self.write(js)(Writes( js => js ))
+    def put[A <: JsValue](a: => A): Reads[JsObject] = Reads.jsPure(self, a)
 
-
-    def obj[A <: JsValue](implicit r: Reads[A]): Reads[JsObject] = Reads.jsobj(self)(r)
   }
   
+  object jsonw {
+    /**
+     * (__ \ 'key).pick[A <: JsValue] is a Writes[JsValue] that:
+     * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
+     * - returns a JsValue
+     * Useful to pick a JsValue at a given JsPath
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> 123) 
+    js.transform( (__ \ 'key2).jsonw.pick ) 
+    => JsSuccess(JsNumber(123))
+    }}}
+     */
+    def pick: Writes[JsValue] = Writes.jsPick(self)
 
+    /**
+     * (__ \ 'key).json.copy[A <: JsValue](writesOfJsValue) is a OWrites[JsValue] that:
+     * - copies the given JsPath plus relative JsValue from the input JS at this given JsPath
+     * - applies the given Writes[A] to this relative JsValue potentially modifying it
+     * - creates a JsObject from JsPath and generated JsValue
+     * - returns a JsObject
+     * Useful to create an JsObject from a single JsPath (potentially modifying it)
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
+    js.transform( (__ \ 'key2).jsonw.copy( (__ \ 'key21').jsonw.pick.transform( (js: JsString) => JsString(js.value ++ "3456") ) ) )
+    => JsObject(Seq( ("key2", JsString(value23456")) ))
+    }}}
+     */
+    def copy(implicit w: Writes[JsValue]): OWrites[JsValue] = Writes.jsCopy(self)(w)
+
+    /**
+     * (__ \ 'key).put( writesOfA ) is a OWrites[A] that:
+     * - converts input Js with given Writes[A]
+     * - creates a JsObject putting the result of previous operation at given JsPath
+     * - returns a JsObject
+     * Useful to create a new JsObject containing the given part (potentially modified) extracted from input JS
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+    js.transform( (__ \ 'key3).put( (__ \ 'key1).jsonw.pick[JsString].transform( js => JsString(js.as[JsString].value ++ "2345") ) ) ) 
+    => JsObject(Seq( ("key3", JsString("value12345")) ))
+    }}}
+     */
+    def put[A <: JsValue](w: Writes[A]): OWrites[A] = Writes.at(self)(w)
+
+    /**
+     * (__ \ 'key).put(fixedValue) is a OWrites[JsValue] that:
+     * - creates a JsObject setting A (inheriting JsValue) at given JsPath
+     * - returns a JsObject
+     * This Writes doesn't care about the input JS and is mainly used to set a fixed at a given JsPath
+     * Please that A is passed by name allowing to use an expression reevaluated at each time.
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+    js.transform( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) ) 
+    => JsObject(Seq( ("key3", JsNumber(123364687568756)) ))
+    }}}
+     */
+    def put[A <: JsValue](a: => A)(implicit w: Writes[A]): OWrites[JsValue] = Writes.pure(self, a)
+  }
 
 }

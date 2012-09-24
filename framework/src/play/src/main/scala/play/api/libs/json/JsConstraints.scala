@@ -25,13 +25,21 @@ trait PathReads {
   def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).repath(path).map(Some(_))))
 
-  def jsobj[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] =
+  def jsPick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
+
+  def jsCopy[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] =
     Reads[JsObject]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)).map( jsv => JsPath.createObj(path -> jsv) ) )
 
-  def jspick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
+  def jsPut[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] = 
+    Reads[JsObject]( json => reads.reads(json).map( a => JsPath.createObj(path -> a) ) )
+
+  def jsPure[A <: JsValue](path: JsPath, a: => A) = Reads[JsObject]( json => JsSuccess(JsPath.createObj(path -> a)) )
+
 }
 
 trait ConstraintReads {
+  def of[A](implicit r: Reads[A]) = r
+
   def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
     Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
@@ -80,9 +88,7 @@ trait ConstraintReads {
       }.getOrElse(JsSuccess(t))
     } }
 
-  def pure[A](a: A) = new Reads[A] {
-    def reads(json: JsValue) = JsSuccess(a)
-  }
+  def pure[A](a: => A) = Reads[A] { js => JsSuccess(a) }
 }
 
 trait PathWrites {
@@ -92,13 +98,16 @@ trait PathWrites {
   def optional[A](path: JsPath)(implicit _writes:Writes[Option[A]]): OWrites[Option[A]] =
     at[Option[A]](path)
 
-  def pick(path: JsPath): OWrites[JsValue] =
-    OWrites[JsValue]{ obj => JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)) }
+  def jsPick(path: JsPath): Writes[JsValue] =
+    Writes[JsValue]{ obj => path(obj).headOption.getOrElse(JsNull) }
 
-  def pure[A](path: JsPath, fixed: A)(implicit _writes:Writes[A]) =
-    OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(fixed)) }    
+  def jsCopy(path: JsPath)(_writes: Writes[JsValue]): OWrites[JsValue] =
+    OWrites[JsValue]{ obj => JsPath.createObj(path -> _writes.writes(path(obj).headOption.getOrElse(JsNull))) }
 
-  def modifyJson(path: JsPath)(_writes: Writes[JsValue]): OWrites[JsValue] =
+  def pure[A](path: JsPath, fixed: => A)(implicit _writes:Writes[A]): OWrites[JsValue] =
+    OWrites[JsValue]{ js => JsPath.createObj(path -> _writes.writes(fixed)) }    
+
+  /*def modifyJson(path: JsPath)(_writes: Writes[JsValue]): OWrites[JsValue] =
     OWrites[JsValue]{ obj => obj match {
       // if JsObject, try to aggregate
       case theObj @ JsObject(_) => theObj.deepMerge(JsPath.createObj(path -> path(obj).headOption.map( _writes.writes ).getOrElse(JsNull)))
@@ -107,11 +116,13 @@ trait PathWrites {
   }
 
   def transformJson(path: JsPath, f: JsValue => JsValue): OWrites[JsValue] =
-    OWrites[JsValue]{ obj => JsPath.createObj(path -> f(path(obj).headOption.getOrElse(JsNull))) }  
+    OWrites[JsValue]{ obj => JsPath.createObj(path -> f(path(obj).headOption.getOrElse(JsNull))) }  */
 
 }
 
 trait ConstraintWrites {
+  def of[A](implicit w: Writes[A]) = w
+
   def optional[A](implicit wa: Writes[A]): Writes[Option[A]] = Writes[Option[A]] { a => a match {
       case None => Json.obj()
       case Some(av) => wa.writes(av)

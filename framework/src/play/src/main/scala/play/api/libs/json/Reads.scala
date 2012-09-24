@@ -43,6 +43,9 @@ trait Reads[A] {
 
   def apply[B](f: A => B): Reads[B] = this.map(f)
 
+  def orElse(v: JsResult[A]): Reads[A] = 
+    Reads[A] { json => self.reads(json).orElse(v) }
+
   /**
    * builds a JsErrorObj JsObject
    * {
