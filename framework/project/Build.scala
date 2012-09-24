@@ -375,7 +375,7 @@ object PlayBuild extends Build {
               "org.specs2"                        %%   "specs2"                   %   "1.11"     %  "test"
             },
               "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
-              "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
+              "com.novocode"                      %    "junit-interface"          %   "0.10-M1"      %  "test",
 
             "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
         )
@@ -447,7 +447,7 @@ object PlayBuild extends Build {
             } else {
               "org.specs2"                        %%   "specs2"                   %   "1.11"
             },
-            "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
+            "com.novocode"                      %    "junit-interface"          %   "0.10-M1",
 
             // junit is literally evil because it bundles hamcrest classes that creates classloader hell.
             // junit-interface brings in junit-dep, which fixes this silliness, so we just exclude it from
