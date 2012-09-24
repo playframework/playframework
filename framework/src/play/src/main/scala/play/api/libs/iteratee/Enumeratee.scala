@@ -1,5 +1,6 @@
 package play.api.libs.iteratee
 
+import scala.concurrent.Future
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.defaultContext
 
@@ -95,7 +96,7 @@ object Enumeratee {
 
     }
 
-    def getInside[T](it: Iteratee[E, T]): Promise[(Option[Either[(String, Input[E]), (T, Input[E])]], Iteratee[E, T])] = {
+    def getInside[T](it: Iteratee[E, T]): Future[(Option[Either[(String, Input[E]), (T, Input[E])]], Iteratee[E, T])] = {
       it.pureFold {
         case Step.Done(a, e) => Some(Right((a, e)))
         case Step.Cont(k) => None
@@ -170,7 +171,7 @@ object Enumeratee {
   }
 
   def mapInputM[From] = new {
-    def apply[To](f: Input[From] => Promise[Input[To]]) = new CheckDone[From, To] {
+    def apply[To](f: Input[From] => Future[Input[To]]) = new CheckDone[From, To] {
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case in @ (Input.El(_) | Input.Empty) =>
@@ -184,7 +185,7 @@ object Enumeratee {
   }
 
   def mapM[E] = new {
-    def apply[NE](f: E => Promise[NE]): Enumeratee[E, NE] = mapInputM[E] {
+    def apply[NE](f: E => Future[NE]): Enumeratee[E, NE] = mapInputM[E] {
       case Input.Empty => Promise.pure(Input.Empty)
       case Input.EOF => Promise.pure(Input.EOF)
       case Input.El(e) => f(e).map(Input.El(_))

@@ -1,6 +1,7 @@
 package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
+import scala.concurrent.Future
 import Enumerator.Pushee
 import play.api.libs.concurrent.execution.defaultContext
 
@@ -72,7 +73,7 @@ object Concurrent {
 
     val enumerator = new Enumerator[E] {
 
-      def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+      def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
         val result = Promise[Iteratee[E, A]]()
 
         val finished = atomic { implicit txn =>
@@ -229,7 +230,7 @@ object Concurrent {
       }
 
       def moreInput[A](k: K[E, A]): Iteratee[E, Iteratee[E, A]] = {
-        val in: Promise[Input[E]] = atomic { implicit txn =>
+        val in: Future[Input[E]] = atomic { implicit txn =>
           state() match {
             case Queueing(q, l) =>
               if (!q.isEmpty) {
@@ -274,7 +275,7 @@ object Concurrent {
 
           case in =>
             if (!busy.single()) {
-              val readyOrNot: Promise[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]] {
+              val readyOrNot: Future[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]] {
                 case Step.Done(a, e) => Done(Done(a, e), Input.Empty)
                 case Step.Cont(k) => Cont { in =>
                   val next = k(in)
@@ -303,7 +304,7 @@ object Concurrent {
     onComplete: => Unit = (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
       var iteratee: Iteratee[E, A] = it
       var promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
 
@@ -465,7 +466,7 @@ object Concurrent {
       val redeemed = Ref(Waiting: PromiseValue[Iteratee[E, Unit]])
       def getPatchCord() = new Enumerator[E] {
 
-        def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+        def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
           val result = Promise[Iteratee[E, A]]()
           val alreadyStarted = !started.single.compareAndSet(false, true)
           if (!alreadyStarted) {
@@ -516,7 +517,7 @@ object Concurrent {
 
     import scala.concurrent.stm._
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
       val result = Promise[Iteratee[E, A]]()
       var isClosed: Boolean = false
 

@@ -1,7 +1,7 @@
 package play.api.libs.iteratee
 
 import play.api.libs.concurrent._
-
+import scala.concurrent.Future
 import play.api.libs.concurrent.execution.defaultContext
 
 /**
@@ -21,13 +21,13 @@ trait Enumerator[E] {
    * If the Iteratee reaches a [[play.api.libs.iteratee.Done]] state, it will
    * contain a computed result and the remaining (unconsumed) input.
    */
-  def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]]
+  def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]]
  
   /*
    * Alias for `apply`, produces input driving the given [[play.api.libs.iteratee.Iteratee]]
    * to consume it.
    */
-  def |>>[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = apply(i)
+  def |>>[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = apply(i)
 
    /**
     * Attaches this Enumerator to an [[play.api.libs.iteratee.Iteratee]], driving the
@@ -45,20 +45,20 @@ trait Enumerator[E] {
     * Unlike `apply` or `|>>`, this method does not allow you to access the
     * unconsumed input.
     */
-  def |>>>[A](i: Iteratee[E, A]): Promise[A] = apply(i).flatMap(_.run)
+  def |>>>[A](i: Iteratee[E, A]): Future[A] = apply(i).flatMap(_.run)
 
   /**
    * Alias for `|>>>`; drives the iteratee to consume the enumerator's
    * input, adding an Input.EOF at the end of the input. Returns either a result
    * or an exception.
    */
-  def run[A](i: Iteratee[E, A]): Promise[A] = |>>>(i)
+  def run[A](i: Iteratee[E, A]): Future[A] = |>>>(i)
   
  /** 
   * A variation on `apply` or `|>>` which returns the state of the iteratee rather
   * than the iteratee itself. This can make your code a little shorter.
   */
-  def |>>|[A](i: Iteratee[E, A]): Promise[Step[E,A]] = apply(i).flatMap(_.unflatten)
+  def |>>|[A](i: Iteratee[E, A]): Future[Step[E,A]] = apply(i).flatMap(_.unflatten)
   
   /*
    * Sequentially combine this Enumerator with another Enumerator. The resulting enumerator
@@ -67,7 +67,7 @@ trait Enumerator[E] {
    * produces an Input.EOF.
    */
   def andThen(e: Enumerator[E]): Enumerator[E] = new Enumerator[E] {
-    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
+    def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
   }
 
   def interleave[B >: E](other: Enumerator[B]): Enumerator[B] = Enumerator.interleave(this, other)
@@ -82,7 +82,7 @@ trait Enumerator[E] {
    */
   def &>[To](enumeratee: Enumeratee[E, To]): Enumerator[To] = new Enumerator[To] {
 
-    def apply[A](i: Iteratee[To, A]): Promise[Iteratee[To, A]] = {
+    def apply[A](i: Iteratee[To, A]): Future[Iteratee[To, A]] = {
       val transformed = enumeratee.applyOn(i)
       val xx = parent |>> transformed
       xx.flatMap(_.run)
@@ -92,7 +92,7 @@ trait Enumerator[E] {
 
   def onDoneEnumerating(callback: => Unit) = new Enumerator[E]{
 
-    def apply[A](it:Iteratee[E,A]):Promise[Iteratee[E,A]] = parent.apply(it).map{ a => callback; a}
+    def apply[A](it:Iteratee[E,A]):Future[Iteratee[E,A]] = parent.apply(it).map{ a => callback; a}
 
   }
 
@@ -122,7 +122,7 @@ trait Enumerator[E] {
    */
   def flatMap[U](f: E => Enumerator[U]): Enumerator[U] = {
     new Enumerator[U] {
-      def apply[A](iteratee: Iteratee[U, A]): Promise[Iteratee[U, A]] = {
+      def apply[A](iteratee: Iteratee[U, A]): Future[Iteratee[U, A]] = {
 
         val folder = Iteratee.fold2[E, Iteratee[U, A]](iteratee)((it, e) => f(e)(it).flatMap(newIt => Iteratee.isDoneOrError(newIt).map((newIt, _))))
         parent(folder).flatMap(_.run)
@@ -137,9 +137,9 @@ trait Enumerator[E] {
  */
 object Enumerator {
 
-  def flatten[E](eventuallyEnum: Promise[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
+  def flatten[E](eventuallyEnum: Future[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = eventuallyEnum.flatMap(_.apply(it))
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = eventuallyEnum.flatMap(_.apply(it))
 
   }
 
@@ -148,7 +148,7 @@ object Enumerator {
    * automatically produce Input.EOF after the given input.
    */
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
-    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] =
+    def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] =
       i.fold{ 
         case Step.Cont(k) => Promise.pure(k(e))
         case _ =>  Promise.pure(i)
@@ -161,7 +161,7 @@ object Enumerator {
 
     import scala.concurrent.stm._
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       val iter: Ref[Iteratee[E, A]] = Ref(it)
       val attending: Ref[Option[Seq[Boolean]]] = Ref(Some(es.map(_ => true)))
@@ -229,7 +229,7 @@ object Enumerator {
 
     import scala.concurrent.stm._
 
-    def apply[A](it: Iteratee[E2, A]): Promise[Iteratee[E2, A]] = {
+    def apply[A](it: Iteratee[E2, A]): Future[Iteratee[E2, A]] = {
 
       val iter: Ref[Iteratee[E2, A]] = Ref(it)
       val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true, true))
@@ -315,7 +315,7 @@ object Enumerator {
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
       var iteratee: Iteratee[E, A] = it
       var promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
 
@@ -366,9 +366,9 @@ object Enumerator {
 
   import scalax.io.JavaConverters._
 
-  def unfoldM[S,E](s:S)(f: S => Promise[Option[(S,E)]] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
+  def unfoldM[S,E](s:S)(f: S => Future[Option[(S,E)]] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
 
-    def apply[A](loop: (Iteratee[E,A],S) => Promise[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]] = f(s).flatMap {
+    def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s).flatMap {
       case Some((newS,e)) => loop(k(Input.El(e)),newS)
       case None => Promise.pure(Cont(k))
     }
@@ -376,7 +376,7 @@ object Enumerator {
 
   def unfold[S,E](s:S)(f: S => Option[(S,E)] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
 
-    def apply[A](loop: (Iteratee[E,A],S) => Promise[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]] = f(s) match {
+    def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s) match {
       case Some((s,e)) => loop(k(Input.El(e)),s)
       case None => Promise.pure(Cont(k))
     }
@@ -384,19 +384,19 @@ object Enumerator {
 
   def repeat[E](e: => E): Enumerator[E] = checkContinue0( new TreatCont0[E]{
 
-    def apply[A](loop: Iteratee[E,A] => Promise[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = loop(k(Input.El(e)))
+    def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = loop(k(Input.El(e)))
 
   })
 
-  def repeatM[E](e: => Promise[E]): Enumerator[E] = checkContinue0( new TreatCont0[E]{
+  def repeatM[E](e: => Future[E]): Enumerator[E] = checkContinue0( new TreatCont0[E]{
 
-    def apply[A](loop: Iteratee[E,A] => Promise[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap(ee => loop(k(Input.El(ee))))
+    def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap(ee => loop(k(Input.El(ee))))
 
   })
 
-  def generateM[E](e: => Promise[Option[E]]): Enumerator[E] = checkContinue0( new TreatCont0[E] {
+  def generateM[E](e: => Future[Option[E]]): Enumerator[E] = checkContinue0( new TreatCont0[E] {
 
-    def apply[A](loop: Iteratee[E,A] => Promise[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap {
+    def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap {
       case Some(e) => loop(k(Input.El(e)))
       case None => Promise.pure(Cont(k))
     }
@@ -404,15 +404,15 @@ object Enumerator {
 
   trait TreatCont0[E]{
 
-    def apply[A](loop: Iteratee[E,A] => Promise[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]]
+    def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]]
 
   }
 
   def checkContinue0[E](inner:TreatCont0[E]) = new Enumerator[E] {
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
-      def step(it: Iteratee[E, A]): Promise[Iteratee[E,A]] = it.fold {
+      def step(it: Iteratee[E, A]): Future[Iteratee[E,A]] = it.fold {
           case Step.Done(a, e) => Promise.pure(Done(a,e))
           case Step.Cont(k) => inner[A](step,k)
           case Step.Error(msg, e) => Promise.pure(Error(msg,e))
@@ -424,15 +424,15 @@ object Enumerator {
 
   trait TreatCont1[E,S]{
 
-    def apply[A](loop: (Iteratee[E,A],S) => Promise[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]]
+    def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]]
 
   }
 
   def checkContinue1[E,S](s:S)(inner:TreatCont1[E,S]) = new Enumerator[E] {
 
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
-      def step(it: Iteratee[E, A], state:S): Promise[Iteratee[E,A]] = it.fold{
+      def step(it: Iteratee[E, A], state:S): Future[Iteratee[E,A]] = it.fold{
           case Step.Done(a, e) => Promise.pure(Done(a,e))
           case Step.Cont(k) => inner[A](step,state,k)
           case Step.Error(msg, e) => Promise.pure(Error(msg,e))
@@ -442,10 +442,10 @@ object Enumerator {
 
   }
 
-  def fromCallback1[E](retriever: Boolean => Promise[Option[E]],
+  def fromCallback1[E](retriever: Boolean => Future[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
 
@@ -482,10 +482,10 @@ object Enumerator {
   }
 
   @scala.deprecated("use Enumerator.generateM instead", "2.1.0")
-  def fromCallback[E](retriever: () => Promise[Option[E]],
+  def fromCallback[E](retriever: () => Future[Option[E]],
     onComplete: () => Unit = () => (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
-    def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
 
@@ -552,13 +552,13 @@ object Enumerator {
    */
   def apply[E](in: E*): Enumerator[E] = new Enumerator[E] {
 
-    def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]] = enumerateSeq(in, i)
+    def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = enumerateSeq(in, i)
 
   }
 
   def enumerate[E](s:Seq[E]): Enumerator[E] = apply(s:_*)
 
-  private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Promise[Iteratee[E, A]] = { (l, i) =>
+  private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Future[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Promise.pure(i))((i, e) =>
       i.flatMap(it => it.pureFold{ 
         case Step.Cont(k) => k(Input.El(e))
@@ -567,14 +567,14 @@ object Enumerator {
   }
 
   private[iteratee] def enumerateSeq1[E](s:Seq[E]):Enumerator[E] = checkContinue1(s)(new TreatCont1[E,Seq[E]]{
-    def apply[A](loop: (Iteratee[E,A],Seq[E]) => Promise[Iteratee[E,A]], s:Seq[E], k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]] =
+    def apply[A](loop: (Iteratee[E,A],Seq[E]) => Future[Iteratee[E,A]], s:Seq[E], k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] =
       if(!s.isEmpty)
         loop(k(Input.El(s.head)),s.tail)
       else Promise.pure(Cont(k))
   })
 
   private[iteratee] def enumerateSeq2[E](s:Seq[Input[E]]):Enumerator[E] = checkContinue1(s)(new TreatCont1[E,Seq[Input[E]]]{
-    def apply[A](loop: (Iteratee[E,A],Seq[Input[E]]) => Promise[Iteratee[E,A]], s:Seq[Input[E]], k: Input[E] => Iteratee[E,A]):Promise[Iteratee[E,A]] =
+    def apply[A](loop: (Iteratee[E,A],Seq[Input[E]]) => Future[Iteratee[E,A]], s:Seq[Input[E]], k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] =
       if(!s.isEmpty)
         loop(k(s.head),s.tail)
       else Promise.pure(Cont(k))
@@ -589,13 +589,13 @@ class PushEnumerator[E] private[iteratee] (
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {
 
   var iteratee: Iteratee[E, _] = _
-  var promise: Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
+  var promise: Future[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
 
-  def apply[A](it: Iteratee[E, A]): Promise[Iteratee[E, A]] = {
+  def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
     onStart()
     iteratee = it.asInstanceOf[Iteratee[E, _]]
     val newPromise = Promise[Iteratee[E, A]]()
-    promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
+    promise = newPromise.asInstanceOf[Future[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
     newPromise.future
   }
 

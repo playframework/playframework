@@ -260,12 +260,12 @@ object Helpers extends Status with HeaderNames {
   /**
    * Block until a Promise is redeemed.
    */
-  def await[T](p: play.api.libs.concurrent.Promise[T]): T = await(p, 5000)
+  def await[T](p: scala.concurrent.Future[T]): T = await(p, 5000)
 
   /**
    * Block until a Promise is redeemed with the specified timeout.
    */
-  def await[T](p: play.api.libs.concurrent.Promise[T], timeout: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): T = p.await(timeout, unit).get
+  def await[T](p: scala.concurrent.Future[T], timeout: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): T = p.await(timeout, unit).get
 
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.

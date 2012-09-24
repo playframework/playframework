@@ -1,6 +1,6 @@
 package play.api.libs.iteratee
 
-import play.api.libs.concurrent.execution.defaultContext
+import scala.concurrent.ExecutionContext.Implicits.global
 import Parsing._
 import play.api.libs.concurrent._
 

@@ -25,4 +25,4 @@
  * complete the tasks.  In general, the most efficient ForkJoinTasks
  * are those that directly implement this algorithmic design pattern.
  */
-package scala.concurrent.forkjoin;
+package scala.concurrent.forkjoin1;

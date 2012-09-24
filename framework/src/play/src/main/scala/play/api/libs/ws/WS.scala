@@ -1,5 +1,6 @@
 package play.api.libs.ws
 
+import scala.concurrent.Future
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -27,7 +28,7 @@ import play.core.utils.CaseInsensitiveOrdered
  * WS.url("http://example.com/item").post("content")
  * }}}
  *
- * The value returned is a Promise[Response],
+ * The value returned is a Future[Response],
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
@@ -135,7 +136,7 @@ object WS {
       //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
       TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
     }
-    private[libs] def execute: Promise[Response] = {
+    private[libs] def execute: Future[Response] = {
       import com.ning.http.client.AsyncCompletionHandler
       var result = Promise[Response]()
       calculator.map(_.sign(this))
@@ -212,7 +213,7 @@ object WS {
       super.setUrl(url)
     }
 
-    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] = {
+    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] = {
       import com.ning.http.client.AsyncHandler
       var doneOrError = false
       calculator.map(_.sign(this))
@@ -341,51 +342,51 @@ object WS {
      * performs a get with supplied body
      */
 
-    def get(): Promise[Response] = prepare("GET").execute
+    def get(): Future[Response] = prepare("GET").execute
 
     /**
      * performs a get with supplied body
      * @param consumer that's handling the response
      */
-    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Promise[Iteratee[Array[Byte], A]] =
+    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
       prepare("GET").executeStream(consumer)
 
     /**
      * Perform a POST on the request asynchronously.
      */
-    def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Response] = prepare("POST", body).execute
+    def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("POST", body).execute
 
     /**
      * performs a POST with supplied body
      * @param consumer that's handling the response
      */
-    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
+    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
 
     /**
      * Perform a PUT on the request asynchronously.
      */
-    def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Response] = prepare("PUT", body).execute
+    def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("PUT", body).execute
 
     /**
      * performs a PUT with supplied body
      * @param consumer that's handling the response
      */
-    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Promise[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
+    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
 
     /**
      * Perform a DELETE on the request asynchronously.
      */
-    def delete(): Promise[Response] = prepare("DELETE").execute
+    def delete(): Future[Response] = prepare("DELETE").execute
 
     /**
      * Perform a HEAD on the request asynchronously.
      */
-    def head(): Promise[Response] = prepare("HEAD").execute
+    def head(): Future[Response] = prepare("HEAD").execute
 
     /**
      * Perform a OPTIONS on the request asynchronously.
      */
-    def options(): Promise[Response] = prepare("OPTIONS").execute
+    def options(): Future[Response] = prepare("OPTIONS").execute
 
     private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)

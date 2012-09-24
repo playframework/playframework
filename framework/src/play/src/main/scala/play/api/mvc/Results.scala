@@ -9,6 +9,8 @@ import play.api.http.Status._
 import play.api.http.HeaderNames._
 import play.api.libs.concurrent.execution.defaultContext
 
+import scala.concurrent.Future
+
 /**
  * A simple HTTP response header, used for standard responses.
  *
@@ -355,7 +357,7 @@ case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] =>
  *
  * @param result the promise of result, which can be any other result type
  */
-case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[AsyncResult] {
+case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[AsyncResult] {
 
   /**
    * Apply some transformation to this `AsyncResult`
@@ -370,7 +372,7 @@ case class AsyncResult(result: Promise[Result]) extends Result with WithHeaders[
       case r:PlainResult => f(r)
   })
 
-  def unflatten:Promise[PlainResult] = result.flatMap {
+  def unflatten:Future[PlainResult] = result.flatMap {
       case r:PlainResult => Promise.pure(r)
       case r@AsyncResult(_) => r.unflatten
   }
@@ -633,7 +635,7 @@ trait Results {
 
   }
 
-  def Async(promise: Promise[Result]) = AsyncResult(promise)
+  def Async(promise: Future[Result]) = AsyncResult(promise)
 
   /** Generates a ‘200 OK’ result. */
   val Ok = new Status(OK)

@@ -1,7 +1,7 @@
 package play.api.libs.openid
 
+import scala.concurrent.Future
 import scala.util.control.Exception._
-import play.api.libs.concurrent.Promise
 import scala.util.matching.Regex
 import play.api.http.HeaderNames
 import play.api.libs.concurrent.PurePromise
@@ -70,7 +70,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
     axOptional: Seq[(String, String)] = Seq.empty,
-    realm: Option[String] = None): Promise[String] = {
+    realm: Option[String] = None): Future[String] = {
 
     val claimedId = discovery.normalizeIdentifier(openID)
     discovery.discoverServer(openID).map({server =>
@@ -89,22 +89,22 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
   /**
    * From a request corresponding to the callback from the OpenID server, check the identity of the current user
    */
-  def verifiedId(implicit request: Request[_]): Promise[UserInfo] = verifiedId(request.queryString)
+  def verifiedId(implicit request: Request[_]): Future[UserInfo] = verifiedId(request.queryString)
 
   /**
    * For internal use
    */
-  def verifiedId(queryString: java.util.Map[String, Array[String]]): Promise[UserInfo] = {
+  def verifiedId(queryString: java.util.Map[String, Array[String]]): Future[UserInfo] = {
     import scala.collection.JavaConversions._
     verifiedId(queryString.toMap.mapValues(_.toSeq))
   }
 
-  private def verifiedId(queryString: Map[String, Seq[String]]): Promise[UserInfo] = {
+  private def verifiedId(queryString: Map[String, Seq[String]]): Future[UserInfo] = {
     (queryString.get("openid.mode").flatMap(_.headOption),
       queryString.get("openid.claimed_id").flatMap(_.headOption)) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
       case (Some("id_res"), Some(id)) => {
         // MUST perform discovery on the claimedId to resolve the op_endpoint.
-        val server: Promise[OpenIDServer] = discovery.discoverServer(id)
+        val server: Future[OpenIDServer] = discovery.discoverServer(id)
         server.flatMap(directVerification(queryString))
       }
       case (Some("cancel"), _) => PurePromise(throw Errors.AUTH_CANCEL)
@@ -178,7 +178,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
   /**
    * Resolve the OpenID server from the user's OpenID
    */
-  def discoverServer(openID:String): Promise[OpenIDServer] = {
+  def discoverServer(openID:String): Future[OpenIDServer] = {
     val discoveryUrl = normalizeIdentifier(openID)
     ws(discoveryUrl).get().map(response => {
       val maybeOpenIdServer = new XrdsResolver().resolve(response) orElse new HtmlResolver().resolve(response)

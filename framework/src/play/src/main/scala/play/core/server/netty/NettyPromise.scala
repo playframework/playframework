@@ -6,6 +6,7 @@ import scala.concurrent.{ ExecutionContext, CanAwait }
 import scala.concurrent.util.Duration
 import java.util.concurrent.TimeUnit
 import org.jboss.netty.channel.ChannelFutureListener
+import scala.util._
 
 /**
  * provides a play.api.libs.concurrent.Promise implementation based on Netty's
@@ -18,9 +19,9 @@ object NettyPromise {
 
     def isCompleted: Boolean = channelPromise.isDone
 
-    def onComplete[U](func: (Either[Throwable, Unit]) ⇒ U)(implicit executor: ExecutionContext): Unit = channelPromise.addListener(new ChannelFutureListener {
+    def onComplete[U](func: (Try[Unit]) ⇒ U)(implicit executor: ExecutionContext): Unit = channelPromise.addListener(new ChannelFutureListener {
       def operationComplete(future: ChannelFuture) {
-        val r = if (future.isSuccess()) Right(()) else Left(future.getCause())
+        val r = if (future.isSuccess()) Success(()) else Failure(future.getCause())
         executor.execute(new Runnable() { def run() { func(r) } })
       }
     })
@@ -41,9 +42,9 @@ object NettyPromise {
       }
     }
 
-    def value: Option[Either[Throwable, Unit]] = (channelPromise.isDone, channelPromise.isSuccess) match {
-      case (true, true) => Some(Right(()))
-      case (true, false) => Some(Left(channelPromise.getCause))
+    def value: Option[Try[Unit]] = (channelPromise.isDone, channelPromise.isSuccess) match {
+      case (true, true) => Some(Success(()))
+      case (true, false) => Some(Failure(channelPromise.getCause))
       case _ => None
     }
   }

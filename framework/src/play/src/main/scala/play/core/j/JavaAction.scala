@@ -57,7 +57,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
       case (delegate, (annotation, actionClass)) => {
         val global = play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal)
-        val action = global.getControllerInstance(actionClass)
+        val action = global.getControllerInstance(actionClass).asInstanceOf[play.mvc.Action[Object]]
         action.configuration = annotation
         action.delegate = delegate
         action

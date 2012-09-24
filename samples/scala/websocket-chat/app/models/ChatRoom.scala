@@ -14,6 +14,8 @@ import akka.pattern.ask
 import play.api.Play.current
 import play.api.libs.concurrent.execution.defaultContext
 
+import akka.dispatch.sip14Adapters._
+
 object Robot {
   
   def apply(chatRoom: ActorRef) {
@@ -53,8 +55,9 @@ object ChatRoom {
     roomActor
   }
 
-  def join(username:String):Promise[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
-    (default ? Join(username)).asPromise.map {
+  def join(username:String):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+
+    (default ? Join(username)).map {
       
       case Connected(enumerator) => 
       

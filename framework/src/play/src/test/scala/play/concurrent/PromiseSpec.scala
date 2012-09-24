@@ -3,7 +3,8 @@ package play.concurrent
 import org.specs2.mutable.Specification
 import play.api.libs.concurrent._
 import org.specs2.execute.Result
-import play.api.libs.concurrent.execution.defaultContext
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 class PromiseSpec extends Specification {
 

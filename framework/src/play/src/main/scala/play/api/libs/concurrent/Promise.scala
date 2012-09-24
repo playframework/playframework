@@ -4,11 +4,12 @@ import play.core._
 import play.api._
 
 import akka.actor._
-import akka.util.Duration
+import scala.concurrent.util.Duration
 import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
 
+import scala.concurrent.Future
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
@@ -97,7 +98,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * an exception contained in the promise, not only a successful value.
    * @param k function to be executed on this promise
    */
-  def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
+  def extend[B](k: Function1[Future[A], B]): Future[B] = {
     val result = Promise[B]()
     fu.onComplete(_ => result.redeem(k(fu)))
     result.future
@@ -108,7 +109,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * than the promise itself.
    * @param k function to be executed on this promise
    */
-  def extend1[B](k: Function1[NotWaiting[A], B]): Promise[B] = extend[B](p => k(p.value.get.fold(Thrown(_), Redeemed(_))))
+  def extend1[B](k: Function1[NotWaiting[A], B]): Future[B] = extend[B](p => k(p.value.get match { case scala.util.Failure(e) => Thrown(e); case scala.util.Success(a) => Redeemed(a) }))
 
   /**
    * Synonym for await, blocks for the promise to be completed with a value or
@@ -130,7 +131,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    */
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
     scala.concurrent.Await.ready(fu, scala.concurrent.util.Duration(timeout, unit))
-    fu.value.get.fold(e => Thrown(e), a => Redeemed(a))
+    fu.value.get match { case scala.util.Failure(e) => Thrown(e); case scala.util.Success(a) => Redeemed(a) }
   }
 
   /**
@@ -140,7 +141,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param p predicate
    */
 
-  def filter(p: A => Boolean): Promise[A] = null
+  def filter(p: A => Boolean): Future[A] = null
 
   /**
    * Returns a Promise representing the first-completed of this promise
@@ -149,7 +150,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * an exception which could be from either of the two promises.
    * @param other promise to be composed with
    */
-  def or[B](other: Promise[B]): Promise[Either[A, B]] = {
+  def or[B](other: Future[B]): Future[Either[A, B]] = {
     import scala.concurrent.stm._
 
     val p = Promise[Either[A, B]]()
@@ -193,7 +194,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param unti time unit
    * @return either the timer message or the current promise
    */
-  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
+  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[Either[A, B]] = {
     or(Promise.timeout(message, duration, unit))
   }
 
@@ -206,7 +207,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @return either the timer message or the current promise
    */
 
-  def orTimeout[B](message: B): Promise[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)
+  def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)
 
   /**
    * Creates a timer promise with  Throwable e (using the deafult Promise timeout).
@@ -214,7 +215,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param e exception to be thrown
    * @return a Promise which may throw an exception
    */
-  def orTimeout(e: Throwable): Promise[A] = orTimeout(e, Promise.defaultTimeout).map(_.fold(a => a, e => throw e))
+  def orTimeout(e: Throwable): Future[A] = orTimeout(e, Promise.defaultTimeout).map(_.fold(a => a, e => throw e))
 
 }
 
@@ -259,8 +260,6 @@ object Promise {
 
   private var underlyingSystem: Option[ActorSystem] = Some(ActorSystem("promise"))
 
-  private[concurrent] def invoke[T](t: => T): Promise[T] = akka.dispatch.Future { t }(Promise.system.dispatcher).asPromise
-
   private[concurrent] lazy val defaultTimeout =
     Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis
 
@@ -288,7 +287,7 @@ object Promise {
   /**
    * Synonym for PurePromise.apply
    */
-  def pure[A](a: => A): Promise[A] = PurePromise(a)
+  def pure[A](a: => A): Future[A] = PurePromise(a)
 
   /**
    * Constructs a new redeemable Promise which has not been redeemed yet.
@@ -302,7 +301,7 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
-  def timeout[A](message: A, duration: akka.util.Duration): Promise[A] = {
+  def timeout[A](message: A, duration: scala.concurrent.util.Duration): Future[A] = {
     timeout(message, duration.toMillis)
   }
 
@@ -313,9 +312,10 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
-  def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[A] = {
+  def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[A] = {
     val p = Promise[A]()
-    play.core.Invoker.system.scheduler.scheduleOnce(akka.util.Duration(duration, unit))(p.redeem(message))
+    import akka.dispatch.sip14Adapters._
+    play.core.Invoker.system.scheduler.scheduleOnce(scala.concurrent.util.Duration(duration, unit))(p.redeem(message))
     p.future
   }
 
@@ -324,20 +324,20 @@ object Promise {
    * This is useful only when used in conjunction with other Promises.
    * @return a timer promise
    */
-  def timeout: Promise[Nothing] = {
+  def timeout: Future[Nothing] = {
     timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)
   }
 
   /**
    * Converts an optional promise into a promise containing an
    * optional value. i.e. if the original option is None, you get
-   * a Promise[Option[A]] with a value of None, if the original
-   * option is Some, you get a Promise[Option[A]] containing
+   * a Future[Option[A]] with a value of None, if the original
+   * option is Some, you get a Future[Option[A]] containing
    * Some(A). Called "sequence" because its more general form
    * (see below) can operate on multi-element collections such as
    * lists.
    */
-  def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
+  def sequence[A](in: Option[Future[A]]): Future[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
 
   /**
    * Converts a traversable type M containing a Promise, into a Promise
@@ -346,26 +346,26 @@ object Promise {
    * @param in the traversable that's being converted into a promise
    * @return a Promise that's the result of the transformation
    */
-  def sequence[B, M[_]](in: M[Promise[B]])(implicit toTraversableLike: M[Promise[B]] => TraversableLike[Promise[B], M[Promise[B]]], cbf: CanBuildFrom[M[Promise[B]], B, M[B]]): Promise[M[B]] = {
-    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
+  def sequence[B, M[_]](in: M[Future[B]])(implicit toTraversableLike: M[Future[B]] => TraversableLike[Future[B], M[Future[B]]], cbf: CanBuildFrom[M[Future[B]], B, M[B]]): Future[M[B]] = {
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
   }
 
   /**
    * Converts an either containing a Promise as its Right into a Promise of an
    * Either with a plain (not-in-a-promise) value on the Right.
-   * @param either A or Promise[B]
+   * @param either A or Future[B]
    * @return a promise with Either[A,B]
    */
-  def sequenceEither[A, B](e: Either[A, Promise[B]]): Promise[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_)))
+  def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_)))
 
   /**
    * Converts an either containing a Promise on both Left and Right into a Promise
    * of an Either with plain (not-in-a-promise) values.
    */
-  def sequenceEither1[A, B](e: Either[Promise[A], Promise[B]]): Promise[Either[A, B]] = e.fold(_.map(Left(_)), _.map(Right(_)))
+  def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_)), _.map(Right(_)))
 
   @deprecated("use sequence instead", "2.1")
-  def sequenceOption[A](o: Option[Promise[A]]): Promise[Option[A]] = o.map(_.map(Some(_))).getOrElse(Promise.pure(None))
+  def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))).getOrElse(Promise.pure(None))
 
 }
 

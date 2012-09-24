@@ -5,6 +5,14 @@ import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 
 import scala.collection.JavaConverters._
+
+
+class EitherToFEither[A,B]() extends play.libs.F.Function[Either[A,B],play.libs.F.Either[A,B]] {
+
+  def apply(e:Either[A,B]): play.libs.F.Either[A,B] = e.fold(play.libs.F.Either.Left(_), play.libs.F.Either.Right(_))
+
+}
+
 /**
  *
  * provides helper methods that manage java to scala Result and scala to java Context

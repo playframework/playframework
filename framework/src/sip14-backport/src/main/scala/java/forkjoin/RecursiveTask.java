@@ -4,7 +4,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package scala.concurrent.forkjoin;
+package scala.concurrent.forkjoin1;
 
 /**
  * A recursive result-bearing {@link ForkJoinTask}.
