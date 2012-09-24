@@ -131,8 +131,13 @@ sealed trait JsResult[+A] { self =>
 
   def get: A
 
-  def getOrElse[AA >: A](t: => AA):AA = this match {
+  def getOrElse[AA >: A](t: => AA): AA = this match {
     case JsSuccess(a,_) => a 
+    case JsError(_) => t
+  }
+
+  def orElse[AA >: A](t: => JsResult[AA]): JsResult[AA] = this match {
+    case s @ JsSuccess(_,_) => s
     case JsError(_) => t
   }
 

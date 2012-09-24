@@ -298,8 +298,9 @@ object JsonValidSpec extends Specification {
     }
   }
 
-  "JSON Writes tools for Json" should {
-    "Build JSON from JSON using Writes flattened" in {
+  "JSON generators" should {
+    "Build JSON from JSON Reads" in {
+      import Reads._
       val js = Json.obj(
         "key1" -> "value1",
         "key2" -> Json.obj(
@@ -310,32 +311,85 @@ object JsonValidSpec extends Specification {
         "key3" -> Json.arr("alpha", "beta", "gamma")
       )
 
+      val dt = (new java.util.Date).getTime()
+      def func = { JsNumber(dt + 100) }
+
       val jsonTransformer = (
-        (__ \ "key1").json.put( (__ \ "key1").json.pick[JsValue] ) and
-        /*(__ \ "key2").json.modify(
+        (__ \ "key1").json.copy[JsString] and
+        (__ \ "key2").json.copy(
           (
-            (__ \ "key21").json.pick and
-            (__ \ "key22").json.transform( js => js \ "key222" )
-          ) join
+            (__ \ "key21").json.copy[JsNumber] and
+            (__ \ "key22").json.put( (__ \ "key22").json.pick.map( js => js \ "key222" ) ) and 
+            (__ \ "key24").json.put( (__ \ "key23").json.pick )
+          ) reduce
         ) and
-        (__ \ "key3").json.transform( js => js.as[JsArray] ++ Json.arr("delta")) and*/
+        (__ \ "key3").json.put( (__ \ "key3").json.pick[JsArray].map( (js: JsArray) => js ++ Json.arr("delta")) ) and
         (__ \ "key4").json.put(
           (
             (__ \ "key41").json.put(JsNumber(345)) and
-            (__ \ "key42").json.put(JsString("alpha"))
+            (__ \ "key42").json.put(JsString("alpha")) and 
+            (__ \ "key43").json.put( func ) 
+          ) reduce
+        )
+      ) reduce
+
+      val res = Json.obj(
+        "key1" -> "value1",
+        "key2" -> Json.obj(
+          "key21" -> 123,
+          "key22" -> "blabla",
+          "key24" -> true
+         ),
+        "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),
+        "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha", "key43" -> func)
+      )
+
+      js.validate(jsonTransformer) must beEqualTo(JsSuccess(res))
+    }
+
+    "Build JSON from JSON Writes" in {
+      import Writes._
+      val js = Json.obj(
+        "key1" -> "value1",
+        "key2" -> Json.obj(
+          "key21" -> 123,
+          "key22" -> Json.obj("key222" -> "blabla"),
+          "key23" -> true
+        ),
+        "key3" -> Json.arr("alpha", "beta", "gamma")
+      )
+
+      val dt = (new java.util.Date).getTime()
+      def func = { JsNumber(dt + 100) }
+
+      val jsonTransformer = (
+        (__ \ "key1").jsonw.copy and
+        (__ \ "key2").jsonw.copy(
+          (
+            (__ \ "key21").jsonw.copy and
+            (__ \ "key22").jsonw.put( (__ \ "key22").jsonw.pick.transform( js => js \ "key222" ) ) and 
+            (__ \ "key24").jsonw.put( (__ \ "key23").jsonw.pick )
+          ) join
+        ) and
+        (__ \ "key3").jsonw.put( (__ \ "key3").jsonw.pick.transform( js => js.as[JsArray] ++ Json.arr("delta")) ) and
+        (__ \ "key4").jsonw.put(
+          (
+            (__ \ "key41").jsonw.put(JsNumber(345)) and
+            (__ \ "key42").jsonw.put(JsString("alpha")) and 
+            (__ \ "key43").jsonw.put( func ) 
           ) join
         )
       ) join
 
       val res = Json.obj(
         "key1" -> "value1",
-        /*"key2" -> Json.obj(
+        "key2" -> Json.obj(
           "key21" -> 123,
           "key22" -> "blabla",
-          "key23" -> true
+          "key24" -> true
          ),
-        "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),*/
-        "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha")
+        "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),
+        "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha", "key43" -> func)
       )
 
       js.transform(jsonTransformer) must beEqualTo(res)
@@ -495,8 +549,8 @@ object JsonValidSpec extends Specification {
       import Reads._
 
       val myReads: Reads[JsObject] = (
-        (__ \ 'field1).json.obj[JsString] and
-        (__ \ 'field2).json.obj[JsObject]
+        (__ \ 'field1).json.copy[JsString] and
+        (__ \ 'field2).json.copy[JsObject]
       ) reduce
 
       val js0 = Json.obj("field1" -> "alpha")
