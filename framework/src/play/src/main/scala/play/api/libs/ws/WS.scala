@@ -35,6 +35,7 @@ import play.core.utils.CaseInsensitiveOrdered
 object WS {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
+  import javax.net.ssl.SSLContext
 
   private var clientHolder: Option[AsyncHttpClient] = None
 
@@ -47,6 +48,7 @@ object WS {
     }.getOrElse(play.api.Logger.debug("WS client was reset without being used"))
     clientHolder = None
   }
+
   /**
    * retrieves or creates underlying HTTP client.
    */
@@ -61,6 +63,9 @@ object WS {
 
       playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
         asyncHttpConfig.setUserAgent(useragent)
+      }
+      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
+        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
       }
       val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
       clientHolder = Some(innerClient)
