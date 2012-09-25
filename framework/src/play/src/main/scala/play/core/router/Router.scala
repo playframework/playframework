@@ -134,7 +134,7 @@ object Router {
   }
 
   def queryString(items: List[Option[String]]) = {
-    Option(items.filter(_.isDefined).map(_.get)).filterNot(_.isEmpty).map("?" + _.mkString("&")).map(_.reverse.dropWhile(_ == '&').dropWhile(_ == '?').reverse).getOrElse("")
+    Option(items.filter(_.isDefined).map(_.get).filterNot(_.isEmpty)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
   }
 
   // HandlerInvoker
