@@ -650,7 +650,7 @@ package play.api.mvc {
      */
     def encode(cookies: Seq[Cookie], discard: Seq[String] = Nil): String = {
       val encoder = new CookieEncoder(true)
-      cookies.foreach { c =>
+      val newCookies = cookies.map{c =>
         encoder.addCookie {
           val nc = new DefaultCookie(c.name, c.value)
           nc.setMaxAge(c.maxAge)
@@ -660,15 +660,21 @@ package play.api.mvc {
           nc.setHttpOnly(c.httpOnly)
           nc
         }
+         encoder.encode()
       }
-      discard.foreach { n =>
+      val discardedCookies = discard.map { n =>
         encoder.addCookie {
           val nc = new DefaultCookie(n, "")
           nc.setMaxAge(0)
           nc
         }
+         encoder.encode()
       }
-      encoder.encode()
+
+     if (discardedCookies.size > 0) 
+        discardedCookies.mkString("; ") + "; " + newCookies.mkString("; ")
+      else
+        newCookies.mkString("; ")
     }
 
     /**
