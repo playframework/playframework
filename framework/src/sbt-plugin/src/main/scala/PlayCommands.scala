@@ -303,6 +303,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
         import com.avaje.ebean.enhance.agent._
         import com.avaje.ebean.enhance.ant._
+        import com.typesafe.config._
 
         val cl = ClassLoader.getSystemClassLoader
 
@@ -310,20 +311,27 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
         val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
 
-        val config = play.api.Configuration.load(null)
+        val configFile = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File("conf/application.conf"))
 
-        config.getConfig("ebean").map { ebeanConfig =>
-          val (recursed, other) = ebeanConfig.underlying.entrySet.asScala.map(_.getValue.unwrapped)
-              .foldLeft(Set[String]()){_ ++ _.toString.split(',')}
-              .partition(_.endsWith(".*"))
-          val models = recursed ++ other.filterNot { o =>
-            o.indexOf('.') <= 0 || recursed.exists(r => o.startsWith(r.substring(0, r.length - 1)))
-          }.map(o => o.substring(0, o.lastIndexOf('.')))
-          if (!models.isEmpty)
-            ft.process(models.mkString(","))
+        val config = ConfigFactory.load(ConfigFactory.parseFileAnySyntax(configFile))
+
+        val (recursed, other) = config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped)
+          .foldLeft(Set[String]()){_ ++ _.toString.split(',')}
+          .partition(_.endsWith(".*"))
+
+        val models = recursed ++ other.filterNot { o =>
+          o.indexOf('.') <= 0 || recursed.exists(r => o.startsWith(r.substring(0, r.length - 1)))
+        }.map(o => o.substring(0, o.lastIndexOf('.')))
+
+        models.foreach { model =>
+          try {
+            ft.process(model)
+          } catch {
+            case _ =>
+          }
         }
-
       } catch {
+        case e: com.typesafe.config.ConfigException.Missing =>
         case e => throw e
       } finally {
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
