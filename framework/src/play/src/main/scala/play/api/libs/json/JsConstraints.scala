@@ -89,6 +89,14 @@ trait ConstraintReads {
     } }
 
   def pure[A](a: => A) = Reads[A] { js => JsSuccess(a) }
+
+  def chaining[A <: JsValue, B](first: Reads[A])(second: Reads[B]): Reads[B] = 
+    new Reads[B] {
+      def reads(js: JsValue) = first.reads(js) match {
+        case r @ JsSuccess(a,_) => second.reads(a)
+        case JsError(e) => JsError(e)
+      } 
+    }
 }
 
 trait PathWrites {
