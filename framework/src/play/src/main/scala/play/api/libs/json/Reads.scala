@@ -89,6 +89,7 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
       }
     }
     def empty:Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
+
   }
 
   def apply[A](f: JsValue => JsResult[A]): Reads[A] = new Reads[A] {

@@ -150,6 +150,11 @@ sealed trait JsResult[+A] { self =>
     case JsSuccess(v,_) => Right(v)
     case JsError(e) => Left(e)
   }  
+
+  def recover[AA >: A]( errManager: JsError => AA ): AA = this match {
+    case JsSuccess(a,_) => a 
+    case e : JsError => errManager(e)
+  }
 }
 
 object JsResult {
