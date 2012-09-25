@@ -229,7 +229,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Adds an error to this form
    * @param error Error to add
-   * @returns a copy of this form with the added error
+   * @return a copy of this form with the added error
    */
   def withError(error: FormError): Form[T] = this.copy(errors = errors :+ error, value = None)
 
@@ -238,7 +238,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param key Key of the field having the error
    * @param message Error message
    * @param args Error message arguments
-   * @returns a copy of this form with the added error
+   * @return a copy of this form with the added error
    */
   def withError(key: String, message: String, args: Any*): Form[T] = withError(FormError(key, message, args))
 
@@ -252,7 +252,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
 
   /**
    * Discards this form’s errors
-   * @returns a copy of this form without errors
+   * @return a copy of this form without errors
    */
   def discardingErrors: Form[T] = this.copy(errors = Seq.empty)
 }

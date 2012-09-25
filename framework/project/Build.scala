@@ -20,8 +20,9 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
             libraryDependencies := link,
             publishTo := Some(playRepository),
-            javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-            publishArtifact in (Compile, packageDoc) := false,
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
             crossPaths := false
@@ -35,7 +36,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"templates_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := templatesDependencies,
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             resolvers += typesafe
@@ -51,7 +52,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"routes-compiler_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := routersCompilerDependencies,
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := false,
             publishArtifact in (Compile, packageSrc) := false,
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             resolvers += typesafe
@@ -67,7 +68,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"templates-compiler_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := templatesCompilerDependencies,
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := false,
             publishArtifact in (Compile, packageSrc) := false,
             unmanagedJars in Compile <+= (baseDirectory) map { b => compilerJar(b / "../..") },
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -82,7 +83,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"anorm_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -95,7 +96,8 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play-exceptions"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-            publishArtifact in (Compile, packageDoc) := false,
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             crossPaths := false
         )
@@ -111,7 +113,8 @@ object PlayBuild extends Build {
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-            publishArtifact in (Compile, packageDoc) := false,
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe
         )
@@ -126,8 +129,7 @@ object PlayBuild extends Build {
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe
         )
@@ -145,7 +147,8 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-            publishArtifact in (Compile, packageDoc) := false,
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
@@ -166,8 +169,9 @@ object PlayBuild extends Build {
             libraryDependencies := testDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            javacOptions  ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8","-Xlint:unchecked", "-Xlint:deprecation"),
-            publishArtifact in (Compile, packageDoc) := false,
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
             parallelExecution in Test := false
@@ -188,7 +192,7 @@ object PlayBuild extends Build {
             unmanagedJars in Compile <++= (baseDirectory) map { b => sbtJars(b / "../..") },
             publishTo := Some(playIvyRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe
         )
@@ -207,7 +211,7 @@ object PlayBuild extends Build {
             unmanagedJars in Compile <++=  (baseDirectory) map { b => sbtJars(b / "../..") },
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            publishArtifact in (Compile, packageDoc) := false,
+            publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe
         )
@@ -235,6 +239,7 @@ object PlayBuild extends Build {
 
         val buildOrganization = "play"
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
+        val buildWithDoc      = Option(System.getProperty("generate.doc")).isDefined
         val previousVersion   = "2.0.3"
         val previousScalaVersion = "2.9.1"
         val buildScalaVersion = if(experimental) "2.10.0-M7" else "2.9.2"

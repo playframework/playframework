@@ -235,7 +235,7 @@ public class Http {
 
         /**
          * Check if this request accepts a given media type.
-         * @returns true if <code>mediaType</code> is in the Accept header, otherwise false
+         * @return true if <code>mediaType</code> is in the Accept header, otherwise false
          */
         public abstract boolean accepts(String mediaType);
 

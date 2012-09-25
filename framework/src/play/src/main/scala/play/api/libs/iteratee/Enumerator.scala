@@ -6,7 +6,7 @@ import play.api.libs.concurrent.execution.defaultContext
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
- * @type E Type of the input
+ * type E Type of the input
  */
 trait Enumerator[E] {
   parent =>

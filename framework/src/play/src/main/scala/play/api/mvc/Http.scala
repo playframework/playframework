@@ -104,7 +104,7 @@ package play.api.mvc {
 
     /**
      * Check if this request accepts a given media type.
-     * @returns true if `mediaType` matches the Accept header, otherwise false
+     * @return true if `mediaType` matches the Accept header, otherwise false
      */
     def accepts(mediaType: String): Boolean = {
       accept.contains(mediaType) || accept.contains("*/*") || accept.contains(mediaType.takeWhile(_ != '/') + "/*")

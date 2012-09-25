@@ -6,6 +6,8 @@ import static play.libs.F.*;
 
 import play.data.validation.*;
 
+import play.data.Form.Field;
+
 /**
  * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String></code>
  */
