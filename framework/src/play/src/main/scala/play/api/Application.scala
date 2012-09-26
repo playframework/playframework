@@ -341,11 +341,8 @@ trait Application {
    */
   def getTypes(packageName: String): Set[String] = {
     import org.reflections._
-    new Reflections(
-      new util.ConfigurationBuilder()
-        .addUrls(util.ClasspathHelper.forPackage(packageName, classloader))
-        .filterInputsBy(new util.FilterBuilder().include(util.FilterBuilder.prefix(packageName + ".")))
-        .setScanners(new scanners.TypesScanner())).getStore.get(classOf[scanners.TypesScanner]).keySet.asScala.toSet
+    new Reflections(packageName, new scanners.TypesScanner())
+        .getStore.get(classOf[scanners.TypesScanner]).keySet.asScala.toSet
   }
 
   /**
@@ -366,10 +363,8 @@ trait Application {
    */
   def getTypesAnnotatedWith[T <: java.lang.annotation.Annotation](packageName: String, annotation: Class[T]): Set[String] = {
     import org.reflections._
-    new Reflections(
-      new util.ConfigurationBuilder()
-        .addUrls(util.ClasspathHelper.forPackage(packageName, classloader))
-        .setScanners(new scanners.TypeAnnotationsScanner())).getStore.getTypesAnnotatedWith(annotation.getName).asScala.toSet
+    new Reflections(packageName, new scanners.TypeAnnotationsScanner())
+        .getStore.getTypesAnnotatedWith(annotation.getName).asScala.toSet
   }
 
   /**
