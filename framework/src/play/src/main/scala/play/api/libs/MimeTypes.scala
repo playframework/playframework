@@ -567,7 +567,7 @@ object MimeTypes {
         ppam=application/vnd.ms-powerpoint.addin.macroEnabled.12
         sldx=application/vnd.openxmlformats-officedocument.presentationml.slide
         sldm=application/vnd.ms-powerpoint.slide.macroEnabled.12
-        thmx=application/vnd.ms-officetheme 
+        thmx=application/vnd.ms-officetheme
         onetoc=application/onenote
         onetoc2=application/onenote
         onetmp=application/onenote

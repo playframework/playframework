@@ -53,7 +53,7 @@ object Assets extends Controller {
    * @param path the root folder for searching the static resource files, such as `"/public"`
    * @param file the file part extracted from the URL
    */
-  def at(path: String, file: String): Action[AnyContent] = Action { request =>
+  def at(path: String, file: String)(implicit defaultCodec: Codec): Action[AnyContent] = Action { request =>
     // -- LastModified handling
 
     def parseDate(date: String): Option[java.util.Date] = try {
@@ -103,13 +103,23 @@ object Assets extends Controller {
                 DATE -> df.print({ new java.util.Date }.getTime)
               )).getOrElse {
 
-                val charset = Play.configuration.getString("\"assets.charset." + resourceName + "\"").getOrElse("utf-8")
+                import scala.collection.JavaConverters.asScalaSetConverter
+                val charsets = java.nio.charset.Charset.availableCharsets.keySet.asScala.map(_.toLowerCase)
+
+                val FileName = """^(.*)\.(.*)\.(.*)$""".r
+                val contenttype = new java.io.File(file).getName match {
+                  // test the charset against supported charsets because we do *NOT* want to match "tar" in "filename.tar.gz"
+                  case FileName(_, ext, charset) if charsets.contains(charset.toLowerCase) =>
+                    MimeTypes.forExtension(ext).map("%s; charset=%s".format(_, charset)).getOrElse(BINARY)
+                  case _ =>
+                    MimeTypes.forFileName(file).map("%s; charset=%s".format(_, defaultCodec.charset)).getOrElse(BINARY)
+                }
 
                 // Prepare a streamed response
                 val response = SimpleResult(
                   header = ResponseHeader(OK, Map(
                     CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY),
+                    CONTENT_TYPE -> contenttype,
                     DATE -> df.print({ new java.util.Date }.getTime)
                   )),
                   resourceData
