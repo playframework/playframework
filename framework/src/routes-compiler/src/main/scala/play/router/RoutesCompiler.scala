@@ -900,7 +900,7 @@ object RoutesCompiler {
                                 markLines((route +: routes): _*),
                                 route.call.method,
                                 reverseSignature,
-                                reverseParameters.map(_._1.name).mkString(", "),
+                                reverseParameters.map(_._1.name + ": @unchecked").mkString(", "),
 
                                 // route selection
                                 (route +: routes).map { route =>
