@@ -35,10 +35,6 @@ public class FakeApplication {
                 );
     }
 
-    public FakeApplication(File path, ClassLoader classloader, Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins) {
-      this(path, classloader, additionalConfiguration, additionalPlugins, null);
-    }
-
     public play.api.test.FakeApplication getWrappedApplication() {
         return wrappedApplication;
     }
