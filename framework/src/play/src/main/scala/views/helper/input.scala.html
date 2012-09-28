@@ -9,7 +9,7 @@
     FieldElements(
         id,
         field,
-        inputDef(id, field.name, field.value, args.filter(!_._1.name.startsWith("_")).toMap),
+        inputDef(id, field.name, field.value, args.filter(arg => !arg._1.name.startsWith("_") && arg._1 != 'id).toMap),
         args.toMap,
         lang
     )
