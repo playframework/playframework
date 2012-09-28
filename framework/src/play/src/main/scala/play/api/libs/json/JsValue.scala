@@ -1,10 +1,10 @@
 package play.api.libs.json
 
-import org.codehaus.jackson.{ JsonGenerator, JsonToken, JsonParser }
-import org.codehaus.jackson.`type`.JavaType
-import org.codehaus.jackson.map._
-import org.codehaus.jackson.map.annotate.JsonCachable
-import org.codehaus.jackson.map.`type`.{ TypeFactory, ArrayType }
+import com.fasterxml.jackson.core.{ JsonGenerator, JsonToken, JsonParser }
+import com.fasterxml.jackson.databind._
+import com.fasterxml.jackson.databind.deser.Deserializers
+import com.fasterxml.jackson.databind.ser.Serializers
+import com.fasterxml.jackson.databind.`type`.TypeFactory
 
 import scala.collection._
 
@@ -269,10 +269,9 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
 // -- Serializers.
 
-@JsonCachable
 private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
 
-  def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
+  override def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
       case JsNumber(v) => json.writeNumber(v.bigDecimal)
       case JsString(v) => json.writeString(v)
@@ -323,9 +322,11 @@ private[json] case class ReadingMap(content: List[(String, JsValue)]) extends De
 
 }
 
-@JsonCachable
 private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) extends JsonDeserializer[Object] {
-  def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsValue = {
+
+  override def isCachable = true
+
+  override def deserialize(jp: JsonParser, ctxt: DeserializationContext): JsValue = {
     val value = deserialize(jp, ctxt, List())
 
     if (!klass.isAssignableFrom(value.getClass)) {
@@ -399,9 +400,7 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
 }
 
 private[json] class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
-  override def findBeanDeserializer(javaType: JavaType, config: DeserializationConfig,
-    provider: DeserializerProvider, beanDesc: BeanDescription,
-    property: BeanProperty) = {
+  override def findBeanDeserializer(javaType: JavaType, config: DeserializationConfig, beanDesc: BeanDescription) = {
     val klass = javaType.getRawClass
     if (classOf[JsValue].isAssignableFrom(klass) || klass == JsNull.getClass) {
       new JsValueDeserializer(config.getTypeFactory, klass)
@@ -411,7 +410,7 @@ private[json] class PlayDeserializers(classLoader: ClassLoader) extends Deserial
 }
 
 private[json] class PlaySerializers extends Serializers.Base {
-  override def findSerializer(config: SerializationConfig, javaType: JavaType, beanDesc: BeanDescription, beanProp: BeanProperty) = {
+  override def findSerializer(config: SerializationConfig, javaType: JavaType, beanDesc: BeanDescription) = {
     val ser: Object = if (classOf[JsValue].isAssignableFrom(beanDesc.getBeanClass)) {
       new JsValueSerializer
     } else {
@@ -423,9 +422,9 @@ private[json] class PlaySerializers extends Serializers.Base {
 
 private[json] object JacksonJson{
 
-  import org.codehaus.jackson.Version
-  import org.codehaus.jackson.map.module.SimpleModule
-  import org.codehaus.jackson.map.Module.SetupContext
+  import com.fasterxml.jackson.core.Version
+  import com.fasterxml.jackson.databind.module.SimpleModule
+  import com.fasterxml.jackson.databind.Module.SetupContext
 
   private[this]  val classLoader = Thread.currentThread().getContextClassLoader
 
@@ -439,7 +438,7 @@ private[json] object JacksonJson{
   }
   mapper.registerModule(module)
 
-  private[this] lazy val jsonFactory = new org.codehaus.jackson.JsonFactory(mapper)
+  private[this] lazy val jsonFactory = new com.fasterxml.jackson.core.JsonFactory(mapper)
 
   private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createJsonGenerator(out)
   

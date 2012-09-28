@@ -24,8 +24,8 @@ import org.w3c.dom.Document;
 
 import play.libs.F.Promise;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -456,7 +456,7 @@ public class WS {
         }
 
         /**
-         * Get the response body as a {@link org.codehaus.jackson.JsonNode}
+         * Get the response body as a {@link com.fasterxml.jackson.JsonNode}
          * @return the json response
          */
         public JsonNode asJson() {

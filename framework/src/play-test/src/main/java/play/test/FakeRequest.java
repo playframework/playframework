@@ -1,6 +1,6 @@
 package play.test;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import play.api.mvc.AnyContentAsJson;
 import play.libs.*;
 import play.mvc.*;

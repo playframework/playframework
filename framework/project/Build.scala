@@ -360,8 +360,8 @@ object PlayBuild extends Build {
 
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.1",
-            "org.codehaus.jackson"        %   "jackson-core-asl"              %   "1.9.9",
-            "org.codehaus.jackson"        %   "jackson-mapper-asl"              %   "1.9.9",
+            "com.fasterxml.jackson.core"        %    "jackson-core"             %   "2.0.6",
+            "com.fasterxml.jackson.core"        %    "jackson-databind"         %   "2.0.6",
 
             ("org.reflections"                  %    "reflections"              %   "0.9.7" notTransitive())
               .exclude("com.google.guava", "guava")
