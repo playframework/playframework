@@ -130,6 +130,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
+            parallelExecution in Test := false,
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
