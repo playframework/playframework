@@ -46,6 +46,14 @@ trait Reads[A] {
   def orElse(v: JsResult[A]): Reads[A] = 
     Reads[A] { json => self.reads(json).orElse(v) }
 
+  def compose[B](rb: Reads[B])(implicit witness: B <:< JsValue): Reads[A] = 
+    Reads[A] { js => rb.reads(js) match {
+      case JsSuccess(b, p) => this.reads(b).repath(p)
+      case JsError(e) => JsError(e)
+    } }
+
+  def andThen[B](rb: Reads[B])(implicit witness: A <:< JsValue): Reads[B] = rb.compose(this)
+
   /**
    * builds a JsErrorObj JsObject
    * {
@@ -104,6 +112,15 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
 
   implicit object JsObjectMonoid extends Monoid[JsObject] {
     def append(o1: JsObject, o2: JsObject) = o1 ++ o2
+    /* {
+      val o2var = collection.mutable.Map(o2.fields.toSeq: _*)
+
+      JsObject(
+        o1.fields.map{ case (key, value) => 
+          key -> o2var.remove(key).getOrElse(value)
+        } ++ o2var.toSeq
+      )
+    }*/
     def identity = JsObject(Seq())
   }
 

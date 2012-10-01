@@ -2,6 +2,7 @@ package play.api.libs.json
 
 import play.api.data.validation.ValidationError
 import Json._
+import util.Monoid
 
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
@@ -27,8 +28,16 @@ trait PathReads {
 
   def jsPick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
 
-  def jsCopy[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] =
-    Reads[JsObject]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)).map( jsv => JsPath.createObj(path -> jsv) ) )
+  def jsPickBranch(path: JsPath): Reads[JsObject] =
+    Reads[JsObject]( js => path.asSingleJsResult(js).map( jsv => JsPath.createObj(path -> jsv) ) )
+
+  def jsPickBranchUpdate[A <: JsValue](path: JsPath)(reads: Reads[A])(implicit implReads:Reads[A], monoid: Monoid[A]): Reads[JsObject] =
+    Reads[JsObject]( js => 
+      path.asSingleJsResult(js)
+          .flatMap( js => implReads.reads(js).repath(path) )
+          .flatMap( js => reads.reads(js).repath(path).map( jsread => monoid.append(js, jsread) ) )
+          .map( js => JsPath.createObj(path -> js) ) 
+      )
 
   def jsPut[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] = 
     Reads[JsObject]( json => reads.reads(json).map( a => JsPath.createObj(path -> a) ) )
@@ -109,22 +118,18 @@ trait PathWrites {
   def jsPick(path: JsPath): Writes[JsValue] =
     Writes[JsValue]{ obj => path(obj).headOption.getOrElse(JsNull) }
 
-  def jsCopy(path: JsPath)(_writes: Writes[JsValue]): OWrites[JsValue] =
-    OWrites[JsValue]{ obj => JsPath.createObj(path -> _writes.writes(path(obj).headOption.getOrElse(JsNull))) }
+  def jsPickBranch(path: JsPath): OWrites[JsValue] =
+    OWrites[JsValue]{ obj => JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)) }
+
+  def jsPickBranchUpdate(path: JsPath, _writes: OWrites[JsValue]): OWrites[JsValue] =
+    OWrites[JsValue]{ js => 
+      JsPath.createObj(
+        path -> path(js).headOption.flatMap( js => js.asOpt[JsObject].map( obj => obj ++ _writes.writes(obj) ) ).getOrElse(JsNull)
+      )
+    }
 
   def pure[A](path: JsPath, fixed: => A)(implicit _writes:Writes[A]): OWrites[JsValue] =
     OWrites[JsValue]{ js => JsPath.createObj(path -> _writes.writes(fixed)) }    
-
-  /*def modifyJson(path: JsPath)(_writes: Writes[JsValue]): OWrites[JsValue] =
-    OWrites[JsValue]{ obj => obj match {
-      // if JsObject, try to aggregate
-      case theObj @ JsObject(_) => theObj.deepMerge(JsPath.createObj(path -> path(obj).headOption.map( _writes.writes ).getOrElse(JsNull)))
-      case _ => JsPath.createObj(path -> path(obj).headOption.map( _writes.writes ).getOrElse(JsNull))
-    }
-  }
-
-  def transformJson(path: JsPath, f: JsValue => JsValue): OWrites[JsValue] =
-    OWrites[JsValue]{ obj => JsPath.createObj(path -> f(path(obj).headOption.getOrElse(JsNull))) }  */
 
 }
 
@@ -136,6 +141,9 @@ trait ConstraintWrites {
       case Some(av) => wa.writes(av)
     }
   }
+
+  def pure[A](fixed: => A)(implicit _writes:Writes[A]): Writes[JsValue] =
+    Writes[JsValue]{ js => _writes.writes(fixed) }   
 
   def pruned[A](implicit w: Writes[A]): Writes[A] = new Writes[A] {
     def writes(a: A): JsValue = JsUndefined("pruned")

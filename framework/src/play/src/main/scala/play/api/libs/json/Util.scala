@@ -21,11 +21,12 @@ class InvariantFunctorOps[M[_],A](ma:M[A])(implicit fu:InvariantFunctor[M]){
 
 class ApplicativeOps[M[_],A](ma:M[A])(implicit a:Applicative[M]){
 
-  def ~>[B](mb: M[B]): M[B] = a(a(a.pure((_: A) => (b: B) => b), ma),mb)
-  def andThen[B](mb: M[B]): M[B] = ~>(mb)
+  def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
+  def andKeep[B](mb: M[B]):M[B] = ~>(mb)
 
-  def <~[B](mb: M[B]): M[A] = a(a(a.pure((a: A) => (_: B) => a), ma),mb)
-  def provided[B](mb: M[B]): M[A] = <~(mb)
+  def <~[B](mb: M[B]):M[A] = a(a(a.pure((a:A) => (_:B) => a), ma),mb)
+  def provided[B](mb: M[B]):M[A] = <~(mb)
+  def keepAnd[B](mb: M[B]):M[A] = <~(mb)
 
   def <~>[B,C](mb: M[B])(implicit witness: <:<[A,B => C]): M[C] = apply(mb)
   def apply[B,C](mb: M[B])(implicit witness: <:<[A,B => C]): M[C] = a(a.map(ma,witness),mb)

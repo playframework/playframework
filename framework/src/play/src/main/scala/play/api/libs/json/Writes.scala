@@ -41,7 +41,7 @@ trait OWrites[-A] extends Writes[A]{
 object OWrites extends PathWrites with ConstraintWrites {
   import play.api.libs.json.util._
 
-  implicit val functionalCanBuildWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
+  implicit val functionalCanBuildOWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
 
     def apply[A,B](wa: OWrites[A], wb: OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
 
@@ -54,10 +54,11 @@ object OWrites extends PathWrites with ConstraintWrites {
   }
 
   def apply[A](f: A => JsObject):OWrites[A] = new OWrites[A] {
-    def writes(a:A):JsObject = f(a)
+    def writes(a:A): JsObject = f(a)
   }
 
 }
+
 /**
  * Default Serializers.
  */

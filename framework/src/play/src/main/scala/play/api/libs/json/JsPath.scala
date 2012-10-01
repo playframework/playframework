@@ -1,6 +1,7 @@
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
+import util.Monoid
 
 sealed trait PathNode {
   def apply(json: JsValue): List[JsValue]
@@ -248,8 +249,8 @@ case class JsPath(path: List[PathNode] = List()) {
     def pick: Reads[JsValue] = pick[JsValue]
 
     /**
-     * (__ \ 'key).json.copy[A <: JsValue](readsOfA) is a Reads[JsObject] that:
-     * - copies the given JsPath plus relative JsValue from the input JS at this given JsPath
+     * (__ \ 'key).json.pickBranch[A <: JsValue](readsOfA) is a Reads[JsObject] that:
+     * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
      * - validates this relative JsValue as an object of type A (inheriting JsValue) potentially modifying it
      * - creates a JsObject from JsPath and validated JsValue
      * - returns a JsResult[JsObject]
@@ -258,11 +259,27 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
     {{{
     val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
-    js.validate( (__ \ 'key2).json.copy[JsString]( (__ \ 'key21').json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
+    js.validate( (__ \ 'key2).json.pickBranch[JsString]( (__ \ 'key21').json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
     => JsSuccess(JsObject(Seq( ("key2", JsString(value23456")) )))
     }}}
      */
-    def copy[A <: JsValue](implicit r: Reads[A]): Reads[JsObject] = Reads.jsCopy(self)(r)
+    def pickBranch[A <: JsValue](reads: Reads[A])(implicit implReads: Reads[A], m: Monoid[A]): Reads[JsObject] = Reads.jsPickBranchUpdate(self)(reads)(implReads, m)
+    
+    /**
+     * (__ \ 'key).json.pickBranch is a Reads[JsObject] that:
+     * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
+     * - creates a JsObject from JsPath and JsValue
+     * - returns a JsResult[JsObject]
+     * Useful to create/validate an JsObject from a single JsPath (potentially modifying it)
+     *
+     * Example :
+    {{{
+    val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
+    js.validate( (__ \ 'key2).json.pickBranch )
+    => JsSuccess(JsObject(Seq( ("key2", Json.obj("key21" -> "value2")) )))
+    }}}
+     */
+    def pickBranch: Reads[JsObject] = Reads.jsPickBranch(self)
 
     /**
      * (__ \ 'key).put( reads ) is a Reads[JsObject] that:
@@ -322,8 +339,8 @@ case class JsPath(path: List[PathNode] = List()) {
     def pick: Writes[JsValue] = Writes.jsPick(self)
 
     /**
-     * (__ \ 'key).json.copy[A <: JsValue](writesOfJsValue) is a OWrites[JsValue] that:
-     * - copies the given JsPath plus relative JsValue from the input JS at this given JsPath
+     * (__ \ 'key).json.pickBranch[A <: JsValue](writesOfJsValue) is a OWrites[JsValue] that:
+     * - copies the given branch (JsPath plus relative JsValue) from the input JS at this given JsPath
      * - applies the given Writes[A] to this relative JsValue potentially modifying it
      * - creates a JsObject from JsPath and generated JsValue
      * - returns a JsObject
@@ -332,11 +349,13 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
     {{{
     val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
-    js.transform( (__ \ 'key2).jsonw.copy( (__ \ 'key21').jsonw.pick.transform( (js: JsString) => JsString(js.value ++ "3456") ) ) )
+    js.transform( (__ \ 'key2).jsonw.pickBranch( (__ \ 'key21').jsonw.pick.transform( (js: JsString) => JsString(js.value ++ "3456") ) ) )
     => JsObject(Seq( ("key2", JsString(value23456")) ))
     }}}
      */
-    def copy(implicit w: Writes[JsValue]): OWrites[JsValue] = Writes.jsCopy(self)(w)
+    def pickBranch: OWrites[JsValue] = Writes.jsPickBranch(self)
+
+    def pickBranch(w: OWrites[JsValue]): OWrites[JsValue] = Writes.jsPickBranchUpdate(self, w)
 
     /**
      * (__ \ 'key).put( writesOfA ) is a OWrites[A] that:
