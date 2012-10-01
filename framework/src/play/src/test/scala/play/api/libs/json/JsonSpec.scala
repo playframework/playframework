@@ -9,6 +9,72 @@ import java.text.ParseException
 
 import play.api.data.validation.ValidationError 
 
+
+object JsonSpec extends Specification {
+  "JSON" should {
+    "equals JsObject independently of field order" in {
+      Json.obj(
+        "field1" -> 123, 
+        "field2" -> "beta", 
+        "field3" -> Json.obj(
+          "field31" -> true,
+          "field32" -> 123.45,
+          "field33" -> Json.arr("blabla", 456L, JsNull)
+        )
+      ) must beEqualTo(
+        Json.obj(
+          "field2" -> "beta", 
+          "field3" -> Json.obj(
+            "field31" -> true,
+            "field33" -> Json.arr("blabla", 456L, JsNull),
+            "field32" -> 123.45
+          ),
+          "field1" -> 123
+        )
+      )
+
+      Json.obj(
+        "field1" -> 123, 
+        "field2" -> "beta", 
+        "field3" -> Json.obj(
+          "field31" -> true,
+          "field32" -> 123.45,
+          "field33" -> Json.arr("blabla", JsNull)
+        )
+      ) must not equalTo(
+        Json.obj(
+          "field2" -> "beta", 
+          "field3" -> Json.obj(
+            "field31" -> true,
+            "field33" -> Json.arr("blabla", 456L),
+            "field32" -> 123.45
+          ),
+          "field1" -> 123
+        )
+      )
+
+      Json.obj(
+        "field1" -> 123, 
+        "field2" -> "beta", 
+        "field3" -> Json.obj(
+          "field31" -> true,
+          "field32" -> 123.45,
+          "field33" -> Json.arr("blabla", 456L, JsNull)
+        )
+      ) must not equalTo(
+        Json.obj(
+          "field3" -> Json.obj(
+            "field31" -> true,
+            "field33" -> Json.arr("blabla", 456L, JsNull),
+            "field32" -> 123.45
+          ),
+          "field1" -> 123
+        )
+      )
+    }
+  }
+}
+
 /*object JsonSpec extends Specification {
 
   case class User(id: Long, name: String, friends: List[User])

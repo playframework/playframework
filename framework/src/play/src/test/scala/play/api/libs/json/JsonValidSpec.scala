@@ -296,17 +296,41 @@ object JsonValidSpec extends Specification {
 
       js.validate[User] must equalTo(JsSuccess(bobby))
     }
+
+    "Compose reads" in {
+      val js = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> 123L,
+        "field3" -> Json.obj("field31" -> "beta", "field32"-> 345)
+      )
+      val reads1 = (__ \ 'field3).json.pick
+      val reads2 = (__ \ 'field32).read[Int] and (__ \ 'field31).read[String] tupled
+
+      js.validate(reads1 andThen reads2).get must beEqualTo(345 -> "beta")
+    }
+
   }
 
   "JSON generators" should {
     "Build JSON from JSON Reads" in {
       import Reads._
+      val js0 = Json.obj(
+        "key1" -> "value1",
+        "key2" -> Json.obj(
+          "key21" -> 123,
+          "key23" -> true,
+          "key24" -> "blibli"
+        ),
+        "key3" -> "alpha"
+      )
+
       val js = Json.obj(
         "key1" -> "value1",
         "key2" -> Json.obj(
           "key21" -> 123,
           "key22" -> Json.obj("key222" -> "blabla"),
-          "key23" -> true
+          "key23" -> true,
+          "key24" -> "blibli"
         ),
         "key3" -> Json.arr("alpha", "beta", "gamma")
       )
@@ -315,15 +339,14 @@ object JsonValidSpec extends Specification {
       def func = { JsNumber(dt + 100) }
 
       val jsonTransformer = (
-        (__ \ "key1").json.copy[JsString] and
-        (__ \ "key2").json.copy(
+        (__ \ "key1").json.pickBranch and
+        (__ \ "key2").json.pickBranch(
           (
-            (__ \ "key21").json.copy[JsNumber] and
             (__ \ "key22").json.put( (__ \ "key22").json.pick.map( js => js \ "key222" ) ) and 
-            (__ \ "key24").json.put( (__ \ "key23").json.pick )
+            (__ \ "key233").json.put( (__ \ "key23").json.pick )
           ) reduce
         ) and
-        (__ \ "key3").json.put( (__ \ "key3").json.pick[JsArray].map( (js: JsArray) => js ++ Json.arr("delta")) ) and
+        (__ \ "key3").json.pickBranch[JsArray]( pure(Json.arr("delta")) ) and
         (__ \ "key4").json.put(
           (
             (__ \ "key41").json.put(JsNumber(345)) and
@@ -338,10 +361,17 @@ object JsonValidSpec extends Specification {
         "key2" -> Json.obj(
           "key21" -> 123,
           "key22" -> "blabla",
-          "key24" -> true
+          "key23" -> true,
+          "key24" -> "blibli",
+          "key233" -> true
          ),
         "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),
         "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha", "key43" -> func)
+      )
+
+      js0.validate(jsonTransformer) must beEqualTo(
+        JsError( (__ \ 'key3), "validate.error.expected.jsarray" ) ++
+        JsError( (__ \ 'key2 \ 'key2 \ 'key22), "validate.error.missing-path" )
       )
 
       js.validate(jsonTransformer) must beEqualTo(JsSuccess(res))
@@ -363,15 +393,14 @@ object JsonValidSpec extends Specification {
       def func = { JsNumber(dt + 100) }
 
       val jsonTransformer = (
-        (__ \ "key1").jsonw.copy and
-        (__ \ "key2").jsonw.copy(
+        (__ \ "key1").jsonw.pickBranch and
+        (__ \ "key2").jsonw.pickBranch(
           (
-            (__ \ "key21").jsonw.copy and
             (__ \ "key22").jsonw.put( (__ \ "key22").jsonw.pick.transform( js => js \ "key222" ) ) and 
             (__ \ "key24").jsonw.put( (__ \ "key23").jsonw.pick )
           ) join
         ) and
-        (__ \ "key3").jsonw.put( (__ \ "key3").jsonw.pick.transform( js => js.as[JsArray] ++ Json.arr("delta")) ) and
+        (__ \ "key3").jsonw.put( (__ \ "key3").jsonw.pick.transform( js => js.as[JsArray] :+ JsString("delta") ) ) and
         (__ \ "key4").jsonw.put(
           (
             (__ \ "key41").jsonw.put(JsNumber(345)) and
@@ -386,7 +415,8 @@ object JsonValidSpec extends Specification {
         "key2" -> Json.obj(
           "key21" -> 123,
           "key22" -> "blabla",
-          "key24" -> true
+          "key24" -> true,
+          "key23" -> true
          ),
         "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),
         "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha", "key43" -> func)
@@ -549,8 +579,8 @@ object JsonValidSpec extends Specification {
       import Reads._
 
       val myReads: Reads[JsObject] = (
-        (__ \ 'field1).json.copy[JsString] and
-        (__ \ 'field2).json.copy[JsObject]
+        (__ \ 'field1).json.pickBranch and
+        (__ \ 'field2).json.pickBranch
       ) reduce
 
       val js0 = Json.obj("field1" -> "alpha")

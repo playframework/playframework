@@ -187,6 +187,8 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
    */
   def values: Set[JsValue] = fields.map(_._2).toSet
 
+  def fieldSet: Set[(String, JsValue)] = fields.toSet
+
   /**
    * Merge this object with an other one. Values from other override value of the current object.
    */
@@ -264,6 +266,20 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
     JsObject(step(fields.toList, other.fields.toList))
   }
+
+  override def equals(other: Any): Boolean =
+    other match {
+
+      case that: JsObject =>
+        (that canEqual this) &&
+        fieldSet == that.fieldSet
+
+      case _ => false
+    }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[JsObject]
+
+  override def hashCode: Int = fieldSet.hashCode()
 
 }
 
