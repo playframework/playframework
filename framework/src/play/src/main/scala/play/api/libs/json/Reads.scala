@@ -458,7 +458,7 @@ trait DefaultReads {
   /**
    * Deserializer for Array[T] types.
    */
-  implicit def ArrayReads[T](implicit lr: Reads[List[T]], m: Manifest[T]): Reads[Array[T]] = new Reads[Array[T]] {
+  implicit def ArrayReads[T: Reads : Manifest]: Reads[Array[T]] = new Reads[Array[T]] {
     def reads(json: JsValue) = json.validate[List[T]].map( _.toArray )
   }
 
