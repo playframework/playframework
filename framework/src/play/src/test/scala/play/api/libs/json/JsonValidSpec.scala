@@ -570,7 +570,7 @@ object JsonValidSpec extends Specification {
       case class Test(field: String)
       val myFormat = (__ \ 'field).format[String].inmap(Test, unlift(Test.unapply))
 
-      myFormat.reads(Json.obj("field" -> "blabla")) must beEqualTo(JsSuccess(Test("blabla")))
+      myFormat.reads(Json.obj("field" -> "blabla")) must beEqualTo(JsSuccess(Test("blabla"), __ \ 'field))
       myFormat.reads(Json.obj()) must beEqualTo(JsError( __ \ 'field, "validate.error.missing-path" ) )
       myFormat.writes(Test("blabla")) must beEqualTo(Json.obj("field" -> "blabla"))
     }
