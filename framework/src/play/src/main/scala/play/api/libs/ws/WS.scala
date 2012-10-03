@@ -92,7 +92,7 @@ object WS {
      * Return the current headers of the request being constructed
      */
     def allHeaders: Map[String, Seq[String]] = {
-      mapAsScalaMapConverter(request.getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
     }
 
     /**
