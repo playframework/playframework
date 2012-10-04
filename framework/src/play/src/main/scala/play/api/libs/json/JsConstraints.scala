@@ -142,4 +142,9 @@ trait ConstraintWrites {
     def writes(a: A): JsValue = JsUndefined("pruned")
   }
 
+  def list[A](implicit writes:Writes[A]): Writes[List[A]] = Writes.traversableWrites[A]
+  def set[A](implicit writes:Writes[A]): Writes[Set[A]] = Writes.traversableWrites[A]
+  def seq[A](implicit writes:Writes[A]): Writes[Seq[A]] = Writes.traversableWrites[A]
+  def map[A](implicit writes:Writes[A]): OWrites[collection.immutable.Map[String, A]] = Writes.mapWrites[A]
+
 }

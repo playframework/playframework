@@ -73,6 +73,38 @@ object JsonSpec extends Specification {
       )
     }
   }
+
+  "JSON Writes" should {
+    "write list/seq/set/map" in {
+      import util._
+      import Writes._
+
+      Json.toJson(List(1, 2, 3)) must beEqualTo(Json.arr(1, 2, 3))
+      Json.toJson(Set("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
+      Json.toJson(Seq("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
+      Json.toJson(Map("key1" -> "value1", "key2" -> "value2")) must beEqualTo(Json.obj("key1" -> "value1", "key2" -> "value2"))
+
+      implicit val myWrites = (
+        (__ \ 'key1).write(constraints.list[Int]) and
+        (__ \ 'key2).write(constraints.set[String]) and
+        (__ \ 'key3).write(constraints.seq[String]) and
+        (__ \ 'key4).write(constraints.map[String])
+      ) tupled
+
+      Json.toJson( List(1, 2, 3), 
+        Set("alpha", "beta", "gamma"), 
+        Seq("alpha", "beta", "gamma"), 
+        Map("key1" -> "value1", "key2" -> "value2")
+      ) must beEqualTo( 
+        Json.obj(
+          "key1" -> Json.arr(1, 2, 3),
+          "key2" -> Json.arr("alpha", "beta", "gamma"),
+          "key3" -> Json.arr("alpha", "beta", "gamma"),
+          "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
+        )
+      )
+    }
+  }
 }
 
 /*object JsonSpec extends Specification {
