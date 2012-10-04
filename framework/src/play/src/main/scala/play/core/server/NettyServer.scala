@@ -1,15 +1,9 @@
 package play.core.server
 
-import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
 import org.jboss.netty.bootstrap._
 import org.jboss.netty.channel.Channels._
 import org.jboss.netty.handler.codec.http._
-import org.jboss.netty.channel.socket.nio._
-import org.jboss.netty.handler.stream._
-import org.jboss.netty.handler.codec.http.HttpHeaders._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.ssl._
 
@@ -19,15 +13,12 @@ import javax.net.ssl._
 import java.util.concurrent._
 
 import play.core._
-import play.core.server.websocket._
 import play.api._
-import play.api.mvc._
-import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input._
-import play.api.libs.concurrent._
 import play.core.server.netty._
 
-import scala.collection.JavaConverters._
+import java.security.cert.X509Certificate
+import java.io.{File, FileInputStream}
+import utils.IO
 
 /**
  * provides a stopable Server
@@ -50,21 +41,16 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       Executors.newCachedThreadPool()))
 
   class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
+
     def getPipeline = {
       val newPipeline = pipeline()
-
       if (secure) {
-        val keyStore = KeyStore.getInstance("JKS")
-        keyStore.load(FakeKeyStore.asInputStream, FakeKeyStore.getKeyStorePassword)
-        val kmf = KeyManagerFactory.getInstance("SunX509")
-        kmf.init(keyStore, FakeKeyStore.getCertificatePassword)
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(kmf.getKeyManagers, null, null)
-        val sslEngine = sslContext.createSSLEngine
-        sslEngine.setUseClientMode(false)
-        newPipeline.addLast("ssl", new SslHandler(sslEngine))
+        sslContext.map { ctxt =>
+            val sslEngine = ctxt.createSSLEngine
+            sslEngine.setUseClientMode(false)
+            newPipeline.addLast("ssl", new SslHandler(sslEngine))
+        }
       }
-
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("compressor", new HttpContentCompressor())
@@ -72,7 +58,63 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
-  }
+
+    lazy val sslContext: Option[SSLContext] =  //the sslContext should be reused on each connection
+      Option(System.getProperty("https.keyStore")) map { path =>
+        // Load the configured key store
+        val keyStore = KeyStore.getInstance(System.getProperty("https.keyStoreType", "JKS"))
+        val password = System.getProperty("https.keyStorePassword", "").toCharArray
+        val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
+        val file = new File(path)
+        if (file.isFile) {
+          IO.use(new FileInputStream(file)) {
+            in =>
+              keyStore.load(in, password)
+          }
+          Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
+          try {
+            val kmf = KeyManagerFactory.getInstance(algorithm)
+            kmf.init(keyStore, password)
+            Some(kmf)
+          } catch {
+            case e: Exception => {
+              Logger("play").error("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
+              None
+            }
+          }
+        } else {
+          Logger("play").error("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\"")
+          None
+        }
+      } orElse {
+
+        // Load a generated key store
+        Logger("play").warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
+        Some(FakeKeyStore.keyManagerFactory(applicationProvider.path))
+
+      } flatMap { a => a } map { kmf =>
+          // Load the configured trust manager
+          val tm = Option(System.getProperty("https.trustStore")).map {
+            case "noCA" => {
+              Logger("play").warn("HTTPS configured with no client " +
+                "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+              Array[TrustManager](noCATrustManager)
+            }
+            case _ => {
+              Logger("play").debug("Using default trust store for client side CA verification")
+              null
+            }
+          }.getOrElse {
+            Logger("play").debug("Using default trust store for client side CA verification")
+            null
+          }
+
+          // Configure the SSL context
+          val sslContext = SSLContext.getInstance("TLS")
+          sslContext.init(kmf.getKeyManagers, tm, null)
+          sslContext
+        }
+      }
 
   // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)
   val allChannels = new DefaultChannelGroup
@@ -142,13 +184,19 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
 
 }
 
+object noCATrustManager extends X509TrustManager {
+  val nullArray = Array[X509Certificate]()
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def getAcceptedIssuers() = nullArray
+}
+
 /**
  * bootstraps Play application with a NettyServer backened
  */
 object NettyServer {
 
   import java.io._
-  import java.net._
 
   /**
    * creates a NettyServer based on the application represented by applicationPath
@@ -223,7 +271,9 @@ object NettyServer {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val appProvider = new ReloadableApplication(sbtLink)
-        new NettyServer(appProvider, port, mode = Mode.Dev)
+        new NettyServer(appProvider, port,
+          Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
+          mode = Mode.Dev)
       } catch {
         case e => {
           throw e match {
