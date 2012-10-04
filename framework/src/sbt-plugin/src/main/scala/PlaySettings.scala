@@ -97,8 +97,7 @@ trait PlaySettings {
 
     parallelExecution in Test := false,
 
-    //TODO: this should be re-enabled once we know more about xsbt/issues/512
-    fork in Test := false,
+    fork in Test := true,
 
     testOptions in Test += Tests.Setup { loader =>
       loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
