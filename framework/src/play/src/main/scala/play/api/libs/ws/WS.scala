@@ -119,6 +119,13 @@ object WS {
     }
 
     /**
+     * Return the current query string parameters
+     */
+    def queryString: Map[String, Seq[String]] = {
+      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getParams()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+    }
+
+    /**
      * Retrieve an HTTP header.
      */
     def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
