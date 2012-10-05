@@ -59,7 +59,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
   val emptySeq: immutable.IndexedSeq[Certificate] = Nil.toIndexedSeq
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
 
-    trait certs { req: RequestHeader =>
+    trait Certs { req: RequestHeader =>
 
       def certs: Future[IndexedSeq[Certificate]] = {
         import org.jboss.netty.handler.ssl.SslHandler
@@ -140,7 +140,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
         //mapping netty request to Play's
 
-        val requestHeader = new RequestHeader with certs {
+        val requestHeader = new RequestHeader with Certs {
           val id = requestIDs.incrementAndGet
           val tags = Map.empty[String,String]
           def uri = nettyHttpRequest.getUri
