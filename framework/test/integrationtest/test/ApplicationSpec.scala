@@ -250,6 +250,14 @@ class ApplicationSpec extends Specification {
       }
     }
 
+    "support all valid Java identifiers in router" in {
+      running(FakeApplication()) {
+        val Some(result) = route(FakeRequest(GET, "/ident/3"))
+        status(result) must equalTo(OK)
+        contentAsString(result) must_== "3"
+      }
+    }
+
   }
 
 }

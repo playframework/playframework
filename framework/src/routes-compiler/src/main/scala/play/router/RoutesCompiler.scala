@@ -92,7 +92,9 @@ import scala.util.matching._
 
       def ignoreWhiteSpace: Parser[Option[String]] = opt(whiteSpace)
 
-      def identifier: Parser[String] = namedError(ident, "Identifier expected")
+      def javaIdent: Parser[String] = """\p{javaJavaIdentifierStart}\p{javaJavaIdentifierPart}*""".r
+
+      def identifier: Parser[String] = namedError(javaIdent, "Identifier expected")
 
       def end: util.matching.Regex = """\s*""".r
 
@@ -176,7 +178,7 @@ import scala.util.matching._
 
       def packageName: Parser[List[String]] = namedError(rep1sep("[a-z]+".r, "."), "Package name expected")
 
-      def className: Parser[String] = namedError("[a-zA-Z]+".r, "Class name expected")
+      def className: Parser[String] = namedError(javaIdent, "Class name expected")
 
       def call: Parser[HandlerCall] = opt("@") ~ packageName ~ "." ~ className ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
         case instantiate ~ pkgName ~ _ ~ className ~ _ ~ fieldMethod ~ parameters =>
