@@ -61,13 +61,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
     trait Certs { req: RequestHeader =>
 
-      def certs: Future[IndexedSeq[Certificate]] = {
+      def certs: Future[Seq[Certificate]] = {
         import org.jboss.netty.handler.ssl.SslHandler
         import scala.util.control.Exception._
         import javax.net.ssl.SSLPeerUnverifiedException
         val sslCatcher = catching(classOf[SSLPeerUnverifiedException])
 
-        val res: Option[Future[IndexedSeq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
+        val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
           sslCatcher.opt {
             logger.debug("checking for certs in ssl session")
             val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
@@ -81,11 +81,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case Some(agent) if needAuth(agent) => sslh.getEngine.setNeedClientAuth(true)
               case _ => sslh.getEngine.setWantClientAuth(true)
             }
-            val future = sslh.handshake()
-            val r: Future[IndexedSeq[Certificate]] = NettyPromise(future).extend{ p=>
+            Some(NettyPromise(sslh.handshake()).extend{ p=>
                 sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
-            }
-            Some(r)
+            })
           }
          }
         logger.debug("returning Promise")
