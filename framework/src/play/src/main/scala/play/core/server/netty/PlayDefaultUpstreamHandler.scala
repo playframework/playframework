@@ -272,7 +272,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             .map(Cookies.decode(_))
             .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
               Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
-                play.api.mvc.Cookie(Flash.COOKIE_NAME, "", 0)
+                Flash.discard.toCookie
               }
             }
           }
