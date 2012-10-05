@@ -44,14 +44,16 @@ class PlayLogManager(extra: ScopedKey[_] => Seq[AbstractLogger], playPositionMap
       delegate = LogManager.defaultLogger(data, state, task, screen, backed(to), extra(task).toList).asInstanceOf[AbstractLogger]
     ) {
 
-      override def log(level: Level.Value, message: => String) {
+      override def log(level: Level.Value, message: => String): Unit =  {
         if (atLevel(level)) {
           sourcePositionFilter.filter(level, message) { (level, message) =>
             InPlaceLogger.clear()
-            if (filtered(message)) {
-              InPlaceLogger.log(message)
-            } else {
-              super.log(level, message)
+            if (!message.contains("Running java with options -classpath")) {
+              if (filtered(message)) {
+                InPlaceLogger.log(message)
+              } else {
+                super.log(level, message)
+              }
             }
           }
         }
