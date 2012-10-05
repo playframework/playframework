@@ -82,7 +82,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               case _ => sslh.getEngine.setWantClientAuth(true)
             }
             val future = sslh.handshake()
-            future.await()
             val r: Future[IndexedSeq[Certificate]] = NettyPromise(future).extend{ p=>
                 sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
             }
