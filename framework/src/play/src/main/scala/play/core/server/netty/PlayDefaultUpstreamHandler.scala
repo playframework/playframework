@@ -69,11 +69,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
         val res: Option[Future[IndexedSeq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
           sslCatcher.opt {
-            logger.info("checking for certs in ssl session")
+            logger.debug("checking for certs in ssl session")
             val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
             Promise.pure[IndexedSeq[Certificate]](res)
           } orElse {
-            logger.info("attempting to request certs from client")
+            logger.debug("attempting to request certs from client")
             //need to make use of the certificate sessions in the setup process
             //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
             sslh.setEnableRenegotiation(true); //does this have to be done on every request?
@@ -89,7 +89,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             Some(r)
           }
          }
-        logger.info("returning Promise")
+        logger.debug("returning Promise")
         res.getOrElse(Promise.pure(throw new SSLException("No SSLHandler!")))
       }
 
