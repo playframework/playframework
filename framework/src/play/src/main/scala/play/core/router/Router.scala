@@ -119,18 +119,26 @@ object Router {
   case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String) {
 
     def getControllerClass: Class[_] = {
-      Option(controller.split('.').takeRight(1).head).filter(p => p.charAt(0).toUpper != p.charAt(0)).map { field =>
-        val parent = ref.getClass.getClassLoader.loadClass(controller.split('.').dropRight(1).mkString("."))
-        try {
-          parent.getMethod(field).getReturnType
-        } catch {
-          case _ => parent.getField(field).getType
-        }
-      }.getOrElse {
+      try {
         ref.getClass.getClassLoader.loadClass(controller)
+      } catch {
+        case e: Exception => {
+          // It might be a field or method, try to see if the parent exists as a class
+          val parent = try {
+            ref.getClass.getClassLoader.loadClass(controller.split('.').dropRight(1).mkString("."))
+          } catch {
+            // Throw the original exception
+            case _ => throw e
+          }
+          val field = controller.split('.').takeRight(1).head
+          try {
+            parent.getMethod(field).getReturnType
+          } catch {
+            case _ => parent.getField(field).getType
+          }
+        }
       }
     }
-
   }
 
   def queryString(items: List[Option[String]]) = {
@@ -154,8 +162,8 @@ object Router {
       def call(call: => play.mvc.Result, handler: HandlerDef) = {
         new play.core.j.JavaAction {
           def invocation = call
-          def controller = handler.getControllerClass
-          def method = MethodUtils.getMatchingAccessibleMethod(controller, handler.method, handler.parameterTypes: _*)
+          lazy val controller = handler.getControllerClass
+          lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, handler.method, handler.parameterTypes: _*)
         }
       }
     }
