@@ -23,6 +23,7 @@ import java.security.cert.Certificate
 import collection.immutable.Nil
 import javax.net.ssl.SSLException
 import scala.concurrent.Future
+import scala.collection.JavaConversions._
 
 object PlayDefaultUpstreamHandler {
   val logger = Logger("play")
@@ -34,6 +35,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
   import PlayDefaultUpstreamHandler.logger
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
+  private lazy val needAuthPatterns = Play.maybeApplication.flatMap(_.configuration.getStringList("https.cert.needAuthPatterns"))
+    .map(_.toList).getOrElse(Seq("Java", "AppleWebKit", "Opera", "libcurl"))
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
     logger.warn("Exception caught in Netty", e.getCause)
@@ -100,12 +103,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
        *  therefore be done over javascript, on resources that NEED a cert, and which can fail cleanly with a
        *  javascript exception.  )
        *
-       *  It would be useful if this could be updated by server from time to  time from a file on the internet,
-       *  so that changes to browsers could update server behavior.
-       *
+       *  The list of User Agent String fragments that are tested can be configured using https.cert.needAuthPatterns,
+       *  which should return a list of Strings that will be tested to see if the User-Agent contains that String.
        */
-      def needAuth(agent: String): Boolean =
-        (agent contains "Java")  | (agent contains "AppleWebKit")  |  (agent contains "Opera") | (agent contains "libcurl")
+      private def needAuth(agent: String): Boolean = needAuthPatterns.exists(p => agent.contains(p))
 
     }
 
