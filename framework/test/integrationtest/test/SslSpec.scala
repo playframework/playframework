@@ -1,16 +1,13 @@
 import java.io.{FileInputStream, File}
-import java.net.{HttpURLConnection, URL, URLConnection, Socket}
+import java.net.{HttpURLConnection, URL}
 import java.security.cert.X509Certificate
 import java.security.KeyStore
 import javax.net.ssl._
 import javax.security.auth.x500.X500Principal
 import org.apache.commons.io.IOUtils
 import org.specs2.execute.Result
-import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
-import play.api.test.FakeApplication
-import play.api.test.TestServer
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
 import play.core.utils.IO
@@ -41,7 +38,7 @@ class SslSpec extends Specification {
       contentAsString(conn) must_== "Bob Client"
     }
 
-    "not trust untrusted client certificates" in new Ssl {
+    "not trust untrusted client certificates" in new Ssl(None, None, trustStore=Some("default")) {
       val conn = clientCertRequest()
       conn.getResponseCode must throwA[SSLHandshakeException]
     }
@@ -49,6 +46,13 @@ class SslSpec extends Specification {
     "not accept no client certificate" in new Ssl(None, None, trustStore = Some("noCA")) {
       val conn = clientCertRequest(withClientCert = false)
       conn.getResponseCode must throwA[SSLHandshakeException]
+    }
+
+    "accept a trusted client certificate" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password"),
+      trustStore = Some("keystore")) {
+      val conn = clientCertRequest()
+      conn.getResponseCode must_== 200
+      contentAsString(conn) must_== "Bob Client"
     }
   }
 
