@@ -7,6 +7,9 @@ import org.w3c.dom.*;
 import org.codehaus.jackson.*;
 
 import play.i18n.Lang;
+import play.libs.F;
+
+import java.security.cert.Certificate;
 
 /**
  * Defines HTTP standard objects.
@@ -287,6 +290,8 @@ public class Http {
             }
             return headers[0];
         }
+
+        public abstract F.Promise<List<Certificate>> certs();
 
     }
 
