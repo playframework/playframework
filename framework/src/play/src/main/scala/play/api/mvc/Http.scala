@@ -180,9 +180,11 @@ package play.api.mvc {
       version: String = this.version,
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
-      remoteAddress: String = this.remoteAddress
+      remoteAddress: String = this.remoteAddress,
+      certs: => Future[Seq[Certificate]] = this.certs
     ): RequestHeader = {
       val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress)
+      def _certs: Future[Seq[Certificate]] = certs
       new RequestHeader {
         val id = _id
         val tags = _tags
@@ -193,7 +195,7 @@ package play.api.mvc {
         val queryString = _queryString
         val headers = _headers
         val remoteAddress = _remoteAddress
-        def certs = this.certs
+        def certs = _certs
       }
     }
 
