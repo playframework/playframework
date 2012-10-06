@@ -18,11 +18,9 @@ trait PlayAssetsCompiler {
     naming: (String, Boolean) => String,
     compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
     optionsSettings: sbt.SettingKey[Seq[String]]) =
-    (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, incrementalAssetsCompilation, requireSubFolder) map { (state, src, resources, cache, options, files, incrementalAssetsCompilation, requireSubFolder) =>
+    (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, incrementalAssetsCompilation, requireJsSupport) map { (state, src, resources, cache, options, files, incrementalAssetsCompilation, requireJsSupport) =>
 
-      val require = (src / "assets" / name / requireSubFolder)
-
-      val requireSupport = if (require.exists) {
+      val requireSupport = if (requireJsSupport) {
         Seq("rjs")
       } else Seq[String]()
 

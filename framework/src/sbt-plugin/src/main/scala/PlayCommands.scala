@@ -14,7 +14,7 @@ import play.console.Colors
 
 import PlayExceptions._
 import PlayKeys._
-
+import java.io.{File=>JFile}
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
@@ -85,34 +85,37 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     inAllDependencies(r, (compile in Compile).task, Project structure s).join
   }
 
-  val buildRequire = TaskKey[Seq[(java.io.File, java.io.File)]]("play-build-require-assets")
-  val buildRequireTask = (copyResources in Compile, crossTarget, requireSubFolder, requireNativePath) map { (cr, crossTarget, requireSubFolder, requireNativePath) =>
+  val buildRequire = TaskKey[Seq[(JFile, JFile)]]("play-build-require-assets")
+  val buildRequireTask = (copyResources in Compile, crossTarget, requireJsSupport, requireNativePath, streams) map { (cr, crossTarget, requireJsSupport, requireNativePath,  s) =>
     val buildDescName = "app.build.js"
-    val prefix = "javascripts" + java.io.File.separator
-    val subDir = prefix + requireSubFolder
-    val rjoldDir = crossTarget / "classes" / "public" / subDir
+    val jsFolder = "javascripts" 
+    val rjoldDir = crossTarget / "classes" / "public" / jsFolder
     val jsFiles = (rjoldDir ** "*.js").filter(_.getName.endsWith("min.js") == false).get.toSet
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
-    if (jsFiles.isEmpty == false) {
-      val rjnewDir = new java.io.File(rjoldDir.getAbsolutePath + "-min")
+    if (jsFiles.isEmpty == false && requireJsSupport) {
+      val rjnewDir = new JFile(rjoldDir.getAbsolutePath + "-min")
       val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
-      IO.write(buildDesc,
-        """({
-              appDir: """" + subDir + """",
-              baseUrl: ".",
-              dir:"""" + prefix + rjnewDir.getName + """",
-              modules: ["""
-          + jsFiles.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """
-              ]
-           })""".stripMargin
+      val content =  """({appDir: """" + jsFolder + """",
+          baseUrl: ".",
+          dir:"""" + rjnewDir.getName + """",
+          modules: [""" + jsFiles.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
 
-      )
+      IO.write(buildDesc,content)
       //run requireJS
-      requireNativePath.map(nativePath =>
-        println(play.core.jscompile.JavascriptCompiler.executeNativeCompiler(nativePath + " -o " + buildDesc.getAbsolutePath, buildDesc))
-      ).getOrElse {
-        play.core.jscompile.JavascriptCompiler.require(buildDesc)
-      }
+      s.log.info("RequireJS optimization has begun...")
+      s.log.info(buildDescName+":")
+      s.log.info(content)
+      try {
+        requireNativePath.map(nativePath =>
+          println(play.core.jscompile.JavascriptCompiler.executeNativeCompiler(nativePath + " -o " + buildDesc.getAbsolutePath, buildDesc))
+        ).getOrElse {
+          play.core.jscompile.JavascriptCompiler.require(buildDesc)
+        }
+        s.log.info("RequireJS optimization finished.")
+      } catch {case ex: Exception => 
+        s.log.error("RequireJS optimization has failed...")
+        throw ex
+      }  
       //clean-up
       IO.delete(buildDesc)
       IO.delete(rjoldDir)

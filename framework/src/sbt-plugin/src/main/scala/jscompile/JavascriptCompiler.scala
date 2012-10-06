@@ -119,41 +119,19 @@ object JavascriptCompiler {
 
     import scalax.file._
 
-    lazy val compiler = {
-      val ctx = Context.enter; ctx.setOptimizationLevel(-1)
-      val global = new Global; global.init(ctx)
-      val scope = ctx.initStandardObjects(global)
-
+    val ctx = Context.enter; ctx.setOptimizationLevel(-1)
+    val global = new Global; global.init(ctx)
+    val scope = ctx.initStandardObjects(global)
+    val writer = new java.io.StringWriter()
+    try {
       val defineArguments = """arguments = ['-o', '""" + source.getAbsolutePath + "']"
       ctx.evaluateString(scope, defineArguments, null,
         1, null)
-      ctx.evaluateReader(scope, new InputStreamReader(
+      val r = ctx.evaluateReader(scope, new InputStreamReader(
         this.getClass.getClassLoader.getResource("r.js").openConnection().getInputStream()),
-        "require", 1, null)
-      println("---------")
-      Context.exit
-    }
-
-    try {
-      compiler
-    } catch {
-      case e: JavaScriptException => {
-
-        val line = """.*on line ([0-9]+).*""".r
-        val error = e.getValue.asInstanceOf[Scriptable]
-
-        throw ScriptableObject.getProperty(error, "message").asInstanceOf[String] match {
-          case msg @ line(l) => CompilationException(
-            msg,
-            source,
-            Some(Integer.parseInt(l)))
-          case msg => CompilationException(
-            msg,
-            source,
-            None)
-        }
-
-      }
+        "r.js", 1, null)
+    } finally {
+      Context.exit()
     }
   }
 

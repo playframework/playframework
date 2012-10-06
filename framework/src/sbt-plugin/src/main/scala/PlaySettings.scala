@@ -181,7 +181,7 @@ trait PlaySettings {
 
     playAssetsDirectories <+= baseDirectory / "public",
 
-    requireSubFolder := "rjs",
+    requireJsSupport := true,
 
     requireNativePath := None,
 
