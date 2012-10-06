@@ -21,9 +21,9 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import java.security.cert.Certificate
 import collection.immutable.Nil
-import javax.net.ssl.SSLException
+import javax.net.ssl.{SSLHandshakeException, SSLException}
 import scala.concurrent.Future
-import scala.collection.JavaConversions._
+import java.nio.channels.ClosedChannelException
 
 object PlayDefaultUpstreamHandler {
   val logger = Logger("play")
@@ -35,11 +35,20 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
   import PlayDefaultUpstreamHandler.logger
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
-  private lazy val needAuthPatterns = Play.maybeApplication.flatMap(_.configuration.getStringList("https.cert.needAuthPatterns"))
-    .map(_.toList).getOrElse(Seq("Java", "AppleWebKit", "Opera", "libcurl"))
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    logger.warn("Exception caught in Netty", e.getCause)
+    e.getCause match {
+      case e: ClosedChannelException => {
+        // One example of when this happens is when renegotiating SSL to use peer certificates in Chrome,
+        // Chrome doesn't support renegotiation properly, so it just closes the channel and reconnects.
+        logger.debug("Channel closed early", e)
+      }
+      case e: SSLHandshakeException => {
+        // This could be thrown when requesting a peer certificate, and none is provided
+        logger.debug("SSL Handshake exception", e)
+      }
+      case _ => logger.warn("Exception caught in Netty", e.getCause)
+    }
     e.getChannel.close()
   }
 
@@ -79,35 +88,17 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             logger.debug("attempting to request certs from client")
             //need to make use of the certificate sessions in the setup process
             //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
-            sslh.setEnableRenegotiation(true); //does this have to be done on every request?
-            req.headers.get("User-Agent") match {
-              case Some(agent) if needAuth(agent) => sslh.getEngine.setNeedClientAuth(true)
-              case _ => sslh.getEngine.setWantClientAuth(true)
-            }
+            sslh.setEnableRenegotiation(true)
+            // For why we are using need client auth: https://github.com/playframework/Play20/pull/340#issuecomment-9193330
+            sslh.getEngine.setNeedClientAuth(true)
             Some(NettyPromise(sslh.handshake()).extend{ p=>
-                sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
+                sslCatcher.opt(sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]).getOrElse(Nil)
             })
           }
          }
         logger.debug("returning Promise")
         res.getOrElse(Promise.pure(throw new SSLException("No SSLHandler!")))
       }
-
-      /**
-       *  Some agents do not send client certificates unless required by a NEED.
-       *
-       *  This is a problem for them, as it ends up breaking the SSL connection for agents that do not send a cert.
-       *  For human agents this is a bigger problem, as one would rather send them a message of explanation for what
-       *  went wrong, with perhaps pointers to other methods  of authentication, rather than showing an ugly connection
-       *  broken/dissallowed window ) For Opera and AppleWebKit browsers (Safari) authentication requests should
-       *  therefore be done over javascript, on resources that NEED a cert, and which can fail cleanly with a
-       *  javascript exception.  )
-       *
-       *  The list of User Agent String fragments that are tested can be configured using https.cert.needAuthPatterns,
-       *  which should return a list of Strings that will be tested to see if the User-Agent contains that String.
-       */
-      private def needAuth(agent: String): Boolean = needAuthPatterns.exists(p => agent.contains(p))
-
     }
 
     e.getMessage match {
