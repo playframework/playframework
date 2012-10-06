@@ -53,4 +53,9 @@ public class Application extends Controller {
         return ok(play.i18n.Messages.get("hello"));
     }
 
+    @With(ClientCertAction.class)
+    public static Result clientCert() {
+        return ok(request().username());
+    }
+
 }
