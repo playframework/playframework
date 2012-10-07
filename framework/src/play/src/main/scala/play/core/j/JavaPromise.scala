@@ -13,8 +13,6 @@ import play.api.libs.concurrent.execution.defaultContext
 
 object JavaPromise {
 
-  import akka.dispatch.sip14Adapters._
-
   def akkaAsk (actor: akka.actor.ActorRef, message: Any, timeout: akka.util.Timeout): scala.concurrent.Future[AnyRef] =
     akka.pattern.Patterns.ask(actor,message,timeout)
 

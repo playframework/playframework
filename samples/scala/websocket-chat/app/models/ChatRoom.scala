@@ -1,7 +1,7 @@
 package models
 
 import akka.actor._
-import akka.util.duration._
+import scala.concurrent.util.duration._
 
 import play.api._
 import play.api.libs.json._
@@ -13,8 +13,6 @@ import akka.pattern.ask
 
 import play.api.Play.current
 import play.api.libs.concurrent.execution.defaultContext
-
-import akka.dispatch.sip14Adapters._
 
 object Robot {
   

@@ -6,14 +6,12 @@ import akka.pattern.ask
 import play.api.mvc._
 import akka.actor._
 import akka.actor._
-import akka.util.duration._
+import scala.concurrent.util.duration._
 import library.{Calculator,Work}
 import play.api.mvc.Results._
 import play.api.libs.concurrent._
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.defaultContext
-
-import akka.dispatch.sip14Adapters._
 
 object Application extends Controller {
   

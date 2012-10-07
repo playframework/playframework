@@ -5,7 +5,7 @@ import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
 
-import akka.util.*;
+import scala.concurrent.util.*;
 import akka.actor.*;
 import akka.dispatch.*;
 
@@ -13,6 +13,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.node.*;
 
 import static java.util.concurrent.TimeUnit.*;
+import static play.core.j.JavaPromise.defaultExecutionContext;
 
 public class Robot {
     
@@ -37,7 +38,8 @@ public class Robot {
             Duration.create(30, SECONDS),
             Duration.create(30, SECONDS),
             chatRoom,
-            new ChatRoom.Talk("Robot", "I'm still alive")
+            new ChatRoom.Talk("Robot", "I'm still alive"),
+            defaultExecutionContext()
         );
         
     }

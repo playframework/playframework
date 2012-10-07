@@ -103,40 +103,6 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
-    /** Let's remove this after the migration to Scala 2.10 * */
-    lazy val Sip14Backport = Project(
-        "SIP14-Backport",
-        file("src/sip14-backport"),
-        settings = buildSettingsWithMIMA ++ Seq(
-            publishTo := Some(playRepository),
-            scalaVersion := buildScalaVersionForSbt,
-            scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-            javacOptions in doc := Seq("-source", "1.6"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
-        )
-    )
-
-    lazy val AkkaSip14Adapters = Project(
-        "akka-SIP14-adapters",
-        file("src/akka-sip14-adapters"),
-        settings = buildSettingsWithMIMA ++ Seq(
-            publishTo := Some(playRepository),
-            libraryDependencies := akkaSip14AdaptersDependencies,
-            scalaVersion := buildScalaVersionForSbt,
-            scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
-        )
-    ).dependsOn({
-        Seq[sbt.ClasspathDep[sbt.ProjectReference]](Sip14Backport)
-    }:_*)
-
     lazy val PlayProject = Project(
         "Play",
         file("src/play"),
@@ -156,9 +122,7 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn({
-        Seq[sbt.ClasspathDep[sbt.ProjectReference]](SbtLinkProject, PlayExceptionsProject, TemplatesProject, AnormProject) ++ {
-            if(experimental) Nil else Seq[sbt.ClasspathDep[sbt.ProjectReference]](Sip14Backport, AkkaSip14Adapters)
-        }
+        Seq[sbt.ClasspathDep[sbt.ProjectReference]](SbtLinkProject, PlayExceptionsProject, TemplatesProject, AnormProject)
     }:_*)
 
     lazy val PlayTestProject = Project(
@@ -227,8 +191,8 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            publish <<= (publish in SbtLinkProject, publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject, publish in RoutesCompilerProject, publish in TemplatesCompilerProject, publish in Sip14Backport, publish in AkkaSip14Adapters, publish in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in SbtLinkProject, publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in RoutesCompilerProject, publishLocal in TemplatesCompilerProject, publishLocal in Sip14Backport, publishLocal in AkkaSip14Adapters, publishLocal in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_,_) => }
+            publish <<= (publish in SbtLinkProject, publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject, publish in RoutesCompilerProject, publish in TemplatesCompilerProject, publish in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_) => },
+            publishLocal <<= (publishLocal in SbtLinkProject, publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in RoutesCompilerProject, publishLocal in TemplatesCompilerProject, publishLocal in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_) => }
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
      .dependsOn(PlayProject).aggregate(SbtLinkProject, AnormProject, TemplatesProject, TemplatesCompilerProject, RoutesCompilerProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
@@ -242,7 +206,7 @@ object PlayBuild extends Build {
         val buildWithDoc      = Option(System.getProperty("generate.doc")).isDefined
         val previousVersion   = "2.0.3"
         val previousScalaVersion = "2.9.1"
-        val buildScalaVersion = if(experimental) "2.10.0-M7" else "2.9.2"
+        val buildScalaVersion = "2.10.0-M7"
         val buildScalaVersionForSbt = "2.9.2"
         val buildSbtVersion   = "0.12.1"
         val buildSbtVersionBinaryCompatible = "0.12"
@@ -301,8 +265,8 @@ object PlayBuild extends Build {
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.3",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.3",
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
-            "com.typesafe.akka"                 %    (if(experimental) "akka-actor_2.10.0-M7" else "akka-actor" ) % (if(experimental) "2.1-M2" else "2.0.2"),
-            "com.typesafe.akka"                 %    (if(experimental) "akka-slf4j_2.10.0-M7" else "akka-slf4j" ) % (if(experimental) "2.1-M2" else "2.0.2"),
+            "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
+            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
 
             ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
               .exclude("com.google.code.findbugs", "jsr305")
@@ -317,11 +281,7 @@ object PlayBuild extends Build {
             "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
             "com.h2database"                    %    "h2"                       %   "1.3.158",
             
-            if(experimental) {
-                "org.scala-tools"               %    "scala-stm_2.10.0-M7"      %   "0.6"
-            } else {
-                "org.scala-tools"               %%   "scala-stm"                %   "0.6"
-            },
+                "org.scala-tools"               %    "scala-stm_2.10.0-M7"      %   "0.6",
 
             ("com.jolbox"                       %    "bonecp"                   %   "0.7.1.RELEASE" notTransitive())
               .exclude("com.google.guava", "guava")
@@ -374,11 +334,8 @@ object PlayBuild extends Build {
 
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
 
-            if(experimental) {
-              "org.specs2"                        %   "specs2_2.10.0-M7"        %   "1.12.1.1"     %  "test"
-            } else {
-              "org.specs2"                        %%   "specs2"                   %   "1.11"     %  "test"
-            },
+              "org.specs2"                        %   "specs2_2.10.0-M7"        %   "1.12.1.1"     %  "test",
+
               "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
               "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
 
@@ -389,9 +346,6 @@ object PlayBuild extends Build {
             "org.javassist"                     %    "javassist"                %   "3.16.1-GA"
         )
 
-        val akkaSip14AdaptersDependencies = Seq(
-            "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2"
-        )
         
         val routersCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1"
@@ -447,11 +401,7 @@ object PlayBuild extends Build {
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
-            if(experimental) {
-              "org.specs2"                        %   "specs2_2.10.0-M7"        %   "1.12.1.1"
-            } else {
-              "org.specs2"                        %%   "specs2"                   %   "1.11"
-            },
+            "org.specs2"                        %   "specs2_2.10.0-M7"        %   "1.12.1.1",
             "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
 
             // junit is literally evil because it bundles hamcrest classes that creates classloader hell.

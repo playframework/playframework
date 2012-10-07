@@ -10,6 +10,7 @@ import akka.actor.*;
 
 import java.util.*;
 import java.text.*;
+import scala.concurrent.util.Duration;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -40,7 +41,7 @@ public class Application extends Controller {
             Akka.system().scheduler().schedule(
                 Duration.Zero(),
                 Duration.create(100, MILLISECONDS),
-                instance, "TICK"
+                instance, "TICK", play.core.j.JavaPromise.defaultExecutionContext()
             );
         }
         

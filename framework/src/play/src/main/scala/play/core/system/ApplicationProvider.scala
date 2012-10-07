@@ -92,8 +92,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       // Because we are on DEV mode here, it doesn't really matter
       // but it's more coherent with the way it works in PROD mode.
 
-      import akka.dispatch.sip14Adapters._
-
       implicit def dispatcher: scala.concurrent.ExecutionContext = play.core.Invoker.system.dispatcher
 
       Await.result(Future {

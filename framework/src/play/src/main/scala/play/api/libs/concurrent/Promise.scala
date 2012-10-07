@@ -314,7 +314,6 @@ object Promise {
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[A] = {
     val p = Promise[A]()
-    import akka.dispatch.sip14Adapters._
     play.core.Invoker.system.scheduler.scheduleOnce(scala.concurrent.util.Duration(duration, unit))(p.redeem(message))
     p.future
   }

@@ -1,6 +1,5 @@
 import play.api._
 
-import actors._
 import java.util.concurrent._
 
 object MyGlobal extends GlobalSettings {

@@ -1,6 +1,6 @@
 package controllers
 
-import akka.util.duration._
+import scala.concurrent.util.duration._
 import play.api._
 import play.api.mvc._
 import play.api.libs._
@@ -13,7 +13,6 @@ import actors.ChatRoomActor._
 import akka.util.Timeout
 import akka.pattern.ask
 import play.api.libs.concurrent.execution.defaultContext
-import akka.dispatch.sip14Adapters._
 
 
 object Application extends Controller {

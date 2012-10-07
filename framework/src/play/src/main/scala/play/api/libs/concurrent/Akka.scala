@@ -1,4 +1,4 @@
-package play.api.libs.concurrent {
+package play.api.libs.concurrent
 
 import play.api._
 import play.api.libs.concurrent._
@@ -45,7 +45,6 @@ object Akka {
    * }}}
    */
   def future[T](body: => T)(implicit app: Application): Future[T] = {
-    import akka.dispatch.sip14Adapters._
     Future(body)(system.dispatcher)
   }
 
@@ -74,9 +73,4 @@ class AkkaPlugin(app: Application) extends Plugin {
   }
 
 }
-}
-package akka.dispatch.sip14Adapters{
 
-  object _nothingIsHere
-
-}
