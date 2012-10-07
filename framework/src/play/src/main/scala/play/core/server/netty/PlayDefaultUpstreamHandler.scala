@@ -73,7 +73,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
     trait Certs { req: RequestHeader =>
 
-      def certs: Future[Seq[Certificate]] = {
+      def certs(required:Boolean): Future[Seq[Certificate]] = {
         import org.jboss.netty.handler.ssl.SslHandler
         import scala.util.control.Exception._
         import javax.net.ssl.SSLPeerUnverifiedException
@@ -89,8 +89,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             //need to make use of the certificate sessions in the setup process
             //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
             sslh.setEnableRenegotiation(true)
-            // For why we are using need client auth: https://github.com/playframework/Play20/pull/340#issuecomment-9193330
-            sslh.getEngine.setNeedClientAuth(true)
+            if (required) {
+              sslh.getEngine.setNeedClientAuth(true)
+            } else {
+              sslh.getEngine.setWantClientAuth(true)
+            }
             Some(NettyPromise(sslh.handshake()).extend{ p=>
                 sslCatcher.opt(sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]).getOrElse(Nil)
             })

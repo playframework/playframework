@@ -88,7 +88,7 @@ trait JavaHelpers {
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
 
-      def certs = new play.libs.F.Promise(req.certs.map(c => c.asJava))
+      def certs(required: Boolean) = new play.libs.F.Promise(req.certs(required).map(c => c.asJava))
 
       override def toString = req.toString
 
@@ -147,7 +147,7 @@ trait JavaHelpers {
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
 
-      def certs = new play.libs.F.Promise(req.certs.map(c => c.asJava))
+      def certs(required: Boolean) = new play.libs.F.Promise(req.certs(required).map(c => c.asJava))
 
       override def toString = req.toString
 

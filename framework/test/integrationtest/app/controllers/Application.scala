@@ -155,7 +155,7 @@ object Application extends Controller {
 
     Action(authenticatedBodyParser) { request =>
       Async {
-        request.certs.map { certs =>
+        request.certs(true).map { certs =>
           certs.headOption match {
             case Some(cert: X509Certificate) =>
               getUser(cert.getSubjectX500Principal.getName).map(user => action(user)(request))
