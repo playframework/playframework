@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 public class ClientCertAction extends Action.Simple {
     @Override
     public Result call(final Http.Context context) throws Throwable {
-        return async(context.request().certs().map(new F.Function<List<Certificate>, Result>() {
+        return async(context.request().certs(true).map(new F.Function<List<Certificate>, Result>() {
             @Override
             public Result apply(List<Certificate> certificates) throws Throwable {
                 if (certificates.size() > 0 && certificates.get(0) instanceof X509Certificate) {
