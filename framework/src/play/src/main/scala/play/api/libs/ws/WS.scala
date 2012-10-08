@@ -1,7 +1,6 @@
 package play.api.libs.ws
 
-import scala.concurrent.Future
-import play.api.libs.concurrent._
+import scala.concurrent.{Future, Promise}
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.http.{ Writeable, ContentTypeOf }
@@ -154,11 +153,11 @@ object WS {
       calculator.map(_.sign(this))
       WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
         override def onCompleted(response: AHCResponse) = {
-          result.redeem(Response(response))
+          result.success(Response(response))
           response
         }
         override def onThrowable(t: Throwable) = {
-          result.redeem(throw t)
+          result.failure(t)
         }
       })
       result.future
@@ -254,7 +253,7 @@ object WS {
               case Step.Done(a, e) => {
                 doneOrError = true
                 val it = Done(a, e)
-                iterateeP.redeem(it)
+                iterateeP.success(it)
                 it
               }
 
@@ -265,7 +264,7 @@ object WS {
               case Step.Error(e, input) => {
                 doneOrError = true
                 val it = Error(e, input)
-                iterateeP.redeem(it)
+                iterateeP.success(it)
                 it
               }
             }
@@ -277,11 +276,11 @@ object WS {
         }
 
         override def onCompleted() = {
-          Option(iteratee).map(iterateeP.redeem(_))
+          Option(iteratee).map(iterateeP.success(_))
         }
 
         override def onThrowable(t: Throwable) = {
-          iterateeP.redeem(throw t)
+          iterateeP.failure(t)
         }
       })
       iterateeP.future
