@@ -57,8 +57,9 @@ private[sbt] class PlayTestListener extends TestsListener {
               te.result match {
                 case TResult.Success => playReport("test case", "finished, result" -> event.result.get.toString)
                 case TResult.Error | TResult.Failure =>
-                  playReport("test", "failed" -> te.testName, "details" -> (te.error.toString +
-                    "\n" + te.error.getStackTrace.mkString("\n at ", "\n at ", "")))
+                  val e = Option(te.error).getOrElse(new RuntimeException("some unexpected error occurred during test execution"))
+                  playReport("test", "failed" -> te.testName, "details" -> (e.toString +
+                    "\n" + e.getStackTrace.mkString("\n at ", "\n at ", "")))
                 case TResult.Skipped =>
                   playReport("test", "ignored" -> te.testName)
               }
