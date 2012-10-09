@@ -26,7 +26,7 @@ object Console {
 
   def replace(file: File, tokens: (String, String)*) {
     if (file.exists) {
-      Path(file).write(tokens.foldLeft(Path(file).string) { (state, token) =>
+      Path(file).write(tokens.foldLeft(Path(file).slurpString) { (state, token) =>
         state.replace("%" + token._1 + "%", token._2)
       })
     }

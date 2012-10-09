@@ -389,8 +389,7 @@ object PlayBuild extends Build {
         )
 
         val consoleDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
-            "net.databinder.giter8"             %    "giter8_2.9.1"             %   "0.5.0"
+            "net.databinder.giter8"             %   "giter8_2.9.1"             %   "0.5.0" 
         )
 
         val templatesDependencies = Seq(
