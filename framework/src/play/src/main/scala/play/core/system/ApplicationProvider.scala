@@ -9,6 +9,7 @@ import scala.concurrent.util.duration._
 
 import play.api._
 import play.api.mvc._
+import akka.actor.ActorSystem
 
 /**
  * provides source code to be displayed on error pages
@@ -63,7 +64,9 @@ class TestApplication(application: Application) extends ApplicationProvider {
 /**
  * represents an application that can be reloaded in Dev Mode
  */
-class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
+class ReloadableApplication(sbtLink: SBTLink, reloaderActorSystem: ActorSystem) extends ApplicationProvider {
+
+
 
   // Use plain Java call here in case of scala classloader mess
   {
@@ -92,7 +95,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       // Because we are on DEV mode here, it doesn't really matter
       // but it's more coherent with the way it works in PROD mode.
 
-      implicit def dispatcher: scala.concurrent.ExecutionContext = play.core.Invoker.system.dispatcher
+      implicit def dispatcher: scala.concurrent.ExecutionContext = reloaderActorSystem.dispatcher
 
       Await.result(Future {
 

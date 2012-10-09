@@ -23,12 +23,13 @@ import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 
 private[server] trait WebSocketHandler {
+  self: WithInvoker =>
   def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = {
 
     val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
     val enumerator = new Enumerator[A] {
-      val iterateeAgent = Agent[Option[Iteratee[A, Any]]](None)
+      val iterateeAgent = Agent[Option[Iteratee[A, Any]]](invoker, None)
       private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
       def apply[R](i: Iteratee[A, R]) = {

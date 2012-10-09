@@ -115,7 +115,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     if (server != null) {
       sys.error("Server already started!")
     }
-    play.core.Invoker.uninit()
+    play.core.Invoker.reset()
     try {
       server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
     } catch {

@@ -13,6 +13,7 @@ import play.api.libs.iteratee._
 import play.api.http.HeaderNames._
 
 import play.utils._
+import javax.annotation.concurrent.GuardedBy
 
 /**
  * holds Play's internal invokers
@@ -48,13 +49,17 @@ object Invoker {
    */
   //case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 
+  private val guard = new Object()
+  @GuardedBy("guard")
   private var invokerOption: Option[Invoker] = None
 
-  private def invoker: Invoker = invokerOption.getOrElse {
-    val default = new Invoker()
-    invokerOption = Some(default)
-    Logger.info("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
-    default
+  private def invoker: Invoker = guard.synchronized {
+    invokerOption.getOrElse {
+      val default = new Invoker()
+      invokerOption = Some(default)
+      Logger.info("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
+      default
+    }
   }
 
   private def appProviderActorSystem(applicationProvider: ApplicationProvider) = {
@@ -71,7 +76,7 @@ object Invoker {
   /**
    * saves invoker instance in global scope
    */
-  def init(invoker: Invoker): Unit = {
+  def init(invoker: Invoker): Unit = guard.synchronized {
     if (invokerOption.isDefined)
       throw new IllegalStateException("Invoker was initialized twice without an intervening uninit; two Server created at once?")
     invokerOption = Some(invoker)
@@ -80,7 +85,8 @@ object Invoker {
   /**
    * removes invoker instance from global scope
    */
-  def uninit(): Unit = {
+  def reset(): Unit = guard.synchronized {
+    invokerOption.map(_.stop())
     invokerOption = None
   }
 
@@ -98,9 +104,9 @@ object Agent {
     def close(): Unit = c
   }
 
-  def apply[A](a: A): Operations[A] = {
-    val actor: ActorRef = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
-    new Operations[A](actor, Invoker.system.stop(actor))
+  def apply[A](invoker: Invoker, a: A): Operations[A] = {
+    val actor: ActorRef = invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
+    new Operations[A](actor, invoker.system.stop(actor))
   }
 
   private class Agent[A](var a: A) extends Actor {

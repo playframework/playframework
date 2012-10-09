@@ -40,8 +40,7 @@ object Helpers extends Status with HeaderNames {
       } finally {
         Play.stop()
         play.api.libs.concurrent.Promise.resetSystem()
-        play.core.Invoker.system.shutdown()
-        play.core.Invoker.uninit()
+        play.core.Invoker.reset()
         play.api.libs.ws.WS.resetClient()
       }
     }
