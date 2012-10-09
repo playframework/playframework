@@ -4,7 +4,6 @@ import java.util.*;
 import java.beans.*;
 import java.lang.reflect.*;
 
-import com.avaje.ebean.Query.UseIndex;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.OrderBy;
 import com.avaje.ebean.ExpressionList;
@@ -725,7 +724,14 @@ public class Model {
         public Query<T> setForUpdate(boolean forUpdate) {
             return query().setForUpdate(forUpdate);
         }
-        
+
+        /**
+         * Whether this query is for update
+         */
+        @Override
+        public boolean isForUpdate() {
+            return query().isForUpdate();
+        }
     }
     
 }
