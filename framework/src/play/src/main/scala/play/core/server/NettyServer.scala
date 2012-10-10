@@ -19,6 +19,7 @@ import play.core.server.netty._
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream}
 import utils.IO
+import akka.actor.ActorSystem
 
 /**
  * provides a stopable Server
@@ -270,10 +271,17 @@ object NettyServer {
   def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
-        val appProvider = new ReloadableApplication(sbtLink)
+        val reloader = ActorSystem("play-reloadable-app")
+        val appProvider = new ReloadableApplication(sbtLink, reloader)
         new NettyServer(appProvider, port,
           Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
-          mode = Mode.Dev)
+          mode = Mode.Dev) {
+          override def stop() {
+            super.stop()
+            reloader.shutdown()
+            reloader.awaitTermination()
+          }
+        }
       } catch {
         case e => {
           throw e match {

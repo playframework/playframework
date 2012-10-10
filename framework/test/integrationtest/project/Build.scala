@@ -7,7 +7,9 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Nil 
 
-    val main = PlayProject(appName, appVersion, appDependencies)
+    val main = PlayProject(appName, appVersion, appDependencies).settings(
+      parallelExecution in Test := false
+    )
 
 }
             

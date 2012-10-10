@@ -118,8 +118,9 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
-            compile in (Compile) <<= PostCompile
-        )
+            compile in (Compile) <<= PostCompile,
+            parallelExecution in Test := false
+  )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn({
         Seq[sbt.ClasspathDep[sbt.ProjectReference]](SbtLinkProject, PlayExceptionsProject, TemplatesProject, AnormProject)

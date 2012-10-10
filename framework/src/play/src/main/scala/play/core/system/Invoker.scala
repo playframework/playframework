@@ -13,6 +13,7 @@ import play.api.libs.iteratee._
 import play.api.http.HeaderNames._
 
 import play.utils._
+import javax.annotation.concurrent.GuardedBy
 
 /**
  * holds Play's internal invokers
@@ -48,13 +49,10 @@ object Invoker {
    */
   //case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
 
-  private var invokerOption: Option[Invoker] = None
+  private var invokerOption: Option[(Invoker, Array[StackTraceElement])] = None
 
-  private def invoker: Invoker = invokerOption.getOrElse {
-    val default = new Invoker()
-    invokerOption = Some(default)
-    Logger.info("Invoker was created outside of Invoker#init - this potentially could lead to initialization problems in production mode")
-    default
+  private def invoker: Invoker = invokerOption.map(_._1).getOrElse {
+    throw new IllegalStateException("Invoker system not started or inited")
   }
 
   private def appProviderActorSystem(applicationProvider: ApplicationProvider) = {
@@ -69,18 +67,32 @@ object Invoker {
   def apply(applicationProvider: ApplicationProvider): Invoker = new Invoker(Some(applicationProvider))
 
   /**
+   * Start an invoker in the global scope, used by tests
+   */
+  def start() {
+    synchronized {
+      init(new Invoker())
+    }
+  }
+
+  /**
    * saves invoker instance in global scope
    */
-  def init(invoker: Invoker): Unit = {
-    if (invokerOption.isDefined)
-      throw new IllegalStateException("Invoker was initialized twice without an intervening uninit; two Server created at once?")
-    invokerOption = Some(invoker)
+  def init(invoker: => Invoker) {
+    synchronized {
+      invokerOption = invokerOption match {
+        case Some(existing) => throw new IllegalStateException(existing._2.dropWhile(_.getClassName == "play.core.Invoker$").mkString(
+            "Invoker initialised twice, first invocation was: ", "\n\tat ", "\nMake sure you call Invoker.reset() after using it.\n"))
+        case None => Some((invoker, new Exception().getStackTrace))
+      }
+    }
   }
 
   /**
    * removes invoker instance from global scope
    */
-  def uninit(): Unit = {
+  def reset(): Unit = synchronized {
+    invokerOption.map(_._1.stop())
     invokerOption = None
   }
 
@@ -98,9 +110,9 @@ object Agent {
     def close(): Unit = c
   }
 
-  def apply[A](a: A): Operations[A] = {
-    val actor: ActorRef = Invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
-    new Operations[A](actor, Invoker.system.stop(actor))
+  def apply[A](invoker: Invoker, a: A): Operations[A] = {
+    val actor: ActorRef = invoker.system.actorOf(Props(new Agent[A](a)).withDispatcher("akka.actor.websockets-dispatcher"))
+    new Operations[A](actor, invoker.system.stop(actor))
   }
 
   private class Agent[A](var a: A) extends Actor {

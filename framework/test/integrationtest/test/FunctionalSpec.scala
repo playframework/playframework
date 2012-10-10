@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class FunctionalSpec extends Specification {
   "an Application" should {
-    
+    sequential
     def cal = Calendar.getInstance()
 
     val startDate = cal.getTime()
@@ -182,6 +182,7 @@ class FunctionalSpec extends Specification {
     }
 
     "Provide a hook to handle errors" in {
+      sequential
       "Synchronous results" in {
         running(TestServer(9000), HTMLUNIT) { browser =>
           browser.goTo("http://localhost:9000/sync-error")

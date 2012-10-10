@@ -1,16 +1,18 @@
 package play.concurrent
 
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{Around, Specification}
 import play.api.libs.concurrent._
 import org.specs2.execute.Result
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.specs2.specification.Scope
+import play.core.Invoker
 
 
 class PromiseSpec extends Specification {
 
   "Promise" can {
 
-    "filter" in {
+    "filter" in new WithInvokerSystem {
 
       "Redeemed values" << {
         val p = Promise.timeout(42, 100)
@@ -29,6 +31,17 @@ class PromiseSpec extends Specification {
 
     }
 
+  }
+
+  trait WithInvokerSystem extends Around with Scope {
+    def around[T <% Result](t: => T) = {
+      Invoker.start()
+      try {
+        t
+      } finally {
+        Invoker.reset()
+      }
+    }
   }
 
 }
