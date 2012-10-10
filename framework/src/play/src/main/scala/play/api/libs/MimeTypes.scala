@@ -37,6 +37,14 @@ object MimeTypes {
     }
   }.getOrElse(Map.empty)
 
+  def isText(mimeType: String): Boolean = {
+    mimeType.trim match {
+        case text if text.startsWith("text/") => true
+        case text if additionalText.contains(text) => true
+        case _ => false
+    }
+  }
+
   lazy val defaultTypes =
     """
         3dm=x-world/x-3dmf
@@ -587,5 +595,10 @@ object MimeTypes {
 
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
       parts(0) -> parts.drop(1).mkString).toMap
+
+    lazy val additionalText =
+    """
+        application/json
+    """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#')
 
 }
