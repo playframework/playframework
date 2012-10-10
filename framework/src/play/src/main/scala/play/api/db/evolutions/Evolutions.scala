@@ -583,7 +583,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
 
   def htmlDescription: String = {
 
-    <span>An evolution has not been applied properly. Please check the problem and resolve it manually before making it as resolved -</span>
+    <span>An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved -</span>
     <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>
 
   }.map(_.toString).mkString
