@@ -1,15 +1,17 @@
 package sbt
 
 import Keys._
-import jline._
 
 import play.api._
-import play.core._
-
+import play.core.PlayVersion
 import play.console.Colors
+
+import java.util.regex.Pattern
 
 object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
     with PlaySettings with PlayPositionMapper {
+
+  val SnapshotVersion = "(.*-)SNAPSHOT"r
 
   if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
     println()
@@ -20,12 +22,13 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
   }
 
   Option(System.getProperty("play.version")).map {
-    case badVersion if badVersion != play.core.PlayVersion.current => {
+    case SnapshotVersion(versionPrefix) if PlayVersion.current.matches(Pattern.quote(versionPrefix) + "[0-9]+") =>
+    case badVersion if badVersion != PlayVersion.current => {
       println(
         Colors.red("""
           |This project uses Play %s!
           |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
-        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
+        """.stripMargin.format(PlayVersion.current, badVersion))
       )
     }
     case _ =>
