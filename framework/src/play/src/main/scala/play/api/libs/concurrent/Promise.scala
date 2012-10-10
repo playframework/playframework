@@ -16,6 +16,7 @@ import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
 
 import play.api.libs.concurrent.execution.defaultContext
+import javax.annotation.concurrent.GuardedBy
 
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
@@ -258,24 +259,29 @@ object PurePromise {
  */
 object Promise {
 
+  private val guard = new Object()
+
+  @GuardedBy("guard")
   private var underlyingSystem: Option[ActorSystem] = Some(ActorSystem("promise"))
 
-  private[concurrent] lazy val defaultTimeout =
-    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis
+  private[concurrent] lazy val defaultTimeout: Long =
+    Play.maybeApplication.flatMap(_.configuration.getMilliseconds("promise.akka.actor.typed.timeout")).getOrElse(5000l)
 
   /**
    * actor system for Promises
    */
-  private[concurrent] def system = underlyingSystem.getOrElse {
-    val a = ActorSystem("promise")
-    underlyingSystem = Some(a)
-    a
+  private[concurrent] def system = guard.synchronized {
+    underlyingSystem.getOrElse {
+      val a = ActorSystem("promise")
+      underlyingSystem = Some(a)
+      a
+    }
   }
 
   /**
    * resets the underlying promise Actor System and clears Java actor references
    */
-  def resetSystem(): Unit = {
+  def resetSystem(): Unit = guard.synchronized {
     underlyingSystem.filter(_.isTerminated == false).map { s =>
       s.shutdown()
       s.awaitTermination()

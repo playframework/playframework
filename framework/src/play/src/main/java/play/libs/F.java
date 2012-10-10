@@ -345,11 +345,9 @@ public class F {
         static List<akka.actor.ActorRef> actors() {
             synchronized(Promise.class) {
                 if(actors == null) {
-                    synchronized(Promise.class) {
-                        actors = new ArrayList<akka.actor.ActorRef>(nb);
-                        for(int i=0; i<nb; i++) {
-                            actors.add(play.api.libs.concurrent.Promise$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
-                        }
+                    actors = new ArrayList<akka.actor.ActorRef>(nb);
+                    for(int i=0; i<nb; i++) {
+                        actors.add(play.api.libs.concurrent.Promise$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
                     }
                 }
             }

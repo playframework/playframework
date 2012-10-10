@@ -362,8 +362,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         } finally {
             stop(fakeApplication);
             play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
-            play.core.Invoker$.MODULE$.system().shutdown();
-            play.core.Invoker$.MODULE$.uninit();
+            play.core.Invoker$.MODULE$.reset();
             play.api.libs.ws.WS$.MODULE$.resetClient();
         }
     }
@@ -416,7 +415,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         TestBrowser browser = null;
         TestServer startedServer = null;
         try {
-            play.core.Invoker.uninit();
+            play.core.Invoker.reset();
             start(server);
             startedServer = server;
             browser = testBrowser(webDriver);
