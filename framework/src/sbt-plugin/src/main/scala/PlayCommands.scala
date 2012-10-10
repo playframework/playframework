@@ -287,9 +287,16 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       else
         Nil
     }
+    val templateClasses = (srcManaged ** "*.template.scala").get flatMap { sourceFile =>
+      if (analysis.apis.internal(sourceFile).compilation.startTime > lastEnhanced)
+        analysis.relations.products(sourceFile)
+      else
+        Nil
+    }
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
+    templateClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
 
     IO.write(timestampFile, System.currentTimeMillis.toString)
 
