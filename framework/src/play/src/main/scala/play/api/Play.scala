@@ -75,7 +75,7 @@ object Play {
   def stop() {
     Option(_currentApp).map { app =>
       Threads.withContextClassLoader(classloader(app)) {
-        app.plugins.foreach { p =>
+        app.plugins.reverse.foreach { p =>
           try { p.onStop } catch { case _ => }
         }
       }

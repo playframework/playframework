@@ -118,6 +118,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 println()
               }
 
+              // First, stop the old application if it exists
+              Play.stop()
+
               val newApplication = new Application(path, classloader, Some(new SourceMapper {
                 def sourceOf(className: String) = sbtLink.findSource(className)
               }), Mode.Dev)
