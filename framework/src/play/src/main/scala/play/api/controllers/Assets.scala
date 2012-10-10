@@ -47,6 +47,13 @@ object Assets extends Controller {
 
   private val parsableTimezoneCode = " " + timeZoneCode
 
+  private lazy val defaultCharSet = Play.configuration.getString("default.charset").getOrElse("utf-8")
+
+  private def addCharsetIfNeeded(mimeType: String): String = 
+    if (MimeTypes.isText(mimeType))
+      "; charset="+defaultCharSet
+    else ""  
+  
   /**
    * Generates an `Action` that serves a static resource.
    *
@@ -107,7 +114,7 @@ object Assets extends Controller {
                 val response = SimpleResult(
                   header = ResponseHeader(OK, Map(
                     CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY),
+                    CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
                     DATE -> df.print({ new java.util.Date }.getTime)
                   )),
                   resourceData

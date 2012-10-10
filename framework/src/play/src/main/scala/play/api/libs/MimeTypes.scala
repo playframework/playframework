@@ -36,7 +36,13 @@ object MimeTypes {
       }.toMap
     }
   }.getOrElse(Map.empty)
-
+  
+  /**
+   * tells you if mimeType is text or not.
+   * Useful to determine whether the charset suffix should be attached to Content-Type or not 
+   * @param mimeType mimeType to check
+   * @return true if mimeType is text
+   */
   def isText(mimeType: String): Boolean = {
     mimeType.trim match {
         case text if text.startsWith("text/") => true
