@@ -1,8 +1,7 @@
 package play.api.libs.iteratee
 
 import scala.concurrent.Future
-import play.api.libs.concurrent._
-import play.api.libs.concurrent.execution.defaultContext
+import play.api.libs.iteratee.internal.defaultExecutionContext
 
 /**
  * Combines the roles of an Iteratee[From] and a Enumerator[To]
@@ -186,8 +185,8 @@ object Enumeratee {
 
   def mapM[E] = new {
     def apply[NE](f: E => Future[NE]): Enumeratee[E, NE] = mapInputM[E] {
-      case Input.Empty => Promise.pure(Input.Empty)
-      case Input.EOF => Promise.pure(Input.EOF)
+      case Input.Empty => Future.successful(Input.Empty)
+      case Input.EOF => Future.successful(Input.EOF)
       case Input.El(e) => f(e).map(Input.El(_))
     }
   }

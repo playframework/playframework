@@ -1,8 +1,8 @@
 package play.api.libs.iteratee
 
-import play.api.libs.concurrent._
-import scala.concurrent.Future
-import play.api.libs.concurrent.execution.defaultContext
+import scala.concurrent.{ Future, Promise }
+import scala.util.{ Try, Success, Failure }
+import play.api.libs.iteratee.internal.defaultExecutionContext
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
@@ -150,8 +150,8 @@ object Enumerator {
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] =
       i.fold{ 
-        case Step.Cont(k) => Promise.pure(k(e))
-        case _ =>  Promise.pure(i)
+        case Step.Cont(k) => Future(k(e))
+        case _ =>  Future.successful(i)
       }
   }
 
@@ -169,7 +169,7 @@ object Enumerator {
 
       def redeemResultIfNotYet(r:Iteratee[E, A]){
         if (attending.single.transformIfDefined{ case Some(_) => None})
-            result.redeem(r)
+            result.success(r)
       }
 
       def iteratee[EE <: E](f: Seq[Boolean] => Seq[Boolean]): Iteratee[EE, Unit] = {
@@ -186,23 +186,23 @@ object Enumerator {
                   val n = k(in)
                   n.fold {
                     case Step.Cont(kk) =>
-                      p.redeem(Cont(kk))
-                      Promise.pure(Cont(step))
+                      p.success(Cont(kk))
+                      Future.successful(Cont(step))
                     case _ => 
-                      p.redeem(n)
-                      Promise.pure(Done((), Input.Empty: Input[EE]))
+                      p.success(n)
+                      Future.successful(Done((), Input.Empty: Input[EE]))
                   }
                 case _ =>
-                  p.redeem(i)
-                  Promise.pure(Done((),Input.Empty: Input[EE]))
+                  p.success(i)
+                  Future.successful(Done((),Input.Empty: Input[EE]))
 
               }
               Iteratee.flatten(nextI)
             case Input.EOF => {
               if(attending.single.transformAndGet { _.map(f) }.forall(_ ==  false)){
-                p.redeem(Iteratee.flatten(i.feed(Input.EOF)))
+                p.complete(Try(Iteratee.flatten(i.feed(Input.EOF))))
               } else {
-                p.redeem(i)
+                p.success(i)
               }
               Done((), Input.Empty)
             }
@@ -213,10 +213,10 @@ object Enumerator {
       val ps = es.zipWithIndex.map{ case (e,index) => e |>> iteratee[E](_.patch(index,Seq(true),1))}
                      .map(_.flatMap(_.pureFold(any => ())))
 
-      Promise.sequence(ps).extend1 {
-        case Redeemed(_) => 
+      Future.sequence(ps).onComplete {
+        case Success(_) => 
           redeemResultIfNotYet(iter.single())
-        case Thrown(e) => result.throwing(e)
+        case Failure(e) => result.failure(e)
 
       }
 
@@ -237,7 +237,7 @@ object Enumerator {
 
       def redeemResultIfNotYet(r:Iteratee[E2, A]){
         if (attending.single.transformIfDefined{ case Some(_) => None})
-            result.redeem(r)
+            result.success(r)
       }
 
       def iteratee[EE <: E2](f: ((Boolean, Boolean)) => (Boolean, Boolean)): Iteratee[EE, Unit] = {
@@ -254,23 +254,23 @@ object Enumerator {
                   val n = k(in)
                   n.fold {
                     case Step.Cont(kk) =>
-                      p.redeem(Cont(kk))
-                      Promise.pure(Cont(step))
+                      p.success(Cont(kk))
+                      Future.successful(Cont(step))
                     case _ => 
-                      p.redeem(n)
-                      Promise.pure(Done((), Input.Empty: Input[EE]))
+                      p.success(n)
+                      Future.successful(Done((), Input.Empty: Input[EE]))
                   }
                 case _ =>
-                  p.redeem(i)
-                  Promise.pure(Done((),Input.Empty: Input[EE]))
+                  p.success(i)
+                  Future.successful(Done((),Input.Empty: Input[EE]))
 
               }
               Iteratee.flatten(nextI)
             case Input.EOF => {
               if(attending.single.transformAndGet { _.map(f) } == Some((false, false))){
-                p.redeem(Iteratee.flatten(i.feed(Input.EOF)))
+                p.complete(Try(Iteratee.flatten(i.feed(Input.EOF))))
               } else {
-                p.redeem(i)
+                p.success(i)
               }
               Done((), Input.Empty)
             }
@@ -283,10 +283,10 @@ object Enumerator {
       val itE2 = iteratee[E2] { case (l, r) => (l, false) }
       val r1 = e1 |>>| itE1
       val r2 = e2 |>>| itE2
-      r1.flatMap(_ => r2).extend1 {
-        case Redeemed(_) => 
+      r1.flatMap(_ => r2).onComplete {
+        case Success(_) => 
           redeemResultIfNotYet(iter.single())
-        case Thrown(e) => result.throwing(e)
+        case Failure(e) => result.failure(e)
 
       }
       result.future
@@ -322,7 +322,7 @@ object Enumerator {
       val pushee = new Pushee[E] {
         def close() {
           if (iteratee != null) {
-            iteratee.feed(Input.EOF).map(result => promise.redeem(result))
+            iteratee.feed(Input.EOF).map(result => promise.success(result))
             iteratee = null
             promise = null
           }
@@ -370,7 +370,7 @@ object Enumerator {
 
     def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s).flatMap {
       case Some((newS,e)) => loop(k(Input.El(e)),newS)
-      case None => Promise.pure(Cont(k))
+      case None => Future.successful(Cont(k))
     }
   })
 
@@ -378,7 +378,7 @@ object Enumerator {
 
     def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s) match {
       case Some((s,e)) => loop(k(Input.El(e)),s)
-      case None => Promise.pure(Cont(k))
+      case None => Future.successful(Cont(k))
     }
   })
 
@@ -398,7 +398,7 @@ object Enumerator {
 
     def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap {
       case Some(e) => loop(k(Input.El(e)))
-      case None => Promise.pure(Cont(k))
+      case None => Future.successful(Cont(k))
     }
   })
 
@@ -413,9 +413,9 @@ object Enumerator {
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       def step(it: Iteratee[E, A]): Future[Iteratee[E,A]] = it.fold {
-          case Step.Done(a, e) => Promise.pure(Done(a,e))
+          case Step.Done(a, e) => Future.successful(Done(a,e))
           case Step.Cont(k) => inner[A](step,k)
-          case Step.Error(msg, e) => Promise.pure(Error(msg,e))
+          case Step.Error(msg, e) => Future.successful(Error(msg,e))
       }
 
       step(it)
@@ -433,9 +433,9 @@ object Enumerator {
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       def step(it: Iteratee[E, A], state:S): Future[Iteratee[E,A]] = it.fold{
-          case Step.Done(a, e) => Promise.pure(Done(a,e))
+          case Step.Done(a, e) => Future.successful(Done(a,e))
           case Step.Cont(k) => inner[A](step,state,k)
-          case Step.Error(msg, e) => Promise.pure(Error(msg,e))
+          case Step.Error(msg, e) => Future.successful(Error(msg,e))
       }
       step(it,s)
     }
@@ -456,7 +456,7 @@ object Enumerator {
             retriever(initial).map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
-                iterateeP.redeem(remainingIteratee)
+                iterateeP.success(remainingIteratee)
                 None
               }
               case Some(read) => {
@@ -465,15 +465,15 @@ object Enumerator {
               }
             }
           }
-          case _ => { iterateeP.redeem(it); Promise.pure(None) }
+          case _ => { iterateeP.success(it); Future.successful(None) }
         }
 
-        next.extend1 {
-          case Redeemed(Some(i)) => step(i)
+        next.onComplete {
+          case Success(Some(i)) => step(i)
 
-          case Redeemed(None) => onComplete()
-          case Thrown(e) =>
-            iterateeP.throwing(e)
+          case Success(None) => onComplete()
+          case Failure(e) =>
+            iterateeP.failure(e)
         }
       }
       step(it, true)
@@ -496,7 +496,7 @@ object Enumerator {
             retriever().map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
-                iterateeP.redeem(remainingIteratee)
+                iterateeP.success(remainingIteratee)
                 None
               }
               case Some(read) => {
@@ -505,13 +505,13 @@ object Enumerator {
               }
             }
           }
-          case _ => { iterateeP.redeem(it); Promise.pure(None) }
+          case _ => { iterateeP.success(it); Future.successful(None) }
         }
 
-        next.extend1 {
-          case Redeemed(Some(i)) => step(i)
-          case Thrown(e) =>
-            iterateeP.throwing(e)
+        next.onComplete {
+          case Success(Some(i)) => step(i)
+          case Failure(e) =>
+            iterateeP.failure(e)
           case _ => onComplete()
         }
 
@@ -532,7 +532,7 @@ object Enumerator {
           System.arraycopy(buffer, 0, input, 0, read)
           Some(input)
       }
-      Promise.pure(chunk)
+      Future.successful(chunk)
     }, input.close)
   }
 
@@ -559,7 +559,7 @@ object Enumerator {
   def enumerate[E](s:Seq[E]): Enumerator[E] = apply(s:_*)
 
   private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Future[Iteratee[E, A]] = { (l, i) =>
-    l.foldLeft(Promise.pure(i))((i, e) =>
+    l.foldLeft(Future.successful(i))((i, e) =>
       i.flatMap(it => it.pureFold{ 
         case Step.Cont(k) => k(Input.El(e))
         case _ => it
@@ -570,14 +570,14 @@ object Enumerator {
     def apply[A](loop: (Iteratee[E,A],Seq[E]) => Future[Iteratee[E,A]], s:Seq[E], k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] =
       if(!s.isEmpty)
         loop(k(Input.El(s.head)),s.tail)
-      else Promise.pure(Cont(k))
+      else Future.successful(Cont(k))
   })
 
   private[iteratee] def enumerateSeq2[E](s:Seq[Input[E]]):Enumerator[E] = checkContinue1(s)(new TreatCont1[E,Seq[Input[E]]]{
     def apply[A](loop: (Iteratee[E,A],Seq[Input[E]]) => Future[Iteratee[E,A]], s:Seq[Input[E]], k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] =
       if(!s.isEmpty)
         loop(k(s.head),s.tail)
-      else Promise.pure(Cont(k))
+      else Future.successful(Cont(k))
   })
 
 }
@@ -589,19 +589,19 @@ class PushEnumerator[E] private[iteratee] (
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {
 
   var iteratee: Iteratee[E, _] = _
-  var promise: Future[Iteratee[E, _]] with Redeemable[Iteratee[E, _]] = _
+  var promise: Promise[Iteratee[E, _]]= _
 
   def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
     onStart()
     iteratee = it.asInstanceOf[Iteratee[E, _]]
     val newPromise = Promise[Iteratee[E, A]]()
-    promise = newPromise.asInstanceOf[Future[Iteratee[E, _]] with Redeemable[Iteratee[E, _]]]
+    promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]]]
     newPromise.future
   }
 
   def close() {
     if (iteratee != null) {
-      iteratee.feed(Input.EOF).map(result => promise.redeem(result))
+      iteratee.feed(Input.EOF).map(result => promise.success(result))
       iteratee = null
       promise = null
     }

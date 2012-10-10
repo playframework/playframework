@@ -1,8 +1,8 @@
 package play.api.libs.iteratee
 
 import scala.concurrent.Future
-import play.api.libs.concurrent._
-import play.api.libs.concurrent.execution.defaultContext
+import internal.defaultExecutionContext
+
 
 /**
  * various helper methods to constract, compose and traverse Iteratees
@@ -288,9 +288,9 @@ trait Iteratee[E, +A] {
    *  @return a [[scala.concurrent.Future]] of the eventually computed result
    */
   def run[AA >: A]: Future[AA] = fold({
-    case Step.Done(a, _) => Promise.pure(a)
+    case Step.Done(a, _) => Future.successful(a)
     case Step.Cont(k) => k(Input.EOF).fold({
-      case Step.Done(a1, _) => Promise.pure(a1)
+      case Step.Done(a1, _) => Future.successful(a1)
       case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
       case Step.Error(msg, e) => sys.error(msg)
     })
@@ -346,7 +346,7 @@ trait Iteratee[E, +A] {
    *
    * @return a [[scala.concurrent.Future]] of a value extracted by calling the appropriate provided function
    */
-  def pureFold[B](folder: Step[E, A] => B): Future[B] = fold(s => Promise.pure(folder(s)))
+  def pureFold[B](folder: Step[E, A] => B): Future[B] = fold(s => Future.successful(folder(s)))
 
   /**
    * Like pureFold, except taking functions that return an Iteratee
@@ -507,8 +507,8 @@ object Parsing {
 
     def applyOn[A](inner: Iteratee[MatchInfo[Array[Byte]], A]): Iteratee[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]] = {
 
-      Iteratee.flatten(inner.fold1((a, e) => Promise.pure(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
-        k => Promise.pure(Cont(step(Array[Byte](), Cont(k)))),
+      Iteratee.flatten(inner.fold1((a, e) => Future.successful(Done(Done(a, e), Input.Empty: Input[Array[Byte]])),
+        k => Future.successful(Cont(step(Array[Byte](), Cont(k)))),
         (err, r) => throw new Exception()))
 
     }
@@ -547,17 +547,17 @@ object Parsing {
           val all = rest ++ chunk
           def inputOrEmpty(a: Array[Byte]) = if (a.isEmpty) Input.Empty else Input.El(a)
 
-          Iteratee.flatten(inner.fold1((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(rest))),
+          Iteratee.flatten(inner.fold1((a, e) => Future.successful(Done(Done(a, e), inputOrEmpty(rest))),
             k => {
               val (result, suffix) = scan(Nil, all, 0)
-              val fed = result.filter(!_.content.isEmpty).foldLeft(Promise.pure(Array[Byte](), Cont(k))) { (p, m) =>
-                p.flatMap(i => i._2.fold1((a, e) => Promise.pure((i._1 ++ m.content, Done(a, e))),
-                  k => Promise.pure((i._1, k(Input.El(m)))),
+              val fed = result.filter(!_.content.isEmpty).foldLeft(Future.successful(Array[Byte](), Cont(k))) { (p, m) =>
+                p.flatMap(i => i._2.fold1((a, e) => Future.successful((i._1 ++ m.content, Done(a, e))),
+                  k => Future.successful((i._1, k(Input.El(m)))),
                   (err, e) => throw new Exception()))
               }
               fed.flatMap {
-                case (ss, i) => i.fold1((a, e) => Promise.pure(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
-                  k => Promise.pure(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
+                case (ss, i) => i.fold1((a, e) => Future.successful(Done(Done(a, e), inputOrEmpty(ss ++ suffix))),
+                  k => Future.successful(Cont[Array[Byte], Iteratee[MatchInfo[Array[Byte]], A]]((in: Input[Array[Byte]]) => in match {
                     case Input.EOF => Done(k(Input.El(Unmatched(suffix))), Input.EOF) //suffix maybe empty
                     case other => step(ss ++ suffix, Cont(k))(other)
                   })),

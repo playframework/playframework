@@ -88,6 +88,19 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
+    lazy val IterateesProject = Project(
+        "Play-Iteratees",
+        file("src/iteratees"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-iteratees_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := iterateesDependencies,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+
     lazy val PlayExceptionsProject = Project(
         "Play-Exceptions",
         file("src/play-exceptions"),
@@ -122,7 +135,7 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn({
-        Seq[sbt.ClasspathDep[sbt.ProjectReference]](SbtLinkProject, PlayExceptionsProject, TemplatesProject, AnormProject)
+        Seq[sbt.ClasspathDep[sbt.ProjectReference]](SbtLinkProject, PlayExceptionsProject, TemplatesProject, AnormProject, IterateesProject)
     }:_*)
 
     lazy val PlayTestProject = Project(
@@ -191,11 +204,11 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            publish <<= (publish in SbtLinkProject, publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject, publish in RoutesCompilerProject, publish in TemplatesCompilerProject, publish in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in SbtLinkProject, publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in RoutesCompilerProject, publishLocal in TemplatesCompilerProject, publishLocal in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_) => }
+            publish <<= (publish in SbtLinkProject, publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in IterateesProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject, publish in RoutesCompilerProject, publish in TemplatesCompilerProject, publish in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_,_) => },
+            publishLocal <<= (publishLocal in SbtLinkProject, publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in IterateesProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in RoutesCompilerProject, publishLocal in TemplatesCompilerProject, publishLocal in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_) => }
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-     .dependsOn(PlayProject).aggregate(SbtLinkProject, AnormProject, TemplatesProject, TemplatesCompilerProject, RoutesCompilerProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
+     .dependsOn(PlayProject).aggregate(SbtLinkProject, AnormProject, IterateesProject, TemplatesProject, TemplatesCompilerProject, RoutesCompilerProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
 
     object BuildSettings {
 
@@ -389,6 +402,12 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
             "org.specs2"                        %    "specs2_2.10.0-M7"         %   "1.12.1.1"    %   "test"
         )
+
+        val iterateesDependencies = Seq(
+            "org.scala-tools"               %    "scala-stm_2.10.0-M7"      %   "0.6",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1"
+        )
+          
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
