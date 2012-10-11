@@ -155,13 +155,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     try {
       Play.stop()
     } catch {
-      case e => Logger("play").error("Error while stopping the application", e)
+      case e: Exception => Logger("play").error("Error while stopping the application", e)
     }
 
     try {
       super.stop()
     } catch {
-      case e => Logger("play").error("Error while stopping akka", e)
+      case e: Exception => Logger("play").error("Error while stopping akka", e)
     }
 
     mode match {
@@ -241,7 +241,7 @@ object NettyServer {
 
       Some(server)
     } catch {
-      case e => {
+      case e: Exception => {
         println("Oops, cannot start the server.")
         e.printStackTrace()
         None
@@ -275,12 +275,7 @@ object NettyServer {
           Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
           mode = Mode.Dev)
       } catch {
-        case e => {
-          throw e match {
-            case e: ExceptionInInitializerError => e.getCause
-            case e => e
-          }
-        }
+        case e: ExceptionInInitializerError => throw e.getCause
       }
 
     }

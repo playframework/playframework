@@ -136,7 +136,11 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 lastState = Left(e)
                 lastState
               }
-              case e => {
+              case e: Exception => {
+                lastState = Left(UnexpectedException(unexpected = Some(e)))
+                lastState
+              }
+              case e: LinkageError => {
                 lastState = Left(UnexpectedException(unexpected = Some(e)))
                 lastState
               }

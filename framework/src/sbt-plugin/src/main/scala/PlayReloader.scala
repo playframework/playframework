@@ -257,7 +257,7 @@ trait PlayReloader {
                       UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
                     }
                   }
-                  case e => UnexpectedException(unexpected = Some(e))
+                  case e: Exception => UnexpectedException(unexpected = Some(e))
                 }.getOrElse {
                   UnexpectedException(Some("Compilation task failed without any exception!?"))
                 }

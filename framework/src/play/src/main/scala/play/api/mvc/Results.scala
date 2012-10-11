@@ -161,7 +161,7 @@ object PlainResult {
    * }}}
    */
   def unapply(result: Result): Option[(Int, Map[String, String])] = result match {
-    case r: PlainResult => Some(r.header.status, r.header.headers)
+    case r: PlainResult => Some((r.header.status, r.header.headers))
     case _ => None
   }
 

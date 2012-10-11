@@ -31,7 +31,7 @@ trait Server {
   try {
     scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
   } catch {
-    case _ =>
+    case _: Exception =>
   }
 
   // Configure the logger for the first time
@@ -62,7 +62,7 @@ trait Server {
           (maybeAction.getOrElse(Action(BodyParsers.parse.empty)(_ => application.global.onHandlerNotFound(request))), application)
         }
       } catch {
-        case e => Left(e)
+        case e: Exception => Left(e)
       }
     }
 

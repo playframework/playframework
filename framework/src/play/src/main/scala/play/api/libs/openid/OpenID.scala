@@ -201,7 +201,7 @@ private[openid] object Discovery {
 
     def resolve(response: Response) = for {
       _ <- response.header(HeaderNames.CONTENT_TYPE).filter(_.contains("application/xrds+xml"))
-      val findInXml = findUriWithType(response.xml) _
+      findInXml = findUriWithType(response.xml) _
       uri <- serviceTypeId.flatMap(findInXml(_)).headOption
     } yield OpenIDServer(uri, None)
 

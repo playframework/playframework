@@ -128,13 +128,13 @@ object Router {
             ref.getClass.getClassLoader.loadClass(controller.split('.').dropRight(1).mkString("."))
           } catch {
             // Throw the original exception
-            case _ => throw e
+            case _: Exception => throw e
           }
           val field = controller.split('.').takeRight(1).head
           try {
             parent.getMethod(field).getReturnType
           } catch {
-            case _ => parent.getField(field).getType
+            case _: Exception => parent.getField(field).getType
           }
         }
       }

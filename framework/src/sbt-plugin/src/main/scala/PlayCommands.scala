@@ -334,8 +334,6 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
           case _ =>
         }
 
-      } catch {
-        case e => throw e
       } finally {
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
       }
@@ -404,7 +402,6 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       case TemplateCompilationError(source, message, line, column) => {
         throw reportCompilationError(state, TemplateCompilationException(source, message, line, column - 1))
       }
-      case e => throw e
     }
 
     (generatedDir ** "*.template.scala").get.map(_.getAbsoluteFile)
@@ -442,7 +439,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     try {
       Integer.parseInt(portString)
     } catch {
-      case e => sys.error("Invalid port argument: " + portString)
+      case e: NumberFormatException => sys.error("Invalid port argument: " + portString)
     }
   }
 
@@ -753,7 +750,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       val h2ServerClass = commonLoader.loadClass(classOf[org.h2.tools.Server].getName)
       h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
-      case e => e.printStackTrace
+      case e: Exception => e.printStackTrace
     }
     state
   }
