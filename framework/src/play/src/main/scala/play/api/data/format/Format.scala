@@ -77,7 +77,7 @@ object Formats {
    */
   implicit def longFormat: Formatter[Long] = new Formatter[Long] {
 
-    override val format = Some("format.numeric", Nil)
+    override val format = Some(("format.numeric", Nil))
 
     def bind(key: String, data: Map[String, String]) =
       parsing(_.toLong, "error.number", Nil)(key, data)
@@ -90,7 +90,7 @@ object Formats {
    */
   implicit def intFormat: Formatter[Int] = new Formatter[Int] {
 
-    override val format = Some("format.numeric", Nil)
+    override val format = Some(("format.numeric", Nil))
 
     def bind(key: String, data: Map[String, String]) =
       parsing(_.toInt, "error.number", Nil)(key, data)
@@ -103,7 +103,7 @@ object Formats {
    */
   implicit def floatFormat: Formatter[Float] = new Formatter[Float] {
 
-    override val format = Some("format.real", Nil)
+    override val format = Some(("format.real", Nil))
 
     def bind(key: String, data: Map[String, String]) =
       parsing(_.toFloat, "error.real", Nil)(key, data)
@@ -116,7 +116,7 @@ object Formats {
    */
   implicit def doubleFormat: Formatter[Double] = new Formatter[Double] {
 
-    override val format = Some("format.real", Nil)
+    override val format = Some(("format.real", Nil))
 
     def bind(key: String, data: Map[String, String]) =
       parsing(_.toDouble, "error.real", Nil)(key, data)
@@ -129,7 +129,7 @@ object Formats {
    */
   implicit def booleanFormat: Formatter[Boolean] = new Formatter[Boolean] {
 
-    override val format = Some("format.boolean", Nil)
+    override val format = Some(("format.boolean", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
       Right(data.get(key).getOrElse("false")).right.flatMap {
@@ -152,7 +152,7 @@ object Formats {
    */
   def dateFormat(pattern: String): Formatter[Date] = new Formatter[Date] {
 
-    override val format = Some("format.date", Seq(pattern))
+    override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
       def dateParser = { s: String =>
@@ -180,7 +180,7 @@ object Formats {
    */
   def sqlDateFormat(pattern: String): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
 
-    override val format = Some("format.date", Seq(pattern))
+    override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
       dateFormat(pattern).bind(key, data).right.map(d => new java.sql.Date(d.getTime))
@@ -206,7 +206,7 @@ object Formats {
 
     import org.joda.time.DateTime
 
-    override val format = Some("format.date", Seq(pattern))
+    override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
 

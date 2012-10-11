@@ -197,7 +197,7 @@ object PlayMagicForJava {
     try {
       play.mvc.Http.Context.Implicit.lang.asInstanceOf[play.api.i18n.Lang]
     } catch {
-      case _ => play.api.i18n.Lang.defaultLang
+      case _: Exception => play.api.i18n.Lang.defaultLang
     }
   }
 

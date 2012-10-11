@@ -59,7 +59,7 @@ object Play {
     _currentApp = app
 
     Threads.withContextClassLoader(classloader(app)) {
-      app.plugins.foreach(_.onStart)
+      app.plugins.foreach(_.onStart())
     }
 
     app.mode match {
@@ -76,7 +76,7 @@ object Play {
     Option(_currentApp).map { app =>
       Threads.withContextClassLoader(classloader(app)) {
         app.plugins.reverse.foreach { p =>
-          try { p.onStop } catch { case _ => }
+          try { p.onStop() } catch { case e: Exception => Logger("play").warn("Error stopping plugin", e)}
         }
       }
     }

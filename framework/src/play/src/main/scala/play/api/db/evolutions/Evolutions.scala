@@ -159,7 +159,7 @@ object Evolutions {
 
     } catch {
       case e: InconsistentDatabase => throw e
-      case _ => try {
+      case _: Exception => try {
         execute(
           """
                     create table play_evolutions (
@@ -240,7 +240,7 @@ object Evolutions {
       }
 
     } catch {
-      case e => {
+      case e: Exception => {
         val message = e match {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex => ex.getMessage
@@ -318,10 +318,10 @@ object Evolutions {
         rs.next match {
           case false => None
           case true => {
-            Some(rs, Evolution(
+            Some((rs, Evolution(
               rs.getInt(1),
               rs.getString(3),
-              rs.getString(4)))
+              rs.getString(4))))
           }
         }
       }

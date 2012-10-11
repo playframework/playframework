@@ -101,7 +101,7 @@ trait GlobalSettings {
       }.getOrElse(views.html.defaultpages.devError.f) {
         ex match {
           case e: UsefulException => e
-          case e => UnexpectedException(unexpected = Some(e))
+          case e: Exception => UnexpectedException(unexpected = Some(e))
         }
       })
     } catch {

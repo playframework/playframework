@@ -50,7 +50,6 @@ object Configuration {
       if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev(appPath))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
-      case e => throw e
     }
   }
 
@@ -104,7 +103,7 @@ case class Configuration(underlying: Config) {
       Option(v)
     } catch {
       case e: ConfigException.Missing => None
-      case e => throw reportError(path, e.getMessage, Some(e))
+      case e: Exception => throw reportError(path, e.getMessage, Some(e))
     }
   }
 
