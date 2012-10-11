@@ -77,8 +77,10 @@ object Assets extends Controller {
       NotFound
     } else {
 
+      val gzippedResource = Play.resource(resourceName + ".gz")
+
       val resource = {
-        Play.resource(resourceName + ".gz").map(_ -> true)
+        gzippedResource.map(_ -> true)
           .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
           .orElse(Play.resource(resourceName).map(_ -> false))
       }
@@ -120,11 +122,12 @@ object Assets extends Controller {
                   resourceData
                 )
 
-                // Is Gzipped?
-                val gzippedResponse = if (isGzipped) {
-                  response.withHeaders(CONTENT_ENCODING -> "gzip")
-                } else {
-                  response
+                // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
+                // Vary header so proxy servers will cache both the gzip and the non gzipped version
+                val gzippedResponse = (gzippedResource.isDefined, isGzipped) match {
+                  case (true, true) => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
+                  case (true, false) => response.withHeaders(VARY -> ACCEPT_ENCODING)
+                  case _ => response
                 }
 
                 // Add Etag if we are able to compute it
