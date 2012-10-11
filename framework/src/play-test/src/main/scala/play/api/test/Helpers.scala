@@ -1,8 +1,6 @@
 package play.api.test
 
 import play.api._
-import db.DBPlugin
-import db.evolutions.Evolutions
 import play.api.mvc._
 import play.api.http._
 
@@ -85,16 +83,6 @@ object Helpers extends Status with HeaderNames {
    * testserver.port
    */
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
-
-  /**
-   * Apply pending evolutions for the given DB.
-   */
-  def evolutionFor(dbName: String, path: java.io.File = new java.io.File(".")) {
-    Play.current.plugin[DBPlugin] map { db =>
-      val script = Evolutions.evolutionScript(db.api, path, db.getClass.getClassLoader, dbName)
-      Evolutions.applyScript(db.api, dbName, script)
-    }
-  }
 
   /**
    * Extracts the Content-Type of this Content value.

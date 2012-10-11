@@ -8,7 +8,12 @@ object ApplicationBuild extends Build {
     val appName         = "zentask"
     val appVersion      = "1.0"
 
-    val main = PlayProject(appName, appVersion, mainLang = SCALA)
+    val appDependencies = Seq(
+      "play" %% "play-jdbc" % play.core.PlayVersion.current,
+      "play" %% "anorm" % play.core.PlayVersion.current
+    )
+
+    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA)
 
 }
             

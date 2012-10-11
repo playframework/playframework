@@ -130,13 +130,110 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             resolvers += typesafe,
-            sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
-            compile in (Compile) <<= PostCompile
+            sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn({
-        Seq[sbt.ClasspathDep[sbt.ProjectReference]](SbtLinkProject, PlayExceptionsProject, TemplatesProject, AnormProject, IterateesProject)
-    }:_*)
+    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject)
+
+    lazy val PlayJdbcProject = Project(
+        "Play-JDBC",
+        file("src/play-jdbc"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-jdbc_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := jdbcDeps,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayJavaProject)
+
+    lazy val PlayJavaJdbcProject = Project(
+        "Play-Java-JDBC",
+        file("src/play-java-jdbc"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-java-jdbc_"+previousScalaVersion} % previousVersion),
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayJdbcProject)
+
+    lazy val PlayEbeanProject = Project(
+        "Play-Java-Ebean",
+        file("src/play-java-ebean"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-java-ebean_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := ebeanDeps ++ jpaDeps,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe,
+            compile in (Compile) <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map { (deps,analysis,classes) =>
+
+                // Ebean (really hacky sorry)
+
+                val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
+                val cl = new java.net.URLClassLoader(cp)
+        
+                val t = cl.loadClass("com.avaje.ebean.enhance.agent.Transformer").getConstructor(classOf[Array[URL]], classOf[String]).newInstance(cp, "debug=0").asInstanceOf[AnyRef]
+                val ft = cl.loadClass("com.avaje.ebean.enhance.ant.OfflineFileTransform").getConstructor(
+                    t.getClass, classOf[ClassLoader], classOf[String], classOf[String]
+                ).newInstance(t, ClassLoader.getSystemClassLoader, classes.getAbsolutePath, classes.getAbsolutePath).asInstanceOf[AnyRef]
+        
+                ft.getClass.getDeclaredMethod("process", classOf[String]).invoke(ft,"play/db/ebean/**")
+
+                analysis
+            }
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayJavaJdbcProject) 
+
+    lazy val PlayJpaProject = Project(
+        "Play-Java-JPA",
+        file("src/play-java-jpa"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-java-jpa"+previousScalaVersion} % previousVersion),
+            libraryDependencies := jpaDeps,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayJavaJdbcProject) 
+
+    lazy val PlayJavaProject = Project(
+        "Play-Java",
+        file("src/play-java"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-java_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := javaDeps,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayProject)
 
     lazy val PlayTestProject = Project(
         "Play-Test",
@@ -204,11 +301,28 @@ object PlayBuild extends Build {
             buildRepositoryTask,
             distTask,
             generateAPIDocsTask,
-            publish <<= (publish in SbtLinkProject, publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in IterateesProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject, publish in RoutesCompilerProject, publish in TemplatesCompilerProject, publish in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_,_) => },
-            publishLocal <<= (publishLocal in SbtLinkProject, publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in IterateesProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in RoutesCompilerProject, publishLocal in TemplatesCompilerProject, publishLocal in PlayExceptionsProject) map { (_,_,_,_,_,_,_,_,_,_) => }
+            publishTo := None
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-     .dependsOn(PlayProject).aggregate(SbtLinkProject, AnormProject, IterateesProject, TemplatesProject, TemplatesCompilerProject, RoutesCompilerProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
+     .aggregate(
+        PlayProject,
+        SbtLinkProject, 
+        AnormProject, 
+        TemplatesProject, 
+        TemplatesCompilerProject, 
+        IterateesProject,
+        RoutesCompilerProject, 
+        PlayProject, 
+        PlayJdbcProject,
+        PlayJavaProject,
+        PlayJavaJdbcProject,
+        PlayEbeanProject,
+        PlayJpaProject,
+        SbtPluginProject, 
+        ConsoleProject, 
+        PlayTestProject,
+        PlayExceptionsProject
+    )
 
     object BuildSettings {
 
@@ -269,33 +383,27 @@ object PlayBuild extends Build {
     }
 
     object Dependencies {
-     
-        val runtime = Seq(
-            "io.netty"                          %    "netty"                    %   "3.5.2.Final",
-            "org.slf4j"                         %    "slf4j-api"                %   "1.6.6",
-            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.6",
-            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.6",
-            "ch.qos.logback"                    %    "logback-core"             %   "1.0.7",
-            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.7",
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
-            "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
-            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
 
-            "com.google.guava"                  %    "guava"                    %   "13.0.1",
-            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
-
-            "org.avaje.ebeanorm"                %    "avaje-ebeanorm"           %   "3.1.2" exclude("javax.persistence", "persistence-api"),
-
-            "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final",
-            "com.h2database"                    %    "h2"                       %   "1.3.168",
-            
-            "org.scala-tools"                   %    "scala-stm_2.10.0-M7"      %   "0.6",
-
+        val jdbcDeps = Seq(
             ("com.jolbox"                       %    "bonecp"                   %   "0.7.1.RELEASE" notTransitive())
               .exclude("com.google.guava", "guava")
-              .exclude("org.slf4j", "slf4j-api")
-            ,
+              .exclude("org.slf4j", "slf4j-api"),
 
+            "com.h2database"                    %    "h2"                       %   "1.3.168",
+
+            "tyrex"                             %    "tyrex"                    %   "1.0.1"
+        )
+
+        val ebeanDeps = Seq(
+            "org.avaje.ebeanorm"                %    "avaje-ebeanorm"           %   "3.1.2" exclude("javax.persistence", "persistence-api")
+        )
+
+        val jpaDeps = Seq(
+            "org.hibernate.javax.persistence"   %    "hibernate-jpa-2.0-api"    %   "1.0.1.Final"
+        )
+
+        val javaDeps = Seq(
+            
             "org.yaml"                          %    "snakeyaml"                %   "1.10",
             "org.hibernate"                     %    "hibernate-validator"      %   "4.3.0.Final",
 
@@ -316,9 +424,42 @@ object PlayBuild extends Build {
               .exclude("org.springframework", "spring-core")
             ,
 
+            "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
+
+            ("org.reflections"                  %    "reflections"              %   "0.9.8" notTransitive())
+              .exclude("com.google.guava", "guava")
+              .exclude("javassist", "javassist")
+            ,
+
+            "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
+            "javax.transaction"                 %    "jta"                      %   "1.1",
+
+            "org.specs2"                        %   "specs2_2.10.0-M7"          %   "1.12.1.1" %  "test"
+        )
+     
+        val runtime = Seq(
+            "io.netty"                          %    "netty"                    %   "3.5.2.Final",
+            
+            "org.slf4j"                         %    "slf4j-api"                %   "1.6.6",
+            "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.6",
+            "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.6",
+            
+            "ch.qos.logback"                    %    "logback-core"             %   "1.0.7",
+            "ch.qos.logback"                    %    "logback-classic"          %   "1.0.7",
+            
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
+            
+            "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
+            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
+
+            "com.google.guava"                  %    "guava"                    %   "13.0.1",
+            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
+            
+            "org.scala-tools"                   %    "scala-stm_2.10.0-M7"      %   "0.6",
+
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
-            "org.javassist"                     %    "javassist"                %   "3.16.1-GA",
+            
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
             "org.apache.ws.commons"             %    "ws-commons-util"          %   "1.0.1" exclude("junit", "junit"),
 
@@ -328,16 +469,9 @@ object PlayBuild extends Build {
 
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.2",
             "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.2",
-            "org.codehaus.jackson"              %   "jackson-core-asl"          %   "1.9.10",
-            "org.codehaus.jackson"              %   "jackson-mapper-asl"        %   "1.9.10",
-            ("org.reflections"                  %    "reflections"              %   "0.9.8" notTransitive())
-              .exclude("com.google.guava", "guava")
-              .exclude("javassist", "javassist")
-            ,
 
-            "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
-            "javax.transaction"                 %    "jta"                      %   "1.1",
-            "tyrex"                             %    "tyrex"                    %   "1.0.1",
+            "org.codehaus.jackson"              %    "jackson-core-asl"         %   "1.9.10",
+            "org.codehaus.jackson"              %    "jackson-mapper-asl"       %   "1.9.10",
 
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.6.0",
 
@@ -437,28 +571,6 @@ object PlayBuild extends Build {
         }
 
     }
-
-    // ----- Post compile
-
-    lazy val PostCompile = (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map { (deps,analysis,classes) =>
-
-        // Ebean (really hacky sorry)
-
-        import java.net._
-
-        val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
-        val cl = new URLClassLoader(cp)
-
-        val t = cl.loadClass("com.avaje.ebean.enhance.agent.Transformer").getConstructor(classOf[Array[URL]], classOf[String]).newInstance(cp, "debug=0").asInstanceOf[AnyRef]
-        val ft = cl.loadClass("com.avaje.ebean.enhance.ant.OfflineFileTransform").getConstructor(
-            t.getClass, classOf[ClassLoader], classOf[String], classOf[String]
-        ).newInstance(t, ClassLoader.getSystemClassLoader, classes.getAbsolutePath, classes.getAbsolutePath).asInstanceOf[AnyRef]
-
-        ft.getClass.getDeclaredMethod("process", classOf[String]).invoke(ft,"play/db/ebean/**")
-
-        analysis
-    }
-
 
     object Tasks {
 

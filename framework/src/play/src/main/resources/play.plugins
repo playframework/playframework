@@ -1,8 +1,4 @@
 100:play.api.i18n.MessagesPlugin
-200:play.api.db.BoneCPPlugin
-300:play.db.ebean.EbeanPlugin
-400:play.db.jpa.JPAPlugin
-500:play.api.db.evolutions.EvolutionsPlugin
 600:play.api.cache.EhCachePlugin
 1000:play.api.libs.concurrent.AkkaPlugin
 10000:play.api.GlobalPlugin

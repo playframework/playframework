@@ -23,5 +23,5 @@ public class Plugin implements play.api.Plugin {
     public boolean enabled() { 
         return true;
     }
-    
+
 }

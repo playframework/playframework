@@ -72,6 +72,16 @@ private[evolutions] case class DownScript(evolution: Evolution, sql: String) ext
 object Evolutions {
 
   /**
+   * Apply pending evolutions for the given DB.
+   */
+  def applyFor(dbName: String, path: java.io.File = new java.io.File(".")) {
+    Play.current.plugin[DBPlugin] map { db =>
+      val script = Evolutions.evolutionScript(db.api, path, db.getClass.getClassLoader, dbName)
+      Evolutions.applyScript(db.api, dbName, script)
+    }
+  }
+
+  /**
    * Updates a local (file-based) evolution script.
    */
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
@@ -389,7 +399,7 @@ object Evolutions {
 /**
  * Play Evolutions plugin.
  */
-class EvolutionsPlugin(app: Application) extends Plugin {
+class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSupport {
 
   import Evolutions._
 
@@ -484,6 +494,35 @@ class EvolutionsPlugin(app: Application) extends Plugin {
     ignoring(classOf[SQLException])(s.close())
     ignoring(classOf[SQLException])(c.commit())
     ignoring(classOf[SQLException])(c.close())
+  }
+
+  def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[play.api.mvc.Result] = {
+
+    val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
+    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
+
+    request.path match {
+
+      case applyEvolutions(db) => {
+        Some {
+          OfflineEvolutions.applyScript(path, Play.current.classloader, db)
+          sbtLink.forceReload()
+          play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+        }
+      }
+
+      case resolveEvolutions(db, rev) => {
+        Some {
+          OfflineEvolutions.resolve(path, Play.current.classloader, db, rev.toInt)
+          sbtLink.forceReload()
+          play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+        }
+      }
+
+      case _ => None
+
+    }
+
   }
 
 }

@@ -34,6 +34,10 @@ trait ApplicationProvider {
   def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 
+trait HandleWebCommandSupport {
+  def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[Result]
+}
+
 /**
  * creates and initializes an Application
  * @param applicationPath location of an Application
@@ -163,9 +167,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
     import play.api.mvc.Results._
 
-    val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
-    val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
-
     val documentation = """/@documentation""".r
     val book = """/@documentation/Book""".r
     val apiDoc = """/@documentation/api/(.*)""".r
@@ -175,30 +176,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
     val documentationHome = Option(System.getProperty("play.home")).map(ph => new java.io.File(ph + "/../documentation"))
 
     request.path match {
-
-      case applyEvolutions(db) => {
-
-        import play.api.db._
-        import play.api.db.evolutions._
-
-        Some {
-          OfflineEvolutions.applyScript(path, Play.current.classloader, db)
-          sbtLink.forceReload()
-          Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
-        }
-      }
-
-      case resolveEvolutions(db, rev) => {
-
-        import play.api.db._
-        import play.api.db.evolutions._
-
-        Some {
-          OfflineEvolutions.resolve(path, Play.current.classloader, db, rev.toInt)
-          sbtLink.forceReload()
-          Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
-        }
-      }
 
       case documentation() => {
 
@@ -312,7 +289,13 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
       }
 
-      case _ => None
+      // Delegate to plugins
+      case _ => Play.maybeApplication.flatMap { app =>
+        app.plugins.foldLeft(Option.empty[play.api.mvc.Result]) { 
+          case (None, plugin: HandleWebCommandSupport) => plugin.handleWebCommand(request, sbtLink, path)
+          case (result, _) => result
+        }
+      }
 
     }
   }

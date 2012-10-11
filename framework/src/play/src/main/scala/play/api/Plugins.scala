@@ -32,5 +32,6 @@ trait Plugin {
    * Is the plugin enabled?
    */
   def enabled: Boolean = true
+
 }
 

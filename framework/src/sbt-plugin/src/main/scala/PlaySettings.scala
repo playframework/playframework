@@ -19,12 +19,11 @@ trait PlaySettings {
       "scala.collection.JavaConverters._",
 
       "play.api.i18n._",
-      "play.api.templates.PlayMagicForJava._",
+      "play.core.j.PlayMagicForJava._",
 
       "play.mvc._",
       "play.data._",
       "play.api.data.Field",
-      "com.avaje.ebean._",
 
       "play.mvc.Http.Context.Implicit._",
 
@@ -156,8 +155,6 @@ trait PlaySettings {
     playStage <<= playStageTask,
 
     cleanFiles <+= distDirectory,
-
-    ebeanEnabled := false,
 
     logManager <<= extraLoggers(PlayLogManager.default(playPositionMapper)),
 

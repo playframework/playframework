@@ -3,8 +3,6 @@ package play.mvc;
 import play.i18n.Lang;
 import play.mvc.Http.*;
 
-import play.data.*;
-
 
 /**
  * Superclass for a Java-based controller.
@@ -89,43 +87,6 @@ public abstract class Controller extends Results implements Status, HeaderNames 
      */
     public static String flash(String key) {
         return flash().get(key);
-    }
-    
-    // -- Form
-    
-    /**
-     * Instantiates a dynamic form.
-     */
-    public static DynamicForm form() {
-        return new DynamicForm();
-    }
-    
-    /**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<T>(clazz);
-    }
-    
-    /**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<T>(name, clazz);
-    }
-    
-	/**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<T>(name, clazz, group);
-    }
-
-	/**
-     * Instantiates a new form that wraps the specified class.
-     */
-    public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<T>(null, clazz, group);
     }
 
 }

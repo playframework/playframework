@@ -59,7 +59,7 @@ public class EbeanPlugin extends Plugin {
                 for(String load: toLoad) {
                     load = load.trim();
                     if(load.endsWith(".*")) {
-                        classes.addAll(application.getTypes(load.substring(0, load.length()-2)));
+                        classes.addAll(play.libs.Classpath.getTypes(application, load.substring(0, load.length()-2)));
                     } else {
                         classes.add(load);
                     }

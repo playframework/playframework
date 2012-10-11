@@ -79,6 +79,13 @@ public class Scala {
     }
 
     /**
+     * None
+     */ 
+    public static <T> scala.Option<T> None() {
+        return scala.Option.apply(null);
+    }
+
+    /**
      * Create a Scala Tuple2.
      */
     @SuppressWarnings("unchecked")

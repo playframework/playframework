@@ -188,7 +188,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
           module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
           artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
         } yield {
-          module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
+          module.organization + "." + module.name + "-" + Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") + module.revision + ".jar"
         }
         val path = ("lib/" + filename.getOrElse(dependency.data.getName))
         dependency.data -> path
@@ -274,7 +274,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, cacheDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, ebean) =>
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, cacheDirectory in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
@@ -301,7 +301,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     IO.write(timestampFile, System.currentTimeMillis.toString)
 
     // EBean
-    if (ebean) {
+    if (classpath.contains("play-java-ebean")) {
 
       val originalContextClassLoader = Thread.currentThread.getContextClassLoader
 

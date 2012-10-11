@@ -23,6 +23,45 @@ import org.springframework.context.support.*;
  * Helper to manage HTML form description, submission and validation.
  */
 public class Form<T> {
+
+    // -- Form utilities
+    
+    /**
+     * Instantiates a dynamic form.
+     */
+    public static DynamicForm form() {
+        return new DynamicForm();
+    }
+    
+    /**
+     * Instantiates a new form that wraps the specified class.
+     */
+    public static <T> Form<T> form(Class<T> clazz) {
+        return new Form<T>(clazz);
+    }
+    
+    /**
+     * Instantiates a new form that wraps the specified class.
+     */
+    public static <T> Form<T> form(String name, Class<T> clazz) {
+        return new Form<T>(name, clazz);
+    }
+    
+    /**
+     * Instantiates a new form that wraps the specified class.
+     */
+    public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
+        return new Form<T>(name, clazz, group);
+    }
+
+    /**
+     * Instantiates a new form that wraps the specified class.
+     */
+    public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
+        return new Form<T>(null, clazz, group);
+    }
+
+    // ---
     
     /**
      * Defines a form element's display name.
