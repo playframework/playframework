@@ -286,7 +286,7 @@ object JsonValidSpec extends Specification {
     "Format simpler syntax with constraints" in {
       val bobby = User("bobby", 54)
 
-      implicit val userFormats = (
+      implicit val userFormat = (
         (__ \ 'name).format(minLength[String](5)) 
         and 
         (__ \ 'age).format(min(40))
@@ -662,8 +662,48 @@ object JsonValidSpec extends Specification {
 
       JsError.toFlatJson(jserr) should beEqualTo(flatJson)
     }
+
   }
 
+  "JSON Writes" should {
+    "manage option" in {
+      import Writes._
+
+      case class User(email: String, phone: Option[String])
+
+      implicit val UserWrites = (
+        (__ \ 'email).write[String] and
+        (__ \ 'phone).writeOpt[String]
+      )(unlift(User.unapply))
+
+      Json.toJson(User("john.doe@blibli.com", None)) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com"))
+      Json.toJson(User("john.doe@blibli.com", Some("12345678"))) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678"))
+    }
+  }
+
+
+  "JSON Format" should {
+    "manage option" in {
+      import Reads._
+      import Writes._
+
+      case class User(email: String, phone: Option[String])
+
+      implicit val UserFormat = (
+        (__ \ 'email).format(email) and
+        (__ \ 'phone).formatOpt(Format(minLength[String](8), Writes.of[String]))
+      )(User, unlift(User.unapply))
+
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("validate.error.minlength", 8)))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", Some("12345678"))))
+      Json.obj("email" -> "john.doe@blibli.com").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", None)))
+
+      Json.toJson(User("john.doe@blibli.com", None)) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com"))
+      Json.toJson(User("john.doe@blibli.com", Some("12345678"))) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678"))
+    }
+  }
+  
   "JsResult" should {
 
     "be usable in for-comprehensions" in {

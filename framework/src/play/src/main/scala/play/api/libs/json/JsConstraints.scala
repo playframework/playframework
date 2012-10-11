@@ -14,6 +14,9 @@ trait PathFormat {
   def at[A](path: JsPath)(implicit f:Format[A]): OFormat[A] = 
     OFormat[A](Reads.at(path)(f), Writes.at(path)(f)) 
 
+  def optional[A](path:JsPath)(implicit f: Format[A]): OFormat[Option[A]] = 
+    OFormat(Reads.optional(path)(f), Writes.optional(path)(f))
+
 }
 
 trait PathReads {
@@ -105,8 +108,13 @@ trait PathWrites {
   def at[A](path: JsPath)(implicit _writes:Writes[A]): OWrites[A] =
     OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(a)) }
 
-  def optional[A](path: JsPath)(implicit _writes:Writes[Option[A]]): OWrites[Option[A]] =
-    at[Option[A]](path)
+  def optional[A](path: JsPath)(implicit _writes:Writes[A]): OWrites[Option[A]] =
+    OWrites[Option[A]]{ a => 
+      a match {
+        case Some(a) => JsPath.createObj(path -> _writes.writes(a)) 
+        case None => Json.obj()
+      }
+    }
 
   def jsPick(path: JsPath): Writes[JsValue] =
     Writes[JsValue]{ obj => path(obj).headOption.getOrElse(JsNull) }
