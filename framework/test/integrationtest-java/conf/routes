@@ -7,6 +7,7 @@ GET     /key                        controllers.Application.key
 GET     /async                      controllers.Application.asyncResult
 GET     /lang/:code                 controllers.Application.setLang(code)
 GET     /hello                      controllers.Application.hello()
+GET     /clientCert                 controllers.Application.clientCert()
 POST    /json                       controllers.Application.getIdenticalJson()
 
 POST    /parsers/json               controllers.BodyParsers.json()

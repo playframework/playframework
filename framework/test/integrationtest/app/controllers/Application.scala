@@ -15,6 +15,8 @@ import models.Protocol._
 
 import play.cache.{Cache=>JCache}
 import play.api.i18n._
+import java.security.cert.X509Certificate
+import concurrent.ExecutionContext.Implicits.global
 
 object Application extends Controller {
 
@@ -137,5 +139,37 @@ object Application extends Controller {
     Async {
       Promise.pure[Result](sys.error("Error"))
     }
+  }
+
+  def clientCert = Cert { user =>
+    Action { request =>
+      Ok(user.name)
+    }
+  }
+
+  def Cert[A](action: User => Action[A]): Action[A] = {
+    val authenticatedBodyParser = parse.using { request =>
+      // Don't look up the certificates before parsing the body
+      action(null).parser
+    }
+
+    Action(authenticatedBodyParser) { request =>
+      Async {
+        request.certs(true).map { certs =>
+          certs.headOption match {
+            case Some(cert: X509Certificate) =>
+              getUser(cert.getSubjectX500Principal.getName).map(user => action(user)(request))
+                .getOrElse(Forbidden("No user found for certificate " + cert))
+            case _ => Unauthorized("You did not provide a certificate")
+          }
+        }
+      }
+    }
+  }
+
+  def getUser(dName: String): Option[User] = {
+    // For now, just extract the CN out and treat that as the user, of course,
+    // that's not actually secure
+    """CN=([^,]*),""".r.findFirstMatchIn(dName).map(m => User(0, m.group(1), Nil))
   }
 }

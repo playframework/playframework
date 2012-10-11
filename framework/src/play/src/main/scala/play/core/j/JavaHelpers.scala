@@ -1,11 +1,8 @@
 package play.core.j
 
-import play.api.mvc._
-import play.mvc.{ Action => JAction, Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
-
-import scala.collection.JavaConverters._
-
+import play.mvc.{ Result => JResult }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
+import play.api.libs.concurrent.execution.defaultContext
 
 class EitherToFEither[A,B]() extends play.libs.F.Function[Either[A,B],play.libs.F.Either[A,B]] {
 
@@ -55,7 +52,7 @@ trait JavaHelpers {
 
   /**
    * creates a java request (with an empty body) from a scala RequestHeader
-   * @param request incoming requestHeader
+   * @param req incoming requestHeader
    */
   def createJavaRequest(req: RequestHeader): JRequest = {
     new JRequest {
@@ -91,6 +88,8 @@ trait JavaHelpers {
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
 
+      def certs(required: Boolean) = new play.libs.F.Promise(req.certs(required).map(c => c.asJava))
+
       override def toString = req.toString
 
     }
@@ -98,7 +97,7 @@ trait JavaHelpers {
 
   /**
    * creates a java context from a scala RequestHeader
-   * @param request
+   * @param req
    */
   def createJavaContext(req: RequestHeader): JContext = {
     new JContext(
@@ -112,7 +111,7 @@ trait JavaHelpers {
 
   /**
    * creates a java context from a scala Request[RequestBody]
-   * @param request
+   * @param req
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
     new JContext(req.id, new JRequest {
@@ -147,6 +146,8 @@ trait JavaHelpers {
         def get(name: String) = (for (cookie <- req.cookies.get(name))
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
+
+      def certs(required: Boolean) = new play.libs.F.Promise(req.certs(required).map(c => c.asJava))
 
       override def toString = req.toString
 

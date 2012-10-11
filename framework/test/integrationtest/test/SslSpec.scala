@@ -1,16 +1,17 @@
-import java.io.File
-import java.net.{URL, URLConnection, Socket}
+import java.io.{FileInputStream, File}
+import java.net.{HttpURLConnection, URL}
 import java.security.cert.X509Certificate
 import java.security.KeyStore
-import javax.net.ssl.{HttpsURLConnection, SSLSocket, SSLContext, X509TrustManager}
+import javax.net.ssl._
 import javax.security.auth.x500.X500Principal
+import org.apache.commons.io.IOUtils
 import org.specs2.execute.Result
-import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
 import play.core.utils.IO
+import scala.Some
 
 class SslSpec extends Specification {
 
@@ -20,14 +21,38 @@ class SslSpec extends Specification {
 
   "SSL support" should {
     "generate a self signed certificate when no keystore configuration is provided" in new Ssl {
-      val conn = createConn
+      val conn = jsonRequest
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal(FakeKeyStore.DnName)
     }
+
     "use a configured keystore" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password")) {
-      val conn = createConn
+      val conn = jsonRequest
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal("CN=localhost, OU=Unit Test, O=Unit Testers, L=Testland, ST=Test, C=TT")
+    }
+
+    "support client certificates" in new Ssl(None, None, trustStore = Some("noCA")) {
+      val conn = clientCertRequest()
+      conn.getResponseCode must_== 200
+      contentAsString(conn) must_== "Bob Client"
+    }
+
+    "not trust untrusted client certificates" in new Ssl(None, None, trustStore=Some("default")) {
+      val conn = clientCertRequest()
+      conn.getResponseCode must throwA[SSLHandshakeException]
+    }
+
+    "not accept no client certificate" in new Ssl(None, None, trustStore = Some("noCA")) {
+      val conn = clientCertRequest(withClientCert = false)
+      conn.getResponseCode must throwA[SSLHandshakeException]
+    }
+
+    "accept a trusted client certificate" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password"),
+      trustStore = Some("keystore")) {
+      val conn = clientCertRequest()
+      conn.getResponseCode must_== 200
+      contentAsString(conn) must_== "Bob Client"
     }
   }
 
@@ -67,15 +92,34 @@ class SslSpec extends Specification {
     }
   }
 
-  def createConn = {
+  def contentAsString(conn: HttpURLConnection) = {
+    IO.use(conn.getInputStream) {is => IOUtils.toString(is)}
+  }
+
+  def jsonRequest = {
     val conn = new URL("https://localhost:" + SslPort + "/json").openConnection().asInstanceOf[HttpsURLConnection]
-    conn.setSSLSocketFactory(sslFactory)
+    conn.setSSLSocketFactory(sslFactory())
     conn
   }
 
-  def sslFactory = {
+  def clientCertRequest(withClientCert: Boolean = true) = {
+    val conn = new URL("https://localhost:" + SslPort + "/clientCert").openConnection().asInstanceOf[HttpsURLConnection]
+    conn.setSSLSocketFactory(sslFactory(withClientCert))
+    conn
+  }
+
+  def sslFactory(withClientCert: Boolean = true) = {
+    val kms = if (withClientCert) {
+      val ks = KeyStore.getInstance("PKCS12")
+      val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+      IO.use(new FileInputStream("conf/bobclient.p12")) { is => ks.load(is, "password".toCharArray) }
+      kmf.init(ks, "password".toCharArray)
+      kmf.getKeyManagers
+    } else {
+      null
+    }
     val ctx = SSLContext.getInstance("TLS")
-    ctx.init(null, Array(MockTrustManager()), null)
+    ctx.init(kms, Array(MockTrustManager()), null)
     ctx.getSocketFactory
   }
 

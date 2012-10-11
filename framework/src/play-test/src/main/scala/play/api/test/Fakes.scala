@@ -98,7 +98,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     _copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 
-  def certs = Promise.pure(IndexedSeq.empty)
+  def certs(required:Boolean) = Promise.pure(Seq.empty)
 
   /**
    * Sets a JSON body to this request.

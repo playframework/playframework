@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import play.mvc._
 import play.mvc.Http.Context
 import scala.collection.JavaConverters._
+import javax.security.cert.Certificate
 
 class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Request {
   def uri() = "/test"
@@ -15,6 +16,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def accept = List("text/html").asJava
   def accepts(mediaType: String) = false
   def headers() = new java.util.HashMap[String, Array[String]]()
+  def certs(required: Boolean) = play.libs.F.Promise.pure(java.util.Collections.emptyList())
   val remoteAddress = "127.0.0.1"
   def body() = new Http.RequestBody {
     override def asFormUrlEncoded = data.asJava
