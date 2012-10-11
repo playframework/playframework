@@ -40,10 +40,8 @@ trait Reads[A] {
   def collect[B](error:ValidationError)(f: PartialFunction[A,B]) =
     Reads[B] { json => self.reads(json).collect(error)(f) }
 
-  def apply[B](f: A => B): Reads[B] = this.map(f)
-
-  def orElse(v: JsResult[A]): Reads[A] = 
-    Reads[A] { json => self.reads(json).orElse(v) }
+  def orElse(v: Reads[A]): Reads[A] = 
+    Reads[A] { json => self.reads(json).orElse(v.reads(json)) }
 
   def compose[B](rb: Reads[B])(implicit witness: B <:< JsValue): Reads[A] = 
     Reads[A] { js => rb.reads(js) match {
