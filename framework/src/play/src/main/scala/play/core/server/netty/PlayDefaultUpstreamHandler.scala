@@ -303,7 +303,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
               f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
             } catch {
-              case e => e.printStackTrace
+              case e: Exception => e.printStackTrace()
             }
 
           //handle bad websocket request

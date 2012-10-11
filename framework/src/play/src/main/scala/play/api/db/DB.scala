@@ -98,7 +98,7 @@ trait DBApi {
         connection.commit()
         r
       } catch {
-        case e => connection.rollback(); throw e
+        case e: Exception => connection.rollback(); throw e
       }
     }
   }
@@ -244,7 +244,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
           case mode => Logger("play").info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
         }
       } catch {
-        case e => {
+        case e: Exception => {
           throw dbConfig.reportError(ds._2 + ".url", "Cannot connect to database [" + ds._2 + "]", Some(e.getCause))
         }
       }
@@ -258,7 +258,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
     dbApi.datasources.foreach {
       case (ds, _) => try {
         dbApi.shutdownPool(ds)
-      } catch { case _ => }
+      } catch { case _: Exception => }
     }
     val drivers = DriverManager.getDrivers()
     while (drivers.hasMoreElements) {
@@ -279,7 +279,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     try {
       DriverManager.registerDriver(new play.utils.ProxyDriver(Class.forName(driver, true, classloader).newInstance.asInstanceOf[Driver]))
     } catch {
-      case e => throw c.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
+      case e: Exception => throw c.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
     }
   }
 
@@ -292,7 +292,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
       try {
         DriverManager.registerDriver(new play.utils.ProxyDriver(Class.forName(driver, true, classloader).newInstance.asInstanceOf[Driver]))
       } catch {
-        case e => throw conf.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
+        case e: Exception => throw conf.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
       }
     }
 

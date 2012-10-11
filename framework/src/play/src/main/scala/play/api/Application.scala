@@ -12,6 +12,7 @@ import scala.collection.JavaConverters._
 import annotation.implicitNotFound
 
 import java.lang.reflect.InvocationTargetException
+import reflect.ClassTag
 
 
 trait WithDefaultGlobal {
@@ -29,7 +30,6 @@ trait WithDefaultGlobal {
   } catch {
     case e: InstantiationException => None
     case e: ClassNotFoundException => None
-    case e => throw e
   }
 
   lazy private val scalaGlobal: GlobalSettings = try {
@@ -39,7 +39,6 @@ trait WithDefaultGlobal {
     case e if initialConfiguration.getString("application.global").isDefined => {
       throw initialConfiguration.reportError("application.global", "Cannot initialize the custom Global object (%s) (perhaps it's a wrong reference?)".format(e.getMessage))
     }
-    case e => throw e
   }
 
   /**
@@ -52,7 +51,7 @@ trait WithDefaultGlobal {
       javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
     } catch {
       case e: PlayException => throw e
-      case e => throw new PlayException(
+      case e: Exception => throw new PlayException(
         "Cannot init the Global object",
         e.getMessage,
         e
@@ -133,7 +132,7 @@ trait WithDefaultPlugins {
             if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: PlayException => throw e
-            case e => throw new PlayException(
+            case e: Exception => throw new PlayException(
               "Cannot load plugin",
               "Plugin [" + className + "] cannot been instantiated.",
               e)
@@ -144,7 +143,7 @@ trait WithDefaultPlugins {
           "An exception occurred during Plugin [" + className + "] initialization",
           e.getTargetException)
         case e: PlayException => throw e
-        case e => throw new PlayException(
+        case e: Exception => throw new PlayException(
           "Cannot load plugin",
           "Plugin [" + className + "] cannot been instantiated.",
           e)
@@ -223,7 +222,7 @@ trait Application {
    * @return The plugin instance used by this application.
    * @throws Error if no plugins of type T are loaded by this application.
    */
-  def plugin[T](implicit m: Manifest[T]): Option[T] = plugin(m.erasure).asInstanceOf[Option[T]]
+  def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
 
   /**
@@ -243,7 +242,6 @@ trait Application {
     case e: ClassNotFoundException => configuration.getString("application.router").map { routerName =>
       throw configuration.reportError("application.router", "Router not found: " + routerName)
     }
-    case e => throw e
   }
 
   // Reconfigure logger
@@ -290,7 +288,7 @@ trait Application {
       }
     }
   } catch {
-    case e => try {
+    case e: Exception => try {
       Logger.error(
         """
         |
@@ -303,7 +301,7 @@ trait Application {
       )
       global.onError(request, e)
     } catch {
-      case e => DefaultGlobal.onError(request, e)
+      case e: Exception => DefaultGlobal.onError(request, e)
     }
   }
 

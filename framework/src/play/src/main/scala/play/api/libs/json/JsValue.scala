@@ -369,8 +369,6 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
       case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
 
       case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
-
-      case _ => throw ctxt.mappingException(classOf[JsValue])
     }
 
     // Read ahead

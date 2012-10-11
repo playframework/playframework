@@ -269,7 +269,7 @@ trait Row {
   private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] = {
     for (
       meta <- metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-      val (column, nullable, clazz) = meta;
+      (column, nullable, clazz) = meta;
       result <- ColumnsDictionary.get(column.qualified.toUpperCase()).toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
     ) yield result
   }
@@ -277,7 +277,7 @@ trait Row {
   private[anorm] def getAliased(a: String): MayErr[SqlRequestError, Any] = {
     for (
       meta <- metaData.getAliased(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-      val (column, nullable, clazz) = meta;
+      (column, nullable, clazz) = meta;
       result <- column.alias.flatMap(a => AliasesDictionary.get(a.toUpperCase())).toRight(ColumnNotFound(column.alias.getOrElse(a), metaData.availableColumns))
     ) yield result
   }

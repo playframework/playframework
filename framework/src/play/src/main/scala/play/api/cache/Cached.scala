@@ -2,6 +2,7 @@ package play.api.cache
 
 import play.api._
 import play.api.mvc._
+import reflect.ClassTag
 
 /**
  * Cache an action.
@@ -17,7 +18,7 @@ case class Cached[A](key: RequestHeader => String, duration: Int)(action: Action
   def apply(request: Request[A]): Result = {
     Cache.getOrElse[Result](key(request), duration) {
       action(request)
-    }(app, implicitly[Manifest[Result]])
+    }(app, implicitly[ClassTag[Result]])
   }
 
 }

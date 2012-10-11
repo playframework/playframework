@@ -38,7 +38,6 @@ object JavaResultExtractor {
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
     case r: AsyncResult => getStatus(new ResultWrapper(r.result.await.get))
     case PlainResult(status, _) => status
-    case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
@@ -50,13 +49,11 @@ object JavaResultExtractor {
         }.getOrElse(null)
       }
     }
-    case r => sys.error("Cannot extract Headers from a result of type " + r.getClass.getName)
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
     case r: AsyncResult => getHeaders(new ResultWrapper(r.result.await.get))
     case PlainResult(_, headers) => headers.asJava
-    case r => sys.error("Cannot extract the Status code from a result of type " + r.getClass.getName)
   }
 
   def getBody(result: play.mvc.Result): Array[Byte] = result.getWrappedResult match {
@@ -65,7 +62,6 @@ object JavaResultExtractor {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run).value1.get
     }
-    case r => sys.error("Cannot extract the body content from a result of type " + r.getClass.getName)
   }
 
   class ResultWrapper(r: play.api.mvc.Result) extends play.mvc.Result {

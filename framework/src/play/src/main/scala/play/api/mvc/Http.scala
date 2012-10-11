@@ -87,7 +87,7 @@ package play.api.mvc {
           acceptLanguage.split("\\s*,\\s*").map(l => play.api.i18n.Lang(l.split(";").head)).toSeq
         }.getOrElse(Nil)
       } catch {
-        case e => e.printStackTrace(); Nil
+        case e: Exception => e.printStackTrace(); Nil
       }
     }
 
@@ -418,7 +418,7 @@ package play.api.mvc {
         } else urldecode(data)
       } catch {
         // fail gracefully is the session cookie is corrupted
-        case _ => Map.empty[String, String]
+        case _: Exception => Map.empty[String, String]
       }
     }
 

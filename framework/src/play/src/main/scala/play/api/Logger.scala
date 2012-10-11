@@ -251,7 +251,7 @@ object Logger extends LoggerLike {
               configurator.doConfigure(url)
             }
         } catch {
-          case e => e.printStackTrace()
+          case e: Exception => e.printStackTrace()
         }
 
         levels.foreach {
@@ -259,7 +259,7 @@ object Logger extends LoggerLike {
         }
         StatusPrinter.printIfErrorsOccured(ctx)
       } catch {
-        case _ =>
+        case _: Exception =>
       }
 
     }

@@ -328,7 +328,7 @@ object RoutesCompiler {
             try {
               java.util.regex.Pattern.compile(regex)
             } catch {
-              case e => {
+              case e: Exception => {
                 throw RoutesCompilationError(
                   file,
                   e.getMessage,

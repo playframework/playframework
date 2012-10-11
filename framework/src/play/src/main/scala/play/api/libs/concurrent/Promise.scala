@@ -69,7 +69,7 @@ case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
 
 class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
-  def redeem(a: => A): Unit = try (p.success(a)) catch { case e => p.failure(e) }
+  def redeem(a: => A): Unit = try (p.success(a)) catch { case e: Exception => p.failure(e) }
 
   def throwing(t: Throwable): Unit = p.failure(t)
 
@@ -249,7 +249,9 @@ object PurePromise {
   /**
    * factory method for a pure promise
    */
-  def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try (scala.concurrent.Promise.successful(lazyA)) catch { case e => scala.concurrent.Promise.failed(e) }).future
+  def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try (scala.concurrent.Promise.successful(lazyA)) catch {
+    case e: Exception => scala.concurrent.Promise.failed(e)
+  }).future
 
 }
 
