@@ -16,9 +16,8 @@ class SslSpec extends Specification {
 
   val SslPort = 19443
 
-  sequential
-
   "SSL support" should {
+    sequential
     "generate a self signed certificate when no keystore configuration is provided" in new Ssl {
       val conn = createConn
       conn.getResponseCode must_== 200

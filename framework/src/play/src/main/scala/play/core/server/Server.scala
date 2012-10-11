@@ -44,9 +44,10 @@ trait Server {
 
   // store the invoker in a global variable
   Invoker.init(invoker)
+  Promise.start()
 
   val bodyParserTimeout = {
-    Configuration(Invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
+    Configuration(invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
   }
 
   def mode: Mode.Mode
@@ -143,8 +144,9 @@ import play.api.http.HeaderNames._
   def applicationProvider: ApplicationProvider
 
   def stop() {
-    Invoker.uninit()
-    invoker.stop()
+    Promise.resetSystem()
+    Invoker.reset()
+    play.api.libs.ws.WS.resetClient()
     Logger.shutdown()
   }
 

@@ -341,7 +341,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Starts a new application.
      */
     public static void start(FakeApplication fakeApplication) {
-
+        play.core.Invoker$.MODULE$.start();
+        play.api.libs.concurrent.Promise$.MODULE$.start();
         play.api.Play.start(fakeApplication.getWrappedApplication());
     }
 
@@ -350,6 +351,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static void stop(FakeApplication fakeApplication) {
         play.api.Play.stop();
+        play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
+        play.core.Invoker$.MODULE$.reset();
+        play.api.libs.ws.WS$.MODULE$.resetClient();
     }
 
     /**
@@ -357,13 +361,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static synchronized void running(FakeApplication fakeApplication, final Runnable block) {
         try {
+            play.core.Invoker$.MODULE$.start();
+            play.api.libs.concurrent.Promise$.MODULE$.start();
             start(fakeApplication);
             block.run();
         } finally {
             stop(fakeApplication);
             play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
-            play.core.Invoker$.MODULE$.system().shutdown();
-            play.core.Invoker$.MODULE$.uninit();
+            play.core.Invoker$.MODULE$.reset();
             play.api.libs.ws.WS$.MODULE$.resetClient();
         }
     }
@@ -416,7 +421,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         TestBrowser browser = null;
         TestServer startedServer = null;
         try {
-            play.core.Invoker.uninit();
             start(server);
             startedServer = server;
             browser = testBrowser(webDriver);

@@ -3,16 +3,21 @@ package play.api.libs.iteratee
 import org.specs2.mutable._
 import play.api.libs.concurrent.Promise
 import play.api.libs.concurrent._
+import org.specs2.specification.Scope
+import org.specs2.execute.Result
+import play.core.Invoker
 
 object ConcurrentSpec extends Specification {
 
   "Concurrent.buffer" should {
 
+    sequential
+
     def now = System.currentTimeMillis()
 
-    "not slow down the enumerator if the iteratee is slow" in {
+    "not slow down the enumerator if the iteratee is slow" in new WithInvokerSystem {
       Promise.timeout((),1)
-      val slowIteratee = Iteratee.foldM(List[Long]()){ (s,e:Long) => Promise.timeout(s :+ e, 100) }
+      val slowIteratee = Iteratee.foldM(Seq[Long]()){ (s,e:Long) => Promise.timeout(s :+ e, 100) }
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10)
       val result = 
         fastEnumerator &>
@@ -24,7 +29,7 @@ object ConcurrentSpec extends Specification {
       result.value1.get.max must beLessThan(1000L)
     }
 
-    "throw an exception when buffer is full" in {
+    "throw an exception when buffer is full" in new WithInvokerSystem {
       val p = Promise[List[Long]]()
       val stuckIteratee = Iteratee.foldM(List[Long]()){ (s,e:Long) => p.future }
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10)
@@ -36,7 +41,7 @@ object ConcurrentSpec extends Specification {
       result.await.get must throwAn[Exception]("buffer overflow")
     }
 
-    "drop intermediate unused input, swallow even the unused eof forcing u to pass it twice" in {
+    "drop intermediate unused input, swallow even the unused eof forcing u to pass it twice" in new WithInvokerSystem {
       val p = Promise[List[Long]]()
       val slowIteratee = Iteratee.flatten(Promise.timeout(Cont[Long,List[Long]]{case Input.El(e) => Done(List(e),Input.Empty)},100))
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
@@ -52,7 +57,7 @@ object ConcurrentSpec extends Specification {
 
   "Concurrent.lazyAndErrIfNotReady" should {
 
-    "return an error if the iteratee is taking too long" in {
+    "return an error if the iteratee is taking too long" in new WithInvokerSystem {
 
       val slowIteratee = Iteratee.flatten(Promise.timeout(Cont[Long,List[Long]]{case _ => Done(List(1),Input.Empty)},1000))
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
@@ -60,6 +65,17 @@ object ConcurrentSpec extends Specification {
 
     }
 
+  }
+
+  trait WithInvokerSystem extends Around with Scope {
+    def around[T <% Result](t: => T) = {
+      Invoker.start()
+      try {
+        t
+      } finally {
+        Invoker.reset()
+      }
+    }
   }
 
 }

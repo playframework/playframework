@@ -115,27 +115,24 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     if (server != null) {
       sys.error("Server already started!")
     }
-    play.core.Invoker.uninit()
-    try {
-      server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
-    } catch {
-      case t: Throwable =>
-        t.printStackTrace
-        throw new RuntimeException(t)
-    }
+    server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
   }
 
   /**
    * Stops this server.
    */
   def stop() {
-    if (server == null) {
-      sys.error("Server is not started!");
+    try {
+      if (server != null) {
+        Logger("play").warn("Server not started")
+        server.stop()
+        server = null
+      }
+    } finally {
+      play.core.Invoker.reset()
+      play.api.libs.concurrent.Promise.resetSystem()
+      play.api.libs.ws.WS.resetClient()
     }
-    server.stop()
-    server = null
-    play.api.libs.concurrent.Promise.resetSystem()
-    play.api.libs.ws.WS.resetClient()
   }
 
 }
