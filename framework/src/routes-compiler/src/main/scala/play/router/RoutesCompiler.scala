@@ -94,6 +94,10 @@ import scala.util.matching._
 
       def javaIdent: Parser[String] = """\p{javaJavaIdentifierStart}\p{javaJavaIdentifierPart}*""".r
 
+      def javaPackageIdent: Parser[String] = """\p{Lower}\p{javaJavaIdentifierPart}*""".r
+
+      def javaClassIdent: Parser[String] = """\p{Upper}\p{javaJavaIdentifierPart}*""".r
+
       def identifier: Parser[String] = namedError(javaIdent, "Identifier expected")
 
       def end: util.matching.Regex = """\s*""".r
@@ -176,9 +180,9 @@ import scala.util.matching._
 
       def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def packageName: Parser[List[String]] = namedError(rep1sep(javaIdent, "."), "Package name expected")
+      def packageName: Parser[List[String]] = namedError(rep1sep(javaPackageIdent, "."), "Package name expected")
 
-      def className: Parser[String] = namedError(javaIdent, "Class name expected")
+      def className: Parser[String] = namedError(javaClassIdent, "Class name expected")
 
       def call: Parser[HandlerCall] = opt("@") ~ packageName ~ "." ~ className ~ "." ~ rep1sep(identifier, ".") ~ opt(parameters) ^^ {
         case instantiate ~ pkgName ~ _ ~ className ~ _ ~ fieldMethod ~ parameters =>
