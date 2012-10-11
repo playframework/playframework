@@ -176,7 +176,7 @@ import scala.util.matching._
 
       def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
 
-      def packageName: Parser[List[String]] = namedError(rep1sep("[a-z]+".r, "."), "Package name expected")
+      def packageName: Parser[List[String]] = namedError(rep1sep(javaIdent, "."), "Package name expected")
 
       def className: Parser[String] = namedError(javaIdent, "Class name expected")
 
