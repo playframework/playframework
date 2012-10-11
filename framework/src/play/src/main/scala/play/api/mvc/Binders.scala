@@ -469,7 +469,7 @@ object PathBindable {
    */
   implicit def bindableString: PathBindable[String] = new PathBindable[String] {
     def bind(key: String, value: String) = Right(URLDecoder.decode(value, "utf-8"))
-    def unbind(key: String, value: String) = value
+    def unbind(key: String, value: String) = URLEncoder.encode(value, "utf-8")
   }
 
   /**
