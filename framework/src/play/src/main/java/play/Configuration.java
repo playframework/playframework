@@ -607,4 +607,8 @@ public class Configuration {
         }
         return out;
     }
+
+    public play.api.Configuration getWrappedConfiguration() {
+        return conf;
+    }
 }

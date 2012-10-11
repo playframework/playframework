@@ -3,6 +3,7 @@ package play.core.j
 import play.api._
 import play.api.mvc._
 import play.mvc.Http.{ RequestHeader => JRequestHeader }
+import java.io.File
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
 class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings {
@@ -45,4 +46,8 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
       .getOrElse(super.getControllerInstance(controllerClass))
   }
 
+  override def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode) = {
+    Option(underlying.onLoadConfig(new play.Configuration(config), path, classloader))
+      .map(_.getWrappedConfiguration).getOrElse(super.onLoadConfig(config, path, classloader, mode))
+  }
 }

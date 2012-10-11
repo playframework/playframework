@@ -2,7 +2,9 @@ package play;
 
 import play.mvc.*;
 import play.mvc.Http.*;
+import scala.Enumeration.Value;
 
+import java.io.File;
 import java.lang.reflect.*;
 
 /**
@@ -12,7 +14,7 @@ import java.lang.reflect.*;
  * How to use it: create a <code>Global.java</code> class in your Java application and override the methods you want.
  */
 public class GlobalSettings {
-    
+
     /**
      * Executed before any plugin - you can set-up your database schema here, for instance.
      */
@@ -116,6 +118,18 @@ public class GlobalSettings {
      * @return the appropriate instance for the given controller class.
      */
     public <A> A getControllerInstance(Class<A> controllerClass) throws Exception {
+        return null;
+    }
+
+    /**
+     * Called just after configuration has been loaded, to give the application an opportunity to modify it.
+     *
+     * @param config the loaded configuration
+     * @param path the application path
+     * @param classloader The applications classloader
+     * @return The configuration that the application should use
+     */
+    public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
         return null;
     }
 }

@@ -72,9 +72,7 @@ trait WithDefaultConfiguration {
     Configuration.load(path, mode)
   }
 
-  private lazy val fullConfiguration = {
-    initialConfiguration ++ global.configuration
-  }
+  private lazy val fullConfiguration = global.onLoadConfig(initialConfiguration, path, classloader, mode)
 
   def configuration: Configuration = fullConfiguration
 
@@ -169,17 +167,28 @@ trait WithDefaultPlugins {
  *
  * This will create an application using the current classloader.
  *
- * @param path the absolute path hosting this application, mainly used by the `getFile(path)` helper method
- * @param classloader the application's classloader
- * @param sources the `SourceMapper` used to retrieve source code displayed in error pages
- * @param mode `Dev` or `Prod`, passed as information for the user code
  */
 @implicitNotFound(msg = "You do not have an implicit Application in scope. If you want to bring the current running Application into context, just add import play.api.Play.current")
 trait Application {
 
+  /**
+   * The absolute path hosting this application, mainly used by the `getFile(path)` helper method
+   */
   def path: File
+
+  /**
+   * The application's classloader
+   */
   def classloader: ClassLoader
+
+  /**
+   * The `SourceMapper` used to retrieve source code displayed in error pages
+   */
   def sources: Option[SourceMapper]
+
+  /**
+   * `Dev`, `Prod` or `Test`
+   */
   def mode: Mode.Mode
 
   def global: GlobalSettings
