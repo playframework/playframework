@@ -447,7 +447,7 @@ object PlayBuild extends Build {
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.7",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.7",
             
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
             
             "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
             "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
@@ -493,7 +493,7 @@ object PlayBuild extends Build {
         )
 
         val templatesCompilerDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
             "org.specs2"                        %%   "specs2"                   %   "1.12.1"    %   "test"
               exclude("javax.transaction", "jta")
         )
