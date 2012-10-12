@@ -12,7 +12,7 @@ object ApplicationBuild extends Build {
       anorm
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
+    val main = PlayProject(appName, appVersion, appDependencies).settings(
       // Add your own project settings here      
     )
 
