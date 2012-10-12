@@ -31,6 +31,8 @@ GET     /conf                   controllers.Application.conf()
 GET     /take-bool              controllers.Application.takeBool(b: Boolean)
 GET     /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
 
+GET     /customAction           controllers.Application.customAction()
+
 GET     /take-list              controllers.Application.takeList(x: List[Int])
 GET     /take-list-java         controllers.JavaApi.takeList(x: java.util.List[java.lang.Integer])
 

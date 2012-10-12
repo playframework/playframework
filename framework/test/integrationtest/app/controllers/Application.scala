@@ -44,7 +44,7 @@ object Application extends Controller {
     val overrideAkka = play.api.libs.concurrent.Akka.system.settings.config.getString("akka.loglevel")
     Ok(s + " no key: " + c +" - override akka:"+ overrideConfig+" akka-loglevel:"+ overrideAkka+ " promise-timeout:"+ timeout)
   }
-  
+
   def post = Action { request =>
     val content: String = request.body.toString
     Ok(views.html.index(content))
@@ -53,9 +53,9 @@ object Application extends Controller {
   def json = Action {
     Ok(toJson(User(1, "Sadek", List("tea"))))
   }
-  
+
   def jsonFromJsObject = Action {
-    Ok(toJson(JsObject(List("blah" -> JsString("foo"))))) 
+    Ok(toJson(JsObject(List("blah" -> JsString("foo")))))
   }
 
   def jsonWithContentType = Action { request =>
@@ -91,7 +91,7 @@ object Application extends Controller {
   def takeBool2(b: Boolean) = Action {
     Ok(b.toString())
   }
-  
+
   def javascriptRoutes = Action { implicit request =>
     import play.api.Routes
     Ok(Routes.javascriptRouter("routes")(routes.javascript.Application.javascriptTest)).as("text/javascript")
@@ -137,5 +137,9 @@ object Application extends Controller {
     Async {
       Promise.pure[Result](sys.error("Error"))
     }
+  }
+
+  def customAction = CustomAction { req =>
+    Ok(req.token)
   }
 }

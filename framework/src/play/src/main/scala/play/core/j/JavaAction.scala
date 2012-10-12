@@ -7,7 +7,7 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
 /*
  * An action that's handling Java requests
  */
-trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+trait JavaAction extends Action[play.mvc.Http.RequestBody, Request] with JavaHelpers {
 
   def parser: BodyParser[play.mvc.Http.RequestBody] = {
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))

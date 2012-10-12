@@ -53,7 +53,7 @@ object Assets extends Controller {
    * @param path the root folder for searching the static resource files, such as `"/public"`
    * @param file the file part extracted from the URL
    */
-  def at(path: String, file: String): Action[AnyContent] = Action { request =>
+  def at(path: String, file: String): Action[AnyContent, Request] = Action { request =>
     // -- LastModified handling
 
     def parseDate(date: String): Option[java.util.Date] = try {

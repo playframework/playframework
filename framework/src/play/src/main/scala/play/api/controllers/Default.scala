@@ -25,7 +25,7 @@ object Default extends Controller {
    * GET   /admin           controllers.Default.todo
    * }}}
    */
-  def todo: Action[AnyContent] = TODO
+  def todo: Action[AnyContent, Request] = TODO
 
   /**
    * Returns a 404 NotFound response.
@@ -35,7 +35,7 @@ object Default extends Controller {
    * GET   /favicon.ico     controllers.Default.notFound
    * }}}
    */
-  def notFound: Action[AnyContent] = Action {
+  def notFound: Action[AnyContent, Request] = Action {
     NotFound
   }
 
@@ -47,7 +47,7 @@ object Default extends Controller {
    * GET   /google          controllers.Default.redirect(to = "http://www.google.com")
    * }}}
    */
-  def redirect(to: String): Action[AnyContent] = Action {
+  def redirect(to: String): Action[AnyContent, Request] = Action {
     Redirect(to)
   }
 
@@ -59,7 +59,7 @@ object Default extends Controller {
    * GET   /xxx             controllers.Default.error
    * }}}
    */
-  def error: Action[AnyContent] = Action {
+  def error: Action[AnyContent, Request] = Action {
     InternalServerError
   }
 

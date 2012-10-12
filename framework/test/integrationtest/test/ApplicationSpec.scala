@@ -10,14 +10,14 @@ import play.api.mvc.AnyContentAsEmpty
 class ApplicationSpec extends Specification {
 
   "an Application" should {
-  
+
     "execute index" in {
-      
+
       running(FakeApplication()) {
-        
+
         val action = controllers.Application.index()
         val result = action(FakeRequest())
-        
+
         status(result) must equalTo(OK)
         contentType(result) must equalTo(Some("text/html"))
         charset(result) must equalTo(Some("utf-8"))
@@ -43,20 +43,20 @@ class ApplicationSpec extends Specification {
          userForm.bind(anyData).get.toString must contain ("")
       }
     }
-  
+
     "execute index again" in {
-      
+
       running(FakeApplication()) {
         val action = controllers.Application.index()
         val result = action(FakeRequest())
-        
+
         status(result) must equalTo(OK)
         contentType(result) must equalTo(Some("text/html"))
         charset(result) must equalTo(Some("utf-8"))
         contentAsString(result) must contain("Hello world")
       }
     }
-    
+
     "execute json" in {
     running(FakeApplication()) {
       val Some(result) = route(FakeRequest(GET, "/json"))
@@ -103,7 +103,7 @@ class ApplicationSpec extends Specification {
         status(result) must equalTo (NOT_FOUND)
       }
     }
-   
+
     "remove cache elements" in {
       running(FakeApplication()) {
         import play.api.Play.current
@@ -151,7 +151,7 @@ class ApplicationSpec extends Specification {
     }
 
     "bind int parameters from the query string as a list" in {
-     
+
         "from a list of numbers" in {
            running(FakeApplication()) {
              val Some(result) = route(FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
@@ -217,6 +217,13 @@ class ApplicationSpec extends Specification {
         val Some(result) = route(FakeRequest(GET, "/urldecode/2%2B2?q=2%2B2"))
         contentAsString(result) must contain ("fromPath=2+2")
         contentAsString(result) must contain ("fromQueryString=2+2")
+      }
+    }
+
+    "do custom generic actions" in {
+      running(FakeApplication()) {
+        val Some(result) = route(FakeRequest(GET, "/customAction"))
+        contentAsString(result) must contain ("XXX")
       }
     }
 

@@ -38,7 +38,7 @@ object Security {
    */
   def Authenticated[A](
     username: RequestHeader => Option[String],
-    onUnauthorized: RequestHeader => Result)(action: String => Action[A]): Action[(Action[A], A)] = {
+    onUnauthorized: RequestHeader => Result)(action: String => Action[A, Request]): Action[(Action[A, Request], A), Request] = {
 
     val authenticatedBodyParser = BodyParser { request =>
       username(request).map { user =>
@@ -86,7 +86,7 @@ object Security {
    * @tparam A the type of the request body
    * @param action the action to wrap
    */
-  def Authenticated[A](action: String => Action[A]): Action[(Action[A], A)] = Authenticated(
+  def Authenticated[A](action: String => Action[A, Request]): Action[(Action[A, Request], A), Request] = Authenticated(
     req => req.session.get(username),
     _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
 
