@@ -8,10 +8,10 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-      "play" %% "play-java" % play.core.PlayVersion.current
+      java
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
+    val main = PlayProject(appName, appVersion, appDependencies).settings(
       // Add your own project settings here      
     )
 

@@ -104,7 +104,6 @@ trait PlaySettings {
 
     testOptions in Test += Tests.Cleanup { loader =>
       loader.loadClass("play.api.Logger").getMethod("shutdown").invoke(null)
-      println("COCO")
     },
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),

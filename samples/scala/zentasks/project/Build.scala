@@ -9,11 +9,11 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-      "play" %% "play-jdbc" % play.core.PlayVersion.current,
-      "play" %% "anorm" % play.core.PlayVersion.current
+      jdbc,
+      anorm
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA)
+    val main = PlayProject(appName, appVersion, appDependencies)
 
 }
             

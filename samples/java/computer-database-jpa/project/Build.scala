@@ -8,13 +8,13 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-      "play" %% "play-java" % play.core.PlayVersion.current,
-      "play" %% "play-java-jdbc" % play.core.PlayVersion.current,
-      "play" %% "play-java-jpa" % play.core.PlayVersion.current,
+      java,
+      javaJdbc,
+      javaJpa,
       "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
+    val main = PlayProject(appName, appVersion, appDependencies).settings(
       ebeanEnabled := false   
     )
 
