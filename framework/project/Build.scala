@@ -475,6 +475,8 @@ object PlayBuild extends Build {
 
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.6.0",
 
+            "javax.transaction"                 %    "jta"                      %   "1.1",
+
             "org.specs2"                        %   "specs2_2.10.0-M7"          %   "1.12.1.1" %  "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
