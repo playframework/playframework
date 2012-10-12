@@ -82,7 +82,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
           sslCatcher.opt {
             logger.debug("checking for certs in ssl session")
-            val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]
+            val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq
             Promise.pure[IndexedSeq[Certificate]](res)
           } orElse {
             logger.debug("attempting to request certs from client")
@@ -95,7 +95,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               sslh.getEngine.setWantClientAuth(true)
             }
             Some(NettyPromise(sslh.handshake()).extend{ p=>
-                sslCatcher.opt(sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq[Certificate]).getOrElse(Nil)
+                sslCatcher.opt(sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq).getOrElse(Nil)
             })
           }
          }
