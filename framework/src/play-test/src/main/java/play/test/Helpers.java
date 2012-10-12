@@ -350,6 +350,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static void stop(FakeApplication fakeApplication) {
         play.api.Play.stop();
+        play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
+        play.core.Invoker$.MODULE$.system().shutdown();
+        play.core.Invoker$.MODULE$.uninit();
+        play.api.libs.ws.WS$.MODULE$.resetClient();
     }
 
     /**
@@ -361,10 +365,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             block.run();
         } finally {
             stop(fakeApplication);
-            play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
-            play.core.Invoker$.MODULE$.system().shutdown();
-            play.core.Invoker$.MODULE$.uninit();
-            play.api.libs.ws.WS$.MODULE$.resetClient();
         }
     }
 
