@@ -96,7 +96,7 @@ trait PlaySettings {
 
     parallelExecution in Test := false,
 
-    fork in Test := true,
+    fork in Test := false,
 
     testOptions in Test += Tests.Setup { loader =>
       loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
@@ -104,6 +104,7 @@ trait PlaySettings {
 
     testOptions in Test += Tests.Cleanup { loader =>
       loader.loadClass("play.api.Logger").getMethod("shutdown").invoke(null)
+      println("COCO")
     },
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
