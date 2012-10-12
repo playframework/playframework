@@ -8,6 +8,8 @@ GET     /async                      controllers.Application.asyncResult
 GET     /lang/:code                 controllers.Application.setLang(code)
 GET     /hello                      controllers.Application.hello()
 POST    /json                       controllers.Application.getIdenticalJson()
+GET     /paged                      controllers.Application.paged(p: controllers.Pager)
+GET     /user/:user                 controllers.Application.user(user: models.User)
 
 POST    /parsers/json               controllers.BodyParsers.json()
 POST    /parsers/limitedjson        controllers.BodyParsers.limitedJson()

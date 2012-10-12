@@ -443,6 +443,8 @@ object QueryStringBindable {
     def unbind(key: String, value: T) = {
       value.unbind(key)
     }
+    override def javascriptUnbind = Option(m.erasure.newInstance.asInstanceOf[T].javascriptUnbind())
+      .getOrElse(super.javascriptUnbind)
   }
 
 }
@@ -569,5 +571,7 @@ object PathBindable {
     def unbind(key: String, value: T) = {
       value.unbind(key)
     }
+    override def javascriptUnbind = Option(m.erasure.newInstance.asInstanceOf[T].javascriptUnbind())
+      .getOrElse(super.javascriptUnbind)
   }
 }

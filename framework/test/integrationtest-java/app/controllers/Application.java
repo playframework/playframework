@@ -1,6 +1,8 @@
 package controllers;
 
 import java.util.concurrent.Callable;
+
+import models.User;
 import org.codehaus.jackson.JsonNode;
 import play.*;
 import play.libs.Akka;
@@ -51,6 +53,14 @@ public class Application extends Controller {
 
     public static Result hello() {
         return ok(play.i18n.Messages.get("hello"));
+    }
+
+    public static Result paged(Pager pager) {
+        return ok(pager.toString());
+    }
+
+    public static Result user(User user) {
+        return ok(user.email);
     }
 
 }
