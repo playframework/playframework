@@ -355,12 +355,13 @@ object PlayBuild extends Build {
 
 
         val routersCompilerDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1"
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta")
         )
 
         val templatesCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
             "org.specs2"                        %%   "specs2"                   %   "1.12.1"    %   "test"
+              exclude("javax.transaction", "jta")
         )
         
         
@@ -383,7 +384,7 @@ object PlayBuild extends Build {
               .exclude("com.google.code.findbugs", "jsr305")
             ,
 
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
 
             "org.avaje.ebeanorm"                %    "avaje-ebeanorm"           %   "3.1.2" exclude("javax.persistence", "persistence-api"),
 
@@ -399,13 +400,13 @@ object PlayBuild extends Build {
         )
 
         val templatesDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1",
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
             "org.specs2"                        %    "specs2_2.10.0-M7"         %   "1.12.1.1"    %   "test"
         )
 
         val iterateesDependencies = Seq(
             "org.scala-tools"               %    "scala-stm_2.10.0-M7"      %   "0.6",
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1"
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta")
         )
           
 
