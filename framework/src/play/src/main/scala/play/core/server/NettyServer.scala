@@ -113,7 +113,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     }
   }
 
-  private def loadTrustManagers(keyStore: KeyStore) = {
+  private def loadTrustManagers(keyStore: KeyStore): Option[Array[TrustManager]] = {
     val algorithm = System.getProperty("https.trustStoreAlgorithm", TrustManagerFactory.getDefaultAlgorithm)
 
     System.getProperty("https.trustStore", "keystore") match {
@@ -136,9 +136,31 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         }
       }
       case "default" => Some(null) // Use the Java default trust store
-      case unknown => {
-        Logger("play").error("Unknown trust store type, must be one of [keystore, noCA, default]: " + unknown)
-        None
+      case className => {
+        try {
+          val clazz = Class.forName(className)
+          if (clazz.getInterfaces.toTraversable.exists(_ == classOf[X509TrustManager])) {
+            try {
+              val res = Some(Array(clazz.newInstance().asInstanceOf[TrustManager]))
+              Logger("play").info("Loaded TLS Trust Manager implementation "+clazz)
+              res
+            } catch {
+              case e: InstantiationException => {
+                Logger("play").error("could not instantiate "+className)
+                None
+              }
+            }
+          } else {
+            Logger("play").error("TrustManager class " + className+ " does not implement javax.net.ssl.TrustManager")
+            None
+          }
+        } catch {
+          case e: Exception => {
+            Logger("play").error("Unknown trust store type, must be one of [keystore, noCA, default, class.Name]: "
+              + className + " was not found." + e.getMessage)
+            None
+          }
+        }
       }
     }
   }
