@@ -342,17 +342,17 @@ object JsonValidSpec extends Specification {
         (__ \ "key1").json.pickBranch and
         (__ \ "key2").json.pickBranch(
           (
-            (__ \ "key22").json.put( (__ \ "key22").json.pick.map( js => js \ "key222" ) ) and 
-            (__ \ "key233").json.put( (__ \ "key23").json.pick )
+            (__ \ "key22").json.update( (__ \ "key222").json.pick ) and 
+            (__ \ "key233").json.copyFrom( (__ \ "key23").json.pick )
           ) reduce
         ) and
         (__ \ "key3").json.pickBranch[JsArray]( pure(Json.arr("delta")) ) and
         (__ \ "key4").json.put(
-          (
-            (__ \ "key41").json.put(JsNumber(345)) and
-            (__ \ "key42").json.put(JsString("alpha")) and 
-            (__ \ "key43").json.put( func ) 
-          ) reduce
+          Json.obj( 
+            "key41" -> 345,
+            "key42" -> "alpha",
+            "key43" -> func
+          )
         )
       ) reduce
 
@@ -365,19 +365,19 @@ object JsonValidSpec extends Specification {
           "key24" -> "blibli",
           "key233" -> true
          ),
-        "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),
+        "key3" -> Json.arr("delta"),
         "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha", "key43" -> func)
       )
 
       js0.validate(jsonTransformer) must beEqualTo(
-        JsError( (__ \ 'key3), "validate.error.expected.jsarray" ) ++
-        JsError( (__ \ 'key2 \ 'key2 \ 'key22), "validate.error.missing-path" )
+        //JsError( (__ \ 'key3), "validate.error.expected.jsarray" ) ++
+        JsError( (__ \ 'key2 \ 'key22), "validate.error.missing-path" )
       )
 
       js.validate(jsonTransformer) must beEqualTo(JsSuccess(res))
     }
 
-    "Build JSON from JSON Writes" in {
+    /*"Build JSON from JSON Writes" in {
       import Writes._
       val js = Json.obj(
         "key1" -> "value1",
@@ -423,7 +423,7 @@ object JsonValidSpec extends Specification {
       )
 
       js.transform(jsonTransformer) must beEqualTo(res)
-    }
+    }*/
 
   }
 
@@ -445,7 +445,7 @@ object JsonValidSpec extends Specification {
 
       implicit val UserReads = (
         (__ \ 'id).read[Long] and
-        (__ \ 'email).read( email provided minLength[String](5) ) and
+        (__ \ 'email).read( email andKeep minLength[String](5) ) and
         (__ \ 'age).read( max(55) or min(65) )
       )(User)
 
@@ -663,6 +663,31 @@ object JsonValidSpec extends Specification {
       JsError.toFlatJson(jserr) should beEqualTo(flatJson)
     }
 
+    "prune json" in {
+      import Reads._
+
+      val js = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> Json.obj("field21" -> 123, "field22" -> true, "field23" -> "blabla"),
+        "field3" -> "beta"
+      )
+
+      val res = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> Json.obj("field22" -> true),
+        "field3" -> "beta"
+      )
+      
+      val myReads: Reads[JsObject] = (
+        (__ \ 'field1).json.pickBranch and
+        (__ \ 'field2).json.pickBranch( 
+          (__ \ 'field21).json.prune andThen (__ \ 'field23).json.prune
+        ) and
+        (__ \ 'field3).json.pickBranch
+      ) reduce
+
+      js.validate(myReads) must beEqualTo(JsSuccess(res))
+    }
   }
 
   "JSON Writes" should {

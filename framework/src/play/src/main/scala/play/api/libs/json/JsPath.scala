@@ -1,7 +1,6 @@
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
-import util.Monoid
 
 sealed trait PathNode {
   def apply(json: JsValue): List[JsValue]
@@ -139,7 +138,7 @@ object JsPath {
       def step(path: List[PathNode], value: JsValue): JsObject = {
         path match {
           case List() => value match {
-            case obj @ JsObject(_) => obj
+            case obj: JsObject => obj
             case _ => throw new RuntimeException("when empty JsPath, expecting JsObject")
           }
           case List(p) => p match {
@@ -194,6 +193,50 @@ case class JsPath(path: List[PathNode] = List()) {
   def ++(other: JsPath) = this compose other
 
   /**
+   * Simple Prune for simple path and only JsObject
+   */
+  def prune(js: JsValue) = {
+    def stepNode(json: JsObject, node: PathNode): JsResult[JsObject] = {
+      node match {
+        case KeyPathNode(key) => JsSuccess(json - key)
+        case _ => JsError(JsPath(), ValidationError("validate.error.expected.keypathnode"))
+      }
+    }
+
+    def filterPathNode(json: JsObject, node: PathNode, value: JsValue): JsResult[JsObject] = {
+      node match {
+        case KeyPathNode(key) => JsSuccess(JsObject(json.fields.filterNot( _._1 == key )) ++ Json.obj( key -> value ))
+        case _ => JsError(JsPath(), ValidationError("validate.error.expected.keypathnode"))
+      }
+    }
+
+    def step(json: JsObject, lpath: JsPath): JsResult[JsObject] = {
+      lpath.path match {
+        case Nil => JsSuccess(json)
+        case List(p) => stepNode(json, p).repath(lpath)
+        case head :: tail => head(json) match {
+          case Nil => JsError(lpath, ValidationError("validate.error.missing-path"))
+          case List(js) => 
+            js match {
+              case o: JsObject => 
+                step(o, JsPath(tail)).repath(lpath).flatMap( value => 
+                   filterPathNode(json, head, value)
+                )
+              case _ => JsError(lpath, ValidationError("validate.error.expected.jsobject"))
+            }
+          case h :: t => JsError(lpath, ValidationError("validate.error.multiple-result-path"))
+        }
+      }
+    }
+
+    js match {
+      case o: JsObject => step(o, this)
+      case _ => 
+        JsError(this, ValidationError("validate.error.expected.jsobject"))
+    }    
+  }
+
+  /**
    * Reads/Writes/Format builders
    */
   def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
@@ -214,6 +257,8 @@ case class JsPath(path: List[PathNode] = List()) {
   def lazyFormat[T](f: => Format[T]) = OFormat[T]( lazyRead(f), lazyWrite(f) )
   def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
   def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
+
+  
 
   private val self = this
 
@@ -265,7 +310,7 @@ case class JsPath(path: List[PathNode] = List()) {
     => JsSuccess(JsObject(Seq( ("key2", JsString(value23456")) )))
     }}}
      */
-    def pickBranch[A <: JsValue](reads: Reads[A])(implicit implReads: Reads[A], m: Monoid[A]): Reads[JsObject] = Reads.jsPickBranchUpdate(self)(reads)(implReads, m)
+    def pickBranch[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsPickBranch[A](self)(reads)
     
     /**
      * (__ \ 'key).json.pickBranch is a Reads[JsObject] that:
@@ -281,30 +326,8 @@ case class JsPath(path: List[PathNode] = List()) {
     => JsSuccess(JsObject(Seq( ("key2", Json.obj("key21" -> "value2")) )))
     }}}
      */
-    def pickBranch: Reads[JsObject] = Reads.jsPickBranch(self)
+    def pickBranch: Reads[JsObject] = Reads.jsPickBranch[JsValue](self)
 
-    /**
-     * (__ \ 'key).put( reads ) is a Reads[JsObject] that:
-     * - validates/converts input Js with Reads[A]
-     * - creates a JsObject putting the result of previous validation at given JsPath
-     * - returns a JsResult[JsObject]
-     * Useful to create a new JsObject containing the given part (potentially modified) extracted from input JS
-     *
-     * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.validate( (__ \ 'key3).put( (__ \ 'key1).json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "2345") ) ) 
-    => JsSuccess(JsObject(Seq( ("key3", JsString("value12345")) )))
-    }}}
-     */
-    def put[A <: JsValue](r: Reads[A]): Reads[JsObject] = Reads.jsPut(self)(r)
-
-    /*Writes.at(self)(Writes( (js: A) => 
-      r.reads(js).fold(
-        valid = a => a,
-        invalid = e => JsNull
-      )
-    ))*/
 
     /**
      * (__ \ 'key).put(fixedValue) is a Reads[JsObject] that:
@@ -320,76 +343,13 @@ case class JsPath(path: List[PathNode] = List()) {
     => JsSuccess(JsObject(Seq( ("key3", JsNumber(123364687568756)) )))
     }}}
      */
-    def put[A <: JsValue](a: => A): Reads[JsObject] = Reads.jsPure(self, a)
+    def put(a: => JsValue): Reads[JsObject] = Reads.jsPut(self, a)
 
+    def copyFrom[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsCopyTo(self)(reads)
+
+    def update[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsUpdate(self)(reads)
+
+    def prune: Reads[JsObject] = Reads.jsPrune(self)
   }
   
-  object jsonw {
-    /**
-     * (__ \ 'key).pick[A <: JsValue] is a Writes[JsValue] that:
-     * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
-     * - returns a JsValue
-     * Useful to pick a JsValue at a given JsPath
-     *
-     * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> 123) 
-    js.transform( (__ \ 'key2).jsonw.pick ) 
-    => JsSuccess(JsNumber(123))
-    }}}
-     */
-    def pick: Writes[JsValue] = Writes.jsPick(self)
-
-    /**
-     * (__ \ 'key).json.pickBranch[A <: JsValue](writesOfJsValue) is a OWrites[JsValue] that:
-     * - copies the given branch (JsPath plus relative JsValue) from the input JS at this given JsPath
-     * - applies the given Writes[A] to this relative JsValue potentially modifying it
-     * - creates a JsObject from JsPath and generated JsValue
-     * - returns a JsObject
-     * Useful to create an JsObject from a single JsPath (potentially modifying it)
-     *
-     * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
-    js.transform( (__ \ 'key2).jsonw.pickBranch( (__ \ 'key21').jsonw.pick.transform( (js: JsString) => JsString(js.value ++ "3456") ) ) )
-    => JsObject(Seq( ("key2", JsString(value23456")) ))
-    }}}
-     */
-    def pickBranch: OWrites[JsValue] = Writes.jsPickBranch(self)
-
-    def pickBranch(w: OWrites[JsValue]): OWrites[JsValue] = Writes.jsPickBranchUpdate(self, w)
-
-    /**
-     * (__ \ 'key).put( writesOfA ) is a OWrites[A] that:
-     * - converts input Js with given Writes[A]
-     * - creates a JsObject putting the result of previous operation at given JsPath
-     * - returns a JsObject
-     * Useful to create a new JsObject containing the given part (potentially modified) extracted from input JS
-     *
-     * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.transform( (__ \ 'key3).put( (__ \ 'key1).jsonw.pick[JsString].transform( js => JsString(js.as[JsString].value ++ "2345") ) ) ) 
-    => JsObject(Seq( ("key3", JsString("value12345")) ))
-    }}}
-     */
-    def put[A <: JsValue](w: Writes[A]): OWrites[A] = Writes.at(self)(w)
-
-    /**
-     * (__ \ 'key).put(fixedValue) is a OWrites[JsValue] that:
-     * - creates a JsObject setting A (inheriting JsValue) at given JsPath
-     * - returns a JsObject
-     * This Writes doesn't care about the input JS and is mainly used to set a fixed at a given JsPath
-     * Please that A is passed by name allowing to use an expression reevaluated at each time.
-     *
-     * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.transform( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) ) 
-    => JsObject(Seq( ("key3", JsNumber(123364687568756)) ))
-    }}}
-     */
-    def put[A <: JsValue](a: => A)(implicit w: Writes[A]): OWrites[JsValue] = Writes.pure(self, a)
-  }
-
 }
