@@ -21,32 +21,36 @@ trait PathFormat {
 
 trait PathReads {
   
-  def required(path:JsPath)(implicit reads:Reads[JsValue]): Reads[JsValue] = at(path)
+  def required(path:JsPath)(implicit reads: Reads[JsValue]): Reads[JsValue] = at(path)(reads)
 
-  def at[A](path:JsPath)(implicit reads:Reads[A]): Reads[A] =
+  def at[A](path:JsPath)(implicit reads: Reads[A]): Reads[A] =
     Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)) )
 
-  def optional[A](path:JsPath)(implicit reads:Reads[A]): Reads[Option[A]] = 
+  def optional[A](path:JsPath)(implicit reads: Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).repath(path).map(Some(_))))
 
   def jsPick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
 
-  def jsPickBranch(path: JsPath): Reads[JsObject] =
-    Reads[JsObject]( js => path.asSingleJsResult(js).map( jsv => JsPath.createObj(path -> jsv) ) )
+  def jsPickBranch[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[JsObject] = 
+    Reads[JsObject]( js => path.asSingleJsResult(js).flatMap{ jsv => reads.reads(jsv).repath(path) }.map( jsv => JsPath.createObj(path -> jsv) ) )
 
-  def jsPickBranchUpdate[A <: JsValue](path: JsPath)(reads: Reads[A])(implicit implReads:Reads[A], monoid: Monoid[A]): Reads[JsObject] =
-    Reads[JsObject]( js => 
-      path.asSingleJsResult(js)
-          .flatMap( js => implReads.reads(js).repath(path) )
-          .flatMap( js => reads.reads(js).repath(path).map( jsread => monoid.append(js, jsread) ) )
-          .map( js => JsPath.createObj(path -> js) ) 
-      )
+  def jsPut(path: JsPath, a: => JsValue) = Reads[JsObject]( json => JsSuccess(JsPath.createObj(path -> a)) )
 
-  def jsPut[A <: JsValue](path: JsPath)(implicit reads:Reads[A]): Reads[JsObject] = 
-    Reads[JsObject]( json => reads.reads(json).map( a => JsPath.createObj(path -> a) ) )
+  def jsCopyTo[A <: JsValue](path: JsPath)(reads: Reads[A]) = 
+    Reads[JsObject]( js => reads.reads(js).map( js => JsPath.createObj(path -> js)) )
 
-  def jsPure[A <: JsValue](path: JsPath, a: => A) = Reads[JsObject]( json => JsSuccess(JsPath.createObj(path -> a)) )
+  def jsUpdate[A <: JsValue](path: JsPath)(reads: Reads[A]) = 
+    Reads[JsObject]( js => js match {
+      case o: JsObject =>
+        path.asSingleJsResult(o)
+            .flatMap( js => reads.reads(js) )
+            .map( jsv => JsPath.createObj(path -> jsv) )
+            .map( opath => o.deepMerge(opath) )
+      case _ => 
+        JsError(JsPath(), ValidationError("validate.error.expected.jsobject"))
+    })
 
+  def jsPrune(path: JsPath) = Reads[JsObject]( js => path.prune(js) )
 }
 
 trait ConstraintReads {
@@ -89,11 +93,11 @@ trait ConstraintReads {
   def email(implicit reads:Reads[String]) : Reads[String] = 
     pattern( """\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r, "validate.error.email" )
 
-  def verifying[A](cond: A => Boolean)(implicit _reads: Reads[A]) =
-    filter[A](ValidationError("validation.error.condition.not.verified"))(cond)(_reads)
+  def verifying[A](cond: A => Boolean)(implicit rds: Reads[A]) =
+    filter[A](ValidationError("validation.error.condition.not.verified"))(cond)(rds)
 
-  def verifyingIf[A](cond: A => Boolean)(subreads: Reads[_])(implicit _reads: Reads[A]) = 
-    Reads[A] { js => _reads.reads(js).flatMap { t => 
+  def verifyingIf[A](cond: A => Boolean)(subreads: Reads[_])(implicit rds: Reads[A]) = 
+    Reads[A] { js => rds.reads(js).flatMap { t => 
       (scala.util.control.Exception.catching(classOf[MatchError]) opt cond(t)).flatMap { b =>
         if(b) Some(subreads.reads(js).map( _ => t ))
         else None
@@ -105,13 +109,13 @@ trait ConstraintReads {
 }
 
 trait PathWrites {
-  def at[A](path: JsPath)(implicit _writes:Writes[A]): OWrites[A] =
-    OWrites[A]{ a => JsPath.createObj(path -> _writes.writes(a)) }
+  def at[A](path: JsPath)(implicit wrs:Writes[A]): OWrites[A] =
+    OWrites[A]{ a => JsPath.createObj(path -> wrs.writes(a)) }
 
-  def optional[A](path: JsPath)(implicit _writes:Writes[A]): OWrites[Option[A]] =
+  def optional[A](path: JsPath)(implicit wrs:Writes[A]): OWrites[Option[A]] =
     OWrites[Option[A]]{ a => 
       a match {
-        case Some(a) => JsPath.createObj(path -> _writes.writes(a)) 
+        case Some(a) => JsPath.createObj(path -> wrs.writes(a)) 
         case None => Json.obj()
       }
     }
@@ -122,15 +126,15 @@ trait PathWrites {
   def jsPickBranch(path: JsPath): OWrites[JsValue] =
     OWrites[JsValue]{ obj => JsPath.createObj(path -> path(obj).headOption.getOrElse(JsNull)) }
 
-  def jsPickBranchUpdate(path: JsPath, _writes: OWrites[JsValue]): OWrites[JsValue] =
+  def jsPickBranchUpdate(path: JsPath, wrs: OWrites[JsValue]): OWrites[JsValue] =
     OWrites[JsValue]{ js => 
       JsPath.createObj(
-        path -> path(js).headOption.flatMap( js => js.asOpt[JsObject].map( obj => obj ++ _writes.writes(obj) ) ).getOrElse(JsNull)
+        path -> path(js).headOption.flatMap( js => js.asOpt[JsObject].map( obj => obj ++ wrs.writes(obj) ) ).getOrElse(JsNull)
       )
     }
 
-  def pure[A](path: JsPath, fixed: => A)(implicit _writes:Writes[A]): OWrites[JsValue] =
-    OWrites[JsValue]{ js => JsPath.createObj(path -> _writes.writes(fixed)) }    
+  def pure[A](path: JsPath, fixed: => A)(implicit wrs:Writes[A]): OWrites[JsValue] =
+    OWrites[JsValue]{ js => JsPath.createObj(path -> wrs.writes(fixed)) }    
 
 }
 
@@ -143,8 +147,8 @@ trait ConstraintWrites {
     }
   }
 
-  def pure[A](fixed: => A)(implicit _writes:Writes[A]): Writes[JsValue] =
-    Writes[JsValue]{ js => _writes.writes(fixed) }   
+  def pure[A](fixed: => A)(implicit wrs:Writes[A]): Writes[JsValue] =
+    Writes[JsValue]{ js => wrs.writes(fixed) }   
 
   def pruned[A](implicit w: Writes[A]): Writes[A] = new Writes[A] {
     def writes(a: A): JsValue = JsUndefined("pruned")

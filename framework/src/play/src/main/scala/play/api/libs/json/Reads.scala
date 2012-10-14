@@ -43,23 +43,14 @@ trait Reads[A] {
   def orElse(v: Reads[A]): Reads[A] = 
     Reads[A] { json => self.reads(json).orElse(v.reads(json)) }
 
-  def compose[B](rb: Reads[B])(implicit witness: B <:< JsValue): Reads[A] = 
+  def compose[B <: JsValue](rb: Reads[B]): Reads[A] = 
     Reads[A] { js => rb.reads(js) match {
       case JsSuccess(b, p) => this.reads(b).repath(p)
       case JsError(e) => JsError(e)
     } }
 
-  def andThen[B](rb: Reads[B])(implicit witness: A <:< JsValue): Reads[B] = rb.compose(this)
+  def andThen[B](rb: Reads[B])(implicit witness: A <:< JsValue): Reads[B] = rb.compose(this.map(witness))
 
-  /**
-   * builds a JsErrorObj JsObject
-   * {
-   *    __VAL__ : "current known erroneous jsvalue",
-   *    __ERR__ : "the i18n key of the error msg",
-   *    __ARGS__ : "the args for the error msg" (JsArray)
-   * } 
-   */
-  def JsErrorObj(knownValue: JsValue, key: String, args: JsValue*) = Reads.JsErrorObj(knownValue, key, args: _*)
 }
 
 /**
@@ -109,30 +100,17 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
 
   implicit object JsObjectMonoid extends Monoid[JsObject] {
     def append(o1: JsObject, o2: JsObject) = o1 ++ o2
-    /* {
-      val o2var = collection.mutable.Map(o2.fields.toSeq: _*)
-
-      JsObject(
-        o1.fields.map{ case (key, value) => 
-          key -> o2var.remove(key).getOrElse(value)
-        } ++ o2var.toSeq
-      )
-    }*/
     def identity = JsObject(Seq())
   }
 
-  implicit object JsObjectReducer extends Reducer[JsObject, JsObject] {
-    def unit(o: JsObject) = o
-  }
+  implicit val JsObjectReducer = Reducer[JsObject, JsObject]( o => o )
 
   implicit object JsArrayMonoid extends Monoid[JsArray] {
     def append(a1: JsArray, a2: JsArray) = a1 ++ a2
     def identity = JsArray()
   }
 
-  implicit object JsArrayReducer extends Reducer[JsValue, JsArray] {
-    def unit(v: JsValue) = JsArray(Seq(v))
-  }
+  implicit val JsArrayReducer = Reducer[JsValue, JsArray]( js => JsArray(Seq(js)) )
 }
 
 /**
