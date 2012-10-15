@@ -9,6 +9,104 @@ import java.text.ParseException
 
 import play.api.data.validation.ValidationError 
 
+
+object JsonSpec extends Specification {
+  "JSON" should {
+    "equals JsObject independently of field order" in {
+      Json.obj(
+        "field1" -> 123, 
+        "field2" -> "beta", 
+        "field3" -> Json.obj(
+          "field31" -> true,
+          "field32" -> 123.45,
+          "field33" -> Json.arr("blabla", 456L, JsNull)
+        )
+      ) must beEqualTo(
+        Json.obj(
+          "field2" -> "beta", 
+          "field3" -> Json.obj(
+            "field31" -> true,
+            "field33" -> Json.arr("blabla", 456L, JsNull),
+            "field32" -> 123.45
+          ),
+          "field1" -> 123
+        )
+      )
+
+      Json.obj(
+        "field1" -> 123, 
+        "field2" -> "beta", 
+        "field3" -> Json.obj(
+          "field31" -> true,
+          "field32" -> 123.45,
+          "field33" -> Json.arr("blabla", JsNull)
+        )
+      ) must not equalTo(
+        Json.obj(
+          "field2" -> "beta", 
+          "field3" -> Json.obj(
+            "field31" -> true,
+            "field33" -> Json.arr("blabla", 456L),
+            "field32" -> 123.45
+          ),
+          "field1" -> 123
+        )
+      )
+
+      Json.obj(
+        "field1" -> 123, 
+        "field2" -> "beta", 
+        "field3" -> Json.obj(
+          "field31" -> true,
+          "field32" -> 123.45,
+          "field33" -> Json.arr("blabla", 456L, JsNull)
+        )
+      ) must not equalTo(
+        Json.obj(
+          "field3" -> Json.obj(
+            "field31" -> true,
+            "field33" -> Json.arr("blabla", 456L, JsNull),
+            "field32" -> 123.45
+          ),
+          "field1" -> 123
+        )
+      )
+    }
+  }
+
+  "JSON Writes" should {
+    "write list/seq/set/map" in {
+      import util._
+      import Writes._
+
+      Json.toJson(List(1, 2, 3)) must beEqualTo(Json.arr(1, 2, 3))
+      Json.toJson(Set("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
+      Json.toJson(Seq("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
+      Json.toJson(Map("key1" -> "value1", "key2" -> "value2")) must beEqualTo(Json.obj("key1" -> "value1", "key2" -> "value2"))
+
+      implicit val myWrites = (
+        (__ \ 'key1).write(constraints.list[Int]) and
+        (__ \ 'key2).write(constraints.set[String]) and
+        (__ \ 'key3).write(constraints.seq[String]) and
+        (__ \ 'key4).write(constraints.map[String])
+      ) tupled
+
+      Json.toJson( List(1, 2, 3), 
+        Set("alpha", "beta", "gamma"), 
+        Seq("alpha", "beta", "gamma"), 
+        Map("key1" -> "value1", "key2" -> "value2")
+      ) must beEqualTo( 
+        Json.obj(
+          "key1" -> Json.arr(1, 2, 3),
+          "key2" -> Json.arr("alpha", "beta", "gamma"),
+          "key3" -> Json.arr("alpha", "beta", "gamma"),
+          "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
+        )
+      )
+    }
+  }
+}
+
 /*object JsonSpec extends Specification {
 
   case class User(id: Long, name: String, friends: List[User])
