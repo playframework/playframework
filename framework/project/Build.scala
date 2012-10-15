@@ -430,6 +430,11 @@ object PlayBuild extends Build {
               .exclude("com.google.guava", "guava")
               .exclude("javassist", "javassist")
             ,
+            
+            "com.google.guava"                  %    "guava"                    %   "13.0.1",
+            
+            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
+            
 
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "javax.transaction"                 %    "jta"                      %   "1.1",
@@ -452,9 +457,7 @@ object PlayBuild extends Build {
             "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
             "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
 
-            "com.google.guava"                  %    "guava"                    %   "13.0.1",
-            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
-            
+
             "org.scala-tools"                   %    "scala-stm_2.10.0-M7"      %   "0.6",
 
             "joda-time"                         %    "joda-time"                %   "2.1",
