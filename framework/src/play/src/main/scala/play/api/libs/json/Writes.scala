@@ -8,41 +8,42 @@ import scala.annotation.implicitNotFound
  * Json serializer: write an implicit to define a serializer for any type
  */
 @implicitNotFound(
-  "No Json deserializer found for type ${T}. Try to implement an implicit Writes or Format for this type."
+  "No Json deserializer found for type ${A}. Try to implement an implicit Writes or Format for this type."
 )
-trait Writes[-T] {
+trait Writes[-A] {
 
   /**
    * Convert the object into a JsValue
    */
-  def writes(o: T): JsValue
+  def writes(o: A): JsValue
 
   /**
    * transforms the resulting JsValue using transformer function
    */
-  def transform(transformer: JsValue => JsValue): Writes[T] = Writes[T]{ t => transformer(this.writes(t)) }
+  def transform(transformer: JsValue => JsValue): Writes[A] = Writes[A]{ a => transformer(this.writes(a)) }
 
   /**
    * transforms resulting JsValue using Writes[JsValue] 
    */
-  def transform(transformer: Writes[JsValue]): Writes[T] = Writes[T]{ t => transformer.writes(this.writes(t)) }
+  def transform(transformer: Writes[JsValue]): Writes[A] = Writes[A]{ a => transformer.writes(this.writes(a)) }
+
 }
 
 @implicitNotFound(
-  "No Json deserializer as JsObject found for type ${T}. Try to implement an implicit OWrites or Format for this type."
+  "No Json deserializer as JsObject found for type ${A}. Try to implement an implicit OWrites or Format for this type."
 )
-trait OWrites[-T] extends Writes[T]{
+trait OWrites[-A] extends Writes[A]{
 
- def writes(o: T): JsObject
+  def writes(o: A): JsObject
 
 }
 
 object OWrites extends PathWrites with ConstraintWrites {
   import play.api.libs.json.util._
 
-  implicit val functionalCanBuildWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
+  implicit val functionalCanBuildOWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
 
-    def apply[A,B](wa: OWrites[A], wb:OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
+    def apply[A,B](wa: OWrites[A], wb: OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
 
   }
 
@@ -53,10 +54,11 @@ object OWrites extends PathWrites with ConstraintWrites {
   }
 
   def apply[A](f: A => JsObject):OWrites[A] = new OWrites[A] {
-    def writes(a:A):JsObject = f(a)
+    def writes(a:A): JsObject = f(a)
   }
 
 }
+
 /**
  * Default Serializers.
  */
