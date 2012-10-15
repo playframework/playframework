@@ -22,6 +22,28 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
 
+  //alerts  
+  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
+    println()
+    this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
+      println(Colors.green(el.toString))
+    }
+    println()
+  }
+
+  Option(System.getProperty("play.version")).map {
+    case badVersion if badVersion != play.core.PlayVersion.current => {
+      println(
+        Colors.red("""
+          |This project uses Play %s!
+          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
+        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
+      )
+    }
+    case _ =>
+  }
+
+  
   //- mainly scala, mainly java or none
 
   val JAVA = "java"
@@ -155,7 +177,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   //- test reporter
-  private[sbt] lazy val testListener = new PlayTestListener
+  protected lazy val testListener = new PlayTestListener
 
   val testResultReporter = TaskKey[List[String]]("test-result-reporter")
   val testResultReporterTask = (state, thisProjectRef) map { (s, r) =>

@@ -5,7 +5,16 @@ import PlayKeys._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper =>
-
+  
+  protected def whichLang(name: String): Seq[Setting[_]] = {
+    if (name == JAVA) {
+      defaultJavaSettings
+    } else if (name == SCALA) {
+      defaultScalaSettings
+    } else {
+      Seq.empty
+    }
+  }
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
     templatesImport ++= Seq(
