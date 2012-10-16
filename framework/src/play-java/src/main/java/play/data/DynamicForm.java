@@ -97,7 +97,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
             data = newData;
         }
         
-        Form<Dynamic> form = super.bind(data);
+        Form<Dynamic> form = super.bind(data, allowedFields);
         return new DynamicForm(form.data(), form.errors(), form.value());
     }
     
