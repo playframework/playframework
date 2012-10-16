@@ -129,11 +129,10 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
    * Stops this server.
    */
   def stop() {
-    if (server == null) {
-      sys.error("Server is not started!");
+    if (server != null) {
+      server.stop()
+      server = null
     }
-    server.stop()
-    server = null
     play.api.libs.concurrent.Promise.resetSystem()
     play.api.libs.ws.WS.resetClient()
   }
