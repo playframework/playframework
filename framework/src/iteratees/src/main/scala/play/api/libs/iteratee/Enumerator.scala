@@ -546,7 +546,9 @@ object Enumerator {
   def outputStream: (Enumerator[Array[Byte]], java.io.OutputStream) = {
     val (enumerator, channel) = Concurrent.broadcast[Array[Byte]]
     val os = new java.io.OutputStream(){
-      override def close() {}
+      override def close() {
+        channel.end()
+      }
       override def flush() {}
       override def write(value: Int) {
         channel.push(Array(value.toByte))
