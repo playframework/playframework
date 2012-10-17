@@ -540,6 +540,27 @@ object Enumerator {
     fromStream(new java.io.FileInputStream(file), chunkSize)
   }
 
+  /** Create an Enumerator of bytes with an OutputStream.
+   * @example val (enumerator, outputStream) = Enumerator.outputStream
+   */
+  def outputStream: (Enumerator[Array[Byte]], java.io.OutputStream) = {
+    val (enumerator, channel) = Concurrent.broadcast[Array[Byte]]
+    val os = new java.io.OutputStream(){
+      override def close() {}
+      override def flush() {}
+      override def write(value: Int) {
+        channel.push(Array(value.toByte))
+      }
+      override def write(buffer: Array[Byte]) {
+        write(buffer, 0, buffer.length)
+      }
+      override def write(buffer: Array[Byte], start: Int, count: Int) {
+        channel.push(buffer.slice(start, start+count))
+      }
+    }
+    (enumerator, os)
+  }
+
   def eof[A] = enumInput[A](Input.EOF)
 
   /**
