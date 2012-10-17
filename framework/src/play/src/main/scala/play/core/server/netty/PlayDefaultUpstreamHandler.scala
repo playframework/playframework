@@ -89,7 +89,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def path = nettyUri.getPath
           def method = nettyHttpRequest.getMethod.getName
           def version = nettyVersion.getText
-					def queryString = parameters
+          def queryString = parameters
           def headers = rHeaders
           lazy val remoteAddress = rRemoteAddress
           def username = None
