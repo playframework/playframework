@@ -415,6 +415,29 @@ object Forms {
   def jodaDate(pattern: String): Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime] as jodaDateTimeFormat(pattern)
 
   /**
+   * Constructs a simple mapping for a date field (mapped as `org.joda.time.LocalDatetype`).
+   *
+   * For example:
+   * {{{
+   *   Form("birthdate" -> jodaLocalDate)
+   * }}}
+   */
+  val jodaLocalDate: Mapping[org.joda.time.LocalDate] = of[org.joda.time.LocalDate]
+
+  /**
+   * Constructs a simple mapping for a date field (mapped as `org.joda.time.LocalDate type`).
+   *
+   * For example:
+   * {{{
+   *   Form("birthdate" -> jodaLocalDate("dd-MM-yyyy"))
+   * }}}
+   *
+   * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
+   */
+  def jodaLocalDate(pattern: String): Mapping[org.joda.time.LocalDate] = of[org.joda.time.LocalDate] as jodaLocalDateFormat(pattern)
+
+
+  /**
    * Constructs a simple mapping for an e-mail field.
    *
    * For example:
