@@ -152,18 +152,16 @@ object EnumeratorsSpec extends Specification {
 
 "Enumerator.outputStream" should {
   "produce the same value written in the OutputStream" in {
-    val (enumerator, outputStream) = Enumerator.outputStream
     val a = "FOO"
     val b = "bar"
-
+    val enumerator = Enumerator.outputStream { outputStream =>
+      outputStream.write(a.toArray.map(_.toByte))
+      outputStream.write(b.toArray.map(_.toByte))
+      outputStream.close()
+    }
     val promise = (enumerator |>> Iteratee.fold[Array[Byte],Array[Byte]](Array[Byte]())(_ ++ _)).flatMap(_.run)
 
-    outputStream.write(a.toArray.map(_.toByte))
-    outputStream.write(b.toArray.map(_.toByte))
-    outputStream.close()
-
     promise.await.get.map(_.toChar).foldLeft("")(_+_) must equalTo(a+b)
-
   }
 }
 
