@@ -109,7 +109,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public Field field(String key) {
         Field field = super.field(asDynamicKey(key));
-        return new Field(this, field.name(), field.constraints(), field.format(), field.errors(), 
+        return new Field(this, key, field.constraints(), field.format(), field.errors(),
             field.value() == null ? get(key) : field.value()
         );
     }
