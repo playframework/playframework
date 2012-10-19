@@ -2,6 +2,7 @@ package play.test;
 
 import play.*;
 
+import play.api.mvc.Session;
 import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
@@ -163,18 +164,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the Flash values of this Result value.
      */
     public static play.mvc.Http.Flash flash(Result result) {
-        return new play.mvc.Http.Flash(
-            Scala.asJava(play.api.test.Helpers.flash(result.getWrappedResult()).data())
-        );
+        return play.core.j.JavaResultExtractor.getFlash(result);
     }
 
     /**
      * Extracts the Session of this Result value.
      */
     public static play.mvc.Http.Session session(Result result) {
-        return new play.mvc.Http.Session(
-                Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
-        );
+        return play.core.j.JavaResultExtractor.getSession(result);
     }
 
     /**

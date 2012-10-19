@@ -5,7 +5,7 @@ import play.api.http._
 import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._
-import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
 
 import play.api.libs.concurrent.execution.defaultContext
 
@@ -49,6 +49,20 @@ object JavaResultExtractor {
         }.getOrElse(null)
       }
     }
+  }
+
+  def getSession(result: play.mvc.Result): JSession = result.getWrappedResult match {
+    case r: AsyncResult => getSession(new ResultWrapper(r.result.await.get))
+    case PlainResult(_, headers) => new JSession(Session.decodeFromCookie(
+      Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
+    ).data.asJava)
+  }
+
+  def getFlash(result: play.mvc.Result): JFlash = result.getWrappedResult match {
+    case r: AsyncResult => getFlash(new ResultWrapper(r.result.await.get))
+    case PlainResult(_, headers) => new JFlash(Flash.decodeFromCookie(
+      Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
+    ).data.asJava)
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
