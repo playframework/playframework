@@ -119,9 +119,6 @@ class FunctionalSpec extends Specification {
         browser.goTo("http://localhost:9001")
         browser.pageSource must contain("Hello world")
 
-        browser.goTo("http://localhost:9001/inherit")
-        browser.pageSource must contain("I'm the parent action")
-
         await(WS.url("http://localhost:9001").get()).body must contain ("Hello world")
 
         await(WS.url("http://localhost:9001/json").get()).json.as[User] must equalTo(User(1, "Sadek", List("tea")))

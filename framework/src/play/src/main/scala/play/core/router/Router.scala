@@ -116,30 +116,7 @@ object Router {
 
   }
 
-  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String) {
-
-    def getControllerClass: Class[_] = {
-      try {
-        ref.getClass.getClassLoader.loadClass(controller)
-      } catch {
-        case e: Exception => {
-          // It might be a field or method, try to see if the parent exists as a class
-          val parent = try {
-            ref.getClass.getClassLoader.loadClass(controller.split('.').dropRight(1).mkString("."))
-          } catch {
-            // Throw the original exception
-            case _: Exception => throw e
-          }
-          val field = controller.split('.').takeRight(1).head
-          try {
-            parent.getMethod(field).getReturnType
-          } catch {
-            case _: Exception => parent.getField(field).getType
-          }
-        }
-      }
-    }
-  }
+  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
 
   def queryString(items: List[Option[String]]) = {
     Option(items.filter(_.isDefined).map(_.get).filterNot(_.isEmpty)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
@@ -162,7 +139,7 @@ object Router {
       def call(call: => play.mvc.Result, handler: HandlerDef) = {
         new play.core.j.JavaAction {
           def invocation = call
-          lazy val controller = handler.getControllerClass
+          lazy val controller = handler.ref.getClass.getClassLoader.loadClass(handler.controller)
           lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, handler.method, handler.parameterTypes: _*)
         }
       }
