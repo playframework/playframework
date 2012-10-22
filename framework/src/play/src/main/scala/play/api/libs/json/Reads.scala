@@ -19,36 +19,38 @@ trait Reads[A] {
    */
   def reads(json: JsValue): JsResult[A]
 
-  def map[B](f:A => B):Reads[B] =
+  def map[B](f: A => B): Reads[B] =
     Reads[B] { json => self.reads(json).map(f) }
 
-  def flatMap[B](f:A => Reads[B]):Reads[B] = Reads[B] { json =>
+  def flatMap[B](f: A => Reads[B]): Reads[B] = Reads[B] { json =>
     self.reads(json).flatMap(t => f(t).reads(json))
   }
 
-  def filter(f: A => Boolean):Reads[A] =
+  def filter(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filter(f) }
 
-  def filter(error:ValidationError)(f: A => Boolean): Reads[A] =
+  def filter(error: ValidationError)(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filter(error)(f) }
 
   def filterNot(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filterNot(f) }
 
-  def filterNot(error:ValidationError)(f: A => Boolean): Reads[A] =
+  def filterNot(error: ValidationError)(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filterNot(error)(f) }
 
-  def collect[B](error:ValidationError)(f: PartialFunction[A,B]) =
+  def collect[B](error: ValidationError)(f: PartialFunction[A, B]) =
     Reads[B] { json => self.reads(json).collect(error)(f) }
 
-  def orElse(v: Reads[A]): Reads[A] = 
+  def orElse(v: Reads[A]): Reads[A] =
     Reads[A] { json => self.reads(json).orElse(v.reads(json)) }
 
-  def compose[B <: JsValue](rb: Reads[B]): Reads[A] = 
-    Reads[A] { js => rb.reads(js) match {
-      case JsSuccess(b, p) => this.reads(b).repath(p)
-      case JsError(e) => JsError(e)
-    } }
+  def compose[B <: JsValue](rb: Reads[B]): Reads[A] =
+    Reads[A] { js =>
+      rb.reads(js) match {
+        case JsSuccess(b, p) => this.reads(b).repath(p)
+        case JsError(e) => JsError(e)
+      }
+    }
 
   def andThen[B](rb: Reads[B])(implicit witness: A <:< JsValue): Reads[B] = rb.compose(this.map(witness))
 
@@ -65,28 +67,28 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
 
   import play.api.libs.json.util._
 
-  implicit def applicative(implicit applicativeJsResult:Applicative[JsResult]):Applicative[Reads] = new Applicative[Reads]{
+  implicit def applicative(implicit applicativeJsResult: Applicative[JsResult]): Applicative[Reads] = new Applicative[Reads] {
 
-    def pure[A](a:A):Reads[A] = Reads[A] { _ => JsSuccess(a) }
+    def pure[A](a: A): Reads[A] = Reads[A] { _ => JsSuccess(a) }
 
-    def map[A,B](m:Reads[A], f: A => B):Reads[B] = m.map(f)
+    def map[A, B](m: Reads[A], f: A => B): Reads[B] = m.map(f)
 
-    def apply[A,B](mf:Reads[A => B], ma: Reads[A]):Reads[B] = new Reads[B]{ def reads(js: JsValue) = applicativeJsResult(mf.reads(js),ma.reads(js)) }
+    def apply[A, B](mf: Reads[A => B], ma: Reads[A]): Reads[B] = new Reads[B] { def reads(js: JsValue) = applicativeJsResult(mf.reads(js), ma.reads(js)) }
 
   }
 
-  implicit def alternative(implicit a: Applicative[Reads]):Alternative[Reads] = new Alternative[Reads]{
+  implicit def alternative(implicit a: Applicative[Reads]): Alternative[Reads] = new Alternative[Reads] {
     val app = a
-    def |[A,B >: A](alt1: Reads[A], alt2 :Reads[B]):Reads[B] = new Reads[B] {
+    def |[A, B >: A](alt1: Reads[A], alt2: Reads[B]): Reads[B] = new Reads[B] {
       def reads(js: JsValue) = alt1.reads(js) match {
-        case r@JsSuccess(_,_) => r
-        case r@JsError(es1) => alt2.reads(js) match {
-          case r2@JsSuccess(_,_) => r2
-          case r2@JsError(es2) => JsError(JsError.merge(es1,es2))
+        case r @ JsSuccess(_, _) => r
+        case r @ JsError(es1) => alt2.reads(js) match {
+          case r2 @ JsSuccess(_, _) => r2
+          case r2 @ JsError(es2) => JsError(JsError.merge(es1, es2))
         }
       }
     }
-    def empty:Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
+    def empty: Reads[Nothing] = new Reads[Nothing] { def reads(js: JsValue) = JsError(Seq()) }
 
   }
 
@@ -94,24 +96,23 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
     def reads(json: JsValue) = f(json)
   }
 
-  implicit def functorReads(implicit a: Applicative[Reads]) = new Functor[Reads]{
+  implicit def functorReads(implicit a: Applicative[Reads]) = new Functor[Reads] {
     def fmap[A, B](reads: Reads[A], f: A => B): Reads[B] = a.map(reads, f)
   }
-
 
   implicit object JsObjectMonoid extends Monoid[JsObject] {
     def append(o1: JsObject, o2: JsObject) = o1 ++ o2
     def identity = JsObject(Seq())
   }
 
-  implicit val JsObjectReducer = Reducer[JsObject, JsObject]( o => o )
+  implicit val JsObjectReducer = Reducer[JsObject, JsObject](o => o)
 
   implicit object JsArrayMonoid extends Monoid[JsArray] {
     def append(a1: JsArray, a2: JsArray) = a1 ++ a2
     def identity = JsArray()
   }
 
-  implicit val JsArrayReducer = Reducer[JsValue, JsArray]( js => JsArray(Seq(js)) )
+  implicit val JsArrayReducer = Reducer[JsValue, JsArray](js => JsArray(Seq(js)))
 }
 
 /**
@@ -125,13 +126,13 @@ trait DefaultReads {
    *    __VAL__ : "current known erroneous jsvalue",
    *    __ERR__ : "the i18n key of the error msg",
    *    __ARGS__ : "the args for the error msg" (JsArray)
-   * } 
+   * }
    */
   def JsErrorObj(knownValue: JsValue, key: String, args: JsValue*) = {
     Json.obj(
       "__VAL__" -> knownValue,
       "__ERR__" -> key,
-      "__ARGS__" -> args.foldLeft(JsArray())( (acc: JsArray, arg: JsValue) => acc :+ arg )
+      "__ARGS__" -> args.foldLeft(JsArray())((acc: JsArray, arg: JsValue) => acc :+ arg)
     )
   }
 
@@ -195,7 +196,6 @@ trait DefaultReads {
     }
   }
 
-
   /**
    * Reads for the `java.util.Date` type.
    *
@@ -203,7 +203,7 @@ trait DefaultReads {
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
   def dateReads(pattern: String, corrector: String => String = identity): Reads[java.util.Date] = new Reads[java.util.Date] {
-    
+
     def reads(json: JsValue): JsResult[java.util.Date] = json match {
       case JsNumber(d) => JsSuccess(new java.util.Date(d.toLong))
       case JsString(s) => parseDate(corrector(s)) match {
@@ -217,7 +217,7 @@ trait DefaultReads {
       // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
       val df = new java.text.SimpleDateFormat(pattern)
       df.setLenient(false)
-      try { Some(df.parse( input )) } catch {
+      try { Some(df.parse(input)) } catch {
         case _: java.text.ParseException => None
       }
     }
@@ -226,23 +226,23 @@ trait DefaultReads {
 
   /**
    * the default implicit java.util.Date reads
-   */ 
+   */
   implicit val DefaultDateReads = dateReads("yyyy-MM-dd")
 
   /**
    * ISO 8601 Reads
    */
-  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input => 
+  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input =>
     // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
     // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
     // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
-    if ( input.endsWith( "Z" ) ) {
-      input.substring( 0, input.length() - 1) + "GMT-00:00"
+    if (input.endsWith("Z")) {
+      input.substring(0, input.length() - 1) + "GMT-00:00"
     } else {
       val inset = 6
-  
-      val s0 = input.substring( 0, input.length - inset )
-      val s1 = input.substring( input.length - inset, input.length )
+
+      val s0 = input.substring(0, input.length - inset)
+      val s1 = input.substring(input.length - inset, input.length)
 
       s0 + "GMT" + s1
     }
@@ -258,7 +258,7 @@ trait DefaultReads {
     import org.joda.time.DateTime
 
     val df = org.joda.time.format.DateTimeFormat.forPattern(pattern)
-    
+
     def reads(json: JsValue): JsResult[DateTime] = json match {
       case JsNumber(d) => JsSuccess(new DateTime(d.toLong))
       case JsString(s) => parseDate(corrector(s)) match {
@@ -272,55 +272,54 @@ trait DefaultReads {
       scala.util.control.Exception.allCatch[DateTime] opt (DateTime.parse(input, df))
 
   }
- 
+
   /**
    * the default implicit JodaDate reads
-   */ 
+   */
   implicit val DefaultJodaDateReads = jodaDateReads("yyyy-MM-dd")
- 
- 
+
   /**
    * Reads for the `org.joda.time.LocalDate` type.
    *
    * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
    * @param corrector string transformation function (See jodaDateReads)
    */
-   def jodaLocalDateReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalDate] = new Reads[org.joda.time.LocalDate] {
-   
-     import org.joda.time.LocalDate
-     import org.joda.time.format.{DateTimeFormat,ISODateTimeFormat}
+  def jodaLocalDateReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalDate] = new Reads[org.joda.time.LocalDate] {
 
-     val df = if (pattern == "") ISODateTimeFormat.localDateParser else DateTimeFormat.forPattern(pattern)
+    import org.joda.time.LocalDate
+    import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
 
-     def reads(json: JsValue): JsResult[LocalDate] = json match {
-       case JsString(s) => parseDate(corrector(s)) match {
-         case Some(d) => JsSuccess(d)
-         case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jodadate.format", pattern))))
-       }
-       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
-     }
+    val df = if (pattern == "") ISODateTimeFormat.localDateParser else DateTimeFormat.forPattern(pattern)
 
-     private def parseDate(input: String): Option[LocalDate] =
-       scala.util.control.Exception.allCatch[LocalDate] opt (LocalDate.parse(input, df))
-   }
+    def reads(json: JsValue): JsResult[LocalDate] = json match {
+      case JsString(s) => parseDate(corrector(s)) match {
+        case Some(d) => JsSuccess(d)
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jodadate.format", pattern))))
+      }
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
+    }
+
+    private def parseDate(input: String): Option[LocalDate] =
+      scala.util.control.Exception.allCatch[LocalDate] opt (LocalDate.parse(input, df))
+  }
 
   /**
    * the default implicit joda.time.LocalDate reads
-   */ 
-   implicit val DefaultJodaLocalDateReads = jodaLocalDateReads("")
-   
+   */
+  implicit val DefaultJodaLocalDateReads = jodaLocalDateReads("")
+
   /**
    * Reads for the `java.sql.Date` type.
    *
    * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
-  def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] = 
+  def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] =
     dateReads(pattern, corrector).map(d => new java.sql.Date(d.getTime))
 
   /**
    * the default implicit JodaDate reads
-   */ 
+   */
   implicit val DefaultSqlDateReads = sqlDateReads("yyyy-MM-dd")
 
   /**
@@ -342,7 +341,6 @@ trait DefaultReads {
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
   }
-
 
   /**
    * Deserializer for JsObject.
@@ -391,7 +389,7 @@ trait DefaultReads {
 
   implicit def OptionReads[T](implicit fmt: Reads[T]): Reads[Option[T]] = new Reads[Option[T]] {
     import scala.util.control.Exception._
-    def reads(json: JsValue) = fmt.reads(json).fold( e => JsSuccess(None), v => JsSuccess(Some(v)))
+    def reads(json: JsValue) = fmt.reads(json).fold(e => JsSuccess(None), v => JsSuccess(Some(v)))
   }
 
   /**
@@ -404,23 +402,23 @@ trait DefaultReads {
         // the aim is to find all errors prod then to merge them all
         var hasErrors = false
 
-        val r = m.map { case (key, value) => 
-          fromJson[V](value)(fmtv) match {
-            case JsSuccess(v,_) => Right( (key, v, value) )
-            case JsError(e) =>
-              hasErrors = true
-              Left( e.map{ case (p, valerr) => (JsPath \ key) ++ p -> valerr } )
-          } 
+        val r = m.map {
+          case (key, value) =>
+            fromJson[V](value)(fmtv) match {
+              case JsSuccess(v, _) => Right((key, v, value))
+              case JsError(e) =>
+                hasErrors = true
+                Left(e.map { case (p, valerr) => (JsPath \ key) ++ p -> valerr })
+            }
         }
 
         // if errors, tries to merge them into a single JsError
-        if(hasErrors) {
-          val fulle = r.filter( _.isLeft ).map( _.left.get )
-                                .foldLeft(List[(JsPath, Seq[ValidationError])]())( (acc, v) => acc ++ v )
+        if (hasErrors) {
+          val fulle = r.filter(_.isLeft).map(_.left.get)
+            .foldLeft(List[(JsPath, Seq[ValidationError])]())((acc, v) => acc ++ v)
           JsError(fulle)
-        }
-        // no error, rebuilds the map
-        else JsSuccess( r.filter( _.isRight ).map( _.right.get ).map{ v => v._1 -> v._2 }.toMap )
+        } // no error, rebuilds the map
+        else JsSuccess(r.filter(_.isRight).map(_.right.get).map { v => v._1 -> v._2 }.toMap)
       }
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsobject"))))
     }
@@ -432,29 +430,29 @@ trait DefaultReads {
   implicit def traversableReads[F[_], A](implicit bf: generic.CanBuildFrom[F[_], A, F[A]], ra: Reads[A]) = new Reads[F[A]] {
     def reads(json: JsValue) = json match {
       case JsArray(ts) => {
-        
+
         var hasErrors = false
 
         // first validates prod separates JsError / JsResult in an Seq[Either]
         // the aim is to find all errors prod then to merge them all
-        val r = ts.zipWithIndex.map { case (elt, idx) => fromJson[A](elt)(ra) match {
-            case JsSuccess(v,_) => Right(v)
-            case JsError(e) => 
+        val r = ts.zipWithIndex.map {
+          case (elt, idx) => fromJson[A](elt)(ra) match {
+            case JsSuccess(v, _) => Right(v)
+            case JsError(e) =>
               hasErrors = true
-              Left( e.map{ case (p, valerr) => (JsPath(idx)) ++ p -> valerr } )
+              Left(e.map { case (p, valerr) => (JsPath(idx)) ++ p -> valerr })
           }
         }
 
         // if errors, tries to merge them into a single JsError
-        if(hasErrors) {
-          val fulle = r.filter( _.isLeft ).map( _.left.get )
-                                .foldLeft(List[(JsPath, Seq[ValidationError])]())( (acc, v) => (acc ++ v) )          
+        if (hasErrors) {
+          val fulle = r.filter(_.isLeft).map(_.left.get)
+            .foldLeft(List[(JsPath, Seq[ValidationError])]())((acc, v) => (acc ++ v))
           JsError(fulle)
-        }
-        // no error, rebuilds the map
+        } // no error, rebuilds the map
         else {
           val builder = bf()
-          r.foreach( builder += _.right.get )
+          r.foreach(builder += _.right.get)
           JsSuccess(builder.result())
         }
 
@@ -467,7 +465,7 @@ trait DefaultReads {
    * Deserializer for Array[T] types.
    */
   implicit def ArrayReads[T: Reads: ClassTag]: Reads[Array[T]] = new Reads[Array[T]] {
-    def reads(json: JsValue) = json.validate[List[T]].map( _.toArray )
+    def reads(json: JsValue) = json.validate[List[T]].map(_.toArray)
   }
 
 }

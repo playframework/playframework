@@ -20,19 +20,19 @@ trait Writes[-A] {
   /**
    * transforms the resulting JsValue using transformer function
    */
-  def transform(transformer: JsValue => JsValue): Writes[A] = Writes[A]{ a => transformer(this.writes(a)) }
+  def transform(transformer: JsValue => JsValue): Writes[A] = Writes[A] { a => transformer(this.writes(a)) }
 
   /**
-   * transforms resulting JsValue using Writes[JsValue] 
+   * transforms resulting JsValue using Writes[JsValue]
    */
-  def transform(transformer: Writes[JsValue]): Writes[A] = Writes[A]{ a => transformer.writes(this.writes(a)) }
+  def transform(transformer: Writes[JsValue]): Writes[A] = Writes[A] { a => transformer.writes(this.writes(a)) }
 
 }
 
 @implicitNotFound(
   "No Json deserializer as JsObject found for type ${A}. Try to implement an implicit OWrites or Format for this type."
 )
-trait OWrites[-A] extends Writes[A]{
+trait OWrites[-A] extends Writes[A] {
 
   def writes(o: A): JsObject
 
@@ -41,20 +41,20 @@ trait OWrites[-A] extends Writes[A]{
 object OWrites extends PathWrites with ConstraintWrites {
   import play.api.libs.json.util._
 
-  implicit val functionalCanBuildOWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
+  implicit val functionalCanBuildOWrites: FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
 
-    def apply[A,B](wa: OWrites[A], wb: OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
-
-  }
-
-  implicit val contravariantfunctorOWrites:ContravariantFunctor[OWrites] = new ContravariantFunctor[OWrites] {
-
-    def contramap[A,B](wa:OWrites[A], f: B => A):OWrites[B] = OWrites[B]( b => wa.writes(f(b)) )
+    def apply[A, B](wa: OWrites[A], wb: OWrites[B]): OWrites[A ~ B] = OWrites[A ~ B] { case a ~ b => wa.writes(a) ++ wb.writes(b) }
 
   }
 
-  def apply[A](f: A => JsObject):OWrites[A] = new OWrites[A] {
-    def writes(a:A): JsObject = f(a)
+  implicit val contravariantfunctorOWrites: ContravariantFunctor[OWrites] = new ContravariantFunctor[OWrites] {
+
+    def contramap[A, B](wa: OWrites[A], f: B => A): OWrites[B] = OWrites[B](b => wa.writes(f(b)))
+
+  }
+
+  def apply[A](f: A => JsObject): OWrites[A] = new OWrites[A] {
+    def writes(a: A): JsObject = f(a)
   }
 
 }
@@ -77,7 +77,7 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
 
   def apply[A](f: A => JsValue): Writes[A] = new Writes[A] {
 
-    def writes(a:A):JsValue = f(a)
+    def writes(a: A): JsValue = f(a)
 
   }
 
@@ -150,7 +150,7 @@ trait DefaultWrites {
   implicit def arrayWrites[T](implicit fmt: Writes[T], mf: Manifest[T]): Writes[Array[T]] = new Writes[Array[T]] {
     def writes(ts: Array[T]) = JsArray((ts.map(t => toJson(t)(fmt))).toList)
   }
-  
+
   /**
    * Serializer for Map[String,V] types.
    */
@@ -195,7 +195,7 @@ trait DefaultWrites {
    * Default Serializer java.uti.Date -> JsNumber(d.getTime (nb of ms))
    */
   implicit object DefaultDateWrites extends Writes[java.util.Date] {
-    def writes(d: java.util.Date): JsValue = JsNumber(d.getTime) 
+    def writes(d: java.util.Date): JsValue = JsNumber(d.getTime)
   }
 
   /**
@@ -210,7 +210,7 @@ trait DefaultWrites {
    * Default Serializer org.joda.time.DateTime -> JsNumber(d.getMillis (nb of ms))
    */
   implicit object DefaultJodaDateWrites extends Writes[org.joda.time.DateTime] {
-    def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis) 
+    def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis)
   }
 
   /**
@@ -225,9 +225,9 @@ trait DefaultWrites {
    * Default Serializer org.joda.time.LocalDate -> JsString(ISO8601 format (yyyy-MM-dd))
    */
   implicit object DefaultJodaLocalDateWrites extends Writes[org.joda.time.LocalDate] {
-    def writes(d: org.joda.time.LocalDate): JsValue = JsString(d.toString) 
+    def writes(d: org.joda.time.LocalDate): JsValue = JsString(d.toString)
   }
-  
+
   /**
    * Serializer for java.sql.Date
    * @param pattern the pattern used by SimpleDateFormat
