@@ -6,18 +6,19 @@ import static play.libs.F.*;
 
 import play.data.validation.*;
 
-import play.data.Form.Field;
-
 /**
  * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String></code>
  */
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
+
+    private final Map<String, String> rawData;
     
     /**
      * Creates a new empty dynamic form.
      */
     public DynamicForm() {
         super(DynamicForm.Dynamic.class);
+        rawData = new HashMap<String, String>();
     }
     
     /**
@@ -29,6 +30,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Option<Dynamic> value) {
         super(null, DynamicForm.Dynamic.class, data, errors, value);
+        rawData = new HashMap<String, String>();
+        for (Map.Entry<String, String> e : data.entrySet()) {
+            rawData.put(asNormalKey(e.getKey()), e.getValue());
+        }
+
     }
     
     /**
@@ -42,6 +48,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
     }
 
+    @Override
+    public Map<String, String> data() {
+        return rawData;
+    }
+
     /**
      * Fille with existing data.
      */
@@ -49,14 +60,15 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         Form<Dynamic> form = super.fill(new Dynamic(value));
         return new DynamicForm(form.data(), form.errors(), form.value());
     }
-    
+
     /**
      * Binds request data to this form - that is, handles form submission.
      *
      * @return a copy of this form filled with the new data
      */
-    public DynamicForm bindFromRequest() {
-        return bind(requestData(play.mvc.Controller.request()));
+    @Override
+    public DynamicForm bindFromRequest(String... allowedFields) {
+        return bind(requestData(play.mvc.Controller.request()), allowedFields);
     }
 
     /**
@@ -64,28 +76,28 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      *
      * @return a copy of this form filled with the new data
      */
-    public DynamicForm bindFromRequest(play.mvc.Http.Request request) {
-        return bind(requestData(request));
+    @Override
+    public DynamicForm bindFromRequest(play.mvc.Http.Request request, String... allowedFields) {
+        return bind(requestData(request), allowedFields);
     }
-    
+
     /**
      * Binds data to this form - that is, handles form submission.
      *
      * @param data data to submit
      * @return a copy of this form filled with the new data
      */
-    public DynamicForm bind(Map<String,String> data) {
-        
+    @Override
+    public DynamicForm bind(Map<String,String> data, String... allowedFields) {
         {
             Map<String,String> newData = new HashMap<String,String>();
-            for(String key: data.keySet()) {
-                String dkey = asDynamicKey(key);
-                newData.put(dkey, data.get(dkey));
+            for(Map.Entry<String, String> e: data.entrySet()) {
+                newData.put(asDynamicKey(e.getKey()), e.getValue());
             }
             data = newData;
         }
         
-        Form<Dynamic> form = super.bind(data);
+        Form<Dynamic> form = super.bind(data, allowedFields);
         return new DynamicForm(form.data(), form.errors(), form.value());
     }
     
@@ -97,7 +109,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public Field field(String key) {
         Field field = super.field(asDynamicKey(key));
-        return new Field(this, field.name(), field.constraints(), field.format(), field.errors(), 
+        return new Field(this, key, field.constraints(), field.format(), field.errors(),
             field.value() == null ? get(key) : field.value()
         );
     }
