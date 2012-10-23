@@ -258,8 +258,6 @@ object PlayBuild extends Build {
               .exclude("org.jboss.netty", "netty")
             ,
 
-            "org.apache.ws.commons"             %    "ws-commons-util"          %   "1.0.1",
-
             "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.1",
             "com.codahale"                      %   "jerkson_2.9.1"                  %   "0.5.0",
             
@@ -277,7 +275,7 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
-            
+
             ("org.fluentlenium"                 %    "fluentlenium-festassert"  %   "0.8.0"      %  "test")
               .exclude("org.jboss.netty", "netty")
               .exclude("com.google.guava","guava")

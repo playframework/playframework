@@ -4,14 +4,12 @@ import java.util.AbstractList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.*;
+
+import org.springframework.util.xml.SimpleNamespaceContext;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-
-import org.apache.ws.commons.util.NamespaceContextImpl;
-
 
 
 /**
@@ -53,10 +51,8 @@ public class XPath {
             javax.xml.xpath.XPath xpath = factory.newXPath();
             
             if (namespaces != null) {
-                NamespaceContextImpl nsContext = new NamespaceContextImpl();
-                for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
-                    nsContext.startPrefixMapping(namespace.getKey(), namespace.getValue());                    
-                }
+                SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
+                nsContext.setBindings(namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
 
@@ -83,10 +79,8 @@ public class XPath {
             javax.xml.xpath.XPath xpath = factory.newXPath();
             
             if (namespaces != null) {
-                NamespaceContextImpl nsContext = new NamespaceContextImpl();
-                for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
-                    nsContext.startPrefixMapping(namespace.getKey(), namespace.getValue());                    
-                }
+                SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
+                nsContext.setBindings(namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
 
@@ -111,10 +105,8 @@ public class XPath {
             javax.xml.xpath.XPath xpath = factory.newXPath();
 
             if (namespaces != null) {
-                NamespaceContextImpl nsContext = new NamespaceContextImpl();
-                for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
-                    nsContext.startPrefixMapping(namespace.getKey(), namespace.getValue());                    
-                }
+                SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
+                nsContext.setBindings(namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
 
