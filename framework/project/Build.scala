@@ -454,9 +454,10 @@ object PlayBuild extends Build {
             
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
             
-            "com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2",
-            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2",
-
+            ("com.typesafe.akka"                 %    "akka-actor_2.10.0-M7"     %   "2.1-M2").exclude("com.typesafe.config", "config"),
+            ("com.typesafe.akka"                 %    "akka-slf4j_2.10.0-M7"     %   "2.1-M2").exclude("com.typesafe.config", "config"),
+            // Akka 2.1 RC will depend on config 1.0.0 so this won't be necessary
+            "com.typesafe"                      %    "config"                   %   "1.0.0",
 
             "org.scala-tools"                   %    "scala-stm_2.10.0-M7"      %   "0.6",
 
@@ -504,7 +505,7 @@ object PlayBuild extends Build {
         
         
         val sbtDependencies = Seq(
-            "com.typesafe"                      %    "config"                   %   "0.5.0",
+            "com.typesafe"                      %    "config"                   %   "1.0.0",
             "rhino"                             %    "js"                       %   "1.7R2",
 
             ("com.google.javascript"            %    "closure-compiler"         %   "rr2079.1" notTransitive())
