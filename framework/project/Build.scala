@@ -484,7 +484,8 @@ object PlayBuild extends Build {
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
 
-            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test"
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test",
+            "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-M7" 
         )
 
         val link = Seq(
