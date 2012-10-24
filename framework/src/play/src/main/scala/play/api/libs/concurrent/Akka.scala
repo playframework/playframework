@@ -6,7 +6,7 @@ import play.api.libs.concurrent._
 import scala.concurrent.{ Future, Await }
 import scala.util.Try
 import akka.actor.ActorSystem
-import scala.concurrent.util.{Duration}
+import scala.concurrent.duration.{Duration}
 import scala.concurrent.{CanAwait,ExecutionContext}
 
 import java.util.concurrent.{ TimeUnit }

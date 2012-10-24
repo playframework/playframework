@@ -1,6 +1,6 @@
 package controllers
 
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
 import play.api._
 import play.api.mvc._
 import play.api.libs._

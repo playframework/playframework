@@ -12,7 +12,7 @@ import akka.actor._
 import akka.actor.Actor._
 import akka.routing._
 import akka.pattern.Patterns.ask
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
 import akka.util.Timeout
 
 import play.api.libs.concurrent.execution.defaultContext

@@ -4,7 +4,7 @@ import play.core._
 import play.api._
 
 import akka.actor._
-import scala.concurrent.util.Duration
+import scala.concurrent.duration.Duration
 import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
@@ -130,7 +130,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * time. Unlike Await.result() in Akka, does NOT throw an exception from the Promise itself.
    */
   def await(timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): NotWaiting[A] = {
-    scala.concurrent.Await.ready(fu, scala.concurrent.util.Duration(timeout, unit))
+    scala.concurrent.Await.ready(fu, scala.concurrent.duration.Duration(timeout, unit))
     fu.value.get match { case scala.util.Failure(e) => Thrown(e); case scala.util.Success(a) => Redeemed(a) }
   }
 
@@ -303,7 +303,7 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
-  def timeout[A](message: A, duration: scala.concurrent.util.Duration): Future[A] = {
+  def timeout[A](message: A, duration: scala.concurrent.duration.Duration): Future[A] = {
     timeout(message, duration.toMillis)
   }
 
@@ -316,7 +316,7 @@ object Promise {
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[A] = {
     val p = Promise[A]()
-    play.core.Invoker.system.scheduler.scheduleOnce(scala.concurrent.util.Duration(duration, unit))(p.redeem(message))
+    play.core.Invoker.system.scheduler.scheduleOnce(scala.concurrent.duration.Duration(duration, unit))(p.redeem(message))
     p.future
   }
 
