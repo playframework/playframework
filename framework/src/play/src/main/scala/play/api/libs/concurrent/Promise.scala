@@ -263,28 +263,10 @@ object Promise {
   private var underlyingSystem: Option[ActorSystem] = Some(ActorSystem("promise"))
 
   private[concurrent] lazy val defaultTimeout =
-    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis
+    //TODO get it from conf
+    Duration(10000, TimeUnit.MILLISECONDS).toMillis
 
-  /**
-   * actor system for Promises
-   */
-  private[concurrent] def system = underlyingSystem.getOrElse {
-    val a = ActorSystem("promise")
-    underlyingSystem = Some(a)
-    a
-  }
 
-  /**
-   * resets the underlying promise Actor System and clears Java actor references
-   */
-  def resetSystem(): Unit = {
-    underlyingSystem.filter(_.isTerminated == false).map { s =>
-      s.shutdown()
-      s.awaitTermination()
-    }.getOrElse(play.api.Logger.debug("trying to reset Promise actor system that was not started yet"))
-    play.libs.F.Promise.resetActors()
-    underlyingSystem = None
-  }
 
   /**
    * Synonym for PurePromise.apply
@@ -307,6 +289,8 @@ object Promise {
     timeout(message, duration.toMillis)
   }
 
+  private val timer = new java.util.Timer()
+
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses.
    * This is useful only when used in conjunction with other Promises
@@ -316,7 +300,11 @@ object Promise {
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[A] = {
     val p = Promise[A]()
-    play.core.Invoker.system.scheduler.scheduleOnce(scala.concurrent.duration.Duration(duration, unit))(p.redeem(message))
+    timer.schedule( new java.util.TimerTask{
+      def run(){
+        p.completeWith(Future(message))
+      }
+    },unit.toMillis(duration) )
     p.future
   }
 

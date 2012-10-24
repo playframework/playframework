@@ -21,6 +21,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
+import scala.concurrent.stm._
 
 private[server] trait WebSocketHandler {
   def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = {
@@ -28,23 +29,28 @@ private[server] trait WebSocketHandler {
     val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
     val enumerator = new Enumerator[A] {
-      val iterateeAgent = Agent[Option[Iteratee[A, Any]]](None)
+
+      val eventuallyIteratee = Promise[Iteratee[A, Any]]()
+
+      val iterateeRef = Ref[Iteratee[A, Any]](Iteratee.flatten(eventuallyIteratee.future))
+
       private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
       def apply[R](i: Iteratee[A, R]) = {
-        iterateeAgent.send(_.orElse(Some(i.asInstanceOf[Iteratee[A, Any]])))
+        eventuallyIteratee.success(i)
         promise.asInstanceOf[scala.concurrent.Promise[Iteratee[A, R]]].future
       }
 
       def frameReceived(ctx: ChannelHandlerContext, input: Input[A]) {
-        iterateeAgent.send(iteratee =>
-          iteratee.map(it => it.flatFold(
+
+        val eventuallyNext = Promise[Iteratee[A, Any]]()
+        val current = iterateeRef.single.swap(Iteratee.flatten(eventuallyNext.future))
+        val next = current.flatFold(
             (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
             k => {
               val next = k(input)
               next.fold {
                 case Step.Done(a, e) =>
-                  iterateeAgent.close()
                   ctx.getChannel().disconnect();
                   promise.redeem(next);
                   Logger("play").trace("cleaning for channel " + ctx.getChannel());
@@ -54,7 +60,8 @@ private[server] trait WebSocketHandler {
                 case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
               }
             },
-            (err, e) => /* handle error, maybe close the socket */ Promise.pure(it))))
+            (err, e) => /* handle error, maybe close the socket */ Promise.pure(current))
+        eventuallyNext.success(next)
       }
     }
 

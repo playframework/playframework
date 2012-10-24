@@ -348,7 +348,7 @@ public class F {
                     synchronized(Promise.class) {
                         actors = new ArrayList<akka.actor.ActorRef>(nb);
                         for(int i=0; i<nb; i++) {
-                            actors.add(play.api.libs.concurrent.Promise$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
+                            actors.add(play.core.j.JavaInvoker$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
                         }
                     }
                 }
