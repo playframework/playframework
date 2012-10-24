@@ -86,6 +86,7 @@ sealed trait JsValue {
 
 /**
  * Represent a Json null value.
+ * with Scala 2.10-M7, this code generates WARNING : https://issues.scala-lang.org/browse/SI-6513
  */
 case object JsNull extends JsValue
 
@@ -385,6 +386,10 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
       case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
 
       case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
+
+      case (JsonToken.NOT_AVAILABLE, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
+
+      case (JsonToken.VALUE_EMBEDDED_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
     }
 
     // Read ahead
