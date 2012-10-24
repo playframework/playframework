@@ -9,7 +9,7 @@ import play.api.http._
 import play.api.http.Status._
 import play.api.libs.openid.Errors.{BAD_RESPONSE, AUTH_ERROR}
 import scala.concurrent.Await
-import scala.concurrent.util.Duration
+import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 
 object OpenIDSpec extends Specification with Mockito {
