@@ -9,7 +9,7 @@ Any calls made by `play.api.libs.ws.WS` should return a `Promise[play.api.libs.w
 To send an HTTP request you start with `WS.url()` to specify the URL. Then you get a builder that you can use to specify various HTTP options, such as setting headers. You end by calling a final method corresponding to the HTTP method you want to use. For example:
 
 ```scala
-val homePage: Promise[ws.Response] = WS.url("http://mysite.com").get()
+val homePage: Promise[play.api.libs.ws.Response] = WS.url("http://mysite.com").get()
 ```
 
 Or:

@@ -10,7 +10,7 @@ Of course, cookie values are signed with a secret key so the client can’t modi
 
 The Play Session is not intended to be used as a cache. If you need to cache some data related to a specific Session, you can use the Play built-in cache mechanism and use store a unique ID in the user Session to keep them related to a specific user.
 
-> There is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maxmimum inactivity duration, etc.).
+> There is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.).
 
 ## Reading a Session value
 
@@ -79,7 +79,7 @@ The Flash scope works exactly like the Session, but with two differences:
 - data are kept for only one request
 - the Flash cookie is not signed, making it possible for the user to modify it.
 
-> **Important:** The flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
+> **Important:** The Flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
 
 Here are a few examples using the Flash scope:
 
@@ -94,6 +94,24 @@ def save = Action {
   Redirect("/home").flashing(
     "success" -> "The item has been created"
   )
+}
+```
+
+
+To retrieve the Flash scope value in your view, just add an implicit with Flash:
+```
+@()(implicit flash: Flash)
+...
+@flash.get("success").getOrElse("Welcome!")
+...
+```
+
+If the error '_could not find implicit value for parameter flash: play.api.mvc.Flash_' is raised then this is because your Action didn't import a request object. Add an "implicit request=>" as show below:
+
+```scala
+def index() = Action {   
+  implicit request =>
+    Ok(views.html.Application.index())
 }
 ```
 

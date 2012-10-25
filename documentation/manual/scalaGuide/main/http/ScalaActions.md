@@ -36,7 +36,7 @@ Action { request =>
 }
 ```
 
-It is often useful to mark the `request` parameter as `implicit` so it can be implicitely used by other APIs that need it:
+It is often useful to mark the `request` parameter as `implicit` so it can be implicitly used by other APIs that need it:
 
 ```scala
 Action { implicit request =>

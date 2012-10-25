@@ -1,3 +1,13 @@
+### Deploying your application
+
+- [[Deploying your application | Production]]
+- [[Creating a standalone version of your application | ProductionDist]]
+- [[Additional configuration | ProductionConfiguration]]
+- [[Deploying to Heroku | ProductionHeroku]]
+- [[Deploying to Cloud Foundry | Deploying-CloudFoundry]]
+- [[Deploying to dotCloud | Deploying-to-dotCloud]]
+- [[Set-up a front-end HTTP server | HTTPServer]]
+
 ### Getting started
 
 - [[Installing Play 2.0 | Installing]]
@@ -17,7 +27,7 @@
 - [[The Build system | Build]]
 - [[Working with public assets | Assets]]
 - [[Managing database evolutions | Evolutions]]
-- [[Configuration file syntax and features | Configuration]]
+- [[Configuration | Configuration]]
 - [[Deploying your application | Production]]
 
 ### Additional documentation

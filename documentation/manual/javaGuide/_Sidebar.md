@@ -18,3 +18,4 @@
 ### Tutorials
 
 - [[Your first application | JavaTodoList]]
+- [Tutorial from James Ward](http://www.jamesward.com/2012/05/08/play-2-java-tutorial)

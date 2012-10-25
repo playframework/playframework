@@ -33,7 +33,7 @@ def index = WebSocket.using[String] { request =>
   // Send a single 'Hello!' message
   val out = Enumerator("Hello!")
   
-  (in, out)
+  Promise.pure(in, out)
 }
 ```
 
@@ -59,7 +59,7 @@ def index = WebSocket.using[String] { request =>
   // Send a single 'Hello!' message and close
   val out = Enumerator("Hello!") >>> Enumerator.eof
   
-  (in, out)
+  Promise.pure(in, out)
 }
 ```
 

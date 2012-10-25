@@ -29,4 +29,4 @@ which will return an instance or subclass of ```MyPlugin``` fully initialized or
 
 * in your app create a file: ```conf/play.plugins``` and add a reference to your plugin, just like this  ```5000:com.example.MyPlugin```
 
-_the number represents the plugin loading order, by setting it to > 1000 we can make sure it's loaded after the global plugins_
+_the number represents the plugin loading order, by setting it to > 10000 we can make sure it's loaded after the global plugins_

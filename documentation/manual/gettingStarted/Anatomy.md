@@ -2,7 +2,7 @@
 
 ## The standard application layout
 
-The layout of a Play application is standardized to keep things as simple as possible. A standard Play application looks like this:
+The layout of a Play application is standardized to keep things as simple as possible. After a first successful compile, a standard Play application looks like this:
 
 ```
 app                      → Application sources
@@ -81,6 +81,7 @@ The `project` directory contains the sbt build definitions:
 
 - `plugins.sbt` defines sbt plugins used by this project
 - `Build.scala` defines your application build script.
+- `build.properties` contains the sbt version to use to build your app.
 
 ## The target/ directory
 
@@ -101,6 +102,8 @@ project/project
 project/target
 target
 tmp
+dist
+.cache
 ```
 
 > **Next:** [[Using the Play 2.0 console | PlayConsole ]]
