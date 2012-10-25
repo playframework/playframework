@@ -43,7 +43,7 @@ coffeescriptOptions := Seq("bare")
 > Note there is a new experimental option which lets you use the native coffee script compiler. The benefit is that it's way faster, the disadvantage is that it's an external dependency. If you want to try this, add this to your settings:
 
 ```
-coffeescriptOptions := Seq("native", "/usr/local/bin/coffe -p")
+coffeescriptOptions := Seq("native", "/usr/local/bin/coffee -p")
 ```
 
 

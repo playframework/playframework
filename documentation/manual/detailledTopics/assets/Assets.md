@@ -28,15 +28,15 @@ Play 2.0 comes with a built-in controller to serve public assets. By default, th
 The controller is available in the default Play JAR as `controllers.Assets`, and defines a single `at` action with two parameters:
 
 ```
-Assets.at(folder: String, file: String)
+Assets.at(path: String, file: String)
 ```
 
-The `folder` parameter must be fixed and defines the directory managed by the action. The `file` parameter is usually dynamically extracted from the request path.
+The `path` parameter must be fixed and defines the directory managed by the action. The `file` parameter is usually dynamically extracted from the request path.
 
 Here is the typical mapping of the `Assets` controller in your `conf/routes` file:
 
 ```
-GET  /assets/*file        Assets.at("public", file)
+GET  /assets/*file        controllers.Assets.at(path="/public", file)
 ```
 
 Note that we define the `*file` dynamic part that will match the `.*` regular expression. So for example, if you send this request to the server:
@@ -48,7 +48,7 @@ GET /assets/javascripts/jquery.js
 The router will invoke the `Assets.at` action with the following parameters:
 
 ```
-controllers.Assets.at("public", "javascripts/jquery.js")
+controllers.Assets.at("/public", "javascripts/jquery.js")
 ```
 
 This action will look-up the file and serve it, if it exists.
@@ -57,13 +57,14 @@ Note, if you define asset mappings outside "public," you'll need to tell
 sbt about it, e.g. if you want:
 
 ```
-GET  /assets/*file               Assets.at("public", file)
-GET  /liabilities/*file          Assets.at("foo", file)
+GET  /assets/*file               controllers.Assets.at(path="/public", file)
+GET  /liabilities/*file          controllers.Assets.at(path="/foo", file)
 ```
 
-you should add this to Build.scala:
+you should add this to the project settings in `project/Build.scala`:
 
 ```
+// Add your own project settings here
 playAssetsDirectories <+= baseDirectory / "foo"
 ```
 
@@ -86,15 +87,15 @@ Note that we don’t specify the first `folder` parameter when we reverse the ro
 However, if you define two mappings for the `Assets.at` action, like this:
 
 ```
-GET  /javascripts/*file        Assets.at("public/javascripts", file)
-GET  /images/*file             Assets.at("public/images", file)
+GET  /javascripts/*file        controllers.Assets.at(path="/public/javascripts", file)
+GET  /images/*file             controllers.Assets.at(path="/public/images", file)
 ```
 
 Then you will need to specify both parameters when using the reverse router:
 
 ```html
-<script src="@routes.Assets.at("public/javascripts", "jquery.js")"></script>
-<image src="@routes.Assets.at("public/images", "logo.png")">
+<script src="@routes.Assets.at("/public/javascripts", "jquery.js")"></script>
+<image src="@routes.Assets.at("/public/images", "logo.png")">
 ```
 
 ## Etag support
@@ -105,7 +106,9 @@ When a web browser makes a request specifying this **Etag**, the server can resp
 
 ## Gzip support
 
-If a resource with the same name but using a `.gz` suffix is found, the `Assets` controller will serve this one by adding the proper HTTP header:
+NOTE: Automatic gzipping was disabled in 2.0 (see https://groups.google.com/d/msg/play-framework/4eryZI6Mb4E/uezcxXSCzaIJ).
+
+But if a resource with the same name but using a `.gz` suffix is found, the `Assets` controller will serve this one by adding the proper HTTP header:
 
 ```
 Content-Encoding: gzip
@@ -122,6 +125,7 @@ Usually, using Etag is enough to have proper caching. However if you want to spe
 ```
 
 ## Managed assets
+> Available in 2.1
 
 By default play compiles all managed assets that are kept in the ```app/assets``` folder. The compilation process will clean and recompile all managed assets regardless of the change. This is the safest strategy since tracking dependencies can be very tricky with front end technologies. 
 

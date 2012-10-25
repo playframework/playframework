@@ -12,7 +12,7 @@ The Java API for the Play 2.0 application developers is available in the `play` 
     1. [[Manipulating the HTTP response | JavaResponse]]
     1. [[Session and Flash scopes | JavaSessionFlash]]
     1. [[Body parsers | JavaBodyParsers]]
-    1. [[Actions composition | JavaActionsComposition]]
+    1. [[Action composition | JavaActionsComposition]]
 1. [[Asynchronous HTTP programming | JavaAsync]]
     1. [[Handling asynchronous results | JavaAsync]]
     1. [[Streaming HTTP responses | JavaStream]]
@@ -39,6 +39,7 @@ The Java API for the Play 2.0 application developers is available in the `play` 
 1. [[Calling WebServices | JavaWS]]
     1. [[The Play WS API  | JavaWS]]
     1. [[Connect to OpenID servers | JavaOpenID]]
+    1. [[Accessing resources protected by OAuth | JavaOAuth]]
 1. [[Integrating with Akka | JavaAkka]]
     1. [[Setting up Actors and scheduling asynchronous tasks | JavaAkka]]
 1. [[Internationalization | JavaI18N]]
@@ -46,9 +47,15 @@ The Java API for the Play 2.0 application developers is available in the `play` 
 1. [[The application Global object | JavaGlobal]]
     1. [[Application global settings | JavaGlobal]]
     1. [[Intercepting requests | JavaInterceptors]]
+    1. [[Managing Controller Class Instantiation | Managing-Controller-Class-Instantiation]]
 1. [[Testing your application | JavaTest]]
     1. [[Writing tests | JavaTest]]
     1. [[Writing functional tests | JavaFunctionalTest]]
+
+## Advanced topics
+
+1. Reverse routing
+    1. [[Javascript Routing | JavaJavascriptRouting]]
 
 ## Tutorials
 

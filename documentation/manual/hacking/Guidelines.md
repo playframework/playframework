@@ -38,3 +38,7 @@ Implementation-wise, the following things should be avoided as much as possible:
 
 * prefer rebase
 * bigger changesets
+
+# lighthouse
+
+Please always create a corresponding ticket in [Lighthouse](https://play.lighthouseapp.com/projects/82401-play-20/overview) before sending a pull request

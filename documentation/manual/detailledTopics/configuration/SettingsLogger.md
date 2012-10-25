@@ -29,7 +29,7 @@ logger.org.springframework=TRACE
 
 The default is to define two appenders, one dispatched to the standard out stream, and the other to the `logs/application.log` file.
 
-If you want to fully customize logback, just define a `conf/logger.xml` configuration file. Here is the default configuration file used by Play:
+If you want to fully customize logback, just define a `conf/application-logger.xml` configuration file. Here is the default configuration file used by Play:
 
 ```xml
 <configuration>
@@ -59,6 +59,7 @@ If you want to fully customize logback, just define a `conf/logger.xml` configur
   
 </configuration>
 ```
+> Note, application-logger.conf check is new in 2.1 
 
 ## Changing the logback configuration file
 
@@ -66,15 +67,15 @@ You can also specify another logback configuration file via a System property. I
 
 ### Using `-Dlogger.resource`
 
-Specify another loback configuration file to be loaded from the classpath:
+Specify another logback configuration file to be loaded from the classpath:
 
 ```
-$ start -Dlogger.resource=conf/prod-logger.xml
+$ start -Dlogger.resource=prod-logger.xml
 ```
 
 ### Using `-Dlogger.file`
 
-Specify another loback configuration file to be loaded from the file system:
+Specify another logback configuration file to be loaded from the file system:
 
 ```
 $ start -Dlogger.file=/opt/prod/logger.xml
@@ -82,8 +83,20 @@ $ start -Dlogger.file=/opt/prod/logger.xml
 
 ### Using `-Dlogger.url`
 
-Specify another loback configuration file to be loaded from an URL:
+Specify another logback configuration file to be loaded from an URL:
 
 ```
 $ start -Dlogger.url=http://conf.mycompany.com/logger.xml
 ```
+
+## Bugs
+
+Play version < 2.0.3, if your ```conf/logger.xml``` were not picked up, you might need to use the following trick:
+
+```
+System.setProperty("logger.file", "conf/dev-logger.xml")
+```
+
+Not-confirmed-but-useful: Set your file logger to be something other than ${application.home}/logs/application.log (Play may delete it) and using the application.conf for setting log levels (Play may not read from the xml file on reload). 
+
+in play 2.0.3 ```conf/application-logger.xml``` Should Just Work

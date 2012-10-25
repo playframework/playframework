@@ -65,7 +65,7 @@ public class User {
     }
 }
 ```
-
+Since 2.0.2 the `validate`-method can return the following types: `String`, `List<ValidationError>` or `Map<String,List<ValidationError>>`
 ## Handling binding failure
 
 Of course if you can define constraints, then you need to be able to handle the binding errors.
@@ -88,6 +88,19 @@ userForm = userForm.fill(new User("bob@gmail.com", "secret"))
 ```
 
 > **Tip:** `Form` objects are immutable - calls to methods like `bind()` and `fill()` will return a new object filled with the new data.
+
+## Handling a form that is not related to a Model
+
+You can use a `DynamicForm` if you need to retrieve data from an html form that is not related to a `Model` :
+
+```java
+public static Result hello(){
+    DynamicForm requestData = form().bindFromRequest();
+    String firstname = requestData.get("firstname");
+    String lastname = requestData.get("lastname");
+    return ok("Hello " + firstname + " " + lastname);
+}
+```
 
 ## Register a custom DataBinder
 
@@ -119,5 +132,3 @@ Formatters.register(LocalTime.class, new SimpleFormatter<LocalTime>() {
 ```
 
 > **Next:** [[Using the form template helpers | JavaFormHelpers]]
-
-

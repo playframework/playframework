@@ -14,7 +14,8 @@
 1. [[Creating a new application | NewApplication]]
 1. [[Anatomy of a Play 2.0 application | Anatomy]]
 1. [[Using the Play 2.0 console | PlayConsole ]]
-1. [[Setting-up your preferred IDE | IDE]]
+1. [[Setting up your preferred IDE | IDE]]
+1. [[Built-in documentation | Documentation ]]
 1. [[Sample applications | Samples]]
 
 ## Working with Play 2.0
@@ -32,15 +33,17 @@
     1. [[Using CoffeeScript | AssetsCoffeeScript]]
     1. [[Using LESS CSS | AssetsLess]]
     1. [[Using Google Closure Compiler | AssetsGoogleClosureCompiler]]
+    1. [[Using RequireJS | RequireJS-support]]
 1. [[Managing database evolutions | Evolutions]]
 1. [[Configuration file syntax and features | Configuration]]
     1. [[Configuring the JDBC connection pool | SettingsJDBC]]
     1. [[Configuring the internal Akka system | AkkaCore]]
     1. [[Configuring logging | SettingsLogger]]
 1. [[Deploying your application | Production]]
-    1. [[Creating a standalone version of your application | ProductionDist]]
     1. [[Additional configuration | ProductionConfiguration]]
     1. [[Deploying to Heroku | ProductionHeroku]]
+    1. [[Deploying to Cloud Foundry | Deploying-CloudFoundry]]
+    1. [[Deploying to CloudBees | Deploying-to-CloudBees]]
     1. [[Set-up a front-end HTTP server | HTTPServer]]
 
 ## Additional documentation
@@ -64,8 +67,21 @@
 
 1. [[Temporary modules directory | Modules]]
 
+## Security policy
+1. [[play's security policy |http://www.playframework.org/code/security]]
+
+## User groups
+1. [[User groups around the world | User-Groups-around-the-World]]
+
 ## Contributing to this documentation
 
 > The documentation is freely editable on [[https://github.com/playframework/Play20/wiki]]. Feel free to fix mistakes directly in the pages. 
 >
 > However if you want to provide additional documentation, please create new pages and reference them from here. A member of the core team will take care of integrating it in the most appropriate section.
+
+
+###Needs to be integrated
+* [[Play 2.0 for Play 1.x developers |Play-2.0-for-Play-1.x-developers]]
+* [[Howto write modules | Writing-Modules ]]
+* [[IDE | IDE]]
+* [[3.1 Developing with the H2 Database | Developing-with-the-H2-Database]]

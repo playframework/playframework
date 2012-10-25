@@ -1,6 +1,6 @@
 # Your first Play application
 
-Let’s write a simple task list application with Play 2.0 and deploy it to the cloud.
+Let’s write a simple task list application with Play 2.0 and deploy it to the cloud. This is a very small example which can be managed in a few hours. If you wan't a bigger one look at the site from [James Ward](http://www.jamesward.com/2012/05/08/play-2-java-tutorial).
 
 ## Prerequisites
 
@@ -107,7 +107,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 
 The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text-based language) with Scala statements. The Scala statements start with the special `@` character.
 
-> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as the language was Java.
+> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java.
 
 ## Development work-flow
 
@@ -273,7 +273,7 @@ We changed the template signature to take 2 parameters:
 - A list of tasks to display
 - A task form
 
-We also imported `helper._` that give us the form creation helpers, typically the `form` function that creates the HTML `<form>` with filled `action` and `method` attributes, and the `inputText` function that creates the HTML imput given a form field.
+We also imported `helper._` that give us the form creation helpers, typically the `form` function that creates the HTML `<form>` with filled `action` and `method` attributes, and the `inputText` function that creates the HTML input given a form field.
     
 > **Note:** Read more about the [[Templating system|JavaTemplates]] and [[Forms helper|JavaFormHelpers]].
 
@@ -285,7 +285,8 @@ A `Form` object encapsulates an HTML form definition, including validation const
 static Form<Task> taskForm = form(Task.class);
 ```
 
-The type of `taskForm` is then `Form<Task>` since it is a form generating a simple `Task`. You also need to import `play.data.*`.
+The type of `taskForm` is then `Form<Task>` since it is a form generating a simple `Task`.  
+You also need to import `play.data.*` and `models.*`.
     
 We can add a constraint to the `Task` type using **JSR-303** annotations. Let’s make the `label` field required:
 
@@ -359,7 +360,7 @@ db.default.url="jdbc:h2:mem:play"
 
 For now we will use a simple in memory database using **H2**. No need to restart the server, refreshing the browser is enough to set up the database.
 
-We will use **EBean** in this tutorial to query the database. So you’ll have to enable it in the `application.conf` file as well:
+We will use **EBean** (Play's default ORM) in this tutorial to query the database. So you’ll have to enable it in the `application.conf` file as well:
 
 ```
 ebean.default="models.*"
@@ -507,6 +508,5 @@ web.1         up for 10s          target/start
 It’s started, you can now open it in your browser. 
 
 > Your first application is now up and running in production!
-
 
 

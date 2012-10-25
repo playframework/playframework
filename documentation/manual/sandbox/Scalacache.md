@@ -1,6 +1,6 @@
 # The Play cache API
 
-The default implementation of the Cache API uses EHCache. You can also provide your own implementation via a plug-in.
+The default implementation of the Cache API uses EHCache and it's enabled by default. You can also provide your own implementation via a plug-in.
 
 # Accessing the Cache API
 The cache API is provided by the play.api.cache.Cache object. It requires a registered cache plug-in.
@@ -27,11 +27,16 @@ val user: User = Cache.getOrElse[User]("item.key") {
 }
 ```
 
-How to remove the key is as follows.
+How to remove the key is as follows.  (Note: the Play 2.0 removal method is from the [Google Groups Conversation](https://groups.google.com/d/msg/play-framework/pHb1Dq1wiic/TTOXVzsa7VkJ) given that Ehcache allows nulls internally).
 
 ```
-// 2.0 final
-Cache.set("item.key", null, 0)
+// 2.0 final 
+import play.api.cache.{EhCachePlugin, Cache}
+import play.api.Play
+Play.current.plugin[EhCachePlugin].map {
+      ehcache =>
+        ehcache.cache.remove(key)
+}.getOrElse(false) 
 // later
 Cache.remove("item.key")
 

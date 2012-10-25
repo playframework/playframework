@@ -57,6 +57,11 @@ Type `console` to enter the interactive Scala console, which allows you to test 
 [My first application] $ console
 ```
 
+To start application inside scala console (e.g to access database):
+```bash
+scala> new play.core.StaticApplication(new java.io.File("."))
+```
+
 [[images/consoleEval.png]] 
 
 ## Debugging

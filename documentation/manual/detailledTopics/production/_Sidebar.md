@@ -4,6 +4,8 @@
 - [[Creating a standalone version of your application | ProductionDist]]
 - [[Additional configuration | ProductionConfiguration]]
 - [[Deploying to Heroku | ProductionHeroku]]
+- [[Deploying to Cloud Foundry | Deploying-CloudFoundry]]
+- [[Deploying to dotCloud | Deploying-to-dotCloud]]
 - [[Set-up a front-end HTTP server | HTTPServer]]
 
 ### Getting started
