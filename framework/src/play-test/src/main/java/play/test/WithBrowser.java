@@ -14,18 +14,21 @@ public class WithBrowser extends WithServer {
      *
      * @return a new test browser
      */
-    protected TestBrowser provideBrowser() {
-        return Helpers.testBrowser();
+    protected TestBrowser provideBrowser(int port) {
+        return Helpers.testBrowser(port);
     }
 
-    @Before
-    public void startBrowser() {
-        browser = provideBrowser();
+    @Override
+    protected void start(FakeApplication fakeApplication, int port) {
+        super.start(fakeApplication, port);
+        browser = provideBrowser(port);
     }
 
     @After
     public void quitBrowser() {
-        browser.quit();
-        browser = null;
+        if (browser != null) {
+            browser.quit();
+            browser = null;
+        }
     }
 }
