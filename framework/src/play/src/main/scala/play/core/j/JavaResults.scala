@@ -7,8 +7,6 @@ import play.api.libs.iteratee._
 import scala.collection.JavaConverters._
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
 
-import play.api.libs.concurrent.execution.defaultContext
-
 /**
  * Java compatible Results
  */
@@ -74,7 +72,7 @@ object JavaResultExtractor {
     case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
-      bodyEnumerator(readAsBytes).flatMap(_.run).value1.get
+      bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.playInternalContext).value1.get
     }
   }
 

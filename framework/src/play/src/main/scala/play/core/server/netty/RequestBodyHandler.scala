@@ -21,11 +21,11 @@ import play.api.libs.concurrent._
 
 import scala.concurrent.Future
 import scala.collection.JavaConverters._
-import play.api.libs.concurrent.execution.defaultContext
 
 private[server] trait RequestBodyHandler {
 
   def newRequestBodyHandler[R](firstIteratee: Future[Iteratee[Array[Byte], Result]], allChannels: DefaultChannelGroup, server: Server): (Future[Iteratee[Array[Byte], Result]], SimpleChannelUpstreamHandler) = {
+    implicit val internalContext = play.core.Execution.playInternalContext
     import scala.concurrent.stm._
     val redeemed = Ref(false)
     var p = Promise[Iteratee[Array[Byte], Result]]()

@@ -3,19 +3,16 @@ package play.api.libs.concurrent
 import play.core._
 import play.api._
 
-import akka.actor._
 import scala.concurrent.duration.Duration
-import akka.actor.Actor._
 
 import java.util.concurrent.{ TimeUnit }
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext}
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
-
-import play.api.libs.concurrent.execution.defaultContext
+import play.core.Execution.playInternalContext
 
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
@@ -69,7 +66,8 @@ case class Redeemed[+A](a: A) extends NotWaiting[A]
 case object Waiting extends PromiseValue[Nothing]
 
 class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
-  def redeem(a: => A): Unit = try (p.success(a)) catch { case e: Exception => p.failure(e) }
+
+  def redeem(a: => A)(implicit ec:ExecutionContext): Unit = p.completeWith(Future(a)(ec))
 
   def throwing(t: Throwable): Unit = p.failure(t)
 
@@ -89,7 +87,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * run in another thread.
    * @param k the callback
    */
-  def onRedeem(k: A => Unit): Unit = extend1 { case Redeemed(a) => k(a); case _ => }
+  def onRedeem(k: A => Unit)(implicit ec: ExecutionContext): Unit = extend1 { case Redeemed(a) => k(a); case _ => }
 
   /**
    * Creates a new Promise[B], by running the function k on this promise
@@ -98,9 +96,9 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * an exception contained in the promise, not only a successful value.
    * @param k function to be executed on this promise
    */
-  def extend[B](k: Function1[Future[A], B]): Future[B] = {
+  def extend[B](k: Function1[Future[A], B])(implicit ec: ExecutionContext): Future[B] = {
     val result = Promise[B]()
-    fu.onComplete(_ => result.redeem(k(fu)))
+    fu.onComplete(_ => result.redeem(k(fu))(ec))(ec)
     result.future
   }
 
@@ -109,7 +107,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * than the promise itself.
    * @param k function to be executed on this promise
    */
-  def extend1[B](k: Function1[NotWaiting[A], B]): Future[B] = extend[B](p => k(p.value.get match { case scala.util.Failure(e) => Thrown(e); case scala.util.Success(a) => Redeemed(a) }))
+  def extend1[B](k: Function1[NotWaiting[A], B])(implicit ec: ExecutionContext): Future[B] = extend[B](p => k(p.value.get match { case scala.util.Failure(e) => Thrown(e); case scala.util.Success(a) => Redeemed(a) }))(ec)
 
   /**
    * Synonym for await, blocks for the promise to be completed with a value or
@@ -162,13 +160,13 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
         if (!iRedeemed) {
           v match {
             case Redeemed(a) =>
-              p.redeem(Left(a))
+              p.redeem(Left(a))(playInternalContext)
             case Thrown(e) =>
               p.throwing(e)
           }
         }
       }
-    }
+    }(playInternalContext)
     other.extend1 { v =>
       if (!ref.single()) {
         val iRedeemed = ref.single.getAndTransform(_ => true)
@@ -176,13 +174,13 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
         if (!iRedeemed) {
           v match {
             case Redeemed(a) =>
-              p.redeem(Right(a))
+              p.redeem(Right(a))(playInternalContext)
             case Thrown(e) =>
               p.throwing(e)
           }
         }
       }
-    }
+    }(playInternalContext)
     p.future
   }
 
@@ -194,8 +192,8 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param unti time unit
    * @return either the timer message or the current promise
    */
-  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[Either[A, B]] = {
-    or(Promise.timeout(message, duration, unit))
+  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[Either[A, B]] = {
+    or(Promise.timeout(message, duration, unit)(ec))
   }
 
   /**
@@ -207,7 +205,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @return either the timer message or the current promise
    */
 
-  def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)
+  def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)(playInternalContext)
 
   /**
    * Creates a timer promise with  Throwable e (using the deafult Promise timeout).
@@ -215,7 +213,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param e exception to be thrown
    * @return a Promise which may throw an exception
    */
-  def orTimeout(e: Throwable): Future[A] = orTimeout(e, Promise.defaultTimeout).map(_.fold(a => a, e => throw e))
+  def orTimeout(e: Throwable): Future[A] = orTimeout(e, Promise.defaultTimeout)(playInternalContext).map(_.fold(a => a, e => throw e))(playInternalContext)
 
 }
 
@@ -229,7 +227,7 @@ trait Redeemable[-A] {
    * May only be called one time, and may not be called if throwing() was also called.
    * If evaluating the value throws an exception, equivalent to calling throwing() on that exception.
    */
-  def redeem(a: => A): Unit
+  def redeem(a: => A)(implicit ec:ExecutionContext): Unit
 
   /**
    * Complete the redeemable with an exception.
@@ -260,8 +258,6 @@ object PurePromise {
  */
 object Promise {
 
-  private var underlyingSystem: Option[ActorSystem] = Some(ActorSystem("promise"))
-
   private[concurrent] lazy val defaultTimeout =
     //TODO get it from conf
     Duration(10000, TimeUnit.MILLISECONDS).toMillis
@@ -285,7 +281,8 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
-  def timeout[A](message: A, duration: scala.concurrent.duration.Duration): Future[A] = {
+
+  def timeout[A](message: => A, duration: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext): Future[A] = {
     timeout(message, duration.toMillis)
   }
 
@@ -298,11 +295,11 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
-  def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Future[A] = {
+  def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[A] = {
     val p = Promise[A]()
     timer.schedule( new java.util.TimerTask{
       def run(){
-        p.completeWith(Future(message))
+        p.completeWith(Future(message)(ec))
       }
     },unit.toMillis(duration) )
     p.future
@@ -314,7 +311,7 @@ object Promise {
    * @return a timer promise
    */
   def timeout: Future[Nothing] = {
-    timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)
+    timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)(playInternalContext)
   }
 
   /**
@@ -326,7 +323,10 @@ object Promise {
    * (see below) can operate on multi-element collections such as
    * lists.
    */
-  def sequence[A](in: Option[Future[A]]): Future[Option[A]] = in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
+  def sequence[A](in: Option[Future[A]]): Future[Option[A]] = {
+    implicit val internalContext = play.core.Execution.playInternalContext
+    in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
+  }
 
   /**
    * Converts a traversable type M containing a Promise, into a Promise
@@ -336,7 +336,7 @@ object Promise {
    * @return a Promise that's the result of the transformation
    */
   def sequence[B, M[_]](in: M[Future[B]])(implicit toTraversableLike: M[Future[B]] => TraversableLike[Future[B], M[Future[B]]], cbf: CanBuildFrom[M[Future[B]], B, M[B]]): Future[M[B]] = {
-    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => fr.flatMap(r => fa.map(a => r += a)(playInternalContext))(playInternalContext)).map(_.result)(playInternalContext)
   }
 
   /**
@@ -345,16 +345,16 @@ object Promise {
    * @param either A or Future[B]
    * @return a promise with Either[A,B]
    */
-  def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_)))
+  def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_))(playInternalContext))
 
   /**
    * Converts an either containing a Promise on both Left and Right into a Promise
    * of an Either with plain (not-in-a-promise) values.
    */
-  def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_)), _.map(Right(_)))
+  def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_))(playInternalContext), _.map(Right(_))(playInternalContext))
 
   @deprecated("use sequence instead", "2.1")
-  def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))).getOrElse(Promise.pure(None))
+  def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(playInternalContext)).getOrElse(Promise.pure(None))
 
 }
 
