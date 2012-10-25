@@ -3,6 +3,7 @@ package play.api.libs.iteratee
 import org.specs2.mutable._
 import play.api.libs.concurrent.Promise
 import play.api.libs.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ConcurrentSpec extends Specification {
 
@@ -61,5 +62,20 @@ object ConcurrentSpec extends Specification {
     }
 
   }
+
+  "Concurrent.unicast" should {
+    "produce the same value written in the OutputStream" in {
+      val a = "FOO"
+      val b = "bar"
+      val enumerator = Concurrent.unicast[String] { c =>
+        c.push(a)
+        c.push(b)
+        c.eofAndEnd()
+      }
+    val promise = (enumerator |>> Iteratee.fold[String, String]("")(_ ++ _)).flatMap(_.run)
+
+    promise.await.get must equalTo(a+b)
+  }
+}
 
 }

@@ -24,9 +24,11 @@ import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 
-import play.api.libs.concurrent.execution.defaultContext
+
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
+
+  implicit val internalExecutionContext =  play.core.Execution.playInternalContext
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 

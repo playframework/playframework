@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static play.core.j.JavaPromise.defaultExecutionContext;
+import play.core.j.JavaInvoker;
 
 /**
  * Defines a set of functional programming style helpers.
@@ -239,7 +238,7 @@ public class F {
                     }
                     return null;
                 }
-            });
+                },JavaInvoker.executionContext());
         }
 
         /**
@@ -265,7 +264,7 @@ public class F {
                             throw new RuntimeException(t);
                         }
                     }
-                    },defaultExecutionContext())
+                    },JavaInvoker.executionContext())
             );
         }
 
@@ -293,7 +292,7 @@ public class F {
                             throw new RuntimeException(e);
                         }
                     }
-                    })
+                    },JavaInvoker.executionContext())
                     );
         }
 
@@ -320,11 +319,11 @@ public class F {
                             throw new RuntimeException(t);
                         }
                     }
-                    },defaultExecutionContext()).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,scala.concurrent.Future<B>>() {
+                    },JavaInvoker.executionContext()).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,scala.concurrent.Future<B>>() {
                     public scala.concurrent.Future<B> apply(Promise<B> p) {
                         return p.promise;
                     }
-                        },defaultExecutionContext())
+                        },JavaInvoker.executionContext())
             );
         }
 
@@ -381,7 +380,7 @@ public class F {
                            
                             return r.right.get();
                 }
-            },defaultExecutionContext());
+            },JavaInvoker.executionContext());
         }
 
         // Executes the Promise functions (capturing exception), with the given ThreadLocal context.

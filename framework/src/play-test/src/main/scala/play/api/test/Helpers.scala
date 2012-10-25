@@ -11,7 +11,7 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
-import play.api.libs.concurrent.execution.defaultContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Helper functions to run tests.
@@ -37,9 +37,6 @@ object Helpers extends Status with HeaderNames {
         block
       } finally {
         Play.stop()
-        //play.api.libs.concurrent.Promise.resetSystem()
-        //play.core.Invoker.system.shutdown()
-        //play.core.Invoker.uninit()
         play.api.libs.ws.WS.resetClient()
       }
     }

@@ -8,8 +8,9 @@ import java.util.concurrent.TimeoutException
 
 import java.util.concurrent.{ TimeUnit, Callable }
 
-import scala.concurrent.Future
-import play.api.libs.concurrent.execution.defaultContext
+import scala.concurrent.{ Future, ExecutionContext }
+
+import play.core.Execution.playInternalContext
 
 object JavaPromise {
 
@@ -18,28 +19,26 @@ object JavaPromise {
 
   def akkaFuture[T](callable: java.util.concurrent.Callable[T]) = play.libs.Akka.asPromise(akka.dispatch.Futures.future(callable, play.libs.Akka.system.dispatcher))
 
-  def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): scala.concurrent.Future[A] =
-    play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)
+  def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS, ec: ExecutionContext): scala.concurrent.Future[A] =
+    play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)(ec)
     
-
-  val defaultExecutionContext = play.api.libs.concurrent.execution.defaultContext
 
   def sequence[A](promises: JList[F.Promise[_ <: A]]): Future[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))
-      .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)
+      .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)(playInternalContext)
   }
 
   def timeout[A](message: A, delay: Long, unit: java.util.concurrent.TimeUnit) = {
-    Promise.timeout(message, delay, unit)
+    Promise.timeout(message, delay, unit)(playInternalContext)
   }
 
   def timeout: Future[Nothing] = Promise.timeout
 
-  def recover[A](promise: Future[A], f: Throwable => Future[A]): Future[A] = {
+  def recover[A](promise: Future[A], f: Throwable => Future[A], ec:ExecutionContext): Future[A] = {
     promise.extend1 {
       case Thrown(e) => f(e)
       case Redeemed(a) => Promise.pure(a)
-    }.flatMap(p => p)
+    }(ec).flatMap(p => p)(ec)
   }
 
   def pure[A](a: A) = Promise.pure(a)

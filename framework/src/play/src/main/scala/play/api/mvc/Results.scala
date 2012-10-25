@@ -7,9 +7,10 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
-import play.api.libs.concurrent.execution.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ Future, ExecutionContext }
+
+import play.core.Execution.playInternalContext
 
 /**
  * A simple HTTP response header, used for standard responses.
@@ -365,7 +366,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @param f The transformation function
    * @return The transformed `AsyncResult`
    */
-  def transform(f: PlainResult => Result): AsyncResult = AsyncResult (result.map {
+  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult (result.map {
       case AsyncResult(r) => AsyncResult(r.map{
         case r:PlainResult => f(r)
         case r:AsyncResult => r.transform(f)})
@@ -375,9 +376,9 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
   def unflatten:Future[PlainResult] = result.flatMap {
       case r:PlainResult => Promise.pure(r)
       case r@AsyncResult(_) => r.unflatten
-  }
+  }(playInternalContext)
 
-  def map(f: Result => Result): AsyncResult = AsyncResult(result.map(f))
+  def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f))
 
   /**
    * Adds headers to this result.
@@ -391,7 +392,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withHeaders(headers: (String, String)*): AsyncResult = {
-    map(_.withHeaders(headers: _*))
+    map(_.withHeaders(headers: _*))(playInternalContext)
   }
 
   /**
@@ -406,7 +407,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withCookies(cookies: Cookie*): AsyncResult = {
-    map(_.withCookies(cookies: _*))
+    map(_.withCookies(cookies: _*))(playInternalContext)
   }
 
   /**
@@ -421,7 +422,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): AsyncResult = {
-    map(_.discardingCookies(cookies: _*))
+    map(_.discardingCookies(cookies: _*))(playInternalContext)
   }
 
   /**
@@ -436,7 +437,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withSession(session: Session): AsyncResult = {
-    map(_.withSession(session))
+    map(_.withSession(session))(playInternalContext)
   }
 
   /**
@@ -451,7 +452,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withSession(session: (String, String)*): AsyncResult = {
-    map(_.withSession(session: _*))
+    map(_.withSession(session: _*))(playInternalContext)
   }
 
   /**
@@ -465,7 +466,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withNewSession: AsyncResult = {
-    map(_.withNewSession)
+    map(_.withNewSession)(playInternalContext)
   }
 
   /**
@@ -480,7 +481,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def flashing(flash: Flash): AsyncResult = {
-    map(_.flashing(flash))
+    map(_.flashing(flash))(playInternalContext)
   }
 
   /**
@@ -495,7 +496,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def flashing(values: (String, String)*): AsyncResult = {
-    map(_.flashing(values: _*))
+    map(_.flashing(values: _*))(playInternalContext)
   }
 
   /**
@@ -510,7 +511,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def as(contentType: String): AsyncResult = {
-    map(_.as(contentType))
+    map(_.as(contentType))(playInternalContext)
   }
 
 }

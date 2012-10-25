@@ -52,7 +52,7 @@ private[server] trait WebSocketHandler {
               next.fold {
                 case Step.Done(a, e) =>
                   ctx.getChannel().disconnect();
-                  promise.redeem(next);
+                  promise.success(next);
                   Logger("play").trace("cleaning for channel " + ctx.getChannel());
                   Promise.pure(next)
 

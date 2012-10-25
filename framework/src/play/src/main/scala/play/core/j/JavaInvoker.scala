@@ -80,4 +80,7 @@ object JavaInvoker {
    */
   def system = invoker.system
 
+
+  val executionContext: scala.concurrent.ExecutionContext = system.dispatcher
+
 }

@@ -4,9 +4,8 @@ import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
-import play.api.libs.concurrent.execution.defaultContext
-
 import scala.concurrent.Future
+import play.core.Execution.playInternalContext
 
 /**
  * A WebSocket handler.
@@ -88,8 +87,8 @@ object WebSocket {
   def async[A](f: RequestHeader => Future[(Iteratee[A, _], Enumerator[A])])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A] = {
     using { rh =>
       val p = f(rh)
-      val it = Iteratee.flatten(p.map(_._1))
-      val enum = Enumerator.flatten(p.map(_._2))
+      val it = Iteratee.flatten(p.map(_._1)(playInternalContext))
+      val enum = Enumerator.flatten(p.map(_._2)(playInternalContext))
       (it, enum)
     }
   }
