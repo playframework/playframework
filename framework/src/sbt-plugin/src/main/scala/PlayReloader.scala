@@ -88,7 +88,38 @@ trait PlayReloader {
 
       // --- Utils
 
-      def markdownToHtml(markdown: String) = markdown
+      def markdownToHtml(markdown: String, pagePath: String) = {
+        import org.pegdown._
+        import org.pegdown.ast._
+
+        val link:(String => (String, String)) = _ match {
+          case link if link.contains("|") => {
+            val parts = link.split('|')
+            (parts.tail.head, parts.head)
+          }
+          case image if image.endsWith(".png") => {
+            val link = image match {
+              case full if full.startsWith("http://") => full
+              case absolute if absolute.startsWith("/") => "resources/manual" + absolute
+              case relative => "resources/" + pagePath + "/" + relative
+            }
+            (link, """<img src="""" + link + """"/>""")
+          }
+          case link => {
+            (link, link)
+          }
+        }
+
+        val processor = new PegDownProcessor(Extensions.ALL)
+        val links = new LinkRenderer {
+          override def render(node: WikiLinkNode) = {
+            val (href, text) = link(node.getText)
+            new LinkRenderer.Rendering(href, text)
+          }
+        }
+
+        processor.markdownToHtml(markdown, links)
+      }
 
       // ---
 
