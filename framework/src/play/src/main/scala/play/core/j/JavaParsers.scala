@@ -81,82 +81,82 @@ object JavaParsers extends BodyParsers {
 
   }
 
-  def anyContent(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.anyContent).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { anyContent =>
-        DefaultRequestBody(
-          anyContent.asFormUrlEncoded,
-          anyContent.asRaw,
-          anyContent.asText,
-          anyContent.asJson,
-          anyContent.asXml,
-          anyContent.asMultipartFormData)
-      }.fold(identity, identity)
+  def anyContent(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.anyContent).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      anyContent =>
+      DefaultRequestBody(
+        anyContent.asFormUrlEncoded,
+        anyContent.asRaw,
+        anyContent.asText,
+        anyContent.asJson,
+        anyContent.asXml,
+        anyContent.asMultipartFormData)
+    )
   }
 
-  def json(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.json(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { json =>
-        DefaultRequestBody(json = Some(json))
-      }.fold(identity, identity)
+  def json(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.json(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      json =>
+      DefaultRequestBody(json = Some(json))
+    )
   }
 
-  def tolerantJson(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantJson(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { json =>
-        DefaultRequestBody(json = Some(json))
-      }.fold(identity, identity)
+  def tolerantJson(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantJson(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      json =>
+      DefaultRequestBody(json = Some(json))
+    )
   }
 
-  def xml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.xml(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { xml =>
-        DefaultRequestBody(xml = Some(xml))
-      }.fold(identity, identity)
+  def xml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.xml(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      xml =>
+      DefaultRequestBody(xml = Some(xml))
+    )
   }
 
-  def tolerantXml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantXml(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { xml =>
-        DefaultRequestBody(xml = Some(xml))
-      }.fold(identity, identity)
+  def tolerantXml(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantXml(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      xml =>
+      DefaultRequestBody(xml = Some(xml))
+    )
   }
 
-  def text(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.text(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { text =>
-        DefaultRequestBody(text = Some(text))
-      }.fold(identity, identity)
+  def text(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.text(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      text =>
+      DefaultRequestBody(text = Some(text))
+    )
   }
 
-  def tolerantText(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantText(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { text =>
-        DefaultRequestBody(text = Some(text))
-      }.fold(identity, identity)
+  def tolerantText(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.tolerantText(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      text =>
+      DefaultRequestBody(text = Some(text))
+    )
   }
 
-  def formUrlEncoded(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.urlFormEncoded(Integer.MAX_VALUE)).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { urlFormEncoded =>
-        DefaultRequestBody(urlFormEncoded = Some(urlFormEncoded))
-      }.fold(identity, identity)
+  def formUrlEncoded(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.urlFormEncoded(Integer.MAX_VALUE)).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      urlFormEncoded =>
+      DefaultRequestBody(urlFormEncoded = Some(urlFormEncoded))
+    )
   }
 
-  def multipartFormData(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.multipartFormData).map { body =>
-    body
-      .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
-      .right.map { multipart =>
-        DefaultRequestBody(multipart = Some(multipart))
-      }.fold(identity, identity)
+  def multipartFormData(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.multipartFormData).map {
+    _.fold(
+      _ => DefaultRequestBody(isMaxSizeExceeded = true),
+      multipart =>
+      DefaultRequestBody(multipart = Some(multipart))
+    )
   }
 
   def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.raw(Integer.MAX_VALUE)).map { body =>
