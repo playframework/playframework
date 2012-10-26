@@ -5,7 +5,7 @@ import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
 
-import scala.concurrent.util.*;
+import scala.concurrent.duration.*;
 import akka.actor.*;
 import akka.dispatch.*;
 

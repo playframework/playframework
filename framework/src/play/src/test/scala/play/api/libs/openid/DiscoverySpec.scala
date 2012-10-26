@@ -5,7 +5,7 @@ import org.specs2.mock._
 import java.net.URL
 import play.api.http.HeaderNames
 import play.api.http.Status._
-import scala.concurrent.util.Duration
+import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 import org.specs2.control.NoStackTraceFilter
