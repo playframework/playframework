@@ -28,9 +28,9 @@ News news = Cache.get("item.key");
 How to remove the key is as follows.
 
 ```
-// 2.0 final
+// 2.0.X
 Cache.set("item.key", null, 0)
-// later
+// 2.1
 Cache.remove("item.key")
 
 ```
