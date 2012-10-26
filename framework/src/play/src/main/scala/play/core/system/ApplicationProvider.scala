@@ -5,7 +5,7 @@ import java.net._
 
 import scala.concurrent.Future
 import scala.concurrent.Await
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
 
 import play.api._
 import play.api.mvc._

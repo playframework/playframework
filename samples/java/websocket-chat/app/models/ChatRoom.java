@@ -5,7 +5,7 @@ import play.libs.*;
 import play.libs.F.*;
 
 import scala.concurrent.Await;
-import scala.concurrent.util.Duration;
+import scala.concurrent.duration.Duration;
 import akka.actor.*;
 import akka.dispatch.*;
 import static akka.pattern.Patterns.ask;
