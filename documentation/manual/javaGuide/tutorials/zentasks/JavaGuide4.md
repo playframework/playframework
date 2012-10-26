@@ -185,6 +185,86 @@ Now try and log in with an invalid password.  You should see something like this
 
 Now reenter the valid password (`secret`), and login.  You should be taken to the dashboard.
 
+## Testing your action
+
+Now is a good time for us to start writing tests for our actions.  We've written an action that provides the ability to
+log in, let's check that it works.  Start by creating a skeleton test class called `test/controllers/LoginTest.java`:
+
+```java
+package controllers;
+
+import org.junit.*;
+import static org.junit.Assert.*;
+import java.util.*;
+
+import play.mvc.*;
+import play.libs.*;
+import play.test.*;
+import static play.test.Helpers.*;
+import com.avaje.ebean.Ebean;
+import com.google.common.collect.ImmutableMap;
+
+public class LoginTest extends WithApplication {
+    @Before
+    public void setUp() {
+        start(fakeApplication(inMemoryDatabase(), fakeGlobal()));
+        Ebean.save((List) Yaml.load("test-data.yml"));
+    }
+
+}
+```
+
+> Notice that this time we've passed a `fakeGlobal()` to the fake application when we set it up.  In fact, since
+> creating our "real" `Global.java`, the `ModelsTest` we wrote earlier has been broken because it is loading the initial
+> data when the test starts.  So it too should be updated to use `fakeGlobal()`.
+
+Now let's write a test that tests what happens when we authenticate successfully:
+
+```java
+@Test
+public void authenticateSuccess() {
+    Result result = callAction(
+        controllers.routes.ref.Application.authenticate(),
+        fakeRequest().withFormUrlEncodedBody(ImmutableMap.of(
+            "email", "bob@example.com",
+            "password", "secret"))
+    );
+    assertEquals(302, status(result));
+    assertEquals("bob@example.com", session(result).get("email"));
+}
+```
+
+There are a few new concepts introduced here.  The first is the user of Plays "ref" reverse router.  This allows us to
+get a reference to an action, which we then pass to `callAction` to invoke.  In our case, we've got a reference to the
+`Application.authenticate` action.
+
+We are also creating a fake request.  We are giving this a form body with the email and password to authenticate with.
+
+Finally, we are using the `status` and `session` helper methods to get the status and the session of the result.  We
+ensure that the successful login occurred with Bob's email address being added to the session.  There are other helper
+methods available to get access to other parts of the result, such as the headers and the body.  You might wonder why we
+can't just directly get the result.  The reason for this is that the result may, for example, be asynchronous, and so
+Play needs to unwrap it if necessary in order to access it.
+
+Run the test to make sure it passes.  Now let's write another test, this time to ensure that if an invalid email and
+password are supplied, that we don't get logged in.
+
+```java
+@Test
+public void authenticateFailure() {
+    Result result = callAction(
+        controllers.routes.ref.Application.authenticate(),
+        fakeRequest().withFormUrlEncodedBody(ImmutableMap.of(
+            "email", "bob@example.com",
+            "password", "badpassword"))
+    );
+    assertEquals(400, status(result));
+    assertNull(session(result).get("email"));
+}
+```
+
+Run this test to ensure it passes.
+
 ## Implementing authenticators
 
 Now that we are able to login, we can start protecting actions with authentication.  Play allows us to do this using
@@ -233,9 +313,44 @@ public static Result index() {
     ...
 ```
 
-Now try and visit the dashboard.  If you logged in successfully before, you're probably now on the dashboard, the
-authenticator hasn't blocked you because you were already logged in.  You could close your browser and reopen it to log
-out, but now is as good a time as any for us to implement a log out action.  As always, start with the route:
+### Testing the authenticator
+
+Let's write a test for the authenticator now, to make sure it works, in `test/controllers/LoginTest.java`:
+
+```java
+@Test
+public void authenticated() {
+    Result result = callAction(
+        controllers.routes.ref.Application.index(),
+        fakeRequest().withSession("email", "bob@example.com")
+    );
+    assertEquals(200, status(result));
+}    
+```
+
+Of course, the more important thing to test is that the request is blocked when you are not authenticated, so let's
+check that:
+
+```java
+@Test
+public void notAuthenticated() {
+    Result result = callAction(
+        controllers.routes.ref.Application.index(),
+        fakeRequest()
+    );
+    assertEquals(303, status(result));
+    assertEquals("/login", header("Location", result));
+}
+```
+
+Run the tests to make sure that the authenticator works.
+
+## Logging out
+
+Now try and visit the dashboard in a web browser.  If you logged in successfully before, you're probably now on the
+dashboard, the authenticator hasn't blocked you because you were already logged in.  You could close your browser and
+reopen it to log out, but now is as good a time as any for us to implement a log out action.  As always, start with the
+route:
 
     GET     /logout                     controllers.Application.logout()
 
@@ -251,10 +366,11 @@ public static Result logout() {
 }
 ```
 
-There is one new concept here.  After clearing the session, we added an attribute to the flash scope, a success message.
-The flash scope is similar to the session, except that the flash scope lasts only until the next request comes in.  This
-will allow us to render the success message in the login template when the redirected request comes in.  Let's add the
-message to `app/views/login.scala.html`, just as we did for the error message:
+You can see we have cleared the session, this will log the user out.  There is one new concept here.  After clearing the
+session, we added an attribute to the flash scope, a success message.  The flash scope is similar to the session, except
+that the flash scope lasts only until the next request comes in.  This will allow us to render the success message in
+the login template when the redirected request comes in.  Let's add the message to `app/views/login.scala.html`, just as
+we did for the error message:
 
 ```html
 @if(flash.contains("success")) {
