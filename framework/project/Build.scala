@@ -188,19 +188,19 @@ object PlayBuild extends Build {
 
                 val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
                 val cl = new java.net.URLClassLoader(cp)
-        
+
                 val t = cl.loadClass("com.avaje.ebean.enhance.agent.Transformer").getConstructor(classOf[Array[URL]], classOf[String]).newInstance(cp, "debug=0").asInstanceOf[AnyRef]
                 val ft = cl.loadClass("com.avaje.ebean.enhance.ant.OfflineFileTransform").getConstructor(
                     t.getClass, classOf[ClassLoader], classOf[String], classOf[String]
                 ).newInstance(t, ClassLoader.getSystemClassLoader, classes.getAbsolutePath, classes.getAbsolutePath).asInstanceOf[AnyRef]
-        
+
                 ft.getClass.getDeclaredMethod("process", classOf[String]).invoke(ft,"play/db/ebean/**")
 
                 analysis
             }
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayJavaJdbcProject) 
+    .dependsOn(PlayJavaJdbcProject)
 
     lazy val PlayJpaProject = Project(
         "Play-Java-JPA",
@@ -217,7 +217,7 @@ object PlayBuild extends Build {
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayJavaJdbcProject) 
+    .dependsOn(PlayJavaJdbcProject)
 
     lazy val PlayJavaProject = Project(
         "Play-Java",
@@ -292,6 +292,40 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
+    lazy val PlayFiltersProject = Project(
+        "Filters",
+        file("src/play-filters"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := runtime,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayProject)
+
+    lazy val PlayCsrfProject = Project(
+        "Csrf",
+        file("src/play-csrf"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := runtime,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+            javacOptions in doc := Seq("-source", "1.6"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true,
+            resolvers += typesafe
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(PlayFiltersProject)
+
     val Root = Project(
         "Root",
         file("."),
@@ -307,22 +341,24 @@ object PlayBuild extends Build {
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
      .aggregate(
         PlayProject,
-        SbtLinkProject, 
-        AnormProject, 
-        TemplatesProject, 
-        TemplatesCompilerProject, 
+        SbtLinkProject,
+        AnormProject,
+        TemplatesProject,
+        TemplatesCompilerProject,
         IterateesProject,
-        RoutesCompilerProject, 
-        PlayProject, 
+        RoutesCompilerProject,
+        PlayProject,
         PlayJdbcProject,
         PlayJavaProject,
         PlayJavaJdbcProject,
         PlayEbeanProject,
         PlayJpaProject,
-        SbtPluginProject, 
-        ConsoleProject, 
+        SbtPluginProject,
+        ConsoleProject,
         PlayTestProject,
-        PlayExceptionsProject
+        PlayExceptionsProject,
+        PlayFiltersProject,
+        PlayCsrfProject
     )
 
     object BuildSettings {
@@ -404,7 +440,7 @@ object PlayBuild extends Build {
         )
 
         val javaDeps = Seq(
-            
+
             "org.yaml"                          %    "snakeyaml"                %   "1.10",
             "org.hibernate"                     %    "hibernate-validator"      %   "4.3.0.Final",
 
@@ -431,30 +467,30 @@ object PlayBuild extends Build {
               .exclude("com.google.guava", "guava")
               .exclude("javassist", "javassist")
             ,
-            
+
             "com.google.guava"                  %    "guava"                    %   "13.0.1",
-            
+
             "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.1",
-            
+
 
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "javax.transaction"                 %    "jta"                      %   "1.1",
 
             "org.specs2"                        %   "specs2_2.10.0-RC1"         %   "1.12.2" %  "test"
         )
-     
+
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.5.2.Final",
-            
+
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.6",
             "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.6",
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.6",
-            
+
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.7",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.7",
-            
+
             "com.github.scala-incubator.io"     %   "scala-io-file_2.10.0-RC1"  %   "0.4.1" exclude("javax.transaction", "jta"),
-            
+
             "com.typesafe.akka"                 %    "akka-actor_2.10.0-RC1"    %   "2.1.0-RC1",
             "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-RC1"    %   "2.1.0-RC1",
 
@@ -462,7 +498,7 @@ object PlayBuild extends Build {
 
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
-            
+
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
 
             ("com.ning"                         %    "async-http-client"        %   "1.7.6" notTransitive())
@@ -485,7 +521,7 @@ object PlayBuild extends Build {
             "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test",
-            "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-RC1" 
+            "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-RC1"
         )
 
         val link = Seq(
@@ -503,8 +539,8 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.12.2"    %   "test"
               exclude("javax.transaction", "jta")
         )
-        
-        
+
+
         val sbtDependencies = Seq(
             "com.typesafe"                      %    "config"                   %   "1.0.0",
             "rhino"                             %    "js"                       %   "1.7R2",
@@ -536,7 +572,7 @@ object PlayBuild extends Build {
         )
 
         val consoleDependencies = Seq(
-            "net.databinder.giter8"             %   "giter8_2.9.1"              %   "0.5.0" 
+            "net.databinder.giter8"             %   "giter8_2.9.1"              %   "0.5.0"
         )
 
         val templatesDependencies = Seq(
@@ -548,7 +584,7 @@ object PlayBuild extends Build {
             "org.scala-stm"                     %    "scala-stm_2.10.0-RC1"     %   "0.6",
             "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta")
         )
-          
+
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",

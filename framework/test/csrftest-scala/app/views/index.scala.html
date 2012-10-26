@@ -1,0 +1,35 @@
+@(csrf: String)
+
+@main("Welcome to Play 2.0") {
+    <style type="text/css" media="screen">
+      label{display: block}
+    </style>
+    <div>
+      <h2>With token</h2>
+      <form action="@routes.Application.save()?csrfToken=@csrf" method="post" accept-charset="utf-8">
+        <p><label for="name">Name:</label><input type="text" name="name" value="" id="name"></p>
+        <p><label for="age">Age:</label><input type="text" name="age" value="" id="age"></p>
+        <p><input type="submit" value="Continue &rarr;"></p>
+      </form>
+    </div>
+
+    <div>
+      <h2>With token in multipart</h2>
+      <form action="@routes.Application.save()" enctype="multipart/form-data" method="post" accept-charset="utf-8">
+        <p><label for="name">Name:</label><input type="text" name="name" value="" id="name"></p>
+        <p><label for="age">Age:</label><input type="text" name="age" value="" id="age"></p>
+        <p><label for="csrfToken">Token:</label><input type="text" name="csrfToken" value="@csrf" id="csrfToken"></p>
+        <p><input type="submit" value="Continue &rarr;"></p>
+      </form>
+    </div>
+
+    <div>
+      <h2>Without token</h2>
+      <form action="@routes.Application.save()" method="post" accept-charset="utf-8">
+        <p><label for="name">Name:</label><input type="text" name="name" value="" id="name"></p>
+        <p><label for="age">Age::</label><input type="text" name="age" value="" id="age"></p>
+        <p><input type="submit" value="Continue &rarr;"></p>
+      </form>
+    </div>
+
+}
