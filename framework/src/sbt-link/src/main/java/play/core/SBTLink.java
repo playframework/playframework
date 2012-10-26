@@ -28,6 +28,6 @@ public interface SBTLink {
 
 	public void forceReload();
 
-	public String markdownToHtml(String markdown);
+	public String markdownToHtml(String markdown, String pagePath);
 
 }
