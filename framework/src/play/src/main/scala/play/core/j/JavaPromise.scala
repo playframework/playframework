@@ -10,7 +10,7 @@ import java.util.concurrent.{ TimeUnit, Callable }
 
 import scala.concurrent.{ Future, ExecutionContext }
 
-import play.core.Execution.playInternalContext
+import play.core.Execution.internalContext
 
 object JavaPromise {
 
@@ -25,11 +25,11 @@ object JavaPromise {
 
   def sequence[A](promises: JList[F.Promise[_ <: A]]): Future[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))
-      .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)(playInternalContext)
+      .map(az => JavaConverters.bufferAsJavaListConverter(az).asJava)(internalContext)
   }
 
   def timeout[A](message: A, delay: Long, unit: java.util.concurrent.TimeUnit) = {
-    Promise.timeout(message, delay, unit)(playInternalContext)
+    Promise.timeout(message, delay, unit)(internalContext)
   }
 
   def timeout: Future[Nothing] = Promise.timeout

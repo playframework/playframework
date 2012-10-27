@@ -485,7 +485,7 @@ object PlayBuild extends Build {
             "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test",
-            "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-M7" 
+            "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-RC1" 
         )
 
         val link = Seq(

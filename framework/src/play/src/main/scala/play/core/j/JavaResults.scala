@@ -72,7 +72,7 @@ object JavaResultExtractor {
     case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
-      bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.playInternalContext).value1.get
+      bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.internalContext).value1.get
     }
   }
 
