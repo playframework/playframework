@@ -12,7 +12,7 @@ import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
-import play.core.Execution.playInternalContext
+import play.core.Execution.internalContext
 
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
@@ -160,13 +160,13 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
         if (!iRedeemed) {
           v match {
             case Redeemed(a) =>
-              p.redeem(Left(a))(playInternalContext)
+              p.redeem(Left(a))(internalContext)
             case Thrown(e) =>
               p.throwing(e)
           }
         }
       }
-    }(playInternalContext)
+    }(internalContext)
     other.extend1 { v =>
       if (!ref.single()) {
         val iRedeemed = ref.single.getAndTransform(_ => true)
@@ -174,13 +174,13 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
         if (!iRedeemed) {
           v match {
             case Redeemed(a) =>
-              p.redeem(Right(a))(playInternalContext)
+              p.redeem(Right(a))(internalContext)
             case Thrown(e) =>
               p.throwing(e)
           }
         }
       }
-    }(playInternalContext)
+    }(internalContext)
     p.future
   }
 
@@ -205,7 +205,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @return either the timer message or the current promise
    */
 
-  def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)(playInternalContext)
+  def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)(internalContext)
 
   /**
    * Creates a timer promise with  Throwable e (using the deafult Promise timeout).
@@ -213,7 +213,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param e exception to be thrown
    * @return a Promise which may throw an exception
    */
-  def orTimeout(e: Throwable): Future[A] = orTimeout(e, Promise.defaultTimeout)(playInternalContext).map(_.fold(a => a, e => throw e))(playInternalContext)
+  def orTimeout(e: Throwable): Future[A] = orTimeout(e, Promise.defaultTimeout)(internalContext).map(_.fold(a => a, e => throw e))(internalContext)
 
 }
 
@@ -311,7 +311,7 @@ object Promise {
    * @return a timer promise
    */
   def timeout: Future[Nothing] = {
-    timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)(playInternalContext)
+    timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)(internalContext)
   }
 
   /**
@@ -324,7 +324,7 @@ object Promise {
    * lists.
    */
   def sequence[A](in: Option[Future[A]]): Future[Option[A]] = {
-    implicit val internalContext = play.core.Execution.playInternalContext
+    implicit val internalContext = play.core.Execution.internalContext
     in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
   }
 
@@ -336,7 +336,7 @@ object Promise {
    * @return a Promise that's the result of the transformation
    */
   def sequence[B, M[_]](in: M[Future[B]])(implicit toTraversableLike: M[Future[B]] => TraversableLike[Future[B], M[Future[B]]], cbf: CanBuildFrom[M[Future[B]], B, M[B]]): Future[M[B]] = {
-    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => fr.flatMap(r => fa.map(a => r += a)(playInternalContext))(playInternalContext)).map(_.result)(playInternalContext)
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => fr.flatMap(r => fa.map(a => r += a)(internalContext))(internalContext)).map(_.result)(internalContext)
   }
 
   /**
@@ -345,16 +345,16 @@ object Promise {
    * @param either A or Future[B]
    * @return a promise with Either[A,B]
    */
-  def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_))(playInternalContext))
+  def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_))(internalContext))
 
   /**
    * Converts an either containing a Promise on both Left and Right into a Promise
    * of an Either with plain (not-in-a-promise) values.
    */
-  def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_))(playInternalContext), _.map(Right(_))(playInternalContext))
+  def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_))(internalContext), _.map(Right(_))(internalContext))
 
   @deprecated("use sequence instead", "2.1")
-  def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(playInternalContext)).getOrElse(Promise.pure(None))
+  def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(internalContext)).getOrElse(Promise.pure(None))
 
 }
 

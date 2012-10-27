@@ -28,7 +28,7 @@ import scala.collection.JavaConverters._
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
 
-  implicit val internalExecutionContext =  play.core.Execution.playInternalContext
+  implicit val internalExecutionContext =  play.core.Execution.internalContext
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
@@ -326,7 +326,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(a)
 
-          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))//TODO (someUserConfigurableExecutionContext)
+          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.execution.Implicits.defaultContext)
 
           requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
             eventuallyBodyParser.flatMap(_.unflatten).map {
