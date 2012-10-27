@@ -64,7 +64,7 @@ object ConcurrentSpec extends Specification {
   }
 
   "Concurrent.unicast" should {
-    "produce the same value written in the OutputStream" in {
+    "allow to push messages and end" in {
       val a = "FOO"
       val b = "bar"
       val enumerator = Concurrent.unicast[String] { c =>

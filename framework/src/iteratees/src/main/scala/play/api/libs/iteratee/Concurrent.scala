@@ -320,61 +320,61 @@ object Concurrent {
     onComplete: => Unit = (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
 
+    import scala.concurrent.stm.Ref
+
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
-      var iteratee: Iteratee[E, A] = it
-      var promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
+      val promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
+      val iteratee: Ref[Future[Option[Input[E] => Iteratee[E, A]]]] = Ref(it.pureFold { case  Step.Cont(k) => Some(k); case other => promise.success(other.it); None})
 
       val pushee = new Channel[E] {
         def close() {
-          if (iteratee != null) {
-            iteratee.feed(Input.EOF).map(result => promise.success(result))
-            iteratee = null
-            promise = null
+          iteratee.single.swap(Future.successful(None)).onComplete{
+            case Success(maybeK) => maybeK.foreach { k => 
+              promise.success(k(Input.EOF))
+            }
+            case Failure(e) => promise.failure(e)
           }
         }
 
         def end(e: Throwable) {
-          if (iteratee != null) {
-            promise.failure(e)
-            iteratee = null
-            promise = null
+          iteratee.single.swap(Future.successful(None)).onComplete { 
+            case Success(maybeK) =>
+              maybeK.foreach(_ => promise.failure(e))
+            case Failure(e) => promise.failure(e)
           }
         }
 
         def end() {
-          if (iteratee != null) {
-            promise.success(iteratee)
-            iteratee = null
-            promise = null
+          iteratee.single.swap(Future.successful(None)).onComplete { maybeK =>
+            maybeK.get.foreach(k => promise.success(Cont(k)))
           }
         }
 
         def push(item: Input[E]) {
-          iteratee = iteratee.pureFlatFold[E, A] {
-
-            case Step.Done(a, in) => {
-              onComplete
-              Done(a, in)
-            }
-
-            case Step.Cont(k) => {
-              val next = k(item)
-              next.pureFlatFold {
-                case Step.Done(a, in) => {
-                  onComplete
-                  next
+          val eventuallyNext = Promise[Option[Input[E] => Iteratee[E,A]]]()
+          iteratee.single.swap(eventuallyNext.future).onComplete {
+            case Success(None) => eventuallyNext.success(None)
+            case Success(Some(k)) =>
+               val n = {
+                  val next = k(item)
+                  next.pureFold {
+                    case Step.Done(a, in) => {
+                      onComplete
+                      promise.success(next)
+                      None
+                    }
+                    case Step.Error(msg, e) =>
+                      onError(msg, e)
+                      promise.success(next)
+                      None
+                    case Step.Cont(k) =>
+                      Some(k)
+                  }
                 }
-                case Step.Error(msg, e) =>
-                  onError(msg, e)
-                  next
-                case _ => next
-              }
-            }
-
-            case Step.Error(e, in) => {
-              onError(e, in)
-              Error(e, in)
-            }
+              eventuallyNext.completeWith(n)
+          case Failure(e) => 
+            promise.failure(e)
+            eventuallyNext.success(None)
           }
         }
       }
@@ -382,7 +382,7 @@ object Concurrent {
       promise.future
     }
 
-  }
+    }
 
   def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ()): (Enumerator[E], Broadcaster) = { lazy val h: Hub[E] = hub(e, () => interestIsDownToZero(h)); (h.getPatchCord(), h) }
 

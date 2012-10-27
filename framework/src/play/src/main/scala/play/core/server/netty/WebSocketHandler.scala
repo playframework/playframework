@@ -37,7 +37,7 @@ private[server] trait WebSocketHandler {
       private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
       def apply[R](i: Iteratee[A, R]) = {
-        eventuallyIteratee.success(i)
+        eventuallyIteratee.success(i/* TODO: use a buffer enumeratee to fail when too many messages */ )
         promise.asInstanceOf[scala.concurrent.Promise[Iteratee[A, R]]].future
       }
 
