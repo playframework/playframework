@@ -6,7 +6,7 @@ import akka.pattern.ask
 import play.api.mvc._
 import akka.actor._
 import akka.actor._
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
 import library.{Calculator,Work}
 import play.api.mvc.Results._
 import play.api.libs.concurrent._

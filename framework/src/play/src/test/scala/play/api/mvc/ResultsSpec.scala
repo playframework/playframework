@@ -53,7 +53,7 @@ object ResultsSpec extends Specification {
         Ok("hello").as("text/html")
           .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
           .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
-          .discardingCookies("logged")
+          .discardingCookies(DiscardingCookie("logged"))
 
       val setCookies = Cookies.decode(headers("Set-Cookie")).map(c => c.name -> c).toMap
       setCookies.size must be_==(4)
@@ -78,7 +78,7 @@ object ResultsSpec extends Specification {
         Ok("hello").as("text/html")
           .withSession("user" -> "kiki", "langs" -> "fr:en:de")
           .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
-          .discardingCookies("logged")
+          .discardingCookies(DiscardingCookie("logged"))
           .withSession("user" -> "kiki", "langs" -> "fr:en:de")
           .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
 
@@ -102,16 +102,59 @@ object ResultsSpec extends Specification {
       val decodedSession = Session.decode(maliciousSession)
       decodedSession must beEmpty
     }
+
+    "support a custom application context" in {
+      "set session on right path" in new WithFooPath {
+        Cookies.decode(Ok.withSession("user" -> "alice").header.headers("Set-Cookie")).head.path must_== "/foo"
+      }
+
+      "discard session on right path" in new WithFooPath {
+        Cookies.decode(Ok.withNewSession.header.headers("Set-Cookie")).head.path must_== "/foo"
+      }
+
+      "set flash on right path" in new WithFooPath {
+        Cookies.decode(Ok.flashing("user" -> "alice").header.headers("Set-Cookie")).head.path must_== "/foo"
+      }
+
+      // flash cookie is discarded in PlayDefaultUpstreamHandler
+    }
+
+    "support a custom session domain" in {
+      "set session on right domain" in new WithFooDomain {
+        Cookies.decode(Ok.withSession("user" -> "alice").header.headers("Set-Cookie")).head.domain must beSome(".foo.com")
+      }
+
+      "discard session on right domain" in new WithFooDomain {
+        Cookies.decode(Ok.withNewSession.header.headers("Set-Cookie")).head.domain must beSome(".foo.com")
+      }
+    }
+
+    "support a secure session" in {
+      "set session as secure" in new WithSecureSession {
+        Cookies.decode(Ok.withSession("user" -> "alice").header.headers("Set-Cookie")).head.secure must_== true
+      }
+
+      "discard session as secure" in new WithSecureSession {
+        Cookies.decode(Ok.withNewSession.header.headers("Set-Cookie")).head.secure must_== true
+      }
+    }
+
   }
 
-  trait WithApplication extends Around with Scope {
+  abstract class WithFooPath extends WithApplication("application.context" -> "/foo")
+
+  abstract class WithFooDomain extends WithApplication("session.domain" -> ".foo.com")
+
+  abstract class WithSecureSession extends WithApplication("session.secure" -> true)
+
+  abstract class WithApplication(config: (String, Any)*) extends Around with Scope {
     import play.api._
     import java.io.File
 
-    implicit val app: Application =
+    implicit lazy val app: Application =
       new DefaultApplication(new File("./src/play/src/test"), Thread.currentThread.getContextClassLoader, None, play.api.Mode.Test){
         override lazy val configuration = Configuration.from(Map("application.secret" -> "pass",
-          "ehcacheplugin" -> "disabled"))
+          "ehcacheplugin" -> "disabled") ++ config.toMap)
       }
 
     def around[T <% SpecsResult](t: => T) = {

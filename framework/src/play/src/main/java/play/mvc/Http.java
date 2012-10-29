@@ -499,7 +499,6 @@ public class Http {
 
         private final Map<String,String> headers = new HashMap<String,String>();
         private final List<Cookie> cookies = new ArrayList<Cookie>();
-        private final List<String> discardedCookies = new ArrayList<String>();
 
         /**
          * Adds a new header to the response.
@@ -588,19 +587,33 @@ public class Http {
          * <pre>
          * response().discardCookies("theme");
          * </pre>
+         *
+         * This only discards cookies on the default path ("/") with no domain and that didn't have secure set.  To
+         * discard other cookies, use the discardCookie method.
+         *
          * @param names Names of the cookies to discard
          */
         public void discardCookies(String... names) {
-            discardedCookies.addAll(Arrays.asList(names));
+            for (String name: names) {
+                discardCookie(name, "/", null, false);
+            }
+        }
+
+        /**
+         * Discard a cookie in this result
+         *
+         * @param name The name of the cookie to discard
+         * @param path The path of the cookie te discard, may be null
+         * @param domain The domain of the cookie to discard, may be null
+         * @param secure Whether the cookie to discard is secure
+         */
+        public void discardCookie(String name, String path, String domain, boolean secure) {
+            cookies.add(new Cookie(name, "", 0, path, domain, secure, false));
         }
 
         // FIXME return a more convenient type? e.g. Map<String, Cookie>
         public Iterable<Cookie> cookies() {
             return cookies;
-        }
-
-        public Iterable<String> discardedCookies() {
-            return discardedCookies;
         }
 
     }

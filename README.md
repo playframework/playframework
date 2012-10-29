@@ -58,10 +58,6 @@ $ play run
 ```
 > The application will be available on port 9000.
 
-## Documentation
-
-The edge documentation is available at https://github.com/playframework/Play20/wiki.
-
 ## Issues tracker
 
 Report issues at https://play.lighthouseapp.com/projects/82401-play-20/overview.

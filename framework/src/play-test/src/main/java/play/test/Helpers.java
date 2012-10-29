@@ -3,6 +3,7 @@ package play.test;
 import play.*;
 
 import play.api.mvc.Session;
+import play.api.test.Helpers$;
 import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
@@ -440,9 +441,23 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      */
+    public static TestBrowser testBrowser(int port) {
+        return testBrowser(HTMLUNIT, port);
+    }
+
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
+        return testBrowser(webDriver, Helpers$.MODULE$.testServerPort());
+    }
+
+    /**
+     * Creates a Test Browser.
+     */
+    public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
         try {
-            return new TestBrowser(webDriver);
+            return new TestBrowser(webDriver, "http://localhost:" + port);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -453,8 +468,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      */
+    public static TestBrowser testBrowser(WebDriver of, int port) {
+        return new TestBrowser(of, "http://localhost:" + port);
+    }
+
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser(WebDriver of) {
-        return new TestBrowser(of);
+        return testBrowser(of, Helpers$.MODULE$.testServerPort());
     }
 
 }

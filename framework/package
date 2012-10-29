@@ -14,7 +14,7 @@ if test "$1" != "test" -a "$2" != "incremental"; then
     `dirname $0`/build clean 
 fi
 
-`dirname $0`/build -Dplay.version=${PLAY_VERSION} build-repository api-docs
+`dirname $0`/build -Dplay.version=${PLAY_VERSION} publish-local build-repository api-docs
 
 echo "[info] Cleaning previous package"
 rm -rf /tmp/play-*

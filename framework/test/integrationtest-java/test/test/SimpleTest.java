@@ -198,7 +198,7 @@ public class SimpleTest {
                 play.api.mvc.Result wrappedResult = result.getWrappedResult();
                 if (wrappedResult instanceof AsyncResult)
                     try {
-                    this.wrappedResult = scala.concurrent.Await.result(((AsyncResult) wrappedResult).result(),scala.concurrent.util.Duration.Inf());
+                    this.wrappedResult = scala.concurrent.Await.result(((AsyncResult) wrappedResult).result(),scala.concurrent.duration.Duration.Inf());
                     } catch (Exception e){}
                 else
                     this.wrappedResult = wrappedResult;

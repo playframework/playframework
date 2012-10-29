@@ -62,13 +62,13 @@ sealed trait WithHeaders[+A <: Result] {
    *
    * For example:
    * {{{
-   * Ok("Hello world").discardingCookies("theme")
+   * Ok("Hello world").discardingCookies(DiscardingCookie("theme"))
    * }}}
    *
    * @param cookies the cookies to discard along to this result
    * @return the new result
    */
-  def discardingCookies(names: String*): A
+  def discardingCookies(cookies: DiscardingCookie*): A
 
   /**
    * Sets a new session for this result.
@@ -203,8 +203,8 @@ trait PlainResult extends Result with WithHeaders[PlainResult] {
    * @param cookies the cookies to discard along to this result
    * @return the new result
    */
-  def discardingCookies(names: String*): PlainResult = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Nil, discard = names))
+  def discardingCookies(cookies: DiscardingCookie*): PlainResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
   }
 
   /**
@@ -219,7 +219,7 @@ trait PlainResult extends Result with WithHeaders[PlainResult] {
    * @return the new result
    */
   def withSession(session: Session): PlainResult = {
-    if (session.isEmpty) discardingCookies(Session.COOKIE_NAME) else withCookies(Session.encodeAsCookie(session))
+    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
   }
 
   /**
@@ -420,8 +420,8 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @param cookies the cookies to discard along to this result
    * @return the new result
    */
-  def discardingCookies(names: String*): AsyncResult = {
-    map(_.discardingCookies(names: _*))
+  def discardingCookies(cookies: DiscardingCookie*): AsyncResult = {
+    map(_.discardingCookies(cookies: _*))
   }
 
   /**

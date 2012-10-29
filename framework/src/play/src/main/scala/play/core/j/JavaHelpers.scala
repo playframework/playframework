@@ -33,7 +33,6 @@ trait JavaHelpers {
     case result: PlainResult => {
       val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
         .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value, c.maxAge, c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
-        .discardingCookies(javaContext.response.discardedCookies.asScala.toSeq: _*)
 
       if (javaContext.session.isDirty && javaContext.flash.isDirty) {
         wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
