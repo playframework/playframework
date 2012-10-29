@@ -27,9 +27,9 @@ trait WebSocketable {
  */
 trait Server {
 
-  // First delete the default log file for a fresh start
+  // First delete the default log file for a fresh start (only in Dev Mode)
   try {
-    scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
+    if (mode == Mode.Dev) scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
   } catch {
     case _: Exception =>
   }
