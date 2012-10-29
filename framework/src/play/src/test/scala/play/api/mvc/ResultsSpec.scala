@@ -134,7 +134,7 @@ object ResultsSpec extends Specification {
         Cookies.decode(Ok.withSession("user" -> "alice").header.headers("Set-Cookie")).head.secure must_== true
       }
 
-      "discard session as secure" in new WithFooDomain {
+      "discard session as secure" in new WithSecureSession {
         Cookies.decode(Ok.withNewSession.header.headers("Set-Cookie")).head.secure must_== true
       }
     }
