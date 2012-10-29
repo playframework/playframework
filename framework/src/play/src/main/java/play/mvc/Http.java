@@ -587,6 +587,10 @@ public class Http {
          * <pre>
          * response().discardCookies("theme");
          * </pre>
+         *
+         * This only discards cookies on the default path ("/") with no domain and that didn't have secure set.  To
+         * discard other cookies, use the discardCookie method.
+         *
          * @param names Names of the cookies to discard
          */
         public void discardCookies(String... names) {
