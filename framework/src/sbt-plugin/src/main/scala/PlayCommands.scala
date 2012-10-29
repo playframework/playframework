@@ -22,7 +22,7 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
 
-  //alerts  
+  // ~~ Alerts  
   if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
     println()
     this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
