@@ -71,9 +71,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   // Use plain Java call here in case of scala classloader mess
   {
-    if(System.getProperty("play.debug.classpath") == "true") {
+    if (System.getProperty("play.debug.classpath") == "true") {
       System.out.println("\n---- Current ClassLoader ----\n")
-      System.out.println(this.getClass.getClassLoader) 
+      System.out.println(this.getClass.getClassLoader)
       System.out.println("\n---- The where is Scala? test ----\n")
       System.out.println(this.getClass.getClassLoader.getResource("scala/Predef$.class"))
     }
@@ -130,7 +130,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                     case _ => None
                   }
                 }
-              }),Mode.Dev)
+              }), Mode.Dev)
 
               Play.start(newApplication)
 
@@ -276,8 +276,8 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
               Ok(
                 views.html.play20.manual(
                   page,
-                  Some(sbtLink.markdownToHtml(pageSource.string/*, linkRender*/)),
-                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string/*, linkRender*/))
+                  Some(sbtLink.markdownToHtml(pageSource.string /*, linkRender*/ )),
+                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string /*, linkRender*/ ))
                 )
               )
             }
@@ -291,7 +291,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
       // Delegate to plugins
       case _ => Play.maybeApplication.flatMap { app =>
-        app.plugins.foldLeft(Option.empty[play.api.mvc.Result]) { 
+        app.plugins.foldLeft(Option.empty[play.api.mvc.Result]) {
           case (None, plugin: HandleWebCommandSupport) => plugin.handleWebCommand(request, sbtLink, path)
           case (result, _) => result
         }

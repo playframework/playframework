@@ -62,8 +62,8 @@ case class PathPattern(parts: Seq[PathPart]) {
  * provides Play's router implementation
  */
 object Router {
-  
-   object Route {
+
+  object Route {
 
     trait ParamsExtractor {
       def unapply(request: RequestHeader): Option[RouteParams]

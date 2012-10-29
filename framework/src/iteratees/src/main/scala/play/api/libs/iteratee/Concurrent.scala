@@ -2,7 +2,7 @@ package play.api.libs.iteratee
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import scala.util.{Try, Failure, Success}
+import scala.util.{ Try, Failure, Success }
 import Enumerator.Pushee
 import java.util.concurrent.{ TimeUnit }
 
@@ -12,16 +12,16 @@ object Concurrent {
 
   private val timer = new java.util.Timer()
 
-  private def timeoutFuture[A](v:A, delay:Long, unit:TimeUnit):Future[A] = {
+  private def timeoutFuture[A](v: A, delay: Long, unit: TimeUnit): Future[A] = {
 
     val p = Promise[A]()
-    timer.schedule( new java.util.TimerTask{
-      def run(){
+    timer.schedule(new java.util.TimerTask {
+      def run() {
         p.success(v)
       }
-    },unit.toMillis(delay) )
+    }, unit.toMillis(delay))
     p.future
-  } 
+  }
 
   trait Channel[E] {
 
@@ -68,7 +68,7 @@ object Concurrent {
             case Right(s) =>
               Some(s)
           }.recover {
-            case e:Throwable =>
+            case e: Throwable =>
               p.failure(e)
               None
           }

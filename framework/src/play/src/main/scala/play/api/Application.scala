@@ -14,7 +14,6 @@ import annotation.implicitNotFound
 import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 
-
 trait WithDefaultGlobal {
   self: Application with WithDefaultConfiguration =>
 
@@ -224,7 +223,6 @@ trait Application {
    */
   def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
-
   /**
    * The router used by this application (if defined).
    */
@@ -374,5 +372,4 @@ class DefaultApplication(
   override val path: File,
   override val classloader: ClassLoader,
   override val sources: Option[SourceMapper],
-  override val mode: Mode.Mode
-) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins
+  override val mode: Mode.Mode) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins

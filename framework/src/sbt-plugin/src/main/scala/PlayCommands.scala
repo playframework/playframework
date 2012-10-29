@@ -14,7 +14,7 @@ import play.console.Colors
 
 import PlayExceptions._
 import PlayKeys._
-import java.io.{File=>JFile}
+import java.io.{ File => JFile }
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
@@ -23,7 +23,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
 
   //alerts  
-  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
+  if (Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
     println()
     this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
       println(Colors.green(el.toString))
@@ -43,7 +43,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     case _ =>
   }
 
-  
   //- mainly scala, mainly java or none
 
   val JAVA = "java"
@@ -94,7 +93,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     }
 
     if (commonClassLoader == null) {
-      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */) {
+      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
         override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
       }
     }
@@ -108,24 +107,24 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   val buildRequire = TaskKey[Seq[(JFile, JFile)]]("play-build-require-assets")
-  val buildRequireTask = (copyResources in Compile, crossTarget, requireJsSupport, requireNativePath, streams) map { (cr, crossTarget, requireJsSupport, requireNativePath,  s) =>
+  val buildRequireTask = (copyResources in Compile, crossTarget, requireJsSupport, requireNativePath, streams) map { (cr, crossTarget, requireJsSupport, requireNativePath, s) =>
     val buildDescName = "app.build.js"
-    val jsFolder = "javascripts" 
+    val jsFolder = "javascripts"
     val rjoldDir = crossTarget / "classes" / "public" / jsFolder
     val jsFiles = (rjoldDir ** "*.js").filter(_.getName.endsWith("min.js") == false).get.toSet
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
     if (jsFiles.isEmpty == false && requireJsSupport) {
       val rjnewDir = new JFile(rjoldDir.getAbsolutePath + "-min")
       val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
-      val content =  """({appDir: """" + jsFolder + """",
+      val content = """({appDir: """" + jsFolder + """",
           baseUrl: ".",
           dir:"""" + rjnewDir.getName + """",
           modules: [""" + jsFiles.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
 
-      IO.write(buildDesc,content)
+      IO.write(buildDesc, content)
       //run requireJS
       s.log.info("RequireJS optimization has begun...")
-      s.log.info(buildDescName+":")
+      s.log.info(buildDescName + ":")
       s.log.info(content)
       try {
         requireNativePath.map(nativePath =>
@@ -134,10 +133,11 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
           play.core.jscompile.JavascriptCompiler.require(buildDesc)
         }
         s.log.info("RequireJS optimization finished.")
-      } catch {case ex: Exception => 
-        s.log.error("RequireJS optimization has failed...")
-        throw ex
-      }  
+      } catch {
+        case ex: Exception =>
+          s.log.error("RequireJS optimization has failed...")
+          throw ex
+      }
       //clean-up
       IO.delete(buildDesc)
       IO.delete(rjoldDir)
@@ -145,7 +145,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     }
     cr
   }
-
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
   val playPackageEverythingTask = (state, thisProjectRef, crossTarget) flatMap { (s, r, crossTarget) =>

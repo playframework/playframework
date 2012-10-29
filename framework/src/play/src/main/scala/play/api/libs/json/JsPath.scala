@@ -15,8 +15,8 @@ sealed trait PathNode {
 
 case class RecursiveSearch(key: String) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => (json \\ key).toList.filterNot{ 
-      case JsUndefined(_) => true 
+    case obj: JsObject => (json \\ key).toList.filterNot {
+      case JsUndefined(_) => true
       case _ => false
     }
     case _ => List()
@@ -28,37 +28,38 @@ case class RecursiveSearch(key: String) extends PathNode {
    * First found, first set and never goes down after setting
    */
   def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
-    case obj: JsObject => 
-      var found = false 
-      val o = JsObject(obj.fields.map{ case (k,v) => 
-        if(k == this.key) { 
-          found = true
-          k -> transform(v) 
-        }
-        else k -> set(v, transform) 
+    case obj: JsObject =>
+      var found = false
+      val o = JsObject(obj.fields.map {
+        case (k, v) =>
+          if (k == this.key) {
+            found = true
+            k -> transform(v)
+          } else k -> set(v, transform)
       })
 
       o
     case _ => json
-  }  
+  }
 
   private[json] def splitChildren(json: JsValue) = json match {
-    case obj: JsObject => obj.fields.toList.map{ case (k,v) => 
-      if(k == this.key) Right(this -> v)
-      else Left(KeyPathNode(k) -> v)
+    case obj: JsObject => obj.fields.toList.map {
+      case (k, v) =>
+        if (k == this.key) Right(this -> v)
+        else Left(KeyPathNode(k) -> v)
     }
-    case arr: JsArray => 
-      arr.value.toList.zipWithIndex.map{ case (js, j) => Left(IdxPathNode(j) -> js) }
-    
+    case arr: JsArray =>
+      arr.value.toList.zipWithIndex.map { case (js, j) => Left(IdxPathNode(j) -> js) }
+
     case _ => List()
-  } 
+  }
 }
- 
-case class KeyPathNode(key: String) extends PathNode{
+
+case class KeyPathNode(key: String) extends PathNode {
 
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => List(json \ key).filterNot{ 
-      case JsUndefined(_) => true 
+    case obj: JsObject => List(json \ key).filterNot {
+      case JsUndefined(_) => true
       case _ => false
     }
     case _ => List()
@@ -68,27 +69,28 @@ case class KeyPathNode(key: String) extends PathNode{
   def toJsonString = "." + key
 
   def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
-    case obj: JsObject => 
-      var found = false 
-      val o = JsObject(obj.fields.map{ case (k,v) => 
-        if(k == this.key) { 
-          found = true
-          k -> transform(v) 
-        }
-        else k -> v 
+    case obj: JsObject =>
+      var found = false
+      val o = JsObject(obj.fields.map {
+        case (k, v) =>
+          if (k == this.key) {
+            found = true
+            k -> transform(v)
+          } else k -> v
       })
-      if(!found) o ++ Json.obj(this.key -> transform(Json.obj()))
+      if (!found) o ++ Json.obj(this.key -> transform(Json.obj()))
       else o
     case _ => transform(json)
   }
 
   private[json] def splitChildren(json: JsValue) = json match {
-    case obj: JsObject => obj.fields.toList.map{ case (k,v) => 
-      if(k == this.key) Right(this -> v)
-      else Left(KeyPathNode(k) -> v)
+    case obj: JsObject => obj.fields.toList.map {
+      case (k, v) =>
+        if (k == this.key) Right(this -> v)
+        else Left(KeyPathNode(k) -> v)
     }
     case _ => List()
-  } 
+  }
 
   private[json] override def toJsonField(value: JsValue) = Json.obj(key -> value)
 
@@ -104,17 +106,18 @@ case class IdxPathNode(idx: Int) extends PathNode {
   def toJsonString = "[%d]".format(idx)
 
   def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
-    case arr: JsArray => JsArray(arr.value.zipWithIndex.map{ case (js, j) => if(j == idx) transform(js) else js})
+    case arr: JsArray => JsArray(arr.value.zipWithIndex.map { case (js, j) => if (j == idx) transform(js) else js })
     case _ => transform(json)
   }
 
   private[json] def splitChildren(json: JsValue) = json match {
-    case arr: JsArray => arr.value.toList.zipWithIndex.map{ case (js, j) => 
-      if(j == idx) Right(this -> js) 
-      else Left(IdxPathNode(j) -> js)
+    case arr: JsArray => arr.value.toList.zipWithIndex.map {
+      case (js, j) =>
+        if (j == idx) Right(this -> js)
+        else Left(IdxPathNode(j) -> js)
     }
     case _ => List()
-  } 
+  }
 
   private[json] override def toJsonField(value: JsValue) = value
 
@@ -155,7 +158,7 @@ object JsPath {
       step(path.path, value)
     }
 
-    pathValues.foldLeft(Json.obj()){ (obj, pv) => 
+    pathValues.foldLeft(Json.obj()) { (obj, pv) =>
       val (path, value) = (pv._1, pv._2)
       val subobj = buildSubPath(path, value)
       obj.deepMerge(subobj)
@@ -172,7 +175,7 @@ case class JsPath(path: List[PathNode] = List()) {
 
   def apply(idx: Int): JsPath = JsPath(path :+ IdxPathNode(idx))
 
-  def apply(json: JsValue): List[JsValue] =  path.foldLeft(List(json))((s,p) => s.flatMap(p.apply))
+  def apply(json: JsValue): List[JsValue] = path.foldLeft(List(json))((s, p) => s.flatMap(p.apply))
 
   def asSingleJsResult(json: JsValue): JsResult[JsValue] = this(json) match {
     case Nil => JsError(Seq(this -> Seq(ValidationError("validate.error.missing-path"))))
@@ -183,7 +186,7 @@ case class JsPath(path: List[PathNode] = List()) {
   def asSingleJson(json: JsValue): JsValue = this(json) match {
     case Nil => JsUndefined("not.found")
     case List(js) => js
-    case head::tail => JsUndefined("multiple.result")
+    case head :: tail => JsUndefined("multiple.result")
   }
 
   override def toString = path.mkString
@@ -205,7 +208,7 @@ case class JsPath(path: List[PathNode] = List()) {
 
     def filterPathNode(json: JsObject, node: PathNode, value: JsValue): JsResult[JsObject] = {
       node match {
-        case KeyPathNode(key) => JsSuccess(JsObject(json.fields.filterNot( _._1 == key )) ++ Json.obj( key -> value ))
+        case KeyPathNode(key) => JsSuccess(JsObject(json.fields.filterNot(_._1 == key)) ++ Json.obj(key -> value))
         case _ => JsError(JsPath(), ValidationError("validate.error.expected.keypathnode"))
       }
     }
@@ -216,11 +219,11 @@ case class JsPath(path: List[PathNode] = List()) {
         case List(p) => stepNode(json, p).repath(lpath)
         case head :: tail => head(json) match {
           case Nil => JsError(lpath, ValidationError("validate.error.missing-path"))
-          case List(js) => 
+          case List(js) =>
             js match {
-              case o: JsObject => 
-                step(o, JsPath(tail)).repath(lpath).flatMap( value => 
-                   filterPathNode(json, head, value)
+              case o: JsObject =>
+                step(o, JsPath(tail)).repath(lpath).flatMap(value =>
+                  filterPathNode(json, head, value)
                 )
               case _ => JsError(lpath, ValidationError("validate.error.expected.jsobject"))
             }
@@ -231,9 +234,9 @@ case class JsPath(path: List[PathNode] = List()) {
 
     js match {
       case o: JsObject => step(o, this)
-      case _ => 
+      case _ =>
         JsError(this, ValidationError("validate.error.expected.jsobject"))
-    }    
+    }
   }
 
   /**
@@ -242,23 +245,21 @@ case class JsPath(path: List[PathNode] = List()) {
   def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
   def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
   def read[T](t: T) = Reads.pure(t)
-  
-  def lazyRead[T](r: => Reads[T]) = Reads( js => Reads.at[T](this)(r).reads(js) )
-  
+
+  def lazyRead[T](r: => Reads[T]) = Reads(js => Reads.at[T](this)(r).reads(js))
+
   def write[T](implicit w: Writes[T]) = Writes.at[T](this)(w)
   def writeOpt[T](implicit w: Writes[T]) = Writes.optional[T](this)(w)
-  def lazyWrite[T](w: => Writes[T]) = OWrites( (t:T) => Writes.at[T](this)(w).writes(t) )
+  def lazyWrite[T](w: => Writes[T]) = OWrites((t: T) => Writes.at[T](this)(w).writes(t))
   def write[T](t: T)(implicit w: Writes[T]) = Writes.pure(this, t)
 
-  def rw[T](implicit r:Reads[T], w:Writes[T]) = Format.at[T](this)(Format(r, w))
+  def rw[T](implicit r: Reads[T], w: Writes[T]) = Format.at[T](this)(Format(r, w))
 
   def format[T](implicit f: Format[T]) = Format.at[T](this)(f)
   def formatOpt[T](implicit f: Format[T]): OFormat[Option[T]] = Format.optional[T](this)(f)
-  def lazyFormat[T](f: => Format[T]) = OFormat[T]( lazyRead(f), lazyWrite(f) )
+  def lazyFormat[T](f: => Format[T]) = OFormat[T](lazyRead(f), lazyWrite(f))
   def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
   def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
-
-  
 
   private val self = this
 
@@ -271,11 +272,11 @@ case class JsPath(path: List[PathNode] = List()) {
      * Useful to pick a typed JsValue at a given JsPath
      *
      * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> 123) 
-    js.validate( (__ \ 'key2).json.pick[JsNumber] ) 
-    => JsSuccess(JsNumber(123))
-    }}}
+     * {{{
+     * val js = Json.obj("key1" -> "value1", "key2" -> 123)
+     * js.validate( (__ \ 'key2).json.pick[JsNumber] )
+     * => JsSuccess(JsNumber(123))
+     * }}}
      */
     def pick[A <: JsValue](implicit r: Reads[A]): Reads[A] = Reads.jsPick(self)
 
@@ -287,11 +288,11 @@ case class JsPath(path: List[PathNode] = List()) {
      * Useful to pick a JsValue at a given JsPath
      *
      * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.validate( (__ \ 'key2).json.pick ) 
-    => JsSuccess(JsString("value2"))
-    }}}
+     * {{{
+     * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
+     * js.validate( (__ \ 'key2).json.pick )
+     * => JsSuccess(JsString("value2"))
+     * }}}
      */
     def pick: Reads[JsValue] = pick[JsValue]
 
@@ -304,14 +305,14 @@ case class JsPath(path: List[PathNode] = List()) {
      * Useful to create/validate an JsObject from a single JsPath (potentially modifying it)
      *
      * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
-    js.validate( (__ \ 'key2).json.pickBranch[JsString]( (__ \ 'key21').json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
-    => JsSuccess(JsObject(Seq( ("key2", JsString(value23456")) )))
-    }}}
+     * {{{
+     * val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
+     * js.validate( (__ \ 'key2).json.pickBranch[JsString]( (__ \ 'key21').json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
+     * => JsSuccess(JsObject(Seq( ("key2", JsString(value23456")) )))
+     * }}}
      */
     def pickBranch[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsPickBranch[A](self)(reads)
-    
+
     /**
      * (__ \ 'key).json.pickBranch is a Reads[JsObject] that:
      * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
@@ -320,14 +321,13 @@ case class JsPath(path: List[PathNode] = List()) {
      * Useful to create/validate an JsObject from a single JsPath (potentially modifying it)
      *
      * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
-    js.validate( (__ \ 'key2).json.pickBranch )
-    => JsSuccess(JsObject(Seq( ("key2", Json.obj("key21" -> "value2")) )))
-    }}}
+     * {{{
+     * val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
+     * js.validate( (__ \ 'key2).json.pickBranch )
+     * => JsSuccess(JsObject(Seq( ("key2", Json.obj("key21" -> "value2")) )))
+     * }}}
      */
     def pickBranch: Reads[JsObject] = Reads.jsPickBranch[JsValue](self)
-
 
     /**
      * (__ \ 'key).put(fixedValue) is a Reads[JsObject] that:
@@ -337,11 +337,11 @@ case class JsPath(path: List[PathNode] = List()) {
      * Please that A is passed by name allowing to use an expression reevaluated at each time.
      *
      * Example :
-    {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.validate( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) ) 
-    => JsSuccess(JsObject(Seq( ("key3", JsNumber(123364687568756)) )))
-    }}}
+     * {{{
+     * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
+     * js.validate( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) )
+     * => JsSuccess(JsObject(Seq( ("key3", JsNumber(123364687568756)) )))
+     * }}}
      */
     def put(a: => JsValue): Reads[JsObject] = Reads.jsPut(self, a)
 
@@ -351,5 +351,5 @@ case class JsPath(path: List[PathNode] = List()) {
 
     def prune: Reads[JsObject] = Reads.jsPrune(self)
   }
-  
+
 }

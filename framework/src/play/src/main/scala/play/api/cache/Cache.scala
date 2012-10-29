@@ -2,7 +2,7 @@ package play.api.cache
 
 import play.api._
 
-import reflect.{ClassTag, ClassManifest}
+import reflect.{ ClassTag, ClassManifest }
 import org.apache.commons.lang3.reflect.TypeUtils
 /**
  * API for a Cache plugin.

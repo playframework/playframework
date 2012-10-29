@@ -3,7 +3,6 @@ package play.api.libs.iteratee
 import scala.concurrent.Future
 import internal.defaultExecutionContext
 
-
 /**
  * various helper methods to constract, compose and traverse Iteratees
  */

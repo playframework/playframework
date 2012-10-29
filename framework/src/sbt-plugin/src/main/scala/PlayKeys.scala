@@ -1,17 +1,17 @@
 package sbt
 
 trait PlayKeys {
-  
-  val jdbc =  "play" %% "play-jdbc" % play.core.PlayVersion.current
-  
+
+  val jdbc = "play" %% "play-jdbc" % play.core.PlayVersion.current
+
   val anorm = "play" %% "anorm" % play.core.PlayVersion.current
-  
+
   val javaCore = "play" %% "play-java" % play.core.PlayVersion.current
-  
+
   val javaJdbc = "play" %% "play-java-jdbc" % play.core.PlayVersion.current
-  
+
   val javaEbean = "play" %% "play-java-ebean" % play.core.PlayVersion.current
-  
+
   val javaJpa = "play" %% "play-java-jpa" % play.core.PlayVersion.current
 
   val playVersion = SettingKey[String]("play-version")
