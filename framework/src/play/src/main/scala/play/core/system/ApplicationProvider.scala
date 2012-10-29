@@ -254,30 +254,12 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
           pageWithSidebar.map {
             case (pageSource, maybeSidebar) => {
-
-              val linkRender: (String => (String, String)) = _ match {
-                case link if link.contains("|") => {
-                  val parts = link.split('|')
-                  (parts.tail.head, parts.head)
-                }
-                case image if image.endsWith(".png") => {
-                  val link = image match {
-                    case full if full.startsWith("http://") => full
-                    case absolute if absolute.startsWith("/") => "resources/manual" + absolute
-                    case relative => "resources/" + pageSource.parent.get.relativize(Path(documentationHome.get)).path + "/" + relative
-                  }
-                  (link, """<img src="""" + link + """"/>""")
-                }
-                case link => {
-                  (link, link)
-                }
-              }
-
+              val relativePath = pageSource.parent.get.relativize(Path(documentationHome.get)).path
               Ok(
                 views.html.play20.manual(
                   page,
-                  Some(sbtLink.markdownToHtml(pageSource.string/*, linkRender*/)),
-                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string/*, linkRender*/))
+                  Some(sbtLink.markdownToHtml(pageSource.string, relativePath)),
+                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string, relativePath))
                 )
               )
             }
