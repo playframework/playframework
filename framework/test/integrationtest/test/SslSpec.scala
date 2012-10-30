@@ -10,7 +10,6 @@ import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
-import play.core.utils.IO
 
 class SslSpec extends Specification {
 
