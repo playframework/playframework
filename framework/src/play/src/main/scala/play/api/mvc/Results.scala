@@ -57,6 +57,21 @@ sealed trait WithHeaders[+A <: Result] {
    */
   def withCookies(cookies: Cookie*): A
 
+
+  /**
+   * Discards cookies along this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingCookies("theme")
+   * }}}
+   *
+   * @param names the names of the cookies to discard along to this result
+   * @return the new result
+   */
+  @deprecated("This method can only discard cookies on the / path with no domain and without secure set.  Use discardingCookies(DiscardingCookie*) instead.")
+  def discardingCookies(name: String, names: String*): A = discardingCookies((name :: names.toList).map(n => DiscardingCookie(n)):_*)
+
   /**
    * Discards cookies along this result.
    *
