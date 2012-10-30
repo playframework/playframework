@@ -187,10 +187,10 @@ object RoutesCompiler {
     def call: Parser[HandlerCall] = opt("@") ~ absoluteMethod ~ opt(parameters) ^^ {
       case instantiate ~ absMethod ~ parameters =>
         {
-          val reversed = absMethod.reverse
-          val methodName = reversed(0)
-          val className = reversed(1)
-          val packageName = reversed.drop(2).mkString(".")
+          val (packageParts, classAndMethod) = absMethod.splitAt(absMethod.size - 2)
+          val packageName = packageParts.mkString(".")
+          val className = classAndMethod(0)
+          val methodName = classAndMethod(1)
           val dynamic = !instantiate.isEmpty
           HandlerCall(packageName, className, dynamic, methodName, parameters)
         }

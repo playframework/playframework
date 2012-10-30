@@ -493,8 +493,9 @@ object PlayBuild extends Build {
 
 
         val routersCompilerDependencies = Seq(
-            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta")
-        )
+            "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
+            "org.specs2"                        %%   "specs2"                   %   "1.12.2"    %   "test" exclude("javax.transaction", "jta")
+      )
 
         val templatesCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
