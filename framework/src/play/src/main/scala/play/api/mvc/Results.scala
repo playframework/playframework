@@ -674,6 +674,9 @@ trait Results {
   /** Generates a ‘206 PARTIAL_CONTENT’ result. */
   val PartialContent = new Status(PARTIAL_CONTENT)
 
+  /** Generates a ‘207 MULTI_STATUS’ result. */
+  val MultiStatus = new Status(MULTI_STATUS)
+
   /**
    * Generates a ‘301 MOVED_PERMANENTLY’ simple result.
    *
@@ -747,6 +750,15 @@ trait Results {
   /** Generates a ‘417 EXPECTATION_FAILED’ result. */
   val ExpectationFailed = new Status(EXPECTATION_FAILED)
 
+  /** Generates a ‘422 UNPROCESSABLE_ENTITY’ result. */
+  val UnprocessableEntity = new Status(UNPROCESSABLE_ENTITY)
+
+  /** Generates a ‘423 LOCKED’ result. */
+  val Locked = new Status(LOCKED)
+
+  /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
+  val FailedDependency = new Status(FAILED_DEPENDENCY)
+
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
   val TooManyRequest = new Status(TOO_MANY_REQUEST)
 
@@ -761,6 +773,15 @@ trait Results {
 
   /** Generates a ‘503 SERVICE_UNAVAILABLE’ result. */
   val ServiceUnavailable = new Status(SERVICE_UNAVAILABLE)
+
+  /** Generates a ‘504 GATEWAY_TIMEOUT’ result. */
+  val GatewayTimeout = new Status(GATEWAY_TIMEOUT)
+
+  /** Generates a ‘505 HTTP_VERSION_NOT_SUPPORTED’ result. */
+  val HttpVersionNotSupported = new Status(HTTP_VERSION_NOT_SUPPORTED)
+
+  /** Generates a ‘507 INSUFFICIENT_STORAGE’ result. */
+  val InsufficientStorage = new Status(INSUFFICIENT_STORAGE)
 
   /**
    * Generates a simple result.
