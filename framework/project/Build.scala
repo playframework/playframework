@@ -309,9 +309,9 @@ object PlayBuild extends Build {
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(PlayProject)
 
-    lazy val PlayCsrfProject = Project(
-        "Csrf",
-        file("src/play-csrf"),
+    lazy val PlayFiltersHelpersProject = Project(
+        "Filters-Helpers",
+        file("src/play-filters-helpers"),
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
             libraryDependencies := runtime,
@@ -358,7 +358,7 @@ object PlayBuild extends Build {
         PlayTestProject,
         PlayExceptionsProject,
         PlayFiltersProject,
-        PlayCsrfProject
+        PlayFiltersHelpersProject
     )
 
     object BuildSettings {

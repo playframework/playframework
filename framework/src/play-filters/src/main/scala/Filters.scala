@@ -31,7 +31,7 @@ trait Filter extends EssentialFilter {
     val p = scala.concurrent.Promise[Result]()
 
     new EssentialAction {
-      import play.api.libs.concurrent.execution.defaultContext
+      import play.api.libs.concurrent.execution.Implicits.defaultContext
       def apply(rh:RequestHeader):Iteratee[Array[Byte],Result] = {
         val it = scala.concurrent.Promise[Iteratee[Array[Byte],Result]]()
         val result = self.apply({(rh:RequestHeader) => it.success(next(rh)) ; AsyncResult(p.future)})(rh)

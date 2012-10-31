@@ -10,6 +10,7 @@ import validation._
 import Forms._
 import java.security.SecureRandom
 import org.apache.commons.codec.binary._
+import play.api.libs.concurrent.execution.Implicits.defaultContext
 
 object CSRF {
   type Token = String
@@ -210,7 +211,6 @@ class CSRFFilter(generator: () => CSRF.Token) extends EssentialFilter {
   import play.api.libs.Files._
   import play.api.libs.iteratee._
   import CSRF._
-  import play.api.libs.concurrent.execution.defaultContext
   import BodyParsers.parse._
 
   private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, token: Token,  next: EssentialAction) = {
