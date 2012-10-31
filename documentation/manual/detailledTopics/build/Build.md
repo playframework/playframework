@@ -1,6 +1,6 @@
 # The Build System
 
-The Play 2.0 build system is based on [[sbt|http://www.scala-sbt.org/]], a minimally non-intrusive build tool for Scala and Java projects.
+The Play build system is based on [[sbt|http://www.scala-sbt.org/]], a minimally non-intrusive build tool for Scala and Java projects.
 
 ## The `/project` directory
 
@@ -54,13 +54,17 @@ addSbtPlugin("play" % "sbt-plugin" % "2.0")
 You might need to add the Typesafe repository in your list of resolvers, see : http://github.com/playframework/Play20/wiki/Repositories
 
 ## Adding dependencies and resolvers
+
 Adding dependencies is simple:
+
 ```scala
-  val appDependencies = Seq(
-    "group" % "name" % "version number",
-  )
+val appDependencies = Seq(
+  "group" % "name" % "version number",
+)
 ```
+
 So is adding resolvers:
+
 ```scala
 val main = PlayProject(
   appName, appVersion, appDependencies, mainLang = SCALA

@@ -106,8 +106,6 @@ When a web browser makes a request specifying this **Etag**, the server can resp
 
 ## Gzip support
 
-NOTE: Automatic gzipping was disabled in 2.0 (see https://groups.google.com/d/msg/play-framework/4eryZI6Mb4E/uezcxXSCzaIJ).
-
 But if a resource with the same name but using a `.gz` suffix is found, the `Assets` controller will serve this one by adding the proper HTTP header:
 
 ```
@@ -125,7 +123,6 @@ Usually, using Etag is enough to have proper caching. However if you want to spe
 ```
 
 ## Managed assets
-> Available in 2.1
 
 By default play compiles all managed assets that are kept in the ```app/assets``` folder. The compilation process will clean and recompile all managed assets regardless of the change. This is the safest strategy since tracking dependencies can be very tricky with front end technologies. 
 

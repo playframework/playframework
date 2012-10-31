@@ -1,4 +1,4 @@
-# Anatomy of a Play 2.0 application
+# Anatomy of a Play application
 
 ## The standard application layout
 
@@ -27,7 +27,7 @@ lib                      → Unmanaged libraries dependencies
 logs                     → Standard logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
- └ scala-2.9.1              
+ └ scala-2.10.0            
     └ cache              
     └ classes            → Compiled class files
     └ classes_managed    → Managed class files (templates, ...)
@@ -48,7 +48,7 @@ There are three standard packages in the `app` directory, one for each component
 
 You can of course add your own packages, for example an `app/utils` package.
 
-> Note that in Play 2.0, the controllers, models and views package name conventions are now just that and can be changed if needed (such as prefixing everything with `com.yourcompany`).
+> Note that in Play, the controllers, models and views package name conventions are now just that and can be changed if needed (such as prefixing everything with `com.yourcompany`).
 
 There is also an optional directory called `app/assets` for compiled assets such as [[LESS sources | http://lesscss.org/]] and [[CoffeeScript sources | http://jashkenas.github.com/coffee-script/]].
 
@@ -106,4 +106,4 @@ dist
 .cache
 ```
 
-> **Next:** [[Using the Play 2.0 console | PlayConsole ]]
+> **Next:** [[Using the Play console | PlayConsole ]]

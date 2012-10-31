@@ -36,8 +36,4 @@ javascriptEntryPoints <<= (sourceDirectory in Compile)(base =>
 )
 ```
 
-## Alternatives
-
-The [Play Plovr Plugin](https://github.com/benmccann/play-plovr-plugin) also allows you to use the Closure Compiler and additionally adds support for the Closure Library.
-
 > **Next:** [[Using require.js to manage dependencies | requirejs]]

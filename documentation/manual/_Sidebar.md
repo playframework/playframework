@@ -1,26 +1,17 @@
-### Deploying your application
-
-- [[Deploying your application | Production]]
-- [[Creating a standalone version of your application | ProductionDist]]
-- [[Additional configuration | ProductionConfiguration]]
-- [[Deploying to Heroku | ProductionHeroku]]
-- [[Deploying to Cloud Foundry | Deploying-CloudFoundry]]
-- [[Deploying to dotCloud | Deploying-to-dotCloud]]
-- [[Set-up a front-end HTTP server | HTTPServer]]
-
 ### Getting started
 
-- [[Installing Play 2.0 | Installing]]
+- [[Installing Play | Installing]]
 - [[Creating a new application | NewApplication]]
-- [[Anatomy of a Play 2.0 application | Anatomy]]
-- [[Using the Play 2.0 console | PlayConsole ]]
+- [[Anatomy of a Play application | Anatomy]]
+- [[Using the Play console | PlayConsole ]]
 - [[Setting-up your preferred IDE | IDE]]
 - [[Sample applications | Samples]]
+- [[Security policy | http://www.playframework.org/code/security]]
 
-### Working with Play 2.0
+### Working with Play
 
-- [[Play 2.0 for Scala developers | ScalaHome]]
-- [[Play 2.0 for Java developers | JavaHome]]
+- [[Play for Scala developers | ScalaHome]]
+- [[Play for Java developers | JavaHome]]
 
 ### Detailed topics
 
