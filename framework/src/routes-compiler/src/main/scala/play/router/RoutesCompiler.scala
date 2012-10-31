@@ -9,6 +9,8 @@ import scala.util.matching._
  */
 object RoutesCompiler {
 
+  val routingBatchSize = 200
+
   case class HttpVerb(value: String) {
     override def toString = value
   }
@@ -421,14 +423,11 @@ object RoutesCompiler {
             |
             |def prefix = _prefix
             |
-            |lazy val defaultPrefix = { if(Routes.prefix.endsWith("/")) "" else "/" } 
+            |lazy val defaultPrefix = { if(Routes.prefix.endsWith("/")) "" else "/" }
             |
-            |%s 
-            |    
-            |def routes:PartialFunction[RequestHeader,Handler] = {        
             |%s
-            |}
-            |    
+            |
+            |%s
             |}
         """.stripMargin.format(
           path,
@@ -988,68 +987,94 @@ object RoutesCompiler {
    * Generate the routing stuff
    */
   def routing(routes: List[Rule]): String = {
-    Option(routes.zipWithIndex.map {
-      case (r @ Include(_, _), i) =>
+    routes.zipWithIndex match {
+      case r if r.size > routingBatchSize => {
+        val groups = r.grouped(routingBatchSize).zipWithIndex
         """
-            |%s
-            |case %s%s(handler) => handler
+          |%s
+          |
+          |def routes:PartialFunction[RequestHeader,Handler] = {
+          |  %s
+          |}
         """.stripMargin.format(
-          markLines(r),
-          r.router.replace(".", "_"),
-          i
+          r.grouped(routingBatchSize).zipWithIndex.map(g => routingBatch(g._1, Some(g._2))).mkString("\n"),
+          Array.range(0, r.size / routingBatchSize + 1).map("routes_batch" + _).mkString("(", "\n  ).orElse(\n    ", ")")
         )
-      case (r @ Route(_, _, _, _), i) =>
-        """
-            |%s
-            |case %s%s(params) => {
-            |   call%s { %s
-            |        invokeHandler(%s%s, %s)
-            |   }
-            |}
-        """.stripMargin.format(
-          markLines(r),
+      }
+      case rs => routingBatch(rs, None)
+    }
+  }
 
-          // alias
-          r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
-          i,
+  def routingBatch(routes: List[(Rule, Int)], batch: Option[Int]): String = {
+    """
+      |%sdef routes%s:PartialFunction[RequestHeader,Handler] = {
+      |%s
+      |}
+    """.stripMargin.format(
+      batch.map(no => "private[this] ").getOrElse(""),
+      batch.map(no => "_batch" + no).getOrElse(""),
+      Option(routes.map {
+        case (r @ Include(_, _), i) =>
+          """
+              |  %s
+              |  case %s%s(handler) => handler
+          """.stripMargin.format(
+            markLines(r),
+            r.router.replace(".", "_"),
+            i
+          )
+        case (r @ Route(_, _, _, _), i) =>
+          """
+              |  %s
+              |  case %s%s(params) => {
+              |    call%s { %s
+              |      invokeHandler(%s%s, %s)
+              |    }
+              |  }
+          """.stripMargin.format(
+            markLines(r),
 
-          // binding
-          r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map { p =>
-              p.fixed.map { v =>
-                """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
-              }.getOrElse {
-                """params.""" + (if (r.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
-              }
-            }.mkString(", ")
-          }.map("(" + _ + ")").getOrElse(""),
+            // alias
+            r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
+            i,
 
-          // local names
-          r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map(_.name).mkString(", ")
-          }.map("(" + _ + ") =>").getOrElse(""),
+            // binding
+            r.call.parameters.filterNot(_.isEmpty).map { params =>
+              params.map { p =>
+                p.fixed.map { v =>
+                  """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
+                }.getOrElse {
+                  """params.""" + (if (r.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
+                }
+              }.mkString(", ")
+            }.map("(" + _ + ")").getOrElse(""),
 
-          // call
-          if (r.call.instantiate) {
-            "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
-          } else {
-            r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
-          },
+            // local names
+            r.call.parameters.filterNot(_.isEmpty).map { params =>
+              params.map(_.name).mkString(", ")
+            }.map("(" + _ + ") =>").getOrElse(""),
 
-          // call parameters
-          r.call.parameters.map { params =>
-            params.map(_.name).mkString(", ")
-          }.map("(" + _ + ")").getOrElse(""),
+            // call
+            if (r.call.instantiate) {
+              "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+            } else {
+              r.call.packageName + "." + r.call.controller + "." + r.call.field.map(_ + ".").getOrElse("") + r.call.method
+            },
 
-          // definition
-          """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + r.call.field.map("." + _).getOrElse("") + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map("classOf[" + _.typeName + "]").mkString(", ")
-          }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\""+ """ , Routes.prefix + """" + r.path + """")""")
-    }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
+            // call parameters
+            r.call.parameters.map { params =>
+              params.map(_.name).mkString(", ")
+            }.map("(" + _ + ")").getOrElse(""),
+
+            // definition
+            """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + r.call.field.map("." + _).getOrElse("") + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
+              params.map("classOf[" + _.typeName + "]").mkString(", ")
+            }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\""+ """ , Routes.prefix + """" + r.path + """")""")
+      }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 
       """Map.empty""" // Empty partial function
 
-    }
+    })
   }
 
 
