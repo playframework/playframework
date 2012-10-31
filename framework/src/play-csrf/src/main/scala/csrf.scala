@@ -227,11 +227,10 @@ class CSRFFilter(generator: () => CSRF.Token) extends EssentialFilter {
   }
 
   def checkFormUrlEncodedBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
-  def checkMultipart =  checkBody[MultipartFormData[TemporaryFile]](multipartFormData, _.dataParts) _
-
+  def checkMultipart = checkBody[MultipartFormData[TemporaryFile]](multipartFormData, _.dataParts) _
 
   def apply(next: EssentialAction): EssentialAction = new EssentialAction {
-    def apply(request: RequestHeader): Iteratee[Array[Byte],Result] = {
+    def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
       import play.api.http.HeaderNames._
 
       play.Logger.trace("[CSRF] original request: " + request)
@@ -240,8 +239,11 @@ class CSRFFilter(generator: () => CSRF.Token) extends EssentialFilter {
 
       val token = generator()
       request.headers.get(CONTENT_TYPE) match {
-        case Some(ct) if ct.trim.startsWith("multipart/form-data") => checkMultipart(request, token, next)
-        case _ => checkFormUrlEncodedBody(request, token, next)
+        case Some(ct) if ct.trim.startsWith("multipart/form-data") =>
+          checkMultipart(request, token, next)
+        case Some(ct) if ct.trim.startsWith("application/x-www-form-urlencoded") =>
+          checkFormUrlEncodedBody(request, token, next)
+        case _ => next(request)
       }
     }
   }
