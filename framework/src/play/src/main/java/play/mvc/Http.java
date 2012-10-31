@@ -592,11 +592,43 @@ public class Http {
          * discard other cookies, use the discardCookie method.
          *
          * @param names Names of the cookies to discard
+         * @deprecated Use the discardCookie methods instead
          */
+        @Deprecated
         public void discardCookies(String... names) {
             for (String name: names) {
-                discardCookie(name, "/", null, false);
+                discardCookie(name);
             }
+        }
+
+        /**
+         * Discard a cookie on the default path ("/") with no domain and that's not secure
+         *
+         * @param name The name of the cookie to discard
+         */
+        public void discardCookie(String name) {
+            discardCookie(name, "/", null, false);
+        }
+
+        /**
+         * Discard a cookie on the give path with no domain and not that's secure
+         *
+         * @param name The name of the cookie to discard
+         * @param path The path of the cookie te discard, may be null
+         */
+        public void discardCookie(String name, String path) {
+            discardCookie(name, path, null, false);
+        }
+
+        /**
+         * Discard a cookie on the given path and domain that's not secure
+         *
+         * @param name The name of the cookie to discard
+         * @param path The path of the cookie te discard, may be null
+         * @param domain The domain of the cookie to discard, may be null
+         */
+        public void discardCookie(String name, String path, String domain) {
+            discardCookie(name, path, domain, false);
         }
 
         /**
