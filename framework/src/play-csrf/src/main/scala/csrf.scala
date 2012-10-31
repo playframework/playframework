@@ -24,7 +24,7 @@ object CSRF {
     def COOKIE_NAME: Option[String] = c.getString("csrf.cookie.name") // If None, we search for TOKEN_NAME in play session
     def POST_LOOKUP: Boolean = c.getBoolean("csrf.tokenInBody").getOrElse(true)
     def CREATE_IF_NOT_FOUND: Boolean = c.getBoolean("csrf.cookie.createIfNotFound").getOrElse(true)
-    def UNSAFE_METHOD = c.getStringList("csrf.unsafe.methods").map(_.asScala).getOrElse(List("PUT","POST","DELETE")).mkString("|").r
+    def UNSAFE_METHOD = c.getStringList("csrf.unsafe.methods").map(_.asScala).getOrElse(List("POST")).mkString("|").r
   }
 
   import Conf._
