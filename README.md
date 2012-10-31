@@ -8,7 +8,16 @@ http://www.playframework.org
 
 ## Installing
 
-For convenience, you should add the framework installation directory to your system PATH. On UNIX systems will be something like:
+You first need to build Play:
+
+```bash
+$ cd framework/
+$ ./build
+> build-repository
+```
+
+Then, for convenience, add the framework installation directory to your system PATH.  
+On UNIX systems, it would be something like:
 
 ```bash
 export PATH=$PATH:/path/to/play2.0
