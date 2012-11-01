@@ -11,7 +11,7 @@ import library.{Calculator,Work}
 import play.api.mvc.Results._
 import play.api.libs.concurrent._
 import play.api.libs.concurrent._
-import play.api.libs.concurrent.execution.defaultContext
+import play.api.libs.concurrent.execution.Implicits._
 
 object Application extends Controller {
   

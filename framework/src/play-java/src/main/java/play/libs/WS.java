@@ -139,7 +139,7 @@ public class WS {
             return this.url;
         }
 
-        private Promise<Response> execute() {
+        public Promise<Response> execute() {
             final scala.concurrent.Promise<Response> scalaPromise = scala.concurrent.Promise$.MODULE$.<Response>apply();
             try {
                 WS.client().executeRequest(request, new AsyncCompletionHandler<com.ning.http.client.Response>() {
