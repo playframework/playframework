@@ -83,6 +83,22 @@ object ScalaForms {
         "14" -> optional(text)
       )
     )
+    
+    
+    val optionalForm = Form(
+       tuple(
+    	"set" -> optional(text),
+        "empty" -> optional(text)
+      )
+    )
+    
+    val optionalFormWithFlag = Form(
+      tuple(
+        "set" -> optional(text, true),
+        "empty" -> optional(text, true)
+      )
+    )
+
 
     val repeatedForm = Form(
       tuple(
@@ -200,6 +216,14 @@ object FormSpec extends Specification {
   "render form using field[Type] syntax" in {
     val anyData = Map("email" -> "bob@gmail.com", "password" -> "123")
     ScalaForms.loginForm.bind(anyData).get.toString must equalTo("(bob@gmail.com,123)")
+  }
+  
+  "respect empty values if flag is set on optional mapping" in {
+	  ScalaForms.optionalForm.bindFromRequest( Map("set" -> Seq("hello world")) ).get must equalTo((Some("hello world"), None))
+	  ScalaForms.optionalForm.bindFromRequest( Map("set" -> Seq("hello world"), "empty" -> Seq("")) ).get must equalTo((Some("hello world"), None))
+
+	  ScalaForms.optionalFormWithFlag.bindFromRequest( Map("set" -> Seq("hello world")) ).get must equalTo((Some("hello world"), None))
+	  ScalaForms.optionalFormWithFlag.bindFromRequest( Map("set" -> Seq("hello world"), "empty" -> Seq("")) ).get must equalTo((Some("hello world"), Some("")))
   }
 
   "support default values" in {

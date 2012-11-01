@@ -695,8 +695,9 @@ case class RepeatedMapping[T](wrapped: Mapping[T], val key: String = "", val con
  * A mapping for optional elements
  *
  * @param wrapped the wrapped mapping
+ * @param respectEmptyValues Avoids empty values from not beeing mapped. E.g. an empty string "" results in Some("") instead of None. Is set to false by default.
  */
-case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constraint[Option[T]]] = Nil) extends Mapping[Option[T]] {
+case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constraint[Option[T]]] = Nil, respectEmptyValues: Boolean = false) extends Mapping[Option[T]] {
 
   override val format: Option[(String, Seq[Any])] = wrapped.format
 
@@ -730,7 +731,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
    * @return either a concrete value of type `T` or a set of error if the binding failed
    */
   def bind(data: Map[String, String]): Either[Seq[FormError], Option[T]] = {
-    data.keys.filter(p => p == key || p.startsWith(key + ".") || p.startsWith(key + "[")).map(k => data.get(k).filterNot(_.isEmpty)).collect { case Some(v) => v }.headOption.map { _ =>
+    data.keys.filter(p => p == key || p.startsWith(key + ".") || p.startsWith(key + "[")).map(k => if(respectEmptyValues) data.get(k) else data.get(k).filterNot(_.isEmpty)).collect { case Some(v) => v }.headOption.map { _ =>
       wrapped.bind(data).right.map(Some(_))
     }.getOrElse {
       Right(None)
