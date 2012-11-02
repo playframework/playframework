@@ -317,8 +317,9 @@ object Forms {
    * }}}
    *
    * @param mapping The mapping to make optional.
+   * @param respectEmptyValues Avoids empty values from not beeing mapped. E.g. an empty string "" results in Some("") instead of None. Is set to false by default.
    */
-  def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
+  def optional[A](mapping: Mapping[A], respectEmptyValues: Boolean = false): Mapping[Option[A]] = OptionalMapping(mapping, respectEmptyValues = respectEmptyValues)
 
   /**
    * Defines an default mapping, if the parameter is not present, provide a default value.
