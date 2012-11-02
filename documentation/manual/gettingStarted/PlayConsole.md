@@ -1,8 +1,8 @@
-# Using the Play 2.0 console
+# Using the Play console
 
 ## Launching the console
 
-The Play 2.0 console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
+The Play console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
 
 To launch the console, enter any existing Play application directory and run the `play` script:
 
@@ -41,7 +41,7 @@ To stop the server, type `Crtl+D` key, and you will be returned to the Play cons
 
 ## Compiling
 
-In Play 2.0 you can also compile your application without running the server. Just use the `compile` command:
+In Play you can also compile your application without running the server. Just use the `compile` command:
 
 ```bash
 [My first application] $ compile

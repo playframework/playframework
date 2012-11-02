@@ -100,19 +100,17 @@ object ApplicationBuild extends Build {
   )
 }
 ```
-_(see a full example project [here](http://dl.dropbox.com/u/2721142/play2-multi-project.zip))_
 
 Here we define a complete project split in two main parts: the website and the admin area. Moreover these two parts depend themselves on a common module.
 
 If you would like the dependent projects to be recompiled and tested when you recompile and test the main project then you will need to add an "aggregate" clause.
 
 ```
-  val main = PlayProject(
-    appName, appVersion
-  ).dependsOn(
-    website, adminArea
-  ).aggregate(
-    website, adminArea
-  )
-}
+val main = PlayProject(
+  appName, appVersion
+).dependsOn(
+  website, adminArea
+).aggregate(
+  website, adminArea
+)
 ```

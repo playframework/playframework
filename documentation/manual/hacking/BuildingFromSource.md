@@ -1,9 +1,9 @@
-# Building Play 2.0 from sources
+# Building Play from sources
 
-To benefit from the latest improvements and bug fixes after the initial beta release, you may want to compile Play 2.0 from sources. You’ll need a [[Git client | http://git-scm.com/]] to fetch the sources.
+To benefit from the latest improvements and bug fixes after the initial beta release, you may want to compile Play from sources. You’ll need a [[Git client | http://git-scm.com/]] to fetch the sources.
 
 ##Grab the source
-From the shell, first checkout the Play 2.0 sources:
+From the shell, first checkout the Play sources:
 
 ```bash
 $ git clone git://github.com/playframework/Play20.git

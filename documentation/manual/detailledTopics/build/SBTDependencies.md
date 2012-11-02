@@ -10,7 +10,7 @@ There’s nothing to add to `project/Build.scala` to use unmanaged dependencies,
 
 ## Managed dependencies
 
-Play 2.0 uses Apache Ivy (via sbt) to implement managed dependencies, so if you’re familiar with Maven or Ivy, you won’t have much trouble.
+Play uses Apache Ivy (via sbt) to implement managed dependencies, so if you’re familiar with Maven or Ivy, you won’t have much trouble.
 
 Most of the time, you can simply list your dependencies in the `project/Build.scala` file. 
 
@@ -106,10 +106,6 @@ object ApplicationBuild extends Build {
 
 }
 ```
-
-### Using Maven or Ivy for dependency management
-
-TBD
 
 
 > **Next:** [[Working with sub-projects | SBTSubProjects]]

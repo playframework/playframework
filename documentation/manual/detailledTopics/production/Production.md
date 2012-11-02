@@ -2,7 +2,7 @@
 
 There are several ways to deploy a Play application in production mode. Let's start by using the simplest way, using a local Play installation.
 
-> Note, different play apps require different configuration in production. The default configuration is setup for apps that are mainly processing requests asynchronously. If your app is executing mainly blocking calls, then it's recommended to increase the number of available threads and the timeouts. One example 2.0.x configuration for such blocking applications can be found [here](https://gist.github.com/2973705) 
+> Note, different play apps require different configuration in production. The default configuration is setup for apps that are mainly processing requests asynchronously. If your app is executing mainly blocking calls, then it's recommended to increase the number of available threads and the timeouts.
 
 ## Using the start command
 

@@ -4,48 +4,25 @@ Working with Play is easy. You don’t even need a sophisticated IDE, because Pl
 
 However, using a modern Java or Scala IDE provides cool productivity features like auto-completion, on-the-fly compilation, assisted refactoring and debugging.
 
-## Scala Plugins
-
-Scala is a newer programming language, so the functionality is provided in plugins rather than in the core IDE.
-
-Eclipse Scala IDE: http://scala-ide.org/
-
-NetBeans Scala Plugin: http://java.net/projects/nbscala
-
-IntelliJ IDEA Scala Plugin: http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA
-
-IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
-
-Nika (11.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml
-
-Leda (12.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml
-
-IntelliJ IDEA Play 2.0 plugin (available only for Leda 12.x): http://plugins.intellij.net/plugin/?idea&pluginId=7080
-
-ENSIME - Scala IDE Mode for Emacs: https://github.com/aemoncannon/ensime
-(see below for ENSIME/Play instructions)
-
 ## Eclipse
 
 ### Generate configuration
 
-> as of Play 2.1 the ```eclipsify``` command will be changed to ```eclipse```
-
-Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipsify` command:
+Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
 
 without the source jars:
 
 ```
-[My first application] $ eclipsify
+[My first application] $ eclipse
 ```
 
 if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ eclipsify with-source=true
+[My first application] $ eclipse with-source=true
 ```
 
-> Note if you are using sub-projects with aggregate, you would need to set skipParents appropriately:
+> Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately:
 
 ```
 import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
@@ -53,13 +30,20 @@ import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
 object ApplicationBuild extends Build {
 
   override def settings = super.settings ++ Seq(
-      EclipseKeys.skipParents in ThisBuild := false)
+      EclipseKeys.skipParents in ThisBuild := false
+  )
+
+  ...
+ 
+}
 ```
-or from the play console:
+or from the play console, type:
+
 ``` 
 [My first application] $ eclipsify skip-parents=false
 ```
-> Also, if you did not want to trigger a compilation before running `eclipsify`, then just add the following to your settings:
+
+> Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
 
 ```
 EclipsePlugin.EclipseKeys.preTasks := Seq()
@@ -74,7 +58,7 @@ You can also start your application with `play debug run` and then you can use t
 
 > **Tip**: You can run your application using `~run` to enable direct compilation on file change. This way scala template files are auto discovered when you create a new template in `view` and auto compiled when the file changes. If you use normal `run` then you have to hit `Refresh` on your browser each time.
 
-If you make any important changes to your application, such as changing the classpath, use `eclipsify` again to regenerate the configuration files.
+If you make any important changes to your application, such as changing the classpath, use `eclipse` again to regenerate the configuration files.
 
 > **Tip**: Do not commit Eclipse configuration files when you work in a team!
 
@@ -174,16 +158,19 @@ Follow the installation instructions at http://github.com/aemoncannon/ensime
 ### Generate configuration
 
 Edit your project/plugins.sbt file, and add the following line (you should first check http://github.com/aemoncannon/ensime-sbt-cmd for the latest version of the plugin):
+
 ```
 addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.0")
 ```
 
 Start Play:
+
 ```
 $ play
 ```
 
 Enter 'ensime generate' at the play console. The plugin should generate a .ensime file in the root of your Play project.
+
 ```
 $ [MYPROJECT] ensime generate
 [info] Gathering project information...
@@ -228,10 +215,23 @@ Check out the ENSIME manual at http://aemoncannon.github.com/ensime/index.html
 If you have questions, post them in the ensime group at https://groups.google.com/forum/?fromgroups=#!forum/ensime
 
 
+## All Scala Plugins if needed
 
+Scala is a newer programming language, so the functionality is provided in plugins rather than in the core IDE.
 
+- Eclipse Scala IDE: http://scala-ide.org/
+- NetBeans Scala Plugin: http://java.net/projects/nbscala
+- IntelliJ IDEA Scala Plugin: http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA
+- IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
+- Nika (11.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml
+- Leda (12.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml
+- IntelliJ IDEA Play 2.0 plugin (available only for Leda 12.x): http://plugins.intellij.net/plugin/?idea&pluginId=7080
+- ENSIME - Scala IDE Mode for Emacs: https://github.com/aemoncannon/ensime
+(see below for ENSIME/Play instructions)
+
+&nbsp;
 
 > **Next:** 
 >
-> – [[Play 2.0 for Scala developers|ScalaHome]]
-> – [[Play 2.0 for Java developers|JavaHome]]
+> – [[Play for Scala developers|ScalaHome]]
+> – [[Play for Java developers|JavaHome]]

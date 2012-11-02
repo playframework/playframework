@@ -1,7 +1,6 @@
 # Adding some AJAX actions
 
-Now that we can log in, let's start writing functionality for our application.  We'll start simple, by adding dynamic
-functionality to the navigation drawer, that is, the sidebar with the list of projects.
+Now that we can log in, let's start writing functionality for our application.  We'll start simple, by adding dynamic functionality to the navigation drawer, that is, the sidebar with the list of projects.
 
 To start off in this chapter we will implement the backend, including tests.
 
@@ -34,10 +33,7 @@ public class Projects extends Controller {
 }
 ```
 
-An important thing to notice here is that we have annotated the entire class with our security authenticator.  With the
-dashboard, we just annotated the method, but these annotations can also be placed at the class level to say that every
-method in this class must use this action.  This can save us a lot of boiler plate code, and also saves us from
-accidentally forgetting to annotate a method.
+An important thing to notice here is that we have annotated the entire class with our security authenticator.  With the dashboard, we just annotated the method, but these annotations can also be placed at the class level to say that every method in this class must use this action.  This can save us a lot of boiler plate code, and also saves us from accidentally forgetting to annotate a method.
 
 Now let's add a method to create a new project:
 
@@ -52,16 +48,11 @@ public static Result add() {
 }
 ```
 
-We've used our existing `create` method on our `Project` model to create the new project, owned by the currently logged
-in user, which is returned by `request().username()`.
+We've used our existing `create` method on our `Project` model to create the new project, owned by the currently logged in user, which is returned by `request().username()`.
 
-Also notice that we are reusing that `item` template that we created earlier to render the new project.  Now you'll be
-begin to see why we created our templates in the structure that we did earlier.  This method only renders a small part
-of the page, that's ok, we'll be using this fragment from an AJAX action.
+Also notice that we are reusing that `item` template that we created earlier to render the new project.  Now you'll be begin to see why we created our templates in the structure that we did earlier.  This method only renders a small part of the page, that's ok, we'll be using this fragment from an AJAX action.
 
-Let's now add a method to rename a project, but before we do, let's consider the security requirements of this function.
-A user should only be allowed to rename a project if they are a member of that project.  Let's write a utility method in
-our `app/controllers/Secured.java` class that checks this:
+Let's now add a method to rename a project, but before we do, let's consider the security requirements of this function. A user should only be allowed to rename a project if they are a member of that project.  Let's write a utility method in our `app/controllers/Secured.java` class that checks this:
 
 ```java
 public static boolean isMemberOf(Long project) {
@@ -72,12 +63,9 @@ public static boolean isMemberOf(Long project) {
 }
 ```
 
-You may notice here that we've used `Context.current()` to get the `request()`.  This is a convenient way to get access
-to a request if you aren't in an action.  Underneath, it uses thread locals to find the current request, response,
-session and so on.
+You may notice here that we've used `Context.current()` to get the `request()`.  This is a convenient way to get access to a request if you aren't in an action.  Underneath, it uses thread locals to find the current request, response, session and so on.
 
-Our `isMemberOf` method has used a new method that we haven't written on our `Project` model yet.  In fact we are going
-to need a few new methods on the `Project` object, so let's open `app/models/Project.java` now to add them:
+Our `isMemberOf` method has used a new method that we haven't written on our `Project` model yet.  In fact we are going to need a few new methods on the `Project` object, so let's open `app/models/Project.java` now to add them:
 
 ```java
 public static boolean isMember(Long project, String user) {
@@ -95,8 +83,7 @@ public static String rename(Long projectId, String newName) {
 }
 ```
 
-Having added a `rename` method to our `Project` model, we are now ready to implement our action in
-`app/controllers/Projects.java`:
+Having added a `rename` method to our `Project` model, we are now ready to implement our action in `app/controllers/Projects.java`:
 
 ```java
 public static Result rename(Long project) {
@@ -113,12 +100,7 @@ public static Result rename(Long project) {
 }
 ```
 
-Notice that first we check that the current user is a member of the project, and if they aren't, we return them a
-`forbidden` response.  Also notice our use of the `form()` method.  We've seen this before, when we were populating and
-validating our login form.  However this time, we haven't passed in a bean to decode the form into and to validate it
-with.  Rather, we've used what's called a dynamic form.  A dynamic just parses a form submission into a map of string
-keys to string values, and is very convenient for simple form submissions with only one or two values where you don't
-want to do any validation. 
+Notice that first we check that the current user is a member of the project, and if they aren't, we return them a `forbidden` response.  Also notice our use of the `form()` method.  We've seen this before, when we were populating and validating our login form.  However this time, we haven't passed in a bean to decode the form into and to validate it with.  Rather, we've used what's called a dynamic form.  A dynamic just parses a form submission into a map of string keys to string values, and is very convenient for simple form submissions with only one or two values where you don't want to do any validation. 
 
 Let's move on to our method to delete a project:
 
@@ -154,8 +136,7 @@ Now do a quick refresh of the application in the browser, to make sure there are
 
 ## Testing your actions
 
-As we did with the authentication actions, we're going to write tests for the actions we've just now written.  Let's
-start off with a `ProjectsTest` in `test/controllers/ProjectsTest.java`:
+As we did with the authentication actions, we're going to write tests for the actions we've just now written.  Let's start off with a `ProjectsTest` in `test/controllers/ProjectsTest.java`:
 
 ```java
 package controllers;
@@ -203,13 +184,9 @@ public void newProject() {
 }
 ```
 
-You can see we've logged Bob in using `withSession`, and this time after invoking the request and making sure it was
-successful, we've queried the database to make sure that what we expected to happen would happen.
+You can see we've logged Bob in using `withSession`, and this time after invoking the request and making sure it was successful, we've queried the database to make sure that what we expected to happen would happen.
 
-> It's always a good idea to check the status of the request before checking the side effects of the request.  The
-> reason for this is that the asynchronous nature of Play framework means that even the test actions may run in a
-> different thread.  By checking the status of the request, you are ensuring that Play has finished processing the
-> request.
+> It's always a good idea to check the status of the request before checking the side effects of the request.  The reason for this is that the asynchronous nature of Play framework means that even the test actions may run in a different thread.  By checking the status of the request, you are ensuring that Play has finished processing the request.
 
 Now let's write a test for the rename project action:
 
@@ -229,8 +206,7 @@ public void renameProject() {
 }
 ```
 
-And also importantly, let's check that our authorisation is working, making sure that someone who is not a member of a
-project can not change the name of that project:
+And also importantly, let's check that our authorisation is working, making sure that someone who is not a member of a project can not change the name of that project:
 
 ```java
 @Test
@@ -248,9 +224,7 @@ public void renameProjectForbidden() {
 }
 ```
 
-Run these tests to make sure they work.  We've now seen a little bit more of how to implement actions, as well as how to
-test them.  We could write some more tests now, but for the purposes of this tutorial, we'll leave it there.  For
-practice, you can write a few more tests, testing the delete project and new group methods as well.
+Run these tests to make sure they work.  We've now seen a little bit more of how to implement actions, as well as how to test them.  We could write some more tests now, but for the purposes of this tutorial, we'll leave it there.  For practice, you can write a few more tests, testing the delete project and new group methods as well.
 
 Commit your work to git.
 
