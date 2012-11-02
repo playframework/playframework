@@ -9,6 +9,8 @@ Play 2.0 comes with a new and really powerful Scala-based template engine, whose
 - **not a new language**: we consciously chose not to create a new language. Instead we wanted to enable Scala developers to use their existing Scala language skills, and deliver a template markup syntax that enables an awesome HTML construction workflow.
 - **editable in any text editor**: it doesn’t require a specific tool and enables you to be productive in any plain old text editor.
 
+&nbsp;
+
 > **Note:** Even though the template engine uses Scala as expression language, this is not a problem for Java developers. You can almost use it as if the language were Java. 
 > 
 > Remember that a template is not a place to write complex logic. You don’t have to write complicated Scala code here. Most of the time you will just access data from your model objects, as follows:
@@ -231,4 +233,4 @@ For example to output raw HTML:
 </p>
 ```
 
-> **Next:** [[Common use cases | JavaTemplateUseCases]]
+> **Next:** [[Common use cases | ScalaTemplateUseCases]]

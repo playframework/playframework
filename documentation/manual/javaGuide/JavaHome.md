@@ -1,6 +1,6 @@
-# Play 2.0 for Java developers
+# Play for Java developers
 
-The Java API for the Play 2.0 application developers is available in the `play` package. 
+The Java API for the Play application developers is available in the `play` package. 
 
 > The API available in the `play.api` package (such as `play.api.mvc`) is reserved for Scala developers. As a Java developer, look at `play.mvc`.
 
@@ -39,7 +39,6 @@ The Java API for the Play 2.0 application developers is available in the `play` 
 1. [[Calling WebServices | JavaWS]]
     1. [[The Play WS API  | JavaWS]]
     1. [[Connect to OpenID servers | JavaOpenID]]
-    1. [[Accessing resources protected by OAuth | JavaOAuth]]
 1. [[Integrating with Akka | JavaAkka]]
     1. [[Setting up Actors and scheduling asynchronous tasks | JavaAkka]]
 1. [[Internationalization | JavaI18N]]
@@ -52,11 +51,7 @@ The Java API for the Play 2.0 application developers is available in the `play` 
     1. [[Writing tests | JavaTest]]
     1. [[Writing functional tests | JavaFunctionalTest]]
 
-## Advanced topics
-
-1. Reverse routing
-    1. [[Javascript Routing | JavaJavascriptRouting]]
-
 ## Tutorials
 
 1. [[Your first application | JavaTodoList]]
+1. [[Zentask | JavaGuide1]]

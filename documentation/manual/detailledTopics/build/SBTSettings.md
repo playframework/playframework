@@ -14,7 +14,7 @@ val main = PlayProject(appName, appVersion, appDependencies).settings(
 
 ## Default settings for Java applications
 
-Play 2.0 defines a default set of settings suitable for Java-based applications. To enable them add the `defaultJavaSettings` set of settings to your application definition:
+Play defines a default set of settings suitable for Java-based applications. To enable them add the `defaultJavaSettings` set of settings to your application definition:
 
 ```scala
 val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA)
@@ -24,7 +24,7 @@ These default settings mostly define the default imports for generated templates
 
 ## Default settings for Scala applications
 
-Play 2.0 defines a default set of settings suitable for Scala-based applications. To enable them add the `defaultScalaSettings` set of settings to your application definition:
+Play defines a default set of settings suitable for Scala-based applications. To enable them add the `defaultScalaSettings` set of settings to your application definition:
 
 ```scala
 val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA)

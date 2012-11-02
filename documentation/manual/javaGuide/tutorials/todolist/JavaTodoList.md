@@ -1,6 +1,6 @@
 # Your first Play application
 
-Let’s write a simple task list application with Play 2.0 and deploy it to the cloud. This is a very small example which can be managed in a few hours. If you wan't a bigger one look at the site from [James Ward](http://www.jamesward.com/2012/05/08/play-2-java-tutorial).
+Let’s write a simple task list application with Play 2.0 and deploy it to the cloud. This is a very small example which can be managed in a few hours.
 
 ## Prerequisites
 
