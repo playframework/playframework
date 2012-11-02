@@ -290,6 +290,24 @@ object Forms {
   }
 
   /**
+   * Constructs a simple mapping for a numeric field (using a Long type behind).
+   *
+   * For example:
+   * {{{
+   * Form("size" -> longNumber(min=0, max=100))
+   * }}}
+   *
+   * @param min minimum value
+   * @param max maximum value
+   */
+  def longNumber(min: Long = Long.MinValue, max: Long = Long.MaxValue): Mapping[Long] = (min, max) match {
+    case (Long.MinValue, Long.MaxValue) => longNumber
+    case (min, Long.MaxValue) => longNumber verifying Constraints.min(min)
+    case (Long.MinValue, max) => longNumber verifying Constraints.max(max)
+    case (min, max) => longNumber verifying (Constraints.min(min), Constraints.max(max))
+  }
+
+  /**
    * Constructs a simple mapping for a date field.
    *
    * For example:
