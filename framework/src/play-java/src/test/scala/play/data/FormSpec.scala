@@ -95,13 +95,15 @@ object ScalaForms {
           "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
     )
-    
+
     val emailForm = Form(
       tuple(
         "email" -> email,
         "name" -> of[String]
       )
     )
+
+    val longNumberForm = Form("longNumber" -> longNumber(10, 42))
 }
 
 object FormSpec extends Specification {
@@ -141,25 +143,24 @@ object FormSpec extends Specification {
       val f5 = ScalaForms.emailForm.fillAndValidate("john@", "John")
       f5.errors.size must equalTo (1)
       f5.errors.find(_.message == "error.email") must beSome
-      
+
       val f6 = ScalaForms.emailForm.fillAndValidate("john@zen.....com", "John")
       f6.errors.size must equalTo (1)
       f6.errors.find(_.message == "error.email") must beSome
     }
-    
+
     "be valid with a well-formed email" in {
       val f7 = ScalaForms.emailForm.fillAndValidate("john@zen.com", "John")
       f7.errors.size must equalTo (0)
-      
+
       val f8 = ScalaForms.emailForm.fillAndValidate("john@zen.museum", "John")
       f8.errors.size must equalTo (0)
-      
+
       val f9 = ScalaForms.emailForm.fillAndValidate("john@mail.zen.com", "John")
       f9.errors.size must equalTo(0)
     }
-    
+
     "apply constraints on wrapped mappings" in {
-      
       "when it binds data" in {
         val f1 = ScalaForms.form.bind(Map("foo"->"0"))
         f1.errors.size must equalTo (1)
@@ -176,7 +177,7 @@ object FormSpec extends Specification {
         f4.errors.size must equalTo (1)
         f4.errors.find(_.message == "number.42") must beSome
       }
-      
+
       "when it is filled with data" in {
         val f1 = ScalaForms.form.fillAndValidate(0)
         f1.errors.size must equalTo (1)
@@ -195,6 +196,22 @@ object FormSpec extends Specification {
         f4.errors.find(_.message == "number.42") must beSome
       }
     }
+
+    "apply constraints on longNumber fields" in {
+      val f1 = ScalaForms.longNumberForm.fillAndValidate(0);
+      f1.errors.size must equalTo(1)
+      f1.errors.find(_.message == "error.min") must beSome
+
+      val f2 = ScalaForms.longNumberForm.fillAndValidate(9000);
+      f2.errors.size must equalTo(1)
+      f2.errors.find(_.message == "error.max") must beSome
+
+      val f3 = ScalaForms.longNumberForm.fillAndValidate(10);
+      f3.errors.size must equalTo(0)
+
+      val f4 = ScalaForms.longNumberForm.fillAndValidate(42);
+      f3.errors.size must equalTo(0)
+    }
   }
 
   "render form using field[Type] syntax" in {
@@ -207,7 +224,7 @@ object FormSpec extends Specification {
     ScalaForms.defaultValuesForm.bindFromRequest( Map("name" -> Seq("another text") ) ).get must equalTo(42, "another text")
     ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123")) ).get must equalTo(123, "default text")
     ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123"), "name" -> Seq("another text")) ).get must equalTo(123, "another text")
-    
+
     val f1 = ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("abc")) )
     f1.errors.size must equalTo (1)
   }
@@ -223,23 +240,23 @@ object FormSpec extends Specification {
 
   "support repeated values for Java binding" in {
 
-    val user1 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki")))).get 
+    val user1 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki")))).get
     user1.getName must beEqualTo("Kiki")
     user1.getEmails.size must beEqualTo(0)
 
-    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")) )).get 
+    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")) )).get
     user2.getName must beEqualTo("Kiki")
     user2.getEmails.size must beEqualTo(1)
 
-    val user3 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")) )).get 
+    val user3 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")) )).get
     user3.getName must beEqualTo("Kiki")
     user3.getEmails.size must beEqualTo(2)
 
-    val user4 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")) )).get 
+    val user4 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")) )).get
     user4.getName must beEqualTo("Kiki")
     user4.getEmails.size must beEqualTo(1)
 
-    val user5 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")) )).get 
+    val user5 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")) )).get
     user5.getName must beEqualTo("Kiki")
     user5.getEmails.size must beEqualTo(2)
 
