@@ -18,7 +18,11 @@ trait PlayAssetsCompiler {
     naming: (String, Boolean) => String,
     compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
     optionsSettings: sbt.SettingKey[Seq[String]]) =
-    (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, incrementalAssetsCompilation) map { (state, src, resources, cache, options, files, incrementalAssetsCompilation) =>
+    (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, incrementalAssetsCompilation, requireJs) map { (state, src, resources, cache, options, files, incrementalAssetsCompilation, requireJs) =>
+
+      val requireSupport = if (!requireJs.isEmpty) {
+        Seq("rjs")
+      } else Seq[String]()
 
       import java.io._
 
@@ -46,7 +50,7 @@ trait PlayAssetsCompiler {
           case (sourceFile, name) => {
             if (!incrementalAssetsCompilation || changedFiles.contains(sourceFile) || dependencies.contains(new File(resources, "public/" + naming(name, false)))) {
               val (debug, min, dependencies) = try {
-                compile(sourceFile, options)
+                compile(sourceFile, options ++ requireSupport)
               } catch {
                 case e: AssetCompilationException => throw reportCompilationError(state, e)
               }
