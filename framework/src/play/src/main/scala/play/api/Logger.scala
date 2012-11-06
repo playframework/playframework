@@ -241,11 +241,7 @@ object Logger extends LoggerLike {
               Option(System.getProperty("logger.url")).map(new java.net.URL(_))
             }.
             orElse {
-              if (mode != Mode.Test) {
-                Option(this.getClass.getClassLoader.getResource("application-logger.xml")).orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
-              } else {
-                None
-              }
+              Option(this.getClass.getClassLoader.getResource("application-logger.xml")).orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
             }.
             map { url =>
               configurator.doConfigure(url)
