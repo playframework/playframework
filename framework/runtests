@@ -44,7 +44,15 @@ echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
 echo "[info]"
 
 $PLAY "$@" clean-all test
+cd $CURRENT
 
+cd ./test/csrftest-scala
+
+echo "[info]"
+echo "[info] ---- RUNNING CSRF TEST"
+echo "[info]"
+
+$PLAY "$@" clean-all test
 cd $CURRENT
 
 echo "[info]"
