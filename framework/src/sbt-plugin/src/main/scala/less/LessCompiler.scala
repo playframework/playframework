@@ -6,6 +6,8 @@ import play.api._
 
 object LessCompiler {
 
+  val lessScript = "less-1.3.1.js"
+
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
 
@@ -52,28 +54,42 @@ object LessCompiler {
       "browser.js",
       1, null)
     ctx.evaluateReader(scope, new InputStreamReader(
-      this.getClass.getClassLoader.getResource("less-1.3.0.js").openConnection().getInputStream()),
-      "less-1.3.0.js",
+      this.getClass.getClassLoader.getResource(lessScript).openConnection().getInputStream()),
+      lessScript,
       1, null)
     ctx.evaluateString(scope,
       """
                 var compile = function(source) {
 
                     var compiled;
+                    // Import tree context
+                    var context = [source];
                     var dependencies = [source];
 
                     window.less.Parser.importer = function(path, paths, fn, env) {
-                        var imported = LessCompiler.resolve(source, path);
-                        var input = String(LessCompiler.readContent(imported)); 
-                        dependencies.push(imported)
+
+                        var imported = LessCompiler.resolve(context[context.length - 1], path);
+                        var importedName = String(imported.getAbsolutePath());
+                        var input = String(LessCompiler.readContent(imported));
+
+                        // Store it in the contents, for error reporting
+                        env.contents[importedName] = input;
+
+                        context.push(imported);
+                        dependencies.push(imported);
+
                         new(window.less.Parser)({
                             optimization:3,
-                            filename:path
+                            filename:importedName,
+                            contents:env.contents,
+                            dumpLineNumbers:window.less.dumpLineNumbers
                         }).parse(input, function (e, root) {
                             if(e instanceof Object) {
                                 throw e;
                             }
                             fn(e, root, input);
+
+                            context.pop();
                         });
                     }
 
@@ -119,7 +135,7 @@ object LessCompiler {
 
         val error = e.getValue.asInstanceOf[Scriptable]
         val filename = ScriptableObject.getProperty(error, "filename").asInstanceOf[String]
-        val file = if (filename == source.getAbsolutePath()) source else resolve(source, filename)
+        val file = new File(filename)
         throw AssetCompilationException(Some(file),
           ScriptableObject.getProperty(error, "message").asInstanceOf[String],
           Some(ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue),
