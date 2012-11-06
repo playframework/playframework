@@ -1,6 +1,6 @@
 package play.libs;
 
-import java.util.Iterator;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
@@ -36,26 +36,24 @@ public class XML {
      * Parse an InputStream as DOM.
      */
     public static Document fromInputStream(InputStream in, String encoding) {
-       DocumentBuilderFactory factory = null;
-       DocumentBuilder builder = null;
-       Document ret = null;
-       
        try {
-           factory = DocumentBuilderFactory.newInstance();
-           builder = factory.newDocumentBuilder();
-       } catch (ParserConfigurationException e) {
-           throw new RuntimeException(e);
-       }
-       
-       try {
+
+           DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+           factory.setNamespaceAware(true);
+           DocumentBuilder builder = factory.newDocumentBuilder();
+
            InputSource is = new InputSource(in);
            is.setEncoding(encoding);
-           ret = builder.parse(is);
-       } catch (Exception e) {
+           
+           return builder.parse(is);
+
+       } catch (ParserConfigurationException e) {
+           throw new RuntimeException(e);
+       } catch (SAXException e) {
+           throw new RuntimeException(e);
+       } catch (IOException e) {
            throw new RuntimeException(e);
        }
-       
-       return ret;
     }
 
 }
