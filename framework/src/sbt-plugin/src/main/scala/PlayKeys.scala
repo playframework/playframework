@@ -14,6 +14,8 @@ trait PlayKeys {
   
   val javaJpa = "play" %% "play-java-jpa" % play.core.PlayVersion.current
 
+  val filters = "play" %% "filters-helpers" % play.core.PlayVersion.current
+
   val playVersion = SettingKey[String]("play-version")
 
   val playDefaultPort = SettingKey[Int]("play-default-port")

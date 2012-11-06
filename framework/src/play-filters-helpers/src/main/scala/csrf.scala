@@ -1,6 +1,4 @@
-package play.api.csrf {
-
-  import play.api.filters._
+package play.filters.csrf {
 
   import play.api.mvc._
   import Results._
@@ -13,6 +11,8 @@ package play.api.csrf {
   import play.api.libs.concurrent.execution.Implicits.defaultContext
 
   object CSRF {
+
+    lazy val logger = play.api.Logger("play.filters")
 
     case class Token(value: String)
 
@@ -80,14 +80,14 @@ package play.api.csrf {
     }
     def addResponseToken(req: RequestHeader, r: PlainResult, token: Token): PlainResult = {
 
-      play.Logger.trace("[CSRF] Adding token to result: " + r)
+      logger.trace("[CSRF] Adding token to result: " + r)
 
       /**
        * Add Token to the Response session if necessary
        */
        def addSessionToken: PlainResult = {
          if(req.session.get(TOKEN_NAME).isDefined){
-           play.Logger.trace("[CSRF] session already contains token")
+           logger.trace("[CSRF] session already contains token")
            r
          }
          else {
@@ -95,10 +95,10 @@ package play.api.csrf {
              .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
              .getOrElse(Map.empty)
            val newSession = if(session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
-           play.Logger.trace("[CSRF] Adding session token to response")
-           play.Logger.trace("[CSRF] response was: " + r)
+           logger.trace("[CSRF] Adding session token to response")
+           logger.trace("[CSRF] response was: " + r)
            val resp = r.withSession(Session.deserialize(newSession))
-           play.Logger.trace("[CSRF] response is now: " + resp)
+           logger.trace("[CSRF] response is now: " + resp)
            resp
          }
        }
@@ -108,15 +108,15 @@ package play.api.csrf {
        */
        def addCookieToken(c: String): PlainResult = {
          if(req.cookies.get(c).isDefined){
-           play.Logger.trace("[CSRF] cookie already contains token")
+           logger.trace("[CSRF] cookie already contains token")
            r
          }
          else {
            val cookies = Cookies(r.header.headers.get("Set-Cookie"))
-           play.Logger.trace("[CSRF] Adding cookie token to response")
-           play.Logger.trace("[CSRF] response was: " + r)
+           logger.trace("[CSRF] Adding cookie token to response")
+           logger.trace("[CSRF] response was: " + r)
            val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
-           play.Logger.trace("[CSRF] response is now: " + resp)
+           logger.trace("[CSRF] response is now: " + resp)
            resp
          }
        }
@@ -139,7 +139,7 @@ package play.api.csrf {
     */
     def addRequestToken(request: RequestHeader, token: Token): RequestHeader = {
 
-      play.Logger.trace("[CSRF] Adding request token to request: " + request)
+      logger.trace("[CSRF] Adding request token to request: " + request)
 
       def addSessionToken = request.session.get(TOKEN_NAME)
         .map(_ => request)
@@ -169,13 +169,13 @@ package play.api.csrf {
           lazy val newSession = request.session + (TOKEN_NAME -> token.value)
           lazy val sc = Cookies.encode(Seq(Cookie(Session.COOKIE_NAME, Session.encode(newSession.data))))
 
-          play.Logger.trace("[CSRF] adding session token to request: " + newSession)
+          logger.trace("[CSRF] adding session token to request: " + newSession)
 
           lazy val cookiesHeader = request.headers.get(HeaderNames.COOKIE).map { cookies =>
             Cookies.merge(cookies, Seq(Cookie(Session.COOKIE_NAME, Session.encode(newSession.data))))
           }.getOrElse(sc)
 
-          play.Logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
+          logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
       def addCookieToken(c: String) = request.cookies.get(c)
@@ -199,14 +199,14 @@ package play.api.csrf {
             def data = toMap.toSeq
           }
 
-          play.Logger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
+          logger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
 
           lazy val sc = Cookies.encode(Seq(Cookie(c, token.value)))
           lazy val cookiesHeader = request.headers.get(HeaderNames.COOKIE).map { cookies =>
             Cookies.merge(cookies, Seq(Cookie(c, token.value)))
           }.getOrElse(sc)
 
-          play.Logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
+          logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
         if(CREATE_IF_NOT_FOUND)
@@ -221,6 +221,8 @@ package play.api.csrf {
     import play.api.libs.iteratee._
     import CSRF._
     import BodyParsers.parse._
+
+    def this() = this(CSRF.generate _) // Default constructor, useful from Java
 
     private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, token: Token,  next: EssentialAction) = {
       (Traversable.take[Array[Byte]](102400) &>> Iteratee.consume[Array[Byte]]()).flatMap{ b: Array[Byte] =>
@@ -242,23 +244,23 @@ package play.api.csrf {
       def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
         import play.api.http.HeaderNames._
 
-        play.Logger.trace("[CSRF] original request: " + request)
-        play.Logger.trace("[CSRF] original cookies: " + request.cookies)
-        play.Logger.trace("[CSRF] original session: " + request.session)
+        logger.trace("[CSRF] original request: " + request)
+        logger.trace("[CSRF] original cookies: " + request.cookies)
+        logger.trace("[CSRF] original session: " + request.session)
 
         val token = generator()
         request.headers.get(CONTENT_TYPE) match {
           case Some(ct) if ct.trim.startsWith("multipart/form-data") =>
-            play.Logger.trace("[CSRF] request is multipart/form-data")
+            logger.trace("[CSRF] request is multipart/form-data")
             checkMultipart(request, token, next)
           case Some(ct) if ct.trim.startsWith("application/x-www-form-urlencoded") =>
-            play.Logger.trace("[CSRF] request is application/x-www-form-urlencoded")
+            logger.trace("[CSRF] request is application/x-www-form-urlencoded")
             checkFormUrlEncodedBody(request, token, next)
           case None if request.method == "GET" => 
-            play.Logger.trace("[CSRF] GET request, adding the token")
+            logger.trace("[CSRF] GET request, adding the token")
             next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))
           case ct => 
-            play.Logger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
+            logger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
             next(request)
         }
       }
@@ -285,12 +287,12 @@ package views.html.helper {
 
     import play.api.mvc._
 
-    def apply(call: Call)(implicit token: play.api.csrf.CSRF.Token): Call = {
+    def apply(call: Call)(implicit token: play.filters.csrf.CSRF.Token): Call = {
       new Call(
         call.method,
         call.url + { 
           if(call.url.contains("?")) "&" else "?"
-        } + play.api.csrf.CSRF.Conf.TOKEN_NAME + "=" + token.value
+        } + play.filters.csrf.CSRF.Conf.TOKEN_NAME + "=" + token.value
       )
     }
 

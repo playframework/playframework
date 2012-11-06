@@ -1,22 +1,21 @@
-package play.api.filters
+package play.api.mvc
 
 import play.api._
-import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
 /**
-* Implement this interface if you want to add a Filter to your application
-* {{{
-* object AccessLog extends Filter {
-*		 override def apply[A](next: Request[A] => Result)(request: Request[A]): Result = {
-*			 val result = next(request)
-*			 play.Logger.info(request + "\n\t => " + result)
-*			 result
-*		 }
-*	 }
-** }}}
-*/
+ * Implement this interface if you want to add a Filter to your application
+ * {{{
+ * object AccessLog extends Filter {
+ * 	 override def apply[A](next: Request[A] => Result)(request: Request[A]): Result = {
+ *		 val result = next(request)
+ *		 play.Logger.info(request + "\n\t => " + result)
+ *		 result
+ *	 }
+ * }
+ * }}}
+ */
 trait EssentialFilter {
   def apply(next: EssentialAction): EssentialAction
 }
@@ -38,7 +37,6 @@ trait Filter extends EssentialFilter {
         val i = it.future.map(_.map({r => p.success(r); result}))
         result match {
           case r:AsyncResult => Iteratee.flatten( r.unflatten.map(Done(_,Input.Empty: Input[Array[Byte]])).or(i).map(_.fold(identity, identity)))
-
           case r:PlainResult => Done(r)
         }
       }
@@ -54,8 +52,8 @@ object Filter {
 }
 
 /**
-* Compose the action and the Filters to create a new Action
-*/
+ * Compose the action and the Filters to create a new Action
+ */
 object Filters {
   def apply(h: EssentialAction, filters: EssentialFilter*) = h match {
     case a: EssentialAction => FilterChain(a, filters.toList)
@@ -70,8 +68,8 @@ class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
 }
 
 /**
-* Compose the action and the Filters to create a new Action
-*/
+ * Compose the action and the Filters to create a new Action
+ */
 
 object FilterChain{
   def apply[A](action:EssentialAction, filters: List[EssentialFilter]): EssentialAction = new EssentialAction {
@@ -82,8 +80,3 @@ object FilterChain{
   }
 }
 
-object EssentialAction {
-  def apply(f:RequestHeader => Iteratee[Array[Byte],Result]):EssentialAction = new EssentialAction {
-    def apply(rh:RequestHeader) = f(rh)
-  }
-}

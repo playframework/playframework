@@ -132,4 +132,9 @@ public class GlobalSettings {
     public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
         return null;
     }
+
+    public <T extends play.api.mvc.EssentialFilter> Class<T>[] filters() {
+        return new Class[0];
+    }
+    
 }

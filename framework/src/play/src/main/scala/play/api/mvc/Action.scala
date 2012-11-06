@@ -47,9 +47,7 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) w
 object EssentialAction {
 
   def apply(f: RequestHeader => Iteratee[Array[Byte], Result]): EssentialAction = new EssentialAction {
-
     def apply(rh: RequestHeader) = f(rh)
-
   }
 }
 

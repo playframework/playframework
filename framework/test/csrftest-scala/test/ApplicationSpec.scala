@@ -5,14 +5,14 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 
-import play.api.csrf._
-import play.api.csrf.CSRF.Conf._
+import play.filters.csrf._
+import play.filters.csrf.CSRF.Conf._
 
 class CSRFSpec extends Specification {
 
-  val generator = () => 42.toString(): CSRF.Token
+  val generator = () => CSRF.Token(42.toString())
 
-  object FakeGlobal extends play.api.filters.WithFilters(CSRFFilter(generator)) with play.api.GlobalSettings
+  object FakeGlobal extends play.api.mvc.WithFilters(CSRFFilter(generator)) with play.api.GlobalSettings
 
   val fakeApp = FakeApplication()
 
