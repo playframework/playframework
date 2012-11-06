@@ -346,10 +346,10 @@ public class WS {
         }
 
         /**
-         * Perform a OPTION on the request asynchronously.
+         * Perform an OPTIONS on the request asynchronously.
          */
-        public Promise<Response> option() {
-            return execute("OPTION");
+        public Promise<Response> options() {
+            return execute("OPTIONS");
         }
 
         private Promise<Response> execute(String method) {
