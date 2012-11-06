@@ -630,17 +630,20 @@ object PlayBuild extends Build {
         // ----- Generate API docs
 
         val generateAPIDocs = TaskKey[Unit]("api-docs")
-        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (fullClasspath in Test, compilers, streams) map { (classpath, cs, s) =>
+        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams) map { (classpath, cs, s) =>
+
+          val allJars = (file("src") ** "*.jar").get
 
           IO.delete(file("../documentation/api"))
+
           // Scaladoc
           val sourceFiles =
             (file("src/play/src/main/scala/play/api") ** "*.scala").get ++
+            (file("src/iteratees/src/main/scala") ** "*.scala").get ++
             (file("src/play-test/src/main/scala") ** "*.scala").get ++
             (file("src/play/src/main/scala/views") ** "*.scala").get ++
-            (file("src/anorm/src/main/scala") ** "*.scala").get ++
             (file("src/play/target/scala-" + buildScalaVersion + "/src_managed/main/views/html/helper") ** "*.scala").get
-          new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data), file("../documentation/api/scala"), Nil, s.log)
+          new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data) ++ allJars, file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc
           val javaSources = Seq(file("src/play/src/main/java"), file("src/play-test/src/main/java")).mkString(":")
