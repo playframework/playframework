@@ -1,5 +1,6 @@
 package play.api.libs.ws
 
+import java.io.File
 import scala.concurrent.{Future, Promise}
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -368,6 +369,12 @@ object WS {
     def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("POST", body).execute
 
     /**
+     * Perform a POST on the request asynchronously.
+     * Request body won't be chunked
+     */
+    def post(body: File): Future[Response] = prepare("POST", body).execute
+
+    /**
      * performs a POST with supplied body
      * @param consumer that's handling the response
      */
@@ -377,6 +384,12 @@ object WS {
      * Perform a PUT on the request asynchronously.
      */
     def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("PUT", body).execute
+
+    /**
+     * Perform a PUT on the request asynchronously.
+     * Request body won't be chunked
+     */
+    def put(body: File): Future[Response] = prepare("PUT", body).execute
 
     /**
      * performs a PUT with supplied body
@@ -412,6 +425,29 @@ object WS {
       virtualHost.map { v =>
         request.setVirtualHost(v)
       }
+      request
+    }
+
+    private[play] def prepare(method: String, body: File) = {
+      import com.ning.http.client.generators.FileBodyGenerator
+      import java.nio.ByteBuffer
+
+      val bodyGenerator = new FileBodyGenerator(body);
+
+      val request = new WSRequest(method, auth, calc).setUrl(url)
+        .setHeaders(headers)
+        .setQueryString(queryString)
+        .setBody(bodyGenerator)
+      followRedirects.map(request.setFollowRedirects(_))
+      timeout.map { t: Int =>
+        val config = new PerRequestConfig()
+        config.setRequestTimeoutInMs(t)
+        request.setPerRequestConfig(config)
+      }
+      virtualHost.map { v =>
+        request.setVirtualHost(v)
+      }
+
       request
     }
 
