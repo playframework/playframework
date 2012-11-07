@@ -43,7 +43,7 @@ object JavaResultExtractor {
     case PlainResult(_, headers) => new JCookies {
       def get(name: String) = {
         Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
-          new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)
+          new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)
         }.getOrElse(null)
       }
     }

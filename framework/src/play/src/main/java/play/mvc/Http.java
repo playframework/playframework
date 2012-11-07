@@ -531,16 +531,16 @@ public class Http {
          * @param value Cookie value
          */
         public void setCookie(String name, String value) {
-            setCookie(name, value, -1);
+            setCookie(name, value, null);
         }
 
         /**
          * Set a new cookie with path “/”
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          */
-        public void setCookie(String name, String value, int maxAge) {
+        public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
         }
 
@@ -548,10 +548,10 @@ public class Http {
          * Set a new cookie
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          */
-        public void setCookie(String name, String value, int maxAge, String path) {
+        public void setCookie(String name, String value, Integer maxAge, String path) {
             setCookie(name, value, maxAge, path, null);
         }
 
@@ -559,11 +559,11 @@ public class Http {
          * Set a new cookie
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
          */
-        public void setCookie(String name, String value, int maxAge, String path, String domain) {
+        public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
             setCookie(name, value, maxAge, path, domain, false, false);
         }
 
@@ -571,13 +571,13 @@ public class Http {
          * Set a new cookie
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
          */
-        public void setCookie(String name, String value, int maxAge, String path, String domain, boolean secure, boolean httpOnly) {
+        public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
             cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
         }
 
@@ -640,7 +640,7 @@ public class Http {
          * @param secure Whether the cookie to discard is secure
          */
         public void discardCookie(String name, String path, String domain, boolean secure) {
-            cookies.add(new Cookie(name, "", 0, path, domain, secure, false));
+            cookies.add(new Cookie(name, "", -1, path, domain, secure, false));
         }
 
         // FIXME return a more convenient type? e.g. Map<String, Cookie>
@@ -758,13 +758,13 @@ public class Http {
     public static class Cookie {
         private final String name;
         private final String value;
-        private final int maxAge;
+        private final Integer maxAge;
         private final String path;
         private final String domain;
         private final boolean secure;
         private final boolean httpOnly;
 
-        public Cookie(String name, String value, int maxAge, String path,
+        public Cookie(String name, String value, Integer maxAge, String path,
                 String domain, boolean secure, boolean httpOnly) {
             this.name = name;
             this.value = value;
@@ -790,9 +790,10 @@ public class Http {
         }
 
         /**
-         * @return the cookie expiration date in seconds, -1 for a transient cookie, 0 for a cookie that expires now
+         * @return the cookie expiration date in seconds, null for a transient cookie, a value less than zero for a
+         * cookie that expires now
          */
-        public int maxAge() {
+        public Integer maxAge() {
             return maxAge;
         }
 
