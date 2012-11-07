@@ -12,7 +12,7 @@ import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 
-import play.core.j.JavaInvoker;
+import play.core.Invoker;
 
 /**
  * provides support for OpenID
@@ -71,7 +71,7 @@ public class OpenID {
                     public UserInfo apply(play.api.libs.openid.UserInfo scalaUserInfo) {
                         return new UserInfo(scalaUserInfo.id(), JavaConversions.mapAsJavaMap(scalaUserInfo.attributes()));
                     }
-                },JavaInvoker.executionContext());
+                },Invoker.executionContext());
         return new F.Promise<UserInfo>(scalaPromise);
     }
 
