@@ -326,7 +326,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(a)
 
-          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.execution.Implicits.defaultContext)
+          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
 
           requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
             eventuallyBodyParser.flatMap(_.unflatten).map {

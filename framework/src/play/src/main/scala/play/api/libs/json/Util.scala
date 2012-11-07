@@ -18,7 +18,6 @@ class InvariantFunctorOps[M[_],A](ma:M[A])(implicit fu:InvariantFunctor[M]){
 
 }
 
-
 class ApplicativeOps[M[_],A](ma:M[A])(implicit a:Applicative[M]){
 
   def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)

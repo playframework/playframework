@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import play.core.j.JavaInvoker;
+import play.core.Invoker;
 
 /**
  * Defines a set of functional programming style helpers.
@@ -238,7 +238,7 @@ public class F {
                     }
                     return null;
                 }
-                },JavaInvoker.executionContext());
+                },Invoker.executionContext());
         }
 
         /**
@@ -264,7 +264,7 @@ public class F {
                             throw new RuntimeException(t);
                         }
                     }
-                    },JavaInvoker.executionContext())
+                    },Invoker.executionContext())
             );
         }
 
@@ -292,7 +292,7 @@ public class F {
                             throw new RuntimeException(e);
                         }
                     }
-                    },JavaInvoker.executionContext())
+                    },Invoker.executionContext())
                     );
         }
 
@@ -319,11 +319,11 @@ public class F {
                             throw new RuntimeException(t);
                         }
                     }
-                    },JavaInvoker.executionContext()).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,scala.concurrent.Future<B>>() {
+                    },Invoker.executionContext()).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,scala.concurrent.Future<B>>() {
                     public scala.concurrent.Future<B> apply(Promise<B> p) {
                         return p.promise;
                     }
-                        },JavaInvoker.executionContext())
+                        },Invoker.executionContext())
             );
         }
 
@@ -347,7 +347,7 @@ public class F {
                     synchronized(Promise.class) {
                         actors = new ArrayList<akka.actor.ActorRef>(nb);
                         for(int i=0; i<nb; i++) {
-                            actors.add(play.core.j.JavaInvoker$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
+                            actors.add(play.core.Invoker$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
                         }
                     }
                 }
@@ -380,7 +380,7 @@ public class F {
                            
                             return r.right.get();
                 }
-            },JavaInvoker.executionContext());
+            },Invoker.executionContext());
         }
 
         // Executes the Promise functions (capturing exception), with the given ThreadLocal context.

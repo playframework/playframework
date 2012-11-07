@@ -10,7 +10,7 @@ import validation._
 import Forms._
 import java.security.SecureRandom
 import org.apache.commons.codec.binary._
-import play.api.libs.concurrent.execution.Implicits.defaultContext
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object CSRF {
   type Token = String
