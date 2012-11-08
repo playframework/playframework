@@ -25,7 +25,8 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean-all test
+$PLAY "$@" clean-all test test-dist
+
 cd $CURRENT
 
 cd ./test/integrationtest-java
