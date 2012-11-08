@@ -72,8 +72,6 @@ object Console {
                   |Have fun!
                   |""".stripMargin.format(name).trim
 
-  private def addG8(g8: String) = if (g8.endsWith(".g8")) g8 else g8 + ".g8"
-
   /**
    * Creates a new play app skeleton either based on local templates on g8 templates fetched from github
    * Also, one can create a g8 template directly like this: play new app_name --g8 githubuser/repo.g8
@@ -92,7 +90,7 @@ object Console {
     if (path.exists) {
       (Colors.red("The directory already exists, cannot create a new application here."), -1)
     } else {
-      val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (addG8(args.last), defaultName)
+      val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (args.last, defaultName)
       else {
         consoleReader.printString("What is the application name? ")
         consoleReader.printNewline
@@ -121,7 +119,7 @@ object Console {
         val templateToUse = Option(consoleReader.readLine()).map(_.trim).getOrElse("") match {
           case "1" => "scala-skel"
           case "2" => "java-skel"
-          case g8 @ _ => addG8(g8)
+          case g8 @ _ => g8
         }
         (templateToUse, name)
       }
@@ -138,20 +136,65 @@ object Console {
           val repo = template._1
           val appName = template._2
 
-          //this is necessary because g8 only provides an option to either pass params or use interactive session to populate fields
-          //but in our case we have the application_name (and path) already
-          val result = Giter8.clone(repo, Some("master")).right.map { f =>
-            val (parameters, templates, templatesRoot) = G8Helpers.fetchInfo(f.jfile, Some("src/main/g8"))
-            val ps = G8Helpers.interact(parameters - "application_name") + ("application_name" -> appName)
-            val base = new File(G8.normalize(appName))
-            G8Helpers.write(templatesRoot, templates, ps, base)
+          def usage = """
+                        |Usage: [TEMPLATE] [OPTION]...
+                        |Apply specified template.
+                        |
+                        |OPTIONS
+                        |    -b, --branch
+                        |        Resolves a template within a given branch
+                        |
+                        |
+                        |Apply template and interactively fulfill parameters.
+                        |    typesafehub/play-scala
+                        |
+                        |Or
+                        |    git://github.com/typesafehub/play-scala.g8.git
+                        |
+                        |Apply template from a remote branch
+                        |    typesafehub/play-scala -b some-branch
+                        |
+                        |Apply template from a local repo
+                        |    file://path/to/the/repo
+                        |
+                        |""".stripMargin
+
+          def toGitRepo(user: String, proj: String) =
+            "git://github.com/%s/%s.g8.git".format(user, proj)
+
+          val parsed = repo.split(" ").partition { s => Param.pattern.matcher(s).matches } match {
+            case (params, Array(Local(repo))) =>
+              Right(repo, None, params)
+            case (params, Array(Local(repo), Branch(_), branch)) =>
+              Right(repo, Some(branch), params)
+            case (params, Array(Repo(user, proj))) =>
+              Right(toGitRepo(user, proj), None, params)
+            case (params, Array(Repo(user, proj), Branch(_), branch)) =>
+              Right(toGitRepo(user, proj), Some(branch), params)
+            case (params, Array(Git(remote))) =>
+              Right(remote, None, params)
+            case (params, Array(Git(remote), Branch(_), branch)) =>
+              Right(remote, Some(branch), params)
+            case _ =>
+              Left(usage)
+          }
+
+          val result = parsed.right.flatMap { case (repo, branch, _) =>
+            // this is necessary because g8 only provides an option to either
+            // pass params or use interactive session to populate fields
+            // but in our case we have the application_name (and path) already
+            Giter8.clone(repo, branch).right.map { f =>
+              val (parameters, templates, templatesRoot) = G8Helpers.fetchInfo(f.jfile, Some("src/main/g8"))
+              val ps = G8Helpers.interact(parameters - "application_name") + ("application_name" -> appName)
+              val base = new File(G8.normalize(appName))
+              G8Helpers.write(templatesRoot, templates, ps, base)
+            }
           }
 
           result.fold(
-            ex => ("something went wrong while processing g8 template", -1),
+            ex => ("something went wrong while processing g8 template: \n\t" + ex, -1),
             _ => (haveFun(appName), 0)
           )
-
         }
       } catch {
         case ex: Exception =>
