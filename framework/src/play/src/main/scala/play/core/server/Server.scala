@@ -12,10 +12,8 @@ import akka.actor._
 import akka.actor.Actor._
 import akka.routing._
 import akka.pattern.Patterns.ask
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
 import akka.util.Timeout
-
-import play.api.libs.concurrent.execution.defaultContext
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -27,9 +25,9 @@ trait WebSocketable {
  */
 trait Server {
 
-  // First delete the default log file for a fresh start
+  // First delete the default log file for a fresh start (only in Dev Mode)
   try {
-    scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
+    if (mode == Mode.Dev) scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
   } catch {
     case _: Exception =>
   }
@@ -39,14 +37,9 @@ trait Server {
     Map("application.home" -> applicationProvider.path.getAbsolutePath),
     mode = mode)
 
-  // Start the main Invoker
-  val invoker = Invoker(applicationProvider)
-
-  // store the invoker in a global variable
-  Invoker.init(invoker)
-
   val bodyParserTimeout = {
-    Configuration(Invoker.system.settings.config).getMilliseconds("akka.actor.retrieveBodyParserTimeout").map(_ milliseconds).getOrElse(1 second)
+    //put in proper config
+    1 second
   }
 
   def mode: Mode.Mode
@@ -91,60 +84,10 @@ trait Server {
       }
 
   }
-  /*
-  def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
-import play.api.http.HeaderNames._
-    scala.concurrent.Future {
- val result = try {
-         play.utils.Threads.withContextClassLoader(app.classloader) {
-          action(request)
-        }
-      } catch {
-        case e => app.handleError(request, e)
-      }
-
-      response.handle {
-
-        // Handle Flash Scope (probably not the good place to do it)
-        result match {
-          case r: PlainResult => {
-
-            val header = r.header
-
-            val flashCookie = {
-              header.headers.get(SET_COOKIE)
-                .map(Cookies.decode(_))
-                .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
-                  Option(request.flash).filterNot(_.isEmpty).map { _ =>
-                    Cookie(Flash.COOKIE_NAME, "", 0)
-                  }
-                }
-            }
-
-            flashCookie.map { newCookie =>
-              r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
-            }.getOrElse(r)
-
-          }
-          case r => r
-        }
-
-      }
-
-    }
-  }
-
-  def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
-    scala.concurrent.Future(bodyFunction(requestHeaders))
-
-  }
-  */
 
   def applicationProvider: ApplicationProvider
 
   def stop() {
-    Invoker.uninit()
-    invoker.stop()
     Logger.shutdown()
   }
 

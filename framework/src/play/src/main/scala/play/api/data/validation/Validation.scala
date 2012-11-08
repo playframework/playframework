@@ -85,12 +85,32 @@ trait Constraints {
   }
 
   /**
+   * Defines a minimum value for `Long` values, i.e. the value must be greater than or equal to the constraint parameter
+   *
+   * '''name'''[constraint.min(minValue)]
+   * '''error'''[error.min(minValue)]
+   */
+  def min(minValue: Long): Constraint[Long] = Constraint[Long]("constraint.min", minValue) { o =>
+    if (o >= minValue) Valid else Invalid(ValidationError("error.min", minValue))
+  }
+
+  /**
    * Defines a maximum value constraint for `Int` values, i.e. value must be less than or equal to the constraint parameter
    *
    * '''name'''[constraint.max(maxValue)]
    * '''error'''[error.max(maxValue)]
    */
   def max(maxValue: Int): Constraint[Int] = Constraint[Int]("constraint.max", maxValue) { o =>
+    if (o <= maxValue) Valid else Invalid(ValidationError("error.max", maxValue))
+  }
+
+  /**
+   * Defines a maximum value constraint for `Long` values, i.e. value must be less than or equal to the constraint parameter
+   *
+   * '''name'''[constraint.max(maxValue)]
+   * '''error'''[error.max(maxValue)]
+   */
+  def max(maxValue: Long): Constraint[Long] = Constraint[Long]("constraint.max", maxValue) { o =>
     if (o <= maxValue) Valid else Invalid(ValidationError("error.max", maxValue))
   }
 

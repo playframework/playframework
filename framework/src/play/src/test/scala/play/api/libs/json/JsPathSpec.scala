@@ -7,6 +7,8 @@ import play.api.libs.json.Json._
 import scala.util.control.Exception._
 import java.text.ParseException
 
+import play.api.data.validation.ValidationError
+
 object JsPathSpec extends Specification {
 
   "JsPath" should {
@@ -125,6 +127,63 @@ object JsPathSpec extends Specification {
       ((JsPath \ 'level1 \ 'key1)(1)\\'tags)(obj) must equalTo(Seq(Json.arr("alpha1", "beta1", "gamma1"))) 
 
     }
+
+    "prune field from 1-level JsObject" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )
+
+      val res = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        )
+      )
+
+      val res2 = Json.obj( 
+        "level1" -> Json.obj(
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        ),
+        "level2" -> 5
+      )
+
+      val res3 = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
+            "key12"
+          ), 
+          "key2" -> Json.obj()
+        ),
+        "level2" -> 5
+      )
+
+      (__ \ 'level2).prune(obj).get must beEqualTo(res)
+      (__ \ 'level1 \ 'key1).prune(obj).get must beEqualTo(res2)
+      (__ \ 'level1 \ 'key2 \ 'key21).prune(obj).get must beEqualTo(res3)
+      (__ \\ 'key21).prune(obj) must beEqualTo(JsError( __ \\ "key21", ValidationError("validate.error.expected.keypathnode")))
+    }
+
+
 
     /*"set 1-level field in simple jsobject" in {
       val obj = Json.obj("key" -> "value")

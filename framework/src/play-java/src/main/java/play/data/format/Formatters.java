@@ -79,7 +79,7 @@ public class Formatters {
         if(t == null) {
             return "";
         }
-        if(conversion.canConvert(desc, TypeDescriptor.valueOf(String.class))) {
+        if(desc != null && conversion.canConvert(desc, TypeDescriptor.valueOf(String.class))) {
             return (String)conversion.convert(t, desc, TypeDescriptor.valueOf(String.class));
         } else if(conversion.canConvert(t.getClass(), String.class)) {
             return conversion.convert(t, String.class);

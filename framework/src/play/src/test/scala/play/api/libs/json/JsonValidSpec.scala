@@ -286,7 +286,7 @@ object JsonValidSpec extends Specification {
     "Format simpler syntax with constraints" in {
       val bobby = User("bobby", 54)
 
-      implicit val userFormats = (
+      implicit val userFormat = (
         (__ \ 'name).format(minLength[String](5)) 
         and 
         (__ \ 'age).format(min(40))
@@ -296,49 +296,85 @@ object JsonValidSpec extends Specification {
 
       js.validate[User] must equalTo(JsSuccess(bobby))
     }
+
+    "Compose reads" in {
+      val js = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> 123L,
+        "field3" -> Json.obj("field31" -> "beta", "field32"-> 345)
+      )
+      val reads1 = (__ \ 'field3).json.pick
+      val reads2 = (__ \ 'field32).read[Int] and (__ \ 'field31).read[String] tupled
+
+      js.validate(reads1 andThen reads2).get must beEqualTo(345 -> "beta")
+    }
+
   }
 
-  "JSON Writes tools for Json" should {
-    "Build JSON from JSON using Writes flattened" in {
+  "JSON generators" should {
+    "Build JSON from JSON Reads" in {
+      import Reads._
+      val js0 = Json.obj(
+        "key1" -> "value1",
+        "key2" -> Json.obj(
+          "key21" -> 123,
+          "key23" -> true,
+          "key24" -> "blibli"
+        ),
+        "key3" -> "alpha"
+      )
+
       val js = Json.obj(
         "key1" -> "value1",
         "key2" -> Json.obj(
           "key21" -> 123,
           "key22" -> Json.obj("key222" -> "blabla"),
-          "key23" -> true
+          "key23" -> true,
+          "key24" -> "blibli"
         ),
         "key3" -> Json.arr("alpha", "beta", "gamma")
       )
 
+      val dt = (new java.util.Date).getTime()
+      def func = { JsNumber(dt + 100) }
+
       val jsonTransformer = (
-        (__ \ "key1").json.pick and
-        /*(__ \ "key2").json.modify(
+        (__ \ "key1").json.pickBranch and
+        (__ \ "key2").json.pickBranch(
           (
-            (__ \ "key21").json.pick and
-            (__ \ "key22").json.transform( js => js \ "key222" )
-          ) join
+            (__ \ "key22").json.update( (__ \ "key222").json.pick ) and 
+            (__ \ "key233").json.copyFrom( (__ \ "key23").json.pick )
+          ) reduce
         ) and
-        (__ \ "key3").json.transform( js => js.as[JsArray] ++ Json.arr("delta")) and*/
+        (__ \ "key3").json.pickBranch[JsArray]( pure(Json.arr("delta")) ) and
         (__ \ "key4").json.put(
-          (
-            (__ \ "key41").json.put(JsNumber(345)) and
-            (__ \ "key42").json.put(JsString("alpha"))
-          ) join
+          Json.obj( 
+            "key41" -> 345,
+            "key42" -> "alpha",
+            "key43" -> func
+          )
         )
-      ) join
+      ) reduce
 
       val res = Json.obj(
         "key1" -> "value1",
-        /*"key2" -> Json.obj(
+        "key2" -> Json.obj(
           "key21" -> 123,
           "key22" -> "blabla",
-          "key23" -> true
+          "key23" -> true,
+          "key24" -> "blibli",
+          "key233" -> true
          ),
-        "key3" -> Json.arr("alpha", "beta", "gamma", "delta"),*/
-        "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha")
+        "key3" -> Json.arr("delta"),
+        "key4" -> Json.obj("key41" -> 345, "key42" -> "alpha", "key43" -> func)
       )
 
-      js.transform(jsonTransformer) must beEqualTo(res)
+      js0.validate(jsonTransformer) must beEqualTo(
+        //JsError( (__ \ 'key3), "validate.error.expected.jsarray" ) ++
+        JsError( (__ \ 'key2 \ 'key22), "validate.error.missing-path" )
+      )
+
+      js.validate(jsonTransformer) must beEqualTo(JsSuccess(res))
     }
 
   }
@@ -361,12 +397,13 @@ object JsonValidSpec extends Specification {
 
       implicit val UserReads = (
         (__ \ 'id).read[Long] and
-        (__ \ 'email).read( email provided minLength[String](5) ) and
+        (__ \ 'email).read( email andKeep minLength[String](5) ) and
         (__ \ 'age).read( max(55) or min(65) )
       )(User)
 
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError(__ \ "age", ValidationError("validate.error.max", 55)) ++ JsError(__ \ "age", ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("validate.error.max", 55)) ++ JsError((__ \ 'age), ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("validate.error.email")) ++ JsError((__ \ 'age), ValidationError("validate.error.max", 55)) ++ JsError((__ \ 'age), ValidationError("validate.error.min", 65)))
     }
 
     "verifyingIf reads" in {
@@ -480,8 +517,170 @@ object JsonValidSpec extends Specification {
         JsSuccess(( "val1", 123L, 123.456F, true, List("alpha", "beta"), "val6", "val7", "val8", "val9", "val10", "val11", "val12"))
       )
     }
+
+    "single field case class" in {
+      case class Test(field: String)
+      val myFormat = (__ \ 'field).format[String].inmap(Test, unlift(Test.unapply))
+
+      myFormat.reads(Json.obj("field" -> "blabla")) must beEqualTo(JsSuccess(Test("blabla"), __ \ 'field))
+      myFormat.reads(Json.obj()) must beEqualTo(JsError( __ \ 'field, "validate.error.missing-path" ) )
+      myFormat.writes(Test("blabla")) must beEqualTo(Json.obj("field" -> "blabla"))
+    }
+
+    "reduce Reads[JsObject]" in {
+      import Reads._
+
+      val myReads: Reads[JsObject] = (
+        (__ \ 'field1).json.pickBranch and
+        (__ \ 'field2).json.pickBranch
+      ) reduce
+
+      val js0 = Json.obj("field1" -> "alpha")
+      val js = js0 ++ Json.obj("field2" -> Json.obj("field21" -> 123, "field22" -> true))    
+      val js2 = js ++ Json.obj("field3" -> "beta")  
+      js.validate(myReads) must beEqualTo(JsSuccess(js))
+      js2.validate(myReads) must beEqualTo(JsSuccess(js))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path"))
+    }
+
+    "reduce Reads[JsArray]" in {
+      import Reads._
+
+      val myReads: Reads[JsArray] = (
+        (__ \ 'field1).json.pick[JsString] and
+        (__ \ 'field2).json.pick[JsNumber] and
+        (__ \ 'field3).json.pick[JsBoolean]
+      ).reduce[JsValue, JsArray]
+
+      val js0 = Json.obj("field1" -> "alpha")
+      val js = js0 ++ Json.obj("field2" -> 123L, "field3" -> false)    
+      val js2 = js ++ Json.obj("field4" -> false)  
+      js.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js2.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path") ++ JsError(__ \ 'field3, "validate.error.missing-path"))
+    }
+
+    "reduce Reads[JsArray] no type" in {
+      import Reads._
+
+      val myReads: Reads[JsArray] = (
+        (__ \ 'field1).json.pick and
+        (__ \ 'field2).json.pick and
+        (__ \ 'field3).json.pick
+      ) reduce
+
+      val js0 = Json.obj("field1" -> "alpha")
+      val js = js0 ++ Json.obj("field2" -> 123L, "field3" -> false)    
+      val js2 = js ++ Json.obj("field4" -> false)  
+      js.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js2.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path") ++ JsError(__ \ 'field3, "validate.error.missing-path"))
+    }
+
+    "serialize JsError to flat json" in {
+      val jserr = JsError( Seq(
+        (__ \ 'field1 \ 'field11) -> Seq(
+          ValidationError("msg1.msg11", "arg11", 123L, 123.456F), 
+          ValidationError("msg2.msg21.msg22", 456, 123.456, true, 123)
+        ),
+        (__ \ 'field2 \ 'field21) -> Seq(
+          ValidationError("msg1.msg21", "arg1", Json.obj("test" -> "test2")),
+          ValidationError("msg2", "arg1", "arg2") 
+        )
+      ))
+
+      val flatJson = Json.obj(
+        "obj.field1.field11" -> Json.arr(
+          Json.obj( 
+            "msg" -> "msg1.msg11", 
+            "args" -> Json.arr("arg11",123,123.456F) 
+          ),
+          Json.obj(
+            "msg" ->"msg2.msg21.msg22",
+            "args" -> Json.arr(456,123.456,true,123)
+          )
+        ),
+        "obj.field2.field21" -> Json.arr(
+          Json.obj(
+            "msg" -> "msg1.msg21",
+            "args" -> Json.arr("arg1", Json.obj("test" -> "test2"))
+          ),
+          Json.obj(
+            "msg" -> "msg2",
+            "args" -> Json.arr("arg1","arg2")
+          )
+        )
+      )
+
+      JsError.toFlatJson(jserr) should beEqualTo(flatJson)
+    }
+
+    "prune json" in {
+      import Reads._
+
+      val js = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> Json.obj("field21" -> 123, "field22" -> true, "field23" -> "blabla"),
+        "field3" -> "beta"
+      )
+
+      val res = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> Json.obj("field22" -> true),
+        "field3" -> "beta"
+      )
+      
+      val myReads: Reads[JsObject] = (
+        (__ \ 'field1).json.pickBranch and
+        (__ \ 'field2).json.pickBranch( 
+          (__ \ 'field21).json.prune andThen (__ \ 'field23).json.prune
+        ) and
+        (__ \ 'field3).json.pickBranch
+      ) reduce
+
+      js.validate(myReads) must beEqualTo(JsSuccess(res))
+    }
   }
 
+  "JSON Writes" should {
+    "manage option" in {
+      import Writes._
+
+      case class User(email: String, phone: Option[String])
+
+      implicit val UserWrites = (
+        (__ \ 'email).write[String] and
+        (__ \ 'phone).writeOpt[String]
+      )(unlift(User.unapply))
+
+      Json.toJson(User("john.doe@blibli.com", None)) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com"))
+      Json.toJson(User("john.doe@blibli.com", Some("12345678"))) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678"))
+    }
+  }
+
+
+  "JSON Format" should {
+    "manage option" in {
+      import Reads._
+      import Writes._
+
+      case class User(email: String, phone: Option[String])
+
+      implicit val UserFormat = (
+        (__ \ 'email).format(email) and
+        (__ \ 'phone).formatOpt(Format(minLength[String](8), Writes.of[String]))
+      )(User, unlift(User.unapply))
+
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("validate.error.minlength", 8)))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", Some("12345678"))))
+      Json.obj("email" -> "john.doe@blibli.com").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", None)))
+
+      Json.toJson(User("john.doe@blibli.com", None)) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com"))
+      Json.toJson(User("john.doe@blibli.com", Some("12345678"))) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678"))
+    }
+  }
+  
   "JsResult" should {
 
     "be usable in for-comprehensions" in {

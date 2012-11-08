@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 object ApplicationBuild extends Build {
 
@@ -9,11 +9,11 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
     	javaJdbc,
-    	java,
+    	javaCore,
     	anorm
     ) 
 
-    val main = PlayProject(appName, appVersion, appDependencies)
+    val main = play.Project(appName, appVersion, appDependencies)
 
 }
             

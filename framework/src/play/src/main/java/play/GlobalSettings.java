@@ -2,7 +2,6 @@ package play;
 
 import play.mvc.*;
 import play.mvc.Http.*;
-import scala.Enumeration.Value;
 
 import java.io.File;
 import java.lang.reflect.*;

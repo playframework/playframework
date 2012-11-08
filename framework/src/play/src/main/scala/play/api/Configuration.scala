@@ -19,6 +19,9 @@ import scala.collection.JavaConverters._
  */
 object Configuration {
 
+  private[this] lazy val dontAllowMissingConfigOptions = ConfigParseOptions.defaults().setAllowMissing(false)
+
+  private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
   /**
    * loads `Configuration` from 'conf/application.conf' in Dev mode
    * @return  configuration to be used
@@ -36,7 +39,7 @@ object Configuration {
    * Loads a new `Configuration` either from the classpath or from
    * `conf/application.conf` depending on the application's Mode.
    *
-   * The provieded mode is used if the application is not ready
+   * The provided mode is used if the application is not ready
    * yet, just like when calling this method from `play.api.Application`.
    *
    * Defaults to Mode.Dev
@@ -47,9 +50,10 @@ object Configuration {
   def load(appPath: File, mode: Mode.Mode = Mode.Dev) = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(ConfigFactory.load()) else Configuration(loadDev(appPath))
+      if (currentMode == Mode.Prod) Configuration(dontAllowMissingConfig) else Configuration(loadDev(appPath))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
+      case e : Throwable => throw e
     }
   }
 

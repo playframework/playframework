@@ -1,5 +1,7 @@
 package models;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -30,5 +32,5 @@ public class JOrderItem extends Model {
 	public String productCode;
 
 	@DateTime(pattern = "yyyy-MM-dd")
-	public DateTime deliveryDate;
+	public Date deliveryDate;
 }

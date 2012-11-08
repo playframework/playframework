@@ -18,7 +18,6 @@ import play.core.server.netty._
 
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream}
-import utils.IO
 
 /**
  * provides a stopable Server
@@ -79,8 +78,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         // Load the configured key store
         val keyStore = KeyStore.getInstance(System.getProperty("https.keyStoreType", "JKS"))
         val password = System.getProperty("https.keyStorePassword", "").toCharArray
+        val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
+          for (in <- resource.managed(new FileInputStream(file))) {
+              keyStore.load(in, password)
           IO.use(new FileInputStream(file)) {
             in => keyStore.load(in, password)
           }

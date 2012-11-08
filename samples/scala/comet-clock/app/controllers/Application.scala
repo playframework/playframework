@@ -7,7 +7,8 @@ import play.api.libs.{ Comet }
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits._ 
 
 object Application extends Controller {
   

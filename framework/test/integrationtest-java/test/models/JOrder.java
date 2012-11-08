@@ -1,6 +1,7 @@
 package models;
 
 import java.util.List;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -25,7 +26,7 @@ public class JOrder extends Model {
 
 	@Required
 	@DateTime(pattern = "yyyy-MM-dd")
-	public DateTime date;
+	public Date date;
 
 	@OneToMany
 	@Valid

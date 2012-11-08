@@ -115,7 +115,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     if (server != null) {
       sys.error("Server already started!")
     }
-    play.core.Invoker.uninit()
+    //play.core.Invoker.uninit()
     try {
       server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
     } catch {
@@ -129,12 +129,11 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
    * Stops this server.
    */
   def stop() {
-    if (server == null) {
-      sys.error("Server is not started!");
+    if (server != null) {
+      server.stop()
+      server = null
     }
-    server.stop()
-    server = null
-    play.api.libs.concurrent.Promise.resetSystem()
+    //play.api.libs.concurrent.Promise.resetSystem()
     play.api.libs.ws.WS.resetClient()
   }
 

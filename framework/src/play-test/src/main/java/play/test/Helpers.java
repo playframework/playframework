@@ -2,6 +2,8 @@ package play.test;
 
 import play.*;
 
+import play.api.mvc.Session;
+import play.api.test.Helpers$;
 import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
@@ -163,18 +165,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the Flash values of this Result value.
      */
     public static play.mvc.Http.Flash flash(Result result) {
-        return new play.mvc.Http.Flash(
-            Scala.asJava(play.api.test.Helpers.flash(result.getWrappedResult()).data())
-        );
+        return play.core.j.JavaResultExtractor.getFlash(result);
     }
 
     /**
      * Extracts the Session of this Result value.
      */
     public static play.mvc.Http.Session session(Result result) {
-        return new play.mvc.Http.Session(
-                Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
-        );
+        return play.core.j.JavaResultExtractor.getSession(result);
     }
 
     /**
@@ -350,9 +348,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static void stop(FakeApplication fakeApplication) {
         play.api.Play.stop();
-        play.api.libs.concurrent.Promise$.MODULE$.resetSystem();
-        play.core.Invoker$.MODULE$.system().shutdown();
-        play.core.Invoker$.MODULE$.uninit();
         play.api.libs.ws.WS$.MODULE$.resetClient();
     }
 
@@ -416,7 +411,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         TestBrowser browser = null;
         TestServer startedServer = null;
         try {
-            play.core.Invoker.uninit();
             start(server);
             startedServer = server;
             browser = testBrowser(webDriver);
@@ -443,9 +437,23 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      */
+    public static TestBrowser testBrowser(int port) {
+        return testBrowser(HTMLUNIT, port);
+    }
+
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver) {
+        return testBrowser(webDriver, Helpers$.MODULE$.testServerPort());
+    }
+
+    /**
+     * Creates a Test Browser.
+     */
+    public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
         try {
-            return new TestBrowser(webDriver);
+            return new TestBrowser(webDriver, "http://localhost:" + port);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -456,8 +464,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a Test Browser.
      */
+    public static TestBrowser testBrowser(WebDriver of, int port) {
+        return new TestBrowser(of, "http://localhost:" + port);
+    }
+
+    /**
+     * Creates a Test Browser.
+     */
     public static TestBrowser testBrowser(WebDriver of) {
-        return new TestBrowser(of);
+        return testBrowser(of, Helpers$.MODULE$.testServerPort());
     }
 
 }

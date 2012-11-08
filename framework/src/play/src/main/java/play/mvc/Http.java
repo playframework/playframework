@@ -521,7 +521,6 @@ public class Http {
 
         private final Map<String,String> headers = new HashMap<String,String>();
         private final List<Cookie> cookies = new ArrayList<Cookie>();
-        private final List<String> discardedCookies = new ArrayList<String>();
 
         /**
          * Adds a new header to the response.
@@ -554,16 +553,16 @@ public class Http {
          * @param value Cookie value
          */
         public void setCookie(String name, String value) {
-            setCookie(name, value, -1);
+            setCookie(name, value, null);
         }
 
         /**
          * Set a new cookie with path “/”
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          */
-        public void setCookie(String name, String value, int maxAge) {
+        public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
         }
 
@@ -571,10 +570,10 @@ public class Http {
          * Set a new cookie
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          */
-        public void setCookie(String name, String value, int maxAge, String path) {
+        public void setCookie(String name, String value, Integer maxAge, String path) {
             setCookie(name, value, maxAge, path, null);
         }
 
@@ -582,11 +581,11 @@ public class Http {
          * Set a new cookie
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
          */
-        public void setCookie(String name, String value, int maxAge, String path, String domain) {
+        public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
             setCookie(name, value, maxAge, path, domain, false, false);
         }
 
@@ -594,13 +593,13 @@ public class Http {
          * Set a new cookie
          * @param name Cookie name
          * @param value Cookie value
-         * @param maxAge Cookie duration (-1 for a transient cookie and 0 for a cookie that expires now)
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
          * @param domain Cookie domain
          * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
          */
-        public void setCookie(String name, String value, int maxAge, String path, String domain, boolean secure, boolean httpOnly) {
+        public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
             cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
         }
 
@@ -610,19 +609,65 @@ public class Http {
          * <pre>
          * response().discardCookies("theme");
          * </pre>
+         *
+         * This only discards cookies on the default path ("/") with no domain and that didn't have secure set.  To
+         * discard other cookies, use the discardCookie method.
+         *
          * @param names Names of the cookies to discard
+         * @deprecated Use the discardCookie methods instead
          */
+        @Deprecated
         public void discardCookies(String... names) {
-            discardedCookies.addAll(Arrays.asList(names));
+            for (String name: names) {
+                discardCookie(name);
+            }
+        }
+
+        /**
+         * Discard a cookie on the default path ("/") with no domain and that's not secure
+         *
+         * @param name The name of the cookie to discard
+         */
+        public void discardCookie(String name) {
+            discardCookie(name, "/", null, false);
+        }
+
+        /**
+         * Discard a cookie on the give path with no domain and not that's secure
+         *
+         * @param name The name of the cookie to discard
+         * @param path The path of the cookie te discard, may be null
+         */
+        public void discardCookie(String name, String path) {
+            discardCookie(name, path, null, false);
+        }
+
+        /**
+         * Discard a cookie on the given path and domain that's not secure
+         *
+         * @param name The name of the cookie to discard
+         * @param path The path of the cookie te discard, may be null
+         * @param domain The domain of the cookie to discard, may be null
+         */
+        public void discardCookie(String name, String path, String domain) {
+            discardCookie(name, path, domain, false);
+        }
+
+        /**
+         * Discard a cookie in this result
+         *
+         * @param name The name of the cookie to discard
+         * @param path The path of the cookie te discard, may be null
+         * @param domain The domain of the cookie to discard, may be null
+         * @param secure Whether the cookie to discard is secure
+         */
+        public void discardCookie(String name, String path, String domain, boolean secure) {
+            cookies.add(new Cookie(name, "", -1, path, domain, secure, false));
         }
 
         // FIXME return a more convenient type? e.g. Map<String, Cookie>
         public Iterable<Cookie> cookies() {
             return cookies;
-        }
-
-        public Iterable<String> discardedCookies() {
-            return discardedCookies;
         }
 
     }
@@ -735,13 +780,13 @@ public class Http {
     public static class Cookie {
         private final String name;
         private final String value;
-        private final int maxAge;
+        private final Integer maxAge;
         private final String path;
         private final String domain;
         private final boolean secure;
         private final boolean httpOnly;
 
-        public Cookie(String name, String value, int maxAge, String path,
+        public Cookie(String name, String value, Integer maxAge, String path,
                 String domain, boolean secure, boolean httpOnly) {
             this.name = name;
             this.value = value;
@@ -767,9 +812,10 @@ public class Http {
         }
 
         /**
-         * @return the cookie expiration date in seconds, -1 for a transient cookie, 0 for a cookie that expires now
+         * @return the cookie expiration date in seconds, null for a transient cookie, a value less than zero for a
+         * cookie that expires now
          */
-        public int maxAge() {
+        public Integer maxAge() {
             return maxAge;
         }
 

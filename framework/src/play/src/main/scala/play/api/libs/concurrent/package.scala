@@ -24,6 +24,5 @@ package concurrent {
 
   type RedeemablePromise[A] = Future[A] with Redeemable[A]
 
-  //type Promise[+A] = scala.concurrent.Future[A]
   }
 }

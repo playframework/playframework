@@ -64,4 +64,23 @@ object Json {
   def obj(fields: (String, JsValueWrapper)*): JsObject = JsObject(fields.map(f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
   def arr(fields: JsValueWrapper*): JsArray = JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
 
+  import play.api.libs.iteratee.Enumeratee
+  /**
+   * Transform a stream of A to a stream of JsValue
+   * {{{
+   *   val fooStream: Enumerator[Foo] = ???
+   *   val jsonStream: Enumerator[JsValue] = fooStream &> Json.toJson
+   * }}}
+   */
+  def toJson[A : Writes]: Enumeratee[A, JsValue] = Enumeratee.map(Json.toJson(_))
+  /**
+   * Transform a stream of JsValue to a stream of A, keeping only successful results
+   * {{{
+   *   val jsonStream: Enumerator[JsValue] = ???
+   *   val fooStream: Enumerator[Foo] = jsonStream &> Json.fromJson
+   * }}}
+   */
+  def fromJson[A : Reads]: Enumeratee[JsValue, A] =
+    Enumeratee.map((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect { case JsSuccess(value, _) => value }
+
 }

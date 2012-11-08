@@ -29,10 +29,12 @@ object PlayDefaultUpstreamHandler {
   val logger = Logger("play")
 }
 
-import play.api.libs.concurrent.execution.defaultContext
+
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
   import PlayDefaultUpstreamHandler.logger
+
+  implicit val internalExecutionContext =  play.core.Execution.internalContext
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
@@ -140,7 +142,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           def path = nettyUri.getPath
           def method = nettyHttpRequest.getMethod.getName
           def version = nettyVersion.getText
-					def queryString = parameters
+          def queryString = parameters
           def headers = rHeaders
           lazy val remoteAddress = rRemoteAddress
           def username = None
@@ -323,7 +325,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             .map(Cookies.decode(_))
             .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
               Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
-                play.api.mvc.Cookie(Flash.COOKIE_NAME, "", 0)
+                Flash.discard.toCookie
               }
             }
           }
@@ -375,7 +377,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(a)
 
-          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))
+          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
 
           requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
             eventuallyBodyParser.flatMap(_.unflatten).map {

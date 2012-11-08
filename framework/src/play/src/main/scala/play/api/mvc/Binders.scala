@@ -130,7 +130,7 @@ trait QueryStringBindable[A] {
  *
  * {{{
  *   object User {
- *     implicit def pathBinder(implicit intBinder: QueryStringBindable[Int]) = new PathBindable[User] {
+ *     implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
  *       override def bind(key: String, value: String): Either[String, User] = {
  *         for {
  *           id <- intBinder.bind(key, value).right

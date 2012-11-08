@@ -5,7 +5,7 @@ import java.net._
 
 import scala.concurrent.Future
 import scala.concurrent.Await
-import scala.concurrent.util.duration._
+import scala.concurrent.duration._
 
 import play.api._
 import play.api.mvc._
@@ -90,16 +90,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
     synchronized {
 
-      // Let's load the application on another thread
-      // since we are still on the Netty IO thread.
-      //
-      // Because we are on DEV mode here, it doesn't really matter
-      // but it's more coherent with the way it works in PROD mode.
-
-      implicit def dispatcher: scala.concurrent.ExecutionContext = play.core.Invoker.system.dispatcher
-
-      Await.result(Future {
-
         val reloaded = sbtLink.reload match {
           case t: Throwable => Left(t)
           case cl: ClassLoader => Right(Some(cl))
@@ -157,8 +147,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
           maybeApplication.getOrElse(lastState)
         }
-
-      }, 5.minutes)
 
     }
   }
@@ -254,30 +242,12 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
           pageWithSidebar.map {
             case (pageSource, maybeSidebar) => {
-
-              val linkRender: (String => (String, String)) = _ match {
-                case link if link.contains("|") => {
-                  val parts = link.split('|')
-                  (parts.tail.head, parts.head)
-                }
-                case image if image.endsWith(".png") => {
-                  val link = image match {
-                    case full if full.startsWith("http://") => full
-                    case absolute if absolute.startsWith("/") => "resources/manual" + absolute
-                    case relative => "resources/" + pageSource.parent.get.relativize(Path(documentationHome.get)).path + "/" + relative
-                  }
-                  (link, """<img src="""" + link + """"/>""")
-                }
-                case link => {
-                  (link, link)
-                }
-              }
-
+              val relativePath = pageSource.parent.get.relativize(Path(documentationHome.get)).path
               Ok(
                 views.html.play20.manual(
                   page,
-                  Some(sbtLink.markdownToHtml(pageSource.string/*, linkRender*/)),
-                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string/*, linkRender*/))
+                  Some(sbtLink.markdownToHtml(pageSource.string, relativePath)),
+                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string, relativePath))
                 )
               )
             }

@@ -6,6 +6,7 @@ import javax.net.ssl._
 import javax.security.auth.x500.X500Principal
 import org.apache.commons.io.IOUtils
 import org.specs2.execute.Result
+import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
 import play.api.test.{Helpers, FakeApplication, TestServer}

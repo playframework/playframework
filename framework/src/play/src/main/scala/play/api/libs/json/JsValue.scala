@@ -86,6 +86,7 @@ sealed trait JsValue {
 
 /**
  * Represent a Json null value.
+ * with Scala 2.10-M7, this code generates WARNING : https://issues.scala-lang.org/browse/SI-6513
  */
 case object JsNull extends JsValue
 
@@ -187,6 +188,8 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
    */
   def values: Set[JsValue] = fields.map(_._2).toSet
 
+  def fieldSet: Set[(String, JsValue)] = fields.toSet
+
   /**
    * Merge this object with an other one. Values from other override value of the current object.
    */
@@ -264,6 +267,20 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
     JsObject(step(fields.toList, other.fields.toList))
   }
+
+  override def equals(other: Any): Boolean =
+    other match {
+
+      case that: JsObject =>
+        (that canEqual this) &&
+        fieldSet == that.fieldSet
+
+      case _ => false
+    }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[JsObject]
+
+  override def hashCode: Int = fieldSet.hashCode()
 
 }
 
@@ -369,6 +386,10 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
       case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
 
       case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
+
+      case (JsonToken.NOT_AVAILABLE, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
+
+      case (JsonToken.VALUE_EMBEDDED_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
     }
 
     // Read ahead

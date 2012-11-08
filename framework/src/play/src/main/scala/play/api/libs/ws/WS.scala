@@ -44,7 +44,7 @@ object WS {
   def resetClient(): Unit = {
     clientHolder.map { clientRef =>
       clientRef.close()
-    }.getOrElse(play.api.Logger.debug("WS client was reset without being used"))
+    }
     clientHolder = None
   }
 

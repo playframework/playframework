@@ -7,7 +7,6 @@ import java.util.Date
 import java.math.BigInteger
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream, FileOutputStream}
-import play.core.utils.IO
 import javax.net.ssl.KeyManagerFactory
 
 /**
@@ -36,9 +35,9 @@ object FakeKeyStore {
         // Create the key store, first set the store pass
         keyStore.load(null, "".toCharArray)
         keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
-        IO.use(new FileOutputStream(keyStoreFile)) { out => keyStore.store(out, "".toCharArray)}
+        for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray)}
       } else {
-        IO.use(new FileInputStream(keyStoreFile)) { in => keyStore.load(in, "".toCharArray)}
+        for (in <- resource.managed(new FileInputStream(keyStoreFile))) {keyStore.load(in, "".toCharArray)}
       }
       Some(keyStore)
     } catch {

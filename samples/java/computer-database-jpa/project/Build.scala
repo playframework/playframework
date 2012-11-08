@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 object ApplicationBuild extends Build {
 
@@ -8,13 +8,13 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-      java,
+      javaCore,
       javaJdbc,
       javaJpa,
       "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies).settings(
+    val main = play.Project(appName, appVersion, appDependencies).settings(
       ebeanEnabled := false   
     )
 

@@ -5,7 +5,16 @@ import PlayKeys._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper =>
-
+  
+  protected def whichLang(name: String): Seq[Setting[_]] = {
+    if (name == JAVA) {
+      defaultJavaSettings
+    } else if (name == SCALA) {
+      defaultScalaSettings
+    } else {
+      Seq.empty
+    }
+  }
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
     templatesImport ++= Seq(
@@ -97,14 +106,6 @@ trait PlaySettings {
     parallelExecution in Test := false,
 
     fork in Test := false,
-
-    testOptions in Test += Tests.Setup { loader =>
-      loader.loadClass("play.api.Logger").getMethod("init", classOf[java.io.File]).invoke(null, new java.io.File("."))
-    },
-
-    testOptions in Test += Tests.Cleanup { loader =>
-      loader.loadClass("play.api.Logger").getMethod("shutdown").invoke(null)
-    },
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
 

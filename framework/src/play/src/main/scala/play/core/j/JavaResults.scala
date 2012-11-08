@@ -5,9 +5,7 @@ import play.api.http._
 import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._
-import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie }
-
-import play.api.libs.concurrent.execution.defaultContext
+import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
 
 /**
  * Java compatible Results
@@ -45,10 +43,24 @@ object JavaResultExtractor {
     case PlainResult(_, headers) => new JCookies {
       def get(name: String) = {
         Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
-          new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)
+          new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)
         }.getOrElse(null)
       }
     }
+  }
+
+  def getSession(result: play.mvc.Result): JSession = result.getWrappedResult match {
+    case r: AsyncResult => getSession(new ResultWrapper(r.result.await.get))
+    case PlainResult(_, headers) => new JSession(Session.decodeFromCookie(
+      Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
+    ).data.asJava)
+  }
+
+  def getFlash(result: play.mvc.Result): JFlash = result.getWrappedResult match {
+    case r: AsyncResult => getFlash(new ResultWrapper(r.result.await.get))
+    case PlainResult(_, headers) => new JFlash(Flash.decodeFromCookie(
+      Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
+    ).data.asJava)
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
@@ -60,7 +72,7 @@ object JavaResultExtractor {
     case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
-      bodyEnumerator(readAsBytes).flatMap(_.run).value1.get
+      bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.internalContext).value1.get
     }
   }
 

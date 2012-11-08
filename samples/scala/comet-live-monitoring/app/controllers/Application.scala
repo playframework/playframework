@@ -6,6 +6,7 @@ import play.api.libs._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
+import play.api.libs.concurrent.Execution.Implicits._ 
 import scala.concurrent.stm._
 
 object Application extends Controller {
