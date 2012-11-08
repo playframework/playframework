@@ -21,35 +21,32 @@ object JsMacrosSpec extends Specification {
     "create a reads[User]" in {
       import play.api.libs.json.Json
       import play.api.libs.json.util._
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.Reads._
 
       //object User {def apply(age:Int):User = User(age,"")}
-      implicit val userReads = JsMacros.reads[User]
+      implicit val userReads = Json.reads[User]
 
       Json.fromJson[User](Json.obj("name" -> "toto", "age" -> 45)) must beEqualTo(JsSuccess(User(45, "toto")))
     }
 
     "create a writes[User]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Writes._
 
-      implicit val userWrites = JsMacros.writes[User]
+      implicit val userWrites = Json.writes[User]
 
       Json.toJson(User(45, "toto")) must beEqualTo(Json.obj("name" -> "toto", "age" -> 45))
     }
 
     "create a format[User]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
       import play.api.libs.json.Writes._
       import play.api.libs.json.Format._
 
-      implicit val userFormat = JsMacros.format[User]
+      implicit val userFormat = Json.format[User]
 
       Json.fromJson[User](Json.obj("name" -> "toto", "age" -> 45)) must beEqualTo(JsSuccess(User(45, "toto")))
       Json.toJson(User(45, "toto")) must beEqualTo(Json.obj("name" -> "toto", "age" -> 45))
@@ -58,12 +55,11 @@ object JsMacrosSpec extends Specification {
 
     "create a reads[Dog]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
 
-      implicit val userReads = JsMacros.reads[User]
-      implicit val dogReads = JsMacros.reads[Dog]
+      implicit val userReads = Json.reads[User]
+      implicit val dogReads = Json.reads[Dog]
 
       Json.fromJson[Dog](
         Json.obj(
@@ -76,12 +72,11 @@ object JsMacrosSpec extends Specification {
 
     "create a writes[Dog]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Writes._
 
-      implicit val userWrites = JsMacros.writes[User]
-      implicit val dogWrites = JsMacros.writes[Dog]
+      implicit val userWrites = Json.writes[User]
+      implicit val dogWrites = Json.writes[Dog]
 
       Json.toJson(Dog("medor", User(45, "toto"))) must beEqualTo(
         Json.obj(
@@ -93,14 +88,13 @@ object JsMacrosSpec extends Specification {
 
     "create a format[Dog]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
       import play.api.libs.json.Writes._
       import play.api.libs.json.Format._
 
-      implicit val userFormat = JsMacros.format[User]
-      implicit val dogFormat = JsMacros.format[Dog]
+      implicit val userFormat = Json.format[User]
+      implicit val dogFormat = Json.format[Dog]
 
       Json.fromJson[Dog](
         Json.obj(
@@ -119,12 +113,11 @@ object JsMacrosSpec extends Specification {
 
     "create a reads[RecUser]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
 
-      implicit val catReads = JsMacros.reads[Cat]
-      implicit val recUserReads = JsMacros.reads[RecUser]
+      implicit val catReads = Json.reads[Cat]
+      implicit val recUserReads = Json.reads[RecUser]
 
       Json.fromJson[RecUser](
         Json.obj(
@@ -148,12 +141,11 @@ object JsMacrosSpec extends Specification {
 
     "create a writes[RecUser]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Writes._
 
-      implicit val catWrites = JsMacros.writes[Cat]
-      implicit val recUserWrites = JsMacros.writes[RecUser]
+      implicit val catWrites = Json.writes[Cat]
+      implicit val recUserWrites = Json.writes[RecUser]
 
       Json.toJson(
         RecUser(
@@ -175,14 +167,13 @@ object JsMacrosSpec extends Specification {
 
     "create a format[RecUser]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
       import play.api.libs.json.Writes._
       import play.api.libs.json.Format._
 
-      implicit val catFormat = JsMacros.format[Cat]
-      implicit val recUserFormat = JsMacros.format[RecUser]
+      implicit val catFormat = Json.format[Cat]
+      implicit val recUserFormat = Json.format[RecUser]
 
       Json.fromJson[RecUser](
         Json.obj(
@@ -222,11 +213,10 @@ object JsMacrosSpec extends Specification {
 
     "create a reads[User1]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
 
-      implicit val userReads = JsMacros.reads[User1]
+      implicit val userReads = Json.reads[User1]
 
       Json.fromJson[User1](
         Json.obj(
@@ -245,11 +235,10 @@ object JsMacrosSpec extends Specification {
 
     "create a writes[User1]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Writes._
 
-      implicit val userWrites = JsMacros.writes[User1]
+      implicit val userWrites = Json.writes[User1]
 
 
       Json.toJson(
@@ -268,13 +257,12 @@ object JsMacrosSpec extends Specification {
 
     "create a format[User1]" in {
       import play.api.libs.json.Json
-      import play.api.libs.json.experimental.JsMacros
       import play.api.libs.json.util._
       import play.api.libs.json.Reads._
       import play.api.libs.json.Writes._
       import play.api.libs.json.Format._
 
-      implicit val userFormat = JsMacros.format[User1]
+      implicit val userFormat = Json.format[User1]
 
       Json.fromJson[User1](
         Json.obj(
