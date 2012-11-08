@@ -22,14 +22,9 @@ public class Classpath {
      * @return a set of types names satisfying the condition
      */
     public static Set<String> getTypes(Application app, String packageName) {
-        return new Reflections(
-      		new ConfigurationBuilder()
-        		.addUrls(ClasspathHelper.forPackage(packageName, app.classloader()))
-        		.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
-        		.setScanners(new TypesScanner())
-        ).getStore().get(TypesScanner.class).keySet();
+        return getReflections(app, packageName).getStore().get(TypesScanner.class).keySet();
     }
-    
+
     /**
      * Scans the application classloader to retrieve all types annotated with a specific annotation.
      * <p>
@@ -43,11 +38,19 @@ public class Classpath {
      * @return a set of types names statifying the condition
      */
     public static Set<String> getTypesAnnotatedWith(Application app, String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
-        return new Reflections(
-      		new ConfigurationBuilder()
-        		.addUrls(ClasspathHelper.forPackage(packageName, app.classloader()))
-        		.setScanners(new TypeAnnotationsScanner())
-        ).getStore().getTypesAnnotatedWith(annotation.getName());
+        return getReflections(app, packageName).getStore().getTypesAnnotatedWith(annotation.getName());
+    }
+
+    private static Reflections getReflections(Application app, String packageName) {
+        if (app.isTest()) {
+            return ReflectionsCache$.MODULE$.getReflections(app.classloader(), packageName);
+        } else {
+            return new Reflections(
+                new ConfigurationBuilder()
+                    .addUrls(ClasspathHelper.forPackage(packageName, app.classloader()))
+                    .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
+                    .setScanners(new TypesScanner(), new TypeAnnotationsScanner()));
+        }
     }
 
 }
