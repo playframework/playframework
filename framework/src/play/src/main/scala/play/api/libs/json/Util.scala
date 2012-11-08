@@ -1,5 +1,15 @@
 package play.api.libs.json.util
 
+trait LazyHelper[M[_], T] {
+  def lazyStuff: M[T]
+}
+
+object LazyHelper{
+  def apply[M[_], T](stuff: M[T]) = new LazyHelper[M, T] {
+    override lazy val lazyStuff = stuff
+  }
+}
+
 class FunctorOps[M[_],A](ma: M[A])(implicit fu: Functor[M]){
 
   def fmap[B](f: A => B):M[B] = fu.fmap(ma, f)
