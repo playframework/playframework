@@ -58,9 +58,11 @@ object ResultsSpec extends Specification {
       val setCookies = Cookies.decode(headers("Set-Cookie")).map(c => c.name -> c).toMap
       setCookies.size must be_==(4)
       setCookies("session").value must be_==("items2")
+      setCookies("session").maxAge must beNone
       setCookies("preferences").value must be_==("blue")
       setCookies("lang").value must be_==("fr")
-      setCookies("logged").maxAge must be_==(0)
+      // Should be beSome(-1) once https://github.com/netty/netty/issues/712 is fixed
+      setCookies("logged").maxAge must beSome(0)
     }
 
 
@@ -97,7 +99,8 @@ object ResultsSpec extends Specification {
       setCookies("session").value must be_==("items2")
       setCookies("preferences").value must be_==("blue")
       setCookies("lang").value must be_==("fr")
-      setCookies("logged").maxAge must be_==(0)
+      // Should be beSome(-1) once https://github.com/netty/netty/issues/712 is fixed
+      setCookies("logged").maxAge must beSome(0)
       val playSession = Session.decodeFromCookie(setCookies.get(Session.COOKIE_NAME))
       playSession.data.size must be_==(2)
       playSession.data must havePair("user" -> "kiki")

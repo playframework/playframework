@@ -355,9 +355,9 @@ package play.api.mvc {
     def httpOnly = true
 
     /**
-     * The cookie expiration date in seconds, `-1` for a transient cookie
+     * The cookie expiration date in seconds, `None` for a transient cookie
      */
-    def maxAge = -1
+    def maxAge: Option[Int] = None
 
     /**
      * The cookie domain. Defaults to None.
@@ -515,7 +515,7 @@ package play.api.mvc {
     val emptyCookie = new Session
     override val isSigned = true
     override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
-    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
+    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge"))
     override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
     override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
     override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
@@ -596,13 +596,13 @@ package play.api.mvc {
    *
    * @param name the cookie name
    * @param value the cookie value
-   * @param maxAge the cookie expiration date in seconds, `-1` for a transient cookie, or `0` for a cookie that expires now
+   * @param maxAge the cookie expiration date in seconds, `None` for a transient cookie, or a value less than 0 to expire a cookie now
    * @param path the cookie path, defaulting to the root path `/`
    * @param domain the cookie domain
    * @param secure whether this cookie is secured, sent only for HTTPS requests
    * @param httpOnly whether this cookie is HTTP only, i.e. not accessible from client-side JavaScipt code
    */
-  case class Cookie(name: String, value: String, maxAge: Int = -1, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
+  case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
 
   /**
    * A cookie to be discarded.  This contains only the data necessary for discarding a cookie.
@@ -613,7 +613,7 @@ package play.api.mvc {
    * @param secure whether this cookie is secured
    */
   case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-    def toCookie = Cookie(name, "", 0, path, domain, secure)
+    def toCookie = Cookie(name, "", Some(-1), path, domain, secure)
   }
 
   /**
@@ -659,7 +659,6 @@ package play.api.mvc {
      * Encodes cookies as a proper HTTP header.
      *
      * @param cookies the Cookies to encode
-     * @param discard discard these cookies as well
      * @return a valid Set-Cookie header value
      */
     def encode(cookies: Seq[Cookie]): String = {
@@ -667,7 +666,7 @@ package play.api.mvc {
       val newCookies = cookies.map{c =>
         encoder.addCookie {
           val nc = new DefaultCookie(c.name, c.value)
-          nc.setMaxAge(c.maxAge)
+          nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
           nc.setPath(c.path)
           c.domain.map(nc.setDomain(_))
           nc.setSecure(c.secure)
@@ -687,7 +686,7 @@ package play.api.mvc {
      */
     def decode(cookieHeader: String): Seq[Cookie] = {
       new CookieDecoder().decode(cookieHeader).asScala.map { c =>
-        Cookie(c.getName, c.getValue, c.getMaxAge, Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+        Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
       }.toSeq
     }
 

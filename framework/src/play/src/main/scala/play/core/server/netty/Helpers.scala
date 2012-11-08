@@ -43,7 +43,8 @@ private[netty] trait Helpers {
     val cookies: Map[String, play.api.mvc.Cookie] = getHeaders(nettyRequest).get(play.api.http.HeaderNames.COOKIE).map { cookiesHeader =>
       new CookieDecoder().decode(cookiesHeader).asScala.map { c =>
         c.getName -> play.api.mvc.Cookie(
-          c.getName, c.getValue, c.getMaxAge, Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+          c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge),
+          Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
       }.toMap
     }.getOrElse(Map.empty)
 
