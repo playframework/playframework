@@ -108,19 +108,18 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   val buildRequire = TaskKey[Seq[(JFile, JFile)]]("play-build-require-assets")
-  val buildRequireTask = (copyResources in Compile, crossTarget, requireJsSupport, requireNativePath, streams) map { (cr, crossTarget, requireJsSupport, requireNativePath,  s) =>
+  val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireNativePath,  s) =>
     val buildDescName = "app.build.js"
-    val jsFolder = "javascripts" 
+    val jsFolder = "javascripts"
     val rjoldDir = crossTarget / "classes" / "public" / jsFolder
-    val jsFiles = (rjoldDir ** "*.js").filter(_.getName.endsWith("min.js") == false).get.toSet
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
-    if (jsFiles.isEmpty == false && requireJsSupport) {
+    if (requireJs.isEmpty == false) {
       val rjnewDir = new JFile(rjoldDir.getAbsolutePath + "-min")
-      val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
+      val relativeModulePath = (str: String) => str.replace(".js", "")
       val content =  """({appDir: """" + jsFolder + """",
           baseUrl: ".",
           dir:"""" + rjnewDir.getName + """",
-          modules: [""" + jsFiles.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
+          modules: [""" + requireJs.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
 
       IO.write(buildDesc,content)
       //run requireJS

@@ -20,7 +20,7 @@ trait PlayKeys {
 
   val playDefaultPort = SettingKey[Int]("play-default-port")
 
-  val requireJsSupport = SettingKey[Boolean]("play-require-js")
+  val requireJs = SettingKey[Seq[String]]("play-require-js")
 
   val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
 
