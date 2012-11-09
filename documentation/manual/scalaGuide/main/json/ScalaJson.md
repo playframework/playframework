@@ -4,7 +4,7 @@
 
 The recommend way of dealing with JSON is using Play’s typeclass based JSON library, located at ```play.api.libs.json```. 
 
-This library is built on top of the super-fast Java based JSON library, [Jackson](http://jackson.codehaus.org/). 
+This library is built on top of [Jerkson](https://github.com/codahale/jerkson/), which is a Scala wrapper around the super-fast Java based JSON library, [Jackson](http://jackson.codehaus.org/). 
 
 The benefit of this approach is that both the Java and the Scala side of Play can share the same underlying library (Jackson), while Scala users can enjoy the extra type safety that Play’s JSON support brings to the table.
 
@@ -35,11 +35,11 @@ As soon as you have a `JsValue` you can navigate into the tree. The API looks li
 ```
 val json = Json.parse(jsonString)
 
-val maybeName = (json \ "user" \ "name").asOpt[String]
-val emails = (json \ "user" \\\\ "emails").map(_.as[String])
+val maybeName = (json \ "user" \ name).asOpt[String]
+val emails = (json \ "user" \\ "emails").map(_.as[String])
 ```
 
-> **Note** that navigating using \ and \\\\ never fails. You must handle the error case at the end using `asOpt[T]` that will return `None` if the value is missing. Otherwiser you can use `as[T]` that we fail with an exception if the value was missing.
+> **Note** that navigating using \ and \\ never fails. You must handle the error case at the end using `asOpt[T]` that will return `None` if the value is missing. Otherwiser you can use `as[T]` that we fail with an exception if the value was missing.
 
 ## Converting a Scala value to Json
 
@@ -55,7 +55,7 @@ Or create a json array:
 val jsonArray = Json.toJson(Seq(1, 2, 3, 4))
 ```
 
-Here we have no problem to convert a `Seq[Int]` into a Json array. However it is more complicated if the `Seq` contains heterogeneous values:
+Here we have no problem to convert a `Seq[Int]` into a Json array. However it is more complicated if the `Seq` contains heterogeous values:
 
 ```
 val jsonArray = Json.toJson(Seq(1, "Bob", 3, 4))
@@ -115,33 +115,37 @@ That will generate this Json result:
 }
 ```
 
-## Another way of constructing Json
-
-The above Json object can be created in other ways too. Here is an alternative approach.
-```
-    JsObject(
-      "users" -> JsArray(
-        JsObject(
-          "name" -> JsString("Bob") ::
-          "age" -> JsNumber(31) ::
-          "email" -> JsString("bob@gmail.com") ::
-          Nil) ::
-        JsObject(
-          "name" -> JsString("Kiki") ::
-          "age" -> JsNumber(25) ::
-          "email" -> JsNull ::
-          Nil
-        ) :: Nil
-      ) :: Nil
-    )
-```
-
 ## Serializing Json
 
 Serializing a `JsValue` to its json String representation is easy:
 
 ```
 val jsonString: String = Json.stringify(jsValue)
+```
+
+## Other options
+
+While the typeclass based solution describe above is the on that's recommended, nothing stopping users from using any other JSON libraries if needed.
+
+For example, here is a small snippet which demonstrates how to marshal plain scala objects into JSON and send it over the wire using the bundled, reflection based [[Jerkson | https://github.com/codahale/jerkson/]] library:
+
+```scala
+import com.codahale.jerkson.Json._
+
+val json = generate(
+  Map( 
+    "url"-> "http://nytimes.com",
+    "attributes" -> Map(
+      "name" -> "nytimes", 
+      "country" -> "US",
+      "id" -> 25
+    ), 
+    "links" -> List(
+      "http://link1",
+      "http://link2"
+    )
+  )
+)
 ```
 
 > **Next:** [[Handling and serving Json requests | ScalaJsonRequests]]

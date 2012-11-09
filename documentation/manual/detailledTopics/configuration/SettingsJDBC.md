@@ -1,6 +1,6 @@
 # Configuring the JDBC pool.
 
-The Play JDBC datasource is managed by [[BoneCP | http://jolbox.com/]]. 
+The Play 2.0 JDBC datasource is managed by [[BoneCP | http://jolbox.com/]]. 
 
 ## Special URLs
 

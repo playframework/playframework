@@ -24,17 +24,12 @@ The Iteratee interface `Iteratee[E,A]` takes two type parameters, `E` representi
 An iteratee has one of three states, `Cont` meaning accepting more input, `Error` to indicate an error state and `Done` which carries the calculated result. These three states are defined by the `fold` method of an `Iteratee[E,A]` interface:
 
 ```scala
-def fold[B](folder: Step[E, A] => Promise[B]): Promise[B]
+def fold[B](
+  done: (A, Input[E]) => Promise[B],
+  cont: (Input[E] => Iteratee[E, A]) => Promise[B],
+  error: (String, Input[E]) => Promise[B]
+): Promise[B]
 ```
-where `Step`  object has 3 states :
-```scala
-object Step {
-  case class Done[+A, E](a: A, remaining: Input[E]) extends Step[E, A]
-  case class Cont[E, +A](k: Input[E] => Iteratee[E, A]) extends Step[E, A]
-  case class Error[E](msg: String, input: Input[E]) extends Step[E, Nothing]
-}
-```
-
 
 The fold method defines an iteratee as one of the three mentioned states. It accepts three callback functions and will call the appropriate one depending on its state to eventually extract a required value. When calling `fold` on an iteratee you are basically saying:
 
@@ -64,9 +59,9 @@ By implementing the iteratee, and more specifically its fold method, we can now 
 ```scala
 val doneIteratee = new Iteratee[String,Int] {
   def fold[B](
-    done: (Int, Input[String]) => Promise[B],
-    cont: (Input[String] => Iteratee[String, Int]) => Promise[B],
-    error: (String, Input[String]) => Promise[B]): Promise[B] = done(1,Input.Empty)
+    done: (A, Input[E]) => Promise[B],
+    cont: (Input[E] => Iteratee[E, A]) => Promise[B],
+    error: (String, Input[E]) => Promise[B]): Promise[B] = done(1,Input.Empty)
 }
 ```
 

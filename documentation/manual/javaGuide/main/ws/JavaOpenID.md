@@ -20,8 +20,6 @@ The OpenID API has two important functions:
 
 In any case, you should catch exceptions and if one is thrown redirect back the user to the login page with relevant information.
 
-**Attention**: as of today (2012-07-02) the UserInfo in Java always returns null for the ID - Ticket is [here](https://play.lighthouseapp.com/projects/82401-play-20/tickets/578-202-java-openid-userinfo-id-always-null).
-
 ## Extended Attributes
 
 The OpenID of a user gives you his identity. The protocol also support getting [[extended attributes | http://openid.net/specs/openid-attribute-exchange-1_0.html]] such as the email address, the first name, the last name...
@@ -35,7 +33,7 @@ Map<String, String> attributes = new HashMap<String, String>();
 attributes.put("email", "http://schema.openid.net/contact/email");
 OpenID.redirectURL(
   openid, 
-  routes.Application.openIDCallback.absoluteURL(request()), 
+  routes.Application.openIDCallback.absoluteURL(), 
   attributes
 );
 ```

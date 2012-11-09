@@ -20,28 +20,23 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq()
   
-  val mySubProject = Project("my-library", file("myLibrary"))
+  val mySubProject = Project("my-library", file("modules/myLibrary"))
 
   val main = PlayProject(
-    appName, appVersion, appDependencies, path = file("myProject"), mainLang = JAVA
+    appName, appVersion, appDependencies
   ).dependsOn(mySubProject)
 }
 ```
 
-Here we have defined a sub-project in the application’s `myLibrary` folder. This sub-project is a standard sbt project, using the default layout:
+Here we have defined a sub-project in the application’s `modules/myLibrary` folder. This sub-project is a standard sbt project, using the default layout:
 
 ```
-myProject
- └ app
- └ conf
- └ public
-myLibrary
- └ src
-    └ main
-       └ java
-       └ scala
-project
- └ Build.scala
+modules
+ └ myLibrary
+    └ src
+       └ main
+          └ java
+          └ scala 
 ```
 
 When you have a sub-project enabled in your build, you can focus on this project and compile, test or run it individually. Just use the `projects` command in the Play console prompt to display all projects:
@@ -53,7 +48,7 @@ When you have a sub-project enabled in your build, you can focus on this project
 [info] 	   my-library
 ```
 
-The default project is the one whose variable name comes first alphabetically.  You may make your main project by making its variable name aaaMain.  To change the current project use the `project` command:
+To change the current project use the `project` command:
 
 ```
 [my-first-application] $ project my-library
@@ -82,19 +77,19 @@ object ApplicationBuild extends Build {
   val appVersion = "1.2"
 
   val common = PlayProject(
-    appName + "-common", appVersion, path = file("common")
+    appName + "-common", appVersion, path = file("modules/common")
   )
   
   val website = PlayProject(
-    appName + "-website", appVersion, path = file("website")
+    appName + "-website", appVersion, path = file("modules/website")
   ).dependsOn(common)
   
   val adminArea = PlayProject(
-    appName + "-admin", appVersion, path = file("admin")
+    appName + "-admin", appVersion, path = file("modules/admin")
   ).dependsOn(common)
   
   val main = PlayProject(
-    appName, appVersion, path = file("main")
+    appName, appVersion
   ).dependsOn(
     website, adminArea
   )
@@ -106,11 +101,12 @@ Here we define a complete project split in two main parts: the website and the a
 If you would like the dependent projects to be recompiled and tested when you recompile and test the main project then you will need to add an "aggregate" clause.
 
 ```
-val main = PlayProject(
-  appName, appVersion
-).dependsOn(
-  website, adminArea
-).aggregate(
-  website, adminArea
-)
+  val main = PlayProject(
+    appName, appVersion
+  ).dependsOn(
+    website, adminArea
+  ).aggregate(
+    website, adminArea
+  )
+}
 ```

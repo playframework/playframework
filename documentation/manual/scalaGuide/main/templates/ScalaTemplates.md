@@ -2,80 +2,69 @@
 
 ## A type safe template engine based on Scala
 
-Play 2.0 comes with a new and really powerful Scala-based template engine, whose design was inspired by ASP.NET Razor. Specifically it is:
+Play 2.0 comes with a new and really powerful Scala-based template engine. This new template engine’s design was inspired by ASP.NET Razor. Specifically it is:
 
 - **compact, expressive, and fluid**: it minimizes the number of characters and keystrokes required in a file, and enables a fast, fluid coding workflow. Unlike most template syntaxes, you do not need to interrupt your coding to explicitly denote server blocks within your HTML. The parser is smart enough to infer this from your code. This enables a really compact and expressive syntax which is clean, fast and fun to type.
-- **easy to learn**: it allows you to quickly become productive, with a minimum of concepts. You use simple Scala constructs and all your existing HTML skills.
-- **not a new language**: we consciously chose not to create a new language. Instead we wanted to enable Scala developers to use their existing Scala language skills, and deliver a template markup syntax that enables an awesome HTML construction workflow.
+- **easy to learn**: it enables you to quickly be productive with a minimum of concepts. You use all your existing Scala language and HTML skills.
+- **not a new language**: we consciously chose not to create a new language. Instead we wanted to enable developers to use their existing Scala language skills, and deliver a template markup syntax that enables an awesome HTML construction workflow with your language of choice.
 - **editable in any text editor**: it doesn’t require a specific tool and enables you to be productive in any plain old text editor.
 
-&nbsp;
+Templates are compiled, so you will see any errors right in your browser:
 
-> **Note:** Even though the template engine uses Scala as expression language, this is not a problem for Java developers. You can almost use it as if the language were Java. 
-> 
-> Remember that a template is not a place to write complex logic. You don’t have to write complicated Scala code here. Most of the time you will just access data from your model objects, as follows:
->
-> ```
-> myUser.getProfile().getUsername()
-> ```
-> Parameter types are specified using a suffix syntax. Generic types are specified using the `[]` symbols instead of the usual `<>` Java syntax. For example, you write `List[String]`, which is the same as `List<String>` in Java.
-
-Templates are compiled, so you will see any errors in your browser:
-
-![tempaltesyntax](https://raw.github.com/wiki/playframework/Play20/javaGuide/main/templates/images/templatesError.png)
+[[images/templatesError.png]]
 
 ## Overview
 
-A Play Scala template is a simple text file that contains small blocks of Scala code. Templates can generate any text-based format, such as HTML, XML or CSV.
+A Play Scala template is a simple text file, that contains small blocks of Scala code. They can generate any text-based format, such as HTML, XML or CSV.
 
-The template system has been designed to feel comfortable to those used to working with HTML, allowing front-end developers to easily work with the templates.
+The template system has been designed to feel comfortable to those used to dealing with HTML, allowing web designers to easily work with the templates.
 
-Templates are compiled as standard Scala functions, following a simple naming convention. If you create a `views/Application/index.scala.html` template file, it will generate a `views.html.Application.index` class that has a `render()` method.
+Templates are compiled as standard Scala functions, following a simple naming convention: If you create a `views/Application/index.scala.html` template file, it will generate a `views.html.Application.index` function.
 
 For example, here is a simple template:
 
 ```html
-@(customer: Customer, orders: List[Order])
+@(customer: Customer, orders: Seq[Order])
  
 <h1>Welcome @customer.name!</h1>
 
 <ul> 
-@for(order <- orders) {
-  <li>@order.getTitle()</li>
+@orders.map { order =>
+  <li>@order.title</li>
 } 
 </ul>
 ```
 
-You can then call this from any Java code as you would normally call a method on a class:
+You can then call this from any Scala code as you would call a function:
 
-```java
-Content html = views.html.Application.index.render(customer, orders);
+```scala
+val html = views.html.Application.index(customer, orders)
 ```
 
 ## Syntax: the magic ‘@’ character
 
-The Scala template uses `@` as the single special character. Every time this character is encountered, it indicates the beginning of a dynamic statement. You are not required to explicitly close the code block - the end of the dynamic statement will be inferred from your code:
+The Scala template uses `@` as the single special character. Every time this character is encountered, it indicates the begining of a Scala statement. It does not require you to explicitly close the code-block - this will be inferred from your code:
 
 ```
-Hello @customer.getName()!
-       ^^^^^^^^^^^^^^^^^^
-          Dynamic code
+Hello @customer.name!
+       ^^^^^^^^^^^^^
+        Scala code
 ```
 
 Because the template engine automatically detects the end of your code block by analysing your code, this syntax only supports simple statements. If you want to insert a multi-token statement, explicitly mark it using brackets:
 
 ```
-Hello @(customer.getFirstName() + customer.getLastName())!
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
-                          Dynamic Code
+Hello @(customer.firstName + customer.lastName)!
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+                    Scala Code
 ```
 
-You can also use curly brackets, to write a multi-statement block:
+You can also use curly brackets, as in plain Scala code, to write a multi-statements block:
 
 ```
-Hello @{val name = customer.getFirstName() + customer.getLastName(); name}!
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                  Dynamic Code
+Hello @{val name = customer.firstName + customer.lastName; name}!
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                             Scala Code
 ```
 
 Because `@` is a special character, you’ll sometimes need to escape it. Do this by using `@@`:
@@ -86,10 +75,10 @@ My email is bob@@example.com
 
 ## Template parameters
 
-A template is like a function, so it needs parameters, which must be declared at the top of the template file:
+A template is simply a function, so it needs parameters, which must be declared on the first line of the template file:
 
 ```scala
-@(customer: models.Customer, orders: List[models.Order])
+@(customer: models.Customer, orders: Seq[models.Order])
 ```
 
 You can also use default values for parameters:
@@ -104,14 +93,30 @@ Or even several parameter groups:
 @(title:String)(body: Html)
 ```
 
+And even implicit parameters:
+
+```scala
+@(title: String)(body: Html)(implicit request: RequestHeader)
+```
+
 ## Iterating
 
-You can use the `for` keyword, in a pretty standard way:
+You can use the Scala for-comprehension, in a pretty standard way. But note that the template compiler will add a `yield` keyword before your block:
 
 ```html
 <ul>
 @for(p <- products) {
-  <li>@p.getName() ($@p.getPrice())</li>
+  <li>@p.name ($@p.price)</li>
+} 
+</ul>
+```
+
+As you probably know, this for-comprehension is just syntactic sugar for a classic map:
+
+```html
+<ul>
+@products.map { p =>
+  <li>@p.name ($@p.price)</li>
 } 
 </ul>
 ```
@@ -121,10 +126,28 @@ You can use the `for` keyword, in a pretty standard way:
 If-blocks are nothing special. Simply use Scala’s standard `if` statement:
 
 ```html
-@if(items.isEmpty()) {
+@if(items.isEmpty) {
   <h1>Nothing to display</h1>
 } else {
-  <h1>@items.size() items!</h1>
+  <h1>@items.size items!</h1>
+}
+```
+
+## Pattern matching
+
+You can also use pattern matching in your templates:
+
+```html
+@connected match {
+    
+  case models.Admin(name) => {
+    <span class="admin">Connected as admin (@name)</span>
+  }
+
+  case models.User(name) => {
+    <span>Connected as @name</span>
+  }
+    
 }
 ```
 
@@ -134,17 +157,17 @@ You can create reusable code blocks:
 
 ```html
 @display(product: models.Product) = {
-  @product.getName() ($@product.getPrice())
+  @product.name ($@product.price)
 }
  
 <ul>
-@for(product <- products) {
-  @display(product)
+@products.map { p =>
+  @display(product = p)
 } 
 </ul>
 ```
 
-Note that you can also declare reusable pure code blocks:
+Note that you can also declare reusable pure Scala blocks:
 
 ```html
 @title(text: String) = @{
@@ -154,9 +177,9 @@ Note that you can also declare reusable pure code blocks:
 <h1>@title("hello world")</h1>
 ```
 
-> **Note:** Declaring code block this way in a template can be sometime useful but keep in mind that a template is not the best place to write complex logic. It is often better to externalize these kind of code in a Java class (that you can store under the `views/` package as well if your want).
+> **Note:** Declaring Scala block this way in a template can be sometimes useful but keep in mind that a template is not the best place to write complex logic. It is often better to externalize these kind of code in a pure scala source file (that you can store under the `views/` package as well if you want).
 
-By convention a reusable block defined with a name starting with **implicit** will be marked as `implicit`:
+By convention, a reusable block defined with a name starting with **implicit** will be marked as `implicit`:
 
 ```
 @implicitFieldConstructor = @{ MyFieldConstructor() }
@@ -167,7 +190,7 @@ By convention a reusable block defined with a name starting with **implicit** wi
 You can define scoped values using the `defining` helper:
 
 ```html
-@defining(user.getFirstName() + " " + user.getLastName()) { fullName =>
+@defining(user.firstName + " " + user.lastName) { fullName =>
   <div>Hello @fullName</div>
 }
 ```
@@ -177,25 +200,11 @@ You can define scoped values using the `defining` helper:
 You can import whatever you want at the beginning of your template (or sub-template):
 
 ```scala
-@(customer: models.Customer, orders: List[models.Order])
+@(customer: models.Customer, orders: Seq[models.Order])
  
 @import utils._
  
 ...
-```
-
-To make an absolute resolution, use **_root_** prefix in the import statement.
-
-```scala
-@import _root_.company.product.core._
-```
-
-If you have common imports, which you need in all templates, you can declare in `project/Build.scala`
-
-```
-val main = PlayProject(…).settings(
-  templatesImport += "com.abc.backend._"
-)
 ```
 
 ## Comments
@@ -223,7 +232,7 @@ You can put a comment on the first line to document your template into the Scala
 
 ## Escaping
 
-By default, dynamic content parts are escaped according to the template type’s (e.g. HTML or XML) rules. If you want to output a raw content fragment, wrap it in the template content type. 
+By default, the dynamic content parts are escaped according the template type (e.g. HTML or XML) rules. If you want to output a raw content fragment, wrap it in the template content type. 
 
 For example to output raw HTML:
 

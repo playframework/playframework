@@ -2,6 +2,7 @@
 
 - [[The Play Json library | ScalaJson]]
 - [[Handling and serving Json requests | ScalaJsonRequests]]
+- [[The Play JSON library with generics | ScalaJsonGenerics]]
 
 ### Main concepts
 

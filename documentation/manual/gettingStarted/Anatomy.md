@@ -1,8 +1,8 @@
-# Anatomy of a Play application
+# Anatomy of a Play 2.0 application
 
 ## The standard application layout
 
-The layout of a Play application is standardized to keep things as simple as possible. After a first successful compile, a standard Play application looks like this:
+The layout of a Play application is standardized to keep things as simple as possible. A standard Play application looks like this:
 
 ```
 app                      → Application sources
@@ -27,7 +27,7 @@ lib                      → Unmanaged libraries dependencies
 logs                     → Standard logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
- └ scala-2.10.0            
+ └ scala-2.9.1              
     └ cache              
     └ classes            → Compiled class files
     └ classes_managed    → Managed class files (templates, ...)
@@ -48,7 +48,7 @@ There are three standard packages in the `app` directory, one for each component
 
 You can of course add your own packages, for example an `app/utils` package.
 
-> Note that in Play, the controllers, models and views package name conventions are now just that and can be changed if needed (such as prefixing everything with `com.yourcompany`).
+> Note that in Play 2.0, the controllers, models and views package name conventions are now just that and can be changed if needed (such as prefixing everything with `com.yourcompany`).
 
 There is also an optional directory called `app/assets` for compiled assets such as [[LESS sources | http://lesscss.org/]] and [[CoffeeScript sources | http://jashkenas.github.com/coffee-script/]].
 
@@ -81,7 +81,6 @@ The `project` directory contains the sbt build definitions:
 
 - `plugins.sbt` defines sbt plugins used by this project
 - `Build.scala` defines your application build script.
-- `build.properties` contains the sbt version to use to build your app.
 
 ## The target/ directory
 
@@ -102,8 +101,6 @@ project/project
 project/target
 target
 tmp
-dist
-.cache
 ```
 
-> **Next:** [[Using the Play console | PlayConsole ]]
+> **Next:** [[Using the Play 2.0 console | PlayConsole ]]

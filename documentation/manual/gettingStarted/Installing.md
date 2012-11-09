@@ -1,4 +1,4 @@
-# Installing Play
+# Installing Play 2.0
 
 ## Prerequisites
 
@@ -10,21 +10,19 @@ Be sure to have the `java` and `javac` commands in the current path (you can che
 
 ## Download the binary package
 
-Download the latest [[Play binary package | http://www.playframework.org/download]] (take the latest official version) and extract the archive to a location where you have both read **and write** access. (Running `play` writes some files to directories within the archive, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.)
+Download the [[Play 2.0 binary package | http://download.playframework.org/releases/]] (take the latest 2.0 RC) and extract the archive to a location where you have both read **and write** access. (Running `play` writes some files to directories within the archive, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.)
 
 ## Add the play script to your PATH
 
 For convenience, you should add the framework installation directory to your system PATH. On UNIX systems, this means doing something like:
 
 ```bash
-export PATH=$PATH:/relativePath/to/play
+export PATH=$PATH:/path/to/play20
 ```
 
 On Windows you’ll need to set it in the global environment variables. This means update the PATH in the environment variables and don't use a path with spaces.
 
 > If you’re on UNIX, make sure that the `play` script is executable (otherwise do a `chmod a+x play`).
-
-> If you behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
 
 ## Check that the play command is available
 

@@ -2,7 +2,7 @@
 
 ## Configuring JDBC connection pools
 
-Play 2.0 provides a plug-in for managing JDBC connection pools. You can configure as many databases as you need.
+Play 2.0 provides a plug-in for managing JDBC connection pools. You can configure as many databases you need.
 
 To enable the database plug-in, configure a connection pool in the `conf/application.conf` file. By convention, the default JDBC data source must be called `default` and the corresponding configuration properties are `db.default.driver` and `db.default.url`.
 
@@ -44,24 +44,6 @@ db.default.driver=org.postgresql.Driver
 db.default.url="jdbc:postgresql://database.example.com/playdb"
 ```
 
-### MySQL database engine connection properties
-
-```properties
-# Default database configuration using MySQL database engine
-# Connect to playdb as playdbuser
-db.default.driver=com.mysql.jdbc.Driver
-db.default.url="jdbc:mysql://localhost/playdb"
-db.default.user=playdbuser
-db.default.pass="a strong password"
-```
-
-## How to see SQL Statement in the console?
-
-```properties
-db.default.logStatements=true
-logger.com.jolbox=DEBUG // for EBean
-```
-
 ## How to configure several data sources
 
 ```properties
@@ -76,13 +58,13 @@ db.customers.url="jdbc:h2:mem:customers"
 
 ## Configuring the JDBC Driver
 
-Play 2.0 is bundled only with an [[H2 | http://www.h2database.com]] database driver. Consequently, to deploy in production you will need to add your database driver as a dependency.
+Play 2.0 in bundled only with an [[H2 | http://www.h2database.com]] database driver. Consequently, to deploy in production you will need to add your database driver as a dependency.
 
 For example, if you use MySQL5, you need to add a [[dependency | SBTDependencies]] for the connector:
 
 ```scala
 val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.21"
+  "mysql" % "mysql-connector-java" % "5.1.18"
 )
 ```
 
@@ -100,7 +82,7 @@ val ds = DB.getDataSource()
 
 ## Obtaining a JDBC connection
 
-There are several ways to retrieve a JDBC connection. The simplest way is:
+There is several ways to retrieve a JDBC connection. The first is the most simple:
 
 ```scala
 val connection = DB.getConnection()
@@ -128,7 +110,7 @@ The connection will be automatically closed at the end of the block.
 
 > **Tip:** Each `Statement` and `ResultSet` created with this connection will be closed as well.
 
-A variant is to set the connection's auto-commit to `false` and to manage a transaction for the block:
+A variant is to set the connection auto-commit to `false` automatically and to manage a transaction for the block:
 
 ```scala
 DB.withTransaction { conn =>

@@ -8,9 +8,6 @@ For example:
 
 ```java
 import play.*;
-import play.mvc.Action;
-import play.mvc.Http.Request;
-import java.lang.reflect.Method;
 
 public class Global extends GlobalSettings {
 

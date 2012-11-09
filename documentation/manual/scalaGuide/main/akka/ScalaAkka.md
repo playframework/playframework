@@ -29,18 +29,11 @@ akka.actor.debug.receive = on
 
 ## Converting Akka `Future` to Play `Promise`
 
-When you interact asynchronously with an Akka actor you will get a `Future` object. You can easily convert it to a Play `Promise` using the implicit conversion provided in `play.api.libs.concurrent._`:
+When you interact asynchronously with an Akka actor we will get `Future` object. You can easily convert it to a Play `Promise` using the implicit conversion provided in `play.api.libs.concurrent._`:
 
 ```scala
-import play.api.Play.current
-import akka.pattern.ask
-import akka.util.Timeout
-import akka.util.duration._
-import play.api.libs.concurrent._
-
 def index = Action {
   Async {
-    implicit  val timeout= Timeout(5.seconds)
     (myActor ? "hello").mapTo[String].asPromise.map { response =>
       Ok(response)      
     }    

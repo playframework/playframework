@@ -25,7 +25,7 @@ Promise<Result> promiseOfResult = promiseOfPIValue.map(
 );
 ```
 
-> **Note:** Writing functional composition in Java is really verbose for the moment, but it should be better when Java supports [[lambda notation| http://mail.openjdk.java.net/pipermail/lambda-dev/2011-September/003936.html]].
+> **Note:** Writing functional composition in Java is really verbose for at the moment, but it should be better when Java supports [[lambda notation| http://mail.openjdk.java.net/pipermail/lambda-dev/2011-September/003936.html]].
 
 Play 2.0 asynchronous API methods give you a `Promise`. This is the case when you are calling an external web service using the `play.libs.WS` API, or if you are using Akka to schedule asynchronous tasks or to communicate with Actors using `play.libs.Akka`.
 
@@ -47,9 +47,9 @@ Promise<Integer> promiseOfInt = Akka.future(
 
 While we were using `Results.Status` until now, to send an asynchronous result we need an `Results.AsyncResult` that wraps the actual result:
 
-```java
+```
 public static Result index() {
-  Promise<Integer> promiseOfInt = play.libs.Akka.future(
+  Promise<Integer> promiseOfInt = Akka.future(
     new Callable<Integer>() {
       public Integer call() {
         return intensiveComputation();

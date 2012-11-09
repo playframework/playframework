@@ -4,8 +4,6 @@ We use Lighthouse as our issue tracker, at:
 
 [[https://play.lighthouseapp.com/projects/82401-play-20/overview]].
 
-If you want to know which is the most watched bug, you can find it at [[http://lighthouse-stats.herokuapp.com/|http://lighthouse-stats.herokuapp.com/play/projects/82401/tickets/popular]]. So you can easily find the biggest problems for fixing.
-
 ## Reporting bugs
 
 Bug reports are incredibly helpful, so take time to report bugs and request features in our ticket tracker. We’re always grateful for patches to Play’s code. Indeed, bug reports with attached patches will get fixed far quickly than those without any.

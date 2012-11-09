@@ -28,7 +28,7 @@ The default is to load the `application.conf` file from the classpath. You can s
 
 ### Using `-Dconfig.resource`
 
-It will search for an alternative configuration file in the application classpath (you usually provide these alternative configuration files into your application `conf/` directory before packaging). Play will look into `conf/` so you don't have to add `conf/`.
+It will search for an alternative configuration file in the application classpath (you usually provide these alternative configuration files into your application `conf/` directory before packaging).
 
 ```
 $ start -Dconfig.resource=prod.conf
@@ -79,9 +79,6 @@ Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no
 
 ## Changing the logback configuration file
 
-### Bundling a custom logback configuration file with your application
-create an alternative logback config file called ```application-logger.xml``` and copy that to ```<app>/conf```
-
 You can also specify another logback configuration file via a System property.
 
 ### Using `-Dlogger.resource`
@@ -94,10 +91,10 @@ $ start -Dlogger.resource=conf/prod-logger.xml
 
 ### Using `-Dlogger.file`
 
-Specify another logback configuration file to be loaded from the file system:
+Specify another loback configuration file to be loaded from the file system:
 
 ```
-$ start -Dlogger.file=/opt/prod/prod-logger.xml
+$ start -Dlogger.file=/opt/prod/logger.xml
 ```
 
 ### Using `-Dlogger.url`
@@ -107,12 +104,3 @@ Specify another loback configuration file to be loaded from an URL:
 ```
 $ start -Dlogger.url=http://conf.mycompany.com/logger.xml
 ```
-
-## Changing the path of RUNNING_PID
-
-It is possible to change the file path to the created RUNNING_PID file which contains the process id of the started application. Normally this file is placed in the root directory of your play project.
-
-```
-$ start -Dpidfile.path=instance1
-```
-This changes the directory relative to the root folder. You could also use absolute paths. With this option it is possible to start multiple play instances without colliding RUNNING_PID files (actually play won't start another instance). Don't forget to create the directory.

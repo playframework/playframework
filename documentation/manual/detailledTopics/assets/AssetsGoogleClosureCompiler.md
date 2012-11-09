@@ -10,6 +10,59 @@ JavaScript code is compiled during the `compile` command, as well as automatical
 
 [[images/ClosureError.png]]
 
+## CommonJS-style dependencies
+
+Play’s Closure Compiler integration can also resolve dependencies that you declare with a CommonJS style, similarly to [RequireJS](http://requirejs.org/).
+
+Consider the `lib.js` file:
+
+```
+// The lib
+
+function sum(a, b) {
+    return a + b;
+}
+exports.sum = sum;
+```
+
+And the `test.js` file:
+
+```
+// The test
+
+require("lib");
+
+function showSum(first, second) {
+    alert(require("lib").sum(first, second));
+}
+
+showSum([2,3], 4);
+```
+
+After compilation, the file served for `test.js` will be the following:
+
+```
+require.register("lib", function(module, exports, require){ 
+// The lib
+
+function sum(a, b) {
+    return a + b;
+}
+exports.sum = sum;
+
+}
+
+require("lib")
+
+// The test
+
+function showSum(first, second) {
+    alert(require("lib").sum(first, second));
+}
+
+showSum([2,3], 4);
+```
+
 ## Minification
 
 A minified file is also generated, where `.js` is replaced by `.min.js`. In our example, it would be `test.min.js`. If you want to use the minified file instead of the regular file, you need to change the script source attribute in your HTML.
@@ -35,5 +88,3 @@ javascriptEntryPoints <<= (sourceDirectory in Compile)(base =>
    ((base / "assets" ** "*.js") --- (base / "assets" ** "_*")).get
 )
 ```
-
-> **Next:** [[Using require.js to manage dependencies | requirejs]]

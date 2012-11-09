@@ -1,6 +1,6 @@
-# Play for Scala developers
+# Play 2.0 for Scala developers
 
-The Scala API for Play application developers is available in the `play.api` package. 
+The Scala API for Play 2.0 application developers is available in the `play.api` package. 
 
 > The API available directly inside the `play` package (such as `play.mvc`) is reserved for Java developers. As a Scala developer, look at `play.api.mvc`.
 
@@ -27,6 +27,7 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[Working with Json | ScalaJson]]
     1. [[The Play Json library | ScalaJson]]
     1. [[Handling and serving Json requests | ScalaJsonRequests]]
+    1. [[The Play Json Library with Generics | ScalaJsonGenerics]]
 1. [[Working with XML | ScalaXmlRequests]]
     1. [[Handling and serving XML requests | ScalaXmlRequests]]
 1. [[Handling file upload | ScalaFileUpload]]
@@ -48,7 +49,6 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[The application Global object | ScalaGlobal]]
     1. [[Application global settings | ScalaGlobal]]
     1. [[Intercepting requests | ScalaInterceptors]]
-    1. [[Dependency injection of controllers | ScalaDependencyInjection]]
 1. [[Testing your application | ScalaTest]]
     1. [[Writing tests | ScalaTest]]
     1. [[Writing functional tests | ScalaFunctionalTest]]
@@ -59,8 +59,6 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[Iteratees | Iteratees]]
     1. [[Enumerators | Enumerators]]
     1. [[Enumeratees | Enumeratees]]
-1. Reverse routing
-    1. [[Javascript Routing | ScalaJavascriptRouting]]
 
 ## Tutorials
 

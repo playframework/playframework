@@ -2,7 +2,7 @@
 
 ## About sbt settings
 
-The sbt build script defines settings for your project. You can also define your own custom settings for your project, as described in the [[sbt documentation | https://github.com/harrah/xsbt/wiki]].  In particular, it helps to be familiar with the [[settings | https://github.com/harrah/xsbt/wiki/Getting-Started-More-About-Settings]] in sbt.
+The sbt build script defines settings for your project. You can also define your own custom settings for your project, as described in the [[sbt documentation | https://github.com/harrah/xsbt/wiki]].
 
 To set a basic setting, use the `:=` operator:
 
@@ -14,7 +14,7 @@ val main = PlayProject(appName, appVersion, appDependencies).settings(
 
 ## Default settings for Java applications
 
-Play defines a default set of settings suitable for Java-based applications. To enable them add the `defaultJavaSettings` set of settings to your application definition:
+Play 2.0 defines a default set of settings suitable for Java-based applications. To enable them add the `defaultJavaSettings` set of settings to your application definition:
 
 ```scala
 val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA)
@@ -24,7 +24,7 @@ These default settings mostly define the default imports for generated templates
 
 ## Default settings for Scala applications
 
-Play defines a default set of settings suitable for Scala-based applications. To enable them add the `defaultScalaSettings` set of settings to your application definition:
+Play 2.0 defines a default set of settings suitable for Scala-based applications. To enable them add the `defaultScalaSettings` set of settings to your application definition:
 
 ```scala
 val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA)

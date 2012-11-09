@@ -4,13 +4,10 @@
 
 A JSON request is an HTTP request using a valid JSON payload as request body. Its `Content-Type` header must specify the `text/json` or `application/json` MIME type.
 
-By default an action uses an **any content** body parser, which you can use to retrieve the body as JSON (actually as a Jackson `JsonNode`):
+By default an action uses an **any content** body parser, which you can use to retrieve the body as JSON (actually as a Jerkson `JsonNode`):
 
 ```java
-import org.codehaus.jackson.JsonNode;
-...
-
-public static Result sayHello() {
+public static index sayHello() {
   JsonNode json = request().body().asJson();
   if(json == null) {
     return badRequest("Expecting Json data");
@@ -28,12 +25,8 @@ public static Result sayHello() {
 Of course it’s way better (and simpler) to specify our own `BodyParser` to ask Play to parse the content body directly as JSON:
 
 ```java
-import org.codehaus.jackson.JsonNode;
-import play.mvc.BodyParser;
-...
-
-@BodyParser.Of(BodyParser.Json.class)
-public static Result sayHello() {
+@BodyParser.Of(Json.class)
+public static index sayHello() {
   JsonNode json = request().body().asJson();
   String name = json.findPath("name").getTextValue();
   if(name == null) {
@@ -44,7 +37,7 @@ public static Result sayHello() {
 }
 ```
 
-> **Note:** This way, a 400 HTTP response will be automatically returned for non JSON requests with Content-type set to application/json. 
+> **Note:** This way, a 400 HTTP response will be automatically returned for non JSON requests. 
 
 You can test it with **cURL** from a command line:
 
@@ -71,12 +64,8 @@ Hello Guillaume
 In our previous example we handled a JSON request, but replied with a `text/plain` response. Let’s change that to send back a valid JSON HTTP response:
 
 ```java
-import play.libs.Json;
-import org.codehaus.jackson.node.ObjectNode;
-...
-
-@BodyParser.Of(BodyParser.Json.class)
-public static Result sayHello() {
+@BodyParser.Of(Json.class)
+public static index sayHello() {
   JsonNode json = request().body().asJson();
   ObjectNode result = Json.newObject();
   String name = json.findPath("name").getTextValue();

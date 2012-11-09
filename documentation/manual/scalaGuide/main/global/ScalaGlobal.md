@@ -41,7 +41,7 @@ When an exception occurs in your application, the `onError` operation will be ca
 ```scala
 import play.api._
 import play.api.mvc._
-import play.api.mvc.Results._
+import play.api.mvc.Results.__
 
 object Global extends GlobalSettings {
 
@@ -61,7 +61,7 @@ If the framework doesn’t find an `Action` for a request, the `onHandlerNotFoun
 ```scala
 import play.api._
 import play.api.mvc._
-import play.api.mvc.Results._
+import play.api.mvc.Results.__
 
 object Global extends GlobalSettings {
 
@@ -79,7 +79,7 @@ The `onBadRequest` operation will be called if a route was found, but it was not
 ```scala
 import play.api._
 import play.api.mvc._
-import play.api.mvc.Results._
+import play.api.mvc.Results.__
 
 object Global extends GlobalSettings {
 

@@ -7,7 +7,7 @@ An XML request is an HTTP request using a valid XML payload as request body. It 
 By default, an action uses an **any content** body parser, which you can use to retrieve the body as XML (actually as a `org.w3c.Document`):
 
 ```
-public static Result sayHello() {
+public static index sayHello() {
   Document dom = request().body().asXml();
   if(dom == null) {
     return badRequest("Expecting Xml data");
@@ -26,7 +26,7 @@ Of course it’s way better (and simpler) to specify our own `BodyParser` to ask
 
 ```
 @BodyParser.Of(Xml.class)
-public static Result sayHello() {
+public static index sayHello() {
   String name = XPath.selectText("//name", dom);
   if(name == null) {
     return badRequest("Missing parameter [name]");
@@ -64,7 +64,7 @@ In our previous example, we handled an XML request, but replied with a `text/pla
 
 ```
 @BodyParser.Of(Xml.class)
-public static Result sayHello() {
+public static index sayHello() {
   String name = XPath.selectText("//name", dom);
   if(name == null) {
     return badRequest("<message \"status\"=\"KO\">Missing parameter [name]</message>");

@@ -1,24 +1,23 @@
 ### Getting started
 
-- [[Installing Play | Installing]]
+- [[Installing Play 2.0 | Installing]]
 - [[Creating a new application | NewApplication]]
-- [[Anatomy of a Play application | Anatomy]]
-- [[Using the Play console | PlayConsole ]]
+- [[Anatomy of a Play 2.0 application | Anatomy]]
+- [[Using the Play 2.0 console | PlayConsole ]]
 - [[Setting-up your preferred IDE | IDE]]
 - [[Sample applications | Samples]]
-- [[Security policy | http://www.playframework.org/code/security]]
 
-### Working with Play
+### Working with Play 2.0
 
-- [[Play for Scala developers | ScalaHome]]
-- [[Play for Java developers | JavaHome]]
+- [[Play 2.0 for Scala developers | ScalaHome]]
+- [[Play 2.0 for Java developers | JavaHome]]
 
 ### Detailed topics
 
 - [[The Build system | Build]]
 - [[Working with public assets | Assets]]
 - [[Managing database evolutions | Evolutions]]
-- [[Configuration | Configuration]]
+- [[Configuration file syntax and features | Configuration]]
 - [[Deploying your application | Production]]
 
 ### Additional documentation

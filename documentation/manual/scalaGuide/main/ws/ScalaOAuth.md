@@ -41,7 +41,7 @@ object Twitter extends Controller {
     false)
 
   def authenticate = Action { request =>
-    request.getQueryString("oauth_verifier").map { verifier =>
+    request.queryString.get("oauth_verifier").flatMap(_.headOption).map { verifier =>
       val tokenPair = sessionTokenPair(request).get
       // We got the verifier; now get the access token, store it and back to index
       TWITTER.retrieveAccessToken(tokenPair, verifier) match {
@@ -71,24 +71,4 @@ object Twitter extends Controller {
   }
 }
 ```
-
-```scala
-object Application extends Controller {
-
-  def timeline = Action { implicit request =>
-    Twitter.sessionTokenPair match {
-      case Some(credentials) =>
-        Async {
-          WS.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
-            .sign(OAuthCalculator(Twitter.KEY, credentials))
-            .get
-            .map(result => Ok(result.json))
-        }
-      
-      case _ => Redirect(routes.Twitter.authenticate)
-    }
-  }
-}
-```
-
 > **Next:** [[Integrating with Akka| ScalaAkka]]

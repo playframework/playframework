@@ -47,7 +47,7 @@ public static Result index() {
     }
   };
   
-  return ok(comet);
+  ok(comet);
 }
 ```
 
@@ -66,7 +66,7 @@ public static Result index() {
     }
   };
   
-  return ok(comet);
+  ok(comet);
 }
 ```
 

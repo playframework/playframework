@@ -39,7 +39,7 @@ public static WebSocket<String> index() {
       in.onClose(new Callback0() {
          public void invoke() {
              
-           println("Disconnected");
+           println("Disconnected")
              
          }
       });
@@ -69,10 +69,10 @@ public static WebSocket<String> index() {
       
     public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
       out.write("Hello!");
-      out.close();
+      out.close()
     }
     
-  };
+  }
 }
 ```
 

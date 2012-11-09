@@ -192,12 +192,6 @@ ALTER TABLE User DROP company;
 
 Play detects this new evolution that replaces the previous 3 one, and will run the appropriate script. Now everything is fixed, and you can continue to work.
 
-> In development mode however it is often simpler to simply trash your development database and reapply all evolutions from the beginning.
+> In developement mode however it is often simpler to simply trash your developement database and reapply all evolutions from the beginning.
 
-### Evolution storage and limitations
 
-Evolutions are stored in your database in a table called PLAY_EVOLUTIONS.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (prefered) create multiple evolutions scripts less than 64kb in size.
-
-### Evolutions and multiple hosts
-
-If your application is running on several hosts, evolutions should be switched off. Multiple hosts may try to apply the evolutions scripts concurrently, with a risk of one of them failing and leaving the database in an inconsistent state.

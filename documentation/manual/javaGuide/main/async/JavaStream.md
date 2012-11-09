@@ -67,10 +67,10 @@ public static index() {
       registerOutChannelSomewhere(out);
     }
     
-  };
+  }
   
   // Serves this stream with 200 OK
-  return ok(chunks);
+  ok(chunks);
 }
 ```
 

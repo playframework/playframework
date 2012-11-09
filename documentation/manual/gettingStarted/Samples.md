@@ -1,6 +1,6 @@
 # Sample applications
 
-The Play binary package comes with a comprehensive set of sample applications written in both Java and Scala. This is a very good place to look for code snippets and examples.
+The Play 2.0 package comes with a comprehensive set of sample applications written in both Java and Scala. This is a very good place to look for code snippets and examples.
 
 > The sample applications are available in the `samples/` directory of your Play installation.
 
@@ -8,7 +8,7 @@ The Play binary package comes with a comprehensive set of sample applications wr
 
 [[images/helloworld.png]]
 
-This is a very basic application that demonstrates Play fundamentals:
+This is a very basic application that demonstrates Play 2.0 fundamentals:
 
 - Writing controllers and actions.
 - Routing and reverse routing.
@@ -74,9 +74,9 @@ This mobile web application monitors Play server performance. It demonstrates:
 
 - advanced usage of Enumerators and Enumeratees.
 
-&nbsp;
+----
 
 > **Next:** 
 >
-> – [[Play for Scala developers | ScalaHome]]
-> – [[Play for Java developers | JavaHome]]
+> – [[Play 2.0 for Scala developers | ScalaHome]]
+> – [[Play 2.0 for Java developers | JavaHome]]

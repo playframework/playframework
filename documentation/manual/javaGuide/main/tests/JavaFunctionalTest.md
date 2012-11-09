@@ -13,8 +13,6 @@ public void renderTemplate() {
 }
 ```
 
-You can find the complete list of the *test helpers* in the [Helper class API documentation](http://www.playframework.org/documentation/api/2.0.1/java/play/test/Helpers.html). 
-
 ## Testing your controllers
 
 You can also retrieve an action reference from the reverse router, such as `controllers.routes.ref.Application.index`. You can then invoke it:
@@ -51,10 +49,10 @@ Sometimes you want to test the real HTTP stack from with your test. You can do t
 ```
 @Test
 public void testInServer() {
-  running(testServer(3333), new Runnable() {
-      public void run() {
+  running(testServer(3333), new Callback0() {
+      public void invoke() {
          assertThat(
-           WS.url("http://localhost:3333").get().get().getStatus()
+           WS.url("http://localhost:3333").get().get().status
          ).isEqualTo(OK);
       }
   });

@@ -2,12 +2,12 @@
 
 ## Uploading files in a form using multipart/form-data
 
-The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data. Please note: the HTTP method for the form have to be POST (not GET). 
+The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data.
 
 Start by writing an HTML form:
 
 ```
-@helper.form(action = routes.Application.upload, 'enctype -> "multipart/form-data") {
+@form(action = routes.Application.upload, 'enctype -> "multipart/form-data") {
     
     <input type="file" name="picture">
     

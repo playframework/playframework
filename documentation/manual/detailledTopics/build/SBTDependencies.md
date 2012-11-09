@@ -10,9 +10,9 @@ There’s nothing to add to `project/Build.scala` to use unmanaged dependencies,
 
 ## Managed dependencies
 
-Play uses Apache Ivy (via sbt) to implement managed dependencies, so if you’re familiar with Maven or Ivy, you won’t have much trouble.
+Play 2.0 uses Apache Ivy (via sbt) to implement managed dependencies, so if you’re familiar with Maven or Ivy, you won’t have much trouble.
 
-Most of the time, you can simply list your dependencies in the `project/Build.scala` file. 
+Most of the time, you can simply list your dependencies in the `project/Build.scala` file. It’s also possible to write a Maven POM file or Ivy configuration file to externally configure your dependencies, and have sbt use those external configuration files.
 
 Declaring a dependency looks like this (defining `group`, `artifact` and `revision`):
 
@@ -105,7 +105,7 @@ object ApplicationBuild extends Build {
     )
 
 }
-```
 
+```
 
 > **Next:** [[Working with sub-projects | SBTSubProjects]]

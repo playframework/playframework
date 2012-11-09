@@ -12,7 +12,7 @@ An HTTP request (at least for those using the POST and PUT operations) contains 
 
 In the Java API, all body parsers must generate a `play.mvc.Http.RequestBody` value. This value computed by the body parser can then be retrieved via `request().body()`:
 
-```java
+```
 public static Result index() {
   RequestBody body = request().body();
   return ok("Got body: " + body);
@@ -21,7 +21,7 @@ public static Result index() {
 
 You can specify the `BodyParser` to use for a particular action using the `@BodyParser.Of` annotation:
 
-```java
+```
 @BodyParser.Of(BodyParser.Json.class)
 public static Result index() {
   RequestBody body = request().body();
@@ -37,9 +37,9 @@ As we just said all body parsers in the Java API will give you a `play.mvc.Http.
 
 Some parsers can provide a most specific type than `Http.RequestBody` (ie. a subclass of `Http.RequestBody`). You can automatically cast the request body into another type using the `as(...)` helper method:
 
-```java
+```
 @BodyParser.Of(BodyLengthParser.class)
-public static Result index() {
+pulic static Result index() {
   BodyLength body = request().body().as(BodyLength.class);
   ok("Request body length: " + body.getLength());
 }
@@ -58,8 +58,8 @@ If you don't specify your own body parser, Play will use the default one guessin
 
 Example:
 
-```java
-public static Result save() {
+```
+pulic static Result save() {
   RequestBody body = request().body();
   String textBody = body.asText();
   
@@ -84,10 +84,10 @@ There is a default content length (the default is 100KB).
 
 You can also specify a maximum content length via the `@BodyParser.Of` annotation:
 
-```java
+```
 // Accept only 10KB of data.
 @BodyParser.Of(value = BodyParser.Text.class, maxLength = 10 * 1024)
-public static Result index() {
+pulic static Result index() {
   if(request().body().isMaxSizeExceeded()) {
     return badRequest("Too much data!");
   } else {

@@ -6,7 +6,7 @@ Most of the requests received by a Play application are handled by an `Action`.
 
 An action is basically a Java method that processes the request parameters, and produces a result to be sent to the client.
 
-```java
+```
 public static Result index() {
   return ok("Got request " + request() + "!");
 }
@@ -20,7 +20,7 @@ A controller is nothing more than a class extending `play.mvc.Controller` that g
 
 The simplest syntax for defining an action is a static method with no parameters that returns a `Result` value:
 
-```java
+```
 public static Result index() {
   return ok("It works!");
 }
@@ -28,7 +28,7 @@ public static Result index() {
 
 An action method can also have parameters:
 
-```java
+```
 public static Result index(String name) {
   return ok("Hello" + name);
 }
@@ -42,7 +42,7 @@ Let’s start with simple results: an HTTP result with a status code, a set of H
 
 These results are defined by `play.mvc.Result`, and the `play.mvc.Results` class provides several helpers to produce standard HTTP results, such as the `ok` method we used in the previous section:
 
-```java
+```
 public static Result index() {
   return ok("Hello world!");
 }
@@ -50,7 +50,7 @@ public static Result index() {
 
 Here are several examples that create various results:
 
-```java
+```
 Result ok = ok("Hello world!");
 Result notFound = notFound();
 Result pageNotFound = notFound("<h1>Page not found</h1>").as("text/html");
@@ -67,7 +67,7 @@ Redirecting the browser to a new URL is just another kind of simple result. Howe
 
 There are several helpers available to create redirect results:
 
-```java
+```
 public static Result index() {
   return redirect("/user/home");
 }
@@ -75,11 +75,12 @@ public static Result index() {
 
 The default is to use a `303 SEE_OTHER` response type, but you can also specify a more specific status code:
 
-```java
+```
 public static Result index() {
   return temporaryRedirect("/user/home");
 }
 ```
 
 > **Next:** [[HTTP Routing | JavaRouting]]
+
 
