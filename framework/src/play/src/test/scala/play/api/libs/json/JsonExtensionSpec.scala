@@ -1,7 +1,5 @@
 package play.api.libs.json
 
-package experimental
-
 import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
@@ -15,9 +13,9 @@ case class RecUser(name: String, cat: Option[Cat] = None, hobbies: List[String] 
 
 case class User1(name: String, friend: Option[User1] = None)
 
-object JsMacrosSpec extends Specification {
+object JsonExtensionSpec extends Specification {
 
-  "JsMacros" should {
+  "JsonExtension" should {
     "create a reads[User]" in {
       import play.api.libs.json.Json
       import play.api.libs.json.util._

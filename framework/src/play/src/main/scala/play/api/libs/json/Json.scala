@@ -3,7 +3,7 @@ package play.api.libs.json
 /**
  * Helper functions to handle JsValues.
  */
-trait Json {
+object Json {
 
   /**
    * Parse a String representing a json, and return it as a JsValue.
@@ -83,14 +83,78 @@ trait Json {
   def fromJson[A : Reads]: Enumeratee[JsValue, A] =
     Enumeratee.map((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect { case JsSuccess(value, _) => value }
 
-}
-
-
-object Json extends Json {
+  /**
+   * Experimental JSON extensions to replace asProductXXX by generating
+   * Reads[T]/Writes[T]/Format[T] from case class at COMPILE time using 
+   * new Scala 2.10 macro & reflection features.
+   */
   import scala.reflect.macros.Context
   import language.experimental.macros
 
+  /**
+   * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time
+   * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
+   * {{{
+   *   import play.api.libs.json.Json
+   *   import play.api.libs.json.util._
+   *   import play.api.libs.json.Reads._   
+   *
+   *   case class User(name: String, age: Int)
+   *
+   *   implicit val userReads = Json.reads[User]
+   *   // macro-compiler replaces Json.reads[User] by injecting into compile chain 
+   *   // the exact code you would write yourself. This is strictly equivalent to:
+   *   implicit val userReads = (
+   *      (__ \ 'name).read[String] and
+   *      (__ \ 'age).read[Int]
+   *   )(User)
+   * }}}
+   */
   def reads[A] = macro readsImpl[A]
+
+  /**
+   * Creates a Writes[T] by resolving case class fields & required implcits at COMPILE-time
+   * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
+   * {{{
+   *   import play.api.libs.json.Json
+   *   import play.api.libs.json.util._
+   *   import play.api.libs.json.Writes._  
+   * 
+   *   case class User(name: String, age: Int)
+   *
+   *   implicit val userWrites = Json.writes[User]
+   *   // macro-compiler replaces Json.writes[User] by injecting into compile chain 
+   *   // the exact code you would write yourself. This is strictly equivalent to:
+   *   implicit val userWrites = (
+   *      (__ \ 'name).write[String] and
+   *      (__ \ 'age).write[Int]
+   *   )(unlift(User.unapply))
+   * }}}
+   */
+  def writes[A] = macro writesImpl[A]  
+
+  /**
+   * Creates a Format[T] by resolving case class fields & required implicits at COMPILE-time
+   * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
+   * {{{
+   *   import play.api.libs.json.Json
+   *   import play.api.libs.json.util._
+   *   import play.api.libs.json.Reads._  
+   *   import play.api.libs.json.Writes._  
+   *   import play.api.libs.json.Format._  
+   * 
+   *   case class User(name: String, age: Int)
+   *
+   *   implicit val userWrites = Json.format[User]
+   *   // macro-compiler replaces Json.writes[User] by injecting into compile chain 
+   *   // the exact code you would write yourself. This is strictly equivalent to:
+   *   implicit val userWrites = (
+   *      (__ \ 'name).write[String] and
+   *      (__ \ 'age).write[Int]
+   *   )(unlift(User.unapply))
+   * }}}
+   */
+  def format[A] = macro formatImpl[A]
 
   def readsImpl[A : c.WeakTypeTag](c: Context) : c.Expr[Reads[A]] = {
     import c.universe._
@@ -340,8 +404,6 @@ object Json extends Json {
     }
 
 
-  def writes[A] = macro writesImpl[A]
-
   def writesImpl[A : c.WeakTypeTag](c: Context) : c.Expr[Writes[A]] = {
     import c.universe._
     val companioned = weakTypeOf[A].typeSymbol
@@ -589,8 +651,6 @@ object Json extends Json {
       }
     }
 
-
-  def format[A] = macro formatImpl[A]
 
   def formatImpl[A : c.WeakTypeTag](c: Context) : c.Expr[Format[A]] = {
     import c.universe._
