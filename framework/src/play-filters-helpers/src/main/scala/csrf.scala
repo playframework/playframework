@@ -11,6 +11,9 @@ import Forms._
 import java.security.SecureRandom
 import org.apache.commons.codec.binary._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import java.util
+import concurrent.Future
+import java.security.cert.Certificate
 
 object CSRF {
   type Token = String
@@ -141,7 +144,9 @@ object CSRF {
         def method = request.method
         def queryString = request.queryString
         def remoteAddress = request.remoteAddress
-        override def version = request.version
+        def certs(required: Boolean) = request.certs(required)
+
+      override def version = request.version
         override def tags = request.tags
         override def id = request.id
 
@@ -167,7 +172,8 @@ object CSRF {
         }.getOrElse(sc)
 
         play.Logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
-      })
+
+    })
 
     def addCookieToken(c: String) = request.cookies.get(c)
       .map(_ => request)
@@ -178,7 +184,9 @@ object CSRF {
         def method = request.method
         def queryString = request.queryString
         def remoteAddress = request.remoteAddress
-        override def version = request.version
+        def certs(required: Boolean) = request.certs(required)
+
+      override def version = request.version
         override def tags = request.tags
         override def id = request.id
 

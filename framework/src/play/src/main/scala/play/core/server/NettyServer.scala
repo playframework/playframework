@@ -72,7 +72,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     }
   }
 
-  private def loadKeyStore() = {
+  private def loadKeyStore() =
     Option(System.getProperty("https.keyStore")) match {
       case Some(path) => {
         // Load the configured key store
@@ -83,8 +83,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         if (file.isFile) {
           for (in <- resource.managed(new FileInputStream(file))) {
               keyStore.load(in, password)
-          IO.use(new FileInputStream(file)) {
-            in => keyStore.load(in, password)
           }
           Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
           Some(keyStore)
@@ -98,7 +96,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         FakeKeyStore.keyStore(applicationProvider.path)
       }
     }
-  }
+
+
 
   private def loadKeyManagers(keyStore: KeyStore) = {
     try {

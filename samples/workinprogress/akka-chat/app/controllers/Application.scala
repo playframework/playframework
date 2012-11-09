@@ -12,10 +12,10 @@ import actors._
 import actors.ChatRoomActor._
 import akka.util.Timeout
 import akka.pattern.ask
-import play.api.libs.concurrent.execution.Implicits._
 
 
 object Application extends Controller {
+  import scala.concurrent.ExecutionContext.Implicits.global
   
   def index = Action {
     Ok(views.html.index()) 

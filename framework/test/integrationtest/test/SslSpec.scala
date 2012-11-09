@@ -1,4 +1,4 @@
-import java.io.{FileInputStream, File}
+import java.io.{InputStreamReader, FileInputStream, File}
 import java.net.{HttpURLConnection, URL}
 import java.security.cert.X509Certificate
 import java.security.KeyStore
@@ -11,7 +11,6 @@ import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
-import play.core.utils.IO
 import scala.Some
 
 class SslSpec extends Specification {
@@ -94,7 +93,16 @@ class SslSpec extends Specification {
   }
 
   def contentAsString(conn: HttpURLConnection) = {
-    IO.use(conn.getInputStream) {is => IOUtils.toString(is)}
+    resource.managed(new InputStreamReader(conn.getInputStream)).acquireAndGet { in =>
+      val buf = new Array[Char](1024)
+      var i = 0
+      val answer = new StringBuffer()
+      while( i!= -1) {
+         answer.append(buf,0,i)
+         i = in.read(buf)
+      }
+      answer.toString
+    }
   }
 
   def jsonRequest = {
@@ -113,7 +121,9 @@ class SslSpec extends Specification {
     val kms = if (withClientCert) {
       val ks = KeyStore.getInstance("PKCS12")
       val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
-      IO.use(new FileInputStream("conf/bobclient.p12")) { is => ks.load(is, "password".toCharArray) }
+      for (in <- resource.managed(new FileInputStream("conf/bobclient.p12"))) {
+        ks.load(in, "password".toCharArray)
+      }
       kmf.init(ks, "password".toCharArray)
       kmf.getKeyManagers
     } else {

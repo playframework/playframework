@@ -2,7 +2,8 @@ package play.core.j
 
 import play.mvc.{ Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
-import play.api.libs.concurrent.execution.defaultContext
+import concurrent.ExecutionContext
+import ExecutionContext.Implicits.global
 
 class EitherToFEither[A,B]() extends play.libs.F.Function[Either[A,B],play.libs.F.Either[A,B]] {
 
