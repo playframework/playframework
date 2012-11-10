@@ -11,60 +11,46 @@ class ApplicationSpec extends Specification {
 
   "an Application" should {
   
-    "execute index" in {
-      
-      running(FakeApplication()) {
-        
-        val action = controllers.Application.index()
-        val result = action(FakeRequest())
-        
-        status(result) must equalTo(OK)
-        contentType(result) must equalTo(Some("text/html"))
-        charset(result) must equalTo(Some("utf-8"))
-        contentAsString(result) must contain("Hello world")
-      }
+    "execute index" in new WithApplication() {
+      val action = controllers.Application.index()
+      val result = action(FakeRequest())
+
+      status(result) must equalTo(OK)
+      contentType(result) must equalTo(Some("text/html"))
+      charset(result) must equalTo(Some("utf-8"))
+      contentAsString(result) must contain("Hello world")
     }
 
-    "tess custom validator failure" in {
+    "tess custom validator failure" in new WithApplication() {
       import play.data._
-      running(FakeApplication()) {
-         val userForm = new Form(classOf[JUser])
-         val anyData = new java.util.HashMap[String,String]
-         anyData.put("email", "")
-         userForm.bind(anyData).errors.toString must contain("ValidationError(email,error.invalid,[class validator.NotEmpty]")
-      }
+       val userForm = new Form(classOf[JUser])
+       val anyData = new java.util.HashMap[String,String]
+       anyData.put("email", "")
+       userForm.bind(anyData).errors.toString must contain("ValidationError(email,error.invalid,[class validator.NotEmpty]")
     }
-    "tess custom validator passing" in {
+    "tess custom validator passing" in new WithApplication() {
       import play.data._
-      running(FakeApplication()) {
-         val userForm = new Form(classOf[JUser])
-         val anyData = new java.util.HashMap[String,String]
-         anyData.put("email", "peter.hausel@yay.com")
-         userForm.bind(anyData).get.toString must contain ("")
-      }
+       val userForm = new Form(classOf[JUser])
+       val anyData = new java.util.HashMap[String,String]
+       anyData.put("email", "peter.hausel@yay.com")
+       userForm.bind(anyData).get.toString must contain ("")
     }
   
-    "execute index again" in {
-      
-      running(FakeApplication()) {
-        val action = controllers.Application.index()
-        val result = action(FakeRequest())
-        
-        status(result) must equalTo(OK)
-        contentType(result) must equalTo(Some("text/html"))
-        charset(result) must equalTo(Some("utf-8"))
-        contentAsString(result) must contain("Hello world")
-      }
+    "execute index again" in new WithApplication() {
+      val action = controllers.Application.index()
+      val result = action(FakeRequest())
+
+      status(result) must equalTo(OK)
+      contentType(result) must equalTo(Some("text/html"))
+      charset(result) must equalTo(Some("utf-8"))
+      contentAsString(result) must contain("Hello world")
     }
     
-    "execute json" in {
-    running(FakeApplication()) {
+    "execute json" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/json"))
       status(result) must equalTo(OK)
       contentType(result) must equalTo(Some("application/json"))
       contentAsString(result) must contain("{\"id\":1,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
-
-      }
     }
 
     def javaResult(result: play.api.mvc.Result) =
@@ -72,47 +58,39 @@ class ApplicationSpec extends Specification {
         def getWrappedResult = result
       }
 
-    "execute json with content type" in {
-     running(FakeApplication()) {
-       // here we just test the case insensitivity of FakeHeaders, which is not that
-       // interesting, ...
-         val Some(result) = route(FakeRequest(GET, "/jsonWithContentType",
-           FakeHeaders(Seq("Accept"-> Seq("application/json"))), AnyContentAsEmpty))
-         status(result) must equalTo(OK)
-         contentType(result) must equalTo(Some("application/json"))
-         charset(result) must equalTo(None)
-         contentAsString(result) must contain("""{"Accept":"application/json"}""")
-         play.test.Helpers.charset(javaResult(result)) must equalTo(null)
-       }
-     }
+    "execute json with content type" in new WithApplication() {
+      // here we just test the case insensitivity of FakeHeaders, which is not that
+      // interesting, ...
+      val Some(result) = route(FakeRequest(GET, "/jsonWithContentType",
+        FakeHeaders(Seq("Accept" -> Seq("application/json"))), AnyContentAsEmpty))
+      status(result) must equalTo(OK)
+      contentType(result) must equalTo(Some("application/json"))
+      charset(result) must equalTo(None)
+      contentAsString(result) must contain( """{"Accept":"application/json"}""")
+      play.test.Helpers.charset(javaResult(result)) must equalTo(null)
+    }
 
 
-    "execute json with content type and charset" in {
-     running(FakeApplication()) {
-         val Some(result) = route(FakeRequest(GET, "/jsonWithCharset"))
-         status(result) must equalTo(OK)
-         contentType(result) must equalTo(Some("application/json"))
-         charset(result) must equalTo(Some("utf-8"))
-         play.test.Helpers.charset(javaResult(result)) must equalTo("utf-8")
-       }
-     }
+    "execute json with content type and charset" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/jsonWithCharset"))
+      status(result) must equalTo(OK)
+      contentType(result) must equalTo(Some("application/json"))
+      charset(result) must equalTo(Some("utf-8"))
+      play.test.Helpers.charset(javaResult(result)) must equalTo("utf-8")
+    }
 
-    "not serve asset directories" in {
-      running(FakeApplication()) {
-        val Some(result) = route(FakeRequest(GET, "/public//"))
-        status(result) must equalTo (NOT_FOUND)
-      }
+    "not serve asset directories" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/public//"))
+      status(result) must equalTo (NOT_FOUND)
     }
    
-    "remove cache elements" in {
-      running(FakeApplication()) {
-        import play.api.Play.current
-        import play.api.cache.Cache
-        Cache.set("foo", "bar")
-        Cache.get("foo") must equalTo (Some("bar"))
-        Cache.remove("foo")
-        Cache.get("foo") must equalTo (None)
-    }}
+    "remove cache elements" in new WithApplication() {
+      import play.api.cache.Cache
+      Cache.set("foo", "bar")
+      Cache.get("foo") must equalTo (Some("bar"))
+      Cache.remove("foo")
+      Cache.get("foo") must equalTo (None)
+    }
 
     "reverse routes containing boolean parameters" in {
       "in the query string" in {
@@ -126,136 +104,108 @@ class ApplicationSpec extends Specification {
     }
 
     "bind boolean parameters" in {
-      "from the query string" in {
-        running(FakeApplication()) {
-          val Some(result) = route(FakeRequest(GET, "/take-bool?b=true"))
-          contentAsString(result) must equalTo ("true")
-          val Some(result2) = route(FakeRequest(GET, "/take-bool?b=false"))
-          contentAsString(result2) must equalTo ("false")
-          // Bind boolean values from 1 and 0 integers too
-          contentAsString(route(FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
-          contentAsString(route(FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
-        }
+      "from the query string" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/take-bool?b=true"))
+        contentAsString(result) must equalTo ("true")
+        val Some(result2) = route(FakeRequest(GET, "/take-bool?b=false"))
+        contentAsString(result2) must equalTo ("false")
+        // Bind boolean values from 1 and 0 integers too
+        contentAsString(route(FakeRequest(GET, "/take-bool?b=1")).get) must equalTo ("true")
+        contentAsString(route(FakeRequest(GET, "/take-bool?b=0")).get) must equalTo ("false")
       }
-      "from the path" in {
-        running(FakeApplication()) {
-          val Some(result) = route(FakeRequest(GET, "/take-bool-2/true"))
-          contentAsString(result) must equalTo ("true")
-          val Some(result2) = route(FakeRequest(GET, "/take-bool-2/false"))
-          contentAsString(result2) must equalTo ("false")
-          // Bind boolean values from 1 and 0 integers too
-          contentAsString(route(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
-          contentAsString(route(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
-        }
+      "from the path" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/take-bool-2/true"))
+        contentAsString(result) must equalTo ("true")
+        val Some(result2) = route(FakeRequest(GET, "/take-bool-2/false"))
+        contentAsString(result2) must equalTo ("false")
+        // Bind boolean values from 1 and 0 integers too
+        contentAsString(route(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
+        contentAsString(route(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
       }
     }
 
     "bind int parameters from the query string as a list" in {
-     
-        "from a list of numbers" in {
-           running(FakeApplication()) {
-             val Some(result) = route(FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
-             contentAsString(result) must equalTo ("123")
-           }
-        }
-        "from a list of numbers and letters" in {
-          running(FakeApplication()) {
-            val Some(result) = route(FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
-            contentAsString(result) must equalTo ("12")
-          }
-        }
-        "when there is no parameter at all" in {
-          running(FakeApplication()) {
-            val Some(result) = route(FakeRequest(GET, "/take-list"))
-            contentAsString(result) must equalTo ("")
-          }
-        }
-        "using the Java API" in {
-          running(FakeApplication()) {
-            val Some(result) = route(FakeRequest(GET, "/take-list-java?x=1&x=2&x=3"))
-            contentAsString(result) must equalTo ("3 elements")
-          }
-        }
+
+      "from a list of numbers" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, controllers.routes.Application.takeList(List(1, 2, 3)).url))
+        contentAsString(result) must equalTo("123")
+      }
+      "from a list of numbers and letters" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
+        contentAsString(result) must equalTo("12")
+      }
+      "when there is no parameter at all" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/take-list"))
+        contentAsString(result) must equalTo("")
+      }
+      "using the Java API" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/take-list-java?x=1&x=2&x=3"))
+        contentAsString(result) must equalTo("3 elements")
+      }
     }
 
     "return jsonp" in {
-      "Scala API" in {
-        running(FakeApplication()) {
-          val Some(result) = route(FakeRequest(GET, controllers.routes.Application.jsonp("baz").url))
-          contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
-          contentType(result) must equalTo (Some("text/javascript"))
-        }
+      "Scala API" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, controllers.routes.Application.jsonp("baz").url))
+        contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
+        contentType(result) must equalTo (Some("text/javascript"))
       }
-      "Java API" in {
-        running(FakeApplication()) {
-          val Some(result) = route(FakeRequest(GET, controllers.routes.JavaApi.jsonpJava("baz").url))
-          contentAsString(result) must equalTo ("baz({\"foo\":\"bar\"});")
-          contentType(result) must equalTo (Some("text/javascript"))
-        }
+      "Java API" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, controllers.routes.JavaApi.jsonpJava("baz").url))
+        contentAsString(result) must equalTo("baz({\"foo\":\"bar\"});")
+        contentType(result) must equalTo(Some("text/javascript"))
       }
     }
 
     "instantiate controllers" in {
-      "Java controller instance" in {
-        running(FakeApplication()) {
-          val Some(result) = route(FakeRequest(GET, controllers.routes.JavaControllerInstance.index().url))
-          contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
-          contentType(result) must equalTo (Some("application/json"))
-        }
+      "Java controller instance" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, controllers.routes.JavaControllerInstance.index().url))
+        contentAsString(result) must equalTo("{\"peter\":\"foo\",\"yay\":\"value\"}")
+        contentType(result) must equalTo(Some("application/json"))
       }
-      "Scala controller instance" in {
-        running(FakeApplication()) {
-          val Some(result) = route(FakeRequest(GET, controllers.routes.ScalaControllerInstance.index().url))
-          contentAsString(result) must equalTo ("{\"peter\":\"foo\",\"yay\":\"value\"}")
-          contentType(result) must equalTo (Some("application/json"))
-        }
+      "Scala controller instance" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, controllers.routes.ScalaControllerInstance.index().url))
+        contentAsString(result) must equalTo("{\"peter\":\"foo\",\"yay\":\"value\"}")
+        contentType(result) must equalTo(Some("application/json"))
       }
     }
 
-    "urldecode correctly parameters from path and query string" in {
-      running(FakeApplication()) {
-        val Some(result) = route(FakeRequest(GET, "/urldecode/2%2B2?q=2%2B2"))
-        contentAsString(result) must contain ("fromPath=2+2")
-        contentAsString(result) must contain ("fromQueryString=2+2")
-      }
+    "urldecode correctly parameters from path and query string" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/urldecode/2%2B2?q=2%2B2"))
+      contentAsString(result) must contain("fromPath=2+2")
+      contentAsString(result) must contain("fromQueryString=2+2")
     }
 
     "test Accept header mime-types" in {
       import play.api.http.HeaderNames._
-      "Scala API" in {
-        running(FakeApplication()) {
-          val url = controllers.routes.Application.accept().url
-          val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))
-          contentAsString(result) must equalTo ("html")
+      "Scala API" in new WithApplication() {
+        val url = controllers.routes.Application.accept().url
+        val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))
+        contentAsString(result) must equalTo("html")
 
-          val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/*"))
-          contentAsString(result2) must equalTo ("html")
+        val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/*"))
+        contentAsString(result2) must equalTo("html")
 
-          val Some(result3) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/json"))
-          contentAsString(result3) must equalTo ("json")
-        }
+        val Some(result3) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/json"))
+        contentAsString(result3) must equalTo("json")
       }
-      "Java API" in {
-        running(FakeApplication()) {
-          val url = controllers.routes.JavaApi.accept().url
-          val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))
-          contentAsString(result) must equalTo ("html")
+      "Java API" in new WithApplication() {
+        val url = controllers.routes.JavaApi.accept().url
+        val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))
+        contentAsString(result) must equalTo("html")
 
-          val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/*"))
-          contentAsString(result2) must equalTo ("html")
+        val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/*"))
+        contentAsString(result2) must equalTo("html")
 
-          val Some(result3) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/json"))
-          contentAsString(result3) must equalTo ("json")
-        }
+        val Some(result3) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/json"))
+        contentAsString(result3) must equalTo("json")
       }
     }
 
-    "support all valid Java identifiers in router" in {
-      running(FakeApplication()) {
-        val Some(result) = route(FakeRequest(GET, "/ident/3"))
-        status(result) must equalTo(OK)
-        contentAsString(result) must_== "3"
-      }
+    "support all valid Java identifiers in router" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/ident/3"))
+      status(result) must equalTo(OK)
+      contentAsString(result) must_== "3"
     }
 
   }
