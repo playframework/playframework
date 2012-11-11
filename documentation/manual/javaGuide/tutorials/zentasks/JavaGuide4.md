@@ -359,7 +359,7 @@ Start by loading the user in the `index` method in `app/controllers/Application.
 @Security.Authenticated(Secured.class)
 public static Result index() {
     return ok(index.render(
-        Project.findInvolving(request().usename()), 
+        Project.findInvolving(request().username()), 
         Task.find.findTodoInvolving(request().username()),
         User.find.byId(request().username())
     )); 
