@@ -1,0 +1,16 @@
+@**
+ * Generate an HTML form.
+ *
+ * Example:
+ * {{{
+ * @requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
+ * }}}
+ *
+ * @param core reference to require.js
+ * @param module javascript module in question
+ *@
+
+@(module: String, core: String, productionFolderPrefix: String = "-min", folder: String= "javascripts")
+
+
+ <script type="text/javascript" data-main="@{if(play.api.Mode.Prod == play.api.Play.maybeApplication.map(_.mode).getOrElse(play.api.Mode.Dev)) module.replace(folder,folder+productionFolderPrefix) else module}" src="@core"></script>
