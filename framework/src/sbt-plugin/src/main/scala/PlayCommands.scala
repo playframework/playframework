@@ -115,6 +115,8 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
     if (requireJs.isEmpty == false) {
       val rjnewDir = new JFile(rjoldDir.getAbsolutePath + "-min")
+      //cleanup previous version
+      IO.delete(rjnewDir)
       val relativeModulePath = (str: String) => str.replace(".js", "")
       val content =  """({appDir: """" + jsFolder + """",
           baseUrl: ".",
@@ -139,8 +141,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
       }  
       //clean-up
       IO.delete(buildDesc)
-      IO.delete(rjoldDir)
-      rjnewDir.renameTo(rjoldDir)
     }
     cr
   }
