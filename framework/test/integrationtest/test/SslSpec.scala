@@ -34,10 +34,7 @@ class SslSpec extends Specification {
                      password: Option[String] = None,
                      trustStore: Option[String] = None) extends Around with Scope {
 
-    implicit lazy val app = FakeApplication(withoutPlugins = Seq(
-      "play.api.db.BoneCPPlugin",
-      "play.api.db.evolutions.EvolutionsPlugin"
-    ))
+    implicit lazy val app = FakeApplication()
 
     def around[T](t: => T)(implicit evidence: (T) => Result) = {
       val props = System.getProperties

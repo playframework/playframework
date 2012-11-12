@@ -14,8 +14,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class TestBrowser extends FluentAdapter {
 
-    private final String baseUrl;
-
     /**
      * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
      *
@@ -35,7 +33,7 @@ public class TestBrowser extends FluentAdapter {
      */
     public TestBrowser(WebDriver webDriver, String baseUrl) {
         super(webDriver);
-        this.baseUrl = baseUrl;
+        withDefaultUrl(baseUrl);
     }
 
     /**
@@ -84,18 +82,5 @@ public class TestBrowser extends FluentAdapter {
      */
     public WebDriver.Options manage() {
         return super.getDriver().manage();
-    }
-
-    @Override
-    public <T extends FluentPage> T createPage(Class<T> classOfPage) {
-        // Work around a bug in FluentLenium
-        T page = super.createPage(classOfPage);
-        page.withDefaultUrl(getDefaultBaseUrl());
-        return page;
-    }
-
-    @Override
-    public String getDefaultBaseUrl() {
-        return baseUrl;
     }
 }

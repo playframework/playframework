@@ -5,14 +5,20 @@ import org.specs2.specification.Scope
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.Result
 
+// NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
+// which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
+// or any other code blocks.
+
 /**
  * Used to run specs within the context of a running application.
  *
  * @param app The fake application
  */
 abstract class WithApplication(val app: FakeApplication = FakeApplication()) extends Around with Scope {
-  implicit val implicitApp = app
-  def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(app)(t)
+  implicit def implicitApp = app
+  def around[T](t: => T)(implicit evidence: (T) => Result) = {
+    Helpers.running(app)(t)
+  }
 }
 
 /**
@@ -23,7 +29,7 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  */
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
                           val port: Int = Helpers.testServerPort) extends Around with Scope {
-  implicit val implicitApp = app
+  implicit def implicitApp = app
   def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app))(t)
 }
 
@@ -36,10 +42,13 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
         val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
-        implicit val app: FakeApplication = FakeApplication(),
+        val app: FakeApplication = FakeApplication(),
         val port: Int = Helpers.testServerPort) extends Around with Scope {
-  implicit val implicitApp = app
-  val browser: TestBrowser = TestBrowser.of(webDriver)
+
+  implicit def implicitApp = app
+
+  lazy val browser: TestBrowser = TestBrowser.of(webDriver, Some("http://localhost:" + port))
+
   def around[T](t: => T)(implicit evidence: (T) => Result) = {
     try {
       Helpers.running(TestServer(port, app))(t)
