@@ -13,7 +13,9 @@ object ApplicationBuild extends Build {
     	anorm
     ) 
 
-    val main = play.Project(appName, appVersion, appDependencies)
+    val main = play.Project(appName, appVersion, appDependencies).settings(
+    	requireJs += "main.js"
+    )	
 
 }
             
