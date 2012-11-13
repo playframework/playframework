@@ -7,7 +7,7 @@ PlayProject
 ===========
 
 previously here is how your project looked like:
-```
+````scala
 import sbt._
 import Keys._
 import PlayProject._
@@ -26,10 +26,10 @@ object ApplicationBuild extends Build {
     )
 
 }
-```
+````
 with 2.1 this will change to :
 
-```
+````scala
 import sbt._
 import Keys._
 import play.Project._
@@ -51,20 +51,19 @@ object ApplicationBuild extends Build {
     )
 
 }
-```
+````
 
 
 (notice the additional dependencies and the lack of mainLang parameter).
 The new project layout was necessary because 2.1 introduced modularization which means that now you can pick and choose which artifacts you would like to include into your project. Furthermore, since now there is a javaCore module, so mainLang parameter is not necessary to signal what kind of project we are dealing with anymore("mainly scala or mainly java").
 
 the available play artifacts:
-  ```jdbc``` 
-  ```anorm```
-  ```javaCore```
-  ```javaJdbc```
-  ```javaEbean```
-  ```javaJpa```
-
+* `jdbc`
+* `anorm`
+* `javaCore`
+* `javaJdbc`
+* `javaEbean`
+* `javaJpa`
 
 scala.concurrent.Future
 ========================
@@ -76,7 +75,7 @@ With the introduction of scala.concurrent.Future in scala 2.10 the scala ecosyst
 Consider the following snippet:
 
 
-```
+````scala
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 import akka.util.duration._
@@ -90,9 +89,9 @@ def stream = Action {
     }
   }
   
- ```` 
+```` 
 using scala.concurrent.Future  this will become:
-```
+````scala
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.Implicits._
@@ -106,7 +105,7 @@ import scala.concurrent.duration._
       }
     }
   }
-```
+````
 
 notice the extra imports for the execution context (``` play.api.libs.concurrent.execution.Implicits```) and the change for duration (```scala.concurrent.duration ```). Furthermore the "asPromise" method is gone now. 
 
@@ -126,31 +125,31 @@ Play 2.1 comes with a new shiny scala JSON validator and path navigator. This ne
 
 consider:
 
-```
+````scala
 trait play.api.libs.json.Reads[A]{
 self=>
 
 def reads(jsValue: JsValue): A
 
 }
-```
+````
 
 in 2.1 this becomes:
 
-```
+````scala
 trait play.api.libs.json.Reads[A]{
 self=>
 
 def reads(jsValue: JsValue): JsResult[A]
 
 }
-```
+````
 
 What this means in practice:
 
 2.0
 
-```
+````scala
 implicit object UserFormat extends Format[User] {
 
         def writes(o: User): JsValue = JsObject(
@@ -167,11 +166,11 @@ implicit object UserFormat extends Format[User] {
         )
 
     }
-```
+````
 
 2.1 
 
-```
+````scala
 implicit object UserFormat extends Format[User] {
 
         def writes(o: User): JsValue = JsObject(
@@ -188,10 +187,10 @@ implicit object UserFormat extends Format[User] {
         ))  
 
     }
-```
+````
 
 consider:
-```
+````scala
 val jsonObject = Json.toJson(
   Map(
     "users" -> Seq(
@@ -212,10 +211,10 @@ val jsonObject = Json.toJson(
     )
   )
 )
-```
+````
 
 in 2.1 this becomes:
-```
+````scala
 val jsonObject = Json.obj(
     "users" -> Json.arr(
       Json.obj(
@@ -230,7 +229,7 @@ val jsonObject = Json.obj(
         )
     )
 )
-```
+````
 
 More information about these features can be found here:
 http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/
