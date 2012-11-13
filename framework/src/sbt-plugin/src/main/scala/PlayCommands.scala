@@ -147,9 +147,37 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
-  val playPackageEverythingTask = (state, thisProjectRef, crossTarget) flatMap { (s, r, crossTarget) =>
-    inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
-  }
+
+  /**
+    * Executes the {{packaged-artifacts}} task in the current project (the project to which this setting is applied)
+    * and all of its dependencies, yielding a list of all resulting {{jar}} files *except*:
+    *
+    * * jar files from artifacts with names in [[sbt.PlayKeys.distExcludes]]
+    * * the jar file that is returned by {{packageSrc in Compile}}
+    * * the jar file that is returned by {{packageDoc in Compile}}
+    */
+  val playPackageEverythingTask = (state, thisProjectRef, distExcludes).flatMap { (state, project, excludes) =>
+      def taskInAllDependencies[T](taskKey: TaskKey[T]): Task[Seq[T]] =
+        inAllDependencies(project, taskKey.task, Project structure state).join
+
+      for {
+        packaged: Seq[Map[Artifact, File]] <- taskInAllDependencies(packagedArtifacts)
+        srcs: Seq[File] <- taskInAllDependencies(packageSrc in Compile)
+        docs: Seq[File] <- taskInAllDependencies(packageDoc in Compile)
+      } yield {
+        val allJars: Seq[Iterable[File]] = for {
+          artifacts: Map[Artifact, File] <- packaged
+        } yield {
+          artifacts
+            .filter { case (artifact, _) => artifact.extension == "jar" && !excludes.contains(artifact.name) }
+            .map { case (_, path) => path }
+        }
+        allJars
+          .flatten
+          .diff(srcs ++ docs) //remove srcs & docs since we do not need them in the dist
+          .distinct
+      }
+    }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>

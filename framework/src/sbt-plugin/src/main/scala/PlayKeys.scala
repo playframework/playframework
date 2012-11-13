@@ -32,6 +32,8 @@ trait PlayKeys {
 
   val distDirectory = SettingKey[File]("play-dist")
 
+  val distExcludes = SettingKey[Seq[String]]("dist-excludes")
+
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
 
   val incrementalAssetsCompilation = SettingKey[Boolean]("play-incremental-assets-compilation")
