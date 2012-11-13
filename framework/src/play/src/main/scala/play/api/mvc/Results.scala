@@ -70,7 +70,7 @@ sealed trait WithHeaders[+A <: Result] {
    * @param names the names of the cookies to discard along to this result
    * @return the new result
    */
-  @deprecated("This method can only discard cookies on the / path with no domain and without secure set.  Use discardingCookies(DiscardingCookie*) instead.")
+  @deprecated("This method can only discard cookies on the / path with no domain and without secure set.  Use discardingCookies(DiscardingCookie*) instead.", "2.1")
   def discardingCookies(name: String, names: String*): A = discardingCookies((name :: names.toList).map(n => DiscardingCookie(n)):_*)
 
   /**
