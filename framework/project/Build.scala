@@ -246,16 +246,6 @@ object PlayBuild extends Build {
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             
-            ("jaxen"                            %    "jaxen"                    %   "1.1.3" notTransitive())
-              .exclude("maven-plugins", "maven-cobertura-plugin")
-              .exclude("maven-plugins", "maven-findbugs-plugin")
-              .exclude("dom4j", "dom4j")
-              .exclude("jdom", "jdom")
-              .exclude("xml-apis", "xml-apis")
-              .exclude("xerces", "xercesImpl")
-              .exclude("xom", "xom")
-            ,
-            
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.5.0",
             
             "org.specs2"                        %%   "specs2"                   %   "1.9"      %  "test",
