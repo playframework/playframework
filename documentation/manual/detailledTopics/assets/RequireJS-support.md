@@ -12,16 +12,18 @@ RequireJs support is enabled by default, so all you need to do is to drop javasc
 ## Things to know about the implementation
 
 * ```require.js``` is bundled with play, so users do not need to add it manually
-* in dev mode dependencies resolved client side, closure compiler, without commonJS support, is run through the scripts for sanity check but no files are modified
-* in prod mode: stage, dist and start commands were changed to
-run [RequireJS's optimizer](http://requirejs.org/docs/optimization.html) for each file in ```app/assets/javascripts``` this means files will be minified and combined for performance. Since the files (and references) will be the same (just optimized), no extra changes are necessary to switch between dev and prod mode
+* in dev mode dependencies resolved client side, closure compiler - without commonJS support - is run through the scripts for sanity check but no files are modified
+* ```requireJs``` setting key in your build script should contain the list of modules you want to run through the optimizer (modules should be relative to ```app/assets/javascripts```) 
+* empty ```requireJs``` key indicates that no optimization should take place
+*  ```stage```, ```dist``` and ```start``` commands were changed to
+run [RequireJS's optimizer](http://requirejs.org/docs/optimization.html) for configured moduled in ```app/assets/javascripts```. The minified and combined assets are stored in ```app/assets/javascripts-min```
+* a new template tag ```@requireJs``` can be used  to switch between dev and prod mode seamlessly 
 * by default a rhino based optimizer is used, the native, node version can be configured for performance via ```requireNativePath``` setting
-* you can disable this feature via ```requireJsSupport := true``` setting
 * right now this is enabled only for javascript but we are looking into using it for css as well
 
 ## Example
 
-In `app/assets/javascripts/main.js`:
+create `app/assets/javascripts/main.js`:
 
 ```js
 require(["helper/lib"],function(l) {
@@ -30,7 +32,7 @@ require(["helper/lib"],function(l) {
 });
 ```
 
-In `app/assets/javascripts/helper/lib.js`:
+create `app/assets/javascripts/helper/lib.js`:
 
 ```js
 define(function() {
@@ -42,11 +44,18 @@ define(function() {
 });
 ```
 
-In `app/views/index.scala.html`:
+create `app/views/index.scala.html`:
 
 ```html
-<script type="text/javascript" data-main="public/javascripts/main" 
-src="@controllers.routes.Assets.at("javascripts/require.js")"></script>
+@helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
+```
+
+In `project/Build.scala` add:
+
+```
+val main = play.Project(appName, appVersion, appDependencies).settings(
+    	requireJs += "main.js"
+    )	
 ```
 
 After rendering the page in Dev mode you should see: ```9``` popping up in an alert
