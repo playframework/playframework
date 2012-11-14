@@ -46,7 +46,7 @@ The Java API for the Play application developers is available in the `play` pack
 1. [[The application Global object | JavaGlobal]]
     1. [[Application global settings | JavaGlobal]]
     1. [[Intercepting requests | JavaInterceptors]]
-    1. [[Managing Controller Class Instantiation | Managing-Controller-Class-Instantiation]]
+    1. [[Managing Controller Class Instantiation | JavaInjection]]
 1. [[Testing your application | JavaTest]]
     1. [[Writing tests | JavaTest]]
     1. [[Writing functional tests | JavaFunctionalTest]]
