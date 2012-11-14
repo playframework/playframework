@@ -201,7 +201,7 @@ trait PlaySettings {
     coffeescriptOptions := Seq.empty[String],
     closureCompilerOptions := Seq.empty[String],
 
-    incrementalAssetsCompilation := false,
+    incrementalAssetsCompilation := true,
 
     // Templates
 
