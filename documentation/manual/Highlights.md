@@ -12,7 +12,7 @@ play, among other things, now depends on the latest version of ```scala (2.10)``
 
 a play application now can include subprojects with route files. Furthermore, the main artifact was broken into 15 subprojects. These two powerful features allow developers to modularize their apps and fully control the classpath.
 
-An example project that's utilizing these new features can be found [[here | ]].
+An example project that's utilizing these new features can be found [[here | https://dl.dropbox.com/u/2721142/multi-project.tar.gz]].
  
 
 ## support for `scala.concurrent.Future`
