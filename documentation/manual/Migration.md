@@ -1,33 +1,34 @@
-Migration guide
-===============
+# Migration guide
 
-Besides the standard deprecations, Play 2.1 contains a few big changes. This document is giving you some information why these changes were necessary and also how to upgrade safely to the new version.
+The only step to migrate to **Play 2.1** is to change the version of your **Play plugin** in your sbt build.
 
-PlayProject
-===========
+In `project/plugins.sbt` change this line accordingly:
 
-previously here is how your project looked like:
 ```
-import sbt._
-import Keys._
-import PlayProject._
-
-object ApplicationBuild extends Build {
-
-    val appName         = "app-name"
-    val appVersion      = "version"
-
-    val appDependencies = Seq(
-      // Add your project dependencies here,
-    )
-
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
-      // Add your own project settings here      
-    )
-
-}
+addSbtPlugin("play" % "sbt-plugin" % "2.1")
 ```
-with 2.1 this will change to :
+
+Now you have to recompile your project, and potentially fix some compilation errors. Besides the standard deprecations, Play 2.1 contains a few big incompatible changes. This document is giving you some information why these changes were necessary and also how to upgrade safely to the new version.
+
+## Changes to the build file
+
+Because Play 2.1 introduce further modularization, you have now to specifiy explicitely the dependencies your application needs. By default any _play Project_ will only contain a dependency to the play core library.
+
+> Also we replaced the old `PlayProject` type by the `play.Project` one, so you will probably have to fix your imports.
+
+You have to select the exact set of optional dependencies your application need, in the list of:
+
+- `jdbc` : The **JDBC** connection pool and the the `play.api.db` API. 
+- `anorm` : The **Anorm** component.
+- `javaCore` : The core **Java** API.
+- `javaJdbc` : The Java database API.
+- `javaEbean` : The Ebean plugin for Java.
+- `javaJpa` : The JPA plugin for Java.
+- `filters` : A set of build-in filters for Play (such as the CSRF filter)
+
+Also you don't have anymore to specify the `mainLang` attribute for your project (enabling the `javaCore` dependency for your project is enough to enable Java support for your application).
+
+Here is a typical new `Build.scala` file:
 
 ```
 import sbt._
@@ -37,13 +38,10 @@ import play.Project._
 object ApplicationBuild extends Build {
 
     val appName         = "app-name"
-    val appVersion      = "version"
+    val appVersion      = "1.0"
 
     val appDependencies = Seq(
-       // Add your project dependencies here,
-       javaCore,
-       javaJdbc,
-       javaEbean
+       javaCore, javaJdbc, javaEbean
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(
@@ -54,24 +52,14 @@ object ApplicationBuild extends Build {
 ```
 
 
-(notice the additional dependencies and the lack of mainLang parameter).
-The new project layout was necessary because 2.1 introduced modularization which means that now you can pick and choose which artifacts you would like to include into your project. Furthermore, since now there is a javaCore module, so mainLang parameter is not necessary to signal what kind of project we are dealing with anymore("mainly scala or mainly java").
 
-the available play artifacts:
-  ```jdbc``` 
-  ```anorm```
-  ```javaCore```
-  ```javaJdbc```
-  ```javaEbean```
-  ```javaJpa```
+## Play's Promise become Scala's Future
 
+With the introduction of `scala.concurrent.Future` in scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there.
 
-scala.concurrent.Future
-========================
+The fact that Play is now using `scala.concurrent.Future` directly means that users can effortlessly combine futures/promises coming from both internal API-s or external libraries. Unfortunately this change also means that scala users would not adjust their codebase to the new API 
 
-With the introduction of scala.concurrent.Future in scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there. The fact that Play is now using scala.concurrent.Future directly means that users can effortlessly combine futures/promises coming from both internal API-s or external libraries. Unfortunately this change also means that scala users would not adjust their codebase to the new API (java users will continue to use a Play's wrapper around scala.concurrent.Future). 
-
-
+> Java users will continue to use a Play's wrapper around scala.concurrent.Future for now. 
 
 Consider the following snippet:
 
@@ -90,12 +78,15 @@ def stream = Action {
     }
   }
   
- ```` 
-using scala.concurrent.Future  this will become:
+```
+
+using the new `scala.concurrent.Future` this will become:
+
 ```
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 import play.api.libs.concurrent.execution.Implicits._
+
 import scala.concurrent.duration._
 
   def stream = Action {
@@ -108,29 +99,36 @@ import scala.concurrent.duration._
   }
 ```
 
-notice the extra imports for the execution context (``` play.api.libs.concurrent.execution.Implicits```) and the change for duration (```scala.concurrent.duration ```). Furthermore the "asPromise" method is gone now. 
+notice the extra imports for:
 
+- The new import for the execution context `play.api.libs.concurrent.execution.Implicits`
+- The change for duration `scala.concurrent.duration` instead of using the Akka API) 
+- Furthermore the `asPromise` method is gone now
 
-
-
-Generally speaking, if you see error message " error: could not find implicit value for parameter executor", you probably need to add
-
-```import play.api.libs.concurrent.execution.Implicits._```
-
-and you need to remember that if you need a ``PlayPromise`` or a ``PlayRedeemable`` those are mapped to ``scala.concurrent.Future`` and ``scala.concurrent.Promise`` respectively
-
-
-Scala JSON API
-=====================
-Play 2.1 comes with a new shiny scala JSON validator and path navigator. This new API however breaks compatibility with existing JSON parsers.
-
-consider:
+Generally speaking, if you see error message "error: could not find implicit value for parameter executor", you probably need to add
 
 ```
-trait play.api.libs.json.Reads[A]{
-self=>
+import play.api.libs.concurrent.execution.Implicits._
+```
 
-def reads(jsValue: JsValue): A
+_(Please see the Scala documentation about Execution context for mor informations)_
+
+and you need to remember that:
+
+- a Play `Promise` is now a Scala `Future`
+- a Play `Redeemable` is now a Scala `Promise`
+
+## Changes to the Scala JSON API
+
+Play 2.1 comes with a new shiny scala JSON validator and path navigator. This new API however breaks compatibility with existing JSON parsers.
+
+Especially the `play.api.libs.json.Reads` type signature has changed. Consider:
+
+```
+trait play.api.libs.json.Reads[A] {
+  self =>
+
+  def reads(jsValue: JsValue): A
 
 }
 ```
@@ -138,59 +136,58 @@ def reads(jsValue: JsValue): A
 in 2.1 this becomes:
 
 ```
-trait play.api.libs.json.Reads[A]{
-self=>
+trait play.api.libs.json.Reads[A] {
+  self =>
 
-def reads(jsValue: JsValue): JsResult[A]
+  def reads(jsValue: JsValue): JsResult[A]
 
 }
 ```
 
-What this means in practice:
-
-2.0
+So, in Play 2.0 an implementation for a JSON serializer for the `User` type was:
 
 ```
 implicit object UserFormat extends Format[User] {
 
-        def writes(o: User): JsValue = JsObject(
-            List("id" -> JsNumber(o.id),
-                "name" -> JsString(o.name),
-                "favThings" -> JsArray(o.favThings.map(JsString(_)))
-            )
-        )
+  def writes(o: User): JsValue = JsObject(
+    List("id" -> JsNumber(o.id),
+      "name" -> JsString(o.name),
+      "favThings" -> JsArray(o.favThings.map(JsString(_)))
+    )
+  )
 
-        def reads(json: JsValue): User = User(
-            (json \ "id").as[Long],
-            (json \ "name").as[String],
-            (json \ "favThings").as[List[String]]
-        )
+  def reads(json: JsValue): User = User(
+    (json \ "id").as[Long],
+    (json \ "name").as[String],
+    (json \ "favThings").as[List[String]]
+  )
 
-    }
+}
 ```
 
-2.1 
+In Play 2.1 you will need to refactor it as: 
 
 ```
 implicit object UserFormat extends Format[User] {
 
-        def writes(o: User): JsValue = JsObject(
-            List("id" -> JsNumber(o.id),
-                "name" -> JsString(o.name),
-                "favThings" -> JsArray(o.favThings.map(JsString(_)))
-            )   
-        )   
+  def writes(o: User): JsValue = JsObject(
+    List("id" -> JsNumber(o.id),
+      "name" -> JsString(o.name),
+      "favThings" -> JsArray(o.favThings.map(JsString(_)))
+    )   
+  )   
 
-        def reads(json: JsValue): JsResult[User] = JsSuccess(User(
-            (json \ "id").as[Long],
-            (json \ "name").as[String],
-            (json \ "favThings").as[List[String]]
-        ))  
+  def reads(json: JsValue): JsResult[User] = JsSuccess(User(
+    (json \ "id").as[Long],
+    (json \ "name").as[String],
+    (json \ "favThings").as[List[String]]
+  ))  
 
-    }
+}
 ```
 
-consider:
+The API to generate JSON already evolved. Consider:
+
 ```
 val jsonObject = Json.toJson(
   Map(
@@ -214,38 +211,39 @@ val jsonObject = Json.toJson(
 )
 ```
 
-in 2.1 this becomes:
+With Play 2.1 this becomes:
+
 ```
 val jsonObject = Json.obj(
-    "users" -> Json.arr(
-      Json.obj(
-          "name" -> "Bob",
-          "age" -> 31,
-          "email" -> "bob@gmail.com"
-        ),
-        Json.obj(
-          "name" -> "Kiki",
-          "age" -> 25,
-          "email" -> JsNull
-        )
+  "users" -> Json.arr(
+    Json.obj(
+      "name" -> "Bob",
+      "age" -> 31,
+      "email" -> "bob@gmail.com"
+    ),
+    Json.obj(
+      "name" -> "Kiki",
+      "age" -> 25,
+      "email" -> JsNull
     )
+  )
 )
 ```
 
 More information about these features can be found here:
+
 http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/
 
+_(TODO: Itegrate this to the documentation)_
 
-Cookie changes
-==============
 
-Due to a change in netty, cookies are expired by setting maxAge to null/None instead of setting it to 0.
+## Changes to Cookie handling
 
-maxAge on Cookies has changed to Option[Int] from Int.
+Due to a change in _JBoss Netty_, cookies are expired by setting maxAge to `null` or `None` (depending of the API) instead of setting the maxAge to 0.
 
-RequireJS
-==========
-in play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use require.JS instead.
+## RequireJS
+
+In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use require.JS instead.
 
 What this means in practice is that by default Play will only minify and combine files in stage, dist, start modes only. In dev mode Play will resolve dependencies client side.
 
@@ -255,11 +253,4 @@ If you wish to use this feature, you will need to add your modules to the settin
 requireJs := "main.js"
 ```
 
-More information about this feature can be found here:
-https://github.com/playframework/Play20/wiki/RequireJS-support
-
-Global changes
-==============
-Play now has simplified wrappers around typical global features (like filters)
-
-<waiting for the feature to hit master>
+More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].

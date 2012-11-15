@@ -4,11 +4,8 @@
 >
 > Play is based on a lightweight, stateless, web-friendly architecture and features predictable and minimal resource consumption (CPU, memory, threads) for highly-scalable applications thanks to its reactive model, based on Iteratee IO.
 
-## Migration Guide
-[[Migration Guide| Migration]]
-
-## Highlights
-[[What's new in 2.1?| Highlights]]
+- [[What's new in Play 2.1?| Highlights]]
+- [[Migration Guide| Migration]]
 
 ## Getting started
 
