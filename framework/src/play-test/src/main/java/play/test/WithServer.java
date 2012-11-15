@@ -21,6 +21,7 @@ public class WithServer {
     }
 
     protected void start(FakeApplication fakeApplication, int port) {
+        this.port = port;
         testServer = Helpers.testServer(port, fakeApplication);
         testServer.start();
     }
