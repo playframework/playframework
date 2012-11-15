@@ -360,7 +360,7 @@ Start by loading the user in the `index` method in `app/controllers/Application.
 public static Result index() {
     return ok(index.render(
         Project.findInvolving(request().username()), 
-        Task.find.findTodoInvolving(request().username()),
+        Task.findTodoInvolving(request().username()),
         User.find.byId(request().username())
     )); 
 }
