@@ -40,7 +40,7 @@ trait OWrites[-A] extends Writes[A]{
 }
 
 object OWrites extends PathWrites with ConstraintWrites {
-  import play.api.libs.json.util._
+  import play.api.libs.functional._
 
   implicit val functionalCanBuildOWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
 
@@ -68,7 +68,7 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
   val constraints: ConstraintWrites = this
   val path: PathWrites = this
 
-  import play.api.libs.json.util._
+  import play.api.libs.functional._
 
   /*implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
 

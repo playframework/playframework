@@ -2,7 +2,6 @@ package play.api.libs.json
 
 import play.api.data.validation.ValidationError
 import Json._
-import util.Monoid
 
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt

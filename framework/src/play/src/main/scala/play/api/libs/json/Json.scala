@@ -96,7 +96,7 @@ object Json {
    * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
    * {{{
    *   import play.api.libs.json.Json
-   *   import play.api.libs.json.util._
+   *   import play.api.libs.functional.syntax._
    *   import play.api.libs.json.Reads._   
    *
    *   case class User(name: String, age: Int)
@@ -117,8 +117,7 @@ object Json {
    * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
    * {{{
    *   import play.api.libs.json.Json
-   *   import play.api.libs.json.util._
-   *   import play.api.libs.json.Writes._  
+   *   import play.api.libs.functional.syntax._
    * 
    *   case class User(name: String, age: Int)
    *
@@ -138,11 +137,8 @@ object Json {
    * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
    * {{{
    *   import play.api.libs.json.Json
-   *   import play.api.libs.json.util._
-   *   import play.api.libs.json.Reads._  
-   *   import play.api.libs.json.Writes._  
-   *   import play.api.libs.json.Format._  
-   * 
+   *   import play.api.libs.functional.syntax._
+   *
    *   case class User(name: String, age: Int)
    *
    *   implicit val userWrites = Json.format[User]
