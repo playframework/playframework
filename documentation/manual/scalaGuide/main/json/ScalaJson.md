@@ -4,43 +4,287 @@
 
 The recommend way of dealing with JSON is using Play’s typeclass based JSON library, located at ```play.api.libs.json```. 
 
-This library is built on top of the super-fast Java based JSON library, [Jackson](http://jackson.codehaus.org/). 
+For parsing JSON strings, Play uses super-fast Java based JSON library, [Jackson](http://jackson.codehaus.org/).  
 
-The benefit of this approach is that both the Java and the Scala side of Play can share the same underlying library (Jackson), while Scala users can enjoy the extra type safety that Play’s JSON support brings to the table.
+The benefit of this approach is that both the Java and the Scala side of Play can share the same underlying library (Jackson), while Scala users can enjoy the extra type safety and functional aspecs that Play’s JSON support brings to the table.
 
-`play.api.libs.json` package contains seven JSON data types: 
+## JSON is an AST Abstract Syntax Tree
 
-- ```JsObject```
-- ```JsNull```
-- ```JsUndefined```
-- ```JsBoolean```
-- ```JsNumber```
-- ```JsArray```
-- ```JsString```
+Take JSON example:
 
-All of them inherit from the generic JSON value, ```JsValue```.
+```json
+{ "user": {
+    "name" : "toto",
+    "age" : 25,
+    "email" : "toto@jmail.com",
+    "isAlive" : true,
+    "friend" : {
+  	  "name" : "tata",
+  	  "age" : 20,
+  	  "email" : "tata@coldmail.com"
+    }
+} }
+```
+
+This can be seen as a tree structure using the following structures:
+
+- A JSON value is an `object` containing a set of name/value pairs:
+  - `name` is a String
+  - `value` can be :
+    - string
+    - number
+    - another object
+    - an array
+    - true/false
+    - null
+- An array is a sequence of values from the previously listed value types.
+
+> If you want to have more info about the exact JSON standard, please go to [json.org](http://json.org/)
+
+
+## Json Data Types
+
+`play.api.libs.json` package contains 7 JSON data types reflecting exactly the previous structure.
+
+### ```JsObject``` 
+
+- `{ "name" : "toto", "age" : 45 }` is an ex.
+- This is a set of name/value pairs as described in standard.
+
+### ```JsNull```
+
+This represents `null` value in JSON
+
+### ```JsBoolean```
+
+This is a boolean with value `true` or `false`
+
+### ```JsNumber```
+
+JSON does discriminate `short`, `int`, `long`, `float`, `double`, `bigdecimal` and everything is a `bigdecimal`. 
+Play JSON API brings more type precision when converting to Scala structures.
+
+### ```JsArray``` 
+
+- `[ "alpha", "beta", true, 123.44, 334]` for ex
+- An array is a sequence of any Json value types (not necessarily the same type)
+
+### ```JsString```
+
+A classic String.
+
+### ```JsUndefined```
+
+This is not part of the JSON standard and is only used internally by the API to represent some error nodes in the AST.
+
+### ```JsValue```
+
+All previous types inherit from the generic JSON trait, ```JsValue```.
+
+## Minimal Import to work with basic Json API
+
+```scala
+import play.api.libs.json._
+```
 
 ## Parsing a Json String
 
 You can easily parse any JSON string as a `JsValue`:
 
 ```
-val json: JsValue = Json.parse(jsonString)
+val json: JsValue = Json.parse("""
+{ 
+  "user": {
+    "name" : "toto",
+    "age" : 25,
+    "email" : "toto@jmail.com",
+    "isAlive" : true,
+    "friend" : {
+  	  "name" : "tata",
+  	  "age" : 20,
+  	  "email" : "tata@coldmail.com"
+    }
+  } 
+}
+""")
 ```
 
-## Navigating into a Json tree
+As explained previously, the parsing is performed by [Jackson](http://jackson.codehaus.org/).
 
-As soon as you have a `JsValue` you can navigate into the tree. The API looks like the one provided to navigate into XML document by Scala using `NodeSeq`:
 
+## Accessing Path in a Json tree 
+
+As soon as you have a `JsValue` you can navigate into the tree.  
+The API looks like the one provided to navigate into XML document by Scala using `NodeSeq` and you retrieve `JsValue`.
+
+### Simple path `\`
+
+```scala
+scala> val name: JsValue = json \ "user" \ "name"
+name: play.api.libs.json.JsValue = "toto"
 ```
-val json = Json.parse(jsonString)
 
-val maybeName = (json \ "user" \ "name").asOpt[String]
-val emails = (json \ "user" \\\\ "emails").map(_.as[String])
+### Recursive path `\\`
+ 
+```scala
+// recursively searches in the sub-tree and returns a `Seq[JsValue]`
+// of all found JsValue
+scala> val emails: Seq[String] = json \ "user" \\ "email"
+emails: Seq[play.api.libs.json.JsValue] = List("toto@jmail.com", "tata@coldmail.com")
+```
+ 
+
+## Converting JsValue to Scala Value
+
+While navigating JSON tree, you retrieve `JsValue` but you may want to convert the JsValue to a Scala type. 
+For ex, a `JsString` to a `String` or a `JsNumber` to a `Long` (if it can be converted).
+
+### Unsafe nav with `as[T]`
+
+`as[T]` is unsafe because it tries to access the path and convert to the required type but if the path is not found or the conversion not possible, it generates a `JsResultException` RuntimeException containing detected errors.
+
+#### case OK: path found & conversion possible
+
+```scala
+// returns the value converted to provided type (if possible and if found)
+scala> val name: String = (json \ "user" \ "name").as[String]
+name: String = toto
 ```
 
-> **Note** that navigating using \ and \\\\ never fails. You must handle the error case at the end using `asOpt[T]` that will return `None` if the value is missing. Otherwiser you can use `as[T]` that we fail with an exception if the value was missing.
+#### case KO: Path not found
 
+```scala
+scala> val nameXXX: String = (json \ "user" \ "nameXXX").as[String]
+play.api.libs.json.JsResultException: JsResultException(errors:List((,List(ValidationError(validate.error.expected.jsstring,WrappedArray())))))
+	at play.api.libs.json.JsValue$$anonfun$4.apply(JsValue.scala:65)
+	at play.api.libs.json.JsValue$$anonfun$4.apply(JsValue.scala:65)
+	at play.api.libs.json.JsResult$class.fold(JsResult.scala:69)
+	at play.api.libs.json.JsError.fold(JsResult.scala:10)
+	at play.api.libs.json.JsValue$class.as(JsValue.scala:63)
+	at play.api.libs.json.JsUndefined.as(JsValue.scala:96)
+```
+
+#### case KO: Conversion not possible
+
+```scala
+scala> val name: Long = (json \ "user" \ "name").as[Long]
+play.api.libs.json.JsResultException: JsResultException(errors:List((,List(ValidationError(validate.error.expected.jsnumber,WrappedArray())))))
+	at play.api.libs.json.JsValue$$anonfun$4.apply(JsValue.scala:65)
+	at play.api.libs.json.JsValue$$anonfun$4.apply(JsValue.scala:65)
+	at play.api.libs.json.JsResult$class.fold(JsResult.scala:69)
+	at play.api.libs.json.JsError.fold(JsResult.scala:10)
+	at play.api.libs.json.JsValue$class.as(JsValue.scala:63)
+	at play.api.libs.json.JsString.as(JsValue.scala:111)
+```
+
+<br/>
+### Safer nav with `Option[T]`
+
+`as[T]` is immediate but not robust so there is `asOpt[T]` which returns None in case of error of any type.
+
+#### case OK: path found & conversion possible
+
+```scala
+scala> val maybeName: Option[String] = (json \ "user" \ "name").asOpt[String]
+maybeName: Option[String] = Some(toto)
+```
+
+#### case KO: Path not found
+
+```scala
+scala> val maybeNameXXX: Option[String] = (json \ "user" \ "nameXXX").asOpt[String]
+maybeNameXXX: Option[String] = None
+```
+
+#### case KO: Conversion not possible
+
+```scala
+scala> val maybeNameLong: Option[Long] = (json \ "user" \ "name").asOpt[Long]
+maybeNameLong: Option[Long] = None
+```
+
+<br/>
+### Safest nav with `validate[T]`
+
+`asOpt[T]` is better but you lose the kind of error that was detected.  
+
+`validate[T]` is there to provide the safest and most robust way to convert a `JsValue` by returning a `JsResult[T]`:
+
+- `JsResult[T]` accumulates all detected errors (doesn't stop at 1st error),
+- `JsResult[T]` is a monadic structure providing `map`/`flatMap`/`fold` operations to manipulate, compose it.
+
+In a very nutshell, `JsResult[T]` can have 2 values:
+
+- `JsSuccess[T](value: T, path: JsPath = JsPath())` contains: 
+    - `value: T` when everything went OK,
+    - FYI, don't focus on `path` which is mainly an internal field used by the API to represent the current traversed `JsPath`.
+
+> Please note
+> `JsPath` will be described later but it is just the same as `XMLPath` for JSON. 
+> When you write : 
+> `json \ "user" \ "name"`
+> It can be written as following : 
+> `(JsPath \ "user" \ "name")(json)`
+> _You create a `JsPath` to search `user` then `name` and apply it to a given `json`._
+
+
+- `JsError(errors: Seq[(JsPath, Seq[ValidationError])])` :  
+    - `errors` is a Sequence of pairs `(JsPath, Seq[ValidationError])`
+    - pair `(JsPath, Seq[ValidationError])` locates one or more detected errors at given `JsPath`
+
+A few samples of usage:
+
+```scala
+val jsres: JsResult[String] = ...
+
+jsres.map{ s: String => …}
+jsres.flatMap{ s: String => JsSuccess(s) }
+
+jsres.fold( 
+  errors: Seq[(JsPath, Seq[ValidationError])] => // manage errors,
+  s: String => // manage value 
+)
+
+jsres.map( s => // manage value )
+     .recover( jserror: JsError => // manage errors)
+```
+
+#### case OK: path found & conversion possible
+
+```scala
+scala> val safeName = (json \ "user" \ "name").validate[String]
+safeName: play.api.libs.json.JsResult[String] = JsSuccess(toto,) // path is not precised because it's root
+```
+
+#### case KO: Path not found
+
+```scala
+scala> val nameXXX = (json \ "user" \ "nameXXX").validate[String]
+nameXXX: play.api.libs.json.JsResult[String] = 
+  JsError(List((,List(ValidationError(validate.error.expected.jsstring,WrappedArray())))))
+```
+
+> Please note the error that doesn't return `path.not.found` as you may expect. This is a difference from JSON combinators presented later in the doc. 
+> This is due to the fact that `(json \ "user" \ "nameXXX")` returns `JsNull` and the implicit `Reads[String]` here awaits a `JsString` which explains the detected error.
+
+#### case KO: Conversion not possible
+
+```scala
+scala> val name = (json \ "user" \ "name").validate[Long]
+name: play.api.libs.json.JsResult[Long] = 
+  JsError(List((,List(ValidationError(validate.error.expected.jsnumber,WrappedArray())))))
+```
+
+<br/>
+### Converting Recursive path `\\`
+ 
+`\\` recursively searches in the sub-tree and returns a `Seq[JsValue]` of found JsValue which is then a collection with classical Scala functions
+
+```scala
+scala> val emails: Seq[String] = (json \ "user" \\ "email").map(_.as[String])
+emails: Seq[String] = List(toto@jmail.com, tata@coldmail.com)
+```
+<br/>
 ## Converting a Scala value to Json
 
 As soon as you have a type class able to transform the Scala type to Json, it is pretty easy to generate any Scala value to Json. For example let's create a simple Json object:
