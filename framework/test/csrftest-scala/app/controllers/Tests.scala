@@ -12,10 +12,10 @@ import play.api.libs.json._
 object Tests extends Controller {
 
   def show = Action { implicit request =>
-    import play.api.csrf._
+    import play.filters.csrf._
     val token = CSRF.getToken(request)
     trace("CSRF TOKEN: " + token)
-    Ok(token.getOrElse(""))
+    Ok(token.map(_.value).getOrElse(""))
   }
 
   def post = Action { implicit request =>

@@ -51,4 +51,8 @@ object PlayMagicForJava {
     }
   }
 
+  implicit def requestHeader: play.api.mvc.RequestHeader = {
+    play.mvc.Http.Context.Implicit.ctx._requestHeader
+  }
+
 }

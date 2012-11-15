@@ -292,23 +292,6 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
-    lazy val PlayFiltersProject = Project(
-        "Filters",
-        file("src/play-filters"),
-        settings = buildSettingsWithMIMA ++ Seq(
-            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
-            libraryDependencies := runtime,
-            publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-            javacOptions in doc := Seq("-source", "1.6"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
-        )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayProject)
-
     lazy val PlayFiltersHelpersProject = Project(
         "Filters-Helpers",
         file("src/play-filters-helpers"),
@@ -324,7 +307,7 @@ object PlayBuild extends Build {
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayFiltersProject)
+    .dependsOn(PlayProject)
 
     val Root = Project(
         "Root",
@@ -357,7 +340,6 @@ object PlayBuild extends Build {
         ConsoleProject,
         PlayTestProject,
         PlayExceptionsProject,
-        PlayFiltersProject,
         PlayFiltersHelpersProject
     )
 

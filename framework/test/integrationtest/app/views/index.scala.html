@@ -1,6 +1,7 @@
 @(name:String)
  
-    <script type="text/javascript" data-main="public/javascripts/main" src="@controllers.routes.Assets.at("javascripts/require.js")"></script>
+     @views.html.helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
+
       
     Hello @name!
             
