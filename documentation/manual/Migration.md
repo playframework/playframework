@@ -239,7 +239,9 @@ _(TODO: Itegrate this to the documentation)_
 
 ## Changes to Cookie handling
 
-Due to a change in _JBoss Netty_, cookies are expired by setting maxAge to `null` or `None` (depending of the API) instead of setting the maxAge to 0.
+Due to a change in _JBoss Netty_, cookies are made to be transient by setting their `maxAge` to be `null` or `None` (depending of the API) instead of setting the `maxAge` to -1.  Any value equal to 0 or less for `maxAge` will cause the cookie to be expired immediately.
+
+The `discardingCookies(String\*)` (Scala) and `discardCookies(String...)` (Java) methods on `SimpleResult` have been deprecated, since these methods are unable to handle cookies set on a particular path, domain or set to be secure.  Please use the `discardingCookies(DiscardingCookie*)` (Scala) and `discardCookie` (Java) methods instead.
 
 ## RequireJS
 
