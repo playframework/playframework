@@ -31,7 +31,7 @@ sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VER
 sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSION}/framework/build.bat
 
 echo "[info] zipping..."
-zip -9 -r play-${PLAY_VERSION}.zip play-${PLAY_VERSION} -x '*.git/*' '*.lock' '*.history' '*.gitmodules' 'play-'${PLAY_VERSION}'/.gitignore' '*.DS_Store' 'play-'${PLAY_VERSION}'/dist/*' '*/target/*' 'play-'${PLAY_VERSION}'/framework/sbt/boot/*' 'play-'${PLAY_VERSION}'/repository/cache/*' 'play-'${PLAY_VERSION}'/samples/workinprogress/*' '*/logs/*' '*/tmp/*' '*/project/project/*' '*.log'
+zip -9 -r play-${PLAY_VERSION}.zip play-${PLAY_VERSION} -x '*.git/*' '*.lock' '*.history' '*.gitmodules' 'play-'${PLAY_VERSION}'/.gitignore' '*.DS_Store' 'play-'${PLAY_VERSION}'/dist/*' '*/target/*' 'play-'${PLAY_VERSION}'/framework/sbt/boot/*' 'play-'${PLAY_VERSION}'/repository/cache/*' 'play-'${PLAY_VERSION}'/samples/workinprogress/*' '*/logs/*' '*/tmp/*' '*/dist/*' '*/project/project/*' '*.log'
 
 rm -rf /tmp/play-${PLAY_VERSION}
 
