@@ -13,12 +13,17 @@ case class RecUser(name: String, cat: Option[Cat] = None, hobbies: List[String] 
 
 case class User1(name: String, friend: Option[User1] = None)
 
+case class UserMap(name: String, friends: Map[String, UserMap] = Map())
+
+case class Toto(name: String)
+case class UserFail(name: String, bd: Toto)
+
+
 object JsonExtensionSpec extends Specification {
 
   "JsonExtension" should {
     "create a reads[User]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
 
       //object User {def apply(age:Int):User = User(age,"")}
       implicit val userReads = Json.reads[User]
@@ -28,7 +33,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a writes[User]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
 
       implicit val userWrites = Json.writes[User]
 
@@ -37,7 +41,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a format[User]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
 
       implicit val userFormat = Json.format[User]
 
@@ -48,8 +51,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a reads[Dog]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
-      import play.api.libs.json.Reads._
 
       implicit val userReads = Json.reads[User]
       implicit val dogReads = Json.reads[Dog]
@@ -65,8 +66,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a writes[Dog]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
-      import play.api.libs.json.Writes._
 
       implicit val userWrites = Json.writes[User]
       implicit val dogWrites = Json.writes[Dog]
@@ -81,8 +80,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a format[Dog]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional._
-      import play.api.libs.functional.syntax._
 
       implicit val userFormat = Json.format[User]
       implicit val dogFormat = Json.format[Dog]
@@ -104,7 +101,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a reads[RecUser]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
 
       implicit val catReads = Json.reads[Cat]
       implicit val recUserReads = Json.reads[RecUser]
@@ -131,9 +127,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a writes[RecUser]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional._
-      import play.api.libs.functional.syntax._
-      import play.api.libs.json.Writes._
 
       implicit val catWrites = Json.writes[Cat]
       implicit val recUserWrites = Json.writes[RecUser]
@@ -158,8 +151,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a format[RecUser]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional._
-      import play.api.libs.functional.syntax._
 
       implicit val catFormat = Json.format[Cat]
       implicit val recUserFormat = Json.format[RecUser]
@@ -202,9 +193,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a reads[User1]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional._
-      import play.api.libs.functional.syntax._
-      import play.api.libs.json.Reads._
 
       implicit val userReads = Json.reads[User1]
 
@@ -225,7 +213,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a writes[User1]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
 
       implicit val userWrites = Json.writes[User1]
 
@@ -246,10 +233,6 @@ object JsonExtensionSpec extends Specification {
 
     "create a format[User1]" in {
       import play.api.libs.json.Json
-      import play.api.libs.functional.syntax._
-      import play.api.libs.json.Reads._
-      import play.api.libs.json.Writes._
-      import play.api.libs.json.Format._
 
       implicit val userFormat = Json.format[User1]
 
@@ -280,6 +263,28 @@ object JsonExtensionSpec extends Specification {
       )
 
     }
+
+    "manage Map[String, User]" in {
+      import play.api.libs.json.Json
+
+      implicit val userReads = Json.reads[UserMap]
+
+      Json.fromJson[UserMap](
+        Json.obj("name" -> "toto", "friends" -> Json.obj("tutu" -> Json.obj("name" -> "tutu", "friends" -> Json.obj())))
+      ) must beEqualTo(
+        JsSuccess(UserMap("toto", Map("tutu" -> UserMap("tutu"))))
+      )
+    }
+
+    /** test to validate it doesn't compile if missing implicit
+    "fail if missing " in {
+      import play.api.libs.json.Json
+
+      implicit val userReads = Json.reads[UserFail]
+
+      success
+    }*/
+
   }
 
 }
