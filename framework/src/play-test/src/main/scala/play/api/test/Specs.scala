@@ -22,9 +22,10 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  * @param port The port to run the server on
  */
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
-                          val port: Int = Helpers.testServerPort) extends Around with Scope {
+                          val port: Int = Helpers.testServerPort,
+                          val sslPort: Option[Int] = Helpers.testServerSSLPort) extends Around with Scope {
   implicit val implicitApp = app
-  def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app))(t)
+  def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app,sslPort))(t)
 }
 
 /**
@@ -37,7 +38,8 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
         val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
         implicit val app: FakeApplication = FakeApplication(),
-        val port: Int = Helpers.testServerPort) extends Around with Scope {
+        val port: Int = Helpers.testServerPort,
+        val sslPort: Option[Int] = Helpers.testServerSSLPort ) extends Around with Scope {
   implicit val implicitApp = app
   val browser: TestBrowser = TestBrowser.of(webDriver)
   def around[T](t: => T)(implicit evidence: (T) => Result) = {
