@@ -13,6 +13,7 @@ The Java API for the Play application developers is available in the `play` pack
     1. [[Session and Flash scopes | JavaSessionFlash]]
     1. [[Body parsers | JavaBodyParsers]]
     1. [[Action composition | JavaActionsComposition]]
+    1. [[Content negotiation | JavaContentNegotiation]]
 1. [[Asynchronous HTTP programming | JavaAsync]]
     1. [[Handling asynchronous results | JavaAsync]]
     1. [[Streaming HTTP responses | JavaStream]]

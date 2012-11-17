@@ -6,6 +6,7 @@
 - [[Session and Flash scopes | ScalaSessionFlash]]
 - [[Body parsers | ScalaBodyParsers]]
 - [[Actions composition | ScalaActionsComposition]]
+- [[Content negotiation | ScalaContentNegotiation]]
 
 ### Main concepts
 

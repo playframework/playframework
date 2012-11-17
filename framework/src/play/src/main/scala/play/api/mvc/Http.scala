@@ -81,7 +81,7 @@ package play.api.mvc {
     lazy val domain: String = host.split(':').head
 
     /**
-     * The Request Langs, extracted from the Accept-Language header.
+     * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
      */
     lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
       val langs = acceptHeader(HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
@@ -101,7 +101,7 @@ package play.api.mvc {
     }
 
     /**
-     * @return The media types list of the request’s Accept header, sorted by preference.
+     * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
       val mediaTypes = acceptHeader(HeaderNames.ACCEPT).map(item => (item._1, MediaRange(item._2)))
@@ -126,9 +126,9 @@ package play.api.mvc {
 
     /**
      * Check if this request accepts a given media type.
-     * @return true if `mediaType` matches the Accept header, otherwise false
+     * @return true if `mimeType` matches the Accept header, otherwise false
      */
-    def accepts(mediaType: String): Boolean = {
+    def accepts(mimeType: String): Boolean = {
       acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mediaType)).isDefined
     }
 

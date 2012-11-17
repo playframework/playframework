@@ -170,3 +170,21 @@ requireJs := "main.js"
 ```
 
 More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].
+
+## Content negotiation
+
+The support of content negotiation has been improved, for example now controllers automatically choose the most appropriate lang according to the quality values set in the `Accept-Language` request header value.
+
+It is also easier to write Web Services supporting several representations of a same resource and automatically choosing the best according to the `Accept` request header value:
+
+```
+val list = Action { implicit request =>
+  val items = Item.findAll
+  render {
+    case Accepts.Html() => Ok(views.html.list(items))
+    case Accepts.Json() => Ok(Json.toJson(items))
+  }
+}
+```
+
+More information can be found on the content negotiation documentation pages for [[Scala|ScalaContentNegotiation]] and [[Java|JavaContentNegotiation]].
