@@ -255,6 +255,7 @@ case class JsPath(path: List[PathNode] = List()) {
   def format[T](implicit f: Format[T]) = Format.at[T](this)(f)
   def formatOpt[T](implicit f: Format[T]): OFormat[Option[T]] = Format.optional[T](this)(f)
   def lazyFormat[T](f: => Format[T]) = OFormat[T]( lazyRead(f), lazyWrite(f) )
+  def lazyFormat[T](r: => Reads[T], w: => Writes[T]) = OFormat[T]( lazyRead(r), lazyWrite(w) )
   def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
   def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
 

@@ -19,8 +19,8 @@ object Application extends Controller {
   )
 
   def index = Action { implicit request =>
-    import play.api.csrf._
-    Ok(views.html.index(CSRF.getToken(request).getOrElse("")))
+    import play.filters.csrf._
+    Ok(views.html.index(CSRF.getToken(request).map(_.value).getOrElse("")))
   }
 
   def save = Action{ implicit request =>

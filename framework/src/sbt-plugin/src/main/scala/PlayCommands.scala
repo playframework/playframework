@@ -108,19 +108,20 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   val buildRequire = TaskKey[Seq[(JFile, JFile)]]("play-build-require-assets")
-  val buildRequireTask = (copyResources in Compile, crossTarget, requireJsSupport, requireNativePath, streams) map { (cr, crossTarget, requireJsSupport, requireNativePath,  s) =>
+  val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireNativePath,  s) =>
     val buildDescName = "app.build.js"
-    val jsFolder = "javascripts" 
+    val jsFolder = "javascripts"
     val rjoldDir = crossTarget / "classes" / "public" / jsFolder
-    val jsFiles = (rjoldDir ** "*.js").filter(_.getName.endsWith("min.js") == false).get.toSet
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
-    if (jsFiles.isEmpty == false && requireJsSupport) {
+    if (requireJs.isEmpty == false) {
       val rjnewDir = new JFile(rjoldDir.getAbsolutePath + "-min")
-      val relativeModulePath = (file: File) => rjoldDir.toURI.relativize(file.toURI).toString.replace(".js", "")
+      //cleanup previous version
+      IO.delete(rjnewDir)
+      val relativeModulePath = (str: String) => str.replace(".js", "")
       val content =  """({appDir: """" + jsFolder + """",
           baseUrl: ".",
           dir:"""" + rjnewDir.getName + """",
-          modules: [""" + jsFiles.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
+          modules: [""" + requireJs.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
 
       IO.write(buildDesc,content)
       //run requireJS
@@ -140,17 +141,43 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
       }  
       //clean-up
       IO.delete(buildDesc)
-      IO.delete(rjoldDir)
-      rjnewDir.renameTo(rjoldDir)
     }
     cr
   }
 
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
-  val playPackageEverythingTask = (state, thisProjectRef, crossTarget) flatMap { (s, r, crossTarget) =>
-    inAllDependencies(r, (packageBin in Compile).task, Project structure s).join
-  }
+
+  /**
+    * Executes the {{packaged-artifacts}} task in the current project (the project to which this setting is applied)
+    * and all of its dependencies, yielding a list of all resulting {{jar}} files *except*:
+    *
+    * * jar files from artifacts with names in [[sbt.PlayKeys.distExcludes]]
+    * * the jar file that is returned by {{packageSrc in Compile}}
+    * * the jar file that is returned by {{packageDoc in Compile}}
+    */
+  val playPackageEverythingTask = (state, thisProjectRef, distExcludes).flatMap { (state, project, excludes) =>
+      def taskInAllDependencies[T](taskKey: TaskKey[T]): Task[Seq[T]] =
+        inAllDependencies(project, taskKey.task, Project structure state).join
+
+      for {
+        packaged: Seq[Map[Artifact, File]] <- taskInAllDependencies(packagedArtifacts)
+        srcs: Seq[File] <- taskInAllDependencies(packageSrc in Compile)
+        docs: Seq[File] <- taskInAllDependencies(packageDoc in Compile)
+      } yield {
+        val allJars: Seq[Iterable[File]] = for {
+          artifacts: Map[Artifact, File] <- packaged
+        } yield {
+          artifacts
+            .filter { case (artifact, _) => artifact.extension == "jar" && !excludes.contains(artifact.name) }
+            .map { case (_, path) => path }
+        }
+        allJars
+          .flatten
+          .diff(srcs ++ docs) //remove srcs & docs since we do not need them in the dist
+          .distinct
+      }
+    }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>

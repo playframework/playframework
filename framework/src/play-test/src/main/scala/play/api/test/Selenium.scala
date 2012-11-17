@@ -1,7 +1,5 @@
 package play.api.test
 
-import java.io._
-
 import play.api._
 
 import org.openqa.selenium._
@@ -10,7 +8,6 @@ import org.openqa.selenium.htmlunit._
 
 import org.fluentlenium.core._
 
-import collection.JavaConverters._
 import java.util.concurrent.TimeUnit
 import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
@@ -19,7 +16,9 @@ import org.openqa.selenium.support.ui.FluentWait
  *
  * @param webDriver The WebDriver instance to use.
  */
-case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
+case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends FluentAdapter(webDriver) {
+
+  baseUrl.map(baseUrl => withDefaultUrl(baseUrl))
 
   /**
    * Repeatedly applies this instance's input value to the given block until one of the following occurs:
@@ -28,7 +27,7 @@ case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
    * the timeout expires
    *
    * @param timeout
-   * @param timeunit duration
+   * @param timeUnit duration
    * @param block code to be executed
    */
   def waitUntil[T](timeout: Int, timeUnit: TimeUnit)(block: => T): T = {
@@ -56,7 +55,6 @@ case class TestBrowser(webDriver: WebDriver) extends FluentAdapter(webDriver) {
    * to set cookies, manage timeouts among other things
    */
   def manage: WebDriver.Options = super.getDriver.manage
-
 }
 
 /**
@@ -66,18 +64,24 @@ object TestBrowser {
 
   /**
    * Creates an in-memory WebBrowser (using HtmlUnit)
+   *
+   * @param baseUrl The default base URL that will be used for relative URLs
    */
-  def default() = of(classOf[HtmlUnitDriver])
+  def default(baseUrl: Option[String] = None) = of(classOf[HtmlUnitDriver], baseUrl)
 
   /**
    * Creates a firefox WebBrowser.
+   *
+   * @param baseUrl The default base URL that will be used for relative URLs
    */
-  def firefox() = of(classOf[FirefoxDriver])
+  def firefox(baseUrl: Option[String] = None) = of(classOf[FirefoxDriver], baseUrl)
 
   /**
    * Creates a WebBrowser of the specified class name.
+   *
+   * @param baseUrl The default base URL that will be used for relative URLs
    */
-  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER]) = TestBrowser(WebDriverFactory(webDriver))
+  def of[WEBDRIVER <: WebDriver](webDriver: Class[WEBDRIVER], baseUrl: Option[String] = None) = TestBrowser(WebDriverFactory(webDriver), baseUrl)
 
 }
 

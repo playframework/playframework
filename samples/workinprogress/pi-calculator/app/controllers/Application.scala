@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 import library.{Calculator,Work}
 import play.api.mvc.Results._
 import play.api.libs.concurrent._
-import play.api.libs.concurrent._
+import play.api.libs.concurrent.Execution.Implicits._
 
 object Application extends Controller {
   import scala.concurrent.ExecutionContext.Implicits.global

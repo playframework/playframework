@@ -106,7 +106,6 @@ object Console {
           """|
                |  1             - Create a simple Scala application
                |  2             - Create a simple Java application
-               |  <g8 template> - Create an app based on the g8 template hosted on Github
                |""".stripMargin)
 
         consoleReader.printNewline

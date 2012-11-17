@@ -63,7 +63,7 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
 
   val path: PathReads = this
 
-  import play.api.libs.json.util._
+  import play.api.libs.functional._
 
   implicit def applicative(implicit applicativeJsResult:Applicative[JsResult]):Applicative[Reads] = new Applicative[Reads]{
 

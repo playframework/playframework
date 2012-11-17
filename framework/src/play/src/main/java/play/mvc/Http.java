@@ -37,6 +37,7 @@ public class Http {
         //
 
         private final Long id;
+        private final play.api.mvc.RequestHeader header;
         private final Request request;
         private final Response response;
         private final Session session;
@@ -52,8 +53,9 @@ public class Http {
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
          */
-        public Context(Long id, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
             this.id = id;
+            this.header = header;
             this.request = request;
             this.response = new Response();
             this.session = new Session(sessionData);
@@ -94,6 +96,14 @@ public class Http {
          */
         public Flash flash() {
             return flash;
+        }
+
+        /**
+         * The original Play request Header used to create this context. 
+         * For internal usage only.
+         */
+        public play.api.mvc.RequestHeader _requestHeader() {
+            return header;
         }
 
         /**

@@ -16,11 +16,13 @@ trait PlayKeys {
 
   def component(id: String) = "play" %% id % play.core.PlayVersion.current
 
+  val filters = "play" %% "filters-helpers" % play.core.PlayVersion.current
+
   val playVersion = SettingKey[String]("play-version")
 
   val playDefaultPort = SettingKey[Int]("play-default-port")
 
-  val requireJsSupport = SettingKey[Boolean]("play-require-js")
+  val requireJs = SettingKey[Seq[String]]("play-require-js")
 
   val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
 
@@ -29,6 +31,8 @@ trait PlayKeys {
   val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
 
   val distDirectory = SettingKey[File]("play-dist")
+
+  val distExcludes = SettingKey[Seq[String]]("dist-excludes")
 
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
 

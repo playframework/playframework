@@ -12,7 +12,7 @@ trait OFormat[A] extends OWrites[A] with Reads[A] with Format[A]
 
 object OFormat {
 
-  import play.api.libs.json.util._
+  import play.api.libs.functional._
 
   implicit def functionalCanBuildFormats(implicit rcb: FunctionalCanBuild[Reads], wcb: FunctionalCanBuild[OWrites]): FunctionalCanBuild[OFormat] = new FunctionalCanBuild[OFormat] {
 

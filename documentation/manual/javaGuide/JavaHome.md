@@ -1,6 +1,6 @@
-# Play 2.0 for Java developers
+# Play for Java developers
 
-The Java API for the Play 2.0 application developers is available in the `play` package. 
+The Java API for the Play application developers is available in the `play` package. 
 
 > The API available in the `play.api` package (such as `play.api.mvc`) is reserved for Scala developers. As a Java developer, look at `play.mvc`.
 
@@ -12,7 +12,7 @@ The Java API for the Play 2.0 application developers is available in the `play` 
     1. [[Manipulating the HTTP response | JavaResponse]]
     1. [[Session and Flash scopes | JavaSessionFlash]]
     1. [[Body parsers | JavaBodyParsers]]
-    1. [[Actions composition | JavaActionsComposition]]
+    1. [[Action composition | JavaActionsComposition]]
 1. [[Asynchronous HTTP programming | JavaAsync]]
     1. [[Handling asynchronous results | JavaAsync]]
     1. [[Streaming HTTP responses | JavaStream]]
@@ -46,6 +46,7 @@ The Java API for the Play 2.0 application developers is available in the `play` 
 1. [[The application Global object | JavaGlobal]]
     1. [[Application global settings | JavaGlobal]]
     1. [[Intercepting requests | JavaInterceptors]]
+    1. [[Managing Controller Class Instantiation | JavaInjection]]
 1. [[Testing your application | JavaTest]]
     1. [[Writing tests | JavaTest]]
     1. [[Writing functional tests | JavaFunctionalTest]]
@@ -53,3 +54,4 @@ The Java API for the Play 2.0 application developers is available in the `play` 
 ## Tutorials
 
 1. [[Your first application | JavaTodoList]]
+1. [[Zentask | JavaGuide1]]
