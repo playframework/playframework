@@ -69,9 +69,9 @@ import static play.mvc.Results.*;
 public class Global extends GlobalSettings {
 
   @Override
-  public Result onHandlerNotFound(String uri) {
-    return notFound(
-      views.html.pageNotFound(uri)
+  public Result onHandlerNotFound(RequestHeader request) {
+    return Results.notFound(
+      views.html.pageNotFound(request.uri())
     );
   }  
     
@@ -80,7 +80,7 @@ public class Global extends GlobalSettings {
 
 The `onBadRequest` operation will be called if a route was found, but it was not possible to bind the request parameters:
 
-```scala
+```java
 import play.*;
 import play.mvc.*;
 
@@ -89,8 +89,8 @@ import static play.mvc.Results.*;
 public class Global extends GlobalSettings {
 
   @Override
-  public Result onBadRequest(String uri, String error) {
-    return badRequest("Don't try to hack the URI!");
+  public Result onBadRequest(RequestHeader request, String error) {
+    return Results.badRequest("Don't try to hack the URI!");
   }  
     
 }
