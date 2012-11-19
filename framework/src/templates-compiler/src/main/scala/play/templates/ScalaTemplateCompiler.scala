@@ -5,6 +5,7 @@ package play.templates {
   import scalax.file._
   import java.io.File
   import scala.annotation.tailrec
+  import io.Codec
 
   object Hash {
 
@@ -172,7 +173,7 @@ package play.templates {
     def compile(source: File, sourceDirectory: File, generatedDirectory: File, resultType: String, formatterType: String, additionalImports: String = "") = {
       val (templateName, generatedSource) = generatedFile(source, sourceDirectory, generatedDirectory)
       if (generatedSource.needRecompilation) {
-        val generated = parseAndGenerateCode(templateName, Path(source).string, source.getAbsolutePath, resultType, formatterType, additionalImports)
+        val generated = parseAndGenerateCode(templateName, Path(source).byteArray, source.getAbsolutePath, resultType, formatterType, additionalImports)
 
         Path(generatedSource.file).write(generated.toString)
 
@@ -184,13 +185,13 @@ package play.templates {
 
     def compileVirtual(content: String, source: File, sourceDirectory: File, resultType: String, formatterType: String, additionalImports: String = "") = {
       val (templateName, generatedSource) = generatedFileVirtual(source, sourceDirectory)
-      val generated = parseAndGenerateCode(templateName, content, source.getAbsolutePath, resultType, formatterType, additionalImports)
+      val generated = parseAndGenerateCode(templateName, content.getBytes(Codec.UTF8), source.getAbsolutePath, resultType, formatterType, additionalImports)
       generatedSource.setContent(generated)
       generatedSource
     }
     
-    def parseAndGenerateCode(templateName: Array[String], content: String, absolutePath: String, resultType: String, formatterType: String, additionalImports: String) = {
-      templateParser.parser(new CharSequenceReader(content)) match {
+    def parseAndGenerateCode(templateName: Array[String], content: Array[Byte], absolutePath: String, resultType: String, formatterType: String, additionalImports: String) = {
+      templateParser.parser(new CharSequenceReader(new String(content, Codec.UTF8))) match {
         case templateParser.Success(parsed, rest) if rest.atEnd => {
           generateFinalTemplate(absolutePath, 
             content,
@@ -554,13 +555,13 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     @deprecated("use generateFinalTemplate with 8 parameters instead", "Play 2.1")
     def generateFinalTemplate(template: File, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
-      generateFinalTemplate(template.getAbsolutePath, Path(template).string, packageName, name, root, resultType, formatterType, additionalImports)
+      generateFinalTemplate(template.getAbsolutePath, Path(template).byteArray, packageName, name, root, resultType, formatterType, additionalImports)
     }
 
-    def generateFinalTemplate(absolutePath: String, contents: String, packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
+    def generateFinalTemplate(absolutePath: String, contents: Array[Byte], packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
       val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
 
-      Source.finalSource(absolutePath, contents.getBytes, generated)
+      Source.finalSource(absolutePath, contents, generated)
     }
 
     object TemplateAsFunctionCompiler {
