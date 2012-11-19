@@ -51,6 +51,12 @@ GET     /async-error            controllers.Application.asyncError()
 
 GET     /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
 
+
+
+
+
+
+
 GET     /routes                 controllers.Application.route(abstract)
 GET     /routes                 controllers.Application.route(case)
 GET     /routes                 controllers.Application.route(catch)
@@ -88,8 +94,14 @@ GET     /routes                 controllers.Application.route(type)
 GET     /routes                 controllers.Application.route(val)
 GET     /routes                 controllers.Application.route(var)
 GET     /routes                 controllers.Application.route(while)
-GET     /routes                 controllers.Application.route(with)
-GET     /routes                 controllers.Application.route(yield)
+
+#maybe a bug in scala, still when activating following rules, a stackoverflow
+#occurs
+#GET     /routes                 controllers.Application.route(with)
+#GET     /routes                 controllers.Application.route(yield)
+
+GET     /routestest             controllers.Application.routetest(with)
+GET     /routestest             controllers.Application.routetest(yield)
 
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
