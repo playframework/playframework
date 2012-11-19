@@ -8,7 +8,7 @@ object Execution {
       play.core.Invoker.executionContext: scala.concurrent.ExecutionContext
   }
 
-  val defaultContext = play.core.Invoker.executionContext: scala.concurrent.ExecutionContext
+  val defaultContext = Implicits.defaultContext
 
 }
 
