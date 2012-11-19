@@ -1,5 +1,7 @@
 package play.api.libs.iteratee
 
+import scala.language.reflectiveCalls
+
 import scala.concurrent.Future
 import play.api.libs.iteratee.internal.defaultExecutionContext
 

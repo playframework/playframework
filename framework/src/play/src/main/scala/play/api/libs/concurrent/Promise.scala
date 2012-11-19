@@ -1,5 +1,7 @@
 package play.api.libs.concurrent
 
+import scala.language.higherKinds
+
 import play.core._
 import play.api._
 

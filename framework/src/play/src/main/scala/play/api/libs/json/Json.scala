@@ -1,10 +1,12 @@
 package play.api.libs.json
 
+import scala.language.reflectiveCalls
+
 /**
  * Helper functions to handle JsValues.
  */
 object Json {
-
+  
   /**
    * Parse a String representing a json, and return it as a JsValue.
    *
@@ -58,6 +60,8 @@ object Json {
   sealed trait JsValueWrapper extends NotNull
 
   private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper
+
+  import scala.language.implicitConversions
 
   implicit def toJsFieldJsValueWrapper[T](field: T)(implicit w: Writes[T]): JsValueWrapper = JsValueWrapperImpl(w.writes(field))
 

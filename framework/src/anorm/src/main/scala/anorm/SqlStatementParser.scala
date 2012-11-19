@@ -1,5 +1,7 @@
 package anorm
 
+import scala.language.postfixOps
+
 import scala.util.parsing.combinator._
 
 object SqlStatementParser extends JavaTokenParsers {
