@@ -85,7 +85,7 @@ using the new `scala.concurrent.Future` this will become:
 ```
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-import play.api.libs.concurrent.execution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.duration._
 
@@ -101,14 +101,14 @@ import scala.concurrent.duration._
 
 notice the extra imports for:
 
-- The new import for the execution context `play.api.libs.concurrent.execution.Implicits`
+- The new import for the execution context `play.api.libs.concurrent.Execution.Implicits`
 - The change for duration `scala.concurrent.duration` instead of using the Akka API) 
 - Furthermore the `asPromise` method is gone now
 
 Generally speaking, if you see error message "error: could not find implicit value for parameter executor", you probably need to add
 
 ```
-import play.api.libs.concurrent.execution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits._
 ```
 
 _(Please see the Scala documentation about Execution context for mor informations)_
