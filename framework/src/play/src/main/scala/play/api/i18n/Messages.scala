@@ -110,11 +110,8 @@ object Lang {
    */
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     val all = availables
-    langs.collectFirst({
-      case lang if all.exists(_.satisfies(lang)) => all.find(_.satisfies(lang)).get
-    }).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
+    langs.collectFirst(Function.unlift(lang => all.find(_.satisfies(lang)))).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
   }
-
 }
 
 /**
