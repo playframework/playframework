@@ -162,4 +162,8 @@ object Application extends Controller {
   def route(parameter: String) = Action {
     Ok("")
   }
+
+  def routetest(parameter: String) = Action {
+    Ok("")
+  }
 }
