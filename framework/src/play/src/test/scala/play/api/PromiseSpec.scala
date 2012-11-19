@@ -14,3 +14,14 @@ object PromiseSpec extends Specification {
     }
   }
 }
+object PurePromiseSpec extends Specification {
+	class NonFatalThrowable extends Throwable
+
+	"A pure promise" should {
+		"recover after a NonFatal error" in {
+			val promise = PurePromise[String](throw new NonFatalThrowable)
+			val recovered=promise.recover{ case e: NonFatalThrowable => "NonFatalThrowable"}
+			recovered.value1.get must equalTo ("NonFatalThrowable")
+		}
+	}	
+}
