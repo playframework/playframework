@@ -63,7 +63,7 @@ object ApplicationBuild extends Build {
  
   val appDependencies = Nil
  
-  val main = play.PlayProject(
+  val main = play.Project(
     appName, appVersion, appDependencies
   ) 
  
