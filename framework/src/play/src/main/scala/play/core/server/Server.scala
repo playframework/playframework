@@ -16,6 +16,7 @@ import akka.routing._
 import akka.pattern.Patterns.ask
 import scala.concurrent.duration._
 import akka.util.Timeout
+import util.control.NonFatal
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -31,7 +32,7 @@ trait Server {
   try {
     if (mode == Mode.Dev) scalax.file.Path(new java.io.File(applicationProvider.path, "logs/application.log")).delete()
   } catch {
-    case _: Exception =>
+    case NonFatal(_) =>
   }
 
   // Configure the logger for the first time
@@ -57,7 +58,7 @@ trait Server {
           (maybeAction.getOrElse(Action(BodyParsers.parse.empty)(_ => application.global.onHandlerNotFound(request))), application)
         }
       } catch {
-        case e: Exception => Left(e)
+        case NonFatal(e) => Left(e)
       }
     }
 

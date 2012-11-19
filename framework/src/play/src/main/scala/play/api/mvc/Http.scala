@@ -7,8 +7,9 @@ package play.api.mvc {
   import play.api.libs.Crypto
 
   import scala.annotation._
+import util.control.NonFatal
 
-  /**
+/**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
    */
   @implicitNotFound("Cannot find any HTTP Request Header here")
@@ -445,7 +446,7 @@ package play.api.mvc {
         } else urldecode(data)
       } catch {
         // fail gracefully is the session cookie is corrupted
-        case _: Exception => Map.empty[String, String]
+        case NonFatal(_) => Map.empty[String, String]
       }
     }
 
