@@ -10,7 +10,7 @@ In the same time we have broken the dependency that was existing between the Sca
 
 One of the greatest feature provided by Scala 2.10 is the new standard `scala.concurrent.Future` library for managing asynchronous code in Scala. Play is now based itself on this API, and its great asynchronouns HTTP and streaming features are now compatible directly with any other library using the same API. 
 
-It makes it even simpler to use Play with Akka, or any upcoming asynchronous datastore driver that will use thsi new API.
+It makes it even simpler to use Play with Akka, or any upcoming asynchronous datastore driver that will use this new API.
 
 In the same time, we worked to simplify the execution context model, and by providing an easy way to choose for each part of your application, the underlying `ExecutionContext` used to run your code. 
 
