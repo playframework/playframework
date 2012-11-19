@@ -13,6 +13,7 @@ import annotation.implicitNotFound
 
 import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
+import util.control.NonFatal
 
 
 trait WithDefaultGlobal {
@@ -51,7 +52,7 @@ trait WithDefaultGlobal {
       javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
     } catch {
       case e: PlayException => throw e
-      case e: Exception => throw new PlayException(
+      case NonFatal(e) => throw new PlayException(
         "Cannot init the Global object",
         e.getMessage,
         e
@@ -132,7 +133,7 @@ trait WithDefaultPlugins {
             if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: PlayException => throw e
-            case e: Exception => throw new PlayException(
+            case NonFatal(e) => throw new PlayException(
               "Cannot load plugin",
               "Plugin [" + className + "] cannot been instantiated.",
               e)
@@ -143,7 +144,7 @@ trait WithDefaultPlugins {
           "An exception occurred during Plugin [" + className + "] initialization",
           e.getTargetException)
         case e: PlayException => throw e
-        case e: Exception => throw new PlayException(
+        case NonFatal(e) => throw new PlayException(
           "Cannot load plugin",
           "Plugin [" + className + "] cannot been instantiated.",
           e)
@@ -288,7 +289,7 @@ trait Application {
       }
     }
   } catch {
-    case e: Exception => try {
+    case NonFatal(e) => try {
       Logger.error(
         """
         |
@@ -301,7 +302,7 @@ trait Application {
       )
       global.onError(request, e)
     } catch {
-      case e: Exception => DefaultGlobal.onError(request, e)
+      case NonFatal(e) => DefaultGlobal.onError(request, e)
     }
   }
 

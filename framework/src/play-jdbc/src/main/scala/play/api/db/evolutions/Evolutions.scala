@@ -14,6 +14,7 @@ import play.api.libs.Codecs._
 import javax.sql.DataSource
 import java.sql.{ Statement, Date, Connection, SQLException }
 import scala.util.control.Exception._
+import util.control.NonFatal
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -169,7 +170,7 @@ object Evolutions {
 
     } catch {
       case e: InconsistentDatabase => throw e
-      case _: Exception => try {
+      case NonFatal(_) => try {
         execute(
           """
                     create table play_evolutions (
@@ -181,7 +182,7 @@ object Evolutions {
                         last_problem text
                     )
                 """)
-      } catch { case ex: Exception => play.api.Logger.warn("play_evolutions table already existed") }
+      } catch { case NonFatal(ex) => play.api.Logger.warn("play_evolutions table already existed") }
     } finally {
       connection.close()
     }
@@ -250,7 +251,7 @@ object Evolutions {
       }
 
     } catch {
-      case e: Exception => {
+      case NonFatal(e) => {
         val message = e match {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex => ex.getMessage

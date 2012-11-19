@@ -1,6 +1,7 @@
 package play.api
 
 import org.slf4j.{ LoggerFactory, Logger => Slf4jLogger }
+import util.control.NonFatal
 
 /**
  * Typical logger interface.
@@ -247,7 +248,7 @@ object Logger extends LoggerLike {
               configurator.doConfigure(url)
             }
         } catch {
-          case e: Exception => e.printStackTrace()
+          case NonFatal(e) => e.printStackTrace()
         }
 
         levels.foreach {
@@ -255,7 +256,7 @@ object Logger extends LoggerLike {
         }
         StatusPrinter.printIfErrorsOccured(ctx)
       } catch {
-        case _: Exception =>
+        case NonFatal(_) =>
       }
 
     }
