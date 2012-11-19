@@ -13,7 +13,8 @@ The benefit of this approach is that both the Java and the Scala side of Play ca
 Take JSON example:
 
 ```json
-{ "user": {
+{ 
+  "user": {
     "name" : "toto",
     "age" : 25,
     "email" : "toto@jmail.com",
@@ -23,21 +24,22 @@ Take JSON example:
   	  "age" : 20,
   	  "email" : "tata@coldmail.com"
     }
-} }
+  } 
+}
 ```
 
-This can be seen as a tree structure using the following structures:
+This can be seen as a tree structure using the 2 following structures:
 
-- A JSON value is an `object` containing a set of name/value pairs:
-  - `name` is a String
-  - `value` can be :
-    - string
-    - number
-    - another object
-    - an array
-    - true/false
-    - null
-- An array is a sequence of values from the previously listed value types.
+- **JSON object** contains a set of name/value pairs:
+    - `name` is a String
+    - `value` can be :
+        - string
+        - number
+        - another object
+        - an array
+        - true/false
+        - null
+- **JSON array** is a sequence of values from the previously listed value types.
 
 > If you want to have more info about the exact JSON standard, please go to [json.org](http://json.org/)
 
@@ -48,7 +50,7 @@ This can be seen as a tree structure using the following structures:
 
 ### ```JsObject``` 
 
-- `{ "name" : "toto", "age" : 45 }` is an ex.
+- `{ "name" : "toto", "age" : 45 }` for example.
 - This is a set of name/value pairs as described in standard.
 
 ### ```JsNull```
@@ -61,12 +63,12 @@ This is a boolean with value `true` or `false`
 
 ### ```JsNumber```
 
-JSON does discriminate `short`, `int`, `long`, `float`, `double`, `bigdecimal` and everything is a `bigdecimal`. 
-Play JSON API brings more type precision when converting to Scala structures.
+- JSON does NOT discriminate `short`, `int`, `long`, `float`, `double`, `bigdecimal` so it is represented by `JsNumber` containing a `bigdecimal`. 
+- Play JSON API brings more type precision when converting to Scala structures.
 
 ### ```JsArray``` 
 
-- `[ "alpha", "beta", true, 123.44, 334]` for ex
+- `[ "alpha", "beta", true, 123.44, 334]` for example
 - An array is a sequence of any Json value types (not necessarily the same type)
 
 ### ```JsString```
@@ -84,8 +86,18 @@ All previous types inherit from the generic JSON trait, ```JsValue```.
 ## Minimal Import to work with basic Json API
 
 ```scala
-import play.api.libs.json._
+import play.api.libs.json.Json
 ```
+
+This import give access to the most basic JSON features :
+
+- `Json.parse` : parses a string to JsValue
+- `Json.stringify` : stringifies a JsValue
+- `Json.toJson[T](implicit writes: Writes[T])` : tries to convert a Scala structure to a JsValue using the resolved implicit `Writes[T]`
+- `Json.fromJson[T](implicit reads: Reads[T])` : tries to convert a JsValue to a Scala structure using the resolved implicit `Reads[T]`
+- `Json.obj()` : simplified syntax to create a `JsObject`
+- `Json.arr()` : simplified syntax to create a `JsArray`
+
 
 ## Parsing a Json String
 
@@ -109,13 +121,15 @@ val json: JsValue = Json.parse("""
 """)
 ```
 
+This sample is used in all next samples.
+
 As explained previously, the parsing is performed by [Jackson](http://jackson.codehaus.org/).
 
 
 ## Accessing Path in a Json tree 
 
-As soon as you have a `JsValue` you can navigate into the tree.  
-The API looks like the one provided to navigate into XML document by Scala using `NodeSeq` and you retrieve `JsValue`.
+As soon as you have a `JsValue` you can navigate into the JSON tree.  
+The API looks like the one provided to navigate into XML document by Scala using `NodeSeq` except you retrieve `JsValue`.
 
 ### Simple path `\`
 
@@ -141,7 +155,7 @@ For ex, a `JsString` to a `String` or a `JsNumber` to a `Long` (if it can be con
 
 ### Unsafe nav with `as[T]`
 
-`as[T]` is unsafe because it tries to access the path and convert to the required type but if the path is not found or the conversion not possible, it generates a `JsResultException` RuntimeException containing detected errors.
+`as[T]` is unsafe because it tries to access the path and toconvert to the required type. But if the path is not found or the conversion not possible, it generates a `JsResultException` RuntimeException containing detected errors.
 
 #### case OK: path found & conversion possible
 
@@ -235,7 +249,11 @@ In a very nutshell, `JsResult[T]` can have 2 values:
 A few samples of usage:
 
 ```scala
-val jsres: JsResult[String] = ...
+scala> val jsres: JsResult[String] = JsString("toto").validate[String]
+jsres: JsSuccess("toto")
+
+scala> val jsres: JsResult[String] = JsNumber(123).validate[String]
+jsres: play.api.libs.json.JsResult[String] = JsError(List((,List(ValidationError(validate.error.expected.jsstring,WrappedArray())))))
 
 jsres.map{ s: String => …}
 jsres.flatMap{ s: String => JsSuccess(s) }
@@ -245,7 +263,7 @@ jsres.fold(
   s: String => // manage value 
 )
 
-jsres.map( s => // manage value )
+jsres.map( s: String => // manage value )
      .recover( jserror: JsError => // manage errors)
 ```
 
@@ -278,34 +296,45 @@ name: play.api.libs.json.JsResult[Long] =
 <br/>
 ### Converting Recursive path `\\`
  
-`\\` recursively searches in the sub-tree and returns a `Seq[JsValue]` of found JsValue which is then a collection with classical Scala functions
+`\\` recursively searches in the sub-tree and returns a `Seq[JsValue]` of found JsValue which is then a collection with classical Scala functions.
 
 ```scala
 scala> val emails: Seq[String] = (json \ "user" \\ "email").map(_.as[String])
 emails: Seq[String] = List(toto@jmail.com, tata@coldmail.com)
 ```
 <br/>
-## Converting a Scala value to Json
+## Converting a Scala value to JsValue
 
-As soon as you have a type class able to transform the Scala type to Json, it is pretty easy to generate any Scala value to Json. For example let's create a simple Json object:
+Scala to JSON conversion is performed by function `Json.toJson[T](implicit writes: Writes[T])` based on implicit typeclass `Writes[T]` which is just able to convert a `T` to a `JsValue`. 
+
+### Create very simple JsValue
 
 ```
 val jsonNumber = Json.toJson(4)
+jsonNumber: play.api.libs.json.JsValue = 4
 ```
 
-Or create a json array:
+*This conversion is possible because Play JSON API provides an implicit `Writes[Int]`*
+
+
+### Create a json array
 
 ```
 val jsonArray = Json.toJson(Seq(1, 2, 3, 4))
+jsonArray: play.api.libs.json.JsValue = [1,2,3,4]
 ```
+
+*This conversion is possible because Play JSON API provides an implicit `Writes[Seq[Int]]`*
 
 Here we have no problem to convert a `Seq[Int]` into a Json array. However it is more complicated if the `Seq` contains heterogeneous values:
 
 ```
 val jsonArray = Json.toJson(Seq(1, "Bob", 3, 4))
+<console>:11: error: No Json deserializer found for type Seq[Any]. Try to implement an implicit Writes or Format for this type.
+       val jsonArray = Json.toJson(Seq(1, "Bob", 3, 4))
 ```
 
-Because there is no way to convert a `Seq[Any]` to Json (`Any` could be anything including something not supported by Json right?)
+You get an error because there is no way to convert a `Seq[Any]` to Json (`Any` could be anything including something not supported by Json right?)
 
 A simple solution is to handle it as a `Seq[JsValue]`:
 
@@ -314,8 +343,9 @@ val jsonArray = Json.toJson(Seq(
   toJson(1), toJson("Bob"), toJson(3), toJson(4)
 ))
 ```
+*This conversion is possible because Play API JSON provides an implicit `Writes[Seq[JsValue]]`*
 
-Now let's see a last example of creating a more complex Json object:
+### Create a json object
 
 ```
 val jsonObject = Json.toJson(
@@ -359,26 +389,53 @@ That will generate this Json result:
 }
 ```
 
-## Another way of constructing Json
+## Constructing JSON directly
 
-The above Json object can be created in other ways too. Here is an alternative approach.
+### Raw way
+
+The above Json object can be created in other ways too. 
+Here is the raw approach.
+
 ```
+JsObject(
+  "users" -> JsArray(
     JsObject(
-      "users" -> JsArray(
-        JsObject(
-          "name" -> JsString("Bob") ::
-          "age" -> JsNumber(31) ::
-          "email" -> JsString("bob@gmail.com") ::
-          Nil) ::
-        JsObject(
-          "name" -> JsString("Kiki") ::
-          "age" -> JsNumber(25) ::
-          "email" -> JsNull ::
-          Nil
-        ) :: Nil
-      ) :: Nil
-    )
+      "name" -> JsString("Bob") ::
+      "age" -> JsNumber(31) ::
+      "email" -> JsString("bob@gmail.com") ::
+      Nil) ::
+    JsObject(
+      "name" -> JsString("Kiki") ::
+      "age" -> JsNumber(25) ::
+      "email" -> JsNull ::
+      Nil
+    ) :: Nil
+  ) :: Nil
+)
 ```
+
+### Preferred way
+
+Play now provides a simplified syntax to build your JSON.
+The previous JsObject can be construct as following:
+
+```
+Json.obj(
+  "users" -> Json.arr(
+  	Json.obj(
+  	  "name" -> "bob",
+  	  "age" -> 31,
+  	  "email" -> "bob@gmail.com"  	  
+  	),
+  	Json.obj(
+  	  "name" -> "kiki",
+  	  "age" -> 25,
+  	  "email" -> JsNull  	  
+  	)
+  )
+)
+```
+
 
 ## Serializing Json
 
