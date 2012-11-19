@@ -8,6 +8,16 @@ import scala.util.matching._
  * provides a compiler for routes
  */
 object RoutesCompiler {
+  val scalaReservedWords = List(
+    "abstract", "case", "catch", "class", "def",
+    "do", "else", "extends", "false", "final",
+    "finally", "for", "forSome", "if", "implicit",
+    "import", "lazy", "match", "new", "null",
+    "object", "override", "package", "private", "protected",
+    "return", "sealed", "super", "this", "throw",
+    "trait", "try", "true", "type", "val",
+    "var", "while", "with", "yield"
+  )
 
   case class HttpVerb(value: String) {
     override def toString = value
@@ -714,12 +724,12 @@ object RoutesCompiler {
 
                     val parameters = route.call.parameters.getOrElse(Nil)
 
-                    val reverseSignature = parameters.map(p => p.name + ":" + p.typeName).mkString(", ")
+                    val reverseSignature = parameters.map(p => safeKeyword(p.name) + ":" + p.typeName).mkString(", ")
 
                     val controllerCall = if (route.call.instantiate) {
-                      "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + packageName + "." + controller + "])." + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                      "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + packageName + "." + controller + "])." + route.call.method + "(" + { parameters.map(x => safeKeyword(x.name)).mkString(", ") } + ")"
                     } else {
-                      packageName + "." + controller + "." + route.call.method + "(" + { parameters.map(_.name).mkString(", ") } + ")"
+                      packageName + "." + controller + "." + route.call.method + "(" + { parameters.map(x => safeKeyword(x.name)).mkString(", ") } + ")"
                     }
 
                     """
@@ -795,7 +805,7 @@ object RoutesCompiler {
                       }
                     }
 
-                    val reverseSignature = reverseParameters.map(p => p._1.name + ":" + p._1.typeName + {
+                    val reverseSignature = reverseParameters.map(p => safeKeyword(p._1.name) + ":" + p._1.typeName + {
                       Option(routes.map(_.call.parameters.get(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
                         case None => ""
                         case Some(default) => " = " + default
@@ -808,7 +818,7 @@ object RoutesCompiler {
                         case StaticPart(part) => "\"" + part + "\""
                         case DynamicPart(name, _) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+                            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
                           }.getOrElse {
                             throw new Error("missing key " + name)
                           }
@@ -829,7 +839,7 @@ object RoutesCompiler {
                         } else {
                           """ + queryString(List(%s))""".format(
                             queryParams.map { p =>
-                              ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+                              ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
                             }.map {
                               case (u, Parameter(name, typeName, None, Some(default))) => """if(""" + localNames.get(name).getOrElse(name) + """ == """ + default + """) None else Some(""" + u + """)"""
                               case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
@@ -866,7 +876,7 @@ object RoutesCompiler {
                           markLines((route +: routes): _*),
                           route.call.method,
                           reverseSignature,
-                          reverseParameters.map(_._1.name + ": @unchecked").mkString(", "),
+                          reverseParameters.map(x => safeKeyword(x._1.name) + ": @unchecked").mkString(", "),
 
                           // route selection
                           (route +: routes).map { route =>
@@ -879,7 +889,7 @@ object RoutesCompiler {
                                                             |case (%s) %s => %s
                                                         """.stripMargin.format(
                               markLines(route),
-                              reverseParameters.map(_._1.name).mkString(", "),
+                              reverseParameters.map(x => safeKeyword(x._1.name)).mkString(", "),
 
                               // Fixed constraints
                               Option(route.call.parameters.getOrElse(Nil).filter { p =>
@@ -943,6 +953,11 @@ object RoutesCompiler {
         }.mkString(","))
   }
 
+  private[this] def safeKeyword(keyword: String) =
+    scalaReservedWords.find(_ == keyword).map(
+      "playframework_escape_%s".format(_)
+    ).getOrElse(keyword)
+
   /**
    * Generate the routing stuff
    */
@@ -985,7 +1000,7 @@ object RoutesCompiler {
 
           // local names
           r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map(_.name).mkString(", ")
+            params.map(x => safeKeyword(x.name)).mkString(", ")
           }.map("(" + _ + ") =>").getOrElse(""),
 
           // call
@@ -997,7 +1012,7 @@ object RoutesCompiler {
 
           // call parameters
           r.call.parameters.map { params =>
-            params.map(_.name).mkString(", ")
+            params.map(x => safeKeyword(x.name)).mkString(", ")
           }.map("(" + _ + ")").getOrElse(""),
 
           // definition
