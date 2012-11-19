@@ -8,7 +8,7 @@ import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
 
 import play.api.libs.ws._
-import play.api.libs.ws.WS.WSRequest
+import play.api.libs.ws.WSRequest
 
 /**
  * Library to access resources protected by OAuth 1.0a.
