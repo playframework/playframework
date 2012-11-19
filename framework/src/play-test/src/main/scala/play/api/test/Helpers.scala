@@ -80,6 +80,7 @@ object Helpers extends Status with HeaderNames {
    * testserver.port
    */
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
+  lazy val testServerSSLPort = Option(System.getProperty("testserver.port.ssl")).map(_.toInt)
 
   /**
    * Extracts the Content-Type of this Content value.

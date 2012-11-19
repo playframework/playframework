@@ -17,6 +17,7 @@ import com.ning.http.client.{
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.client.Realm.{RealmBuilder, AuthScheme}
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -31,7 +32,7 @@ import play.core.utils.CaseInsensitiveOrdered
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
-object WS {
+object WS extends WSTrait {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
@@ -51,25 +52,47 @@ object WS {
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client =
+  def client : AsyncHttpClient =
     clientHolder.getOrElse {
-      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
-
-      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
-      }
-      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
-        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-      }
-      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
+      val innerClient = new AsyncHttpClient(asyncBuilder.build())
       clientHolder = Some(innerClient)
       innerClient
     }
+
+  /**
+   * The  builder AsncBuilder for default play app
+   **/
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
+    val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+      .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+      .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+    playConfig.flatMap(_.getString("ws.useragent")).map {
+      useragent =>
+        asyncHttpConfig.setUserAgent(useragent)
+    }
+//    if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
+//      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+//    }
+    asyncHttpConfig
+  }
+}
+
+/**
+ * A WS for fine tuning.
+ * Eg: if one wants to make requests to different servers with different client certificates...
+ * @param client
+ */
+case class WSx(client: AsyncHttpClient) extends WSTrait
+
+
+trait  WSTrait {
+
+  implicit def client: AsyncHttpClient
+
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
@@ -79,226 +102,16 @@ object WS {
   def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
 
   /**
-   * A WS Request.
-   */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
-
-    import scala.collection.JavaConverters._
-
-    def getStringData = body.getOrElse("")
-    protected var body: Option[String] = None
-    override def setBody(s: String) = { this.body = Some(s); super.setBody(s)}
-
-    protected var calculator: Option[SignatureCalculator] = _calc
-
-    protected var headers: Map[String, Seq[String]] = Map()
-
-    protected var _url: String = null
-
-    //this will do a java mutable set hence the {} response
-    _auth.map(data => auth(data._1, data._2, data._3)).getOrElse({})
-
-    /**
-     * Add http auth headers. Defaults to HTTP Basic.
-     */
-    private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
-      this.setRealm((new RealmBuilder())
-        .setScheme(scheme)
-        .setPrincipal(username)
-        .setPassword(password)
-        .setUsePreemptiveAuth(true)
-        .build())
-    }
-
-    /**
-     * Return the current headers of the request being constructed
-     */
-    def allHeaders: Map[String, Seq[String]] = {
-      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-    }
-
-    /**
-     * Return the current query string parameters
-     */
-    def queryString: Map[String, Seq[String]] = {
-      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getParams()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-    }
-
-    /**
-     * Retrieve an HTTP header.
-     */
-    def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
-
-    /**
-     * The HTTP method.
-     */
-    def method: String = _method
-
-    /**
-     * The URL
-     */
-    def url: String = _url
-
-    private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
-      mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-
-    private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) = {
-      val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-      //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
-      TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
-    }
-    private[libs] def execute: Future[Response] = {
-      import com.ning.http.client.AsyncCompletionHandler
-      var result = Promise[Response]()
-      calculator.map(_.sign(this))
-      WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
-        override def onCompleted(response: AHCResponse) = {
-          result.success(Response(response))
-          response
-        }
-        override def onThrowable(t: Throwable) = {
-          result.failure(t)
-        }
-      })
-      result.future
-    }
-
-    /**
-     * Set an HTTP header.
-     */
-    override def setHeader(name: String, value: String) = {
-      headers = headers + (name -> List(value))
-      super.setHeader(name, value)
-    }
-
-    /**
-     * Add an HTTP header (used for headers with multiple values).
-     */
-    override def addHeader(name: String, value: String) = {
-      headers = headers + (name -> (headers.get(name).getOrElse(List()) :+ value))
-      super.addHeader(name, value)
-    }
-
-    /**
-     * Defines the request headers.
-     */
-    override def setHeaders(hdrs: FluentCaseInsensitiveStringsMap) = {
-      headers = ningHeadersToMap(hdrs)
-      super.setHeaders(hdrs)
-    }
-
-    /**
-     * Defines the request headers.
-     */
-    override def setHeaders(hdrs: java.util.Map[String, java.util.Collection[String]]) = {
-      headers = ningHeadersToMap(hdrs)
-      super.setHeaders(hdrs)
-    }
-
-    /**
-     * Defines the request headers.
-     */
-    def setHeaders(hdrs: Map[String, Seq[String]]) = {
-      headers = hdrs
-      hdrs.foreach(header => header._2.foreach(value =>
-        super.addHeader(header._1, value)
-      ))
-      this
-    }
-
-    /**
-     * Defines the query string.
-     */
-    def setQueryString(queryString: Map[String, Seq[String]]) = {
-      for ((key, values) <- queryString; value <- values) {
-        this.addQueryParameter(key, value)
-      }
-      this
-    }
-
-    /**
-     * Defines the URL.
-     */
-    override def setUrl(url: String) = {
-      _url = url
-      super.setUrl(url)
-    }
-
-    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] = {
-      import com.ning.http.client.AsyncHandler
-      var doneOrError = false
-      calculator.map(_.sign(this))
-
-      var statusCode = 0
-      val iterateeP = Promise[Iteratee[Array[Byte], A]]()
-      var iteratee: Iteratee[Array[Byte], A] = null
-
-      WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
-        import com.ning.http.client.AsyncHandler.STATE
-
-        override def onStatusReceived(status: HttpResponseStatus) = {
-          statusCode = status.getStatusCode()
-          STATE.CONTINUE
-        }
-
-        override def onHeadersReceived(h: HttpResponseHeaders) = {
-          val headers = h.getHeaders()
-          iteratee = consumer(ResponseHeaders(statusCode, ningHeadersToMap(headers)))
-          STATE.CONTINUE
-        }
-
-        override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
-          if (!doneOrError) {
-            iteratee = iteratee.pureFlatFold {
-              case Step.Done(a, e) => {
-                doneOrError = true
-                val it = Done(a, e)
-                iterateeP.success(it)
-                it
-              }
-
-              case Step.Cont(k) => {
-                k(El(bodyPart.getBodyPartBytes()))
-              }
-
-              case Step.Error(e, input) => {
-                doneOrError = true
-                val it = Error(e, input)
-                iterateeP.success(it)
-                it
-              }
-            }
-            STATE.CONTINUE
-          } else {
-            iteratee = null
-            STATE.ABORT
-          }
-        }
-
-        override def onCompleted() = {
-          Option(iteratee).map(iterateeP.success(_))
-        }
-
-        override def onThrowable(t: Throwable) = {
-          iterateeP.failure(t)
-        }
-      })
-      iterateeP.future
-    }
-
-  }
-
-  /**
    * A WS Request builder.
    */
   case class WSRequestHolder(url: String,
-      headers: Map[String, Seq[String]],
-      queryString: Map[String, Seq[String]],
-      calc: Option[SignatureCalculator],
-      auth: Option[Tuple3[String, String, AuthScheme]],
-      followRedirects: Option[Boolean],
-      timeout: Option[Int],
-      virtualHost: Option[String]) {
+                             headers: Map[String, Seq[String]],
+                             queryString: Map[String, Seq[String]],
+                             calc: Option[SignatureCalculator],
+                             auth: Option[Tuple3[String, String, AuthScheme]],
+                             followRedirects: Option[Boolean],
+                             timeout: Option[Int],
+                             virtualHost: Option[String]) {
 
     /**
      * sets the signature calculator for the request
@@ -399,7 +212,7 @@ object WS {
      */
     def options(): Future[Response] = prepare("OPTIONS").execute
 
-    private[play] def prepare(method: String) = {
+    private[play] def prepare(method: String): WSRequest = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
@@ -433,7 +246,222 @@ object WS {
     }
 
   }
+
+
 }
+
+/**
+ * A WS Request.
+ */
+class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])
+(implicit client: AsyncHttpClient) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+
+  import scala.collection.JavaConverters._
+
+  def getStringData = body.getOrElse("")
+  protected var body: Option[String] = None
+  override def setBody(s: String) = { this.body = Some(s); super.setBody(s)}
+
+  protected var calculator: Option[SignatureCalculator] = _calc
+
+  protected var headers: Map[String, Seq[String]] = Map()
+
+  protected var _url: String = null
+
+  //this will do a java mutable set hence the {} response
+  _auth.map(data => auth(data._1, data._2, data._3)).getOrElse({})
+
+  /**
+   * Add http auth headers. Defaults to HTTP Basic.
+   */
+  private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
+    this.setRealm((new RealmBuilder())
+      .setScheme(scheme)
+      .setPrincipal(username)
+      .setPassword(password)
+      .setUsePreemptiveAuth(true)
+      .build())
+  }
+
+  /**
+   * Return the current headers of the request being constructed
+   */
+  def allHeaders: Map[String, Seq[String]] = {
+    mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+  }
+
+  /**
+   * Return the current query string parameters
+   */
+  def queryString: Map[String, Seq[String]] = {
+    mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getParams()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+  }
+
+  /**
+   * Retrieve an HTTP header.
+   */
+  def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
+
+  /**
+   * The HTTP method.
+   */
+  def method: String = _method
+
+  /**
+   * The URL
+   */
+  def url: String = _url
+
+  private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
+    mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+
+  private def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap) = {
+    val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+    //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
+    TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
+  }
+  private[libs] def execute: Future[Response] = {
+    import com.ning.http.client.AsyncCompletionHandler
+    var result = Promise[Response]()
+    calculator.map(_.sign(this))
+    client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
+      override def onCompleted(response: AHCResponse) = {
+        result.success(Response(response))
+        response
+      }
+      override def onThrowable(t: Throwable) = {
+        result.failure(t)
+      }
+    })
+    result.future
+  }
+
+  /**
+   * Set an HTTP header.
+   */
+  override def setHeader(name: String, value: String) = {
+    headers = headers + (name -> List(value))
+    super.setHeader(name, value)
+  }
+
+  /**
+   * Add an HTTP header (used for headers with multiple values).
+   */
+  override def addHeader(name: String, value: String) = {
+    headers = headers + (name -> (headers.get(name).getOrElse(List()) :+ value))
+    super.addHeader(name, value)
+  }
+
+  /**
+   * Defines the request headers.
+   */
+  override def setHeaders(hdrs: FluentCaseInsensitiveStringsMap) = {
+    headers = ningHeadersToMap(hdrs)
+    super.setHeaders(hdrs)
+  }
+
+  /**
+   * Defines the request headers.
+   */
+  override def setHeaders(hdrs: java.util.Map[String, java.util.Collection[String]]) = {
+    headers = ningHeadersToMap(hdrs)
+    super.setHeaders(hdrs)
+  }
+
+  /**
+   * Defines the request headers.
+   */
+  def setHeaders(hdrs: Map[String, Seq[String]]) = {
+    headers = hdrs
+    hdrs.foreach(header => header._2.foreach(value =>
+      super.addHeader(header._1, value)
+    ))
+    this
+  }
+
+  /**
+   * Defines the query string.
+   */
+  def setQueryString(queryString: Map[String, Seq[String]]) = {
+    for ((key, values) <- queryString; value <- values) {
+      this.addQueryParameter(key, value)
+    }
+    this
+  }
+
+  /**
+   * Defines the URL.
+   */
+  override def setUrl(url: String) = {
+    _url = url
+    super.setUrl(url)
+  }
+
+  private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] = {
+    import com.ning.http.client.AsyncHandler
+    var doneOrError = false
+    calculator.map(_.sign(this))
+
+    var statusCode = 0
+    val iterateeP = Promise[Iteratee[Array[Byte], A]]()
+    var iteratee: Iteratee[Array[Byte], A] = null
+
+    client.executeRequest(this.build(), new AsyncHandler[Unit]() {
+      import com.ning.http.client.AsyncHandler.STATE
+
+      override def onStatusReceived(status: HttpResponseStatus) = {
+        statusCode = status.getStatusCode()
+        STATE.CONTINUE
+      }
+
+      override def onHeadersReceived(h: HttpResponseHeaders) = {
+        val headers = h.getHeaders()
+        iteratee = consumer(ResponseHeaders(statusCode, ningHeadersToMap(headers)))
+        STATE.CONTINUE
+      }
+
+      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
+        if (!doneOrError) {
+          iteratee = iteratee.pureFlatFold {
+            case Step.Done(a, e) => {
+              doneOrError = true
+              val it = Done(a, e)
+              iterateeP.success(it)
+              it
+            }
+
+            case Step.Cont(k) => {
+              k(El(bodyPart.getBodyPartBytes()))
+            }
+
+            case Step.Error(e, input) => {
+              doneOrError = true
+              val it = Error(e, input)
+              iterateeP.success(it)
+              it
+            }
+          }
+          STATE.CONTINUE
+        } else {
+          iteratee = null
+          STATE.ABORT
+        }
+      }
+
+      override def onCompleted() = {
+        Option(iteratee).map(iterateeP.success(_))
+      }
+
+      override def onThrowable(t: Throwable) = {
+        iterateeP.failure(t)
+      }
+    })
+    iterateeP.future
+  }
+
+}
+
+
 
 /**
  * A WS HTTP response.
@@ -493,7 +521,7 @@ trait SignatureCalculator {
   /**
    * Sign it.
    */
-  def sign(request: WS.WSRequest)
+  def sign(request: WSRequest)
 
 }
 
