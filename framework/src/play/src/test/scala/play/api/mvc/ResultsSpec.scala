@@ -1,9 +1,8 @@
 package play.api.mvc
 
 import org.specs2.mutable._
-import org.specs2.specification.{AroundOutside, Scope}
+import org.specs2.specification.Scope
 import org.specs2.execute.{Result => SpecsResult,AsResult}
-import play.api.Application
 
 object ResultsSpec extends Specification {
 
@@ -162,13 +161,8 @@ object ResultsSpec extends Specification {
 
   abstract class WithApplication(config: (String, Any)*) extends Around with Scope {
     import play.api._
-    import java.io.File
 
-    implicit lazy val app: Application =
-      new DefaultApplication(new File("./src/play/src/test"), Thread.currentThread.getContextClassLoader, None, play.api.Mode.Test){
-        override lazy val configuration = Configuration.from(Map("application.secret" -> "pass",
-          "ehcacheplugin" -> "disabled") ++ config.toMap)
-      }
+    implicit lazy val app: Application = FakeApplication(Map("application.secret" -> "pass") ++ config.toMap)
 
     override def around[T: AsResult](t: => T): SpecsResult = {
       Play.start(app)
