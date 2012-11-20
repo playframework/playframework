@@ -5,6 +5,7 @@ import java.io._
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
+import util.control.NonFatal
 
 /**
  * This object provides a set of operations to create `Configuration` values.
@@ -107,7 +108,7 @@ case class Configuration(underlying: Config) {
       Option(v)
     } catch {
       case e: ConfigException.Missing => None
-      case e: Exception => throw reportError(path, e.getMessage, Some(e))
+      case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
     }
   }
 

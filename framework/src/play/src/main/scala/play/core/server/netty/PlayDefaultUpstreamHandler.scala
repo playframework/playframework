@@ -23,7 +23,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
-
+import util.control.NonFatal
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
@@ -305,7 +305,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
               f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
             } catch {
-              case e: Exception => e.printStackTrace()
+              case NonFatal(e) => e.printStackTrace()
             }
 
           //handle bad websocket request

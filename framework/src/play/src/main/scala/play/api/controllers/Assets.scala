@@ -13,6 +13,7 @@ import scalax.io.{ Resource }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
+import util.control.NonFatal
 
 /**
  * Controller that serves static resources.
@@ -68,7 +69,7 @@ object Assets extends Controller {
       val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "")).toDate
       Some(d)
     } catch {
-      case _: Exception => None
+      case NonFatal(_) => None
     }
 
     val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get

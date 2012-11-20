@@ -8,6 +8,7 @@ import java.io._
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
+import util.control.NonFatal
 
 /**
  * A Lang supported by the application.
@@ -80,7 +81,7 @@ object Lang {
     app.configuration.getString("application.langs").map { langs =>
       langs.split(",").map(_.trim).map { lang =>
         try { Lang(lang) } catch {
-          case e: Exception => throw app.configuration.reportError("application.langs", "Invalid language code [" + lang + "]", Some(e))
+          case NonFatal(e) => throw app.configuration.reportError("application.langs", "Invalid language code [" + lang + "]", Some(e))
         }
       }.toSeq
     }.getOrElse(Nil)

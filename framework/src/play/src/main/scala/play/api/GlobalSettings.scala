@@ -2,6 +2,7 @@ package play.api
 
 import play.api.mvc._
 import java.io.File
+import util.control.NonFatal
 
 /**
  * Defines an application’s global settings.
@@ -101,7 +102,7 @@ trait GlobalSettings {
       }.getOrElse(views.html.defaultpages.devError.f) {
         ex match {
           case e: UsefulException => e
-          case e: Exception => UnexpectedException(unexpected = Some(e))
+          case NonFatal(e) => UnexpectedException(unexpected = Some(e))
         }
       })
     } catch {
