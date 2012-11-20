@@ -17,6 +17,7 @@ import com.ning.http.client.{
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.client.Realm.{RealmBuilder, AuthScheme}
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -31,7 +32,7 @@ import play.core.utils.CaseInsensitiveOrdered
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
-object WS {
+object WS extends WSTrait {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
@@ -51,8 +52,17 @@ object WS {
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client =
+  def client : AsyncHttpClient =
     clientHolder.getOrElse {
+      val innerClient = new AsyncHttpClient(asyncBuilder.build())
+      clientHolder = Some(innerClient)
+      innerClient
+    }
+
+  /**
+   * The  builder AsncBuilder for default play app
+   **/
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
       val playConfig = play.api.Play.maybeApplication.map(_.configuration)
       val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
         .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
@@ -63,25 +73,15 @@ object WS {
       playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
         asyncHttpConfig.setUserAgent(useragent)
       }
-      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
-        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-      }
-      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-      clientHolder = Some(innerClient)
-      innerClient
-    }
-
-  /**
-   * Prepare a new request. You can then construct it by chaining calls.
-   *
-   * @param url the URL to request
-   */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
+      asyncHttpConfig
+   }
 
   /**
    * A WS Request.
    */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])
+                 (implicit client: AsyncHttpClient)
+    extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
     import scala.collection.JavaConverters._
 
@@ -288,6 +288,29 @@ object WS {
 
   }
 
+}
+
+/**
+ * A WS for fine tuning.
+ * Eg: if one wants to make requests to different servers with different client certificates...
+ * @param client
+ */
+case class WSx(client: AsyncHttpClient) extends WSTrait
+
+
+trait  WSTrait {
+
+  implicit def client: AsyncHttpClient
+
+
+  /**
+   * Prepare a new request. You can then construct it by chaining calls.
+   *
+   * @param url the URL to request
+   */
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
+
+
   /**
    * A WS Request builder.
    */
@@ -300,6 +323,7 @@ object WS {
       timeout: Option[Int],
       virtualHost: Option[String]) {
 
+    import WS.WSRequest
     /**
      * sets the signature calculator for the request
      * @param calc
@@ -399,7 +423,7 @@ object WS {
      */
     def options(): Future[Response] = prepare("OPTIONS").execute
 
-    private[play] def prepare(method: String) = {
+    private[play] def prepare(method: String): WSRequest = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
