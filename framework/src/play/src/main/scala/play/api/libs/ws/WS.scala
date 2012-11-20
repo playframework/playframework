@@ -17,6 +17,7 @@ import com.ning.http.client.{
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.util.AsyncHttpProviderUtils
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -466,7 +467,19 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as String.
    */
-  lazy val body: String = ahcResponse.getResponseBody()
+  lazy val body: String = {
+    // RFC-2616#3.7.1 states that any text/* mime type should default to ISO-8859-1 charset if not
+    // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
+    // set and content type is not text/*, otherwise default to ISO-8859-1
+    val contentType = Option(ahcResponse.getContentType).getOrElse("application/octet-stream")
+    val charset = Option(AsyncHttpProviderUtils.parseCharset(contentType)).getOrElse {
+      if (contentType.startsWith("text/"))
+        AsyncHttpProviderUtils.DEFAULT_CHARSET
+      else
+        "utf-8"
+    }
+    ahcResponse.getResponseBody(charset)
+  }
 
   /**
    * The response body as Xml.
@@ -476,7 +489,7 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as Json.
    */
-  lazy val json: JsValue = Json.parse(body)
+  lazy val json: JsValue = Json.parse(ahcResponse.getResponseBodyAsBytes)
 
 }
 

@@ -14,6 +14,17 @@ object Json {
   def parse(input: String): JsValue = JacksonJson.parseJsValue(input)
 
   /**
+   * Parse a byte array representing a json, and return it as a JsValue.
+   *
+   * The character encoding used will be automatically detected as UTF-8, UTF-16 or UTF-32, as per the heuristics in
+   * RFC-4627.
+   *
+   * @param input a byte array to parse
+   * @return the JsValue representing the byte array
+   */
+  def parse(input: Array[Byte]): JsValue = JacksonJson.parseJsValue(input)
+
+  /**
    * Convert a JsValue to its string representation.
    *
    * @param json the JsValue to convert

@@ -30,6 +30,8 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
                           val port: Int = Helpers.testServerPort) extends Around with Scope {
   implicit def implicitApp = app
+  implicit def implicitPort: Port = port
+
   def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app))(t)
 }
 
@@ -46,6 +48,7 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
         val port: Int = Helpers.testServerPort) extends Around with Scope {
 
   implicit def implicitApp = app
+  implicit def implicitPort: Port = port
 
   lazy val browser: TestBrowser = TestBrowser.of(webDriver, Some("http://localhost:" + port))
 
