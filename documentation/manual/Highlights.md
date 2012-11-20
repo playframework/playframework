@@ -81,7 +81,7 @@ We eventually found a way to solve this problem and to propagate the `Http.Conte
 
 ## Better threading model for the Java API
 
-While running asynchronous code over mutable data structures, chances are right that you hit some race conditions if you don't synchronize properly your code. Because Play promotes highly asynchronous and non-blocking code, and because Java data structure are misty mutable and not thread-safe, it is the responsibility of your code to deal with the synchronization issues.
+While running asynchronous code over mutable data structures, chances are right that you hit some race conditions if you don't synchronize properly your code. Because Play promotes highly asynchronous and non-blocking code, and because Java data structure are mostly mutable and not thread-safe, it is the responsibility of your code to deal with the synchronization issues.
 
 Consider:
 
