@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 import java.util.concurrent.{ TimeUnit }
 
 import scala.concurrent.{Future, ExecutionContext}
+import scala.util.control.NonFatal
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
@@ -248,7 +249,7 @@ object PurePromise {
    * factory method for a pure promise
    */
   def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try (scala.concurrent.Promise.successful(lazyA)) catch {
-    case e: Exception => scala.concurrent.Promise.failed(e)
+    case NonFatal(e) => scala.concurrent.Promise.failed(e)
   }).future
 
 }
