@@ -500,7 +500,7 @@ object PlayBuild extends Build {
             "org.specs2"                        %   "specs2_2.10.0-RC1"         %   "1.12.2" %  "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.9"      %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test",
             "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-RC1"
@@ -571,7 +571,7 @@ object PlayBuild extends Build {
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
             "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2",
-            "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
+            "com.novocode"                      %    "junit-interface"          %   "0.9",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"
         )
