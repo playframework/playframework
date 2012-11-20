@@ -1,6 +1,7 @@
 package play.api.test
 
 import play.api._
+import libs.ws.WS
 import play.api.mvc._
 import play.api.http._
 
@@ -259,4 +260,18 @@ object Helpers extends Status with HeaderNames {
     )
   }
 
+  /**
+   * Construct a WS request for the given reverse route.
+   *
+   * For example:
+   * {{{
+   *   wsCall(controllers.routes.Application.index()).get()
+   * }}}
+   */
+  def wsCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wsUrl(call.url)
+
+  /**
+   * Construct a WS request for the given relative URL.
+   */
+  def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
 }

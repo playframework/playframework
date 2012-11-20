@@ -17,10 +17,11 @@ public class WithServer {
     }
 
     protected void start(FakeApplication fakeApplication) {
-        start(Helpers.fakeApplication(), Helpers$.MODULE$.testServerPort());
+        start(fakeApplication, Helpers$.MODULE$.testServerPort());
     }
 
     protected void start(FakeApplication fakeApplication, int port) {
+        this.port = port;
         testServer = Helpers.testServer(port, fakeApplication);
         testServer.start();
     }

@@ -9,7 +9,8 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
     	javaCore,
-    	javaEbean
+    	javaEbean,
+      "org.hamcrest" % "hamcrest-all" % "1.3"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(

@@ -11,6 +11,7 @@ import scala.collection._
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
+import java.io.ByteArrayInputStream
 
 
 case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException( "JsResultException(errors:%s)".format(errors) )
@@ -462,9 +463,14 @@ private[json] object JacksonJson{
 
   private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createJsonGenerator(out)
   
-  private[this] def jsonParser(c: String) = jsonFactory.createJsonParser(c)
+  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createJsonParser(c)
 
-  
+  // Pass in ByteArrayInputStream to work around https://github.com/FasterXML/jackson-core/issues/42
+  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createJsonParser(new ByteArrayInputStream(data))
+
+  def parseJsValue(data: Array[Byte]): JsValue = {
+    mapper.readValue(jsonParser(data), classOf[JsValue])
+  }
 
   def parseJsValue(input: String): JsValue = {
     mapper.readValue(jsonParser(input), classOf[JsValue])
