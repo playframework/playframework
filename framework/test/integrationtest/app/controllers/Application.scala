@@ -138,4 +138,12 @@ object Application extends Controller {
       Promise.pure[Result](sys.error("Error"))
     }
   }
+
+  def route(parameter: String) = Action {
+    Ok("")
+  }
+
+  def routetest(parameter: String) = Action {
+    Ok("")
+  }
 }
