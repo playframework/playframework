@@ -564,8 +564,9 @@ object PlayBuild extends Build {
 
         val iterateesDependencies = Seq(
             "org.scala-stm"                     %    "scala-stm_2.10.0-RC1"     %   "0.6",
-            "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta")
-        )
+            "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta"),
+            "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2"    %   "test"
+      )
 
 
         val testDependencies = Seq(
