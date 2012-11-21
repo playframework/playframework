@@ -9,7 +9,7 @@ import play.api.libs.json._
 object TestController extends Controller {
 
   object Model {
-    import play.api.libs.json.util._
+    import play.api.libs.functional.syntax._
     import org.apache.commons.codec.binary.Base64
     import play.api.data.validation.ValidationError
 
