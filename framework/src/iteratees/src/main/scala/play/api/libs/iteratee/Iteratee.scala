@@ -151,11 +151,18 @@ object Iteratee {
 
   def eofOrElse[E] = new {
 
-    def apply[A, B](otherwise: B)(then: A) = {
+    /**
+     * @param otherwise Value if the input is not [[play.api.libs.iteratee.Input.EOF]]
+     * @param eofValue Value if the input is [[play.api.libs.iteratee.Input.EOF]]
+     * @tparam A Type of `eofValue`
+     * @tparam B Type of `otherwise`
+     * @return An `Iteratee[E, Either[B, A]]` that consumes one input and produces a `Right(eofValue)` if this input is [[play.api.libs.iteratee.Input.EOF]] otherwise it produces a `Left(otherwise)`
+     */
+    def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]] = {
       def cont: Iteratee[E, Either[B, A]] = Cont((in: Input[E]) => {
         in match {
           case Input.El(e) => Done(Left(otherwise), in)
-          case Input.EOF => Done(Right(then), in)
+          case Input.EOF => Done(Right(eofValue), in)
           case Input.Empty => cont
         }
       })
@@ -518,8 +525,8 @@ object Parsing {
       } else {
         val fullMatch = Range(needleSize - 1, -1, -1).forall(scan => needle(scan) == piece(scan + startScan))
         if (fullMatch) {
-          val (prefix, then) = piece.splitAt(startScan)
-          val (matched, left) = then.splitAt(needleSize)
+          val (prefix, suffix) = piece.splitAt(startScan)
+          val (matched, left) = suffix.splitAt(needleSize)
           val newResults = previousMatches ++ List(Unmatched(prefix), Matched(matched)) filter (!_.content.isEmpty)
 
           if (left.length < needleSize) (newResults, left) else scan(newResults, left, 0)
