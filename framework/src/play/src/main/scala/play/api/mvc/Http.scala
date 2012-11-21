@@ -129,7 +129,7 @@ package play.api.mvc {
      * @return true if `mimeType` matches the Accept header, otherwise false
      */
     def accepts(mimeType: String): Boolean = {
-      acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mediaType)).isDefined
+      acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mimeType)).isDefined
     }
 
     /**
