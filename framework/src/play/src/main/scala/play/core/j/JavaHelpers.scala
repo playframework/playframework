@@ -84,6 +84,8 @@ trait JavaHelpers {
 
       def accept = req.accept.asJava
 
+      def acceptedTypes = req.acceptedTypes.asJava
+
       def accepts(mediaType: String) = req.accepts(mediaType)
 
       def cookies = new JCookies {
@@ -137,6 +139,8 @@ trait JavaHelpers {
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
       def accept = req.accept.asJava
+
+      def acceptedTypes = req.acceptedTypes.asJava
 
       def accepts(mediaType: String) = req.accepts(mediaType)
 

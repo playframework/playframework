@@ -102,4 +102,4 @@ public Admin extends Controller {
 }
 ```
 
-> **Next:** [[Asynchronous HTTP programming | JavaAsync]]
+> **Next:** [[Content negotiation | JavaContentNegotiation]]

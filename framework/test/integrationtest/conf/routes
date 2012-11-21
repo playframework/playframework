@@ -44,6 +44,8 @@ GET     /javascript-test        controllers.Application.javascriptTest(name)
 GET     /accept                 controllers.Application.accept()
 GET     /accept-java            controllers.JavaApi.accept()
 
+GET     /content-negotiation    controllers.Application.contentNegotiation
+
 GET     /onCloseSendFile/*fp    controllers.Application.onCloseSendFile(fp)
 
 GET     /sync-error             controllers.Application.syncError()

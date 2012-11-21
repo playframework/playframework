@@ -14,6 +14,7 @@ ScalaResults
 ScalaSessionFlash
 ScalaBodyParsers
 ScalaActionsComposition
+ScalaContentNegotiation
 ScalaAsync
 ScalaStream
 ScalaComet
@@ -50,6 +51,7 @@ JavaResponse
 JavaSessionFlash
 JavaBodyParsers
 JavaActionsComposition
+JavaContentNegotiation
 JavaAsync
 JavaStream
 JavaComet
