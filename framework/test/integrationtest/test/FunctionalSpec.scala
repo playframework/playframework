@@ -33,14 +33,14 @@ class FunctionalSpec extends Specification {
     // Due to following bug one has to specify the FakeApplication()
     // http://play.lighthouseapp.com/projects/82401/tickets/860-21-rc1-playapitestwithserver-fails-when-port-is-given
     //
-    "charset should be defined" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
+    "charset should be defined"  in {
 
-      "when connecting unsecured" in {
+      "when connecting unsecured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
         val h = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").get)
         h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
       }
 
-      "when connecting secured" in  {
+      "when connecting secured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
         val ws = WSx(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).build))
         val req = ws.url("https://localhost:" + sslPort.get + "/public/stylesheets/main.css")
         val h = await(req.get)
