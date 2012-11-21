@@ -30,6 +30,10 @@ object Application extends Controller {
    Ok("ok")
   }
 
+  def hello = Action { implicit request =>
+    Ok(views.html.hello(Messages("hello")))
+  }
+
   def form = Action{
     Ok(views.html.form(Contacts.form.fill(Contact("","M"))));
   }
