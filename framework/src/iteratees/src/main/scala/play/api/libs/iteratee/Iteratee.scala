@@ -287,7 +287,7 @@ trait Iteratee[E, +A] {
    *
    *  @return a [[scala.concurrent.Future]] of the eventually computed result
    */
-  def run[AA >: A]: Future[AA] = fold({
+  def run: Future[A] = fold({
     case Step.Done(a, _) => Future.successful(a)
     case Step.Cont(k) => k(Input.EOF).fold({
       case Step.Done(a1, _) => Future.successful(a1)
