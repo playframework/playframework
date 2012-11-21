@@ -122,6 +122,14 @@ object Application extends Controller {
     }
   }
 
+  def contentNegotiation = Action { implicit request =>
+    val foo = Foo("bar")
+    render {
+      case Accepts.Html() => Ok(views.html.foo(foo))
+      case Accepts.Json() => Ok(Json.obj("bar" -> foo.bar))
+    }
+  }
+
   def onCloseSendFile(filepath: String) = Action {
     import java.io.File
     val file = new File(filepath)

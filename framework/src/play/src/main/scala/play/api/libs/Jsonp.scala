@@ -43,9 +43,11 @@ case class Jsonp(padding: String, json: JsValue)
 
 object Jsonp {
 
-  implicit val contentTypeOf_Jsonp = ContentTypeOf[Jsonp](Some(ContentTypes.JAVASCRIPT))
+  implicit def contentTypeOf_Jsonp(implicit codec: Codec): ContentTypeOf[Jsonp] = {
+    ContentTypeOf[Jsonp](Some(ContentTypes.JAVASCRIPT))
+  }
 
-  implicit def writeableOf_Jsonp(implicit codec: Codec) = Writeable[Jsonp] { jsonp =>
+  implicit def writeableOf_Jsonp(implicit codec: Codec): Writeable[Jsonp] = Writeable { jsonp =>
     codec.encode("%s(%s);".format(jsonp.padding, jsonp.json))
   }
 

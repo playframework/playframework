@@ -13,6 +13,7 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[Session and Flash scopes | ScalaSessionFlash]]
     1. [[Body parsers | ScalaBodyParsers]]
     1. [[Actions composition | ScalaActionsComposition]]
+    1. [[Content negotiation | ScalaContentNegotiation]]
 1. [[Asynchronous HTTP programming | ScalaAsync]]
     1. [[Handling asynchronous results | ScalaAsync]]
     1. [[Streaming HTTP responses | ScalaStream]]

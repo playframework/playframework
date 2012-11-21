@@ -894,12 +894,10 @@ public class Results {
 
         final scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit> f;
         final play.api.http.Writeable<A> w;
-        final play.api.http.ContentTypeOf<A> ct;
 
-        public Chunks(play.api.http.Writeable<A> w, play.api.http.ContentTypeOf<A> ct) {
+        public Chunks(play.api.http.Writeable<A> w) {
             final Chunks<A> self = this;
             this.w = w;
-            this.ct = ct;
             f = new scala.runtime.AbstractFunction1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
                     final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
@@ -984,10 +982,7 @@ public class Results {
         }
 
         public StringChunks(Codec codec) {
-            super(
-                    play.core.j.JavaResults.writeString(codec),
-                    play.core.j.JavaResults.contentTypeOfString(codec)
-                    );
+            super(play.core.j.JavaResults.writeString(codec));
         }
 
     }
@@ -998,10 +993,7 @@ public class Results {
     public abstract static class ByteChunks extends Chunks<byte[]> {
 
         public ByteChunks() {
-            super(
-                    play.core.j.JavaResults.writeBytes(),
-                    play.core.j.JavaResults.contentTypeOfBytes()
-                    );
+            super(play.core.j.JavaResults.writeBytes());
         }
 
     }
@@ -1050,8 +1042,7 @@ public class Results {
         public Todo() {
             wrappedResult = play.core.j.JavaResults.NotImplemented().apply(
                     views.html.defaultpages.todo.render(),
-                    play.core.j.JavaResults.writeContent(utf8),
-                    play.core.j.JavaResults.contentTypeOf("text/html; charset=utf-8")
+                    play.core.j.JavaResults.writeContent("text/html", utf8)
                     );
         }
 
@@ -1071,8 +1062,7 @@ public class Results {
         public Status(play.api.mvc.Results.Status status) {
             wrappedResult = status.apply(
                     play.core.j.JavaResults.empty(),
-                    play.core.j.JavaResults.writeEmptyContent(),
-                    play.core.j.JavaResults.contentTypeOfEmptyContent()
+                    play.core.j.JavaResults.writeEmptyContent()
                     );
         }
 
@@ -1082,8 +1072,7 @@ public class Results {
             }
             wrappedResult = status.apply(
                     content,
-                    play.core.j.JavaResults.writeString(codec),
-                    play.core.j.JavaResults.contentTypeOfString(codec)
+                    play.core.j.JavaResults.writeString(codec)
                     );
         }
 
@@ -1092,9 +1081,8 @@ public class Results {
                 throw new NullPointerException("null content");
             }
             wrappedResult = status.apply(
-                    content.toString(),
-                    play.core.j.JavaResults.writeString(codec),
-                    play.core.j.JavaResults.contentTypeOfJson(codec)
+                    content,
+                    play.core.j.JavaResults.writeJson(codec)
                     );
         }
 
@@ -1104,8 +1092,7 @@ public class Results {
             }
             wrappedResult = status.apply(
                     content,
-                    play.core.j.JavaResults.writeContent(codec),
-                    play.core.j.JavaResults.contentTypeOf(content.contentType() + "; charset=" + codec.charset())
+                    play.core.j.JavaResults.writeContent(content.contentType(), codec)
                     );
         }
 
@@ -1113,7 +1100,7 @@ public class Results {
             if(chunks == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(chunks.f, chunks.w, chunks.ct);
+            wrappedResult = status.stream(chunks.f, chunks.w);
         }
 
         public Status(play.api.mvc.Results.Status status, byte[] content) {
@@ -1122,8 +1109,7 @@ public class Results {
             }
             wrappedResult = status.apply(
                     content,
-                    play.core.j.JavaResults.writeBytes(),
-                    play.core.j.JavaResults.contentTypeOfBytes()
+                    play.core.j.JavaResults.writeBytes()
                     );
         }
 
@@ -1133,8 +1119,7 @@ public class Results {
             }
             wrappedResult = status.stream(
                     play.core.j.JavaResults.chunked(content, chunkSize), 
-                    play.core.j.JavaResults.writeBytes(),
-                    play.core.j.JavaResults.contentTypeOfBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
+                    play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
                     );
         }
 
@@ -1144,8 +1129,7 @@ public class Results {
             }
             wrappedResult = status.stream(
                     play.core.j.JavaResults.chunked(content, chunkSize), 
-                    play.core.j.JavaResults.writeBytes(),
-                    play.core.j.JavaResults.contentTypeOfBytes()
+                    play.core.j.JavaResults.writeBytes()
                     );
         }
 

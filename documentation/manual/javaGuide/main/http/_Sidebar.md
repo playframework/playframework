@@ -6,6 +6,7 @@
 - [[Session and Flash scopes | JavaSessionFlash]]
 - [[Body parsers | JavaBodyParsers]]
 - [[Actions composition | JavaActionsComposition]]
+- [[Content negotiation | JavaContentNegotiation]]
 
 ### Main concepts
 

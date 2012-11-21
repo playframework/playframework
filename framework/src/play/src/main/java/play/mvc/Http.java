@@ -234,20 +234,27 @@ public class Http {
         public abstract String path();
 
         /**
-         * The Request Langs, extracted from the Accept-Language header.
+         * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
          */
         public abstract List<play.i18n.Lang> acceptLanguages();
 
         /**
          * @return The media types set in the request Accept header, not sorted in any particular order.
+         * @deprecated Use {@link #acceptedTypes()} instead.
          */
+        @Deprecated
         public abstract List<String> accept();
 
         /**
-         * Check if this request accepts a given media type.
-         * @return true if <code>mediaType</code> is in the Accept header, otherwise false
+         * @return The media types set in the request Accept header, sorted by preference (preferred first).
          */
-        public abstract boolean accepts(String mediaType);
+        public abstract List<play.api.http.MediaRange> acceptedTypes();
+
+        /**
+         * Check if this request accepts a given media type.
+         * @return true if <code>mimeType</code> is in the Accept header, otherwise false
+         */
+        public abstract boolean accepts(String mimeType);
 
         /**
          * The query string content.
