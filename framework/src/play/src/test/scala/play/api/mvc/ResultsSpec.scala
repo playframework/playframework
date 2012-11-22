@@ -11,6 +11,20 @@ object ResultsSpec extends Specification {
 
   sequential
 
+  "Status" should {
+
+    "have status with 3 digits" in {
+      // RFC 1945 6.1.1 (http://www.w3.org/Protocols/rfc1945/rfc1945)
+      //  states that status codes must be 3 digits
+      new Status(700) // should throw no exceptions
+
+      new Status(-200) must throwA[IllegalArgumentException]
+      new Status(99) must throwA[IllegalArgumentException]
+      new Status(1000) must throwA[IllegalArgumentException]
+    }
+
+  }
+
   "SimpleResult" should {
 
     "have status" in {
