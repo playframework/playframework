@@ -500,12 +500,14 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
-
+    lazy val dbApi = new BoneCPApi(app.configuration.getConfig("db").get, app.classloader)
+    
     request.path match {
 
       case applyEvolutions(db) => {
         Some {
-          OfflineEvolutions.applyScript(path, Play.current.classloader, db)
+          val script = Evolutions.evolutionScript(dbApi, app.path, app.classloader, db)
+          Evolutions.applyScript(dbApi, db, script)
           sbtLink.forceReload()
           play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }
@@ -513,7 +515,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
       case resolveEvolutions(db, rev) => {
         Some {
-          OfflineEvolutions.resolve(path, Play.current.classloader, db, rev.toInt)
+          Evolutions.resolve(dbApi, db, rev.toInt)
           sbtLink.forceReload()
           play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
         }
