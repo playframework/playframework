@@ -19,6 +19,9 @@ import play.core.Execution.internalContext
  * @param headers the HTTP headers
  */
 case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty) {
+  if (status < 100 || status > 999) {
+    throw new IllegalArgumentException("Http status must be 3 digits.")
+  }
 
   override def toString = {
     status + ", " + headers

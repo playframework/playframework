@@ -2,6 +2,7 @@ package play.ws
 
 import org.specs2.mutable.Specification
 import play.api.libs.ws.WS
+import play.api.libs.ws.ResponseHeaders
 
 object WSSpec extends Specification {
 
@@ -16,4 +17,15 @@ object WSSpec extends Specification {
     }
   }
 
+  "ResponseHeaders" should {
+    "have status with 3 digits" in {
+      // RFC 1945 6.1.1 (http://www.w3.org/Protocols/rfc1945/rfc1945)
+      //  states that status codes must be 3 digits
+      ResponseHeaders(700, Map()) // should throw no exceptions
+
+      ResponseHeaders(-200, Map()) must throwA[IllegalArgumentException]
+      ResponseHeaders(99, Map()) must throwA[IllegalArgumentException]
+      ResponseHeaders(1000, Map()) must throwA[IllegalArgumentException]
+    }
+  }
 }

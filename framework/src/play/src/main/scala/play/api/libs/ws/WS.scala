@@ -496,7 +496,11 @@ case class Response(ahcResponse: AHCResponse) {
 /**
  * An HTTP response header (the body has not been retrieved yet)
  */
-case class ResponseHeaders(status: Int, headers: Map[String, Seq[String]])
+case class ResponseHeaders(status: Int, headers: Map[String, Seq[String]]) {
+  if (status < 100 || status > 999) {
+    throw new IllegalArgumentException("Http status must be 3 digits.")
+  }
+}
 
 /**
  * Sign a WS call.
