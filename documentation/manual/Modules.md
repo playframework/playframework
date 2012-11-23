@@ -200,6 +200,11 @@
 * **Website (docs, sample):** [https://github.com/benmccann/play-plovr-plugin](https://github.com/benmccann/play-plovr-plugin)
 * **Short description:** Adds Closure Compiler and Closure Library support to Play
 
+## Pusher
+* **Website:** https://github.com/tindr/Play2Pusher
+* **Short description:** Easily interact with the [Pusher Service](http://www.pusher.com) within 
+your Play 2 application.
+
 ## Qunit (Java)
 
 * **Website:** [https://github.com/gcusnieux/play20-qunit]
