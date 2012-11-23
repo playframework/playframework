@@ -188,4 +188,8 @@ object Play {
    */
   def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
+  /**
+   * Returns the name of the cookie that can be used to permanently set the user's language.
+   */
+  def langCookieName(implicit app: Application): String = app.configuration.getString("application.lang.cookie").getOrElse("PLAY_LANG")
 }

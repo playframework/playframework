@@ -7,6 +7,8 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
+import play.api.{Application, Play}
+import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext }
 
@@ -123,6 +125,20 @@ sealed trait WithHeaders[+A <: Result] {
    * @return the new result
    */
   def withNewSession: A
+
+  /**
+   * Sets the users language permanently for future requests by storing it in a cookie.
+   *
+   * For example:
+   * {{{
+   * implicit val lang = Lang("fr-FR")
+   * Ok(Messages("hello.world")).withLang(lang)
+   * }}}
+   *
+   * @param lang the language to store for the user
+   * @return the new result
+   */
+  def withLang(lang: Lang)(implicit app: Application): A = withCookies(Cookie(Play.langCookieName, lang.code))
 
   /**
    * Adds values to the flash scope for this result.
@@ -303,7 +319,6 @@ trait PlainResult extends Result with WithHeaders[PlainResult] {
    * @return the new result
    */
   def as(contentType: String): PlainResult = withHeaders(CONTENT_TYPE -> contentType)
-
 }
 
 /**
