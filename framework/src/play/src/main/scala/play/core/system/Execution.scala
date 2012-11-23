@@ -1,9 +1,11 @@
 package play.core
 
 
-object Execution {
+private[play] object Execution {
 
-  lazy val internalContext: scala.concurrent.ExecutionContext =
-    scala.concurrent.ExecutionContext.Implicits.global: scala.concurrent.ExecutionContext //FIXME use a proper ThreadPool for Play from Conf
-
+   lazy val internalContext: scala.concurrent.ExecutionContext = {
+     val numberOfThreads = play.api.Play.maybeApplication.map(_.configuration.getInt("internal-threadpool-size")).flatten.getOrElse(Runtime.getRuntime.availableProcessors)
+     scala.concurrent.ExecutionContext.fromExecutorService(java.util.concurrent.Executors.newFixedThreadPool(numberOfThreads))
+  }
+  
 }
