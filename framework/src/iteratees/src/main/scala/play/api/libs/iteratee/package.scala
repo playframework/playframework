@@ -13,9 +13,12 @@ package play.api.libs {
 
 package play.api.libs.iteratee {
 
-  object internal {
-    private[iteratee] implicit lazy val defaultExecutionContext: scala.concurrent.ExecutionContext =
-      scala.concurrent.ExecutionContext.Implicits.global
+  private[iteratee] object internal {
+    implicit lazy val defaultExecutionContext: scala.concurrent.ExecutionContext = {
+      val numberOfThreads = try {
+        com.typesafe.config.ConfigFactory.load().getInt("iteratee-threadpool-size")
+      } catch { case e: com.typesafe.config.ConfigException.Missing => Runtime.getRuntime.availableProcessors }
+      scala.concurrent.ExecutionContext.fromExecutorService(java.util.concurrent.Executors.newFixedThreadPool(numberOfThreads))
+    }
   }
-
 }
