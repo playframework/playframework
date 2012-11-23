@@ -1,5 +1,7 @@
 package play.api.test
 
+import scala.language.reflectiveCalls
+
 import play.api._
 import libs.ws.WS
 import play.api.mvc._

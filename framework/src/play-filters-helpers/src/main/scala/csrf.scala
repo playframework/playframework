@@ -1,4 +1,6 @@
 package play.filters.csrf {
+  
+  import scala.language.reflectiveCalls
 
   import play.api.mvc._
   import Results._

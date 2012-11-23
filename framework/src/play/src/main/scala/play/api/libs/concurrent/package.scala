@@ -12,6 +12,7 @@ import scala.concurrent.{ Future }
  */
 package object concurrent {
 
+  import scala.language.implicitConversions	
 
   implicit def futureToPlayPromise[A](fu: scala.concurrent.Future[A]): PlayPromise[A] = new PlayPromise[A](fu)
 

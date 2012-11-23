@@ -1,5 +1,7 @@
 package anorm
 
+import scala.language.{postfixOps,reflectiveCalls}
+
 import MayErr._
 import java.util.Date
 import collection.TraversableOnce

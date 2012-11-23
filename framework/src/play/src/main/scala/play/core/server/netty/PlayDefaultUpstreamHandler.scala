@@ -1,5 +1,7 @@
 package play.core.server.netty
 
+import scala.language.reflectiveCalls
+
 import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
 import org.jboss.netty.bootstrap._

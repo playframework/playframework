@@ -1,5 +1,8 @@
 package play.api.libs.functional
 
+import scala.language.higherKinds
+import scala.language.implicitConversions
+
 trait LazyHelper[M[_], T] {
   def lazyStuff: M[T]
 }

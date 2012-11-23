@@ -1,5 +1,7 @@
 package play.api.libs.json
 
+import scala.language.higherKinds
+
 import scala.collection._
 import Json._
 import scala.annotation.implicitNotFound

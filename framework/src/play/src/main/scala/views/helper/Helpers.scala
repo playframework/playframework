@@ -1,5 +1,7 @@
 import play.api.templates._
 
+import scala.language.implicitConversions
+
 import scala.collection.JavaConverters._
 
 package views.html.helper {
