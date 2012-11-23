@@ -84,6 +84,10 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
+  def takeInt(i: Int) = Action {
+    Ok(i.toString)
+  }
+
   def takeBool(b: Boolean) = Action {
     Ok(b.toString())
   }
