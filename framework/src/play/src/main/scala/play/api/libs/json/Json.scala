@@ -111,8 +111,6 @@ object Json {
    * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
    * {{{
    *   import play.api.libs.json.Json
-   *   import play.api.libs.functional.syntax._
-   *   import play.api.libs.json.Reads._   
    *
    *   case class User(name: String, age: Int)
    *
@@ -132,7 +130,6 @@ object Json {
    * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
    * {{{
    *   import play.api.libs.json.Json
-   *   import play.api.libs.functional.syntax._
    * 
    *   case class User(name: String, age: Int)
    *
@@ -152,17 +149,16 @@ object Json {
    * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
    * {{{
    *   import play.api.libs.json.Json
-   *   import play.api.libs.functional.syntax._
    *
    *   case class User(name: String, age: Int)
    *
    *   implicit val userWrites = Json.format[User]
-   *   // macro-compiler replaces Json.writes[User] by injecting into compile chain 
+   *   // macro-compiler replaces Json.format[User] by injecting into compile chain 
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userWrites = (
-   *      (__ \ 'name).write[String] and
-   *      (__ \ 'age).write[Int]
-   *   )(unlift(User.unapply))
+   *      (__ \ 'name).format[String] and
+   *      (__ \ 'age).format[Int]
+   *   )(User.apply, unlift(User.unapply))
    * }}}
    */
   def format[A] = macro formatImpl[A]
@@ -172,6 +168,16 @@ object Json {
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
+
+    val libsPkg = Select(Select(Ident(newTermName("play")), "api"), "libs")
+    val jsonPkg = Select(libsPkg, "json")
+    val functionalSyntaxPkg = Select(Select(libsPkg, "functional"), "syntax")
+    val utilPkg = Select(jsonPkg, "util")
+
+    val jsPathSelect = Select(jsonPkg, "JsPath")
+    val readsSelect = Select(jsonPkg, "Reads")
+    val unliftIdent = Select(functionalSyntaxPkg, "unlift")
+    val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     companionType.declaration(stringToTermName("unapply")) match {
       case NoSymbol => c.abort(c.enclosingPosition, "No unapply function found")
@@ -237,7 +243,7 @@ object Json {
                       case (name, (t, impl, rec, tpe)) => 
                         // inception of (__ \ name).read(impl)
                         val jspathTree = Apply( 
-                          Select( Ident(newTermName("JsPath")), scala.reflect.NameTransformer.encode("\\")),
+                          Select( jsPathSelect, scala.reflect.NameTransformer.encode("\\")),
                           List(Literal(Constant(name.decoded))) 
                         )
 
@@ -262,7 +268,7 @@ object Json {
                                 Select( jspathTree, "readOpt" ), 
                                 List( 
                                   Apply(
-                                    Select(Apply(Ident(newTermName("JsPath")), List()), "lazyRead"),
+                                    Select(Apply(jsPathSelect, List()), "lazyRead"),
                                     List(helperMember)
                                   )
                                 )
@@ -274,28 +280,28 @@ object Json {
                                 if(tpe.typeConstructor <:< typeOf[List[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "list"),
+                                      Select(readsSelect, "list"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "set"),
+                                      Select(readsSelect, "set"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "seq"),
+                                      Select(readsSelect, "seq"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "map"),
+                                      Select(readsSelect, "map"),
                                       List(helperMember)
                                     )
                                   )
@@ -316,7 +322,7 @@ object Json {
                     val applyMethod = Ident( companionSymbol.name )
 
                     val unapplyMethod = Apply(
-                      Ident(newTermName("unlift")),
+                      unliftIdent,
                       List(
                         Select( Ident( companionSymbol.name ), unapply.name )
                       )
@@ -337,20 +343,26 @@ object Json {
                     //println("finalTree: "+finalTree)
 
                     if(!hasRec) {
-                      c.Expr[Reads[A]](finalTree)
+                      val block = Block( 
+                        Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
+                        finalTree
+                      )
+
+                      //println("block:"+block)
+                      
+                      c.Expr[Reads[A]](block) 
                     } else {
                       val helper = newTermName("helper")
                       val helperVal = ValDef(
                         Modifiers(), 
                         helper, 
                         TypeTree(weakTypeOf[play.api.libs.json.util.LazyHelper[Reads, A]]), 
-                        Apply(Ident(newTermName("LazyHelper")), List(finalTree))
+                        Apply(lazyHelperSelect, List(finalTree))
                       )
                       
-                      val lazyHelperType = weakTypeOf[play.api.libs.json.util.LazyHelper[Reads, A]]
-
                       val block = Select(
                         Block(
+                          Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                           ClassDef( 
                             Modifiers(Flag.FINAL), 
                             newTypeName("$anon"), 
@@ -358,10 +370,10 @@ object Json {
                             Template(
                               List(
                                 AppliedTypeTree(
-                                  Ident(c.mirror.staticClass("play.api.libs.json.util.LazyHelper")), 
+                                  lazyHelperSelect, 
                                   List(
                                     Ident(weakTypeOf[Reads[A]].typeSymbol), 
-                                    TypeTree(weakTypeOf[A])
+                                    Ident(weakTypeOf[A].typeSymbol)
                                   )
                                 )
                               ), 
@@ -401,7 +413,7 @@ object Json {
                           override lazy val lazyStuff: Format[A] = null
                         }
                       )
-                      //println("RAW:"+showRaw(reif.tree, printKinds = true))*/
+                      println("RAW:"+showRaw(reif.tree, printKinds = true))*/
                       c.Expr[Reads[A]](block)
                     } 
                   case l => c.abort(c.enclosingPosition, s"No implicit Reads for ${l.mkString(", ")} available.")
@@ -420,6 +432,16 @@ object Json {
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
+
+    val libsPkg = Select(Select(Ident(newTermName("play")), "api"), "libs")
+    val jsonPkg = Select(libsPkg, "json")
+    val functionalSyntaxPkg = Select(Select(libsPkg, "functional"), "syntax")
+    val utilPkg = Select(jsonPkg, "util")
+
+    val jsPathSelect = Select(jsonPkg, "JsPath")
+    val writesSelect = Select(jsonPkg, "Writes")
+    val unliftIdent = Select(functionalSyntaxPkg, "unlift")
+    val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     companionType.declaration(stringToTermName("unapply")) match {
       case NoSymbol => c.abort(c.enclosingPosition, "No unapply function found")
@@ -485,7 +507,7 @@ object Json {
                       case (name, (t, impl, rec, tpe)) => 
                         // inception of (__ \ name).read(impl)
                         val jspathTree = Apply( 
-                          Select( Ident(newTermName("JsPath")), scala.reflect.NameTransformer.encode("\\")),
+                          Select( jsPathSelect, scala.reflect.NameTransformer.encode("\\")),
                           List(Literal(Constant(name.decoded))) 
                         )
 
@@ -510,7 +532,7 @@ object Json {
                                 Select( jspathTree, "writeOpt" ), 
                                 List( 
                                   Apply(
-                                    Select(Apply(Ident(newTermName("JsPath")), List()), "lazyWrite"),
+                                    Select(Apply(jsPathSelect, List()), "lazyWrite"),
                                     List(helperMember)
                                   )
                                 )
@@ -522,28 +544,28 @@ object Json {
                                 if(tpe.typeConstructor <:< typeOf[List[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "list"),
+                                      Select(writesSelect, "list"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "set"),
+                                      Select(writesSelect, "set"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "seq"),
+                                      Select(writesSelect, "seq"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "map"),
+                                      Select(writesSelect, "map"),
                                       List(helperMember)
                                     )
                                   )
@@ -564,7 +586,7 @@ object Json {
                     val applyMethod = Ident( companionSymbol.name )
 
                     val unapplyMethod = Apply(
-                      Ident(newTermName("unlift")),
+                      unliftIdent,
                       List(
                         Select( Ident( companionSymbol.name ), unapply.name )
                       )
@@ -585,20 +607,23 @@ object Json {
                     //println("finalTree: "+finalTree)
 
                     if(!hasRec) {
-                      c.Expr[Writes[A]](finalTree)
+                      val block = Block(
+                        Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
+                        finalTree
+                      )
+                      c.Expr[Writes[A]](block)
                     } else {
                       val helper = newTermName("helper")
                       val helperVal = ValDef(
                         Modifiers(), 
                         helper, 
                         TypeTree(weakTypeOf[play.api.libs.json.util.LazyHelper[Writes, A]]), 
-                        Apply(Ident(newTermName("LazyHelper")), List(finalTree))
+                        Apply(lazyHelperSelect, List(finalTree))
                       )
                       
-                      val lazyHelperType = weakTypeOf[play.api.libs.json.util.LazyHelper[Writes, A]]
-
                       val block = Select(
                         Block(
+                          Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                           ClassDef( 
                             Modifiers(Flag.FINAL), 
                             newTypeName("$anon"), 
@@ -606,10 +631,10 @@ object Json {
                             Template(
                               List(
                                 AppliedTypeTree(
-                                  Ident(c.mirror.staticClass("play.api.libs.json.util.LazyHelper")), 
+                                  lazyHelperSelect, 
                                   List(
                                     Ident(weakTypeOf[Writes[A]].typeSymbol), 
-                                    TypeTree(weakTypeOf[A])
+                                    Ident(weakTypeOf[A].typeSymbol)
                                   )
                                 )
                               ), 
@@ -668,6 +693,17 @@ object Json {
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
+
+    val libsPkg = Select(Select(Ident(newTermName("play")), "api"), "libs")
+    val jsonPkg = Select(libsPkg, "json")
+    val functionalSyntaxPkg = Select(Select(libsPkg, "functional"), "syntax")
+    val utilPkg = Select(jsonPkg, "util")
+
+    val jsPathSelect = Select(jsonPkg, "JsPath")
+    val readsSelect = Select(jsonPkg, "Reads")
+    val writesSelect = Select(jsonPkg, "Writes")
+    val unliftIdent = Select(functionalSyntaxPkg, "unlift")
+    val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     companionType.declaration(stringToTermName("unapply")) match {
       case NoSymbol => c.abort(c.enclosingPosition, "No unapply function found")
@@ -733,7 +769,7 @@ object Json {
                       case (name, (t, impl, rec, tpe)) => 
                         // inception of (__ \ name).read(impl)
                         val jspathTree = Apply( 
-                          Select( Ident(newTermName("JsPath")), scala.reflect.NameTransformer.encode("\\")),
+                          Select( jsPathSelect, scala.reflect.NameTransformer.encode("\\")),
                           List(Literal(Constant(name.decoded))) 
                         )
 
@@ -758,7 +794,7 @@ object Json {
                                 Select( jspathTree, "formatOpt" ), 
                                 List( 
                                   Apply(
-                                    Select(Apply(Ident(newTermName("JsPath")), List()), "lazyFormat"),
+                                    Select(Apply(jsPathSelect, List()), "lazyFormat"),
                                     List(helperMember)
                                   )
                                 )
@@ -770,44 +806,44 @@ object Json {
                                 if(tpe.typeConstructor <:< typeOf[List[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "list"),
+                                      Select(readsSelect, "list"),
                                       List(helperMember)
                                     ),
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "list"),
+                                      Select(writesSelect, "list"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "set"),
+                                      Select(readsSelect, "set"),
                                       List(helperMember)
                                     ),
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "set"),
+                                      Select(writesSelect, "set"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "seq"),
+                                      Select(readsSelect, "seq"),
                                       List(helperMember)
                                     ),
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "seq"),
+                                      Select(writesSelect, "seq"),
                                       List(helperMember)
                                     )
                                   )
                                 else if(tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor) 
                                   List( 
                                     Apply(
-                                      Select(Ident(newTermName("Reads")), "map"),
+                                      Select(readsSelect, "map"),
                                       List(helperMember)
                                     ),
                                     Apply(
-                                      Select(Ident(newTermName("Writes")), "map"),
+                                      Select(writesSelect, "map"),
                                       List(helperMember)
                                     )
                                   )
@@ -828,7 +864,7 @@ object Json {
                     val applyMethod = Ident( companionSymbol.name )
 
                     val unapplyMethod = Apply(
-                      Ident(newTermName("unlift")),
+                      unliftIdent,
                       List(
                         Select( Ident( companionSymbol.name ), unapply.name )
                       )
@@ -849,20 +885,23 @@ object Json {
                     //println("finalTree: "+finalTree)
 
                     if(!hasRec) {
-                      c.Expr[Format[A]](finalTree)
+                      val block = Block(
+                        Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
+                        finalTree
+                      )
+                      c.Expr[Format[A]](block)
                     } else {
                       val helper = newTermName("helper")
                       val helperVal = ValDef(
                         Modifiers(), 
                         helper, 
-                        TypeTree(weakTypeOf[play.api.libs.json.util.LazyHelper[Format, A]]), 
+                        Ident(weakTypeOf[play.api.libs.json.util.LazyHelper[Format, A]].typeSymbol), 
                         Apply(Ident(newTermName("LazyHelper")), List(finalTree))
                       )
                       
-                      val lazyHelperType = weakTypeOf[play.api.libs.json.util.LazyHelper[Format, A]]
-
                       val block = Select(
                         Block(
+                          Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                           ClassDef( 
                             Modifiers(Flag.FINAL), 
                             newTypeName("$anon"), 
@@ -870,10 +909,10 @@ object Json {
                             Template(
                               List(
                                 AppliedTypeTree(
-                                  Ident(c.mirror.staticClass("play.api.libs.json.util.LazyHelper")), 
+                                  lazyHelperSelect, 
                                   List(
                                     Ident(weakTypeOf[Format[A]].typeSymbol), 
-                                    TypeTree(weakTypeOf[A])
+                                    Ident(weakTypeOf[A].typeSymbol)
                                   )
                                 )
                               ), 
