@@ -239,8 +239,8 @@ your Play 2 application.
 
 ## SecureSocial (Java and Scala)
 
-* **Website:** [http://jaliss.github.com/securesocial/](http://jaliss.github.com/securesocial/)
-* **Short description:** A module that provides OAuth, OAuth2 and OpenID authentication for Play 2.x and 1.x based applications
+* **Website:** [http://www.securesocial.ws/](http://www.securesocial.ws/)
+* **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
  
 ## Snapshot Plugin (Java and Scala)
 * **Website (docs, sample):** [https://github.com/vznet/play-snapshot](https://github.com/vznet/play-snapshot)
