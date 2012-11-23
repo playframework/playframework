@@ -263,7 +263,7 @@ object PlayBuild extends Build {
             publishMavenStyle := false,
             libraryDependencies := sbtDependencies,
             libraryDependencies += "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
-            libraryDependencies += "com.typesafe.sbtidea" % "sbt-idea" % "1.1.1-SNAPSHOT" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
+            libraryDependencies += "com.typesafe.sbtidea" % "sbt-idea" % "1.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
             unmanagedJars in Compile <++= (baseDirectory) map { b => sbtJars(b / "../..") },
             publishTo := Some(playIvyRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
