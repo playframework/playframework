@@ -1,6 +1,8 @@
 package play.api.mvc
 
 import play.api.http._
+import play.api.i18n.Lang
+import play.api.Play
 
 /**
  * Defines utility methods to generate `Action` and `Results` types.
@@ -58,7 +60,8 @@ trait Controller extends Results with BodyParsers with Status with HeaderNames w
 
   implicit def lang(implicit request: RequestHeader) = {
     play.api.Play.maybeApplication.map { implicit app =>
-      play.api.i18n.Lang.preferred(request.acceptLanguages)
+      val maybeLangFromCookie = request.cookies.get(Play.langCookieName).flatMap(c => Lang.get(c.value))
+      maybeLangFromCookie.getOrElse(play.api.i18n.Lang.preferred(request.acceptLanguages))
     }.getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
   }
 

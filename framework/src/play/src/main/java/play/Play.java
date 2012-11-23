@@ -33,4 +33,7 @@ public class Play {
         return play.api.Play.isTest(play.api.Play.current());
     }
 
+    public static String langCookieName() {
+        return play.api.Play.langCookieName(play.api.Play.current());
+    }
 }
