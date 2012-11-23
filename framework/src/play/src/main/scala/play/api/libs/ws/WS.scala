@@ -400,6 +400,13 @@ object WS {
      */
     def options(): Future[Response] = prepare("OPTIONS").execute
 
+    /**
+     * Execute an arbitrary method on the request asynchronously.
+     *
+     * @param method The method to execute
+     */
+    def execute(method: String): Future[Response] = prepare(method).execute
+
     private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)

@@ -382,7 +382,12 @@ public class WS {
             return execute("OPTIONS");
         }
 
-        private Promise<Response> execute(String method) {
+        /**
+         * Execute an arbitrary method on the request asynchronously.
+         *
+         * @param method The method to execute
+         */
+        public Promise<Response> execute(String method) {
             WSRequest req = new WSRequest(method).setUrl(url)
                     .setHeaders(headers)
                     .setQueryParameters(new FluentStringsMap(queryParameters));
