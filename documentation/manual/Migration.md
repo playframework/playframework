@@ -256,3 +256,7 @@ requireJs := "main.js"
 ```
 
 More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].
+
+## Form helper methods moved to Form
+
+The form() family of helper methods have moved from Controller to Form. Please update your imports/references accordingly.
