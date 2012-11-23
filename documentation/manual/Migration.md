@@ -259,4 +259,4 @@ More information about this feature can be found on the [[RequireJS documentatio
 
 ## Form helper methods moved to Form
 
-The form() family of helper methods have moved from Controller to Form. Please update your imports/references accordingly.
+The form() family of helper methods have moved from `play.mvc.Controller` to `play.data.Form`. Please update your imports/references accordingly.
