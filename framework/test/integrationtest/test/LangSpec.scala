@@ -16,7 +16,9 @@ object LangSpec extends Specification {
         browser.goTo("http://localhost:3333/hello")
         browser.title must equalTo ("Hello")
 
-        browser.getDriver.manage.addCookie(new Cookie("PLAY_LANG", "fr-FR"))
+        // Change the language to fr
+        browser.goTo("http://localhost:3333/setLang?lang=fr-FR")
+        browser.title must equalTo ("Setting lang to fr-FR")
 
         // Make sure we get back fr
         browser.goTo("http://localhost:3333/hello")

@@ -34,6 +34,10 @@ object Application extends Controller {
     Ok(views.html.hello(Messages("hello")))
   }
 
+  def setLang(lang: String) = Action {
+    Ok(views.html.hello("Setting lang to " + lang)).withLang(Lang(lang))
+  }
+
   def form = Action{
     Ok(views.html.form(Contacts.form.fill(Contact("","M"))));
   }

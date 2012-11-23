@@ -7,6 +7,9 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
+import play.api.Play
+import play.api.Play.current
+import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext }
 
@@ -304,6 +307,19 @@ trait PlainResult extends Result with WithHeaders[PlainResult] {
    */
   def as(contentType: String): PlainResult = withHeaders(CONTENT_TYPE -> contentType)
 
+  /**
+   * Sets the users language permanently for future requests by storing it in a cookie.
+   *
+   * For example:
+   * {{{
+   * implicit val lang = Lang("fr-FR")
+   * Ok(Messages("hello.world")).withLang(lang)
+   * }}}
+   *
+   * @param lang the language to store for the user
+   * @return the new result
+   */
+  def withLang(lang: Lang): PlainResult = withCookies(Cookie(Play.langCookieName, lang.code))
 }
 
 /**

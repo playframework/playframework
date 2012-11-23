@@ -7,6 +7,7 @@ import org.w3c.dom.*;
 import org.codehaus.jackson.*;
 
 import play.i18n.Lang;
+import play.Play;
 
 /**
  * Defines HTTP standard objects.
@@ -110,7 +111,7 @@ public class Http {
             if (lang != null) {
                 return lang;
             } else {
-                Cookie cookieLang = request.cookie(langCookieName());
+                Cookie cookieLang = request.cookie(Play.langCookieName());
                 if (cookieLang != null) {
                     Lang lang = Lang.forCode(cookieLang.value());
                     if (lang != null) return lang;
@@ -128,15 +129,11 @@ public class Http {
             Lang lang = Lang.forCode(code);
             if (Lang.availables().contains(lang)) {
                 this.lang = lang;
-                response.setCookie(langCookieName(), code);
+                response.setCookie(Play.langCookieName(), code);
                 return true;
             } else {
                 return false;
             }
-        }
-
-        private String langCookieName() {
-            return play.Configuration.root().getString("application.lang.cookie", "PLAY_LANG");
         }
 
         /** 
