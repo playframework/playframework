@@ -1,5 +1,7 @@
 package play.api.i18n
 
+import scala.language.postfixOps
+
 import play.api._
 import play.core._
 

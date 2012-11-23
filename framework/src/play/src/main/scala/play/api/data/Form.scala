@@ -1,5 +1,7 @@
 package play.api.data
 
+import scala.language.existentials
+
 import format._
 import validation._
 

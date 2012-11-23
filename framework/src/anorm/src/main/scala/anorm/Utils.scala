@@ -20,6 +20,7 @@ case class MayErr[+E, +A](e: Either[E, A]) {
 }
 
 object MayErr {
+  import scala.language.implicitConversions
   implicit def eitherToError[E, EE >: E, A, AA >: A](e: Either[E, A]): MayErr[EE, AA] = MayErr[E, A](e)
   implicit def errorToEither[E, EE >: E, A, AA >: A](e: MayErr[E, A]): Either[EE, AA] = e.e
 }
