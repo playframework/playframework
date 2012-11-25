@@ -242,6 +242,12 @@ your Play 2 application.
 * **Website:** [http://www.securesocial.ws/](http://www.securesocial.ws/)
 * **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
  
+## Session cache (Scala)
+
+* **Website:** [https://github.com/Rhinofly/play-libraries/tree/master/session-cache]
+* **Documentation:** [https://github.com/Rhinofly/play-libraries/tree/master/session-cache/README.md]
+* **Short description:** Session cache for Play 2.0 
+
 ## Snapshot Plugin (Java and Scala)
 * **Website (docs, sample):** [https://github.com/vznet/play-snapshot](https://github.com/vznet/play-snapshot)
 * **Short description:** provides a hash bang snapshot functionality using HtmlUnit, as described by Google [here](https://developers.google.com/webmasters/ajax-crawling/docs/html-snapshot)
