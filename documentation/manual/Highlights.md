@@ -14,7 +14,7 @@ It makes it even simpler to use Play with Akka, or any upcoming asynchronous dat
 
 In the same time, we worked to simplify the execution context model, and by providing an easy way to choose for each part of your application, the underlying `ExecutionContext` used to run your code. 
 
-## Modularization of Play itself
+## Modularization
 
 The Play project has been split on many sub-projects, allowing you to select the minimal set of dependency needed for your project. 
 
@@ -56,6 +56,11 @@ GET   /public/*file       controllers.Assets.at(file)
 ```
 
 In the configuration, at runtime a call to the `/my-subproject` URL will eventually invoke the `my.subproject.controllers.Application.index` Action.
+
+> Note: in order to avoid name collision issues with the main application, always make sure that you define a subpackage within your controller classes that belong to a sub project (i.e. `my.subproject` in this particular example). You'll also need to make sure that the subproject's Assets controller is defined in the same name space.
+
+More information about this feature can be found at [[Working with sub-projects|SBTSubProjects]].
+
 
 ## `Http.Context` propagation in the Java API
 
