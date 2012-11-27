@@ -139,7 +139,7 @@ object ApplicationBuild extends Build {
     val appName         = "myproject"
     val appVersion      = "1.0-SNAPSHOT"
 
-    val adminDeps= Seq(
+    val adminDeps = Seq(
       // Add your project dependencies here,
        "mysql" % "mysql-connector-java" % "5.1.18",
       jdbc,
@@ -148,7 +148,7 @@ object ApplicationBuild extends Build {
 
     val mainDeps = Seq()
   
-   lazy val admin = play.Project(appName + "-admin", appVersion, addonDeps, path = file("modules/admin"))
+   lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
 
 
   lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
@@ -192,7 +192,7 @@ GET /index                          controllers.Application.index()
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 ```
 
-`conf/admin.routes`:
+`modules/admin/conf/admin.routes`:
 
 ```
 GET /index                           controllers.admin.Application.index()
@@ -201,7 +201,7 @@ GET     /assets/*file               controllers.admin.Assets.at(path="/public", 
 
 ```
 
-### Assets and controller classes should be all defined in the admin package
+### Assets and controller classes should be all defined in the `controllers.admin` package
 
 `modules/admin/controllers/Assets.scala`:
 
@@ -233,14 +233,14 @@ object Application extends Controller {
 
 ### Reverse routing in ```admin```
 
-a regular controller call:
+in case of a regular controller call:
 
 
 ```
 controllers.admin.routes.Application.index
 ``` 
 
-and for Assets: 
+and for `Assets`: 
 
 ```
 controllers.admin.routes.Assets.at("...")
