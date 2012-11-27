@@ -98,6 +98,9 @@ object JsonValidSpec extends Specification {
       Json.toJson[org.joda.time.DateTime](ddj).validate[org.joda.time.DateTime] must beEqualTo(JsSuccess(ddj))
       JsNumber(ddj.getMillis).validate[org.joda.time.DateTime] must beEqualTo(JsSuccess(ddj))
 
+      val ldj = org.joda.time.LocalDate.parse(dfj.print(dj), dfj)
+      Json.toJson[org.joda.time.LocalDate](ldj).validate[org.joda.time.LocalDate] must beEqualTo(JsSuccess(ldj))
+
       val ds = new java.sql.Date(dd.getTime())
 
       Json.toJson[java.sql.Date](ds).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))

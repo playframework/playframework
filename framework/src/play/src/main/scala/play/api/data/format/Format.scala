@@ -227,5 +227,35 @@ object Formats {
    */
   implicit val jodaDateTimeFormat: Formatter[org.joda.time.DateTime] = jodaDateTimeFormat("yyyy-MM-dd")
 
+  /**
+   * Formatter for the `org.joda.time.LocalDate` type.
+   *
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   */
+  def jodaLocalDateFormat(pattern: String): Formatter[org.joda.time.LocalDate] = new Formatter[org.joda.time.LocalDate] {
+
+    import org.joda.time.LocalDate
+
+    override val format = Some(("format.date", Seq(pattern)))
+
+    def bind(key: String, data: Map[String, String]) = {
+
+      stringFormat.bind(key, data).right.flatMap { s =>
+        scala.util.control.Exception.allCatch[LocalDate]
+          .either(LocalDate.parse(s, org.joda.time.format.DateTimeFormat.forPattern(pattern)))
+          .left.map(e => Seq(FormError(key, "error.date", Nil)))
+      }
+    }
+
+    def unbind(key: String, value: LocalDate) = Map(key -> value.toString(pattern))
+  }
+
+  /**
+   * Default formatter for `org.joda.time.LocalDate` type with pattern `yyyy-MM-dd`.
+   *
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   */
+  implicit val jodaLocalDateFormat: Formatter[org.joda.time.LocalDate] = jodaLocalDateFormat("yyyy-MM-dd")
+
 }
 
