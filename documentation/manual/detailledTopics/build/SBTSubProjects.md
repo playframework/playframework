@@ -11,20 +11,24 @@ You can make your application depend on a simple library project. Just add anoth
 ```
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 object ApplicationBuild extends Build {
 
   val appName         = "my-first-application"
   val appVersion      = "1.0"
 
-  val appDependencies = Seq()
+  val appDependencies = Seq(
+    //if it's a java project add javaCore, javaJdbc, jdbc etc.
+  )
   
   val mySubProject = Project("my-library", file("myLibrary"))
 
-  val main = PlayProject(
-    appName, appVersion, appDependencies, path = file("myProject"), mainLang = JAVA
+  val main = play.Project(
+    appName, appVersion, appDependencies, path = file("myProject")
   ).dependsOn(mySubProject)
+
+
 }
 ```
 
@@ -69,31 +73,31 @@ When you run your Play application in dev mode, the dependent projects are autom
 
 As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application. 
 
-The configuration is very close to the previous one. Simply configure your sub-project as a `PlayProject`:
+The configuration is very close to the previous one. Simply configure your sub-project as a `play.Project`:
 
 ```
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 object ApplicationBuild extends Build {
 
   val appName = "zenexity.com"
   val appVersion = "1.2"
 
-  val common = PlayProject(
+  val common = play.Project(
     appName + "-common", appVersion, path = file("common")
   )
   
-  val website = PlayProject(
+  val website = play.Project(
     appName + "-website", appVersion, path = file("website")
   ).dependsOn(common)
   
-  val adminArea = PlayProject(
+  val adminArea = play.Project(
     appName + "-admin", appVersion, path = file("admin")
   ).dependsOn(common)
   
-  val main = PlayProject(
+  val main = play.Project(
     appName, appVersion, path = file("main")
   ).dependsOn(
     website, adminArea
@@ -114,3 +118,155 @@ val main = PlayProject(
   website, adminArea
 )
 ```
+
+> Note: in order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project
+
+## Splitting the route file
+
+As of `play 2.1` it's also possible to split the route file into smaller pieces. This is a very handy feature if you want to create a robust, reusable multi-module play application
+
+### Consider the following build file
+
+`project/Build.scala`:
+
+```scala
+import sbt._
+import Keys._
+import play.Project._
+
+object ApplicationBuild extends Build {
+
+    val appName         = "myproject"
+    val appVersion      = "1.0-SNAPSHOT"
+
+    val adminDeps = Seq(
+      // Add your project dependencies here,
+       "mysql" % "mysql-connector-java" % "5.1.18",
+      jdbc,
+      anorm
+    )
+
+    val mainDeps = Seq()
+  
+   lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
+
+
+  lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
+      // Add your own project settings here      
+    ).dependsOn(admin).aggregate(admin)
+
+}
+```
+
+### project structure
+
+```
+app
+  └ controllers
+  └ models
+  └ views
+conf
+  └ application.conf
+  └ routes
+modules
+  └ admin
+    └ conf/admin.routes
+    └ app/controllers
+    └ app/models
+    └ app/views     
+project
+ └ build.properties
+ └ Build.scala
+ └ plugins.sbt
+```
+
+> Note: there is only a single instance of `application.conf`. Also, the route file in `admin` is called `admin.routes`
+
+`conf/routes`:
+
+```
+GET /index                          controllers.Application.index()
+
+->  /admin admin.Routes
+
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+```
+
+`modules/admin/conf/admin.routes`:
+
+```
+GET /index                           controllers.admin.Application.index()
+
+GET     /assets/*file               controllers.admin.Assets.at(path="/public", file)
+
+```
+
+### Assets and controller classes should be all defined in the `controllers.admin` package
+
+`modules/admin/controllers/Assets.scala`:
+
+```scala
+package controllers.admin
+object Assets  {
+ def at(path: String, file: String): play.api.mvc.Action[play.api.mvc.AnyContent] = controllers.Assets.at(path, file)
+}
+```
+
+and a controller:
+
+`modules/admin/controllers/Application.scala`:
+
+```scala
+package controllers.admin
+
+import play.api._
+import play.api.mvc._
+import views.html._
+
+object Application extends Controller {
+
+  def index = Action { implicit request =>
+    Ok("admin")
+  }
+}
+```
+
+### Reverse routing in ```admin```
+
+in case of a regular controller call:
+
+
+```
+controllers.admin.routes.Application.index
+``` 
+
+and for `Assets`: 
+
+```
+controllers.admin.routes.Assets.at("...")
+```
+
+### Through the browser
+
+```
+http://localhost:9000/index
+``` 
+
+triggers 
+
+```
+controllers.Application.index
+```
+
+and
+
+```
+http://localhost:9000/admin/index
+``` 
+
+triggers 
+
+```
+controllers.admin.Application.index
+```
+

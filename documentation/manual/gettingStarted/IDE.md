@@ -40,7 +40,7 @@ object ApplicationBuild extends Build {
 or from the play console, type:
 
 ``` 
-[My first application] $ eclipsify skip-parents=false
+[My first application] $ eclipse skip-parents=false
 ```
 
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:

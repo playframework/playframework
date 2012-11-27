@@ -51,7 +51,7 @@ object JavascriptCompiler {
     val input = if (!simpleCheck) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
 
     catching(classOf[Exception]).either(compiler.compile(Array[JSSourceFile](), input, options).success) match {
-      case Right(true) => (origin, { if (!simpleCheck) Some(compiler.toSource()) else None }, all)
+      case Right(true) => (origin, { if (!simpleCheck) Some(compiler.toSource()) else None }, Nil)
       case Right(false) => {
         val error = compiler.getErrors().head
         val errorFile = all.find(f => f.getAbsolutePath() == error.sourceName)

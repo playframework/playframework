@@ -30,6 +30,14 @@ object Application extends Controller {
    Ok("ok")
   }
 
+  def hello = Action { implicit request =>
+    Ok(views.html.hello(Messages("hello")))
+  }
+
+  def setLang(lang: String) = Action {
+    Ok(views.html.hello("Setting lang to " + lang)).withLang(Lang(lang))
+  }
+
   def form = Action{
     Ok(views.html.form(Contacts.form.fill(Contact("","M"))));
   }
@@ -82,6 +90,10 @@ object Application extends Controller {
     val v = JCache.get("hello")
     if (v != "world") throw new RuntimeException("java cache API is not working")
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
+  }
+
+  def takeInt(i: Int) = Action {
+    Ok(i.toString)
   }
 
   def takeBool(b: Boolean) = Action {

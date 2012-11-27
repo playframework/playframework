@@ -1,7 +1,6 @@
 package play.core
 
 import akka.actor._
-import akka.actor.Actor._
 
 import com.typesafe.config._
 import play.api.{Logger, Play}
@@ -9,7 +8,7 @@ import play.api.{Logger, Play}
 /**
  * provides Play's internal actor system and the corresponding actor instances
  */
-object Invoker {
+private[play] object Invoker {
 
   private def loadActorConfig = {
     val config = Play.maybeApplication.map(_.configuration.underlying).getOrElse {

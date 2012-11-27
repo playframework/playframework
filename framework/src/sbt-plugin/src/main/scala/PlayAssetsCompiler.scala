@@ -18,7 +18,7 @@ trait PlayAssetsCompiler {
     naming: (String, Boolean) => String,
     compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
     optionsSettings: sbt.SettingKey[Seq[String]]) =
-    (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, incrementalAssetsCompilation, requireJs) map { (state, src, resources, cache, options, files, incrementalAssetsCompilation, requireJs) =>
+    (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, requireJs) map { (state, src, resources, cache, options, files, requireJs) =>
 
       val requireSupport = if (!requireJs.isEmpty) {
         Seq("rjs")
@@ -36,19 +36,18 @@ trait PlayAssetsCompiler {
         //a changed file can be either a new file, a deleted file or a modified one
         lazy val changedFiles: Seq[File] = currentInfos.filter(e => !previousInfo.get(e._1).isDefined || previousInfo(e._1).lastModified < e._2.lastModified).map(_._1).toSeq ++ previousInfo.filter(e => !currentInfos.get(e._1).isDefined).map(_._1).toSeq
 
-        //erease dependencies that belong to changed files (when incremental compilation is turned on, otherwise delete everything for given compiler)
-        val dependencies = previousRelation.filter((original, compiled) => !incrementalAssetsCompilation || changedFiles.contains(original))._2s
+        //erease dependencies that belong to changed files
+        val dependencies = previousRelation.filter((original, compiled) => changedFiles.contains(original))._2s
         dependencies.foreach(IO.delete)
 
         /**
-         * process each file if it's not incremental compilation
-         * or if the given file was changed or
+         * If the given file was changed or
          * if the given file was a dependency,
          * otherwise calculate dependencies based on previous relation graph
          */
         val generated: Seq[(File, java.io.File)] = (files x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
-            if (!incrementalAssetsCompilation || changedFiles.contains(sourceFile) || dependencies.contains(new File(resources, "public/" + naming(name, false)))) {
+            if (changedFiles.contains(sourceFile) || dependencies.contains(new File(resources, "public/" + naming(name, false)))) {
               val (debug, min, dependencies) = try {
                 compile(sourceFile, options ++ requireSupport)
               } catch {

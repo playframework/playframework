@@ -9,7 +9,7 @@
 - [[Asynchronous HTTP programming | JavaAsync]]
 - [[The template engine | JavaTemplates]]
 - [[HTTP form submission and validation | JavaForms]]
-- [[Working with JSON | JavaJson]]
+- [[Working with JSON | JavaJsonRequests]]
 - [[Working with XML | JavaXmlRequests]]
 - [[Handling file upload | JavaFileUpload]]
 - [[Accessing an SQL database | JavaDatabase]]

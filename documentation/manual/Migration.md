@@ -51,9 +51,11 @@ object ApplicationBuild extends Build {
 }
 ```
 
+## play.mvc.Controller.form() to become play.data.Form.form()
 
+Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`
 
-## Play's Promise become Scala's Future
+## Play's Promise to become Scala's Future
 
 With the introduction of `scala.concurrent.Future` in scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there.
 
@@ -256,3 +258,4 @@ requireJs := "main.js"
 ```
 
 More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].
+

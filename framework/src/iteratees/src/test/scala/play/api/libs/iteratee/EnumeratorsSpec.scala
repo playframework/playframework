@@ -2,9 +2,9 @@ package play.api.libs.iteratee
 
 import org.specs2.mutable._
 
-import play.api.libs.concurrent._
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import concurrent.{Future, Await}
+import concurrent.duration.Duration
 
 object EnumeratorsSpec extends Specification {
 
@@ -12,40 +12,31 @@ object EnumeratorsSpec extends Specification {
 "Enumerator's interleave" should {
 
   "mix it with another enumerator into one" in {
-      import play.api.libs.concurrent.Promise
       val e1 = Enumerator(List(1),List(3),List(5),List(7))
       val e2 = Enumerator(List(2),List(4),List(6),List(8))
-      val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk =e(Iteratee.fold1(p.future)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
-      p.redeem(List())
-      val result = kk.await.get
+      val kk = e |>>> Iteratee.fold(List.empty[Int])((r, e) => r ++ e)
+      val result = Await.result(kk, Duration.Inf)
       println("interleaved enumerators result is: "+result)
-      result.diff(Seq(1,2,3,4,5,6,7,8)) must equalTo(Seq())
+      result.diff(Seq(1,2,3,4,5,6,7,8)) must equalTo (Seq())
     }
 
   "yield when both enumerators EOF" in {
-      import play.api.libs.concurrent.Promise
       val e1 = Enumerator(List(1),List(3),List(5),List(7)) >>> Enumerator.enumInput(Input.EOF)
       val e2 = Enumerator(List(2),List(4),List(6),List(8))  >>> Enumerator.enumInput(Input.EOF)
-      val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk =e(Iteratee.fold1(p.future)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
-      p.redeem(List())
-      val result = kk.await.get
-      result.diff(Seq(1,2,3,4,5,6,7,8)) must equalTo(Seq())
+      val kk = e |>>> Iteratee.fold(List.empty[Int])((r, e) => r ++ e)
+      val result = Await.result(kk, Duration.Inf)
+      result.diff(Seq(1,2,3,4,5,6,7,8)) must equalTo (Seq())
     }
 
   "yield when iteratee is done!" in {
-      import play.api.libs.concurrent.Promise
       val e1 = Enumerator(List(1),List(3),List(5),List(7))
       val e2 = Enumerator(List(2),List(4),List(6),List(8))
-      val p = play.api.libs.concurrent.Promise[List[Int]]()
       val e = e1 interleave e2
-      val kk = (e |>> Enumeratee.take(7) &>> Iteratee.fold1(p.future)((p,e) => Promise.pure(p ++ e))).flatMap(_.run)
-      p.redeem(List())
-      val result = kk.await.get
-      result.length must equalTo(7)
+      val kk = e |>>> Enumeratee.take(7) &>> Iteratee.fold(List.empty[Int])((r, e) => r ++ e)
+      val result = Await.result(kk, Duration.Inf)
+      result.length must equalTo (7)
     }
 
 }
@@ -53,19 +44,18 @@ object EnumeratorsSpec extends Specification {
 "Enumerator's Hub" should {
 
   "share Enumerator with different iteratees" in {
-      import play.api.libs.concurrent.Promise
     var pp:Enumerator.Pushee[Int] = null
     val e = Enumerator.pushee[Int]((p => pp =p ))
     val hub = Concurrent.hub(e)
     val i1 = Iteratee.fold[Int,Int](0){(s,i) => println(i);s+i}
     val c = Iteratee.fold[Int,Int](0){(s,i) => s+1}
-    val sum = hub.getPatchCord() |>> i1
-    pp.push(1);
-    val count = hub.getPatchCord() |>> c
-  pp.push(1); pp.push(1); pp.push(1); pp.close()
+    val sum = hub.getPatchCord() |>>> i1
+    pp.push(1)
+    val count = hub.getPatchCord() |>>> c
+    pp.push(1); pp.push(1); pp.push(1); pp.close()
 
-    sum.flatMap(_.run).value1.get must equalTo(4)
-    count.flatMap(_.run).value1.get must equalTo(3)
+    Await.result(sum, Duration.Inf) must equalTo (4)
+    Await.result(count, Duration.Inf) must equalTo (3)
 
   }
 
@@ -94,19 +84,19 @@ object EnumeratorsSpec extends Specification {
       j <- Enumerator((i until i + 10): _*)
     } yield j
     val it = Iteratee.fold[Int, Int](0)((sum, x) => sum + x)
-    (e |>> it).flatMap(_.run).value1.get must equalTo ((10 until 40).sum)
+    Await.result(e |>>> it, Duration.Inf) must equalTo ((10 until 40).sum)
   }
 }
 
 "Enumerator.generateM" should {
   "generate a stream of values until the expression is None" in {
 
-    val a = 0 to 10 toList
+    val a = (0 to 10).toList
     val it = a.iterator
 
-    val enumerator = Enumerator.generateM( play.api.libs.concurrent.Promise.pure(if(it.hasNext) Some(it.next) else None))
+    val enumerator = Enumerator.generateM(Future(if(it.hasNext) Some(it.next()) else None))
 
-    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value1.get must equalTo("012345678910")
+    Await.result(enumerator |>>> Iteratee.fold[Int,String]("")(_ + _), Duration.Inf) must equalTo ("012345678910")
 
   }
 
@@ -115,12 +105,12 @@ object EnumeratorsSpec extends Specification {
 "Enumerator.generateM" should {
   "Can be composed with another enumerator (doesn't send EOF)" in {
 
-    val a = 0 to 10 toList
+    val a = (0 to 10).toList
     val it = a.iterator
 
-    val enumerator = Enumerator.generateM( play.api.libs.concurrent.Promise.pure(if(it.hasNext) Some(it.next) else None)) >>> Enumerator(12)
+    val enumerator = Enumerator.generateM(Future(if(it.hasNext) Some(it.next()) else None)) >>> Enumerator(12)
 
-    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value1.get must equalTo("01234567891012")
+    Await.result(enumerator |>>> Iteratee.fold[Int,String]("")(_ + _), Duration.Inf) must equalTo ("01234567891012")
 
   }
 
@@ -129,9 +119,9 @@ object EnumeratorsSpec extends Specification {
 "Enumerator.unfoldM" should {
   "Can be composed with another enumerator (doesn't send EOF)" in {
 
-    val enumerator = Enumerator.unfoldM[Int,Int](0)( s => play.api.libs.concurrent.Promise.pure(if(s > 10) None else Some((s+1,s+1)))) >>> Enumerator(12)
+    val enumerator = Enumerator.unfoldM[Int,Int](0)( s => Future(if(s > 10) None else Some((s+1,s+1)))) >>> Enumerator(12)
 
-    (enumerator |>> Iteratee.fold[Int,String]("")(_ + _)).flatMap(_.run).value1.get must equalTo("123456789101112")
+    Await.result(enumerator |>>> Iteratee.fold[Int,String]("")(_ + _), Duration.Inf) must equalTo ("123456789101112")
 
   }
 
@@ -141,11 +131,11 @@ object EnumeratorsSpec extends Specification {
   "broadcast the same to already registered iteratees" in {
 
     val (broadcaster,pushHere) = Concurrent.broadcast[String]
-    val results = play.api.libs.concurrent.Promise.sequence(Range(1,20).map(_ => Iteratee.fold[String,String](""){(s,e) => s + e }).map(broadcaster.apply).map(_.flatMap(_.run)))
+    val results = Future.sequence(Range(1,20).map(_ => Iteratee.fold[String,String](""){(s,e) => s + e }).map(broadcaster.apply).map(_.flatMap(_.run)))
     pushHere.push("beep")
     pushHere.push("beep")
     pushHere.eofAndEnd()
-    results.value1.get must equalTo(Range(1,20).map(_ => "beepbeep"))
+    Await.result(results, Duration.Inf) must equalTo (Range(1,20).map(_ => "beepbeep"))
 
   }
 }
@@ -159,9 +149,9 @@ object EnumeratorsSpec extends Specification {
       outputStream.write(b.toArray.map(_.toByte))
       outputStream.close()
     }
-    val promise = (enumerator |>> Iteratee.fold[Array[Byte],Array[Byte]](Array[Byte]())(_ ++ _)).flatMap(_.run)
+    val promise = (enumerator |>>> Iteratee.fold[Array[Byte],Array[Byte]](Array[Byte]())(_ ++ _))
 
-    promise.await.get.map(_.toChar).foldLeft("")(_+_) must equalTo(a+b)
+    Await.result(promise, Duration.Inf).map(_.toChar).foldLeft("")(_+_) must equalTo (a+b)
   }
 }
 
