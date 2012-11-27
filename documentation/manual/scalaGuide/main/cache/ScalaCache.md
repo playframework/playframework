@@ -23,7 +23,7 @@ val maybeUser: Option[User] = Cache.getAs[User]("item.key")
 There is also a convenient helper to retrieve from cache or set the value in cache if it was missing:
 
 ```
-val user: User = Cache.getOrElseAs[User]("item.key") {
+val user: User = Cache.getOrElse[User]("item.key") {
   User.findById(connectedUser)
 }
 ```
