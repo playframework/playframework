@@ -918,7 +918,7 @@ object RoutesCompiler {
         )
     }.mkString("\n") +
       """|
-         |def documentation = List(%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e match {
+         |def documentation = List[(String, String, String)](%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e match {
          |  case r @ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
          |  case l => s ++ l.asInstanceOf[List[(String,String,String)]] 
          |}}
