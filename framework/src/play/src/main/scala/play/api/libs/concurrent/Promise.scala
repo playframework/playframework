@@ -15,7 +15,7 @@ import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
 import play.core.Execution.internalContext
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.

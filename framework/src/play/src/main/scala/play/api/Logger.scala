@@ -1,7 +1,7 @@
 package play.api
 
 import org.slf4j.{ LoggerFactory, Logger => Slf4jLogger }
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * Typical logger interface.

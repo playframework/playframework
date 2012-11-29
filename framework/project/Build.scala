@@ -313,7 +313,7 @@ object PlayBuild extends Build {
         "Root",
         file("."),
         settings = buildSettings ++ Seq(
-            libraryDependencies := runtime,
+            libraryDependencies := (runtime ++ jdbcDeps),
             cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
             resetRepositoryTask,
             buildRepositoryTask,
@@ -626,11 +626,21 @@ object PlayBuild extends Build {
             (file("src/iteratees/src/main/scala") ** "*.scala").get ++
             (file("src/play-test/src/main/scala") ** "*.scala").get ++
             (file("src/play/src/main/scala/views") ** "*.scala").get ++
+            (file("src/anorm/src/main/scala") ** "*.scala").get ++
+            (file("src/play-filters-helpers/src/main/scala") ** "*.scala").get ++
+            (file("src/play-jdbc/src/main/scala") ** "*.scala").get ++
             (file("src/play/target/scala-" + buildScalaVersion + "/src_managed/main/views/html/helper") ** "*.scala").get
           new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data) ++ allJars, file("../documentation/api/scala"), Nil, s.log)
 
           // Javadoc
-          val javaSources = Seq(file("src/play/src/main/java"), file("src/play-test/src/main/java")).mkString(":")
+          val javaSources = Seq(
+            file("src/play/src/main/java"),
+            file("src/play-test/src/main/java"),
+            file("src/play-java/src/main/java"),
+            file("src/play-java-ebean/src/main/java"),
+            file("src/play-java-jdbc/src/main/java"),
+            file("src/play-java-jpa/src/main/java")
+          ).mkString(":")
           val javaApiTarget = file("../documentation/api/java")
           val javaClasspath = classpath.map(_.data).mkString(":")
           """javadoc -windowtitle playframework -doctitle Play&nbsp;""" + BuildSettings.buildVersion + """&nbsp;Java&nbsp;API  -sourcepath %s -d %s -subpackages play -exclude play.api:play.core -classpath %s""".format(javaSources, javaApiTarget, javaClasspath) ! s.log

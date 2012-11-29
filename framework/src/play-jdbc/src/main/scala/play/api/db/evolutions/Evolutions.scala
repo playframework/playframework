@@ -14,7 +14,7 @@ import play.api.libs.Codecs._
 import javax.sql.DataSource
 import java.sql.{ Statement, Date, Connection, SQLException }
 import scala.util.control.Exception._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * An SQL evolution - database changes associated with a software version.

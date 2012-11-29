@@ -25,7 +25,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {

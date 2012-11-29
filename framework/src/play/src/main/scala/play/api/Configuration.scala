@@ -5,7 +5,7 @@ import java.io._
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * This object provides a set of operations to create `Configuration` values.

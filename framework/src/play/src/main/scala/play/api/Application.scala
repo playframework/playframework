@@ -13,7 +13,7 @@ import annotation.implicitNotFound
 
 import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 
 trait WithDefaultGlobal {

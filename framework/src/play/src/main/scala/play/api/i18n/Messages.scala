@@ -10,7 +10,7 @@ import java.io._
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * A Lang supported by the application.

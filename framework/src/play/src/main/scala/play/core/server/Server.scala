@@ -16,7 +16,7 @@ import akka.routing._
 import akka.pattern.Patterns.ask
 import scala.concurrent.duration._
 import akka.util.Timeout
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 trait WebSocketable {
   def getHeader(header: String): String
