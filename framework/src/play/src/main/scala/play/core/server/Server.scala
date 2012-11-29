@@ -58,7 +58,8 @@ trait Server {
           (maybeAction.getOrElse(Action(BodyParsers.parse.empty)(_ => application.global.onHandlerNotFound(request))), application)
         }
       } catch {
-        case NonFatal(e) => Left(e)
+        case e: VirtualMachineError => throw e
+        case e : Throwable => Left(e)
       }
     }
 
