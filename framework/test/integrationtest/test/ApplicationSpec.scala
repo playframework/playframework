@@ -6,6 +6,7 @@ import play.api.test.Helpers._
 import org.specs2.mutable._
 import models._
 import play.api.mvc.AnyContentAsEmpty
+import module.Routes
 
 class ApplicationSpec extends Specification {
 
@@ -253,6 +254,12 @@ class ApplicationSpec extends Specification {
         Lang("en-gb"),
         Lang("en")
       ))
+    }
+
+    "allow reverse routing of routes includes" in new WithApplication() {
+      // Force the router to bootstrap the prefix
+      app.routes
+      controllers.module.routes.ModuleController.index().url must_== "/module/index"
     }
   }
 

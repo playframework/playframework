@@ -277,7 +277,9 @@ object RoutesCompiler {
 
   def compile(file: File, generatedDir: File, additionalImports: Seq[String]) {
 
-    val generated = GeneratedSource(new File(generatedDir, "routes_routing.scala"))
+    val namespace = Option(Path(file).name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
+    val packageDir = namespace.map(pkg => new File(generatedDir, pkg)).getOrElse(generatedDir)
+    val generated = GeneratedSource(new File(packageDir, "routes_routing.scala"))
 
     if (generated.needsRecompilation) {
 
@@ -286,7 +288,7 @@ object RoutesCompiler {
       val routesContent = routeFile.string
 
       (parser.parse(routesContent) match {
-        case parser.Success(parsed, _) => generate(routeFile, parsed, additionalImports)
+        case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports)
         case parser.NoSuccess(message, in) => {
           throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
         }
@@ -361,18 +363,20 @@ object RoutesCompiler {
   /**
    * Generate the actual Scala code for this router
    */
-  private def generate(file: Path, rules: List[Rule], additionalImports: Seq[String]): Seq[(String, String)] = {
+  private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String]): Seq[(String, String)] = {
 
-    check(new File(file.path), rules.collect { case r: Route => r });
+    check(new File(file.path), rules.collect { case r: Route => r })
+
+    val filePrefix = namespace.map(_ + "/").getOrElse("") + "/routes"
 
     val (path, hash, date) = (file.path.replace(File.separator, "/"), Hash(file.byteArray), new java.util.Date().toString)
 
-    Seq(("routes_reverseRouting.scala",
+    Seq((filePrefix + "_reverseRouting.scala",
       """ |// @SOURCE:%s
           |// @HASH:%s
           |// @DATE:%s
           |
-          |%s
+          |import %sRoutes.{prefix => _prefix, defaultPrefix => _defaultPrefix}
           |import play.core._
           |import play.core.Router._
           |import play.core.j._
@@ -391,14 +395,14 @@ object RoutesCompiler {
         path,
         hash,
         date,
-        Option(file.name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size)).map("import " + _ + ".Routes").getOrElse(""),
+        namespace.map(_ + ".").getOrElse(""),
         additionalImports.map("import " + _).mkString("\n"),
         reverseRouting(rules.collect { case r: Route => r }),
         javaScriptReverseRouting(rules.collect { case r: Route => r }),
         refReverseRouting(rules.collect { case r: Route => r })
       )
     ),
-      ("routes_routing.scala",
+      (filePrefix + "_routing.scala",
         """ |// @SOURCE:%s
             |// @HASH:%s
             |// @DATE:%s
@@ -439,7 +443,7 @@ object RoutesCompiler {
           path,
           hash,
           date,
-          Option(file.name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size)).map("package " + _).getOrElse(""),
+          namespace.map("package " + _).getOrElse(""),
           additionalImports.map("import " + _).mkString("\n"),
           rules.collect { case Include(p, r) => "(\"" + p + "\"," + r + ")" }.mkString(","),
           routeDefinitions(rules),
@@ -551,7 +555,7 @@ object RoutesCompiler {
 
                     def genCall(route: Route, localNames: Map[String, String] = Map()) = "      return _wA({method:\"%s\", url:%s%s})".format(
                       route.verb.value,
-                      "\"\"\"\" + Routes.prefix + " + { if (route.path.parts.isEmpty) "" else "{ Routes.defaultPrefix } + " } + "\"\"\"\"" + route.path.parts.map {
+                      "\"\"\"\" + _prefix + " + { if (route.path.parts.isEmpty) "" else "{ _defaultPrefix } + " } + "\"\"\"\"" + route.path.parts.map {
                         case StaticPart(part) => " + \"" + part + "\""
                         case DynamicPart(name, _) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -712,7 +716,7 @@ object RoutesCompiler {
                     """
                           |%s
                           |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
-                          |   %s, HandlerDef(this, "%s", "%s", %s, "%s", %s,  Routes.prefix + %s)
+                          |   %s, HandlerDef(this, "%s", "%s", %s, "%s", %s, _prefix + %s)
                           |)
                       """.stripMargin.format(
                       markLines(route),
@@ -791,7 +795,7 @@ object RoutesCompiler {
 
                     def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                       route.verb.value,
-                      "Routes.prefix" + { if (route.path.parts.isEmpty) "" else """ + { Routes.defaultPrefix } + """ } + route.path.parts.map {
+                      "_prefix" + { if (route.path.parts.isEmpty) "" else """ + { _defaultPrefix } + """ } + route.path.parts.map {
                         case StaticPart(part) => "\"" + part + "\""
                         case DynamicPart(name, _) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
