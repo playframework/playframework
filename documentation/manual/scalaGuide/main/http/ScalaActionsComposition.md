@@ -220,4 +220,4 @@ def Authenticated(f: AuthenticatedRequest[AnyContent] => Result): Action[AnyCont
 }
 ```
 
-> **Next:** [[Asynchronous HTTP programming | ScalaAsync]]
+> **Next:** [[Content negotiation | ScalaContentNegotiation]]

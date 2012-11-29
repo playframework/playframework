@@ -1,5 +1,7 @@
 package play.core.server.netty
 
+import scala.language.reflectiveCalls
+
 import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
@@ -18,6 +20,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
+import util.control.NonFatal
 import scala.collection.immutable
 import java.security.cert.Certificate
 import collection.immutable.Nil
@@ -28,8 +31,6 @@ import java.nio.channels.ClosedChannelException
 object PlayDefaultUpstreamHandler {
   val logger = Logger("play")
 }
-
-
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
   import PlayDefaultUpstreamHandler.logger
@@ -356,7 +357,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
               f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
             } catch {
-              case e: Exception => e.printStackTrace()
+              case NonFatal(e) => e.printStackTrace()
             }
 
           //handle bad websocket request

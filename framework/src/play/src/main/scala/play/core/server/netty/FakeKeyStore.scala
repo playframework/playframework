@@ -8,6 +8,7 @@ import java.math.BigInteger
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream, FileOutputStream}
 import javax.net.ssl.KeyManagerFactory
+import util.control.NonFatal
 
 /**
  * A fake key store
@@ -41,7 +42,7 @@ object FakeKeyStore {
       }
       Some(keyStore)
     } catch {
-      case e: Exception => {
+      case NonFatal(e) => {
         Logger("play").error("Error loading fake key store", e)
         None
       }

@@ -279,11 +279,10 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
   }
 
   def intellijCommandSettings(mainLang: String) = {
-    import org.sbtidea.SbtIdeaPlugin
+    import com.typesafe.sbtidea.SbtIdeaPlugin
     SbtIdeaPlugin.ideaSettings ++
       Seq(
         SbtIdeaPlugin.commandName := "idea",
-        SbtIdeaPlugin.addGeneratedClasses := true,
         SbtIdeaPlugin.includeScalaFacet := { mainLang == SCALA },
         SbtIdeaPlugin.defaultClassifierPolicy := false
       )

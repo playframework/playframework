@@ -1,14 +1,21 @@
 package play.api.libs.iteratee
 
+import scala.language.reflectiveCalls
+
 import scala.concurrent.Future
 import play.api.libs.iteratee.internal.defaultExecutionContext
 
 /**
- * Combines the roles of an Iteratee[From] and a Enumerator[To]
+ * Combines the roles of an Iteratee[From] and a Enumerator[To].  This allows adapting of streams to that modify input
+ * produced by an Enumerator, or to be consumed by a Iteratee.
  */
 trait Enumeratee[From, To] {
   parent =>
 
+  /**
+   * Create a new Iteratee that feeds its input, potentially modifying it along the way, into the inner Iteratee, and
+   * produces that Iteratee as its result.
+   */
   def applyOn[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
 
   /**
@@ -16,6 +23,9 @@ trait Enumeratee[From, To] {
    */
   def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn[A](inner)
 
+  /**
+   * Transform the given iteratee into an iteratee that accepts the input type that this enumeratee maps.
+   */
   def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
 
   /**
@@ -28,6 +38,9 @@ trait Enumeratee[From, To] {
    */
   def &>[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = apply(inner)
 
+  /**
+   * Compose this Enumeratee with another Enumeratee
+   */
   def compose[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
     new Enumeratee[From, To2] {
       def applyOn[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
@@ -37,10 +50,14 @@ trait Enumeratee[From, To] {
   }
 
   /**
-   * Compose this Enumerator with another Enumerator
+   * Compose this Enumeratee with another Enumeratee
    */
   def ><>[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = compose(other)
 
+  /**
+   * Compose this Enumeratee with another Enumeratee, concatinating any input left by both Enumeratees when they
+   * are done.
+   */
   def composeConcat[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = {
     new Enumeratee[From, To] {
       def applyOn[A](iteratee: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = {
@@ -49,12 +66,18 @@ trait Enumeratee[From, To] {
     }
   }
 
+  /**
+   * Alias for `composeConcat`
+   */
   def >+>[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = composeConcat[X](other)
 
 }
 
 object Enumeratee {
 
+  /**
+   * An Enumeratee that checks to ensure that the passed in Iteratee is not done before doing any work.
+   */
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
     def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
@@ -66,8 +89,22 @@ object Enumeratee {
       }
   }
 
+  /**
+   * Create an Enumeratee that zips two Iteratees together.
+   *
+   * Each input gets passed to each Iteratee, and the result is a tuple of both of their results.
+   *
+   * If either Iteratee encounters an error, the result will be an error.
+   *
+   * The Enumeratee will continue consuming input until both inner Iteratees are done.  If one inner Iteratee finishes
+   * before the other, the result of that Iteratee is held, and the one continues by itself, until it too is finished.
+   */
   def zip[E, A, B](inner1: Iteratee[E, A], inner2: Iteratee[E, B]): Iteratee[E, (A, B)] = zipWith(inner1, inner2)((_, _))
 
+  /**
+   * Create an Enumeratee that zips two Iteratees together, using the passed in zipper function to combine the results
+   * of the two.
+   */
   def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C): Iteratee[E, C] = {
 
     def getNext(it1: Iteratee[E, A], it2: Iteratee[E, B]): Iteratee[E, C] = {
@@ -118,6 +155,12 @@ object Enumeratee {
 
   }
 
+  /**
+   * Create an Enumeratee that transforms its input using the given function.
+   *
+   * This is like the `map` function, except that it allows the Enumeratee to, for example, send EOF to the inner
+   * iteratee before EOF is encountered.
+   */
   def mapInput[From] = new {
     def apply[To](f: Input[From] => Input[To]) = new CheckDone[From, To] {
 
@@ -132,14 +175,23 @@ object Enumeratee {
     }
   }
 
+  /**
+   * Create an enumeratee that transforms its input into a sequence of inputs for the target iteratee.
+   */
   def mapConcatInput[From] = new {
     def apply[To](f: From => Seq[Input[To]]) = mapFlatten[From](in => Enumerator.enumerateSeq2(f(in)))
   }
 
+  /**
+   * Create an Enumeratee that transforms its input elements into a sequence of input elements for the target Iteratee.
+   */
   def mapConcat[From] = new {
     def apply[To](f: From => Seq[To]) = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))
   }
 
+  /**
+   * Create an Enumeratee that transforms its input elements into an Enumerator that is fed into the target Iteratee.
+   */
   def mapFlatten[From] = new {
     def apply[To](f: From => Enumerator[To]) = new CheckDone[From, To] {
 
@@ -157,6 +209,9 @@ object Enumeratee {
     }
   }
 
+  /**
+   * Create an Enumeratee that transforms its input into an Enumerator that is fed into the target Iteratee.
+   */
   def mapInputFlatten[From] = new {
     def apply[To](f: Input[From] => Enumerator[To]) = new CheckDone[From, To] {
 
@@ -169,6 +224,9 @@ object Enumeratee {
     }
   }
 
+  /**
+   * Like `mapInput`, but allows the map function to asynchronously return the mapped input.
+   */
   def mapInputM[From] = new {
     def apply[To](f: Input[From] => Future[Input[To]]) = new CheckDone[From, To] {
 
@@ -183,6 +241,9 @@ object Enumeratee {
     }
   }
 
+  /**
+   * Like `map`, but allows the map function to asynchronously return the mapped element.
+   */
   def mapM[E] = new {
     def apply[NE](f: E => Future[NE]): Enumeratee[E, NE] = mapInputM[E] {
       case Input.Empty => Future.successful(Input.Empty)
@@ -198,6 +259,11 @@ object Enumeratee {
     def apply[NE](f: E => NE): Enumeratee[E, NE] = mapInput[E](in => in.map(f))
   }
 
+  /**
+   * Create an Enumeratee that will take `count` input elements to pass to the target Iteratee, and then be done
+   *
+   * @param count The number of elements to take
+   */
   def take[E](count: Int): Enumeratee[E, E] = new CheckDone[E, E] {
 
     def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
@@ -240,6 +306,26 @@ object Enumeratee {
     }
   }
 
+  /**
+   * Create an Enumeratee that groups input using the given Iteratee.
+   *
+   * This will apply that Iteratee over and over, passing the result each time as the input for the target Iteratee,
+   * until EOF is reached.  For example, let's say you had an Iteratee that took a stream of characters and parsed a
+   * single line:
+   *
+   * {{{
+   * def takeLine = for {
+   *   line <- Enumeratee.takeWhile[Char](_ != '\n') &>> Iteratee.getChunks
+   *   _    <- Enumeratee.take(1) &>> Iteratee.ignore[Char]
+   * } yield line.mkString
+   * }}}
+   *
+   * This could be used to build an Enumeratee that converts a stream of characters into a stream of lines:
+   *
+   * {{{
+   * def asLines = Enumeratee.grouped(takeLine)
+   * }}}
+   */
   def grouped[From] = new {
 
     def apply[To](folder: Iteratee[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
@@ -268,6 +354,9 @@ object Enumeratee {
     }
   }
 
+  /**
+   * Create an Enumeratee that filters the inputs using the given predicate
+   */
   def filter[E](predicate: E => Boolean): Enumeratee[E, E] = new CheckDone[E, E] {
 
     def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
@@ -288,6 +377,9 @@ object Enumeratee {
 
   }
 
+  /**
+   * Create an Enumeratee that filters the inputs using the negation of the given predicate
+   */
   def filterNot[E](predicate: E => Boolean): Enumeratee[E, E] = filter(e => !predicate(e))
 
   def collect[From] = new {

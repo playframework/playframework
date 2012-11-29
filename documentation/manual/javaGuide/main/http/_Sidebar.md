@@ -6,6 +6,7 @@
 - [[Session and Flash scopes | JavaSessionFlash]]
 - [[Body parsers | JavaBodyParsers]]
 - [[Actions composition | JavaActionsComposition]]
+- [[Content negotiation | JavaContentNegotiation]]
 
 ### Main concepts
 
@@ -13,7 +14,7 @@
 - [[Asynchronous HTTP programming | JavaAsync]]
 - [[The template engine | JavaTemplates]]
 - [[HTTP form submission and validation | JavaForms]]
-- [[Working with JSON | JavaJson]]
+- [[Working with JSON | JavaJsonRequests]]
 - [[Working with XML | JavaXmlRequests]]
 - [[Handling file upload | JavaFileUpload]]
 - [[Accessing an SQL database | JavaDatabase]]

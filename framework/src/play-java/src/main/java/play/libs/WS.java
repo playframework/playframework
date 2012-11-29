@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+import com.ning.http.util.AsyncHttpProviderUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.w3c.dom.Document;
 
 import play.libs.F.Promise;
@@ -99,7 +101,7 @@ public class WS {
          */
         @Override
         public WSRequest setHeaders(FluentCaseInsensitiveStringsMap hdrs) {
-            headers = (headers == null ? new FluentCaseInsensitiveStringsMap() : new FluentCaseInsensitiveStringsMap(headers));
+            headers = (headers == null ? new FluentCaseInsensitiveStringsMap() : headers);
             return super.setHeaders(hdrs);
         }
 
@@ -271,6 +273,16 @@ public class WS {
         }
 
         /**
+         * Set the content type.  If the request body is a String, and no charset parameter is included, then it will
+         * default to UTF-8.
+         *
+         * @param contentType The content type
+         */
+        public WSRequestHolder setContentType(String contentType) {
+            return setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        }
+
+        /**
          * Perform a GET on the request asynchronously.
          */
         public Promise<Response> get() {
@@ -293,6 +305,24 @@ public class WS {
          */
         public Promise<Response> put(String body) {
             return executeString("PUT", body);
+        }
+
+        /**
+         * Perform a POST on the request asynchronously.
+         *
+         * @param body represented as JSON
+         */
+        public Promise<Response> post(JsonNode body) {
+            return executeJson("POST", body);
+        }
+
+        /**
+         * Perform a PUT on the request asynchronously.
+         *
+         * @param body represented as JSON
+         */
+        public Promise<Response> put(JsonNode body) {
+            return executeJson("PUT", body);
         }
 
         /**
@@ -352,7 +382,12 @@ public class WS {
             return execute("OPTIONS");
         }
 
-        private Promise<Response> execute(String method) {
+        /**
+         * Execute an arbitrary method on the request asynchronously.
+         *
+         * @param method The method to execute
+         */
+        public Promise<Response> execute(String method) {
             WSRequest req = new WSRequest(method).setUrl(url)
                     .setHeaders(headers)
                     .setQueryParameters(new FluentStringsMap(queryParameters));
@@ -360,11 +395,36 @@ public class WS {
         }
 
         private Promise<Response> executeString(String method, String body) {
+            FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap(this.headers);
+
+            // Detect and maybe add charset
+            String contentType = headers.getFirstValue(HttpHeaders.Names.CONTENT_TYPE);
+            if (contentType == null) {
+                contentType = "text/plain";
+            }
+            String charset = AsyncHttpProviderUtils.parseCharset(contentType);
+            if (charset == null) {
+                charset = "utf-8";
+                headers.replace(HttpHeaders.Names.CONTENT_TYPE, contentType + "; charset=utf-8");
+            }
+
             WSRequest req = new WSRequest(method).setBody(body)
                     .setUrl(url)
                     .setHeaders(headers)
-                    .setQueryParameters(new FluentStringsMap(queryParameters));
+                    .setQueryParameters(new FluentStringsMap(queryParameters))
+                    .setBodyEncoding(charset);
             return execute(req);
+        }
+
+        private Promise<Response> executeJson(String method, JsonNode body) {
+            WSRequest req = new WSRequest(method).setBody(Json.stringify(body))
+                    .setUrl(url)
+                    .setHeaders(headers)
+                    .setHeader(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=utf-8")
+                    .setQueryParameters(new FluentStringsMap(queryParameters))
+                    .setBodyEncoding("utf-8");
+            return execute(req);
+
         }
 
         private Promise<Response> executeIS(String method, InputStream body) {
@@ -433,11 +493,28 @@ public class WS {
         }
 
         /**
-         * Get the response body as a string
+         * Get the response body as a string.  If the charset is not specified, this defaults to ISO-8859-1 for text
+         * sub mime types, as per RFC-2616 sec 3.7.1, otherwise it defaults to UTF-8.
          */
         public String getBody() {
             try {
-                return ahcResponse.getResponseBody();
+                // RFC-2616#3.7.1 states that any text/* mime type should default to ISO-8859-1 charset if not
+                // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
+                // set and content type is not text/*, otherwise default to ISO-8859-1
+                String contentType = ahcResponse.getContentType();
+                if (contentType == null) {
+                    // As defined by RFC-2616#7.2.1
+                    contentType = "application/octet-stream";
+                }
+                String charset = AsyncHttpProviderUtils.parseCharset(contentType);
+
+                if (charset != null) {
+                    return ahcResponse.getResponseBody(charset);
+                } else if (contentType.startsWith("text/")) {
+                    return ahcResponse.getResponseBody(AsyncHttpProviderUtils.DEFAULT_CHARSET);
+                } else {
+                    return ahcResponse.getResponseBody("utf-8");
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -460,10 +537,10 @@ public class WS {
          * @return the json response
          */
         public JsonNode asJson() {
-            String json = getBody();
             ObjectMapper mapper = new ObjectMapper();
             try {
-                return mapper.readValue(json, JsonNode.class);
+                // Jackson will automatically detect the correct encoding according to the rules in RFC-4627
+                return mapper.readValue(ahcResponse.getResponseBodyAsStream(), JsonNode.class);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

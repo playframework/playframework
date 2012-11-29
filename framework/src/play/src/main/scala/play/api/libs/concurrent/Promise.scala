@@ -1,5 +1,7 @@
 package play.api.libs.concurrent
 
+import scala.language.higherKinds
+
 import play.core._
 import play.api._
 
@@ -13,6 +15,7 @@ import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
 import play.core.Execution.internalContext
+import util.control.NonFatal
 
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
@@ -248,7 +251,7 @@ object PurePromise {
    * factory method for a pure promise
    */
   def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try (scala.concurrent.Promise.successful(lazyA)) catch {
-    case e: Exception => scala.concurrent.Promise.failed(e)
+    case NonFatal(t) => scala.concurrent.Promise.failed(t)
   }).future
 
 }

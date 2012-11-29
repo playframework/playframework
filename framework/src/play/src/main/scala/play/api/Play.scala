@@ -8,6 +8,7 @@ import play.api.mvc._
 import java.io._
 
 import scala.collection.JavaConverters._
+import util.control.NonFatal
 
 /** Application mode, either `DEV` or `PROD`. */
 object Mode extends Enumeration {
@@ -76,7 +77,7 @@ object Play {
     Option(_currentApp).map { app =>
       Threads.withContextClassLoader(classloader(app)) {
         app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case e: Exception => Logger("play").warn("Error stopping plugin", e)}
+          try { p.onStop() } catch { case NonFatal(e) => Logger("play").warn("Error stopping plugin", e)}
         }
       }
     }
@@ -188,4 +189,8 @@ object Play {
    */
   def isTest(implicit app: Application): Boolean = (app.mode == Mode.Test)
 
+  /**
+   * Returns the name of the cookie that can be used to permanently set the user's language.
+   */
+  def langCookieName(implicit app: Application): String = app.configuration.getString("application.lang.cookie").getOrElse("PLAY_LANG")
 }

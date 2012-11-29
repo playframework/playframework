@@ -1,13 +1,18 @@
 package play.api.mvc {
 
   import play.api._
+  import play.api.http.{MediaRange, HeaderNames}
+  import play.api.i18n.Lang
+  import play.api.libs.iteratee._
   import play.api.libs.Crypto
 
   import scala.annotation._
   import java.security.cert.Certificate
   import scala.concurrent.Future
 
-  /**
+import util.control.NonFatal
+
+/**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
    */
   @implicitNotFound("Cannot find any HTTP Request Header here")
@@ -106,7 +111,7 @@ package play.api.mvc {
     /**
      * The HTTP host (domain, optionally port)
      */
-    lazy val host: String = headers.get(play.api.http.HeaderNames.HOST).getOrElse("")
+    lazy val host: String = headers.get(HeaderNames.HOST).getOrElse("")
 
     /**
      * The HTTP domain
@@ -114,35 +119,55 @@ package play.api.mvc {
     lazy val domain: String = host.split(':').head
 
     /**
-     * The Request Langs, extracted from the Accept-Language header.
+     * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
      */
     lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
-      try {
-        headers.get(play.api.http.HeaderNames.ACCEPT_LANGUAGE).map { acceptLanguage =>
-          acceptLanguage.split("\\s*,\\s*").map(l => play.api.i18n.Lang(l.split(";").head)).toSeq
-        }.getOrElse(Nil)
-      } catch {
-        case e: Exception => e.printStackTrace(); Nil
-      }
+      val langs = acceptHeader(HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
+      langs.sortBy(_._1).map(_._2).flatten.reverse
     }
 
     /**
-     * @return The media types set in the request Accept header, not sorted in any particular order.
+     * @return The media types list of the request’s Accept header, not sorted in any particular order.
      */
+    @deprecated("Use acceptedTypes instead", "2.1")
     lazy val accept: Seq[String] = {
       for {
-        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
-        value <- acceptHeader.split(",")
-        contentType <- value.split(";").headOption
+        acceptHeader <- headers.get(HeaderNames.ACCEPT).toSeq
+        value <- acceptHeader.split(',')
+        contentType <- value.split(';').headOption
       } yield contentType
     }
 
     /**
-     * Check if this request accepts a given media type.
-     * @return true if `mediaType` matches the Accept header, otherwise false
+     * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
-    def accepts(mediaType: String): Boolean = {
-      accept.contains(mediaType) || accept.contains("*/*") || accept.contains(mediaType.takeWhile(_ != '/') + "/*")
+    lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
+      val mediaTypes = acceptHeader(HeaderNames.ACCEPT).map(item => (item._1, MediaRange(item._2)))
+      mediaTypes.sorted.map(_._2).reverse
+    }
+
+    /**
+     * @return The items of an Accept* header, with their q-value.
+     */
+    private def acceptHeader(headerName: String): Seq[(Double, String)] = {
+      for {
+        header <- headers.get(headerName).toSeq
+        value0 <- header.split(',')
+        value = value0.trim
+      } yield {
+        RequestHeader.qPattern.findFirstMatchIn(value) match {
+          case Some(m) => (m.group(1).toDouble, m.before.toString)
+          case None => (1.0, value) // “The default value is q=1.”
+        }
+      }
+    }
+
+    /**
+     * Check if this request accepts a given media type.
+     * @return true if `mimeType` matches the Accept header, otherwise false
+     */
+    def accepts(mimeType: String): Boolean = {
+      acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mimeType)).isDefined
     }
 
     /**
@@ -209,6 +234,11 @@ package play.api.mvc {
       method + " " + uri
     }
 
+  }
+
+  object RequestHeader {
+    // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
+    val qPattern = ";\\s*q=([0-9.]+)".r
   }
 
   /**
@@ -458,7 +488,7 @@ package play.api.mvc {
         } else urldecode(data)
       } catch {
         // fail gracefully is the session cookie is corrupted
-        case _: Exception => Map.empty[String, String]
+        case NonFatal(_) => Map.empty[String, String]
       }
     }
 

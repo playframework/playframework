@@ -51,9 +51,11 @@ object ApplicationBuild extends Build {
 }
 ```
 
+## play.mvc.Controller.form() to become play.data.Form.form()
 
+Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`
 
-## Play's Promise become Scala's Future
+## Play's Promise to become Scala's Future
 
 With the introduction of `scala.concurrent.Future` in scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there.
 
@@ -85,7 +87,7 @@ using the new `scala.concurrent.Future` this will become:
 ```
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-import play.api.libs.concurrent.execution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.duration._
 
@@ -101,14 +103,14 @@ import scala.concurrent.duration._
 
 notice the extra imports for:
 
-- The new import for the execution context `play.api.libs.concurrent.execution.Implicits`
+- The new import for the execution context `play.api.libs.concurrent.Execution.Implicits`
 - The change for duration `scala.concurrent.duration` instead of using the Akka API) 
 - Furthermore the `asPromise` method is gone now
 
 Generally speaking, if you see error message "error: could not find implicit value for parameter executor", you probably need to add
 
 ```
-import play.api.libs.concurrent.execution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits._
 ```
 
 _(Please see the Scala documentation about Execution context for mor informations)_
@@ -256,3 +258,4 @@ requireJs := "main.js"
 ```
 
 More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].
+

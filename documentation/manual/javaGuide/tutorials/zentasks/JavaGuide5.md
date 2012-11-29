@@ -100,7 +100,9 @@ public static Result rename(Long project) {
 }
 ```
 
-Notice that first we check that the current user is a member of the project, and if they aren't, we return them a `forbidden` response.  Also notice our use of the `form()` method.  We've seen this before, when we were populating and validating our login form.  However this time, we haven't passed in a bean to decode the form into and to validate it with.  Rather, we've used what's called a dynamic form.  A dynamic just parses a form submission into a map of string keys to string values, and is very convenient for simple form submissions with only one or two values where you don't want to do any validation. 
+This is the first time we've implemented an action that accepts a parameter, in this case it's a Long for the project.  This parameter is going to come from the path to our action, which you'll see later when we add a route for this action to the routes file.
+
+You can see that first we check that the current user is a member of the project, and if they aren't, we return them a `forbidden` response.  Also notice our use of the `form()` method.  We've seen this before, when we were populating and validating our login form.  However this time, we haven't passed in a bean to decode the form into and to validate it with.  Rather, we've used what's called a dynamic form.  A dynamic form just parses a form submission into a map of string keys to string values, and is very convenient for simple form submissions with only one or two values where you don't want to do any validation. 
 
 Let's move on to our method to delete a project:
 
@@ -131,6 +133,8 @@ Now that we have our controller methods implemented, let's add routes to these c
     POST    /projects/groups            controllers.Projects.addGroup()
     DELETE  /projects/:project          controllers.Projects.delete(project: Long)
     PUT     /projects/:project          controllers.Projects.rename(project: Long)
+
+For the delete and rename projects, you can see that we've declared where it's parameter should come from.  In the path, we've used a colon to specify that this part of the path is dynamic, and that it should be passed to the action as the first parameter.  So when a PUT request is made to `/projects/123`, `Projects.rename(123)` will be invoked.
 
 Now do a quick refresh of the application in the browser, to make sure there are no compile errors.
 

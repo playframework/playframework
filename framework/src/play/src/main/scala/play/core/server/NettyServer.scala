@@ -18,6 +18,7 @@ import play.core.server.netty._
 
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream}
+import util.control.NonFatal
 
 /**
  * provides a stopable Server
@@ -100,29 +101,29 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
 
 
   private def loadKeyManagers(keyStore: KeyStore) = {
-    try {
+          try {
       val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
-      val kmf = KeyManagerFactory.getInstance(algorithm)
+            val kmf = KeyManagerFactory.getInstance(algorithm)
       val password = System.getProperty("https.keyStoreKeyPassword", System.getProperty("https.keyStorePassword", "")).toCharArray
-      kmf.init(keyStore, password)
+            kmf.init(keyStore, password)
       Some(kmf.getKeyManagers)
-    } catch {
-      case e: Exception => {
-        Logger("play").error("Error loading key managers", e)
-        None
-      }
-    }
-  }
+          } catch {
+            case NonFatal(e) => {
+              Logger("play").error("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
+              None
+            }
+          }
+        }
 
   private def loadTrustManagers(keyStore: KeyStore): Option[Array[TrustManager]] = {
     val algorithm = System.getProperty("https.trustStoreAlgorithm", TrustManagerFactory.getDefaultAlgorithm)
 
     System.getProperty("https.trustStore", "keystore") match {
-      case "noCA" => {
-        Logger("play").warn("HTTPS configured with no client " +
-          "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+            case "noCA" => {
+              Logger("play").warn("HTTPS configured with no client " +
+                "side CA verification. Requires http://webid.info/ for client certifiate verification.")
         Some(Array[TrustManager](noCATrustManager))
-      }
+            }
       case "keystore" => {
         Logger("play").debug("Using configured key store as the trust store")
         try {
@@ -133,9 +134,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
           case e: Exception => {
             Logger("play").error("Error loading trust managers", e)
             None
+            }
           }
         }
-      }
       case "default" => Some(null) // Use the Java default trust store
       case className => {
         try {
@@ -149,7 +150,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
               case e: InstantiationException => {
                 Logger("play").error("could not instantiate "+className)
                 None
-              }
+      }
             }
           } else {
             Logger("play").error("TrustManager class " + className+ " does not implement javax.net.ssl.TrustManager")
@@ -205,13 +206,13 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     try {
       Play.stop()
     } catch {
-      case e: Exception => Logger("play").error("Error while stopping the application", e)
+      case NonFatal(e) => Logger("play").error("Error while stopping the application", e)
     }
 
     try {
       super.stop()
     } catch {
-      case e: Exception => Logger("play").error("Error while stopping akka", e)
+      case NonFatal(e) => Logger("play").error("Error while stopping akka", e)
     }
 
     mode match {
@@ -291,7 +292,7 @@ object NettyServer {
 
       Some(server)
     } catch {
-      case e: Exception => {
+      case NonFatal(e) => {
         println("Oops, cannot start the server.")
         e.printStackTrace()
         None

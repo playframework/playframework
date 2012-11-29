@@ -32,6 +32,14 @@ object Application extends Controller {
    Ok("ok")
   }
 
+  def hello = Action { implicit request =>
+    Ok(views.html.hello(Messages("hello")))
+  }
+
+  def setLang(lang: String) = Action {
+    Ok(views.html.hello("Setting lang to " + lang)).withLang(Lang(lang))
+  }
+
   def form = Action{
     Ok(views.html.form(Contacts.form.fill(Contact("","M"))));
   }
@@ -86,6 +94,10 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
+  def takeInt(i: Int) = Action {
+    Ok(i.toString)
+  }
+
   def takeBool(b: Boolean) = Action {
     Ok(b.toString())
   }
@@ -121,6 +133,14 @@ object Application extends Controller {
       case Accepts.Json() => Ok("json")
       case Accepts.Html() => Ok("html")
       case _ => BadRequest
+    }
+  }
+
+  def contentNegotiation = Action { implicit request =>
+    val foo = Foo("bar")
+    render {
+      case Accepts.Html() => Ok(views.html.foo(foo))
+      case Accepts.Json() => Ok(Json.obj("bar" -> foo.bar))
     }
   }
 

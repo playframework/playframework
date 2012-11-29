@@ -1,5 +1,7 @@
 package play.core.j
 
+import scala.language.reflectiveCalls
+
 import play.api.mvc._
 import play.api.http._
 import play.api.libs.iteratee._
@@ -11,17 +13,13 @@ import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSessi
  * Java compatible Results
  */
 object JavaResults extends Results with DefaultWriteables with DefaultContentTypeOfs {
-  def writeContent(codec: Codec): Writeable[Content] = writeableOf_Content[Content](codec)
-  def writeString(codec: Codec): Writeable[String] = Writeable.wString(codec)
+  def writeContent(mimeType: String)(implicit codec: Codec): Writeable[Content] = Writeable(content => codec.encode(content.body), Some(ContentTypes.withCharset(mimeType)))
+  def writeString(mimeType: String)(implicit codec: Codec): Writeable[String] = Writeable(s => codec.encode(s), Some(ContentTypes.withCharset(mimeType)))
+  def writeString(implicit codec: Codec): Writeable[String] = writeString(MimeTypes.TEXT)
+  def writeJson(implicit codec: Codec): Writeable[org.codehaus.jackson.JsonNode] = Writeable(json => codec.encode(json.toString), Some(ContentTypes.JSON))
   def writeBytes: Writeable[Array[Byte]] = Writeable.wBytes
+  def writeBytes(contentType: String): Writeable[Array[Byte]] = Writeable((bs: Array[Byte]) => bs)(contentTypeOfBytes(contentType))
   def writeEmptyContent: Writeable[Results.EmptyContent] = writeableOf_EmptyContent
-  def contentTypeOfString(codec: Codec): ContentTypeOf[String] = contentTypeOf_String(codec)
-  def contentTypeOfHtml(implicit codec: Codec): ContentTypeOf[String] = ContentTypeOf(Some(play.api.http.ContentTypes.HTML))
-  def contentTypeOfJson(implicit codec: Codec): ContentTypeOf[String] = ContentTypeOf(Some(play.api.http.ContentTypes.JSON))
-  def contentTypeOf(mimeType: String): ContentTypeOf[Content] = ContentTypeOf(Option(mimeType))
-  def contentTypeOfEmptyContent: ContentTypeOf[Results.EmptyContent] = contentTypeOf_EmptyContent
-  def noContentType[A]: ContentTypeOf[A] = ContentTypeOf(None)
-  def contentTypeOfBytes: ContentTypeOf[Array[Byte]] = ContentTypeOf(Some("application/octet-stream"))
   def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] = ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()

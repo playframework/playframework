@@ -208,6 +208,52 @@ class ApplicationSpec extends Specification {
       contentAsString(result) must_== "3"
     }
 
+    "perform content negotiation" in {
+      running(FakeApplication()) {
+        val url = controllers.routes.Application.contentNegotiation().url
+
+        val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html"))
+        contentType(result) must equalTo (Some("text/html"))
+
+        val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html;q=0.5,application/*"))
+        contentType(result2) must equalTo (Some("application/json"))
+
+        val Some(result3) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "application/xml"))
+        status(result3) must equalTo (406)
+
+        val Some(result4) = route(FakeRequest(GET, url)) // No Accept header
+        contentType(result4) must equalTo (Some("text/html"))
+      }
+    }
+
+    "sort Accept header values according to their quality factor and specificity" in {
+      import play.api.http.MediaRange
+      val r1 = FakeRequest(GET, "/foo").withHeaders(ACCEPT -> "text/*, text/html, text/html;level=1, */*")
+      r1.acceptedTypes must equalTo (Seq(
+        MediaRange("text", "html", Some("level=1")),
+        MediaRange("text", "html", None),
+        MediaRange("text", "*", None),
+        MediaRange("*", "*", None)
+      ))
+      val r2 = FakeRequest(GET, "/foo").withHeaders(ACCEPT -> "text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
+      r2.acceptedTypes must equalTo (Seq(
+        MediaRange("text", "html", Some("level=1")),
+        MediaRange("text", "html", None),
+        MediaRange("*", "*", None),
+        MediaRange("text", "html", Some("level=2")),
+        MediaRange("text", "*", None)
+      ))
+    }
+
+    "sort Accept-Language header values according to their quality factor" in {
+      import play.api.i18n.Lang
+      val r1 = FakeRequest(GET, "/foo").withHeaders(ACCEPT_LANGUAGE -> "da, en-gb;q=0.8, en;q=0.7")
+      r1.acceptLanguages must equalTo (Seq(
+        Lang("da"),
+        Lang("en-gb"),
+        Lang("en")
+      ))
+    }
   }
 
 }

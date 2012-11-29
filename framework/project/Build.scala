@@ -82,7 +82,7 @@ object PlayBuild extends Build {
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"anorm_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
@@ -95,7 +95,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play-iteratees_"+previousScalaVersion} % previousVersion),
             libraryDependencies := iterateesDependencies,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
@@ -124,7 +124,7 @@ object PlayBuild extends Build {
             libraryDependencies := runtime,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -143,7 +143,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play-jdbc_"+previousScalaVersion} % previousVersion),
             libraryDependencies := jdbcDeps,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -159,7 +159,7 @@ object PlayBuild extends Build {
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"play-java-jdbc_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -176,7 +176,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play-java-ebean_"+previousScalaVersion} % previousVersion),
             libraryDependencies := ebeanDeps ++ jpaDeps,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -243,7 +243,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play-test_"+previousScalaVersion} % previousVersion),
             libraryDependencies := testDependencies,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -263,7 +263,7 @@ object PlayBuild extends Build {
             publishMavenStyle := false,
             libraryDependencies := sbtDependencies,
             libraryDependencies += "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
-            libraryDependencies += "com.github.mpeltonen" % "sbt-idea" % "1.1.0-TYPESAFE" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
+            libraryDependencies += "com.typesafe.sbtidea" % "sbt-idea" % "1.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
             unmanagedJars in Compile <++= (baseDirectory) map { b => sbtJars(b / "../..") },
             publishTo := Some(playIvyRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -299,7 +299,7 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
             libraryDependencies := runtime,
             publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -500,10 +500,10 @@ object PlayBuild extends Build {
             "org.specs2"                        %   "specs2_2.10.0-RC1"         %   "1.12.2" %  "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.8"      %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.9"      %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test",
-            "org.scala-lang"                    %    "scala-compiler"           %   "2.10.0-RC1"
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0-RC1"
         )
 
         val link = Seq(
@@ -564,14 +564,16 @@ object PlayBuild extends Build {
 
         val iterateesDependencies = Seq(
             "org.scala-stm"                     %    "scala-stm_2.10.0-RC1"     %   "0.6",
-            "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta")
-        )
+            "com.typesafe"                      %    "config"                   %   "1.0.0",
+            "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta"),
+            "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2"    %   "test"
+      )
 
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
             "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2",
-            "com.novocode"                      %    "junit-interface"          %   "0.8" exclude ("junit", "junit"),
+            "com.novocode"                      %    "junit-interface"          %   "0.9",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"
         )

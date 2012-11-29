@@ -1,14 +1,7 @@
 package play.api.libs.functional
 
-trait LazyHelper[M[_], T] {
-  def lazyStuff: M[T]
-}
-
-object LazyHelper{
-  def apply[M[_], T](stuff: M[T]) = new LazyHelper[M, T] {
-    override lazy val lazyStuff = stuff
-  }
-}
+import scala.language.higherKinds
+import scala.language.implicitConversions
 
 class FunctorOps[M[_],A](ma: M[A])(implicit fu: Functor[M]){
 

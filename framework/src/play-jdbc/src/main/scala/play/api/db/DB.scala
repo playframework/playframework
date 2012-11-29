@@ -1,5 +1,7 @@
 package play.api.db
 
+import scala.language.reflectiveCalls
+
 import play.api._
 import play.api.libs._
 
@@ -10,6 +12,7 @@ import javax.sql._
 
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
+import util.control.NonFatal
 
 /**
  * The Play Database API manages several connection pools.
@@ -98,7 +101,7 @@ trait DBApi {
         connection.commit()
         r
       } catch {
-        case e: Exception => connection.rollback(); throw e
+        case NonFatal(e) => connection.rollback(); throw e
       }
     }
   }
@@ -244,7 +247,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
           case mode => Logger("play").info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
         }
       } catch {
-        case e: Exception => {
+        case NonFatal(e) => {
           throw dbConfig.reportError(ds._2 + ".url", "Cannot connect to database [" + ds._2 + "]", Some(e.getCause))
         }
       }
@@ -258,7 +261,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
     dbApi.datasources.foreach {
       case (ds, _) => try {
         dbApi.shutdownPool(ds)
-      } catch { case _: Exception => }
+      } catch { case NonFatal(_) => }
     }
     val drivers = DriverManager.getDrivers()
     while (drivers.hasMoreElements) {
@@ -279,7 +282,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     try {
       DriverManager.registerDriver(new play.utils.ProxyDriver(Class.forName(driver, true, classloader).newInstance.asInstanceOf[Driver]))
     } catch {
-      case e: Exception => throw c.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
+      case NonFatal(e) => throw c.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
     }
   }
 
@@ -292,7 +295,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
       try {
         DriverManager.registerDriver(new play.utils.ProxyDriver(Class.forName(driver, true, classloader).newInstance.asInstanceOf[Driver]))
       } catch {
-        case e: Exception => throw conf.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
+        case NonFatal(e) => throw conf.reportError("driver", "Driver not found: [" + driver + "]", Some(e))
       }
     }
 

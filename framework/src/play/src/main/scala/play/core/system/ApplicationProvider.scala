@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 
 import play.api._
 import play.api.mvc._
+import util.control.NonFatal
 
 /**
  * provides source code to be displayed on error pages
@@ -130,7 +131,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 lastState = Left(e)
                 lastState
               }
-              case e: Exception => {
+              case NonFatal(e) => {
                 lastState = Left(UnexpectedException(unexpected = Some(e)))
                 lastState
               }

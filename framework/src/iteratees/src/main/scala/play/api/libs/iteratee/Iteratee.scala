@@ -129,6 +129,9 @@ object Iteratee {
     }
   }
 
+  /**
+   * Create an iteratee that takes the first element of the stream, if one occurs before EOF
+   */
   def head[E]: Iteratee[E, Option[E]] = {
 
     def step: K[E, Option[E]] = {
@@ -139,8 +142,14 @@ object Iteratee {
     Cont(step)
   }
 
+  /**
+   * Consume all the chunks from the stream, and return a list.
+   */
   def getChunks[E]: Iteratee[E, List[E]] = fold[E, List[E]](Nil) { (els, chunk) => chunk +: els }.map(_.reverse)
 
+  /**
+   * Ignore all the input of the stream, and return done when EOF is encountered.
+   */
   def skipToEof[E]: Iteratee[E, Unit] = {
     def cont: Iteratee[E, Unit] = Cont {
       case Input.EOF => Done((), Input.EOF)
@@ -151,11 +160,18 @@ object Iteratee {
 
   def eofOrElse[E] = new {
 
-    def apply[A, B](otherwise: B)(then: A) = {
+    /**
+     * @param otherwise Value if the input is not [[play.api.libs.iteratee.Input.EOF]]
+     * @param eofValue Value if the input is [[play.api.libs.iteratee.Input.EOF]]
+     * @tparam A Type of `eofValue`
+     * @tparam B Type of `otherwise`
+     * @return An `Iteratee[E, Either[B, A]]` that consumes one input and produces a `Right(eofValue)` if this input is [[play.api.libs.iteratee.Input.EOF]] otherwise it produces a `Left(otherwise)`
+     */
+    def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]] = {
       def cont: Iteratee[E, Either[B, A]] = Cont((in: Input[E]) => {
         in match {
           case Input.El(e) => Done(Left(otherwise), in)
-          case Input.EOF => Done(Right(then), in)
+          case Input.EOF => Done(Right(eofValue), in)
           case Input.Empty => cont
         }
       })
@@ -212,6 +228,9 @@ object Iteratee {
 
 }
 
+/**
+ * Input that can be consumed by an iteratee
+ */
 sealed trait Input[+E] {
   def map[U](f: (E => U)): Input[U] = this match {
     case Input.El(e) => Input.El(f(e))
@@ -222,12 +241,26 @@ sealed trait Input[+E] {
 
 object Input {
 
+  /**
+   * An input element
+   */
   case class El[+E](e: E) extends Input[E]
+
+  /**
+   * An empty input
+   */
   case object Empty extends Input[Nothing]
+
+  /**
+   * An end of file input
+   */
   case object EOF extends Input[Nothing]
 
 }
 
+/**
+ * Represents the state of an iteratee.
+ */
 sealed trait Step[E, +A] {
 
   lazy val it: Iteratee[E, A] = this match {
@@ -239,8 +272,28 @@ sealed trait Step[E, +A] {
 }
 
 object Step {
+
+  /**
+   * A done state of an iteratee
+   *
+   * @param a The value that the iteratee has consumed
+   * @param remaining The remaining input that the iteratee received but didn't consume
+   */
   case class Done[+A, E](a: A, remaining: Input[E]) extends Step[E, A]
+
+  /**
+   * A continuing state of an iteratee.
+   *
+   * @param k A function that can receive input for the iteratee to process.
+   */
   case class Cont[E, +A](k: Input[E] => Iteratee[E, A]) extends Step[E, A]
+
+  /**
+   * An error state of an iteratee
+   *
+   * @param msg The error message
+   * @param input The remaining input that the iteratee received but didn't consume
+   */
   case class Error[E](msg: String, input: Input[E]) extends Step[E, Nothing]
 }
 
@@ -287,7 +340,7 @@ trait Iteratee[E, +A] {
    *
    *  @return a [[scala.concurrent.Future]] of the eventually computed result
    */
-  def run[AA >: A]: Future[AA] = fold({
+  def run: Future[A] = fold({
     case Step.Done(a, _) => Future.successful(a)
     case Step.Cont(k) => k(Input.EOF).fold({
       case Step.Done(a1, _) => Future.successful(a1)
@@ -518,8 +571,8 @@ object Parsing {
       } else {
         val fullMatch = Range(needleSize - 1, -1, -1).forall(scan => needle(scan) == piece(scan + startScan))
         if (fullMatch) {
-          val (prefix, then) = piece.splitAt(startScan)
-          val (matched, left) = then.splitAt(needleSize)
+          val (prefix, suffix) = piece.splitAt(startScan)
+          val (matched, left) = suffix.splitAt(needleSize)
           val newResults = previousMatches ++ List(Unmatched(prefix), Matched(matched)) filter (!_.content.isEmpty)
 
           if (left.length < needleSize) (newResults, left) else scan(newResults, left, 0)

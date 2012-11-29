@@ -7,6 +7,8 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
+import play.api.{Application, Play}
+import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext }
 
@@ -123,6 +125,20 @@ sealed trait WithHeaders[+A <: Result] {
    * @return the new result
    */
   def withNewSession: A
+
+  /**
+   * Sets the users language permanently for future requests by storing it in a cookie.
+   *
+   * For example:
+   * {{{
+   * implicit val lang = Lang("fr-FR")
+   * Ok(Messages("hello.world")).withLang(lang)
+   * }}}
+   *
+   * @param lang the language to store for the user
+   * @return the new result
+   */
+  def withLang(lang: Lang)(implicit app: Application): A = withCookies(Cookie(Play.langCookieName, lang.code))
 
   /**
    * Adds values to the flash scope for this result.
@@ -303,7 +319,6 @@ trait PlainResult extends Result with WithHeaders[PlainResult] {
    * @return the new result
    */
   def as(contentType: String): PlainResult = withHeaders(CONTENT_TYPE -> contentType)
-
 }
 
 /**
@@ -594,9 +609,9 @@ trait Results {
      * @param content content to send
      * @param a `SimpleResult`
      */
-    def apply[C](content: C)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): SimpleResult[C] = {
+    def apply[C](content: C)(implicit writeable: Writeable[C]): SimpleResult[C] = {
       SimpleResult(
-        header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         Enumerator(content))
     }
 
@@ -624,9 +639,9 @@ trait Results {
      * @param content Enumerator providing the chunked content.
      * @param a `ChunkedResult`
      */
-    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
+    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
-        header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         iteratee => content |>> iteratee)
     }
 
@@ -643,9 +658,9 @@ trait Results {
      * @param content A function that will give you the Iteratee to write in once ready.
      * @param a `ChunkedResult`
      */
-    def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C], contentTypeOf: ContentTypeOf[C]): ChunkedResult[C] = {
+    def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
-        header = ResponseHeader(status, contentTypeOf.mimeType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         content)
     }
 

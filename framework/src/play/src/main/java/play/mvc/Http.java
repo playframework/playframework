@@ -7,7 +7,7 @@ import org.w3c.dom.*;
 import org.codehaus.jackson.*;
 
 import play.i18n.Lang;
-import play.libs.F;
+import play.Play;
 
 import java.security.cert.Certificate;
 
@@ -113,7 +113,7 @@ public class Http {
             if (lang != null) {
                 return lang;
             } else {
-                Cookie cookieLang = request.cookie(langCookieName());
+                Cookie cookieLang = request.cookie(Play.langCookieName());
                 if (cookieLang != null) {
                     Lang lang = Lang.forCode(cookieLang.value());
                     if (lang != null) return lang;
@@ -131,15 +131,11 @@ public class Http {
             Lang lang = Lang.forCode(code);
             if (Lang.availables().contains(lang)) {
                 this.lang = lang;
-                response.setCookie(langCookieName(), code);
+                response.setCookie(Play.langCookieName(), code);
                 return true;
             } else {
                 return false;
             }
-        }
-
-        private String langCookieName() {
-            return play.Configuration.root().getString("application.lang.cookie", "PLAY_LANG");
         }
 
         /** 
@@ -237,20 +233,27 @@ public class Http {
         public abstract String path();
 
         /**
-         * The Request Langs, extracted from the Accept-Language header.
+         * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
          */
         public abstract List<play.i18n.Lang> acceptLanguages();
 
         /**
          * @return The media types set in the request Accept header, not sorted in any particular order.
+         * @deprecated Use {@link #acceptedTypes()} instead.
          */
+        @Deprecated
         public abstract List<String> accept();
 
         /**
-         * Check if this request accepts a given media type.
-         * @return true if <code>mediaType</code> is in the Accept header, otherwise false
+         * @return The media types set in the request Accept header, sorted by preference (preferred first).
          */
-        public abstract boolean accepts(String mediaType);
+        public abstract List<play.api.http.MediaRange> acceptedTypes();
+
+        /**
+         * Check if this request accepts a given media type.
+         * @return true if <code>mimeType</code> is in the Accept header, otherwise false
+         */
+        public abstract boolean accepts(String mimeType);
 
         /**
          * The query string content.

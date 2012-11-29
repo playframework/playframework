@@ -17,7 +17,7 @@ This will ask for some information.
 
 > Note that choosing a template at this point does not imply that you can’t change language later. For example, you can create a new application using the default Java application template and start adding Scala code whenever you like.
 
-Once the application has been created you can use the `play` command again to enter the [[Play 2.0 console | PlayConsole]].
+Once the application has been created you can use the `play` command again to enter the [[Play console | PlayConsole]].
 
 ```bash
 $ cd myFirstApp
@@ -28,7 +28,7 @@ $ play
 
 You can also create a new Play application without installing Play, by using sbt. 
 
-> First install [[sbt 0.11.2 | https://github.com/harrah/xsbt/wiki/Getting-Started-Setup]] if needed.
+> First install [[sbt| http://www.scala-sbt.org/]] if needed.
 
 Just create a new directory for your new application and configure your sbt build script with two additions.
 
@@ -54,7 +54,7 @@ In `project/Build.scala`:
 ```scala
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
  
 object ApplicationBuild extends Build {
  
@@ -63,8 +63,8 @@ object ApplicationBuild extends Build {
  
   val appDependencies = Nil
  
-  val main = PlayProject(
-    appName, appVersion, appDependencies, mainLang = SCALA
+  val main = play.Project(
+    appName, appVersion, appDependencies
   ) 
  
 }
@@ -79,4 +79,4 @@ $ sbt
 
 sbt will load your project and fetch the dependencies.
 
-> **Next:** [[Anatomy of a Play 2.0 application | Anatomy]]
+> **Next:** [[Anatomy of a Play application | Anatomy]]

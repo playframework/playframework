@@ -22,10 +22,7 @@ public abstract class Comet extends Chunks<String> {
      * @param callbackMethod The Javascript callback method to call on each message.
      */
     public Comet(String callbackMethod) {
-        super(
-                play.core.j.JavaResults.writeString(play.api.mvc.Codec.javaSupported("utf-8")),
-                play.core.j.JavaResults.contentTypeOfHtml(play.api.mvc.Codec.javaSupported("utf-8"))
-                );
+        super(play.core.j.JavaResults.writeString("text/html", play.api.mvc.Codec.javaSupported("utf-8")));
         this.callbackMethod = callbackMethod;
     }
 

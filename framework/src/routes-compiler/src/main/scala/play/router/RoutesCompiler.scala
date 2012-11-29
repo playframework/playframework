@@ -712,7 +712,7 @@ object RoutesCompiler {
                     """
                           |%s
                           |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
-                          |   %s, HandlerDef(this, "%s", "%s", %s, "%s", "%s",  Routes.prefix + "%s")
+                          |   %s, HandlerDef(this, "%s", "%s", %s, "%s", %s,  Routes.prefix + %s)
                           |)
                       """.stripMargin.format(
                       markLines(route),
@@ -724,7 +724,7 @@ object RoutesCompiler {
                       "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
                       route.verb,
                       "\"\"\""+route.comments.map(_.comment).mkString("\n")+"\"\"\"",
-                      route.path
+                      "\"\"\""+route.path+"\"\"\""
                       )
 
                 }.mkString("\n")
@@ -918,7 +918,7 @@ object RoutesCompiler {
         )
     }.mkString("\n") +
       """|
-         |def documentation = List(%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e match {
+         |def documentation = List[(String, String, String)](%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e match {
          |  case r @ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
          |  case l => s ++ l.asInstanceOf[List[(String,String,String)]] 
          |}}
@@ -990,7 +990,7 @@ object RoutesCompiler {
           // definition
           """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
             params.map("classOf[" + _.typeName + "]").mkString(", ")
-          }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\""+ """ , Routes.prefix + """" + r.path + """")""")
+          }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\", Routes.prefix + \"\"\"" + r.path + "\"\"\")")
     }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 
       """Map.empty""" // Empty partial function
