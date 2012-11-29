@@ -109,7 +109,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       Some(kmf.getKeyManagers)
           } catch {
             case NonFatal(e) => {
-              Logger("play").error("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
+              Logger("play").error("Error loading HTTPS trust store", e)
               None
             }
           }

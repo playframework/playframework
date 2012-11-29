@@ -18,6 +18,7 @@ import com.ning.http.client.{
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.client.Realm.{RealmBuilder, AuthScheme}
 import com.ning.http.util.AsyncHttpProviderUtils
 
 /**

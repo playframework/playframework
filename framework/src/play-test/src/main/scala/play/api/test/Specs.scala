@@ -31,6 +31,7 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
                           val port: Int = Helpers.testServerPort,
                           val sslPort: Option[Int] = Helpers.testServerSSLPort) extends Around with Scope {
   implicit lazy val implicitApp = app
+  implicit def implicitPort: Port = port
   def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app,sslPort))(t)
 }
 
