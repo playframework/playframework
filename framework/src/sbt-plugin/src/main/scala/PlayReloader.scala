@@ -132,7 +132,7 @@ trait PlayReloader {
         val fileChanged = fileTimestamps.get(f.getAbsolutePath).map{ timestamp =>
           f.lastModified != timestamp
         }.getOrElse{
-          state.log.warn("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
+          state.log.debug("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
           true
         }
         if (fileChanged) {
