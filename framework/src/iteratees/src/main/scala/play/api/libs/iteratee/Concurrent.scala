@@ -8,6 +8,9 @@ import java.util.concurrent.{ TimeUnit }
 
 import play.api.libs.iteratee.internal.defaultExecutionContext
 
+/**
+ * Utilities for concurrent usage of iteratees, enumerators and enumeratees.
+ */
 object Concurrent {
 
   private val timer = new java.util.Timer()
@@ -21,24 +24,68 @@ object Concurrent {
       }
     },unit.toMillis(delay) )
     p.future
-  } 
+  }
 
+  /**
+   * A channel for imperative style feeding of input into one or more iteratees.
+   */
   trait Channel[E] {
 
+    /**
+     * Push an input chunk into this channel
+     *
+     * @param chunk The chunk to push
+     */
     def push(chunk: Input[E])
 
+    /**
+     * Push an item into this channel
+     *
+     * @param item The item to push
+     */
     def push(item: E) { push(Input.El(item)) }
 
+    /**
+     * Send a failure to this channel.  This results in any promises that the enumerator associated with this channel
+     * produced being redeemed with a failure.
+     *
+     * @param e The failure.
+     */
     def end(e: Throwable)
 
+    /**
+     * End the input for this channel.  This results in any promises that the enumerator associated with this channel
+     * produced being redeemed.
+     *
+     * Note that an EOF won't be sent, so any iteratees consuming this channel will still be able to consume input
+     * (if they are in the cont state).
+     */
     def end()
 
+    /**
+     * Send an EOF to the channel, and then end the input for the channel.
+     */
     def eofAndEnd() {
       push(Input.EOF)
       end()
     }
   }
 
+  /**
+   * Create an enumerator and channel for broadcasting input to many iteratees.
+   *
+   * This is intended for imperative style push input feeding into iteratees.  For example:
+   *
+   * {{{
+   * val (chatEnumerator, chatChannel) = Concurrent.broadcast[String]
+   * val chatClient1 = Iteratee.foreach[String](m => println("Client 1: " + m))
+   * val chatClient2 = Iteratee.foreach[String](m => println("Client 2: " + m))
+   * chatEnumerator |>>> chatClient1
+   * chatEnumerator |>>> chatClient2
+   *
+   * chatChannel.push(Message("Hello world!"))
+   * }}}
+   */
   def broadcast[E]: (Enumerator[E], Channel[E]) = {
 
     import scala.concurrent.stm._
@@ -168,6 +215,12 @@ object Concurrent {
     (enumerator, toPush)
   }
 
+  /**
+   * Enumeratee that times out if the iteratee it feeds to takes to long to consume available input.
+   *
+   * @param timeout The timeout period
+   * @param unit the time unit
+   */
   def lazyAndErrIfNotReady[E](timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     def applyOn[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
@@ -186,8 +239,34 @@ object Concurrent {
       Cont(step(inner))
     }
   }
+
+  /**
+   * A buffering enumeratee.
+   *
+   * Maintains a buffer of maximum size maxBuffer, consuming as much of the input as the buffer will allow as quickly
+   * as it comes, while allowing the iteratee it feeds to consume it as slowly as it likes.
+   *
+   * This is useful in situations where the enumerator holds expensive resources open, while the iteratee may be slow,
+   * for example if the enumerator is a database result set that holds a transaction open, but the result set is being
+   * serialised and fed directly to an HTTP response.
+   *
+   * @param maxBuffer The maximum number of items to buffer
+   */
   def buffer[E](maxBuffer: Int): Enumeratee[E, E] = buffer[E](maxBuffer, length = (_: Input[E]) => 1)
 
+  /**
+   * A buffering enumeratee.
+   *
+   * Maintains a buffer of maximum size maxBuffer, consuming as much of the input as the buffer will allow as quickly
+   * as it comes, while allowing the iteratee it feeds to consume it as slowly as it likes.
+   *
+   * This is useful in situations where the enumerator holds expensive resources open, while the iteratee may be slow,
+   * for example if the enumerator is a database result set that holds a transaction open, but the result set is being
+   * serialised and fed directly to an HTTP response.
+   *
+   * @param maxBuffer The maximum size to buffer.  The size is computed using the given `length` function.
+   * @param length A function that computes the length of an input item
+   */
   def buffer[E](maxBuffer: Int, length: Input[E] => Int): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     import scala.collection.immutable.Queue
@@ -278,6 +357,13 @@ object Concurrent {
     }
   }
 
+  /**
+   * An enumeratee that consumes all input immediately, and passes it to the iteratee only if the iteratee is ready to
+   * handle it within the given timeout, otherwise it drops it.
+   *
+   * @param duration The time to wait for the iteratee to be ready
+   * @param unit The timeunit
+   */
   def dropInputIfNotReady[E](duration: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     val busy = scala.concurrent.stm.Ref(false)
@@ -315,6 +401,20 @@ object Concurrent {
     }
   }
 
+  /**
+   * Create an enumerator that allows imperative style pushing of input into a single iteratee.
+   *
+   * The enumerator may be used multiple times, each time will cause a new invocation of `onStart`, which will pass a
+   * [[play.api.libs.iteratee.Concurrent.Channel]] that can be used to feed input into the iteratee.  However, note that
+   * there is no way for the caller to know which iteratee is finished or encountered an error in the `onComplete` or
+   * `onError` functions.
+   *
+   * @param onStart Called when an enumerator is applied to an iteratee, providing the channel to feed input into that
+   *                iteratee.
+   * @param onComplete Called when an iteratee is done.
+   * @param onError Called when an iteratee encounters an error, supplying the error and the input that caused the error.
+   * @return
+   */
   def unicast[E](
     onStart: Channel[E] => Unit,
     onComplete: => Unit = (),
@@ -382,15 +482,37 @@ object Concurrent {
       promise.future
     }
 
-    }
+  }
 
+  /**
+   * Create a broadcaster from the given enumerator.  This allows iteratees to attach (and unattach by returning a done
+   * state) to a single enumerator.  Iteratees will only receive input sent from the enumerator after they have
+   * attached to the broadcasting enumerator.
+   *
+   * @param e The enumerator to broadcast
+   * @param interestIsDownToZero Function that is invoked when all iteratees are done.  May be invoked multiple times.
+   * @return A tuple of the broadcasting enumerator, that can be applied to each iteratee that wants to receive the
+   *         input, and the broadcaster.
+   */
   def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ()): (Enumerator[E], Broadcaster) = { lazy val h: Hub[E] = hub(e, () => interestIsDownToZero(h)); (h.getPatchCord(), h) }
 
+  /**
+   * A broadcaster.  Used to control a broadcasting enumerator.
+   */
   trait Broadcaster {
+    /**
+     * Are there any iteratees that are still receiving input?
+     */
     def noCords(): Boolean
 
+    /**
+     * Close the broadcasting enumerator.
+     */
     def close()
 
+    /**
+     * Whether this broadcaster is closed.
+     */
     def closed(): Boolean
 
   }
@@ -520,13 +642,32 @@ object Concurrent {
     }
   }
 
+  /**
+   * Allows patching in enumerators to an iteratee.
+   */
   trait PatchPanel[E] {
 
+    /**
+     * Patch in the given enumerator into the iteratee.
+     *
+     * @return Whether the enumerator was successfully patched in.  Will return false if the patch panel is closed.
+     */
     def patchIn(e: Enumerator[E]): Boolean
 
+    /**
+     * Whether the patch panel is closed.
+     *
+     * The patch panel will become closed when the iteratee it is feeding is done or is error.
+     */
     def closed(): Boolean
 
   }
+
+  /**
+   * An enumerator that allows patching in enumerators to supply it with input.
+   *
+   * @param patcher A function that passes a patch panel whenever the enumerator is applied to an iteratee.
+   */
   def patchPanel[E](patcher: PatchPanel[E] => Unit): Enumerator[E] = new Enumerator[E] {
 
     import scala.concurrent.stm._

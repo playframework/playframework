@@ -129,6 +129,9 @@ object Iteratee {
     }
   }
 
+  /**
+   * Create an iteratee that takes the first element of the stream, if one occurs before EOF
+   */
   def head[E]: Iteratee[E, Option[E]] = {
 
     def step: K[E, Option[E]] = {
@@ -139,8 +142,14 @@ object Iteratee {
     Cont(step)
   }
 
+  /**
+   * Consume all the chunks from the stream, and return a list.
+   */
   def getChunks[E]: Iteratee[E, List[E]] = fold[E, List[E]](Nil) { (els, chunk) => chunk +: els }.map(_.reverse)
 
+  /**
+   * Ignore all the input of the stream, and return done when EOF is encountered.
+   */
   def skipToEof[E]: Iteratee[E, Unit] = {
     def cont: Iteratee[E, Unit] = Cont {
       case Input.EOF => Done((), Input.EOF)
@@ -219,6 +228,9 @@ object Iteratee {
 
 }
 
+/**
+ * Input that can be consumed by an iteratee
+ */
 sealed trait Input[+E] {
   def map[U](f: (E => U)): Input[U] = this match {
     case Input.El(e) => Input.El(f(e))
@@ -229,12 +241,26 @@ sealed trait Input[+E] {
 
 object Input {
 
+  /**
+   * An input element
+   */
   case class El[+E](e: E) extends Input[E]
+
+  /**
+   * An empty input
+   */
   case object Empty extends Input[Nothing]
+
+  /**
+   * An end of file input
+   */
   case object EOF extends Input[Nothing]
 
 }
 
+/**
+ * Represents the state of an iteratee.
+ */
 sealed trait Step[E, +A] {
 
   lazy val it: Iteratee[E, A] = this match {
@@ -246,8 +272,28 @@ sealed trait Step[E, +A] {
 }
 
 object Step {
+
+  /**
+   * A done state of an iteratee
+   *
+   * @param a The value that the iteratee has consumed
+   * @param remaining The remaining input that the iteratee received but didn't consume
+   */
   case class Done[+A, E](a: A, remaining: Input[E]) extends Step[E, A]
+
+  /**
+   * A continuing state of an iteratee.
+   *
+   * @param k A function that can receive input for the iteratee to process.
+   */
   case class Cont[E, +A](k: Input[E] => Iteratee[E, A]) extends Step[E, A]
+
+  /**
+   * An error state of an iteratee
+   *
+   * @param msg The error message
+   * @param input The remaining input that the iteratee received but didn't consume
+   */
   case class Error[E](msg: String, input: Input[E]) extends Step[E, Nothing]
 }
 
