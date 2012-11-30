@@ -16,8 +16,8 @@ class CSRFSpec extends Specification {
 
   val fakeApp = FakeApplication()
 
-  val showToken = FakeRequest(GET, "/test/token").withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-  val postData =  FakeRequest(POST, "/test/post").withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
+  val showToken = FakeRequest(GET, "/test/token")
+  val postData =  FakeRequest(POST, "/test/post")
 
   "CSRF module with default configuration" should {
 
@@ -50,23 +50,29 @@ class CSRFSpec extends Specification {
       }
     }
 
-    "reject POST without token" in running(fakeApp) {
-      route(postData, Map("hello" -> Seq("world"))) must beSome.which { r =>
+    "reject form POST without token" in running(fakeApp) {
+      route(postData.withFormUrlEncodedBody("hello" -> "world")) must beSome.which { r =>
+        status(r) must equalTo(BAD_REQUEST)
+        session(r).get(TOKEN_NAME) must beNone
+      }
+    }
+
+    "reject text POST without token" in running(fakeApp) {
+      route(postData.withTextBody("hello world")) must beSome.which { r =>
         status(r) must equalTo(BAD_REQUEST)
         session(r).get(TOKEN_NAME) must beNone
       }
     }
 
     "reject POST without session Token" in running(fakeApp) {
-      route(FakeRequest(POST, "/test/post?%s=%s".format(TOKEN_NAME, "FAKE_TOKEN")).withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded"),
-        "Hello World!") must beSome.which { r =>
+      route(FakeRequest(POST, "/test/post?%s=%s".format(TOKEN_NAME, "FAKE_TOKEN")).withFormUrlEncodedBody()) must beSome.which { r =>
         status(r) must equalTo(BAD_REQUEST)
         session(r).get(TOKEN_NAME) must beNone
       }
     }
 
     "reject POST without URL Token" in running(fakeApp) {
-      route(postData.withSession(TOKEN_NAME -> "FAKE_TOKEN"), "Hello World!") must beSome.which { r =>
+      route(postData.withSession(TOKEN_NAME -> "FAKE_TOKEN").withFormUrlEncodedBody()) must beSome.which { r =>
         status(r) must equalTo(BAD_REQUEST)
         session(r).get(TOKEN_NAME) must beNone
       }
@@ -78,8 +84,9 @@ class CSRFSpec extends Specification {
       }.flatMap { token =>
         // TODO: Add contructor with ActionRef
         // TODO: Add helper in FakeRequest for GET params
-        route(FakeRequest(POST, "/test/post?%s=%s".format(TOKEN_NAME, token.reverse)).withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-          .withSession(TOKEN_NAME -> token), "Hello World!")
+        route(FakeRequest(POST, "/test/post?%s=%s".format(TOKEN_NAME, token.reverse))
+          .withFormUrlEncodedBody()
+          .withSession(TOKEN_NAME -> token))
       } must beSome.which { r =>
         status(r) must equalTo(BAD_REQUEST)
         session(r).get(TOKEN_NAME) must beNone
@@ -90,8 +97,9 @@ class CSRFSpec extends Specification {
       route(showToken).flatMap {
         session(_).get(TOKEN_NAME)
       }.flatMap { token =>
-        route(FakeRequest(POST, "/test/post?%s=%s".format(TOKEN_NAME, token)).withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-          .withSession(TOKEN_NAME -> token), "Hello World!")
+        route(FakeRequest(POST, "/test/post?%s=%s".format(TOKEN_NAME, token))
+          .withFormUrlEncodedBody()
+          .withSession(TOKEN_NAME -> token))
       } must beSome.which { r =>
         status(r) must equalTo(OK)
         session(r).get(TOKEN_NAME) must beNone
@@ -102,8 +110,9 @@ class CSRFSpec extends Specification {
       route(showToken).flatMap {
         session(_).get(TOKEN_NAME)
       }.flatMap { token =>
-        route(FakeRequest(POST, "/test/post").withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
-          .withSession(TOKEN_NAME -> token), Map(TOKEN_NAME -> Seq(token)))
+        route(postData
+          .withFormUrlEncodedBody("hello" -> "world", TOKEN_NAME -> token)
+          .withSession(TOKEN_NAME -> token))
       } must beSome.which { r =>
         status(r) must equalTo(OK)
         session(r).get(TOKEN_NAME) must beNone

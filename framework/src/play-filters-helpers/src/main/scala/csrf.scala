@@ -242,6 +242,19 @@ package play.filters.csrf {
     def checkFormUrlEncodedBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
     def checkMultipart = checkBody[MultipartFormData[TemporaryFile]](multipartFormData, _.dataParts) _
 
+    /**
+     * Attackers can use text/plain to exploit some CSRF attacks, using
+     *
+     * {{{
+     * <form enctype="text/plain">
+     * }}}
+     *
+     * So check that too, however, only check the query string, as it doesn't really make sense to check the body.
+     */
+    def checkTextBody(request: RequestHeader, token: Token, next: EssentialAction): Iteratee[Array[Byte], Result] = {
+      checkRequest(request, None).fold(result => Done(result), rh => next(addRequestToken(rh, token)))
+    }
+
     def apply(next: EssentialAction): EssentialAction = new EssentialAction {
       def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
         import play.api.http.HeaderNames._
@@ -258,6 +271,9 @@ package play.filters.csrf {
           case Some(ct) if ct.trim.startsWith("application/x-www-form-urlencoded") =>
             logger.trace("[CSRF] request is application/x-www-form-urlencoded")
             checkFormUrlEncodedBody(request, token, next)
+          case Some(ct) if ct.trim.startsWith("text/plain") =>
+            logger.trace("[CSRF] request is text/playn")
+            checkTextBody(request, token, next)
           case None if request.method == "GET" => 
             logger.trace("[CSRF] GET request, adding the token")
             next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))
