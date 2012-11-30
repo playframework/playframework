@@ -165,7 +165,7 @@ trait PlaySettings {
 
     routesImport := Seq.empty[String],
 
-    playMonitoredDirectories <<= playMonitoredDirectoriesTask,
+    playMonitoredFiles <<= playMonitoredFilesTask,
 
     playDefaultPort := 9000,
 
