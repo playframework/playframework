@@ -850,8 +850,8 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   }
 
-  val playMonitoredDirectories = TaskKey[Seq[String]]("play-monitored-directories")
-  val playMonitoredDirectoriesTask = (thisProjectRef, state) map { (ref, state) =>
+  val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
+  val playMonitoredFilesTask = (thisProjectRef, state) map { (ref, state) =>
     val src = inAllDependencies(ref, sourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
     val resources = inAllDependencies(ref, resourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
     val assets = inAllDependencies(ref, playAssetsDirectories, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
