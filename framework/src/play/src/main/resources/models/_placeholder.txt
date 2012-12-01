@@ -1,1 +1,0 @@
-Empty placeholder file to make sure template keep compiling (due to imports in template files), even if projects don't have any models.
