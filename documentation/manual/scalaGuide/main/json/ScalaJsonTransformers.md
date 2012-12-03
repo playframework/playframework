@@ -1,19 +1,11 @@
----
-layout: post
-title: "Unveiling Play 2.1 Json API - Part 3 : JSON transformers"
-date: 2012-10-29 11:10
-comments: true
-external-url: 
-categories: [playframework,play2.1,json,serialization,validation,combinators,applicative]
-keywords: play 2.1, json, json serialization, json transform, json validation, json cumulative errors, play framework, combinators, applicative
----
+# <a name="json-to-json">JSON transformers</a>
 
->In [Part 1](/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/) and [Part 2](2012-10-01-unveiling-play-2-dot-1-json-api-part2-writes-format-combinators) , we have presented Json combinators for `Reads[T]`, `Writes[T]` and `Format[T]`. So now you should know how to validate JSON and convert into any structure you can write in Scala and back to JSON. But as soon as I've begun to use those combinators to write web applications, I almost immediately encountered a case : read JSON from network, validate it and convert it into… JSON. 
+> Please note this documentation was initially published as an article by Pascal Voitot ([@mandubian](http://www.github.com/mandubian)) on [mandubian.com](http://mandubian.com/2012/10/29/unveiling-play-2-dot-1-json-api-part3-json-transformers/) 
 
-<br/>
-<br/>
+Now you should know how to validate JSON and convert into any structure you can write in Scala and back to JSON. But as soon as I've begun to use those combinators to write web applications, I almost immediately encountered a case : read JSON from network, validate it and convert it into… JSON. 
 
-# <a name="json-to-json">Introducing JSON _coast-to-coast_ design</a>
+
+## <a name="json-to-json">Introducing JSON _coast-to-coast_ design</a>
 
 ### <a name="doomed-to-OO">Are we doomed to convert JSON to OO?</a>
 
@@ -76,8 +68,7 @@ So, as you have deduced by yourself, to be able to manipulate Json flows based o
 That's why we have created some specialized combinators and API called **JSON transformers** to do that.
 
 <br/>
-<br/>
-# <a name="json-transf-are-reads">JSON transformers are Reads[T <: JsValue]</a>
+# <a name="json-transf-are-reads">JSON transformers are `Reads[T <: JsValue]`</a>
 
 You may tell JSON transformers are just `f:JSON => JSON`.  
 So a JSON transformer could be simply a `Writes[A <: JsValue]`.  
@@ -86,103 +77,6 @@ As a consequence, a JSON transformer is a `Reads[A <: Jsvalue]`.
 
 > **Keep in mind that a Reads[A <: JsValue] is able to transform and not only to read/validate**
 
-<br/>
-<br/>
-# <a name="play2-syntax">Recent Play2 JSON syntax evolutions</a>
-
-As you know, Json API for Play2.1 was still draft and has evolved since I began writing article part 1/2.  
-We have changed a few things since (nothing conceptual, just cosmetics). 
-
-### <a name="new-play2-syntax">Syntax clarification</a>
-
-##### `Reads[A] andThen Reads[B]` has been renamed `Reads[A] andKeep Reads[B]` (keep the right side result)
-<br/>
-##### `Reads[A] provided Reads[B]` has been renamed `Reads[A] keepAnd Reads[B]` (keep the left side result and is symmetric with andKeep)
-<br/>
-### <a name="new-reads-feature">Remarkable new Reads[A] features</a>
-
-##### `Reads[A <: JsValue] andThen Reads[B]` 
-`andThen` has the classic Scala semantic of function composition : it applies `Reads[A <: JsValue]` on JSON retrieving a JsValue and then applies `Reads[B]` on this JsValue.
-<br/>
-##### `Reads[A <: JsValue].map(f: A => B): Reads[B]` 
-`map` is the classic and always very useful Scala map function.
-<br/>
-##### `Reads[A <: JsValue].flatMap(f: A => Reads[B]): Reads[B]` 
-`flatMap` is the classic Scala flatMap function.
-
-<br/>
-<br/>
-# <a name="step-by-step">JSON transformers case by case</a>
-
-## <a name="json-def">A few reminders</a>
-
-### <a name="json-def">JSON new syntax</a>
-
-In code samples, we'll use the following JSON.
-
-{% codeblock lang:json %}
-{ 
-  "key1" : "value1",
-  "key2" : {
-    "key21" : 123,
-    "key22" : true,
-    "key23" : [ "alpha", "beta", "gamma"]
-    "key24" : {
-      "key241" : 234.123,
-      "key242" : "value242"
-    }
-  },
-  "key3" : 234
-}
-{% endcodeblock %}	
-
-Remind that, in Play2, you can write this JSON as following.
-
-{% codeblock lang:scala %}
-val json = Json.obj(
-  "key1" -> "value1",
-  "key2" -> Json.obj(
-    "key21" -> 123,
-    "key22" -> true,
-    "key23" -> Json.arr("alpha", "beta", "gamma"),
-    "key24" -> Json.obj(
-      "key241" -> 234.123,
-      "key242" -> "value242"
-    )
-  ),
-  "key3" -> 234
-)
-{% endcodeblock %}	
-
-
-### <a name="controller-def">Defining Play2 JSON action controller</a>
-
-Here is how you would write a Play2.1 action controller to receive and manipulate/validate JSON.
-
-{% codeblock lang:scala %}
-object YourController {
-	…
-
-	// not implicit because I want to control which transformer I use
-	val jsonTransformer: Reads[JsValue] = …
-
-	def doit = Action(parse.json) { request =>
-		request.body.validate(jsonTransformer).map { js =>
-			// do something
-			Ok(...)	
-		}.recover { error =>
-    		BadRequest(…)
-  		}
-	}
-	
-	…
-}
-{% endcodeblock %}	
-
-> Please note the `JsResult.map` and `JsResult.recover` functions allowing to compose result and deal with errors.
-
-
-Now let's describe JSON transformers with samples
 
 
 ## <a name="step-pick">Case 1: Pick JSON value in JsPath</a>
@@ -190,7 +84,7 @@ Now let's describe JSON transformers with samples
 
 ### <a name="step-pick-1">Pick value as JsValue</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key23).json.pick
@@ -201,26 +95,28 @@ res9: play.api.libs.json.JsResult[play.api.libs.json.JsValue] =
 	  ["alpha","beta","gamma"],
 	  /key2/key23
 	)	
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key2 \ 'key23).json...` 
+####`(__ \ 'key2 \ 'key23).json...` 
   - All JSON transformers are in `JsPath.json.`
 
-#####`(__ \ 'key2 \ 'key23).json.pick` 
+####`(__ \ 'key2 \ 'key23).json.pick` 
   - `pick` is a `Reads[JsValue]` which picks the value **IN** the given JsPath. Here `["alpha","beta","gamma"]`
   
-#####`JsSuccess(["alpha","beta","gamma"],/key2/key23)`
+####`JsSuccess(["alpha","beta","gamma"],/key2/key23)`
   - This is a simply successful `JsResult`
   - For info, `/key2/key23` represents the JsPath where data were read but don't care about it, it's mainly used by Play API to compose JsResult(s))
   - `["alpha","beta","gamma"]` is just due to the fact that we have overriden `toString`
 
-> **To Remember** `jsPath.json.pick` gets ONLY the value inside the JsPath
+<br/>
+> **Reminder** 
+> `jsPath.json.pick` gets ONLY the value inside the JsPath
 <br/>
 
 
 ### <a name="step-pick-2">Pick value as Type</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key23).json.pick[JsArray]
@@ -232,12 +128,14 @@ res10: play.api.libs.json.JsResult[play.api.libs.json.JsArray] =
 	  /key2/key23
 	)
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key2 \ 'key23).json.pick[JsArray]` 
+####`(__ \ 'key2 \ 'key23).json.pick[JsArray]` 
   - `pick[T]` is a `Reads[T <: JsValue]` which picks the value (as a `JsArray` in our case) **IN** the given JsPath
   
-> **To Remember: `jsPath.json.pick[T <: JsValue]` extracts ONLY the typed value inside the JsPath**
+<br/>
+> **Reminder**
+> `jsPath.json.pick[T <: JsValue]` extracts ONLY the typed value inside the JsPath
 
 <br/>
 
@@ -245,7 +143,7 @@ res10: play.api.libs.json.JsResult[play.api.libs.json.JsArray] =
 
 ### <a name="step-pickbranch-1">Pick branch as JsValue</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key24 \ 'key241).json.pickBranch
@@ -263,22 +161,24 @@ res11: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
 	/key2/key24/key241
   )
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key2 \ 'key23).json.pickBranch` 
+####`(__ \ 'key2 \ 'key23).json.pickBranch` 
   - `pickBranch` is a `Reads[JsValue]` which picks the branch from root to given JsPath
   
-#####`{"key2":{"key24":{"key242":"value242"}}}`
+####`{"key2":{"key24":{"key242":"value242"}}}`
   - The result is the branch from root to given JsPath including the JsValue in JsPath
-
-> **To Remember: `jsPath.json.pickBranch` extracts the single branch down to JsPath + the value inside JsPath**
+  
+<br/>
+> **Reminder:**
+> `jsPath.json.pickBranch` extracts the single branch down to JsPath + the value inside JsPath
 
 <br/>
 
 
 ## <a name="step-copyfrom">Case 3: Copy a value from input JsPath into a new JsPath</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key25 \ 'key251).json.copyFrom( (__ \ 'key2 \ 'key21).json.pick )
@@ -294,23 +194,24 @@ res12: play.api.libs.json.JsResult[play.api.libs.json.JsObject]
     /key2/key21
   )
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key25 \ 'key251).json.copyFrom( reads: Reads[A <: JsValue] )` 
+####`(__ \ 'key25 \ 'key251).json.copyFrom( reads: Reads[A <: JsValue] )` 
   - `copyFrom` is a `Reads[JsValue]`
   - `copyFrom` reads the JsValue from input JSON using provided Reads[A]
   - `copyFrom` copies this extracted JsValue as the leaf of a new branch corresponding to given JsPath
   
-#####`{"key25":{"key251":123}}`
+####`{"key25":{"key251":123}}`
   - `copyFrom` reads value `123` 
   - `copyFrom` copies this value into new branch `(__ \ 'key25 \ 'key251)`
 
-> **To Remember: `jsPath.json.copyFrom(Reads[A <: JsValue])` reads value from input JSON and creates a new branch with result as leaf**
+> **Reminder:**
+> `jsPath.json.copyFrom(Reads[A <: JsValue])` reads value from input JSON and creates a new branch with result as leaf
 
 <br/>
 ## <a name="step-update">Case 4: Copy full input Json & update a branch</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key24).json.update( 
@@ -336,27 +237,28 @@ res13: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
     },
   )
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key2).json.update(reads: Reads[A < JsValue])` 
+####`(__ \ 'key2).json.update(reads: Reads[A < JsValue])` 
 - is a `Reads[JsObject]`
 
-#####`(__ \ 'key2 \ 'key24).json.update(reads)` does 3 things: 
+####`(__ \ 'key2 \ 'key24).json.update(reads)` does 3 things: 
 - extracts value from input JSON at JsPath `(__ \ 'key2 \ 'key24)`
 - applies `reads` on this relative value and re-creates a branch `(__ \ 'key2 \ 'key24)` adding result of `reads` as leaf
 - merges this branch with full input JSON replacing existing branch (so it works only with input JsObject and not other type of JsValue)
 
-#####`JsSuccess({…},)`
+####`JsSuccess({…},)`
 - Just for info, there is no JsPath as 2nd parameter there because the JSON manipulation was done from Root JsPath
 
-
-> **To Remember: `jsPath.json.update(Reads[A <: JsValue])` only works for JsObject, copies full input `JsObject` and updates jsPath with provided `Reads[A <: JsValue]`**
+<br/>
+> **Reminder:**
+> `jsPath.json.update(Reads[A <: JsValue])` only works for JsObject, copies full input `JsObject` and updates jsPath with provided `Reads[A <: JsValue]`
 
 
 <br/>
 ## <a name="step-put">Case 5: Put a given value in a new branch</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key24 \ 'key241).json.put(JsNumber(456))
@@ -371,28 +273,30 @@ res14: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
     },
   )
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key24 \ 'key241).json.put( a: => JsValue )` 
+####`(__ \ 'key24 \ 'key241).json.put( a: => JsValue )` 
 - is a Reads[JsObject]
 
-#####`(__ \ 'key24 \ 'key241).json.put( a: => JsValue )`
+####`(__ \ 'key24 \ 'key241).json.put( a: => JsValue )`
 - creates a new branch `(__ \ 'key24 \ 'key241)`
 - puts `a` as leaf of this branch.
 
-#####`jsPath.json.put( a: => JsValue )`
+####`jsPath.json.put( a: => JsValue )`
 - takes a JsValue argument passed by name allowing to pass even a closure to it.
 
-#####`jsPath.json.put` 
+####`jsPath.json.put` 
 - doesn't care at all about input JSON
 - simply replace input JSON by given value
 
-> **To Remember: `jsPath.json.put( a: => Jsvalue )` creates a new branch with a given value without taking into account input JSON**
+<br/>
+> **Reminder: **
+> `jsPath.json.put( a: => Jsvalue )` creates a new branch with a given value without taking into account input JSON
 
 <br/>
 ## <a name="step-prune">Case 6: Prune a branch from input JSON</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key22).json.prune
@@ -415,19 +319,20 @@ res15: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
     /key2/key22/key22
   )
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key2 \ 'key22).json.prune` 
+####`(__ \ 'key2 \ 'key22).json.prune` 
 - is a `Reads[JsObject]` that works only with JsObject
 
-#####`(__ \ 'key2 \ 'key22).json.prune`
+####`(__ \ 'key2 \ 'key22).json.prune`
 - removes given JsPath from input JSON (`key22` has disappeared under `key2`)
 
 Please note the resulting JsObject hasn't same keys order as input JsObject. This is due to the implementation of JsObject and to the merge mechanism. But this is not important since we have overriden `JsObject.equals` method to take this into account.
 
-> **To Remember: `jsPath.json.prune` only works with JsObject and removes given JsPath form input JSON)** 
-> Please note that:
+> **Reminder:**
+> `jsPath.json.prune` only works with JsObject and removes given JsPath form input JSON)  
 > 
+> Please note that:
 > - `prune` doesn't work for recursive JsPath for the time being
 > - if `prune` doesn't find any branch to delete, it doesn't generate any error and returns unchanged JSON.
 
@@ -435,9 +340,8 @@ Please note the resulting JsObject hasn't same keys order as input JsObject. Thi
 
 ## <a name="more-complicated-pick-update">Case 7: Pick a branch and update its content in 2 places</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
-import play.api.libs.json.Reads._
 
 val jsonTransformer = (__ \ 'key2).json.pickBranch(
   (__ \ 'key21).json.update( 
@@ -465,27 +369,27 @@ res16: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
     /key2
   )
 
-{% endcodeblock %}	
+```
 
-#####`(__ \ 'key2).json.pickBranch(reads: Reads[A <: JsValue])` 
+####`(__ \ 'key2).json.pickBranch(reads: Reads[A <: JsValue])` 
 - extracts branch `__ \ 'key2` from input JSON and applies `reads` to the relative leaf of this branch (only to the content)
 
-#####`(__ \ 'key21).json.update(reads: Reads[A <: JsValue])` 
+####`(__ \ 'key21).json.update(reads: Reads[A <: JsValue])` 
 - updates `(__ \ 'key21)` branch
 
-#####`of[JsNumber]` 
+####`of[JsNumber]` 
 - is just a `Reads[JsNumber]` 
 - extracts a JsNumber from `(__ \ 'key21)`
 
-#####`of[JsNumber].map{ case JsNumber(nb) => JsNumber(nb + 10) }` 
+####`of[JsNumber].map{ case JsNumber(nb) => JsNumber(nb + 10) }` 
 - reads a JsNumber (_value 123_ in `__ \ 'key21`)
 - uses `Reads[A].map` to increase it by _10_ (in immutable way naturally)
 
-#####`andThen` 
+####`andThen` 
 - is just the composition of 2 `Reads[A]`
 - first reads is applied and then result is piped to second reads
 
-#####`of[JsArray].map{ case JsArray(arr) => JsArray(arr :+ JsString("delta")` 
+####`of[JsArray].map{ case JsArray(arr) => JsArray(arr :+ JsString("delta")` 
 - reads a JsArray (_value [alpha, beta, gamma] in `__ \ 'key23`_)
 - uses `Reads[A].map` to append `JsString("delta")` to it
 
@@ -494,9 +398,8 @@ res16: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
 <br/>
 ## <a name="more-complicated-pick-prune">Case 8: Pick a branch and prune a sub-branch</a>
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
-import play.api.libs.json.Reads._
 
 val jsonTransformer = (__ \ 'key2).json.pickBranch(
   (__ \ 'key23).json.prune
@@ -518,13 +421,13 @@ res18: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
     /key2/key23
   )
 
-{% endcodeblock %}
+```
 
-#####`(__ \ 'key2).json.pickBranch(reads: Reads[A <: JsValue])` 
+####`(__ \ 'key2).json.pickBranch(reads: Reads[A <: JsValue])` 
 - extracts branch `__ \ 'key2` from input JSON and applies `reads` to the relative leaf of this branch (only to the content)
 
 
-#####`(__ \ 'key23).json.prune` 
+####`(__ \ 'key23).json.prune` 
 - removes branch `__ \ 'key23` from relative JSON
 
 >Please remark the result is just the `__ \ 'key2` branch without `key23` field.
@@ -543,45 +446,45 @@ This is quite trivial as JSON transformers are just `Reads[A <: JsValue]`
 Let's demonstrate by writing a __Gizmo to Gremlin__ JSON transformer.
 
 Here is Gizmo:
-{% codeblock lang:scala %}
+
+```
 val gizmo = Json.obj(
-	"name" -> "gizmo",
-	"description" -> Json.obj(
-		"features" -> Json.arr( "hairy", "cute", "gentle"),
-		"size" -> 10,
-		"sex" -> "undefined",
-		"life_expectancy" -> "very old",
-		"danger" -> Json.obj(
-			"wet" -> "multiplies",
-			"feed after midnight" -> "becomes gremlin"
-		)
-	),
-	"loves" -> "all"
+  "name" -> "gizmo",
+  "description" -> Json.obj(
+    "features" -> Json.arr( "hairy", "cute", "gentle"),
+    "size" -> 10,
+    "sex" -> "undefined",
+    "life_expectancy" -> "very old",
+    "danger" -> Json.obj(
+      "wet" -> "multiplies",
+      "feed after midnight" -> "becomes gremlin"
+    )
+  ),
+  "loves" -> "all"
 )
-{% endcodeblock %}
+```
 
 Here is Gremlin:
 
-{% codeblock lang:scala %}
+```
 val gremlin = Json.obj(
-	"name" -> "gremlin",
-	"description" -> Json.obj(
-		"features" -> Json.arr("skinny", "ugly", "evil"),
-		"size" -> 30,
-		"sex" -> "undefined",
-		"life_expectancy" -> "very old",
-		"danger" -> "always"
-	),
-	"hates" -> "all"
+  "name" -> "gremlin",
+  "description" -> Json.obj(
+    "features" -> Json.arr("skinny", "ugly", "evil"),
+    "size" -> 30,
+    "sex" -> "undefined",
+    "life_expectancy" -> "very old",
+    "danger" -> "always"
+  ),
+  "hates" -> "all"
 )
-{% endcodeblock %}
+```
 
 Ok let's write a JSON transformer to do this transformation
 
-{% codeblock lang:scala %}
+```
 import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.json.util._
+import play.api.libs.functional.syntax._
 
 val gizmo2gremlin = (
 	(__ \ 'name).json.put(JsString("gremlin")) and
@@ -609,28 +512,16 @@ res22: play.api.libs.json.JsResult[play.api.libs.json.JsObject] =
       "hates":"all"
     },
   )
-{% endcodeblock %}
+```
 
 Here we are ;)  
 I'm not going to explain all of this because you should be able to understand now.  
 Just remark:
 
-#####`(__ \ 'features).json.put(…)` is after `(__ \ 'size).json.update` so that it overwrites original `(__ \ 'features)`
+####`(__ \ 'features).json.put(…)` is after `(__ \ 'size).json.update` so that it overwrites original `(__ \ 'features)`
 <br/>
-#####`(Reads[JsObject] and Reads[JsObject]) reduce` 
+####`(Reads[JsObject] and Reads[JsObject]) reduce` 
 - It merges results of both `Reads[JsObject]` (JsObject ++ JsObject)
 - It also applies the same JSON to both `Reads[JsObject]` unlike `andThen` which injects the result of the first reads into second one.
 
-<br/>
-<br/>
-# <a name="conclusion">Conclusion</a>
-
-After 3 long articles, I think we have done a full 360° around new features brought by Play2.1 JSON API.  
-I hope you glimpse the whole new world of possiblities it can bring to us.  
-Personnally, I've begun using it in projects and I don't yet see the limits of it and how I'll end using it.  
-
-**The only thing I can say is that it has changed my way of manipulating JSON data flows in general.**
-
-> Next article coming soon: an applied example of a webapp following _Json coast-to-coast design_ with [ReactiveMongo](http://www.reactivemongo.org)
-
-Have fun ;););)
+> **Next:** [[JSON Macro Inception | ScalaJsonInception]]
