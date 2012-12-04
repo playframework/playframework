@@ -52,7 +52,9 @@ trait WithDefaultGlobal {
       javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
     } catch {
       case e: PlayException => throw e
-      case NonFatal(e) => throw new PlayException(
+      case e: ThreadDeath => throw e
+      case e: VirtualMachineError => throw e
+      case e: Throwable => throw new PlayException(
         "Cannot init the Global object",
         e.getMessage,
         e
@@ -133,7 +135,9 @@ trait WithDefaultPlugins {
             if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: PlayException => throw e
-            case NonFatal(e) => throw new PlayException(
+            case e: VirtualMachineError => throw e
+            case e: ThreadDeath => throw e
+            case e: Throwable => throw new PlayException(
               "Cannot load plugin",
               "Plugin [" + className + "] cannot been instantiated.",
               e)
@@ -144,7 +148,9 @@ trait WithDefaultPlugins {
           "An exception occurred during Plugin [" + className + "] initialization",
           e.getTargetException)
         case e: PlayException => throw e
-        case NonFatal(e) => throw new PlayException(
+        case e: ThreadDeath => throw e
+        case e: VirtualMachineError => throw e
+        case e: Throwable => throw new PlayException(
           "Cannot load plugin",
           "Plugin [" + className + "] cannot been instantiated.",
           e)
