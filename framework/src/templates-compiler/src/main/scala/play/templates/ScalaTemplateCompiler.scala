@@ -566,6 +566,11 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     object TemplateAsFunctionCompiler {
 
+      // Note, the presentation compiler is not thread safe, all access to it must be synchronized.  If access to it
+      // is not synchronized, then weird things happen like FreshRunReq exceptions are thrown when multiple sub projects
+      // are compiled (done in parallel by default by SBT).  So if adding any new methods to this object, make sure you
+      // make them synchronized.
+
       import java.io.File
       import scala.tools.nsc.interactive.{ Response, Global }
       import scala.tools.nsc.io.AbstractFile
@@ -573,7 +578,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
       import scala.tools.nsc.Settings
       import scala.tools.nsc.reporters.ConsoleReporter
 
-      def getFunctionMapping(signature: String, returnType: String): (String, String, String) = {
+      def getFunctionMapping(signature: String, returnType: String): (String, String, String) = synchronized {
 
         type Tree = PresentationCompiler.global.Tree
         type DefDef = PresentationCompiler.global.DefDef
