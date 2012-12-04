@@ -7,7 +7,7 @@ package play.api.mvc {
   import play.api.libs.Crypto
 
   import scala.annotation._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.

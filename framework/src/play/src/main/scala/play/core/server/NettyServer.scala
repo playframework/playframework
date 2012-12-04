@@ -18,7 +18,7 @@ import play.core.server.netty._
 
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream}
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * provides a stopable Server

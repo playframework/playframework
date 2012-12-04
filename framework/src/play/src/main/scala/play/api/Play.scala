@@ -8,7 +8,7 @@ import play.api.mvc._
 import java.io._
 
 import scala.collection.JavaConverters._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /** Application mode, either `DEV` or `PROD`. */
 object Mode extends Enumeration {
