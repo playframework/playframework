@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 import play.api._
 import play.api.mvc._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * provides source code to be displayed on error pages

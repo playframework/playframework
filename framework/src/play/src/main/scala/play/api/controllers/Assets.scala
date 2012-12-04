@@ -13,7 +13,7 @@ import scalax.io.{ Resource }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * Controller that serves static resources.
