@@ -207,8 +207,17 @@ GET     /assets/*file               controllers.admin.Assets.at(path="/public", 
 
 ```scala
 package controllers.admin
-object Assets  {
- def at(path: String, file: String): play.api.mvc.Action[play.api.mvc.AnyContent] = controllers.Assets.at(path, file)
+object Assets extends controllers.AssetsBuilder
+```
+
+> Note: Java users can do something very similar i.e.
+
+```java
+// Assets.java
+package controllers.my;
+public class Assets {
+//can be referenced as `controllers.my.Assets.delegate.at` in the route file
+public static controllers.AssetsBuilder delegate = new controllers.AssetsBuilder();
 }
 ```
 
