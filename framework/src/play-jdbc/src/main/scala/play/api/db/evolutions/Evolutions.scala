@@ -601,7 +601,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
     <span>An SQL script will be run on your database -</span>
     <input name="evolution-button" type="button" value="Apply this script now!" onclick={ javascript }/>
 
-  }.map(_.toString).mkString
+  }.mkString
 
 }
 
@@ -626,6 +626,6 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
     <span>An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved -</span>
     <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>
 
-  }.map(_.toString).mkString
+  }.mkString
 
 }
