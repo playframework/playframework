@@ -11,9 +11,10 @@ before_install:
   - sudo dpkg -i /tmp/sbt.deb
   # - PLAY_VERSION="2-TLS-`git log -n 1 --pretty=format:%H`"
 # script: play-${PLAY_VERSION}/play test
-script: ./framework/runtests
+script: cd frameword ; ./runtests
 notifications:
   # Email notifications are disabled to not annoy anybody.
   # See http://about.travis-ci.org/docs/user/build-configuration/ to learn more
   # about configuring notification recipients and more.
-  email: false
+  email:
+    - jonathan.dray@gmail.com
