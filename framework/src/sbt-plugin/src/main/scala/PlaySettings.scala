@@ -201,6 +201,10 @@ trait PlaySettings {
     coffeescriptOptions := Seq.empty[String],
     closureCompilerOptions := Seq.empty[String],
 
+    // Settings
+
+    devSettings := Nil,
+
     // Templates
 
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),

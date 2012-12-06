@@ -26,6 +26,10 @@ trait SourceMapper {
 
 }
 
+trait DevSettings {
+  def devSettings: Map[String,String]
+}
+
 /**
  * generic layout for initialized Applications
  */
@@ -121,7 +125,10 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                     case _ => None
                   }
                 }
-              }),Mode.Dev)
+              }), Mode.Dev) with DevSettings {
+                import scala.collection.JavaConverters._
+                lazy val devSettings: Map[String,String] = sbtLink.settings.asScala.toMap
+              }
 
               Play.start(newApplication)
 
