@@ -112,7 +112,7 @@ case class JsNumber(value: BigDecimal) extends JsValue
 case class JsString(value: String) extends JsValue
 
 /**
- * Represent a Json arayy value.
+ * Represent a Json array value.
  */
 case class JsArray(value: Seq[JsValue] = List()) extends JsValue{
 
