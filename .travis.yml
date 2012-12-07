@@ -16,8 +16,8 @@ script: cd framework ; ./runtests
 after_success:
   - sudo apt-get install -qq ncftp
   - PLAY_VERSION="2-TLS-`git log -n 1 --pretty=format:%H`"
-  - ./package.sh ${PLAY_VERSION}
-  - ncftpput -v -u "travis" -p "${FTP_PASSWORD}" mail.spiroid.org /play/releases ../play-${PLAY_VERSION}.tar.bz2
+  - ./package.sh ${PLAY_VERSION} incremental
+  - ncftpput -v -u "travis" -p "${FTP_PASSWORD}" mail.spiroid.org /play/releases /tmp/play-${PLAY_VERSION}.tar.bz2
 notifications:
   # Email notifications are disabled to not annoy anybody.
   # See http://about.travis-ci.org/docs/user/build-configuration/ to learn more
