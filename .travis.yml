@@ -1,0 +1,26 @@
+language: scala
+jdk:
+  # see https://github.com/travis-ci/travis-cookbooks/issues/35
+  - oraclejdk7
+scala:
+  - 2.10.0-RC1
+env:
+  global:
+    - secure: "hFbj4DG94ACoFZBkF4/S/QJZB9fPix+/MBi0+e8Ul+nw4990kVBvkA+b90WK\n+ITSpETWX4MTz8S8FXUH7TyokOhiDYlsjAUZ7RUBuCnXD4KMLXWRnfvErbbz\ngCzgV5qtbrT/lBuJf+Q0Xnz0+Eojl7vs3hk07xj97LbZcQhF6wk="
+before_install:
+  - sudo dpkg -r sbt
+  - sudo rm /usr/bin/sbt
+  - wget http://files.travis-ci.org/packages/deb/sbt/sbt-0.12.1.deb -O /tmp/sbt.deb
+  - sudo dpkg -i /tmp/sbt.deb
+script: cd framework ; ./runtests
+after_success:
+  - sudo apt-get install -qq ncftp
+  - PLAY_VERSION="2-TLS-`git log -n 1 --pretty=format:%H`"
+  - ./package.sh ${PLAY_VERSION}
+  - ncftpput -v -u "travis" -p "${FTP_PASSWORD}" mail.spiroid.org /play/releases ../play-${PLAY_VERSION}.tar.bz2
+notifications:
+  # Email notifications are disabled to not annoy anybody.
+  # See http://about.travis-ci.org/docs/user/build-configuration/ to learn more
+  # about configuring notification recipients and more.
+  email:
+    - jonathan.dray@gmail.com
