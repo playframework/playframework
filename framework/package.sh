@@ -82,7 +82,5 @@ sed -i -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSIO
 # Generating the final archive
 displayandexec "Creating archive..." tar --exclude='*~' --exclude='*.lock' --exclude='*.history' --exclude='*.DS_Store' --exclude='*.gitmodules' --exclude='.gitignore' --exclude='.git' --exclude='framework/sbt/boot' --exclude='repository/cache' --exclude='samples/workinprogress' --exclude='*.log' --exclude='*/dist' --exclude='*/target' --exclude='*/logs' --exclude='*/tmp' --exclude='*/project/project' -jcvf play-${PLAY_VERSION}.tar.bz2 play-${PLAY_VERSION}
 
-displayandexec "Moving archive to play2 base directory" mv play-${PLAY_VERSION}.tar.bz2 ${SCRIPT_DIR}/../..
 displayandexec "Cleaning temporary directory" rm -rf /tmp/play-${PLAY_VERSION} 
-
-displaymessage "Package is available at ${SCRIPT_DIR}/../../play-${PLAY_VERSION}.tar.bz2"
+displaymessage "Package is available at /tmp/play-${PLAY_VERSION}.tar.bz2"
