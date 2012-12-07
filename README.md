@@ -6,8 +6,8 @@ It is based on a lightweight stateless Web friendly architecture and features pr
 
 http://www.playframework.org
 
-We use [Travis CI](http://travis-ci.org/) to test and verify the build: [![Build Status](https://travis-ci.org/spiroid/Play20.png)](http://travis-ci.org/spiroid/Play20)
-
+We use [Travis CI](http://travis-ci.org/) to test and verify the build: [![Build Status](https://travis-ci.org/bblfish/Play20.png)](http://travis-ci.org/bblfish/Play20)
+For your convenience the most recent builds that pass the test suites [are uploaded here](http://mail.spiroid.org/play/releases/).
 
 ## Installing
 
