@@ -1,4 +1,4 @@
-# Play 2.0 
+# Play 2.0 (TLS-branch)
 
 Play 2.0 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. 
 
@@ -7,9 +7,33 @@ It is based on a lightweight stateless Web friendly architecture and features pr
 http://www.playframework.org
 
 We use [Travis CI](http://travis-ci.org/) to test and verify the build: [![Build Status](https://travis-ci.org/bblfish/Play20.png)](http://travis-ci.org/bblfish/Play20)
-For your convenience the most recent builds that pass the test suites [are uploaded here](http://mail.spiroid.org/play/releases/).
+
+## TLS differences
+
+This branch differs from the main play branch in that it supports TLS client authentication as well 
+as server authentivation. The `RequestHeader` trait has a cert method that allows you to request a client
+certificate asynchronously - the client will be asked for his certificate if he has one.
+
+```scala
+   def certs(required:Boolean): Future[Seq[Certificate]]
+```
+
+Certificates that are signed by CAs in the trust store can be requested, or by
+specifying the empty trust store any client certificate will be requested. This
+is useful for implementing protocols such as [WebID](http://webid.info/), as is done
+by [RWW-Play](http://github.com/read-write-web/rww-play)
+
+```scala
+  run  -Dhttps.port=8443 -Dhttps.trustStore=noCA 
+```
+
+This API is still prone to change, see:
+* [ticket 828: client certificate support](https://play.lighthouseapp.com/projects/82401-play-20/tickets/828-client-certificate-support)
+* [ticket 787: passing certificate-validation-level info to the client](https://play.lighthouseapp.com/projects/82401/tickets/787)
 
 ## Installing
+
+For your convenience the most recent builds that pass the test suites [are uploaded here](http://mail.spiroid.org/play/releases/).
 
 You first need to build Play:
 

@@ -6,7 +6,7 @@ scala:
   - 2.10.0-RC1
 env:
   global:
-   - secure: "B31N/x8X/avfwpZ38scUXh+m2KNFCk2j1b6mhbZQ99AgRB90rhrad58goYAY\nNcjJwEYtkKwHKA/yKpUmvQIyIeixQ5ebtkR3MTT8BttcHoKtOAJRu4i1cJc8\nsirCCQA2fKTrNeIgs0kHU+uPlQR3mR/+GlmRzmcIDtNvRz14Hgc="
+  - secure: "B31N/x8X/avfwpZ38scUXh+m2KNFCk2j1b6mhbZQ99AgRB90rhrad58goYAY\nNcjJwEYtkKwHKA/yKpUmvQIyIeixQ5ebtkR3MTT8BttcHoKtOAJRu4i1cJc8\nsirCCQA2fKTrNeIgs0kHU+uPlQR3mR/+GlmRzmcIDtNvRz14Hgc="
 before_install:
   - sudo dpkg -r sbt
   - sudo rm /usr/bin/sbt
