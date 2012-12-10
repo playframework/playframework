@@ -1,0 +1,1 @@
+GET     /index          controllers.module.ModuleController.index
