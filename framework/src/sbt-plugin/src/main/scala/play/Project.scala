@@ -10,6 +10,28 @@ import play.console.Colors
 object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
     with PlaySettings with PlayPositionMapper {
 
+  // ~~ Alerts  
+  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
+    println()
+    this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
+      println(Colors.green(el.toString))
+    }
+    println()
+  }
+
+  Option(System.getProperty("play.version")).map {
+    case badVersion if badVersion != play.core.PlayVersion.current => {
+      println(
+        Colors.red("""
+          |This project uses Play %s!
+          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
+        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
+      )
+    }
+    case _ =>
+  }
+
+
   // ----- Create a Play project with default settings
  
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Defaults.defaultSettings): sbt.Project = {

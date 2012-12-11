@@ -116,7 +116,7 @@ trait PlayAssetsCompiler {
     val log = state.log
     // log the source file and line number with the error message
     log.error(Option(error.sourceName).getOrElse("") + Option(error.line).map(":" + _).getOrElse("") + ": " + error.getMessage)
-    Option(error.interestingLines(0).focus).flatMap(_.headOption) map { line =>
+    Option(error.interestingLines(0)).map(_.focus).flatMap(_.headOption) map { line =>
       // log the line
       log.error(line)
       Option(error.position).map { pos =>

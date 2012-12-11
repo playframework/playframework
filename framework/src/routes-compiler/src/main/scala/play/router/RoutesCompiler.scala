@@ -304,6 +304,15 @@ object RoutesCompiler {
    * Precheck routes coherence or throw exceptions early
    */
   private def check(file: java.io.File, routes: List[Route]) {
+
+    if(routes.isEmpty) {
+      throw RoutesCompilationError(
+        file,
+        "Empty routes file",
+        None,
+        None)
+    }
+
     routes.foreach { route =>
 
       if (route.call.packageName.isEmpty) {
