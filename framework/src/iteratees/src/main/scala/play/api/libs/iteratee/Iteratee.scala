@@ -47,26 +47,8 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
-   *
-   *
-   * @param state initial state
-   * @param f a function folding the previous state and an input to a new promise of state
-   */
-  def fold1[E, A](state: A)(f: (A, E) => Future[A]): Iteratee[E, A] = {
-    def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
-
-      case Input.EOF => Done(s, Input.EOF)
-      case Input.Empty => Cont[E, A](i => step(s)(i))
-      case Input.El(e) => { val newS = f(s, e); flatten(newS.map(s1 => Cont[E, A](i => step(s1)(i)))) }
-    }
-    (Cont[E, A](i => step(state)(i)))
-  }
-
-  /**
-   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
-   *
-   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
+   * M stands for Monadic which in this case means returning a [[scala.concurrent.Future]] for the function argument f, 
+   * so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
@@ -102,7 +84,7 @@ object Iteratee {
    * @param f a function folding the previous state and an input to a new promise of state
    */
   def fold1[E, A](state: Future[A])(f: (A, E) => Future[A]): Iteratee[E, A] = {
-    flatten(state.map(s => fold1(s)(f)))
+    flatten(state.map(s => foldM(s)(f)))
   }
 
   /**
