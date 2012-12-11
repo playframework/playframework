@@ -1,6 +1,7 @@
 package play.core;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Generic interface that helps the communication between a Play Application
@@ -29,5 +30,7 @@ public interface SBTLink {
 	public void forceReload();
 
 	public String markdownToHtml(String markdown, String pagePath);
+
+	public Map<String,String> settings();
 
 }

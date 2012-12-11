@@ -71,7 +71,10 @@ trait WithDefaultConfiguration {
   self: Application =>
 
   protected lazy val initialConfiguration = Threads.withContextClassLoader(self.classloader) {
-    Configuration.load(path, mode)
+    Configuration.load(path, mode, this match {
+      case dev: DevSettings => dev.devSettings
+      case _ => Map.empty
+    })
   }
 
   private lazy val fullConfiguration = global.onLoadConfig(initialConfiguration, path, classloader, mode)
