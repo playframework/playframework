@@ -410,7 +410,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
     ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
     try {
-      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.headOption.map { routesFile =>
+      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.map { routesFile =>
         compile(routesFile, generatedDir, additionalImports)
       }
     } catch {
