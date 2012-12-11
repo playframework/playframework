@@ -63,4 +63,7 @@ public class Application extends Controller {
         return ok(user.email);
     }
 
+    public static Result thread() {
+        return ok(Thread.currentThread().getName());
+    }
 }

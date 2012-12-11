@@ -4,6 +4,7 @@
 
 GET     /                           controllers.Application.index(name = "Guest")
 GET     /key                        controllers.Application.key
+GET     /thread                     controllers.Application.thread
 GET     /:name                      controllers.Application.index(name)
 POST    /json                       controllers.Application.json
 

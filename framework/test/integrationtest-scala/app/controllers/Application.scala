@@ -26,5 +26,9 @@ object Application extends Controller {
     )
 
   }
+
+  def thread = Action { request =>
+    Ok(Thread.currentThread.getName)
+  }
   
 }

@@ -428,6 +428,15 @@ trait Iteratee[E, +A] {
   def map[B](f: A => B): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))
 
   /**
+   * Like map but allows the map function to execute asynchronously.
+   *
+   * This is particularly useful if you want to do blocking operations, so that you can ensure that those operations
+   * execute in the right execution context, rather than the iteratee execution context, which would potentially block
+   * all other iteratee operations.
+   */
+  def mapM[B](f: A => Future[B]): Iteratee[E, B] = self.flatMapM(a => f(a).map(b => Done(b)))
+
+  /**
    * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input
    *
    * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
@@ -442,6 +451,18 @@ trait Iteratee[E, +A] {
     case Step.Cont(k) => Cont(in => k(in).flatMap(f))
     case Step.Error(msg, e) => Error(msg, e)
   }
+
+  /**
+   * Like flatMap but allows the flatMap function to execute asynchronously.
+   *
+   * This is particularly useful if you want to do blocking operations, so that you can ensure that those operations
+   * execute in the right execution context, rather than the iteratee execution context, which would potentially block
+   * all other iteratee operations.
+   */
+  def flatMapM[B](f: A => Future[Iteratee[E, B]]): Iteratee[E, B] = for {
+    a <- self
+    b <- Iteratee.flatten(f(a))
+  } yield b
 
   def flatMapInput[B](f: Step[E, A] => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(f)
 
