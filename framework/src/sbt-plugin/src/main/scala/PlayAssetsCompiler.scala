@@ -55,7 +55,7 @@ trait PlayAssetsCompiler {
               }
               val out = new File(resources, "public/" + naming(name, false))
               IO.write(out, debug)
-              dependencies.map(_ -> out) ++ min.map { minified =>
+              (dependencies ++ Seq(sourceFile)).toSet[File].map(_ -> out) ++ min.map { minified =>
                 val outMin = new File(resources, "public/" + naming(name, true))
                 IO.write(outMin, minified)
                 dependencies.map(_ -> outMin)
