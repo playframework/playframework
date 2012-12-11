@@ -21,27 +21,27 @@ trait LoggerLike {
   /**
    * `true` if the logger instance is enabled for the `TRACE` level.
    */
-  lazy val isTraceEnabled = logger.isTraceEnabled
+  def isTraceEnabled = logger.isTraceEnabled
 
   /**
    * `true` if the logger instance is enabled for the `DEBUG` level.
    */
-  lazy val isDebugEnabled = logger.isDebugEnabled
+  def isDebugEnabled = logger.isDebugEnabled
 
   /**
    * `true` if the logger instance is enabled for the `INFO` level.
    */
-  lazy val isInfoEnabled = logger.isInfoEnabled
+  def isInfoEnabled = logger.isInfoEnabled
 
   /**
    * `true` if the logger instance is enabled for the `WARN` level.
    */
-  lazy val isWarnEnabled = logger.isWarnEnabled
+  def isWarnEnabled = logger.isWarnEnabled
 
   /**
    * `true` if the logger instance is enabled for the `ERROR` level.
    */
-  lazy val isErrorEnabled = logger.isErrorEnabled
+  def isErrorEnabled = logger.isErrorEnabled
 
   /**
    * Logs a message with the `TRACE` level.
