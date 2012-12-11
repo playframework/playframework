@@ -18,6 +18,9 @@ case class UserMap(name: String, friends: Map[String, UserMap] = Map())
 case class Toto(name: String)
 case class UserFail(name: String, bd: Toto)
 
+case class Id[A](id: A)
+case class C1[A](id: Id[A], name: String)
+
 
 object JsonExtensionSpec extends Specification {
 
@@ -274,6 +277,26 @@ object JsonExtensionSpec extends Specification {
       ) must beEqualTo(
         JsSuccess(UserMap("toto", Map("tutu" -> UserMap("tutu"))))
       )
+    }
+
+    "manage Boxed class" in {
+      import play.api.libs.functional.syntax._
+
+      implicit def idReads[A](implicit rds: Reads[A]): Reads[Id[A]] = 
+        Reads[Id[A]] { js => rds.reads(js).map( Id[A](_) ) }
+
+      //val c2Reads1 = Json.reads[C2]
+
+      implicit def c1Reads[A](implicit rds: Reads[Id[A]]) = {
+        (
+          (__ \ 'id).read(rds) and
+          (__ \ 'name).read[String]
+        )( (id, name) => C1[A](id, name) )
+      }
+
+      val js = Json.obj("id" -> 123L, "name" -> "toto")
+
+      js.validate(c1Reads[Long]).get must beEqualTo(C1[Long](Id[Long](123L), "toto"))
     }
 
     /** test to validate it doesn't compile if missing implicit
