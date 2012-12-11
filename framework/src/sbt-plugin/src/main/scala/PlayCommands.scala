@@ -21,28 +21,6 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
-
-  // ~~ Alerts  
-  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
-    println()
-    this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
-      println(Colors.green(el.toString))
-    }
-    println()
-  }
-
-  Option(System.getProperty("play.version")).map {
-    case badVersion if badVersion != play.core.PlayVersion.current => {
-      println(
-        Colors.red("""
-          |This project uses Play %s!
-          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
-        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
-      )
-    }
-    case _ =>
-  }
-
   
   //- mainly scala, mainly java or none
 
