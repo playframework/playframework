@@ -12,6 +12,38 @@ import play.api.data.validation.ValidationError
 
 
 object JsonSpec extends Specification {
+  case class User(id: Long, name: String, friends: List[User])
+
+  implicit val UserFormat: Format[User] = (
+    (__ \ 'id).format[Long] and
+    (__ \ 'name).format[String] and
+    (__ \ 'friends).lazyFormat(Reads.list(UserFormat), Writes.list(UserFormat))
+  )(User, unlift(User.unapply))
+
+  case class Car(id: Long, models: Map[String, String])
+
+  implicit val CarFormat = (
+    (__ \ 'id).format[Long] and
+    (__ \ 'models).format[Map[String, String]]
+  )(Car, unlift(Car.unapply))
+
+  import java.util.Date
+  import java.text.SimpleDateFormat
+  val dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'" // Iso8601 format (forgot timezone stuff)
+  val dateParser = new SimpleDateFormat(dateFormat)
+
+  case class Post(body: String, created_at: Option[Date])
+
+  implicit val PostFormat = (
+    (__ \ 'body).format[String] and
+    (__ \ 'created_at).formatOpt[Option[Date]](
+      Format(
+        Reads.nullable(Reads.dateReads(dateFormat)), 
+        Writes.nullable(Writes.dateWrites(dateFormat))
+      )
+    ).inmap( optopt => optopt.flatten, (opt: Option[Date]) => Some(opt) )
+  )(Post, unlift(Post.unapply))
+
   "JSON" should {
     "equals JsObject independently of field order" in {
       Json.obj(
@@ -73,82 +105,8 @@ object JsonSpec extends Specification {
         )
       )
     }
-  }
 
-  "JSON Writes" should {
-    "write list/seq/set/map" in {
-      import util._
-      import Writes._
-
-      Json.toJson(List(1, 2, 3)) must beEqualTo(Json.arr(1, 2, 3))
-      Json.toJson(Set("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
-      Json.toJson(Seq("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
-      Json.toJson(Map("key1" -> "value1", "key2" -> "value2")) must beEqualTo(Json.obj("key1" -> "value1", "key2" -> "value2"))
-
-      implicit val myWrites = (
-        (__ \ 'key1).write(constraints.list[Int]) and
-        (__ \ 'key2).write(constraints.set[String]) and
-        (__ \ 'key3).write(constraints.seq[String]) and
-        (__ \ 'key4).write(constraints.map[String])
-      ) tupled
-
-      Json.toJson( List(1, 2, 3), 
-        Set("alpha", "beta", "gamma"), 
-        Seq("alpha", "beta", "gamma"), 
-        Map("key1" -> "value1", "key2" -> "value2")
-      ) must beEqualTo( 
-        Json.obj(
-          "key1" -> Json.arr(1, 2, 3),
-          "key2" -> Json.arr("alpha", "beta", "gamma"),
-          "key3" -> Json.arr("alpha", "beta", "gamma"),
-          "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
-        )
-      )
-    }
-  }
-}
-
-/*object JsonSpec extends Specification {
-
-  case class User(id: Long, name: String, friends: List[User])
-
-  implicit val UserFormat: Format[User] = JsMapper(
-    JsPath \ "id" -> in[Long],
-    JsPath \ "name" -> in[String],
-    JsPath \ "friends" -> in[List[User]]
-  )(User.apply)(User.unapply)
-
-  case class Car(id: Long, models: Map[String, String])
-
-  implicit val CarFormat:Format[Car] = productFormat2("id", "models")(Car)(Car.unapply)
-
-  import java.util.Date
-  case class Post(body: String, created_at: Option[Date])
-
-  import java.text.SimpleDateFormat
-  val dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'" // Iso8601 format (forgot timezone stuff)
-  val dateParser = new SimpleDateFormat(dateFormat)
-
-  // Try parsing date from iso8601 format
-  implicit object DateFormat extends Reads[Date] {
-    def reads(json: JsValue): JsResult[Date] = json match {
-        // Need to throw a RuntimeException, ParseException beeing out of scope of asOpt
-        case JsString(s) => catching(classOf[ParseException]).opt(dateParser.parse(s)).map(JsSuccess(_)).getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError( "parse.exception" )))))
-        case _ => JsError(Seq(JsPath() -> Seq(ValidationError( "parse.exception" ))))
-    }
-  }
-
-  implicit object PostFormat extends Format[Post] {
-    def reads(json: JsValue): JsResult[Post] = product(
-      (json \ "body").validate[String],
-      (json \ "created_at").validate[Option[Date]]).map{ Post.tupled }
-    def writes(p: Post): JsValue = Json.obj(
-      "body" -> p.body
-    ) // Don't care about creating created_at or not here
-  }
-
-  "JSON" should {
-    "serialize and desarialize maps properly" in {
+    "serialize and deserialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))
       val jsonCar = toJson(c)
 
@@ -161,7 +119,6 @@ object JsonSpec extends Specification {
       val mario = User(0, "Mario", List(luigi, kinopio, yoshi))
       val jsonMario = toJson(mario)
       jsonMario.as[User] must equalTo(mario)
-      //(jsonMario \\ "name") must equalTo(Seq(JsString("Mario"), JsString("Luigi"), JsString("Kinopio"), JsString("Yoshi")))
     }
     "Complete JSON should create full Post object" in {
       val postJson = """{"body": "foobar", "created_at": "2011-04-22T13:33:48Z"}"""
@@ -236,47 +193,39 @@ object JsonSpec extends Specification {
       parsedJson must equalTo(expectedJson)
     }
 
-    "generate validation error when parsing " in {
-      val obj = Json.obj(
-        "id" -> 1, 
-        "name" -> "bob", 
-        "friends" -> 5)
-
-      obj.validate[User] must equalTo(JsError(Seq(JsPath \ 'friends -> Seq(ValidationError("validate.error.expected.jsarray")))))
-    }
-
-    /*"prune branches of Json AST" in {
-      val obj = Json.obj( 
-        "level1" -> Json.obj(
-          "key1" -> Json.arr(
-            "key11",
-            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
-            "key12"
-          ), 
-          "key2" -> Json.obj(
-            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
-          )
-        ),
-        "level2" -> 5
-      )
-
-      obj.prune((JsPath \ "level1" \ "key1")(1) \\ "tags") must equalTo(Json.obj( 
-        "level1" -> Json.obj(
-          "key1" -> Json.arr(
-            "key11",
-            Json.obj("key111" -> Json.obj()),
-            "key12"
-          ), 
-          "key2" -> Json.obj(
-            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
-          )
-        ),
-        "level2" -> 5
-      )) 
-
-    }*/
-
-
   }
 
-}*/
+  "JSON Writes" should {
+    "write list/seq/set/map" in {
+      import util._
+      import Writes._
+
+      Json.toJson(List(1, 2, 3)) must beEqualTo(Json.arr(1, 2, 3))
+      Json.toJson(Set("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
+      Json.toJson(Seq("alpha", "beta", "gamma")) must beEqualTo(Json.arr("alpha", "beta", "gamma"))
+      Json.toJson(Map("key1" -> "value1", "key2" -> "value2")) must beEqualTo(Json.obj("key1" -> "value1", "key2" -> "value2"))
+
+      implicit val myWrites = (
+        (__ \ 'key1).write(constraints.list[Int]) and
+        (__ \ 'key2).write(constraints.set[String]) and
+        (__ \ 'key3).write(constraints.seq[String]) and
+        (__ \ 'key4).write(constraints.map[String])
+      ).tupled
+
+      Json.toJson( List(1, 2, 3), 
+        Set("alpha", "beta", "gamma"), 
+        Seq("alpha", "beta", "gamma"), 
+        Map("key1" -> "value1", "key2" -> "value2")
+      ) must beEqualTo( 
+        Json.obj(
+          "key1" -> Json.arr(1, 2, 3),
+          "key2" -> Json.arr("alpha", "beta", "gamma"),
+          "key3" -> Json.arr("alpha", "beta", "gamma"),
+          "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
+        )
+      )
+    }
+  }
+
+}
+

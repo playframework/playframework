@@ -185,6 +185,7 @@ object JsPathSpec extends Specification {
 
 
 
+
     /*"set 1-level field in simple jsobject" in {
       val obj = Json.obj("key" -> "value")
 
