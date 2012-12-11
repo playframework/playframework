@@ -129,7 +129,7 @@ trait PlayReloader {
       var fileTimestamps = calculateTimestamps
 
       def hasChangedFiles: Boolean = monitoredFiles.exists{ f =>
-        val fileChanged = fileTimestamps.get(f.getAbsolutePath).map{ timestamp =>
+        val fileChanged = fileTimestamps.get(f.getAbsolutePath).map { timestamp =>
           f.lastModified != timestamp
         }.getOrElse{
           state.log.debug("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
@@ -142,6 +142,11 @@ trait PlayReloader {
       }
 
       val watchChanges: Seq[Int] = monitoredDirs.map( f => jnotify.addWatch(f.getAbsolutePath) )
+
+      lazy val settings = {
+        import scala.collection.JavaConverters._
+        extracted.get(PlayKeys.devSettings).toMap.asJava
+      }
 
       // --- Utils
 
