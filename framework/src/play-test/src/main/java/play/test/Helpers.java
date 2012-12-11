@@ -308,7 +308,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result route(Application app, FakeRequest fakeRequest) {
-      final play.api.mvc.Result r = play.api.test.Helpers.route(app.getWrappedApplication(), fakeRequest.getWrappedRequest()).getOrElse(null);
+      final play.api.mvc.Result r = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest()).getOrElse(null);
       if(r != null){
         return new Result() {
           public play.api.mvc.Result getWrappedResult(){

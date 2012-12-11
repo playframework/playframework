@@ -208,39 +208,48 @@ object Helpers extends Status with HeaderNames {
     }
   }
 
-  /**
-   * Use the Router to determine the Action to call for this request and executes it.
-   */
-  def route(rh: RequestHeader): Option[Result] = route(Play.current, rh)
-
-  /**
-   * Use the Router to determine the Action to call for this request and executes it.
-   */
-  def route(app: Application, rh: RequestHeader): Option[Result] = {
-    app.global.onRouteRequest(rh).flatMap {
-      case a: EssentialAction => {
-        Some(AsyncResult(app.global.doFilter(a.asInstanceOf[EssentialAction])(rh).run))
-      }
-      case _ => None
-    }
-  }
-
   // Java compatibility
+  def jRoute(app: Application, rh: RequestHeader): Option[Result] = route(app, rh, AnyContentAsEmpty)
   def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Result] = route(app, rh, body)(Writeable.wBytes)
   def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Result] = jRoute(Play.current, rh, body)
 
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   */
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = {
-    app.global.onRouteRequest(rh).flatMap {
+    val rhWithCt = w.contentType.map(ct => rh.copy(
+      headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
+    )).getOrElse(rh)
+    app.global.onRouteRequest(rhWithCt).flatMap {
       case a: EssentialAction => {
-        Some(AsyncResult(app.global.doFilter(
-          a.asInstanceOf[EssentialAction])(rh).feed(Input.El(w.transform(body))).flatMap(_.run)
-        ))
+        Some(AsyncResult(app.global.doFilter(a)(rhWithCt).feed(Input.El(w.transform(body))).flatMap(_.run)))
       }
       case _ => None
     }
   }
 
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   */
   def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = route(Play.current, rh, body)
+
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   */
+  def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Result] = route(app, req, req.body)
+
+  /**
+   * Use the Router to determine the Action to call for this request and execute it.
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   */
+  def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Result] = route(Play.current, req)
 
   /**
    * Block until a Promise is redeemed.
@@ -276,4 +285,22 @@ object Helpers extends Status with HeaderNames {
    * Construct a WS request for the given relative URL.
    */
   def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
+
+  implicit def writeableOf_AnyContentAsJson(implicit codec: Codec): Writeable[AnyContentAsJson] =
+    Writeable.writeableOf_JsValue.map(c => c.json)
+
+  implicit def writeableOf_AnyContentAsXml(implicit codec: Codec): Writeable[AnyContentAsXml] =
+    Writeable.writeableOf_NodeSeq.map(c => c.xml)
+
+  implicit def writeableOf_AnyContentAsFormUrlEncoded(implicit code: Codec): Writeable[AnyContentAsFormUrlEncoded] =
+    Writeable.writeableOf_urlEncodedForm.map(c => c.data)
+
+  implicit def writeableOf_AnyContentAsRaw: Writeable[AnyContentAsRaw] =
+    Writeable.wBytes.map(c => c.raw.initialData)
+
+  implicit def writeableOf_AnyContentAsText(implicit code: Codec): Writeable[AnyContentAsText] =
+    Writeable.wString.map(c => c.txt)
+
+  implicit def writeableOf_AnyContentAsEmpty(implicit code: Codec): Writeable[AnyContentAsEmpty.type] =
+    Writeable(_ => Array.empty[Byte], None)
 }
