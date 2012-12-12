@@ -6,10 +6,11 @@ import play.templates._
 /**
  * Content type used in default HTML templates.
  *
- * @param text the HTML text
+ * @param buffer the HTML text
  */
-case class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+case class Html(buffer: StringBuilder) extends Appendable[Html] with Content with play.mvc.Content {
+
+  def this(text: String) = this(new StringBuilder(text))
 
   /**
    * Appends this HTML fragment to another.
@@ -37,7 +38,12 @@ object Html {
   /**
    * Creates an empty HTML fragment.
    */
-  def empty: Html = Html("")
+  def empty: Html = Html(new StringBuilder)
+
+  /**
+   * Create an HTML fragment for the given string.
+   */
+  def apply(text: String): Html = new Html(text)
 
 }
 
@@ -54,7 +60,20 @@ object HtmlFormat extends Format[Html] {
   /**
    * Creates a safe (escaped) HTML fragment.
    */
-  def escape(text: String): Html = Html(org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(text))
+  def escape(text: String): Html = {
+    // Using our own algorithm here because commons lang escaping wasn't designed for protecting against XSS, and there
+    // don't seem to be any other good generic escaping tools out there.
+    val sb = new StringBuilder(text.length)
+    text.foreach {
+      case '<' => sb.append("&lt;")
+      case '>' => sb.append("&gt;")
+      case '"' => sb.append("&quot;")
+      case '\'' => sb.append("&#x27;")
+      case '&' => sb.append("&amp;")
+      case c => sb += c
+    }
+    Html(sb)
+  }
 
 }
 
@@ -178,6 +197,6 @@ object PlayMagic {
    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
    * }}}
    */
-  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
+  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + HtmlFormat.escape(a._2.toString).body + "\"").mkString(" "))
 
 }
