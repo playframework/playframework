@@ -79,7 +79,7 @@ without the source jars:
 if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ idea with-sources
+[My first application] $ idea with-sources=yes
 ```
 
 This will create the configuration files IntelliJ needs to open your play application as a project. The files are named <project>.iml and <project>-build.iml. The file menu (IntelliJ 11.1 CE) contains the Open Project command.
