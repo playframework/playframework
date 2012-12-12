@@ -183,6 +183,10 @@ trait PlaySettings {
 
     requireJs := Nil,
 
+    requireJsFolder := "",
+
+    requireJsShim := "",
+
     requireNativePath := None,
 
     buildRequire <<= buildRequireTask,
