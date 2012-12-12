@@ -88,12 +88,12 @@ trait Action[A] extends EssentialAction {
    */
   def apply(request: Request[A]): Result
 
-  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).mapM {
-    case Left(r) =>
-      Logger("play").trace("Got direct result from the BodyParser: " + r)
-      Promise.pure(r)
-    case Right(a) =>
-      Future {
+  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).mapM { parseResult =>
+    Future(parseResult match {
+      case Left(r) =>
+        Logger("play").trace("Got direct result from the BodyParser: " + r)
+        r
+      case Right(a) =>
         val request = Request(rh, a)
         Logger("play").trace("Invoking action with request: " + request)
         Play.maybeApplication.map { app =>
@@ -103,7 +103,7 @@ trait Action[A] extends EssentialAction {
           }
           // } catch { case e => app.handleError(rh, e) }
         }.getOrElse(Results.InternalServerError)
-      }(play.api.libs.concurrent.Execution.defaultContext)
+    })(play.api.libs.concurrent.Execution.defaultContext)
   }
 
   /**
