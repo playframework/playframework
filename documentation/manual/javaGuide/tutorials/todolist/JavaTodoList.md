@@ -282,7 +282,7 @@ We also imported `helper._` that give us the form creation helpers, typically th
 A `Form` object encapsulates an HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
 
 ```
-static Form<Task> taskForm = form(Task.class);
+static Form<Task> taskForm = Form.form(Task.class);
 ```
 
 The type of `taskForm` is then `Form<Task>` since it is a form generating a simple `Task`.  
