@@ -19,6 +19,13 @@ Using this simple API you can store data in the cache:
 Cache.set("item.key", frontPageNews);
 ```
 
+Optionally you can specify a expiration (in seconds) for the cache:
+
+```
+// Cache for 15 minutes
+Cache.set("item.key", frontPageNews, 60 * 15);
+```
+
 You can retrieve the data later:
 
 ```
