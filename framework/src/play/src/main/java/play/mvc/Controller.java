@@ -62,7 +62,7 @@ public abstract class Controller extends Results implements Status, HeaderNames 
     }
     
     /**
-     * Returns a vlue from the session.
+     * Returns a value from the session.
      */     
     public static String session(String key) {
         return session().get(key);
