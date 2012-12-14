@@ -1,4 +1,4 @@
-# HTTP routing
+Give an example of how to specify an optional query parameter# HTTP routing
 
 ## The built-in HTTP router
 
@@ -147,6 +147,15 @@ You can also provide a default value that will be used if no value is found in t
 ```
 # Pagination links, like /clients?page=3
 GET   /clients              controllers.Clients.list(page: Int ?= 1)
+```
+
+### Optional parameters
+
+You can also specify an optional parameter that does not need to be present in all requests:
+
+```
+# The version parameter is optional. E.g. /api/list-all?version=3.0
+GET   /api/list-all         controllers.Api.list(Option[version])
 ```
 
 ## Routing priority
