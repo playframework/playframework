@@ -1,6 +1,7 @@
 package controllers
 
 import play.api._
+import libs.iteratee.Iteratee
 import libs.json.Json
 import play.api.mvc._
 
@@ -26,5 +27,18 @@ object Application extends Controller {
     )
 
   }
-  
+
+  def thread = Action { request =>
+    Ok(Thread.currentThread.getName)
+  }
+
+  def bodyParserThread = Action(new BodyParser[String] {
+    def apply(request: RequestHeader) = {
+      val threadName = Thread.currentThread.getName
+      Iteratee.ignore[Array[Byte]].map(_ => Right(threadName))
+    }
+  }) { request =>
+    Ok(request.body)
+  }
+
 }
