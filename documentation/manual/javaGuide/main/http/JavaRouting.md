@@ -154,6 +154,15 @@ You can also provide a default value that will be used if no value is found in t
 GET   /clients              controllers.Clients.list(page: Integer ?= 1)
 ```
 
+### Optional parameters
+
+You can also specify an optional parameter that does not need to be present in all requests:
+
+```
+# The version parameter is optional. E.g. /api/list-all?version=3.0
+GET   /api/list-all         controllers.Api.list(version ?= null)
+```
+
 ## Routing priority
 
 Many routes can match the same request. If there is a conflict, the first route (in declaration order) is used.
