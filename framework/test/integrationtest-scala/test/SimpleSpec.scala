@@ -5,6 +5,8 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.libs.json.{JsValue, Json, JsObject}
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
 
 class SimpleSpec extends Specification {
   
@@ -103,7 +105,17 @@ class SimpleSpec extends Specification {
         (node2 \ "key3").as[String] must equalTo("true")
       }
     }
-    
+
+    "execute in the user execution context" in new WithServer() {
+      val response = Await.result(wsCall(controllers.routes.Application.thread()).get(), Duration.Inf)
+      response.body must startWith("play-akka.actor.default-dispatcher-")
+    }
+
+    "execute body parser in the user execution context" in new WithServer() {
+      val response = Await.result(wsCall(controllers.routes.Application.bodyParserThread()).get(), Duration.Inf)
+      response.body must startWith("play-akka.actor.default-dispatcher-")
+    }
+
   }
 
 }

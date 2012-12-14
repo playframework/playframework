@@ -10,6 +10,7 @@ GET     /hello                      controllers.Application.hello()
 POST    /json                       controllers.Application.getIdenticalJson()
 GET     /paged                      controllers.Application.paged(p: controllers.Pager)
 GET     /user/:user                 controllers.Application.user(user: models.User)
+GET     /thread                     controllers.Application.thread
 
 POST    /parsers/json               controllers.BodyParsers.json()
 POST    /parsers/limitedjson        controllers.BodyParsers.limitedJson()
