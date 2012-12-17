@@ -47,7 +47,7 @@ import static play.mvc.Results.*;
 public class Global extends GlobalSettings {
 
   @Override
-  public Result onError(Throwable t) {
+  public Result onError(RequestHeader request, Throwable t) {
     return internalServerError(
       views.html.errorPage(t)
     );
