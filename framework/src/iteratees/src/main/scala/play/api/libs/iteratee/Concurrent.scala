@@ -227,14 +227,15 @@ object Concurrent {
       def step(it: Iteratee[E, A]): K[E, Iteratee[E, A]] = {
         case Input.EOF => Done(it, Input.EOF)
 
-        case other => Iteratee.flatten(it.unflatten.map(Left(_)).either(timeoutFuture(Right(()), timeout, unit)).map {
-          case Left(Step.Cont(k)) => Cont(step(k(other)))
-
-          case Left(done) => Done(done.it, other)
-
-          case Right(_) => Error("iteratee is taking too long", other)
-
-        })
+        case other => Iteratee.flatten(
+          Future.firstCompletedOf(
+            it.unflatten.map(Left(_)) :: timeoutFuture(Right(()), timeout, unit) :: Nil
+          ).map {
+            case Left(Step.Cont(k)) => Cont(step(k(other)))
+            case Left(done) => Done(done.it, other)
+            case Right(_) => Error("iteratee is taking too long", other)
+          }
+        )
       }
       Cont(step(inner))
     }
@@ -377,14 +378,19 @@ object Concurrent {
 
           case in =>
             if (!busy.single()) {
-              val readyOrNot: Future[Either[Iteratee[E, Iteratee[E, A]], Unit]] = inner.pureFold[Iteratee[E, Iteratee[E, A]]] {
-                case Step.Done(a, e) => Done(Done(a, e), Input.Empty)
-                case Step.Cont(k) => Cont { in =>
-                  val next = k(in)
-                  Cont(step(next))
-                }
-                case Step.Error(msg, e) => Done(Error(msg, e), Input.Empty)
-              }.map(i => { busy.single() = false; i }).map(Left(_)).either(timeoutFuture(Right(()), duration, unit))
+              val readyOrNot: Future[Either[Iteratee[E, Iteratee[E, A]], Unit]] = Future.firstCompletedOf(
+                Seq(
+                  inner.pureFold[Iteratee[E, Iteratee[E, A]]] {
+                    case Step.Done(a, e) => Done(Done(a, e), Input.Empty)
+                    case Step.Cont(k) => Cont { in =>
+                      val next = k(in)
+                      Cont(step(next))
+                    }
+                    case Step.Error(msg, e) => Done(Error(msg, e), Input.Empty)
+                  }.map(i => { busy.single() = false; i }).map(Left(_)),
+                  timeoutFuture(Right(()), duration, unit)
+                )
+              )
 
               Iteratee.flatten(readyOrNot.map {
                 case Left(ready) =>
