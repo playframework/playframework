@@ -633,18 +633,27 @@ trait Results {
     }
 
     /**
-     * Set the result's content as chunked.
+     * Stream the given enumerator as a chunked response.
      *
-     * @tparam C the chunk type
      * @param content Enumerator providing the chunked content.
-     * @param a `ChunkedResult`
+     * @return a `ChunkedResult`
      */
     def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        iteratee => content |>> iteratee)
+        iteratee => content |>>> iteratee)
     }
 
+    /**
+     * Feed the given enumerator as a plain response.
+     *
+     * Note that this method will result in no Content-Length header being set, and consequently when the enumerator
+     * has finished, the connection will be closed, as this is the only way to terminate a response that isn't
+     * chunked and doesn't set a content length header.
+     *
+     * @param content The content to stream
+     * @return a simple result
+     */
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult[C] = {
       SimpleResult(
         header = ResponseHeader(status, Map(CONTENT_LENGTH -> "-1")),
@@ -652,11 +661,10 @@ trait Results {
     }
 
     /**
-     * Set the result's content as chunked.
+     * Invoke the given function to allow a response to be streamed to the response iteratee.
      *
-     * @tparam C the chunk type
      * @param content A function that will give you the Iteratee to write in once ready.
-     * @param a `ChunkedResult`
+     * @return a `ChunkedResult`
      */
     def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(

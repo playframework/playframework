@@ -116,6 +116,15 @@ class SimpleSpec extends Specification {
       response.body must startWith("play-akka.actor.default-dispatcher-")
     }
 
+    "support streaming using an enumerator" in new WithServer() {
+      val response = Await.result(wsCall(controllers.routes.Application.streamEnumerator()).get(), Duration.Inf)
+      response.body must_== "abc"
+    }
+
+    "support feeding using an enumerator" in new WithServer() {
+      val response = Await.result(wsCall(controllers.routes.Application.feedEnumerator()).get(), Duration.Inf)
+      response.body must_== "abc"
+    }
   }
 
 }

@@ -1,7 +1,7 @@
 package controllers
 
 import play.api._
-import libs.iteratee.Iteratee
+import libs.iteratee.{Enumerator, Iteratee}
 import libs.json.Json
 import play.api.mvc._
 
@@ -41,4 +41,11 @@ object Application extends Controller {
     Ok(request.body)
   }
 
+  def streamEnumerator = Action {
+    Ok.stream(Enumerator("a", "b", "c"))
+  }
+
+  def feedEnumerator = Action {
+    Ok.feed(Enumerator("a", "b", "c"))
+  }
 }
