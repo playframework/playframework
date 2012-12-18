@@ -6,6 +6,8 @@ GET     /                           controllers.Application.index(name = "Guest"
 GET     /key                        controllers.Application.key
 GET     /thread                     controllers.Application.thread
 GET     /bodyParserThread           controllers.Application.bodyParserThread
+GET     /streamEnumerator           controllers.Application.streamEnumerator
+GET     /feedEnumerator             controllers.Application.feedEnumerator
 GET     /:name                      controllers.Application.index(name)
 POST    /json                       controllers.Application.json
 

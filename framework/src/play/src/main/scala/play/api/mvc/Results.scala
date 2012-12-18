@@ -642,7 +642,7 @@ trait Results {
     def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        iteratee => content |>> iteratee)
+        iteratee => content |>>> iteratee)
     }
 
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult[C] = {
