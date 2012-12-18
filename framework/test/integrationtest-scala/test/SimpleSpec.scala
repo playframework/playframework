@@ -121,12 +121,10 @@ class SimpleSpec extends Specification {
       response.body must_== "abc"
     }
 
-    /* This test currently never terminates
     "support feeding using an enumerator" in new WithServer() {
       val response = Await.result(wsCall(controllers.routes.Application.feedEnumerator()).get(), Duration.Inf)
       response.body must_== "abc"
     }
-    */
   }
 
 }
