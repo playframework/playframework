@@ -2,7 +2,7 @@
 
 > This is a temporary location for listing modules, until there will be a location to register them on the Play website.
 
-> Blog posts describing the process of writing a module can be found on [objectify.be](http://www.objectify.be/wordpress/?p=363) and [developer.vz.net](http://developer.vz.net/2012/03/16/writing-a-play-2-0-module/)
+> Blog posts describing the process of writing a module can be found on [objectify.be](http://www.objectify.be/wordpress/?p=363).
 
 ## Airbrake.io notifier
 
