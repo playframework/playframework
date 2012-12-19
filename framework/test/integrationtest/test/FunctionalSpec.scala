@@ -16,9 +16,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class FunctionalSpec extends Specification {
   "an Application" should {
     
-    def cal = Calendar.getInstance()
-
-    val startDate = cal.getTime()
 
     "charset should be defined" in new WithServer() {
       val h = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").get)
@@ -40,52 +37,18 @@ class FunctionalSpec extends Specification {
       browser.pageSource must contain("Hello world")
     }
     "pass functional test" in new WithBrowser() {
-      // -- Etags
-      val format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH)
-      format.setTimeZone(java.util.TimeZone.getTimeZone("GMT"))
-      val h = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").get)
-      h.header("Last-Modified").isDefined must equalTo(true)
-      h.header("LAST-MODIFIED").isDefined must equalTo(true)   //test case insensitivity of hashmap keys
-      h.header("Etag").get.startsWith("\"") must equalTo(true)
-      h.header("Etag").get.endsWith("\"") must equalTo(true)
-      h.header("ETAG").get.endsWith("\"") must equalTo(true)
-      //the map queries are case insensitive, but the underlying map still contains the original headers
-      val keys = h.getAHCResponse.getHeaders().keySet()
-      keys.contains("Etag")  must equalTo(true)
-      keys.contains("ETAG") must equalTo(false)
-
       val hp = WS.url("http://localhost:" + port + "/jsonWithContentType").
         withHeaders("Accept"-> "application/json").
         get{ header: ResponseHeaders =>
-         val hdrs = header.headers
-         hdrs.get("Content-Type").isDefined must equalTo(true)
-         hdrs.get("CONTENT-TYpe").isDefined must equalTo(true)
-         hdrs.keys.find(header => header == "Content-Type" ).isDefined must equalTo(true)
-         hdrs.keys.find(header => header == "CONTENT-TYpe" ).isDefined must equalTo(false)
-         Iteratee.fold[Array[Byte],StringBuffer](new StringBuffer){ (buf,array) => { buf.append(array); buf }}
+        val hdrs = header.headers
+        hdrs.get("Content-Type").isDefined must equalTo(true)
+        hdrs.get("CONTENT-TYpe").isDefined must equalTo(true)
+        hdrs.keys.find(header => header == "Content-Type" ).isDefined must equalTo(true)
+        hdrs.keys.find(header => header == "CONTENT-TYpe" ).isDefined must equalTo(false)
+        Iteratee.fold[Array[Byte],StringBuffer](new StringBuffer){ (buf,array) => { buf.append(array); buf }}
       }
 
       await(hp.map(_.run)).map(buf => buf.toString must contain("""{"Accept":"application/json"}""") )
-
-      val secondRequest = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get)
-      secondRequest.status must equalTo(304)
-
-      // return Date header with 304 response
-      secondRequest.header(DATE) must beSome
-
-      val localCal = cal
-      val f = new java.io.File("public/stylesheets/main.css")
-      localCal.setTime(new java.util.Date(f.lastModified))
-      localCal.add(Calendar.HOUR, -1)
-      val earlierDate =  localCal.getTime
-
-      val third = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(earlierDate)).get)
-      third.header("Last-Modified").isDefined must equalTo(true)
-      third.status must equalTo(200)
-
-      val fourth = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").withHeaders("If-Modified-Since" -> "Not a date").get)
-      fourth.header("Last-Modified").isDefined must equalTo(true)
-      fourth.status must equalTo(200)
 
       val content: String = await(WS.url("http://localhost:" + port + "/post").post("param1=foo")).body
       content must contain ("param1")

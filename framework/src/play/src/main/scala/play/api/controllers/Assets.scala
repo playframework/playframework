@@ -99,11 +99,11 @@ class AssetsBuilder extends Controller {
             try {
               (stream.available, Enumerator.fromStream(stream))
             } catch {
-              case _ => (0, Enumerator[Array[Byte]]())
+              case _ => (-1, Enumerator[Array[Byte]]())
             }
           }
 
-          if (length == 0) {
+          if (length == -1) {
             NotFound
           } else {
             request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch =>
