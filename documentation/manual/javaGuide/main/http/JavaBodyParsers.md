@@ -51,7 +51,7 @@ If you don't specify your own body parser, Play will use the default one guessin
 
 - **text/plain**: `String`, accessible via `asText()`
 - **application/json**: `JsonNode`, accessible via `asJson()`
-- **text/xml**: `org.w3c.Document`, accessible via `asXml()`
+- **application/xml**, **text/xml** or **application/XXX+xml**: `org.w3c.Document`, accessible via `asXml()`
 - **application/form-url-encoded**: `Map<String, String[]>`, accessible via `asFormUrlEncoded()`
 - **multipart/form-data**: `Http.MultipartFormData`, accessible via `asMultipartFormData()`
 - Any other content type: `Http.RawBuffer`, accessible via `asRaw()`
