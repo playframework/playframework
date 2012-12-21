@@ -9,7 +9,7 @@ import play.templates._
  * @param text the HTML text
  */
 class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+  private val buffer = new StringBuilder(text)
 
   /**
    * Appends another Html fragment to this, modifying this.
@@ -77,7 +77,7 @@ object HtmlFormat extends Format[Html] {
  * @param text The plain text.
  */
 class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+  private val buffer = new StringBuilder(text)
 
   /**
    * Appends another text fragment to this, modifying this.
@@ -146,7 +146,7 @@ object TxtFormat extends Format[Txt] {
  * @param text the plain xml text
  */
 class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+  private val buffer = new StringBuilder(text)
 
   /**
    * Appends another XML fragment to this, modifying this.
