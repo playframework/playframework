@@ -1,7 +1,7 @@
 /**
  * Play framework.
  *
- * == Play 2.0 ==
+ * == Play 2.1 ==
  * [[http://www.playframework.org http://www.playframework.org]]
  */
 package object play
