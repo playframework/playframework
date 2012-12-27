@@ -540,15 +540,19 @@ object Enumerator {
     fromStream(new java.io.FileInputStream(file), chunkSize)
   }
 
-  def fromIterator[A](it: scala.collection.Iterator[A]): Enumerator[A] = { 
+  /**
+   *  Creates an enumerator from a TraversableOnce object. 
+   */
+  def fromTraversableOnce[A](traversable: scala.collection.TraversableOnce[A])(implicit ctx:scala.concurrent.ExecutionContext): Enumerator[A] = { 
+    val it = traversable.toIterator
     Enumerator.unfoldM[scala.collection.Iterator[A], A](it: scala.collection.Iterator[A] )({ currentIt => 
       if(it.hasNext)
         Future[ Option[(scala.collection.Iterator[A], A)] ]({
           val next = it.next
           Some( (it -> next) )
-        })
+        })(ctx)
       else 
-        Future[ Option[(scala.collection.Iterator[A], A)] ]({
+        Future.successful[ Option[(scala.collection.Iterator[A], A)] ]({
           None
         })
     })

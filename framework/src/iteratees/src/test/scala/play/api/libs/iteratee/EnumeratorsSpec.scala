@@ -41,10 +41,10 @@ object EnumeratorsSpec extends Specification {
 
 }
 
-"Enumerator.fromIterator" should {
+"Enumerator.fromTraversableOnce" should {
   "generate an Enumerator from a singleton Iterator" in {
     val iterator = scala.collection.Iterator.single[Int](3)
-    val futureOfResult = Enumerator.fromIterator(iterator) |>>> 
+    val futureOfResult = Enumerator.fromTraversableOnce(iterator) |>>> 
                          Enumeratee.take(1) &>> 
                          Iteratee.fold(List.empty[Int])((r, e) => e::r)
     val result = Await.result(futureOfResult, Duration.Inf)
@@ -54,7 +54,7 @@ object EnumeratorsSpec extends Specification {
 
   "take as much element as in the iterator " in {
     val iterator = scala.collection.Iterator.range(0, 50)
-    val futureOfResult = Enumerator.fromIterator(iterator) |>>> 
+    val futureOfResult = Enumerator.fromTraversableOnce(iterator) |>>> 
                          Enumeratee.take(100) &>> 
                          Iteratee.fold(List.empty[Int])((r, e) => e::r)
     val result = Await.result(futureOfResult, Duration.Inf)
