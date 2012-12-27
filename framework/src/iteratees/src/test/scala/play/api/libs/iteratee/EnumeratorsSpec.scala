@@ -41,6 +41,27 @@ object EnumeratorsSpec extends Specification {
 
 }
 
+"Enumerator.fromIterator" should {
+  "generate an Enumerator from a singleton Iterator" in {
+    val iterator = scala.collection.Iterator.single[Int](3)
+    val futureOfResult = Enumerator.fromIterator(iterator) |>>> 
+                         Enumeratee.take(1) &>> 
+                         Iteratee.fold(List.empty[Int])((r, e) => e::r)
+    val result = Await.result(futureOfResult, Duration.Inf)
+    result(0) must equalTo(3)
+    result.length must equalTo(1)
+  }
+
+  "take as much element as in the iterator " in {
+    val iterator = scala.collection.Iterator.range(0, 50)
+    val futureOfResult = Enumerator.fromIterator(iterator) |>>> 
+                         Enumeratee.take(100) &>> 
+                         Iteratee.fold(List.empty[Int])((r, e) => e::r)
+    val result = Await.result(futureOfResult, Duration.Inf)
+    result.length must equalTo(50)
+  }
+}
+
 "Enumerator's Hub" should {
 
   "share Enumerator with different iteratees" in {

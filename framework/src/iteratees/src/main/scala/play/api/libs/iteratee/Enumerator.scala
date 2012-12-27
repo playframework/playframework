@@ -540,6 +540,20 @@ object Enumerator {
     fromStream(new java.io.FileInputStream(file), chunkSize)
   }
 
+  def fromIterator[A](it: scala.collection.Iterator[A]): Enumerator[A] = { 
+    Enumerator.unfoldM[scala.collection.Iterator[A], A](it: scala.collection.Iterator[A] )({ currentIt => 
+      if(it.hasNext)
+        Future[ Option[(scala.collection.Iterator[A], A)] ]({
+          val next = it.next
+          Some( (it -> next) )
+        })
+      else 
+        Future[ Option[(scala.collection.Iterator[A], A)] ]({
+          None
+        })
+    })
+  }
+
   /** Create an Enumerator of bytes with an OutputStream.
    */
   def outputStream(a: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
