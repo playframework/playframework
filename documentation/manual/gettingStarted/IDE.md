@@ -13,13 +13,13 @@ Play provides a command to simplify Eclipse configuration. To transform a Play a
 without the source jars:
 
 ```
-[My first application] $ eclipse
+[My first application] $ eclipsify
 ```
 
 if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ eclipse with-source=true
+[My first application] $ eclipsify with-source=true
 ```
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately:
@@ -40,7 +40,7 @@ object ApplicationBuild extends Build {
 or from the play console, type:
 
 ``` 
-[My first application] $ eclipse skip-parents=false
+[My first application] $ eclipsify skip-parents=false
 ```
 
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
