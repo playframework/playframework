@@ -26,6 +26,7 @@ import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
+import util.{Failure, Success, Try}
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
@@ -65,7 +66,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-        val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
         val rHeaders = getHeaders(nettyHttpRequest)
         val rCookies = getCookies(nettyHttpRequest)
@@ -86,6 +86,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
         //mapping netty request to Play's
 
+        val queryStringDecoded = Try(nettyUri.getParameters.asScala.mapValues(_.asScala.toList).toMap)
+        val parameters = queryStringDecoded match {
+          case Success(map) => map
+          case Failure(_) => Map.empty[String, Seq[String]]
+        }
         val requestHeader = new RequestHeader {
           val id = requestIDs.incrementAndGet
           val tags = Map.empty[String,String]
@@ -266,7 +271,32 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
         }
         // get handler for request
-        val handler = server.getHandlerFor(requestHeader)
+        val handler: Either[Result, (Handler, Application)] = queryStringDecoded match {
+          case Success(_) => server.getHandlerFor(requestHeader)
+          case Failure(e) => {
+            def badRequest(error: String) = Action { request =>
+              play.api.Play.maybeApplication.map(_.global.onBadRequest(request, error)).getOrElse(play.api.DefaultGlobal.onBadRequest(request, error))
+            }
+            val badRequestHandler: Either[Throwable, (Handler, Application)] = server.applicationProvider.get.right.map {
+              application =>
+                (badRequest("Query string invalid : " + requestHeader.uri + " : " + e.getMessage), application)
+            }
+            badRequestHandler.left.map {
+              e =>
+                Logger.error(
+                  """
+                    |
+                    |! %sInternal server error, for (%s) [%s] ->
+                    | """.stripMargin.format(e match {
+                    case p: PlayException => "@" + p.id + " - "
+                    case _ => ""
+                  }, requestHeader.method, requestHeader.uri),
+                  e)
+
+                DefaultGlobal.onError(requestHeader, e)
+            }
+          }
+        }
 
         def cleanFlashCookie(r:PlainResult):Result = {
           val header = r.header
