@@ -546,10 +546,10 @@ object Enumerator {
   def fromTraversableOnce[A](traversable: scala.collection.TraversableOnce[A])(implicit ctx:scala.concurrent.ExecutionContext): Enumerator[A] = { 
     val it = traversable.toIterator
     Enumerator.unfoldM[scala.collection.Iterator[A], A](it: scala.collection.Iterator[A] )({ currentIt => 
-      if(it.hasNext)
+      if(currentIt.hasNext)
         Future[ Option[(scala.collection.Iterator[A], A)] ]({
-          val next = it.next
-          Some( (it -> next) )
+          val next = currentIt.next
+          Some( (currentIt -> next) )
         })(ctx)
       else 
         Future.successful[ Option[(scala.collection.Iterator[A], A)] ]({
