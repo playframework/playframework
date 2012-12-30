@@ -58,7 +58,7 @@ object WS {
       val playConfig = play.api.Play.maybeApplication.map(_.configuration)
       val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
         .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.request")).getOrElse(-1L).toInt)
         .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
         .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
 
@@ -78,7 +78,7 @@ object WS {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
 
   /**
    * A WS Request.
@@ -302,6 +302,7 @@ object WS {
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
       timeout: Option[Int],
+      requestTimeout: Option[Int],
       virtualHost: Option[String]) {
 
     /**
@@ -344,10 +345,18 @@ object WS {
       this.copy(followRedirects = Some(follow))
 
     /**
-     * Sets the request timeout in milliseconds
+     * Sets the maximum time in millisecond the request can wait when connecting to a remote host.
+     * Note: If the remote host is not responding in this time, the request is aborted.
      */
     def withTimeout(timeout: Int): WSRequestHolder =
       this.copy(timeout = Some(timeout))
+    
+    /**
+     * Sets the maximum time in millisecond the request can wait for a response.
+     * Note: For instance, a stream consuption is interrupted when this time is reached.
+     */
+    def withRequestTimeout(timeout: Int): WSRequestHolder =
+      this.copy(requestTimeout = Some(timeout))
 
     def withVirtualHost(vh: String): WSRequestHolder = {
       this.copy(virtualHost = Some(vh))
@@ -427,7 +436,7 @@ object WS {
         .setHeaders(headers)
         .setQueryString(queryString)
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -449,7 +458,7 @@ object WS {
         .setQueryString(queryString)
         .setBody(bodyGenerator)
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -467,7 +476,7 @@ object WS {
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
       followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
