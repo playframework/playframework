@@ -725,8 +725,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   }
 
-  val playCommand = Command.command("play", Help("play", ("play", "Enter the play console"), """
-        |Welcome to Play 2.0!
+  val playCommand = Command.command("play", Help("play", ("play", "Enter the play console"), "Welcome to Play " + play.core.PlayVersion.current + """!
         |
         |These commands are available:
         |-----------------------------
