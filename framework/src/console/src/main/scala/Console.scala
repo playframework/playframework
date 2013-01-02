@@ -5,6 +5,7 @@ import jline._
 import java.io._
 import scalax.file._
 import giter8.Giter8
+import scala.annotation.tailrec
 
 /**
  * provides the console infrastructure for all play apps
@@ -98,23 +99,7 @@ object Console {
     } else {
       val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (args.last, defaultName)
       else {
-        var nameInput: Either[String, String] = Right("")
-        do {
-          consoleReader.printString("What is the application name? [%s]".format(defaultName))
-          consoleReader.printNewline()
-          nameInput = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).filter(_.size > 0).getOrElse(defaultName) match {
-            case IdParser(name) => Right(name)
-            case _ => Left("Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
-          }
-
-          nameInput.left.foreach { msg =>
-            consoleReader.printString(Colors.red("Error: ") + msg)
-            consoleReader.printNewline()
-            consoleReader.printNewline()
-          }
-        } while (nameInput.isLeft)
-
-        val name = nameInput.right.get
+        val name = readApplicationName(defaultName)
 
         consoleReader.printNewline()
         consoleReader.printString("Which template do you want to use for this new application? ")
@@ -214,6 +199,21 @@ object Console {
       }
     }
 
+  }
+
+  @tailrec
+  def readApplicationName(defaultName: String): String = {
+    consoleReader.printString("What is the application name? [%s]".format(defaultName))
+    consoleReader.printNewline()
+    Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).filter(_.size > 0).getOrElse(defaultName) match {
+      case IdParser(name) => name
+      case _ => {
+        consoleReader.printString(Colors.red("Error: ") + "Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
+        consoleReader.printNewline()
+        consoleReader.printNewline()
+        readApplicationName(defaultName)
+      }
+    }
   }
 
   def helpCommand(args: Array[String]): (String, Int) = {
