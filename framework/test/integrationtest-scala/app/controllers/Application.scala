@@ -48,4 +48,10 @@ object Application extends Controller {
   def feedEnumerator = Action {
     Ok.feed(Enumerator("a", "b", "c"))
   }
+
+  def streamIteratee = Action {
+    Ok.stream({ it: Iteratee[String, Unit] =>
+      Enumerator("a", "b", "c") |>>> it
+    })
+  }
 }

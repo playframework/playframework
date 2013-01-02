@@ -121,6 +121,11 @@ class SimpleSpec extends Specification {
       response.body must_== "abc"
     }
 
+    "support streaming using a callback for an iteratee" in new WithServer() {
+      val response = Await.result(wsCall(controllers.routes.Application.streamIteratee()).get(), Duration.Inf)
+      response.body must_== "abc"
+    }
+
     "support feeding using an enumerator" in new WithServer() {
       val response = Await.result(wsCall(controllers.routes.Application.feedEnumerator()).get(), Duration.Inf)
       response.body must_== "abc"

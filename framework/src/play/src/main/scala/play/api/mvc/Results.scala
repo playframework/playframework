@@ -361,7 +361,7 @@ case class SimpleResult[A](header: ResponseHeader, body: Enumerator[A])(implicit
  * @param header the response header, which contains status code and HTTP headers
  * @param chunks the chunks enumerator
  */
-case class ChunkedResult[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends PlainResult {
+case class ChunkedResult[A](header: ResponseHeader, chunks: Enumerator[A])(implicit val writeable: Writeable[A]) extends PlainResult {
 
   /** The body content type. */
   type BODY_CONTENT = A
@@ -641,7 +641,7 @@ trait Results {
     def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        iteratee => content |>>> iteratee)
+        content)
     }
 
     /**
@@ -663,13 +663,25 @@ trait Results {
     /**
      * Invoke the given function to allow a response to be streamed to the response iteratee.
      *
+     * The function must send the iteratee an EOF when it is finished.
+     *
      * @param content A function that will give you the Iteratee to write in once ready.
      * @return a `ChunkedResult`
      */
     def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        content)
+        new Enumerator[C] {
+          def apply[A](i: Iteratee[C, A]) = {
+            val promise = scala.concurrent.Promise[Iteratee[C, A]]
+            content(i.map(a => {
+              // Send the original iteratee, since I don't think there's a way to get a hold of the current iteratee
+              promise.trySuccess(i)
+              Unit
+            }))
+            promise.future
+          }
+        })
     }
 
   }

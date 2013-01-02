@@ -246,7 +246,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                         })
                 }
 
-                chunks apply bodyIteratee.map { _ =>
+                chunks(bodyIteratee).map { _ =>
                   play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
                   if (e.getChannel.isConnected()) {
                     val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
