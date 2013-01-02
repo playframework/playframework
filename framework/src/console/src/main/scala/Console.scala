@@ -204,8 +204,8 @@ object Console {
   }
 
   def helpCommand(args: Array[String]): (String, Int) = {
-    ("""
-            |Welcome to Play 2.0!
+    (
+     "Welcome to Play " + play.core.PlayVersion.current + """!
             |
             |These commands are available:
             |-----------------------------
