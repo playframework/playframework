@@ -73,6 +73,12 @@ object Console {
                   |""".stripMargin.format(name).trim
 
   /**
+   * Could use the SBT ID parser, except that means going direct into SBT code, which is supposed to be separated
+   * and bridged by the xsbti API.  This is semantically equivalent.
+   */
+  private val IdParser = """(\p{L}[\p{L}\p{LD}_-]*)""".r
+
+  /**
    * Creates a new play app skeleton either based on local templates on g8 templates fetched from github
    * Also, one can create a g8 template directly like this: play new app_name --g8 githubuser/repo.g8
    * @param args first parameter is the application name
@@ -92,30 +98,37 @@ object Console {
     } else {
       val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (args.last, defaultName)
       else {
-        consoleReader.printString("What is the application name? ")
-        consoleReader.printNewline
-        consoleReader.printString(Colors.cyan("> "))
-        consoleReader.putString(defaultName)
-        consoleReader.flushConsole()
-        val name = Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(defaultName)
-        consoleReader.printNewline
+        var nameInput: Either[String, String] = Right("")
+        do {
+          consoleReader.printString("What is the application name? [%s]".format(defaultName))
+          consoleReader.printNewline()
+          nameInput = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).filter(_.size > 0).getOrElse(defaultName) match {
+            case IdParser(name) => Right(name)
+            case _ => Left("Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
+          }
 
+          nameInput.left.foreach { msg =>
+            consoleReader.printString(Colors.red("Error: ") + msg)
+            consoleReader.printNewline()
+            consoleReader.printNewline()
+          }
+        } while (nameInput.isLeft)
+
+        val name = nameInput.right.get
+
+        consoleReader.printNewline()
         consoleReader.printString("Which template do you want to use for this new application? ")
-        consoleReader.printNewline
+        consoleReader.printNewline()
         consoleReader.printString(
           """|
                |  1             - Create a simple Scala application
                |  2             - Create a simple Java application
                |""".stripMargin)
 
-        consoleReader.printNewline
-        consoleReader.printString(Colors.cyan("> "))
-        consoleReader.flushConsole()
+        consoleReader.printNewline()
         consoleReader.putString("")
 
-        val templateNotFound = new RuntimeException("play.home system property is not set, so can not find template")
-        val fs = java.io.File.separator
-        val templateToUse = Option(consoleReader.readLine()).map(_.trim).getOrElse("") match {
+        val templateToUse = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).getOrElse("") match {
           case "1" => "scala-skel"
           case "2" => "java-skel"
           case g8 @ _ => g8
