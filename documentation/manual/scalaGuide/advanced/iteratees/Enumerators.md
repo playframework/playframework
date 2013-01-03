@@ -29,7 +29,7 @@ Now we can apply it to the consume iteratee we created before:
 
 ```scala
 val consume = Iteratee.consume[String]()
-val newIteratee: Promise[Iteratee[String,String]] = enumerateUsers(consume) 
+val newIteratee: Future[Iteratee[String,String]] = enumerateUsers(consume) 
 ```
 
 To terminate the iteratee and extract the computed result we pass `Input.EOF`. An `Iteratee` carries a `run` method that does just this. It pushes an `Input.EOF` and returns a `Promise[A]`, ignoring left input if any.
@@ -37,10 +37,10 @@ To terminate the iteratee and extract the computed result we pass `Input.EOF`. A
 ```scala
 // We use flatMap since newIteratee is a promise, 
 // and run itself return a promise
-val eventuallyResult: Promise[String] = newIteratee.flatMap(i => i.run)
+val eventuallyResult: Future[String] = newIteratee.flatMap(i => i.run)
 
 //Eventually print the result
-eventuallyResult.onRedeem(s => println(s))
+eventuallyResult.onSuccess { case x => println(x) }
 
 // Prints "GuillaumeSadekPeterErwan"
 ```
@@ -51,10 +51,10 @@ You might notice here that an `Iteratee` will eventually produce a result (retur
 //Apply the enumerator and flatten then run the resulting iteratee
 val newIteratee = Iteratee.flatten(enumerateUsers(consume))
 
-val eventuallyResult: Promise[String] = newIteratee.run
+val eventuallyResult: Future[String] = newIteratee.run
    
 //Eventually print the result 
-eventuallyResult.onRedeem(s => println(s)) 
+eventuallyResult.onSuccess { case x => println(x) }
 
 // Prints "GuillaumeSadekPeterErwan"
 ```
@@ -62,7 +62,7 @@ eventuallyResult.onRedeem(s => println(s))
 An `Enumerator` has some symbolic methods that can act as operators, which can be useful in some contexts for saving some parentheses. For example, the `|>>` method works exactly like apply:
 
 ```scala
-val eventuallyResult: Promise[String] = {
+val eventuallyResult: Future[String] = {
   Iteratee.flatten(enumerateUsers |>> consume).run
 }
 ```
