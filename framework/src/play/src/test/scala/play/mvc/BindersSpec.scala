@@ -34,4 +34,21 @@ object BindersSpec extends Specification {
       subject.bind("key", Map("key" -> Seq("bad-uuid"))) must be_==(Some(Left("Cannot parse parameter key as UUID: Invalid UUID string: bad-uuid")))
     }
   }
+
+  "URL Path string binder" should {
+    val subject = implicitly[PathBindable[String]]
+    val pathString = "/path/to/some%20file"
+    val pathStringBinded = "/path/to/some file"
+    val pathStringInvalid = "/path/to/invalide%2"
+
+    "Unbind Path string as string" in {
+      subject.unbind("key", pathString) must equalTo(pathString)
+    }
+    "Bind Path string as string" in {
+      subject.bind("key", pathString) must equalTo(Right(pathStringBinded))
+    }
+    "Fail on unparseable Path string" in {
+      subject.bind("key", pathStringInvalid) must equalTo(Left("Cannot parse parameter key as String: URLDecoder: Incomplete trailing escape (%) pattern"))
+    }
+  }
 }

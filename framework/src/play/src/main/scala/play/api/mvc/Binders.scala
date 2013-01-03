@@ -470,10 +470,9 @@ object PathBindable {
   /**
    * Path binder for String.
    */
-  implicit def bindableString: PathBindable[String] = new PathBindable[String] {
-    def bind(key: String, value: String) = Right(URLDecoder.decode(value, "utf-8"))
-    def unbind(key: String, value: String) = value
-  }
+  implicit object bindableString extends Parsing[String](
+    (s: String) => s, (s: String) => s, (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
+  )
 
   /**
    * Path binder for Int.
