@@ -352,7 +352,7 @@ object PlayBuild extends Build {
         val buildWithDoc      = Option(System.getProperty("generate.doc")).isDefined
         val previousVersion   = "2.0.3"
         val previousScalaVersion = "2.9.1"
-        val buildScalaVersion = "2.10.0-RC1"
+        val buildScalaVersion = "2.10.0"
         val buildScalaVersionForSbt = "2.9.2"
         val buildSbtVersion   = "0.12.1"
         val buildSbtVersionBinaryCompatible = "0.12"
@@ -403,7 +403,13 @@ object PlayBuild extends Build {
 
     object Dependencies {
 
-        val jdbcDeps = Seq(
+      // Some common dependencies here so they don't need to be declared over and over
+      val specsBuild = "org.specs2" %% "specs2" % "1.12.3"
+      // The 2.10 version of scala-io-file 0.4.1 doesn't work with 2.10.0.
+      val scalaIoFileBuild = "com.github.scala-incubator.io" % "scala-io-file_2.10.0-RC1" % "0.4.1" exclude("javax.transaction", "jta")
+
+
+      val jdbcDeps = Seq(
             ("com.jolbox"                       %    "bonecp"                   %   "0.7.1.RELEASE" notTransitive())
               .exclude("com.google.guava", "guava")
               .exclude("org.slf4j", "slf4j-api"),
@@ -458,7 +464,7 @@ object PlayBuild extends Build {
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
             "javax.transaction"                 %    "jta"                      %   "1.1",
 
-            "org.specs2"                        %   "specs2_2.10.0-RC1"         %   "1.12.2" %  "test"
+            specsBuild %  "test"
         )
 
         val runtime = Seq(
@@ -471,12 +477,12 @@ object PlayBuild extends Build {
             "ch.qos.logback"                    %    "logback-core"             %   "1.0.7",
             "ch.qos.logback"                    %    "logback-classic"          %   "1.0.7",
 
-            "com.github.scala-incubator.io"     %   "scala-io-file_2.10.0-RC1"  %   "0.4.1" exclude("javax.transaction", "jta"),
+            scalaIoFileBuild,
 
-            "com.typesafe.akka"                 %    "akka-actor_2.10.0-RC1"    %   "2.1.0-RC1",
-            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-RC1"    %   "2.1.0-RC1",
+            "com.typesafe.akka"                 %%    "akka-actor"              %   "2.1.0",
+            "com.typesafe.akka"                 %%    "akka-slf4j"              %   "2.1.0",
 
-            "org.scala-stm"                     %    "scala-stm_2.10.0-RC1"     %   "0.6",
+            "org.scala-stm"                     %    "scala-stm_2.10.0"         %   "0.6",
 
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
@@ -497,13 +503,13 @@ object PlayBuild extends Build {
 
             "javax.transaction"                 %    "jta"                      %   "1.1",
 
-            "org.specs2"                        %   "specs2_2.10.0-RC1"         %   "1.12.2" %  "test",
+            specsBuild % "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.9"      %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test" exclude("org.jboss.netty", "netty"),
-            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0-RC1"
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"
         )
 
         val link = Seq(
@@ -513,12 +519,12 @@ object PlayBuild extends Build {
 
         val routersCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
-            "org.specs2"                        %%   "specs2"                   %   "1.12.2"    %   "test" exclude("javax.transaction", "jta")
+            "org.specs2"                        %%   "specs2"                   %   "1.12.3"    %   "test" exclude("javax.transaction", "jta")
       )
 
         val templatesCompilerDependencies = Seq(
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.1" exclude("javax.transaction", "jta"),
-            "org.specs2"                        %%   "specs2"                   %   "1.12.2"    %   "test"
+            "org.specs2"                        %%   "specs2"                   %   "1.12.3"    %   "test"
               exclude("javax.transaction", "jta")
         )
 
@@ -558,21 +564,21 @@ object PlayBuild extends Build {
         )
 
         val templatesDependencies = Seq(
-            "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta"),
-            "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2"    %   "test"
+            scalaIoFileBuild,
+            specsBuild % "test"
         )
 
         val iterateesDependencies = Seq(
-            "org.scala-stm"                     %    "scala-stm_2.10.0-RC1"     %   "0.6",
+            "org.scala-stm"                     %    "scala-stm_2.10.0"         %   "0.6",
             "com.typesafe"                      %    "config"                   %   "1.0.0",
-            "com.github.scala-incubator.io"     %    "scala-io-file_2.10.0-RC1" %   "0.4.1" exclude("javax.transaction", "jta"),
-            "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2"    %   "test"
+            scalaIoFileBuild,
+            specsBuild % "test"
       )
 
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
-            "org.specs2"                        %    "specs2_2.10.0-RC1"        %   "1.12.2",
+            specsBuild,
             "com.novocode"                      %    "junit-interface"          %   "0.9",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3" exclude("org.jboss.netty", "netty")
