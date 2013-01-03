@@ -160,8 +160,7 @@ object Evolutions {
         }
         val error = problem.getString("last_problem")
 
-        println(script)
-        println(error)
+        Logger("play").error(error)
 
         val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script;
 
@@ -182,7 +181,7 @@ object Evolutions {
                         last_problem text
                     )
                 """)
-      } catch { case NonFatal(ex) => play.api.Logger.warn("play_evolutions table already existed") }
+      } catch { case NonFatal(ex) => Logger.warn("play_evolutions table already existed") }
     } finally {
       connection.close()
     }
@@ -256,6 +255,7 @@ object Evolutions {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex => ex.getMessage
         }
+
         val ps = prepare("update play_evolutions set last_problem = ? where id = ?")
         ps.setString(1, message)
         ps.setInt(2, applying)
@@ -264,6 +264,8 @@ object Evolutions {
     } finally {
       connection.close()
     }
+
+    checkEvolutionsState(api, db)
 
   }
 
