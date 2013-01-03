@@ -352,7 +352,7 @@ object PlayBuild extends Build {
         val buildWithDoc      = Option(System.getProperty("generate.doc")).isDefined
         val previousVersion   = "2.0.3"
         val previousScalaVersion = "2.9.1"
-        val buildScalaVersion = "2.10.0-RC1"
+        val buildScalaVersion = "2.10.0-RC5"
         val buildScalaVersionForSbt = "2.9.2"
         val buildSbtVersion   = "0.12.1"
         val buildSbtVersionBinaryCompatible = "0.12"
@@ -473,10 +473,10 @@ object PlayBuild extends Build {
 
             "com.github.scala-incubator.io"     %   "scala-io-file_2.10.0-RC1"  %   "0.4.1" exclude("javax.transaction", "jta"),
 
-            "com.typesafe.akka"                 %    "akka-actor_2.10.0-RC1"    %   "2.1.0-RC1",
-            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-RC1"    %   "2.1.0-RC1",
+            "com.typesafe.akka"                 %    "akka-actor_2.10.0-RC5"    %   "2.1.0-RC5",
+            "com.typesafe.akka"                 %    "akka-slf4j_2.10.0-RC5"    %   "2.1.0-RC5",
 
-            "org.scala-stm"                     %    "scala-stm_2.10.0-RC1"     %   "0.6",
+            "org.scala-stm"                     %    "scala-stm_2.10.0-RC5"     %   "0.6",
 
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
