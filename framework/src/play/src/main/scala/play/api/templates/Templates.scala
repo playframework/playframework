@@ -8,16 +8,22 @@ import play.templates._
  *
  * @param text the HTML text
  */
-case class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
+  private val buffer = new StringBuilder(text)
 
   /**
-   * Appends this HTML fragment to another.
+   * Appends another Html fragment to this, modifying this.
    */
-  def +(other: Html): Html = {
+  def +=(other: Html): Html = {
     buffer.append(other.buffer)
     this
   }
+
+  @deprecated(message="Use += method instead.", since="2012/12")
+  def +(other: Html): Html = {
+    this += other
+  }
+
   override def toString = buffer.toString
 
   /**
@@ -35,9 +41,16 @@ case class Html(text: String) extends Appendable[Html] with Content with play.mv
 object Html {
 
   /**
+   * Creates an HTML fragment with initial content specified.
+   */
+  def apply(text: String): Html = {
+    new Html(text)
+  }
+
+  /**
    * Creates an empty HTML fragment.
    */
-  def empty: Html = Html("")
+  def empty: Html = new Html("")
 
 }
 
@@ -63,15 +76,20 @@ object HtmlFormat extends Format[Html] {
  *
  * @param text The plain text.
  */
-case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
+  private val buffer = new StringBuilder(text)
 
   /**
-   * Appends this text fragment to another.
+   * Appends another text fragment to this, modifying this.
    */
-  def +(other: Txt): this.type = {
+  def +=(other: Txt): Txt = {
     buffer.append(other.buffer)
     this
+  }
+
+  @deprecated(message="Use += method instead.", since="2012/12")
+  def +(other: Txt): Txt = {
+    this += other
   }
 
   override def toString = buffer.toString
@@ -91,9 +109,17 @@ case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.
 object Txt {
 
   /**
+   * Creates a text fragment with initial content specified.
+   */
+  def apply(text: String): Txt = {
+    new Txt(text)
+  }
+
+
+  /**
    * Creates an empty text fragment.
    */
-  def empty = Txt("")
+  def empty = new Txt("")
 
 }
 
@@ -119,14 +145,22 @@ object TxtFormat extends Format[Txt] {
  *
  * @param text the plain xml text
  */
-case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
+  private val buffer = new StringBuilder(text)
 
-  /** Append this XML fragment to another. */
-  def +(other: Xml) = {
+  /**
+   * Appends another XML fragment to this, modifying this.
+   */
+  def +=(other: Xml): Xml = {
     buffer.append(other.buffer)
     this
   }
+
+  @deprecated(message="Use += method instead.", since="2012/12")
+  def +(other: Xml): Xml = {
+    this += other
+  }
+
   override def toString = buffer.toString
 
   /**
@@ -144,9 +178,16 @@ case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.
 object Xml {
 
   /**
+   * Creates an XML fragment with initial content specified.
+   */
+  def apply(text: String): Xml = {
+    new Xml(text)
+  }
+
+  /**
    * Create an empty XML fragment.
    */
-  def empty = Xml("")
+  def empty = new Xml("")
 
 }
 
