@@ -119,7 +119,34 @@ trait PlayReloader {
         
       }
 
-      val watchChanges: Seq[Int] = extracted.runTask(playMonitoredDirectories, state)._2.map(jnotify.addWatch)
+      val (monitoredFiles, monitoredDirs) = {
+        val all = extracted.runTask(playMonitoredFiles, state)._2.map( f => new File(f) )
+        (all.filter(!_.isDirectory), all.filter(_.isDirectory))
+      }
+
+      def calculateTimestamps = monitoredFiles.map( f => f.getAbsolutePath -> f.lastModified ).toMap
+
+      var fileTimestamps = calculateTimestamps
+
+      def hasChangedFiles: Boolean = monitoredFiles.exists{ f =>
+        val fileChanged = fileTimestamps.get(f.getAbsolutePath).map { timestamp =>
+          f.lastModified != timestamp
+        }.getOrElse{
+          state.log.debug("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
+          true
+        }
+        if (fileChanged) {
+          fileTimestamps = calculateTimestamps //recalulating all, one _or more_ files has changed
+        }
+        fileChanged
+      }
+
+      val watchChanges: Seq[Int] = monitoredDirs.map( f => jnotify.addWatch(f.getAbsolutePath) )
+
+      lazy val settings = {
+        import scala.collection.JavaConverters._
+        extracted.get(PlayKeys.devSettings).toMap.asJava
+      }
 
       // --- Utils
 
@@ -311,7 +338,7 @@ trait PlayReloader {
 
         PlayProject.synchronized {
 
-          if (jnotify.hasChanged) {
+          if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
             Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>

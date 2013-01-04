@@ -298,5 +298,16 @@ object FormSpec extends Specification {
     val data = Map("date" -> "30/1/2012")
     dateForm.bind(data).get mustEqual(new DateTime(2012,1,30,0,0))
   }
+  
+  "render form using jodaLocalDate with format(30/1/2012)" in {
+    import play.api.data._
+    import play.api.data.Forms._
+    import play.api.data.format.Formats.jodaLocalDateFormat
+    import org.joda.time.LocalDate
+
+    val dateForm = Form(("date" -> jodaLocalDate("dd/MM/yyyy")))
+    val data = Map("date" -> "30/1/2012")
+    dateForm.bind(data).get mustEqual(new LocalDate(2012,1,30))
+  }
 }
 

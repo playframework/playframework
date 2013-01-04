@@ -32,7 +32,7 @@ package play.templates {
 import reflect.ClassTag
 
 trait Appendable[T] {
-    def +(other: T): T
+    def +=(other: T): T
     override def equals(x: Any): Boolean = super.equals(x)
     override def hashCode() = super.hashCode()
   }
@@ -51,8 +51,8 @@ trait Appendable[T] {
         case None => format.raw("")
         case Some(v) => _display_(v)
         case xml: scala.xml.NodeSeq => format.raw(xml.toString)
-        case escapeds: TraversableOnce[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
-        case escapeds: Array[_] => escapeds.foldLeft(format.raw(""))(_ + _display_(_))
+        case escapeds: TraversableOnce[_] => escapeds.foldLeft(format.raw(""))(_ += _display_(_))
+        case escapeds: Array[_] => escapeds.foldLeft(format.raw(""))(_ += _display_(_))
         case string: String => format.escape(string)
         case v if v != null => _display_(v.toString)
         case _ => format.raw("")

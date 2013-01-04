@@ -214,6 +214,21 @@ trait DefaultWrites {
     def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis) 
   }
 
+/**
+  * Serializer for org.joda.time.LocalDate
+  * @param pattern the pattern used by org.joda.time.format.DateTimeFormat
+  */
+  def jodaLocalDateWrites(pattern: String): Writes[org.joda.time.LocalDate] = new Writes[org.joda.time.LocalDate] {
+    def writes(d: org.joda.time.LocalDate): JsValue = JsString(d.toString(pattern))
+  }
+
+/**
+  * Default Serializer org.joda.time.LocalDate -> JsString(ISO8601 format (yyyy-MM-dd))
+  */
+  implicit object DefaultJodaLocalDateWrites extends Writes[org.joda.time.LocalDate] {
+    def writes(d: org.joda.time.LocalDate): JsValue = JsString(d.toString)
+  }
+
   /**
    * Serializer for java.sql.Date
    * @param pattern the pattern used by SimpleDateFormat

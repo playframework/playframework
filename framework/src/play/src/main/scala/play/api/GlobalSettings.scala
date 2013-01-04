@@ -2,7 +2,7 @@ package play.api
 
 import play.api.mvc._
 import java.io.File
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * Defines an application’s global settings.

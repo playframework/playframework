@@ -62,5 +62,7 @@ trait PlayKeys {
 
   val playPlugin = SettingKey[Boolean]("play-plugin")
 
+  val devSettings = SettingKey[Seq[(String,String)]]("play-dev-settings")
+
 }
 object PlayKeys extends PlayKeys

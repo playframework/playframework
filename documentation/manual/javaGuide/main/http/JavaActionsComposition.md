@@ -6,7 +6,7 @@ This chapter introduces several ways to define generic action functionality.
 
 Previously, we said that an action is a Java method that returns a `play.mvc.Result` value. Actually, Play manages internally actions as functions. Because Java doesn't support first class functions, an action provided by the Java API is an instance of `play.mvc.Action`:
 
-```
+```java
 public abstract class Action {
     
   public abstract Result call(Http.Context ctx);    
@@ -20,7 +20,7 @@ Play builds a root action for you that just calls the proper action method. This
 
 You can compose the code provided by the action method with another `play.mvc.Action`, using the `@With` annotation:
 
-```
+```java
 @With(VerboseAction.class)
 public static Result index() {
   return ok("It works!");
@@ -29,7 +29,7 @@ public static Result index() {
 
 Here is the definition of the `VerboseAction`:
 
-```
+```java
 public class VerboseAction extends Action.Simple {
 
   public Result call(Http.Context ctx) throws Throwable {
@@ -43,7 +43,7 @@ At one point you need to delegate to the wrapped action using `delegate.call(...
 
 You also mix with several actions:
 
-```
+```java
 @With({Authenticated.class, Cached.class})
 public static Result index() {
   return ok("It works!");
@@ -57,7 +57,7 @@ public static Result index() {
 
 You can also mark action composition with your own annotation, which must itself be annotated using `@With`:
 
-```
+```java
 @With(VerboseAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -68,7 +68,7 @@ public @interface Verbose {
 
 You can then use your new annotation with an action method:
 
-```
+```java
 @Verbose(false)
 public static Result index() {
   return ok("It works!");
@@ -77,7 +77,7 @@ public static Result index() {
 
 Your `Action` definition retrieves the annotation as configuration:
 
-```
+```java
 public class VerboseAction extends Action<Verbose> {
 
   public Result call(Http.Context ctx) {
@@ -93,12 +93,25 @@ public class VerboseAction extends Action<Verbose> {
 
 You can also put any action composition annotation directly on the `Controller` class. In this case it will be applied to all action methods defined by this controller.
 
-```
+```java
 @Authenticated
 public Admin extends Controller {
     
   …
     
+}
+```
+
+## Passing objects from action to contoller
+
+You can pass an object from an action to a controller by utilizing the context args map.
+
+```java
+public class SecurityAction extends Action<Verbose> {
+
+  public Result call(Http.Context ctx) {
+    ctx.args.put("user", User.findById(1234));
+  }
 }
 ```
 

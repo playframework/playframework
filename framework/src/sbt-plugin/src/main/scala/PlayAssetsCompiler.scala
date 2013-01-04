@@ -55,7 +55,7 @@ trait PlayAssetsCompiler {
               }
               val out = new File(resources, "public/" + naming(name, false))
               IO.write(out, debug)
-              dependencies.map(_ -> out) ++ min.map { minified =>
+              (dependencies ++ Seq(sourceFile)).toSet[File].map(_ -> out) ++ min.map { minified =>
                 val outMin = new File(resources, "public/" + naming(name, true))
                 IO.write(outMin, minified)
                 dependencies.map(_ -> outMin)
@@ -116,7 +116,7 @@ trait PlayAssetsCompiler {
     val log = state.log
     // log the source file and line number with the error message
     log.error(Option(error.sourceName).getOrElse("") + Option(error.line).map(":" + _).getOrElse("") + ": " + error.getMessage)
-    Option(error.interestingLines(0).focus).flatMap(_.headOption) map { line =>
+    Option(error.interestingLines(0)).map(_.focus).flatMap(_.headOption) map { line =>
       // log the line
       log.error(line)
       Option(error.position).map { pos =>

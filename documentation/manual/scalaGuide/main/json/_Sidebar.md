@@ -1,6 +1,9 @@
 ### Working with Json
 
-- [[The Play Json library | ScalaJson]]
+- [[Play Json Basics | ScalaJson]]
+- [[Json Reads/Writes/Format Combinators | ScalaJsonCombinators]]
+- [[Json Transformers | ScalaJsonTransformers]]
+- [[Json Macro Inception | ScalaJsonInception]]
 - [[Handling and serving Json requests | ScalaJsonRequests]]
 - [[The Play JSON library with generics | ScalaJsonGenerics]]
 
@@ -20,7 +23,7 @@
 - [[Internationalization | ScalaI18N]]
 - [[The application Global object | ScalaGlobal]]
 - [[Testing your application | ScalaTest]]
-    
+        
 ### Advanced topics
 
 - [[Handling data streams reactively | Iteratees]]

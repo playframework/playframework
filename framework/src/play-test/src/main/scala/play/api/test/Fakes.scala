@@ -5,6 +5,7 @@ import play.api.libs.json.JsValue
 import play.api.libs.concurrent.Promise
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import xml.NodeSeq
 
 /**
  * Fake HTTP headers implementation.
@@ -109,11 +110,46 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * @param _method The request HTTP method, <tt>POST</tt> by default.
    * @return the current fake request
    */
-  def withJsonBody(node: JsValue, _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
+  @deprecated("Use FakeRequest(method, path) to specify the method")
+  def withJsonBody(node: JsValue, _method: String): FakeRequest[AnyContentAsJson] = {
     _copy(method = _method, body = AnyContentAsJson(node))
       .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
   }
 
+  /**
+   * Adds a JSON body to the request.
+   */
+  def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
+    _copy(body = AnyContentAsJson(json))
+  }
+
+  /**
+   * Adds an XML body to the request.
+   */
+  def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
+    _copy(body = AnyContentAsXml(xml))
+  }
+
+  /**
+   * Adds a text body to the request.
+   */
+  def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
+    _copy(body = AnyContentAsText(text))
+  }
+
+  /**
+   * Adds a raw body to the request
+   */
+  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
+    _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  }
+
+  /**
+   * Adds a body to the request.
+   */
+  def withBody[B](body: B): FakeRequest[B] = {
+    _copy(body = body)
+  }
 }
 
 /**
@@ -124,14 +160,14 @@ object FakeRequest {
   /**
    * Constructs a new GET / fake request.
    */
-  def apply(): FakeRequest[play.api.mvc.AnyContent] = {
+  def apply(): FakeRequest[AnyContentAsEmpty.type] = {
     FakeRequest("GET", "/", FakeHeaders(), AnyContentAsEmpty)
   }
 
   /**
    * Constructs a new request.
    */
-  def apply(method: String, path: String): FakeRequest[play.api.mvc.AnyContent] = {
+  def apply(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] = {
     FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
   }
 

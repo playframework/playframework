@@ -1,4 +1,8 @@
-# Deploying to CloudFoundry
+# Deploying to CloudFoundry / AppFog
+
+## CloudFoundry vs. AppFog
+
+Deploying to [AppFog](https://www.appfog.com/) can be accomplished by following the [Cloud Foundry](http://cloudfoundry.com) instructions below except run `af` instead of `vmc`. Also, with AppFog you need to follow an [extra step of adding an extra jar to the deployment zip file](https://docs.appfog.com/languages/java/play).
 
 ## Prerequisites
 

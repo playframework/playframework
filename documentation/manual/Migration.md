@@ -1,34 +1,53 @@
 # Migration guide
 
-The only step to migrate to **Play 2.1** is to change the version of your **Play plugin** in your sbt build.
-
-In `project/plugins.sbt` change this line accordingly:
+To migrate a **Play 2.0.x** application to **Play 2.1.0** first update Play's `sbt-plugin` in the `project/plugins.sbt` file:
 
 ```
-addSbtPlugin("play" % "sbt-plugin" % "2.1")
+addSbtPlugin("play" % "sbt-plugin" % "2.1.0")
 ```
 
-Now you have to recompile your project, and potentially fix some compilation errors. Besides the standard deprecations, Play 2.1 contains a few big incompatible changes. This document is giving you some information why these changes were necessary and also how to upgrade safely to the new version.
+Now update the `project/Build.scala` file to use the new `play.Project` class instead of the `PlayProject` class:
+
+First the import:
+
+```
+import play.Project._
+```
+
+Then the `main` project creation:
+
+```
+val main = play.Project(appName, appVersion, appDependencies).settings(
+```
+
+Lastly, update your `project/build.properties` file:
+
+```
+sbt.version=0.12.1
+```
+
+Then clean and re-compile your project using the `play` command in the **Play 2.1.0** distribution:
+
+```
+play clean
+play ~run
+```
+
+If any compilation errors cropped up, this document will help you figure out what deprecations or incompatible changes may have caused the errors.
 
 ## Changes to the build file
 
-Because Play 2.1 introduce further modularization, you have now to specifiy explicitely the dependencies your application needs. By default any _play Project_ will only contain a dependency to the play core library.
+Because Play 2.1 introduces further modularization, you now have to explicitely specify the dependencies your application needs. By default any `play.Project` will only contain a dependency to the core Play library.  You have to select the exact set of optional dependencies your application need.  Here are the new modularized dependencies in **Play 2.1**:
 
-> Also we replaced the old `PlayProject` type by the `play.Project` one, so you will probably have to fix your imports.
-
-You have to select the exact set of optional dependencies your application need, in the list of:
-
-- `jdbc` : The **JDBC** connection pool and the the `play.api.db` API. 
+- `jdbc` : The **JDBC** connection pool and the the `play.api.db` API.
 - `anorm` : The **Anorm** component.
 - `javaCore` : The core **Java** API.
 - `javaJdbc` : The Java database API.
 - `javaEbean` : The Ebean plugin for Java.
 - `javaJpa` : The JPA plugin for Java.
-- `filters` : A set of build-in filters for Play (such as the CSRF filter)
+- `filters` : A set of build-in filters for Play (such as the CSRF filter).
 
-Also you don't have anymore to specify the `mainLang` attribute for your project (enabling the `javaCore` dependency for your project is enough to enable Java support for your application).
-
-Here is a typical new `Build.scala` file:
+Here is a typical `Build.scala` file for **Play 2.1**:
 
 ```
 import sbt._
@@ -51,15 +70,17 @@ object ApplicationBuild extends Build {
 }
 ```
 
-## play.mvc.Controller.form() to become play.data.Form.form()
+Notice the modularized dependencies in the `appDependencies` section.
+
+## play.mvc.Controller.form() renamed to play.data.Form.form()
 
 Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`
 
 ## Play's Promise to become Scala's Future
 
-With the introduction of `scala.concurrent.Future` in scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there.
+With the introduction of `scala.concurrent.Future` in Scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there.
 
-The fact that Play is now using `scala.concurrent.Future` directly means that users can effortlessly combine futures/promises coming from both internal API-s or external libraries. Unfortunately this change also means that scala users would not adjust their codebase to the new API 
+The fact that Play is now using `scala.concurrent.Future` directly means that users can effortlessly combine futures/promises coming from both internal API-s or external libraries.
 
 > Java users will continue to use a Play's wrapper around scala.concurrent.Future for now. 
 
@@ -82,7 +103,7 @@ def stream = Action {
   
 ```
 
-using the new `scala.concurrent.Future` this will become:
+Using the new `scala.concurrent.Future` this will become:
 
 ```
 import play.api.libs.iteratee._
@@ -101,13 +122,13 @@ import scala.concurrent.duration._
   }
 ```
 
-notice the extra imports for:
+Notice the extra imports for:
 
 - The new import for the execution context `play.api.libs.concurrent.Execution.Implicits`
-- The change for duration `scala.concurrent.duration` instead of using the Akka API) 
-- Furthermore the `asPromise` method is gone now
+- The change for duration `scala.concurrent.duration` (instead of using the Akka API) 
+- The `asPromise` method has been removed
 
-Generally speaking, if you see error message "error: could not find implicit value for parameter executor", you probably need to add
+Generally speaking, if you see error message "error: could not find implicit value for parameter executor", you probably need to add:
 
 ```
 import play.api.libs.concurrent.Execution.Implicits._
@@ -115,16 +136,16 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 _(Please see the Scala documentation about Execution context for mor informations)_
 
-and you need to remember that:
+And remember that:
 
-- a Play `Promise` is now a Scala `Future`
-- a Play `Redeemable` is now a Scala `Promise`
+- A Play `Promise` is now a Scala `Future`
+- A Play `Redeemable` is now a Scala `Promise`
 
 ## Changes to the Scala JSON API
 
-Play 2.1 comes with a new shiny scala JSON validator and path navigator. This new API however breaks compatibility with existing JSON parsers.
+**Play 2.1** comes with a shiny new Scala JSON validator and path navigator. This new API however breaks compatibility with existing JSON parsers.
 
-Especially the `play.api.libs.json.Reads` type signature has changed. Consider:
+The `play.api.libs.json.Reads` type signature has changed. Consider:
 
 ```
 trait play.api.libs.json.Reads[A] {
@@ -135,7 +156,7 @@ trait play.api.libs.json.Reads[A] {
 }
 ```
 
-in 2.1 this becomes:
+In 2.1 this becomes:
 
 ```
 trait play.api.libs.json.Reads[A] {
@@ -146,7 +167,7 @@ trait play.api.libs.json.Reads[A] {
 }
 ```
 
-So, in Play 2.0 an implementation for a JSON serializer for the `User` type was:
+So, in **Play 2.0** an implementation for a JSON serializer for the `User` type was:
 
 ```
 implicit object UserFormat extends Format[User] {
@@ -167,7 +188,7 @@ implicit object UserFormat extends Format[User] {
 }
 ```
 
-In Play 2.1 you will need to refactor it as: 
+In **Play 2.1** you will need to refactor it as: 
 
 ```
 implicit object UserFormat extends Format[User] {
@@ -188,7 +209,7 @@ implicit object UserFormat extends Format[User] {
 }
 ```
 
-The API to generate JSON already evolved. Consider:
+The API to generate JSON also evolved. Consider:
 
 ```
 val jsonObject = Json.toJson(
@@ -213,7 +234,7 @@ val jsonObject = Json.toJson(
 )
 ```
 
-With Play 2.1 this becomes:
+With **Play 2.1** this becomes:
 
 ```
 val jsonObject = Json.obj(
@@ -247,15 +268,14 @@ The `discardingCookies(String\*)` (Scala) and `discardCookies(String...)` (Java)
 
 ## RequireJS
 
-In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use require.JS instead.
+In **Play 2.0** the default behavior for Javascript was to use Google's Closure CommonJS module support. In **Play 2.1** this was changed to use RequireJS instead.
 
 What this means in practice is that by default Play will only minify and combine files in stage, dist, start modes only. In dev mode Play will resolve dependencies client side.
 
-If you wish to use this feature, you will need to add your modules to the settings block of your build file:
+If you wish to use this feature, you will need to add your modules to the settings block of your `project/Build.scala` file:
 
 ```
 requireJs := "main.js"
 ```
 
 More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].
-

@@ -6,18 +6,23 @@ import play.templates._
 /**
  * Content type used in default HTML templates.
  *
- * @param text the HTML text
+ * @param buffer the HTML text
  */
-case class Html(text: String) extends Appendable[Html] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+class Html(val buffer: StringBuilder) extends Appendable[Html] with Content with play.mvc.Content {
 
   /**
-   * Appends this HTML fragment to another.
+   * Appends another Html fragment to this, modifying this.
    */
-  def +(other: Html): Html = {
+  def +=(other: Html): Html = {
     buffer.append(other.buffer)
     this
   }
+
+  @deprecated(message="Use += method instead.", since="2012/12")
+  def +(other: Html): Html = {
+    this += other
+  }
+
   override def toString = buffer.toString
 
   /**
@@ -35,10 +40,16 @@ case class Html(text: String) extends Appendable[Html] with Content with play.mv
 object Html {
 
   /**
+   * Creates an HTML fragment with initial content specified.
+   */
+  def apply(text: String): Html = {
+    new Html(new StringBuilder(text))
+  }
+
+  /**
    * Creates an empty HTML fragment.
    */
-  def empty: Html = Html("")
-
+  def empty: Html = new Html(new StringBuilder)
 }
 
 /**
@@ -54,7 +65,20 @@ object HtmlFormat extends Format[Html] {
   /**
    * Creates a safe (escaped) HTML fragment.
    */
-  def escape(text: String): Html = Html(org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(text))
+  def escape(text: String): Html = {
+    // Using our own algorithm here because commons lang escaping wasn't designed for protecting against XSS, and there
+    // don't seem to be any other good generic escaping tools out there.
+    val sb = new StringBuilder(text.length)
+    text.foreach {
+      case '<' => sb.append("&lt;")
+      case '>' => sb.append("&gt;")
+      case '"' => sb.append("&quot;")
+      case '\'' => sb.append("&#x27;")
+      case '&' => sb.append("&amp;")
+      case c => sb += c
+    }
+    new Html(sb)
+  }
 
 }
 
@@ -63,15 +87,20 @@ object HtmlFormat extends Format[Html] {
  *
  * @param text The plain text.
  */
-case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
+  private val buffer = new StringBuilder(text)
 
   /**
-   * Appends this text fragment to another.
+   * Appends another text fragment to this, modifying this.
    */
-  def +(other: Txt): this.type = {
+  def +=(other: Txt): Txt = {
     buffer.append(other.buffer)
     this
+  }
+
+  @deprecated(message="Use += method instead.", since="2012/12")
+  def +(other: Txt): Txt = {
+    this += other
   }
 
   override def toString = buffer.toString
@@ -91,9 +120,17 @@ case class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.
 object Txt {
 
   /**
+   * Creates a text fragment with initial content specified.
+   */
+  def apply(text: String): Txt = {
+    new Txt(text)
+  }
+
+
+  /**
    * Creates an empty text fragment.
    */
-  def empty = Txt("")
+  def empty = new Txt("")
 
 }
 
@@ -119,14 +156,22 @@ object TxtFormat extends Format[Txt] {
  *
  * @param text the plain xml text
  */
-case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
-  val buffer = new StringBuilder(text)
+class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
+  private val buffer = new StringBuilder(text)
 
-  /** Append this XML fragment to another. */
-  def +(other: Xml) = {
+  /**
+   * Appends another XML fragment to this, modifying this.
+   */
+  def +=(other: Xml): Xml = {
     buffer.append(other.buffer)
     this
   }
+
+  @deprecated(message="Use += method instead.", since="2012/12")
+  def +(other: Xml): Xml = {
+    this += other
+  }
+
   override def toString = buffer.toString
 
   /**
@@ -144,9 +189,16 @@ case class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.
 object Xml {
 
   /**
+   * Creates an XML fragment with initial content specified.
+   */
+  def apply(text: String): Xml = {
+    new Xml(text)
+  }
+
+  /**
    * Create an empty XML fragment.
    */
-  def empty = Xml("")
+  def empty = new Xml("")
 
 }
 
@@ -178,6 +230,6 @@ object PlayMagic {
    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
    * }}}
    */
-  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + a._2 + "\"").mkString(" "))
+  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + HtmlFormat.escape(a._2.toString).body + "\"").mkString(" "))
 
 }

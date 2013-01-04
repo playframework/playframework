@@ -18,7 +18,7 @@ import play.core.server.netty._
 
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream}
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * provides a stopable Server
@@ -37,8 +37,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
 
   private def newBootstrap = new ServerBootstrap(
     new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory(
-      Executors.newCachedThreadPool(),
-      Executors.newCachedThreadPool()))
+      Executors.newCachedThreadPool(NamedThreadFactory("netty-boss")),
+      Executors.newCachedThreadPool(NamedThreadFactory("netty-worker"))))
 
   class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
 
@@ -53,7 +53,6 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       }
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
-      newPipeline.addLast("compressor", new HttpContentCompressor())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline

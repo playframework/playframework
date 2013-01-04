@@ -8,7 +8,7 @@ import java.math.BigInteger
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream, FileOutputStream}
 import javax.net.ssl.KeyManagerFactory
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * A fake key store

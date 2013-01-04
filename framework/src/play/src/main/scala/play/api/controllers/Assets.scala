@@ -13,7 +13,7 @@ import scalax.io.{ Resource }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * Controller that serves static resources.
@@ -34,7 +34,9 @@ import util.control.NonFatal
  * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
  * }}}
  */
-object Assets extends Controller {
+object Assets extends AssetsBuilder
+
+class AssetsBuilder extends Controller {
 
   private val timeZoneCode = "GMT"
 
@@ -50,11 +52,11 @@ object Assets extends Controller {
 
   private lazy val defaultCharSet = Play.configuration.getString("default.charset").getOrElse("utf-8")
 
-  private def addCharsetIfNeeded(mimeType: String): String = 
+  private def addCharsetIfNeeded(mimeType: String): String =
     if (MimeTypes.isText(mimeType))
-      "; charset="+defaultCharSet
-    else ""  
-  
+      "; charset=" + defaultCharSet
+    else ""
+
   /**
    * Generates an `Action` that serves a static resource.
    *
@@ -110,18 +112,15 @@ object Assets extends Controller {
               request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
                 lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
               }.map(_ => NotModified.withHeaders(
-                DATE -> df.print({ new java.util.Date }.getTime)
-              )).getOrElse {
+                DATE -> df.print({ new java.util.Date }.getTime))).getOrElse {
 
                 // Prepare a streamed response
                 val response = SimpleResult(
                   header = ResponseHeader(OK, Map(
                     CONTENT_LENGTH -> length.toString,
                     CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
-                    DATE -> df.print({ new java.util.Date }.getTime)
-                  )),
-                  resourceData
-                )
+                    DATE -> df.print({ new java.util.Date }.getTime))),
+                  resourceData)
 
                 // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
                 // Vary header so proxy servers will cache both the gzip and the non gzipped version

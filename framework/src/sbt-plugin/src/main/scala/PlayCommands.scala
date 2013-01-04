@@ -21,28 +21,6 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
-
-  // ~~ Alerts  
-  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
-    println()
-    this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
-      println(Colors.green(el.toString))
-    }
-    println()
-  }
-
-  Option(System.getProperty("play.version")).map {
-    case badVersion if badVersion != play.core.PlayVersion.current => {
-      println(
-        Colors.red("""
-          |This project uses Play %s!
-          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
-        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
-      )
-    }
-    case _ =>
-  }
-
   
   //- mainly scala, mainly java or none
 
@@ -410,7 +388,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
     ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
     try {
-      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.headOption.map { routesFile =>
+      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.map { routesFile =>
         compile(routesFile, generatedDir, additionalImports)
       }
     } catch {
@@ -747,8 +725,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   }
 
-  val playCommand = Command.command("play", Help("play", ("play", "Enter the play console"), """
-        |Welcome to Play 2.0!
+  val playCommand = Command.command("play", Help("play", ("play", "Enter the play console"), "Welcome to Play " + play.core.PlayVersion.current + """!
         |
         |These commands are available:
         |-----------------------------
@@ -850,8 +827,8 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   }
 
-  val playMonitoredDirectories = TaskKey[Seq[String]]("play-monitored-directories")
-  val playMonitoredDirectoriesTask = (thisProjectRef, state) map { (ref, state) =>
+  val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
+  val playMonitoredFilesTask = (thisProjectRef, state) map { (ref, state) =>
     val src = inAllDependencies(ref, sourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
     val resources = inAllDependencies(ref, resourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
     val assets = inAllDependencies(ref, playAssetsDirectories, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)

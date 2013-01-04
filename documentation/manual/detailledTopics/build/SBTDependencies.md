@@ -72,7 +72,7 @@ sbt can search your local Maven repository if you add it as a repository:
 
 ```scala
 resolvers += (
-    "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
+    "Local Maven Repository" at "file:///"+Path.userHome.absolutePath+"/.m2/repository"
 )
 ```
 

@@ -5,7 +5,7 @@ import java.io._
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 /**
  * This object provides a set of operations to create `Configuration` values.
@@ -27,10 +27,15 @@ object Configuration {
    * loads `Configuration` from 'conf/application.conf' in Dev mode
    * @return  configuration to be used
    */
-  private[play] def loadDev(appPath: File) = {
+  private[play] def loadDev(appPath: File, devSettings: Map[String,String]): Config = {
     try {
-      val file = Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
-      ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
+      val file = {
+        devSettings.get("config.file").orElse(Option(System.getProperty("config.file")))
+          .map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
+      }
+      ConfigFactory.parseMap(devSettings.asJava).withFallback(
+        ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
+      )
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
@@ -48,10 +53,10 @@ object Configuration {
    * @param mode Application mode.
    * @return a `Configuration` instance
    */
-  def load(appPath: File, mode: Mode.Mode = Mode.Dev) = {
+  def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String,String] = Map.empty) = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(dontAllowMissingConfig) else Configuration(loadDev(appPath))
+      if (currentMode == Mode.Prod) Configuration(dontAllowMissingConfig) else Configuration(loadDev(appPath, devSettings))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
       case e : Throwable => throw e

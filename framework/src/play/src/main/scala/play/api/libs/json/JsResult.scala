@@ -151,9 +151,9 @@ sealed trait JsResult[+A] { self =>
     case JsError(e) => Left(e)
   }  
 
-  def recover[AA >: A]( errManager: JsError => AA ): AA = this match {
-    case JsSuccess(a,_) => a 
-    case e : JsError => errManager(e)
+  def recover[AA >: A]( errManager: PartialFunction[JsError, AA] ): JsResult[AA] = this match {
+    case JsSuccess(v, p) => JsSuccess(v, p)
+    case e: JsError => if(errManager isDefinedAt e) JsSuccess(errManager(e)) else this
   }
 }
 

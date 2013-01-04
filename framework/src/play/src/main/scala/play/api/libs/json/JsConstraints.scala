@@ -7,6 +7,8 @@ trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
 
   def optional[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optional(fmt), Writes.optional(fmt) )
+
+  def nullable[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.nullable(fmt), Writes.nullable(fmt) )
 }
 
 trait PathFormat {
@@ -105,6 +107,11 @@ trait ConstraintReads {
 
   def pure[A](a: => A) = Reads[A] { js => JsSuccess(a) }
 
+  def nullable[T](implicit rds: Reads[T]): Reads[Option[T]] = Reads( js => js match {
+    case JsNull => JsSuccess(None)
+    case js => rds.reads(js).map(Some(_))
+  } )
+
 }
 
 trait PathWrites {
@@ -158,4 +165,10 @@ trait ConstraintWrites {
   def seq[A](implicit writes:Writes[A]): Writes[Seq[A]] = Writes.traversableWrites[A]
   def map[A](implicit writes:Writes[A]): OWrites[collection.immutable.Map[String, A]] = Writes.mapWrites[A]
 
+  def nullable[A](implicit wa: Writes[A]) = Writes[Option[A]] { a => 
+    a match {
+      case None => JsNull
+      case Some(av) => wa.writes(av)
+    }
+  }
 }

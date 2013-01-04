@@ -2,7 +2,7 @@
 
 > This is a temporary location for listing modules, until there will be a location to register them on the Play website.
 
-> Blog posts describing the process of writing a module can be found on [objectify.be](http://www.objectify.be/wordpress/?p=363) and [developer.vz.net](http://developer.vz.net/2012/03/16/writing-a-play-2-0-module/)
+> Blog posts describing the process of writing a module can be found on [objectify.be](http://www.objectify.be/wordpress/?p=363).
 
 ## Airbrake.io notifier
 
@@ -242,6 +242,12 @@ your Play 2 application.
 * **Website:** [http://www.securesocial.ws/](http://www.securesocial.ws/)
 * **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
  
+## Session cache (Scala)
+
+* **Website:** [https://github.com/Rhinofly/play-libraries/tree/master/session-cache]
+* **Documentation:** [https://github.com/Rhinofly/play-libraries/tree/master/session-cache/README.md]
+* **Short description:** Session cache for Play 2.0 
+
 ## Snapshot Plugin (Java and Scala)
 * **Website (docs, sample):** [https://github.com/vznet/play-snapshot](https://github.com/vznet/play-snapshot)
 * **Short description:** provides a hash bang snapshot functionality using HtmlUnit, as described by Google [here](https://developers.google.com/webmasters/ajax-crawling/docs/html-snapshot)

@@ -17,7 +17,9 @@ import scala.annotation._
 @implicitNotFound(
   "Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]"
 )
-case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[String])
+case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[String]) {
+  def map[B](f: B => A): Writeable[B] = Writeable(b => transform(f(b)), contentType)
+}
 
 /**
  * Helper utilities for `Writeable`.

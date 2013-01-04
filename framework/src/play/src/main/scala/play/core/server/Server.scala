@@ -16,7 +16,7 @@ import akka.routing._
 import akka.pattern.Patterns.ask
 import scala.concurrent.duration._
 import akka.util.Timeout
-import util.control.NonFatal
+import scala.util.control.NonFatal
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -58,7 +58,9 @@ trait Server {
           (maybeAction.getOrElse(Action(BodyParsers.parse.empty)(_ => application.global.onHandlerNotFound(request))), application)
         }
       } catch {
-        case NonFatal(e) => Left(e)
+        case e: ThreadDeath => throw e
+        case e: VirtualMachineError => throw e
+        case e: Throwable => Left(e)
       }
     }
 

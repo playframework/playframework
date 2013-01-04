@@ -164,7 +164,7 @@ object Application extends Controller {
   def clientCert = Cert { user =>
     Action { request =>
       Ok(user.name)
-    }
+  }
   }
 
   def Cert[A](action: User => Action[A]): Action[A] = {
@@ -191,5 +191,14 @@ object Application extends Controller {
     // For now, just extract the CN out and treat that as the user, of course,
     // that's not actually secure
     """CN=([^,]*),""".r.findFirstMatchIn(dName).map(m => User(0, m.group(1), Nil))
+  }
+
+
+  def route(parameter: String) = Action {
+    Ok("")
+  }
+
+  def routetest(parameter: String) = Action {
+    Ok("")
   }
 }

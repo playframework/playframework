@@ -47,26 +47,8 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
-   *
-   *
-   * @param state initial state
-   * @param f a function folding the previous state and an input to a new promise of state
-   */
-  def fold1[E, A](state: A)(f: (A, E) => Future[A]): Iteratee[E, A] = {
-    def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
-
-      case Input.EOF => Done(s, Input.EOF)
-      case Input.Empty => Cont[E, A](i => step(s)(i))
-      case Input.El(e) => { val newS = f(s, e); flatten(newS.map(s1 => Cont[E, A](i => step(s1)(i)))) }
-    }
-    (Cont[E, A](i => step(state)(i)))
-  }
-
-  /**
-   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
-   *
-   * It also gives the opportunity to return a [[scala.concurrent.Future]] so that promises are combined in a complete reactive flow of logic.
+   * M stands for Monadic which in this case means returning a [[scala.concurrent.Future]] for the function argument f, 
+   * so that promises are combined in a complete reactive flow of logic.
    *
    *
    * @param state initial state
@@ -102,7 +84,7 @@ object Iteratee {
    * @param f a function folding the previous state and an input to a new promise of state
    */
   def fold1[E, A](state: Future[A])(f: (A, E) => Future[A]): Iteratee[E, A] = {
-    flatten(state.map(s => fold1(s)(f)))
+    flatten(state.map(s => foldM(s)(f)))
   }
 
   /**
@@ -428,6 +410,15 @@ trait Iteratee[E, +A] {
   def map[B](f: A => B): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))
 
   /**
+   * Like map but allows the map function to execute asynchronously.
+   *
+   * This is particularly useful if you want to do blocking operations, so that you can ensure that those operations
+   * execute in the right execution context, rather than the iteratee execution context, which would potentially block
+   * all other iteratee operations.
+   */
+  def mapM[B](f: A => Future[B]): Iteratee[E, B] = self.flatMapM(a => f(a).map(b => Done(b)))
+
+  /**
    * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input
    *
    * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
@@ -442,6 +433,18 @@ trait Iteratee[E, +A] {
     case Step.Cont(k) => Cont(in => k(in).flatMap(f))
     case Step.Error(msg, e) => Error(msg, e)
   }
+
+  /**
+   * Like flatMap but allows the flatMap function to execute asynchronously.
+   *
+   * This is particularly useful if you want to do blocking operations, so that you can ensure that those operations
+   * execute in the right execution context, rather than the iteratee execution context, which would potentially block
+   * all other iteratee operations.
+   */
+  def flatMapM[B](f: A => Future[Iteratee[E, B]]): Iteratee[E, B] = for {
+    a <- self
+    b <- Iteratee.flatten(f(a))
+  } yield b
 
   def flatMapInput[B](f: Step[E, A] => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(f)
 

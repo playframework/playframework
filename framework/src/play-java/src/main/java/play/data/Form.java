@@ -383,7 +383,13 @@ public class Form<T> {
                     errors.put("", new ArrayList<ValidationError>());
                     errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
                 } else if(globalError instanceof List) {
-                    errors.put("", (List<ValidationError>)globalError);
+                    for (ValidationError error : (List<ValidationError>) globalError) {
+                      List<ValidationError> errorsForKey = errors.get(error.key());
+                      if (errorsForKey == null) {
+                        errors.put(error.key(), errorsForKey = new ArrayList<ValidationError>());
+                      }
+                      errorsForKey.add(error);
+                    }
                 } else if(globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
