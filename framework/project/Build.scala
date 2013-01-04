@@ -462,7 +462,6 @@ object PlayBuild extends Build {
 
 
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
-            "javax.transaction"                 %    "jta"                      %   "1.1",
 
             specsBuild %  "test"
         )
