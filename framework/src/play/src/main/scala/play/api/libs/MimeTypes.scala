@@ -392,6 +392,7 @@ object MimeTypes {
         rar=application/x-rar-compressed
         ras=application/x-cmu-raster
         rast=image/cmu-raster
+        rdf=text/xml
         rexx=text/x-scriptrexx
         rf=image/vndrn-realflash
         rgb=image/x-rgb
@@ -551,6 +552,7 @@ object MimeTypes {
         xm=audio/xm
         xml=text/xml
         xmz=xgl/movie
+        xpi=application/x-xpinstall
         xpix=application/x-vndls-xpix
         xpm=image/x-xpixmap
         xsr=video/x-amt-showrun
