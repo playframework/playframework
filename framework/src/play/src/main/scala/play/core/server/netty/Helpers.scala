@@ -54,4 +54,30 @@ private[netty] trait Helpers {
     }
 
   }
+
+  /**
+   * Copy headers to netty response
+   * @param headers
+   * @param nettyResponse
+   */
+  def setNettyHeaders(headers: Map[String, String], nettyResponse: DefaultHttpResponse) {
+    headers.foreach {
+
+      // Fix a bug for Set-Cookie header.
+      // Multiple cookies could be merged in a single header
+      // but it's not properly supported by some browsers
+      case (name@play.api.http.HeaderNames.SET_COOKIE, value) => {
+
+        import scala.collection.JavaConverters._
+        import play.api.mvc._
+
+        nettyResponse.setHeader(name, Cookies.decode(value).map {
+          c => Cookies.encode(Seq(c))
+        }.asJava)
+
+      }
+
+      case (name, value) => nettyResponse.setHeader(name, value)
+    }
+  }
 }

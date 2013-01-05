@@ -123,17 +123,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 Logger("play").trace("Sending simple result: " + r)
 
                 // Set response headers
-                headers.filterNot(_ == (CONTENT_LENGTH, "-1")).foreach {
-
-                  // Fix a bug for Set-Cookie header. 
-                  // Multiple cookies could be merged in a single header
-                  // but it's not properly supported by some browsers
-                  case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-                    nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
-                  }
-
-                  case (name, value) => nettyResponse.setHeader(name, value)
-                }
+                setNettyHeaders(headers.filterNot(_ == (CONTENT_LENGTH, "-1")), nettyResponse)
 
                 // Response header Connection: Keep-Alive is needed for HTTP 1.0
                 if (keepAlive && nettyVersion == HttpVersion.HTTP_1_0) {
@@ -201,22 +191,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
 
                 // Copy headers to netty response
-                headers.foreach {
-
-                  // Fix a bug for Set-Cookie header. 
-                  // Multiple cookies could be merged in a single header
-                  // but it's not properly supported by some browsers
-                  case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-
-                    import scala.collection.JavaConverters._
-                    import play.api.mvc._
-
-                    nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
-
-                  }
-
-                  case (name, value) => nettyResponse.setHeader(name, value)
-                }
+                setNettyHeaders(headers, nettyResponse)
 
                 nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
                 nettyResponse.setChunked(true)
