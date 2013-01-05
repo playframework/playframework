@@ -1,6 +1,7 @@
-package sbt
+package play.sbt
 
 import org.scalatools.testing.{ Event => TEvent, Result => TResult }
+import sbt._
 
 private[sbt] class PlayTestListener extends TestsListener {
 

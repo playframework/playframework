@@ -1,5 +1,6 @@
-package sbt
+package play.sbt
 
+import sbt._
 import xsbti.{Maybe, Position}
 
 object InPlaceLogger {

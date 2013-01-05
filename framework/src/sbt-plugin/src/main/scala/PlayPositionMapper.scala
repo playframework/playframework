@@ -1,6 +1,7 @@
-package sbt
+package play.sbt
 
 import xsbti.Position
+import sbt._
 
 /**
  * Maps positions from compile errors on generated sources to positions in the original sources

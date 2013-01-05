@@ -1,10 +1,11 @@
-package sbt
+package play.sbt
 
-import Keys._
-import CommandSupport.{ ClearOnFailure, FailureWall }
-import complete.Parser
+import sbt._
+import sbt.Keys._
+import sbt.CommandSupport.{ ClearOnFailure, FailureWall }
+import sbt.complete.Parser
 import Parser._
-import Cache.seqFormat
+import sbt.Cache.seqFormat
 import sbinary.DefaultProtocol.StringFormat
 
 import play.api._

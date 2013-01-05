@@ -1,4 +1,6 @@
-package sbt
+package play.sbt
+
+import sbt._
 
 trait PlayKeys {
   
