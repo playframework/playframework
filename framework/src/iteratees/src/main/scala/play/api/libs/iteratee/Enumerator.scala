@@ -369,15 +369,15 @@ object Enumerator {
   def unfoldM[S,E](s:S)(f: S => Future[Option[(S,E)]] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
 
     def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s).flatMap {
-      case Some((newS,e)) => loop(k(Input.El(e)),newS)
+      case Some((newS,e)) =>
+        intermediatePromise(loop(k(Input.El(e)),newS))
       case None => Future.successful(Cont(k))
     }
   })
 
   def unfold[S,E](s:S)(f: S => Option[(S,E)] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
-
-    def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s) match {
-      case Some((s,e)) => loop(k(Input.El(e)),s)
+    def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = Future(f(s)).flatMap {
+      case Some((s,e)) => intermediatePromise(loop(k(Input.El(e)),s))
       case None => Future.successful(Cont(k))
     }
   })
@@ -397,7 +397,7 @@ object Enumerator {
   def generateM[E](e: => Future[Option[E]]): Enumerator[E] = checkContinue0( new TreatCont0[E] {
 
     def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap {
-      case Some(e) => loop(k(Input.El(e)))
+      case Some(e) => intermediatePromise(loop(k(Input.El(e))))
       case None => Future.successful(Cont(k))
     }
   })
@@ -603,6 +603,16 @@ object Enumerator {
       else Future.successful(Cont(k))
   })
 
+  private[iteratee] def intermediatePromise[A](future: Future[A]) = {
+    val promise = Promise[A]()
+    future.onComplete {
+      case Success(s) =>
+        promise.success(s)
+      case Failure(f) =>
+        promise.failure(f)
+    }
+    promise.future
+  }
 }
 
 @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
