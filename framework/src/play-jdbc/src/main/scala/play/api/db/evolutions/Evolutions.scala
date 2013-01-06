@@ -46,9 +46,20 @@ private[evolutions] trait Script {
   val evolution: Evolution
 
   /**
-   * SQL to be run.
+   * The complete SQL to be run.
    */
   val sql: String
+
+  /**
+   * The sql string separated into constituent ";"-delimited statements.
+   *
+   * Any ";;" found in the sql are escaped to ";".
+   */
+  def statements: Seq[String] = {
+    // Remember to split only on ";" that neither precede nor follow other ";", to escape ";;",
+    // and to scrub empty statements due to trailing linebreaks.
+    sql.split("(?<!;);(?!;)").map(_.trim.replace(";;", ";")).filter(_ != "")
+  }
 }
 
 /**
@@ -229,10 +240,7 @@ object Evolutions {
         }
 
         // Execute script
-        s.sql.split(";").map(_.trim).foreach {
-          case "" =>
-          case statement => execute(statement)
-        }
+        s.statements.foreach(execute)
 
         // Insert into logs
         s match {

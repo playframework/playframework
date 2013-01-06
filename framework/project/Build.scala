@@ -416,7 +416,9 @@ object PlayBuild extends Build {
 
             "com.h2database"                    %    "h2"                       %   "1.3.168",
 
-            "tyrex"                             %    "tyrex"                    %   "1.0.1"
+            "tyrex"                             %    "tyrex"                    %   "1.0.1",
+
+            specsBuild                          %   "test"
         )
 
         val ebeanDeps = Seq(
