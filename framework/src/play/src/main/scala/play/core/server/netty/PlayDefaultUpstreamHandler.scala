@@ -81,8 +81,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
         }
 
-        import org.jboss.netty.util.CharsetUtil;
-
         val requestHeader = new RequestHeader {
           val id = requestIDs.incrementAndGet
           val tags = Map.empty[String,String]
