@@ -63,7 +63,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         Logger("play").trace("Http request received by netty: " + nettyHttpRequest)
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
-        var nettyVersion = nettyHttpRequest.getProtocolVersion
+        val nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
         val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
