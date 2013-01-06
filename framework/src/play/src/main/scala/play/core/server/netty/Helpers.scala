@@ -10,6 +10,9 @@ import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
+import play.api.libs.iteratee.Input.El
+import scala.Some
 
 private[netty] trait Helpers {
 
@@ -53,6 +56,24 @@ private[netty] trait Helpers {
       override def toString = cookies.toString
     }
 
+  }
+
+  def cleanFlashCookie(requestHeader: RequestHeader)(r:PlainResult):Result = {
+    val header = r.header
+
+    val flashCookie = {
+      header.headers.get(SET_COOKIE)
+        .map(Cookies.decode(_))
+        .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
+        Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
+          Flash.discard.toCookie
+        }
+      }
+    }
+
+    flashCookie.map { newCookie =>
+      r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
+    }.getOrElse(r)
   }
 
   /**

@@ -242,31 +242,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         // get handler for request
         val handler = server.getHandlerFor(requestHeader)
 
-        def cleanFlashCookie(r:PlainResult):Result = {
-          val header = r.header
-
-          val flashCookie = {
-            header.headers.get(SET_COOKIE)
-            .map(Cookies.decode(_))
-            .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
-              Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
-                Flash.discard.toCookie
-              }
-            }
-          }
-
-          flashCookie.map { newCookie =>
-            r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
-          }.getOrElse(r)
-        }
-
         handler match {
           //execute normal action
           case Right((action: EssentialAction, app)) =>
             val a = EssentialAction{ rh =>
               Iteratee.flatten(action(rh).map {
-                case r: PlainResult => cleanFlashCookie(r)
-                case a:AsyncResult => a.transform(cleanFlashCookie)
+                case r: PlainResult => cleanFlashCookie(requestHeader)(r)
+                case a:AsyncResult => a.transform(cleanFlashCookie(requestHeader))
               }.unflatten.extend1{
                 case Redeemed(it) => it.it
                 case Thrown(e) => Done(app.handleError(requestHeader, e),Input.Empty)
