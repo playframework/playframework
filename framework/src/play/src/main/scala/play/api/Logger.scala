@@ -241,7 +241,15 @@ object Logger extends LoggerLike {
               Option(System.getProperty("logger.url")).map(new java.net.URL(_))
             }.
             orElse {
+<<<<<<< .merge_file_XYmGbx
               Option(this.getClass.getClassLoader.getResource("application-logger.xml")).orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
+=======
+              if (mode != Mode.Test) {
+                Option(this.getClass.getClassLoader.getResource("application-logger.xml")).orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
+              } else {
+                None
+              }
+>>>>>>> .merge_file_bHw6eL
             }.
             map { url =>
               configurator.doConfigure(url)

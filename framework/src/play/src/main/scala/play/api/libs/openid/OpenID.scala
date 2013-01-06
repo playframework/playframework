@@ -1,7 +1,12 @@
 package play.api.libs.openid
 
+<<<<<<< .merge_file_fBTSGK
 import scala.concurrent.Future
 import scala.util.control.Exception._
+=======
+import scala.util.control.Exception._
+import play.api.libs.concurrent.Promise
+>>>>>>> .merge_file_MDStrc
 import scala.util.matching.Regex
 import play.api.http.HeaderNames
 import play.api.libs.concurrent.PurePromise
@@ -10,9 +15,12 @@ import java.net._
 import play.api.mvc.Request
 import play.api.libs.ws._
 import xml.Node
+<<<<<<< .merge_file_fBTSGK
 
 //TODO do not use Play's internal execution context in libs
 import play.core.Execution.internalContext
+=======
+>>>>>>> .merge_file_MDStrc
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
@@ -25,16 +33,25 @@ object UserInfo {
 
   def apply(queryString: Map[String, Seq[String]]): UserInfo = {
     val extractor = new UserInfoExtractor(queryString)
+<<<<<<< .merge_file_fBTSGK
     val id = extractor.id getOrElse (throw Errors.BAD_RESPONSE)
     new UserInfo(id, extractor.axAttributes)
   }
 
   /**
    * Extract the values required to create an instance of the UserInfo
+=======
+    val id = extractor.id getOrElse(throw Errors.BAD_RESPONSE)
+    new UserInfo(id, extractor.axAttributes)
+  }
+
+  /** Extract the values required to create an instance of the UserInfo
+>>>>>>> .merge_file_MDStrc
    *
    * The UserInfoExtractor ensures that attributes returned via OpenId attribute exchange are signed
    * (i.e. listed in the openid.signed field) and verified in the check_authentication step.
    */
+<<<<<<< .merge_file_fBTSGK
   private[openid] class UserInfoExtractor(params: Map[String, Seq[String]]) {
     val AxAttribute = """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
     val extractAxAttribute: PartialFunction[String, (String, String)] = {
@@ -50,6 +67,23 @@ object UserInfo {
         case (fullKey, shortKey) if signedFields.contains(fullKey) => values.headOption map { value => Map(shortKey -> value) }
         case _ => None
       } map (result ++ _) getOrElse result
+=======
+  private[openid] class UserInfoExtractor(params:Map[String, Seq[String]]) {
+    val AxAttribute =  """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
+    val extractAxAttribute: PartialFunction[String, (String,String)] = {
+      case AxAttribute(fullKey, key, num) => (fullKey, key) // fullKey e.g. 'ext1.value.email', shortKey e.g. 'email' or 'fav_movie.2'
+    }
+
+    private lazy val signedFields = params.get("openid.signed") flatMap {_.headOption map {_.split(",")}} getOrElse(Array())
+
+    def id = params.get("openid.claimed_id").flatMap(_.headOption).orElse(params.get("openid.identity").flatMap(_.headOption))
+
+    def axAttributes = params.foldLeft(Map[String,String]()) {
+      case (result, (key, values)) => extractAxAttribute.lift(key) flatMap {
+        case (fullKey, shortKey) if signedFields.contains(fullKey) => values.headOption map {value => Map(shortKey -> value)}
+        case _ => None
+      } map(result ++ _) getOrElse result
+>>>>>>> .merge_file_MDStrc
     }
   }
 
@@ -70,8 +104,12 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
   def redirectURL(openID: String,
     callbackURL: String,
     axRequired: Seq[(String, String)] = Seq.empty,
+<<<<<<< .merge_file_fBTSGK
     axOptional: Seq[(String, String)] = Seq.empty,
     realm: Option[String] = None): Future[String] = {
+=======
+    axOptional: Seq[(String, String)] = Seq.empty): Promise[String] = {
+>>>>>>> .merge_file_MDStrc
 
     val claimedId = discovery.normalizeIdentifier(openID)
     discovery.discoverServer(openID).map({server =>
@@ -105,8 +143,13 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
       queryString.get("openid.claimed_id").flatMap(_.headOption)) match { // The Claimed Identifier. "openid.claimed_id" and "openid.identity" SHALL be either both present or both absent.
       case (Some("id_res"), Some(id)) => {
         // MUST perform discovery on the claimedId to resolve the op_endpoint.
+<<<<<<< .merge_file_fBTSGK
         val server: Future[OpenIDServer] = discovery.discoverServer(id)
         server.flatMap(directVerification(queryString))(internalContext)
+=======
+        val server: Promise[OpenIDServer] = discovery.discoverServer(id)
+        server.flatMap(directVerification(queryString))
+>>>>>>> .merge_file_MDStrc
       }
       case (Some("cancel"), _) => PurePromise(throw Errors.AUTH_CANCEL)
       case _ => PurePromise(throw Errors.BAD_RESPONSE)
@@ -122,7 +165,11 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
       if (response.status == 200 && response.body.contains("is_valid:true")) {
         UserInfo(queryString)
       } else throw Errors.AUTH_ERROR
+<<<<<<< .merge_file_fBTSGK
     })(internalContext)
+=======
+    })
+>>>>>>> .merge_file_MDStrc
   }
 
   private def axParameters(axRequired: Seq[(String, String)],
@@ -179,12 +226,20 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
   /**
    * Resolve the OpenID server from the user's OpenID
    */
+<<<<<<< .merge_file_fBTSGK
   def discoverServer(openID:String): Future[OpenIDServer] = {
+=======
+  def discoverServer(openID:String): Promise[OpenIDServer] = {
+>>>>>>> .merge_file_MDStrc
     val discoveryUrl = normalizeIdentifier(openID)
     ws(discoveryUrl).get().map(response => {
       val maybeOpenIdServer = new XrdsResolver().resolve(response) orElse new HtmlResolver().resolve(response)
       maybeOpenIdServer.getOrElse(throw Errors.NETWORK_ERROR)
+<<<<<<< .merge_file_fBTSGK
     })(internalContext)
+=======
+    })
+>>>>>>> .merge_file_MDStrc
   }
 }
 
@@ -202,7 +257,11 @@ private[openid] object Discovery {
 
     def resolve(response: Response) = for {
       _ <- response.header(HeaderNames.CONTENT_TYPE).filter(_.contains("application/xrds+xml"))
+<<<<<<< .merge_file_fBTSGK
       findInXml = findUriWithType(response.xml) _
+=======
+      val findInXml = findUriWithType(response.xml) _
+>>>>>>> .merge_file_MDStrc
       uri <- serviceTypeId.flatMap(findInXml(_)).headOption
     } yield OpenIDServer(uri, None)
 

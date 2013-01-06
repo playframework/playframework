@@ -81,6 +81,7 @@ public class GlobalSettings {
     }
 
     /**
+<<<<<<< .merge_file_HY2EOb
      * Called when no action was found to serve a request.
      *
      * The default behavior is to render the framework's default 404 page. This is achieved by returning <code>null</code>, 
@@ -88,6 +89,11 @@ public class GlobalSettings {
      *
      * By overriding this method one can provide an alternative 404 page.
      *
+=======
+     * Triggered when a resource was requested but not found. The default implementation returns <code>null</code>, so that
+     * the Scala engine handles the <code>onActionNotFound</code>.
+     *
+>>>>>>> .merge_file_r3SBKd
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
@@ -101,12 +107,16 @@ public class GlobalSettings {
      * The default behavior is to render the framework's default 400 page. This is achieved by returning <code>null</code>, 
      * so that the Scala engine handles <code>onBadRequest</code>.
      *
+<<<<<<< .merge_file_HY2EOb
      * By overriding this method one can provide an alternative 400 page.
      *
+=======
+>>>>>>> .merge_file_r3SBKd
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
     public Result onBadRequest(RequestHeader request, String error) {
+<<<<<<< .merge_file_HY2EOb
         return null;
     }
 
@@ -117,6 +127,8 @@ public class GlobalSettings {
      * @return the appropriate instance for the given controller class.
      */
     public <A> A getControllerInstance(Class<A> controllerClass) throws Exception {
+=======
+>>>>>>> .merge_file_r3SBKd
         return null;
     }
 

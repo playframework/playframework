@@ -15,9 +15,13 @@ import com.ning.http.client.{
   Response => AHCResponse,
   PerRequestConfig
 }
+<<<<<<< .merge_file_dKzzxM
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
 import com.ning.http.util.AsyncHttpProviderUtils
+=======
+import com.ning.http.client.AsyncHttpClientConfig
+>>>>>>> .merge_file_Myf3E1
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -36,12 +40,16 @@ object WS {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
+<<<<<<< .merge_file_dKzzxM
 
   private var clientHolder: Option[AsyncHttpClient] = None
+=======
+>>>>>>> .merge_file_Myf3E1
 
   /**
    * resets the underlying AsyncHttpClient
    */
+<<<<<<< .merge_file_dKzzxM
   def resetClient(): Unit = {
     clientHolder.map { clientRef =>
       clientRef.close()
@@ -71,6 +79,22 @@ object WS {
       clientHolder = Some(innerClient)
       innerClient
     }
+=======
+  lazy val client = {
+    import play.api.Play.current
+    val config = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(current.configuration.getMilliseconds("ws.timeout").getOrElse(120000L).toInt)
+      .setFollowRedirects(current.configuration.getBoolean("ws.followRedirects").getOrElse(true))
+    current.configuration.getString("ws.useragent").map { useragent =>
+      config.setUserAgent(useragent)
+    }
+    if (current.configuration.getBoolean("ws.acceptAnyCertificate").getOrElse(false) == false) {
+      config.setSSLContext(SSLContext.getDefault)
+    }
+    new AsyncHttpClient(config.build())
+  }
+>>>>>>> .merge_file_Myf3E1
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
@@ -116,6 +140,7 @@ object WS {
      */
     def allHeaders: Map[String, Seq[String]] = {
       mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+<<<<<<< .merge_file_dKzzxM
     }
 
     /**
@@ -123,6 +148,8 @@ object WS {
      */
     def queryString: Map[String, Seq[String]] = {
       mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getParams()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+=======
+>>>>>>> .merge_file_Myf3E1
     }
 
     /**
@@ -250,8 +277,14 @@ object WS {
 
         override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
           if (!doneOrError) {
+<<<<<<< .merge_file_dKzzxM
             iteratee = iteratee.pureFlatFold {
               case Step.Done(a, e) => {
+=======
+            iteratee = iteratee.pureFlatFold(
+              // DONE
+              (a, e) => {
+>>>>>>> .merge_file_Myf3E1
                 doneOrError = true
                 val it = Done(a, e)
                 iterateeP.success(it)
@@ -262,7 +295,12 @@ object WS {
                 k(El(bodyPart.getBodyPartBytes()))
               }
 
+<<<<<<< .merge_file_dKzzxM
               case Step.Error(e, input) => {
+=======
+              // ERROR
+              (e, input) => {
+>>>>>>> .merge_file_Myf3E1
                 doneOrError = true
                 val it = Error(e, input)
                 iterateeP.success(it)

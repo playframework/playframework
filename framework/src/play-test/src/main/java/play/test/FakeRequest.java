@@ -46,12 +46,20 @@ public class FakeRequest {
      * @param node the Json Node
      * @return the Fake Request
      */
+<<<<<<< .merge_file_1dNiIL
     @SuppressWarnings(value = "unchecked")
     public FakeRequest withJsonBody(JsonNode node) {
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
         AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
         fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
+=======
+    public FakeRequest withJsonBody(JsonNode node) {
+        Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
+        map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
+        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map)), content, "127.0.0.1");
+>>>>>>> .merge_file_E5R79Q
         return this;
     }
 
@@ -62,11 +70,15 @@ public class FakeRequest {
      * @param method the HTTP method. <tt>POST</tt> if set to <code>null</code>
      * @return the Fake Request
      */
+<<<<<<< .merge_file_1dNiIL
     @SuppressWarnings(value = "unchecked")
+=======
+>>>>>>> .merge_file_E5R79Q
     public FakeRequest withJsonBody(JsonNode node, String method) {
         if (method == null) {
             method = Helpers.POST;
         }
+<<<<<<< .merge_file_1dNiIL
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
         AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
@@ -77,13 +89,29 @@ public class FakeRequest {
     /**
      * Add addtional session to this request.
      */
+=======
+        Map<String, Seq<String>> map = new HashMap(Scala.asJava(fake.headers().toMap()));
+        map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
+        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        fake = new play.api.test.FakeRequest(method, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map)), content, "127.0.0.1");
+        return this;
+    }
+
+   /**
+    * Add addtional session to this request.
+    */
+>>>>>>> .merge_file_E5R79Q
     @SuppressWarnings(value = "unchecked")
     public FakeRequest withFlash(String name, String value) {
         fake = fake.withFlash(Scala.varargs(Scala.Tuple(name, value)));
         return this;
     }
 
+<<<<<<< .merge_file_1dNiIL
     /**
+=======
+      /**
+>>>>>>> .merge_file_E5R79Q
      * Add addtional session to this request.
      */
     @SuppressWarnings(value = "unchecked")  
@@ -99,7 +127,11 @@ public class FakeRequest {
     public FakeRequest withCookies(Http.Cookie... cookies) {
         List <play.api.mvc.Cookie> scalacookies = new ArrayList<play.api.mvc.Cookie>();
         for (Http.Cookie c : cookies) {
+<<<<<<< .merge_file_1dNiIL
             scalacookies.add(new play.api.mvc.Cookie(c.name(), c.value(), Scala.<Object>Option(c.maxAge()), c.path(), Scala.Option(c.domain()), c.secure(), c.httpOnly()) );
+=======
+            scalacookies.add(new play.api.mvc.Cookie(c.name(), c.value(), c.maxAge(), c.path(), Scala.Option(c.domain()), c.secure(), c.httpOnly()) );
+>>>>>>> .merge_file_E5R79Q
         }
         fake = fake.withCookies(Scala.varargs(scalacookies.toArray()));
         return this;
@@ -118,7 +150,11 @@ public class FakeRequest {
         fake = fake.withFormUrlEncodedBody(Scala.toSeq(args));
         return this;
     }
+<<<<<<< .merge_file_1dNiIL
 
+=======
+    
+>>>>>>> .merge_file_E5R79Q
     @SuppressWarnings(value = "unchecked")
     public play.api.mvc.Request<play.mvc.Http.RequestBody> getWrappedRequest() {
         return ((play.api.test.FakeRequest<play.api.mvc.AnyContent>)fake).map(new scala.runtime.AbstractFunction1<play.api.mvc.AnyContent, play.mvc.Http.RequestBody>() {
@@ -135,5 +171,9 @@ public class FakeRequest {
             }
         });
     }
+<<<<<<< .merge_file_1dNiIL
 
+=======
+    
+>>>>>>> .merge_file_E5R79Q
 }

@@ -147,7 +147,11 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
+<<<<<<< .merge_file_7LTBS1
         val redirectUrl = Await.result(new OpenIDClient(ws.url).redirectURL(openId, returnTo), dur)
+=======
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+>>>>>>> .merge_file_9O76i8
 
         there was one(ws.request).get()
 
@@ -165,7 +169,11 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
+<<<<<<< .merge_file_7LTBS1
         val redirectUrl = Await.result(new OpenIDClient(ws.url).redirectURL(openId, returnTo), dur)
+=======
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+>>>>>>> .merge_file_9O76i8
 
         there was one(ws.request).get()
 
@@ -184,7 +192,11 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
+<<<<<<< .merge_file_7LTBS1
         val redirectUrl = Await.result(new OpenIDClient(ws.url).redirectURL(openId, returnTo), dur)
+=======
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+>>>>>>> .merge_file_9O76i8
 
         there was one(ws.request).get()
 
@@ -203,7 +215,11 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
+<<<<<<< .merge_file_7LTBS1
         val redirectUrl = Await.result(new OpenIDClient(ws.url).redirectURL(openId, returnTo), dur)
+=======
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL(openId, returnTo).value.get
+>>>>>>> .merge_file_9O76i8
 
         there was one(ws.request).get()
 
@@ -217,7 +233,11 @@ object DiscoverySpec extends Specification with Mockito {
         ws.response.body returns readFixture("discovery/html/opLocalIdentityPage.html")
 
         val returnTo = "http://foo.bar.com/openid"
+<<<<<<< .merge_file_7LTBS1
         val redirectUrl = Await.result(new OpenIDClient(ws.url).redirectURL("http://example.com/", returnTo), dur)
+=======
+        val redirectUrl = new OpenIDClient(ws.url).redirectURL("http://example.com", returnTo).value.get
+>>>>>>> .merge_file_9O76i8
 
         there was one(ws.request).get()
 

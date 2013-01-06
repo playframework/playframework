@@ -18,6 +18,9 @@ GET     /test/echo                  controllers.TestController.echo()
 POST    /test/echo                  controllers.TestController.echo()
 POST    /test/slave                 controllers.TestController.slave()
 
+POST    /json                       controllers.Application.getIdenticalJson()
+
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 

@@ -25,6 +25,7 @@ object JavascriptCompiler {
 
     val simpleCheck = simpleCompilerOptions.contains("rjs")
 
+<<<<<<< .merge_file_E0CvgW
     val origin = Path(source).string
 
     val options = fullCompilerOptions.getOrElse {
@@ -45,6 +46,21 @@ object JavascriptCompiler {
       })
       defaultOptions
     }
+=======
+    val options = new CompilerOptions()
+    options.closurePass = true
+    options.setProcessCommonJSModules(true)
+    options.setCommonJSModulePathPrefix(source.getParent() + File.separator)
+    options.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+    coptions.foreach(_ match {
+      case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options)
+      case "checkCaja" => options.setCheckCaja(true)
+      case "checkControlStructures" => options.setCheckControlStructures(true)
+      case "checkTypes" => options.setCheckTypes(true)
+      case "checkSymbols" => options.setCheckSymbols(true)
+      case _ => Unit // Unkown option
+    })
+>>>>>>> .merge_file_QiO6Ew
 
     val compiler = new Compiler()
     lazy val all = allSiblings(source)

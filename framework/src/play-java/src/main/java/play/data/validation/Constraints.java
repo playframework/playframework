@@ -439,6 +439,7 @@ public class Constraints {
      */
     public static Validator<String> pattern(String regex) {
         return new PatternValidator(regex);
+<<<<<<< .merge_file_f3Ghtp
     }
 
      /**
@@ -493,6 +494,8 @@ public class Constraints {
             return Tuple(message, new Object[] {});
         }
         
+=======
+>>>>>>> .merge_file_teTIvs
     }
     
 }

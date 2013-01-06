@@ -210,7 +210,11 @@ object NettyServer {
 
       if (pidFile.getAbsolutePath != "/dev/null") {
         if (pidFile.exists) {
+<<<<<<< .merge_file_ce4Lps
           println("This application is already running (Or delete " + pidFile.getAbsolutePath + " file).")
+=======
+          println("This application is already running (Or delete "+ pidFile.getAbsolutePath +" file).")
+>>>>>>> .merge_file_2w79DS
           System.exit(-1)
         }
 
@@ -227,16 +231,25 @@ object NettyServer {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
+<<<<<<< .merge_file_ce4Lps
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
 
+=======
+        Option(System.getProperty("http.address")).getOrElse("0.0.0.0"))
+        
+>>>>>>> .merge_file_2w79DS
       Runtime.getRuntime.addShutdownHook(new Thread {
         override def run {
           server.stop()
         }
       })
+<<<<<<< .merge_file_ce4Lps
 
+=======
+      
+>>>>>>> .merge_file_2w79DS
       Some(server)
     } catch {
       case e: Exception => {

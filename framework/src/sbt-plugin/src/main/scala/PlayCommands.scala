@@ -19,7 +19,11 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 
+<<<<<<< .merge_file_qa9WAd
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
+=======
+trait PlayCommands extends PlayEclipse {
+>>>>>>> .merge_file_wyXJNQ
   this: PlayReloader =>
 
   // ~~ Alerts  
@@ -88,7 +92,11 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   private[this] var commonClassLoader: ClassLoader = _
 
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
+<<<<<<< .merge_file_qa9WAd
   val playCommonClassloaderTask = (dependencyClasspath in Compile) map { classpath =>
+=======
+  val playCommonClassloaderTask = (scalaInstance, dependencyClasspath in Compile) map { (si, classpath) =>
+>>>>>>> .merge_file_wyXJNQ
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
@@ -145,6 +153,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     cr
   }
 
+<<<<<<< .merge_file_qa9WAd
 
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
 
@@ -176,6 +185,36 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
           .flatten
           .diff(srcs ++ docs) //remove srcs & docs since we do not need them in the dist
           .distinct
+=======
+  val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
+  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams) map { (b, resources, resourcesDirectories, r, externals, t, c, s) =>
+    val cacheFile = c / "copy-assets"
+    
+    val mappings = (r.map(_ ***).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
+      case (origin, name) => (origin, new java.io.File(t, name))
+    }) ++ (resources x rebase(resourcesDirectories, t))
+    
+    val externalMappings = externals.map {
+      case (root, paths, common) => {
+        paths(root) x relativeTo(root :: Nil) map {
+          case (origin, name) => (origin, new java.io.File(t, common + "/" + name))
+        }
+      }
+    }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
+
+    /*
+    Disable GZIP Generation for this release.
+    -----
+     
+    val toZip = mappings.collect { case (resource, _) if resource.isFile && !resource.getName.endsWith(".gz") => resource } x relativeTo(Seq(b, resourcesDirectories))
+
+    val gzipped = toZip.map {
+      case (resource, path) => {
+        s.log.debug("Gzipping " + resource)
+        val zipFile = new File(resourcesDirectories, path + ".gz")
+        IO.gzip(resource, zipFile)
+        zipFile -> new File(t, path + ".gz")
+>>>>>>> .merge_file_wyXJNQ
       }
     }
 
@@ -187,6 +226,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
       case (origin, name) => (origin, new java.io.File(t, name))
     }) ++ (resources x rebase(resourcesDirectories, t))
 
+<<<<<<< .merge_file_qa9WAd
     val externalMappings = externals.map {
       case (root, paths, common) => {
         paths(root) x relativeTo(root :: Nil) map {
@@ -194,6 +234,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
         }
       }
     }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
+=======
+    val assetsMapping = mappings ++ externalMappings
+>>>>>>> .merge_file_wyXJNQ
 
     val assetsMapping = mappings ++ externalMappings
 
@@ -237,16 +280,25 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
           module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
           artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
         } yield {
+<<<<<<< .merge_file_qa9WAd
           module.organization + "." + module.name + "-" + Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") + module.revision + ".jar"
         }
         val path = ("lib/" + filename.getOrElse(dependency.data.getName))
         dependency.data -> path
       } ++ packaged.map(jar => jar -> ("lib/" + jar.getName))
+=======
+          module.organization + "." + module.name + "-" + artifact.name + "-" + module.revision + ".jar"
+        }
+        val path = (packageName + "/lib/" + filename.getOrElse(dependency.data.getName))
+        dependency.data -> path
+      } ++ packaged.map(jar => jar -> (packageName + "/lib/" + jar.getName))
+>>>>>>> .merge_file_wyXJNQ
     }
 
     val start = target / "start"
 
     val customConfig = Option(System.getProperty("config.file"))
+<<<<<<< .merge_file_qa9WAd
     val customFileName = customConfig.map(f => Some((new File(f)).getName)).getOrElse(None)
 
     IO.write(start,
@@ -254,6 +306,14 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 scriptdir=`dirname $0`
 classpath=""" + libs.map { case (jar, path) => "$scriptdir/" + path }.mkString("\"", ":", "\"") + """
 exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+=======
+    val customFileName = customConfig.map(f=>Some( (new File(f)).getName)).getOrElse(None)
+
+    IO.write(start,
+      """#!/usr/bin/env sh
+
+exec java $* -cp "`dirname $0`/lib/*" """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/"+fn+" ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
+>>>>>>> .merge_file_wyXJNQ
 """ /* */ )
     val scripts = Seq(start -> (packageName + "/start"))
 
@@ -264,7 +324,11 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     val prodApplicationConf = customConfig.map { location =>
       val customConfigFile = new File(location)
       IO.copyFile(customConfigFile, productionConfig)
+<<<<<<< .merge_file_qa9WAd
       Seq(productionConfig -> (packageName + "/" + customConfigFile.getName))
+=======
+      Seq(productionConfig -> (packageName + "/"+customConfigFile.getName))
+>>>>>>> .merge_file_wyXJNQ
     }.getOrElse(Nil)
 
     IO.zip(libs.map { case (jar, path) => jar -> (packageName + "/" + path) } ++ scripts ++ other ++ prodApplicationConf, zip)
@@ -278,6 +342,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     zip
   }
 
+<<<<<<< .merge_file_qa9WAd
   def intellijCommandSettings(mainLang: String) = {
     import org.sbtidea.SbtIdeaPlugin
     SbtIdeaPlugin.ideaSettings ++
@@ -287,6 +352,18 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         SbtIdeaPlugin.includeScalaFacet := { mainLang == SCALA },
         SbtIdeaPlugin.defaultClassifierPolicy := false
       )
+=======
+
+  def intellijCommandSettings(mainLang: String) = {
+    import org.sbtidea.SbtIdeaPlugin
+    SbtIdeaPlugin.ideaSettings ++ 
+    Seq(
+      SbtIdeaPlugin.commandName := "idea",
+      SbtIdeaPlugin.addGeneratedClasses := true,
+      SbtIdeaPlugin.includeScalaFacet := {mainLang == SCALA},
+      SbtIdeaPlugin.defaultClassifierPolicy := false
+    )
+>>>>>>> .merge_file_wyXJNQ
   }
 
   val playStage = TaskKey[Unit]("stage")
@@ -321,6 +398,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     ()
   }
 
+<<<<<<< .merge_file_qa9WAd
   // ----- Post compile (need to be refactored and fully configurable)
 
   def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, cacheDirectory in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir) =>
@@ -342,6 +420,113 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       else
         Nil
     }
+=======
+  val playHash = TaskKey[String]("play-hash")
+  val playHashTask = (state, thisProjectRef, playExternalAssets) map { (s,r, externalAssets) =>
+    val filesToHash = inAllDependencies(r, baseDirectory, Project structure s).map {base =>
+      (base / "src" / "main" ** "*") +++ (base / "app" ** "*") +++ (base / "conf" ** "*") +++ (base / "public" ** "*")
+    }.foldLeft(PathFinder.empty)(_ +++ _)
+    ( filesToHash +++ externalAssets.map {
+      case (root, paths, _) => paths(root)
+    }.foldLeft(PathFinder.empty)(_ +++ _)).get.map(_.lastModified).mkString(",").hashCode.toString
+  }
+
+  // ----- Assets
+
+  // Name: name of the compiler
+  // files: the function to find files to compile from the assets directory
+  // naming: how to name the generated file from the original file and whether it should be minified or not
+  // compile: compile the file and return the compiled sources, the minified source (if relevant) and the list of dependencies
+  def AssetsCompiler(name: String,
+    watch: File => PathFinder,
+    filesSetting: sbt.SettingKey[PathFinder],
+    naming: (String, Boolean) => String,
+    compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
+    optionsSettings: sbt.SettingKey[Seq[String]]) =
+    (sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting) map { (src, resources, cache, options, files) =>
+
+      import java.io._
+
+      val cacheFile = cache / name
+      val currentInfos = watch(src).get.map(f => f -> FileInfo.lastModified(f)).toMap
+      val (previousRelation, previousInfo) = Sync.readInfo(cacheFile)(FileInfo.lastModified.format)
+
+      if (previousInfo != currentInfos) {
+
+        // Delete previous generated files
+        previousRelation._2s.foreach(IO.delete)
+
+        val generated = (files x relativeTo(Seq(src / "assets"))).flatMap {
+          case (sourceFile, name) => {
+            val (debug, min, dependencies) = compile(sourceFile, options)
+            val out = new File(resources, "public/" + naming(name, false))
+            val outMin = new File(resources, "public/" + naming(name, true))
+            IO.write(out, debug)
+            dependencies.map(_ -> out) ++ min.map { minified =>
+              IO.write(outMin, minified)
+              dependencies.map(_ -> outMin)
+            }.getOrElse(Nil)
+          }
+        }
+
+        Sync.writeInfo(cacheFile,
+          Relation.empty[File, File] ++ generated,
+          currentInfos)(FileInfo.lastModified.format)
+
+        // Return new files
+        generated.map(_._2).distinct.toList
+
+      } else {
+
+        // Return previously generated files
+        previousRelation._2s.toSeq
+
+      }
+
+    }
+
+  val LessCompiler = AssetsCompiler("less",
+    (_ ** "*.less"),
+    lessEntryPoints,
+    { (name, min) => name.replace(".less", if (min) ".min.css" else ".css") },
+    { (lessFile, options) => play.core.less.LessCompiler.compile(lessFile) },
+    lessOptions
+  )
+
+  val JavascriptCompiler = AssetsCompiler("javascripts",
+    (_ ** "*.js"),
+    javascriptEntryPoints,
+    { (name, min) => name.replace(".js", if (min) ".min.js" else ".js") },
+    { (jsFile: File, options) => play.core.jscompile.JavascriptCompiler.compile(jsFile, options) },
+    closureCompilerOptions
+  )
+
+  val CoffeescriptCompiler = AssetsCompiler("coffeescript",
+    (_ ** "*.coffee"),
+    coffeescriptEntryPoints,
+    { (name, min) => name.replace(".coffee", if (min) ".min.js" else ".js") },
+    { (coffeeFile, options) =>
+      import scala.util.control.Exception._
+      val jsSource = play.core.coffeescript.CoffeescriptCompiler.compile(coffeeFile, options)
+      // Any error here would be because of CoffeeScript, not the developer;
+      // so we don't want compilation to fail.
+      val minified = catching(classOf[CompilationException])
+        .opt(play.core.jscompile.JavascriptCompiler.minify(jsSource, Some(coffeeFile.getName())))
+      (jsSource, minified, Seq(coffeeFile))
+    },
+    coffeescriptOptions
+  )
+
+  // ----- Post compile (need to be refactored and fully configurable)
+
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, ebeanEnabled) map { (src, deps, analysis, javaSrc, srcManaged, classes, ebean) =>
+
+    val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
+
+    val javaClasses = (javaSrc ** "*.java").get.map { sourceFile =>
+      analysis.relations.products(sourceFile)
+    }.flatten.distinct 
+>>>>>>> .merge_file_wyXJNQ
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
@@ -350,13 +535,22 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     IO.write(timestampFile, System.currentTimeMillis.toString)
 
     // EBean
+<<<<<<< .merge_file_qa9WAd
     if (classpath.contains("play-java-ebean")) {
 
       val originalContextClassLoader = Thread.currentThread.getContextClassLoader
 
+=======
+    if (ebean) {
+      
+      val originalContextClassLoader = Thread.currentThread.getContextClassLoader
+      
+>>>>>>> .merge_file_wyXJNQ
       try {
 
         val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
+        
+        Thread.currentThread.setContextClassLoader(new java.net.URLClassLoader(cp, ClassLoader.getSystemClassLoader))
 
         Thread.currentThread.setContextClassLoader(new java.net.URLClassLoader(cp, ClassLoader.getSystemClassLoader))
 
@@ -364,7 +558,11 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         import com.avaje.ebean.enhance.ant._
         import collection.JavaConverters._
         import com.typesafe.config._
+<<<<<<< .merge_file_qa9WAd
 
+=======
+        
+>>>>>>> .merge_file_wyXJNQ
         val cl = ClassLoader.getSystemClassLoader
 
         val t = new Transformer(cp, "debug=-1")
@@ -376,12 +574,17 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         val models = try {
           config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
         } catch { case e: ConfigException.Missing => "models.*" }
+<<<<<<< .merge_file_qa9WAd
 
+=======
+        
+>>>>>>> .merge_file_wyXJNQ
         try {
           ft.process(models)
         } catch {
           case _ =>
         }
+<<<<<<< .merge_file_qa9WAd
 
       } finally {
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
@@ -395,6 +598,23 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         analysis.relations.products(managedSourceFile)
       }.flatten x rebase(classes, managedClassesDirectory)
 
+=======
+        
+      } catch {
+        case e => throw e
+      } finally {
+        Thread.currentThread.setContextClassLoader(originalContextClassLoader)
+      }
+    }
+    // Copy managed classes - only needed in Compile scope
+    if (scope.name.toLowerCase == "compile") {
+      val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
+
+      val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
+        analysis.relations.products(managedSourceFile)
+      }.flatten x rebase(classes, managedClassesDirectory)
+
+>>>>>>> .merge_file_wyXJNQ
       // Copy modified class files
       val managedSet = IO.copy(managedClasses)
 
@@ -519,10 +739,17 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
     val sbtLoader = this.getClass.getClassLoader
     def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
+<<<<<<< .merge_file_qa9WAd
     val commonLoader = commonLoaderEither.right.toOption.getOrElse {
       state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
       throw commonLoaderEither.left.get
     }
+=======
+    val commonLoader = commonLoaderEither.right.toOption.getOrElse{
+        state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+        throw commonLoaderEither.left.get
+      }
+>>>>>>> .merge_file_wyXJNQ
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader
@@ -912,7 +1139,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         import scala.Console._
 
         def asTableRow(module: Map[Symbol, Any]): Seq[(String, String, String, Boolean)] = {
-          val formatted = (Seq(module.get('module).map {
+           val formatted = (Seq(module.get('module).map {
             case (org, name, rev) => org + ":" + name + ":" + rev
           }).flatten,
 

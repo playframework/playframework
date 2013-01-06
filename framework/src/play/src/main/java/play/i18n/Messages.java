@@ -37,6 +37,7 @@ public class Messages {
     */
     public static String get(String key, Object... args) {
         Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+<<<<<<< .merge_file_n1pUeR
         Lang lang = null;
         if(play.mvc.Http.Context.current.get() != null) {
             lang = play.mvc.Http.Context.current().lang();
@@ -45,5 +46,8 @@ public class Messages {
             lang = new Lang(defaultLocale.getLanguage(), defaultLocale.getCountry());
         }
         return play.api.i18n.Messages.apply(key, scalaArgs, lang);
+=======
+        return play.api.i18n.Messages.apply(key, scalaArgs, play.mvc.Http.Context.Implicit.lang());
+>>>>>>> .merge_file_7055wv
     }
 }

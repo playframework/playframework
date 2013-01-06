@@ -122,6 +122,7 @@ object Console {
         }
         (templateToUse, name)
       }
+<<<<<<< .merge_file_oaxWiP
       try {
         //either generate templates based on local skeletons or use g8 templates
         if (template._1.endsWith("-skel")) {
@@ -194,6 +195,21 @@ object Console {
             ex => ("something went wrong while processing g8 template: \n\t" + ex, -1),
             _ => (haveFun(appName), 0)
           )
+=======
+
+      consoleReader.printNewline
+
+      val random = new java.security.SecureRandom
+      val newSecret = (1 to 64).map { _ =>
+        (random.nextInt(74) + 48).toChar
+      }.mkString.replaceAll("\\\\+", "/")
+
+      def copyRecursively(from: Path, target: Path) {
+        import scala.util.control.Exception._
+        from.copyTo(target)
+        from.children().foreach { child =>
+          catching(classOf[java.io.IOException]) opt copyRecursively(child, target / child.name)
+>>>>>>> .merge_file_XLWOFE
         }
       } catch {
         case ex: Exception =>

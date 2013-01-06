@@ -12,7 +12,11 @@ import play.api.db._
 import play.api.libs._
 import play.api.libs.Codecs._
 import javax.sql.DataSource
+<<<<<<< .merge_file_iYd6N1
 import java.sql.{ Statement, Date, Connection, SQLException }
+=======
+import java.sql.{Statement, Date, Connection, SQLException}
+>>>>>>> .merge_file_sEaHrz
 import scala.util.control.Exception._
 
 /**
@@ -496,6 +500,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     ignoring(classOf[SQLException])(c.close())
   }
 
+<<<<<<< .merge_file_iYd6N1
   def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[play.api.mvc.Result] = {
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
@@ -525,6 +530,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
   }
 
+=======
+>>>>>>> .merge_file_sEaHrz
 }
 
 /**

@@ -1,10 +1,15 @@
 package play.api.test
 
 import play.api.mvc._
+<<<<<<< .merge_file_mp8dXP
 import play.api.libs.json.JsValue
 import play.api.libs.concurrent.Promise
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+=======
+import org.codehaus.jackson.JsonNode
+import play.api.libs.json.JsValue
+>>>>>>> .merge_file_UvQy0i
 
 /**
  * Fake HTTP headers implementation.
@@ -23,6 +28,7 @@ case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
+<<<<<<< .merge_file_mp8dXP
 case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String,String] = Map.empty[String,String]) extends Request[A] {
 
   private def _copy[B](
@@ -40,6 +46,9 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
       method, uri, headers, body, remoteAddress, version, id, tags
     )
   }
+=======
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1") extends Request[A] {
+>>>>>>> .merge_file_UvQy0i
 
   /**
    * The request path.
@@ -58,6 +67,37 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     _copy(headers = FakeHeaders(
       headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2)).toSeq
     ))
+  }
+
+ /**
+  * Constructs a new request with additional Flash.
+  */ 
+ def withFlash(data: (String, String)*): FakeRequest[A] = {
+    withHeaders(play.api.http.HeaderNames.COOKIE ->
+      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), 
+          Seq(Flash.encodeAsCookie(new Flash (flash.data ++ data)))
+      )
+    )
+  }
+
+  /**
+  * Constructs a new request with additional Cookies.
+  */ 
+  def withCookies(cookies: Cookie*): FakeRequest[A] = {
+    withHeaders(play.api.http.HeaderNames.COOKIE ->
+      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), cookies )
+    )
+  }
+
+  /**
+   * Constructs a new request with additional session.
+   */
+  def withSession(newSessions: (String, String)*): FakeRequest[A] = {
+    withHeaders(play.api.http.HeaderNames.COOKIE ->
+      Cookies.merge(headers.get(play.api.http.HeaderNames.COOKIE).getOrElse(""), 
+          Seq(Session.encodeAsCookie(new Session(session.data ++ newSessions)))
+      )
+    )
   }
 
   /**
@@ -112,6 +152,20 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   def withJsonBody(node: JsValue, _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
     _copy(method = _method, body = AnyContentAsJson(node))
       .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
+  }
+
+  /**
+   * Sets a JSON body to this request.
+   * The content type is set to <tt>application/json</tt>.
+   * The method is set to <tt>POST</tt>.
+   *
+   * @param node the JSON Node.
+   * @param _method The request HTTP method, <tt>POST</tt> by default.
+   * @return the current fake request
+   */
+  def withJsonBody(node: JsValue,  _method: String = Helpers.POST): FakeRequest[AnyContentAsJson] = {
+    copy(method = _method, body = AnyContentAsJson(node))
+        .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
   }
 
 }

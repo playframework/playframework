@@ -5,8 +5,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+<<<<<<< .merge_file_2UqRdj
 import java.util.concurrent.TimeoutException;
 import play.core.Invoker;
+=======
+>>>>>>> .merge_file_HHu6bS
 
 /**
  * Defines a set of functional programming style helpers.
@@ -74,13 +77,46 @@ public class F {
      */
     public static class Promise<A> {
 
+<<<<<<< .merge_file_2UqRdj
         private final scala.concurrent.Future<A> promise;
+=======
+        /**
+         * Combine the given promises into a single promise for the list of results.
+         *
+         * @param promises The promises to combine
+         * @return A single promise whose methods act on the list of redeemed promises
+         */
+        public static <A> Promise<List<A>> waitAll(Promise<A>... promises){
+
+            return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(java.util.Arrays.asList(promises)));
+        }
+
+        /**
+         * Combine the given promises into a single promise for the list of results.
+         *
+         * @param promises The promises to combine
+         * @return A single promise whose methods act on the list of redeemed promises
+         */
+        public static <A> Promise<List<A>> waitAll(Iterable<Promise<A>> promises){
+
+            ArrayList<Promise<A>> ps = new ArrayList<Promise<A>>();
+
+            for(Promise<A> p : promises){
+                ps.add(p);
+            }
+
+            return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
+        }
+
+        private final play.api.libs.concurrent.Promise<A> promise;
+>>>>>>> .merge_file_HHu6bS
 
         /**
          * Create a new promise wrapping the given Scala promise
          *
          * @param promise The scala promise to wrap
          */
+<<<<<<< .merge_file_2UqRdj
         public Promise( scala.concurrent.Future<A> promise) {
             this.promise = promise;
         }
@@ -150,11 +186,18 @@ public class F {
             return new Promise<List<A>>(play.core.j.JavaPromise.<A>sequence(ps));
         }
 
+=======
+        public Promise(play.api.libs.concurrent.Promise<A> promise) {
+            this.promise = promise;
+        }
+
+>>>>>>> .merge_file_HHu6bS
         /**
          * Create a new pure promise, that is, a promise with a constant value from the start.
          *
          * @param a the value for the promise
          */
+<<<<<<< .merge_file_2UqRdj
         public static <A> Promise<A> pure(final A a) {
             return new Promise<A>(play.core.j.JavaPromise.<A>pure(a));
         }
@@ -165,6 +208,15 @@ public class F {
          */
         public static <A> Promise<A> throwing(Throwable throwable) {
             return new Promise<A>(play.core.j.JavaPromise.<A>throwing(throwable));
+=======
+        public Promise(final A a) {
+            this(play.api.libs.concurrent.Promise$.MODULE$.pure(new scala.runtime.AbstractFunction0<A>() {
+                @Override
+                public A apply() {
+                    return a;
+                }
+            }));
+>>>>>>> .merge_file_HHu6bS
         }
 
         /**
@@ -173,6 +225,7 @@ public class F {
          * @return The promised object
          * @throws RuntimeException if the calculation providing the promise threw an exception
          */
+<<<<<<< .merge_file_2UqRdj
          public A get() {
             return new play.api.libs.concurrent.PlayPromise<A>(promise).value1().get();
         }
@@ -209,6 +262,35 @@ public class F {
               new  play.core.j.EitherToFEither<A,B>()
             );
         }
+=======
+        public A get() {
+            return promise.value().get();
+        }
+
+        /**
+         * Awaits for the promise to get the result.
+         *
+         * @param timeout A user defined timeout
+         * @param unit timeout for timeout
+         * @return The promised result
+         * @throws RuntimeException if the calculation providing the promise threw an exception
+         */
+        public A get(Long timeout, TimeUnit unit) {
+            return promise.await(timeout, unit).get();
+        }
+
+        /**
+         * Awaits for the promise to get the result.
+         *
+         * @param timeout A user defined timeout in milliseconds
+         * @return The promised result
+         * @throws RuntimeException if the calculation providing the promise threw an exception
+         */
+        public A get(Long timeout) {
+            return get(timeout, TimeUnit.MILLISECONDS);
+        }
+
+>>>>>>> .merge_file_HHu6bS
         /**
          * Perform the given <code>action</code> callback when the Promise is redeemed.
          *
@@ -219,6 +301,7 @@ public class F {
             new play.api.libs.concurrent.PlayPromise<A>(promise).onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
                     try {
+<<<<<<< .merge_file_2UqRdj
                         run(new Function<A,Object>() {
                             public Object apply(A a) {
                                 try {
@@ -231,6 +314,9 @@ public class F {
                                 }
                             }
                         }, a, context);
+=======
+                        action.invoke(a);
+>>>>>>> .merge_file_HHu6bS
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable t) {
@@ -252,12 +338,20 @@ public class F {
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
         public <B> Promise<B> map(final Function<A, B> function) {
+<<<<<<< .merge_file_2UqRdj
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<B>>() {
                     public scala.concurrent.Future<B> apply(A a) {
                         try {
                             return run(function, a, context);
+=======
+            return new Promise<B>(
+                promise.map(new scala.runtime.AbstractFunction1<A,B>() {
+                    public B apply(A a) {
+                        try {
+                            return function.apply(a);
+>>>>>>> .merge_file_HHu6bS
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
@@ -280,6 +374,7 @@ public class F {
          *      exception.
          */
         public Promise<A> recover(final Function<Throwable,A> function) {
+<<<<<<< .merge_file_2UqRdj
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<A>(
                 play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, scala.concurrent.Future<A>>() {
@@ -294,6 +389,21 @@ public class F {
                     }
                     },Invoker.executionContext())
                     );
+=======
+            return new Promise<A>(
+              promise.recover(new play.api.libs.concurrent.Recover<A>(){
+                  public A recover(Throwable t){
+                      try {
+                          return function.apply(t);
+                      } catch (RuntimeException e) {
+                          throw e;
+                      } catch (Throwable tt) {
+                          throw new RuntimeException(tt);
+                      }
+                  }
+              })
+            );
+>>>>>>> .merge_file_HHu6bS
         }
 
         /**
@@ -307,6 +417,7 @@ public class F {
          * @return A wrapped promise for a result of type <code>B</code>
          */
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
+<<<<<<< .merge_file_2UqRdj
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
             return new Promise<B>(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<Promise<B>>>() {
@@ -316,6 +427,16 @@ public class F {
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
+=======
+            return new Promise<B>(
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,play.api.libs.concurrent.Promise<B>>() {
+                    public play.api.libs.concurrent.Promise<B> apply(A a) {
+                        try {
+                            return function.apply(a).promise;
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch (Throwable t) {
+>>>>>>> .merge_file_HHu6bS
                             throw new RuntimeException(t);
                         }
                     }
@@ -332,7 +453,11 @@ public class F {
          *
          * @return The scala promise
          */
+<<<<<<< .merge_file_2UqRdj
         public scala.concurrent.Future<A> getWrappedPromise() {
+=======
+        public play.api.libs.concurrent.Promise<A> getWrappedPromise() {
+>>>>>>> .merge_file_HHu6bS
             return promise;
         }
 

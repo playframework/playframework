@@ -53,35 +53,46 @@ trait JavaHelpers {
     case other => other
   }
 
+<<<<<<< .merge_file_5HYjCp
   /**
    * creates a java request (with an empty body) from a scala RequestHeader
    * @param request incoming requestHeader
    */
   def createJavaRequest(req: RequestHeader): JRequest = {
+=======
+ /**
+  * creates a java request (with an empty body) from a scala RequestHeader
+  * @param request incoming requestHeader
+  */
+  def createJavaRequest(req: RequestHeader): JRequest = { 
+>>>>>>> .merge_file_7KpfCt
     new JRequest {
 
-      def uri = req.uri
+        def uri = req.uri
 
-      def method = req.method
+        def method = req.method
 
+<<<<<<< .merge_file_5HYjCp
       def version = req.version
 
       def remoteAddress = req.remoteAddress
 
       def host = req.host
+=======
+        def remoteAddress = req.remoteAddress
+>>>>>>> .merge_file_7KpfCt
 
-      def path = req.path
+        def host = req.host
 
-      def body = null
+        def path = req.path
 
-      def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
+        def body = null
 
-      def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+        def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
-      def queryString = {
-        req.queryString.mapValues(_.toArray).asJava
-      }
+        def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
+<<<<<<< .merge_file_5HYjCp
       def accept = req.accept.asJava
 
       def acceptedTypes = req.acceptedTypes.asJava
@@ -92,10 +103,28 @@ trait JavaHelpers {
         def get(name: String) = (for (cookie <- req.cookies.get(name))
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
+=======
+        def queryString = {
+          req.queryString.mapValues(_.toArray).asJava
+        }
+>>>>>>> .merge_file_7KpfCt
 
-      override def toString = req.toString
+        def accept = req.accept.asJava
 
+<<<<<<< .merge_file_5HYjCp
     }
+=======
+        def accepts(mediaType: String) = req.accepts(mediaType)
+
+        def cookies = new JCookies {
+          def get(name: String) = (for (cookie <- req.cookies.get(name))
+            yield new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)).getOrElse(null)
+        }
+
+        override def toString = req.toString
+
+      }
+>>>>>>> .merge_file_7KpfCt
   }
 
   /**
@@ -103,10 +132,14 @@ trait JavaHelpers {
    * @param request
    */
   def createJavaContext(req: RequestHeader): JContext = {
+<<<<<<< .merge_file_5HYjCp
     new JContext(
       req.id,
       req,
       createJavaRequest(req),
+=======
+    new JContext(createJavaRequest(req),
+>>>>>>> .merge_file_7KpfCt
       req.session.data.asJava,
       req.flash.data.asJava,
       req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava
@@ -124,8 +157,11 @@ trait JavaHelpers {
 
       def method = req.method
 
+<<<<<<< .merge_file_5HYjCp
       def version = req.version
 
+=======
+>>>>>>> .merge_file_7KpfCt
       def remoteAddress = req.remoteAddress
 
       def host = req.host
@@ -140,8 +176,11 @@ trait JavaHelpers {
 
       def accept = req.accept.asJava
 
+<<<<<<< .merge_file_5HYjCp
       def acceptedTypes = req.acceptedTypes.asJava
 
+=======
+>>>>>>> .merge_file_7KpfCt
       def accepts(mediaType: String) = req.accepts(mediaType)
 
       def queryString = {

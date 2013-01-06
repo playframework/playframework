@@ -24,6 +24,7 @@ import scala.collection.JavaConverters._
 
 private[server] trait RequestBodyHandler {
 
+<<<<<<< .merge_file_GT4zYd
   def newRequestBodyHandler[R](firstIteratee: Future[Iteratee[Array[Byte], Result]], allChannels: DefaultChannelGroup, server: Server): (Future[Iteratee[Array[Byte], Result]], SimpleChannelUpstreamHandler) = {
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
@@ -75,6 +76,49 @@ private[server] trait RequestBodyHandler {
           if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
         }
         itPromise.redeem(it)
+=======
+  def newRequestBodyHandler[R](firstIteratee: Promise[Iteratee[Array[Byte], Either[Result, R]]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
+    var redeemed = false
+    var p = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
+    val MAX_MESSAGE_WATERMARK = 10
+    val MIN_MESSAGE_WATERMARK = 10
+    import scala.concurrent.stm._
+    val counter = Ref(0)
+
+    var iteratee: Ref[Iteratee[Array[Byte], Either[Result, R]]] = Ref(Iteratee.flatten(firstIteratee))
+
+    def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
+
+      if (counter.single.transformAndGet { _ + 1 } > MAX_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
+        ctx.getChannel.setReadable(false)
+
+      if (!redeemed) {
+        val itPromise = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
+        val current = iteratee.single.swap(Iteratee.flatten(itPromise))
+        val next = current.pureFlatFold[Array[Byte], Either[Result, R]](
+          (_, _) => current,
+          k => k(chunk),
+          (e, _) => current)
+
+        itPromise.redeem(next)
+
+        next.pureFold(
+          (a, e) => if (!redeemed) {
+            p.redeem(next);
+            iteratee = null; p = null; redeemed = true
+            if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
+          },
+          k =>
+            if (counter.single.transformAndGet { _ - 1 } <= MIN_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
+              ctx.getChannel.setReadable(true),
+
+          (msg, e) =>
+            if (!redeemed) {
+              p.redeem(Done(Left(Results.InternalServerError), e))
+              iteratee = null; p = null; redeemed = true
+              if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
+            })
+>>>>>>> .merge_file_Edatcs
       }
     }
 

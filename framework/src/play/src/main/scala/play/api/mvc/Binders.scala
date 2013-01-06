@@ -13,12 +13,21 @@ import reflect.ClassTag
 
 /**
  * Binder for query string parameters.
+<<<<<<< .merge_file_IlUlo8
  *
  * You can provide an implementation of `QueryStringBindable[A]` for any type `A` you want to be able to
  * bind directly from the request query string.
  *
  * For example, if you have the following type to encode pagination:
  *
+=======
+ * 
+ * You can provide an implementation of `QueryStringBindable[A]` for any type `A` you want to be able to
+ * bind directly from the request query string.
+ * 
+ * For example, if you have the following type to encode pagination:
+ * 
+>>>>>>> .merge_file_i8ge1v
  * {{{
  *   /**
  *    * @param index Current page index
@@ -26,12 +35,21 @@ import reflect.ClassTag
  *    */
  *   case class Pager(index: Int, size: Int)
  * }}}
+<<<<<<< .merge_file_IlUlo8
  *
  * Play will create a `Pager(5, 42)` value from a query string looking like `/foo?p.index=5&p.size=42` if you define
  * an instance of `QueryStringBindable[Pager]` available in the implicit scope.
  *
  * For example:
  *
+=======
+ * 
+ * Play will create a `Pager(5, 42)` value from a query string looking like `/foo?p.index=5&p.size=42` if you define
+ * an instance of `QueryStringBindable[Pager]` available in the implicit scope.
+ * 
+ * For example:
+ * 
+>>>>>>> .merge_file_i8ge1v
  * {{{
  *   object Pager {
  *     implicit def queryStringBinder(implicit intBinder: QueryStringBindable[Int]) = new QueryStringBindable[Pager] {
@@ -52,9 +70,15 @@ import reflect.ClassTag
  *     }
  *   }
  * }}}
+<<<<<<< .merge_file_IlUlo8
  *
  * To use it in a route, just write a type annotation aside the parameter you want to bind:
  *
+=======
+ * 
+ * To use it in a route, just write a type annotation aside the parameter you want to bind:
+ * 
+>>>>>>> .merge_file_i8ge1v
  * {{{
  *   GET  /foo        controllers.foo(p: Pager)
  * }}}
@@ -102,6 +126,7 @@ trait QueryStringBindable[A] {
 
 /**
  * Binder for URL path parameters.
+<<<<<<< .merge_file_IlUlo8
  *
  * You can provide an implementation of `PathBindable[A]` for any type `A` you want to be able to
  * bind directly from the request path.
@@ -114,23 +139,50 @@ trait QueryStringBindable[A] {
  *
  * You can define a binder retrieving a `User` instance from its id, useable like the following:
  *
+=======
+ * 
+ * You can provide an implementation of `PathBindable[A]` for any type `A` you want to be able to
+ * bind directly from the request path.
+ * 
+ * For example, given this class definition:
+ * 
+ * {{{
+ *   case class User(id: Int, name: String, age: Int)
+ * }}}
+ * 
+ * You can define a binder retrieving a `User` instance from its id, useable like the following:
+ * 
+>>>>>>> .merge_file_i8ge1v
  * {{{
  *   // In your routes:
  *   // GET  /show/:user      controllers.Application.show(user)
  *   // For example: /show/42
+<<<<<<< .merge_file_IlUlo8
  *
+=======
+ *   
+>>>>>>> .merge_file_i8ge1v
  *   object Application extends Controller {
  *     def show(user: User) = Action {
  *       …
  *     }
  *   }
  * }}}
+<<<<<<< .merge_file_IlUlo8
  *
  * The definition the binder can look like the following:
  *
  * {{{
  *   object User {
  *     implicit def pathBinder(implicit intBinder: PathBindable[Int]) = new PathBindable[User] {
+=======
+ * 
+ * The definition the binder can look like the following:
+ * 
+ * {{{
+ *   object User {
+ *     implicit def pathBinder(implicit intBinder: QueryStringBindable[Int]) = new PathBindable[User] {
+>>>>>>> .merge_file_i8ge1v
  *       override def bind(key: String, value: String): Either[String, User] = {
  *         for {
  *           id <- intBinder.bind(key, value).right
@@ -574,4 +626,8 @@ object PathBindable {
     override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
+<<<<<<< .merge_file_IlUlo8
+=======
+
+>>>>>>> .merge_file_i8ge1v
 }

@@ -10,10 +10,17 @@ import Play.current
 import java.io._
 
 /**
+<<<<<<< .merge_file_xZtmqT
  * Controller that serves static resources from an external folder.
  * It useful in development mode if you want to serve static assets that shouldn't be part of the build process.
  *
  * Not that this controller is not intented to be used in production mode and can lead to security issues.
+=======
+ * Controller that serves static resources from an external folder. 
+ * It useful in development mode if you want to serve static assets that shouldn't be part of the build process.
+ *
+ * Not that this controller is not intented to be used in production mode and can lead to security issues. 
+>>>>>>> .merge_file_B60XL3
  * Therefore it is automatically disabled in production mode.
  *
  * All assets are served with max-age=3600 cache directive.
@@ -46,14 +53,22 @@ object ExternalAssets extends Controller {
           case _ => new File(Play.application.getFile(rootPath), file)
         }
 
+<<<<<<< .merge_file_xZtmqT
         if (fileToServe.exists) {
+=======
+        if(fileToServe.exists) {
+>>>>>>> .merge_file_B60XL3
           Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
         } else {
           NotFound
         }
 
       }
+<<<<<<< .merge_file_xZtmqT
     }
+=======
+    }    
+>>>>>>> .merge_file_B60XL3
   }
 
 }

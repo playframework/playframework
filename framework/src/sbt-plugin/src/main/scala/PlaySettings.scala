@@ -165,6 +165,7 @@ trait PlaySettings {
 
     routesImport := Seq.empty[String],
 
+<<<<<<< .merge_file_l7659r
     playMonitoredDirectories <<= playMonitoredDirectoriesTask,
 
     playDefaultPort := 9000,
@@ -172,10 +173,15 @@ trait PlaySettings {
     playOnStarted := Nil,
 
     playOnStopped := Nil,
+=======
+    playHash <<= playHashTask,
+>>>>>>> .merge_file_vawm3R
 
     // Assets
 
     playAssetsDirectories := Seq.empty[File],
+    
+    playExternalAssets := Seq.empty[(File,File => PathFinder,String)],
 
     playExternalAssets := Seq.empty[(File, File => PathFinder, String)],
 

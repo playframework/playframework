@@ -253,6 +253,7 @@ trait HeaderNames {
   val WWW_AUTHENTICATE = "WWW-Authenticate"
 
   val X_FORWARDED_FOR = "X-Forwarded-For"
+<<<<<<< .merge_file_R0WUHZ
   val X_FORWARDED_HOST = "X-Forwarded-Host"
   val X_FORWARDED_PORT = "X-Forwarded-Port"
   val X_FORWARDED_PROTO = "X-Forwarded-Proto"
@@ -268,3 +269,7 @@ trait HeaderNames {
   val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
   val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
 }
+=======
+}
+
+>>>>>>> .merge_file_UdQuQD

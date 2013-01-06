@@ -10,6 +10,7 @@ import play.console.Colors
 
 import play.Project._
 
+<<<<<<< .merge_file_DO3man
 @deprecated("use play.Project instead", "2.1")
 object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
     with PlaySettings with PlayPositionMapper {
@@ -35,6 +36,38 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
       PlayProject.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings(mainLang) ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
         javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
+=======
+  Option(System.getProperty("play.version")).map {
+    case badVersion if badVersion != play.core.PlayVersion.current => {
+      println(
+        Colors.red("""
+          |This project uses Play %s!
+          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
+        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
+      )
+    }
+    case _ =>
+  }
+
+  private def whichLang(name: String): Seq[Setting[_]] = {
+    if (name == JAVA) {
+      defaultJavaSettings
+    } else if (name == SCALA) {
+      defaultScalaSettings
+    } else {
+      Seq.empty
+    }
+  }
+
+  // ----- Create a Play project with default settings
+
+  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE, settings: => Seq[Setting[_]] = Defaults.defaultSettings ): Project = {
+    
+    lazy val playSettings = 
+      PlayProject.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings(mainLang)  ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
+        scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xcheckinit", "-encoding", "utf8"),
+        javacOptions ++= Seq("-encoding", "utf8", "-g"),
+>>>>>>> .merge_file_NrGkQu
         version := applicationVersion,
         libraryDependencies ++= allDependencies
       )

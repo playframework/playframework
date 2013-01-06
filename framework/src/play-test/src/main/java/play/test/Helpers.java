@@ -182,6 +182,25 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return play.core.j.JavaResultExtractor.getCookies(result).get(name);
     }
 
+<<<<<<< .merge_file_PQX0vc
+=======
+    /**
+     * Extracts the Session of this Result value.
+     */
+    public static play.mvc.Http.Session session(Result result) {
+        return new play.mvc.Http.Session(
+                Scala.asJava(play.api.test.Helpers.session(result.getWrappedResult()).data())
+        );
+    }
+        
+    /**
+     * * Extracts a Cookie value from this Result value
+     */    
+    public static play.mvc.Http.Cookie cookie(String name, Result result) {
+        return play.core.j.JavaResultExtractor.getCookies(result).get(name);
+    }
+
+>>>>>>> .merge_file_Cg5RZh
     /**
      * Extracts an Header value of this Result value.
      */
@@ -474,5 +493,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static TestBrowser testBrowser(WebDriver of) {
         return testBrowser(of, Helpers$.MODULE$.testServerPort());
     }
+<<<<<<< .merge_file_PQX0vc
 
+=======
+    
+>>>>>>> .merge_file_Cg5RZh
 }

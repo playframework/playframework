@@ -7,7 +7,11 @@ import play.api.http._
 import play.api.libs.iteratee._
 
 import scala.collection.JavaConverters._
+<<<<<<< .merge_file_drhG6v
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
+=======
+import play.mvc.Http.{Cookies => JCookies, Cookie => JCookie }
+>>>>>>> .merge_file_Z2Qoa2
 
 /**
  * Java compatible Results
@@ -59,6 +63,17 @@ object JavaResultExtractor {
     case PlainResult(_, headers) => new JFlash(Flash.decodeFromCookie(
       Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
     ).data.asJava)
+  }
+
+  def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
+    case Result(_, headers) => new JCookies {
+        def get(name: String) = {
+          Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map{cookie => 
+           new JCookie(cookie.name, cookie.value, cookie.maxAge, cookie.path, cookie.domain.getOrElse(null), cookie.secure, cookie.httpOnly)
+           }.getOrElse(null)
+        }
+      }
+    case r => sys.error("Cannot extract Headers from a result of type " + r.getClass.getName)
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {

@@ -12,8 +12,11 @@ import org.jboss.netty.handler.stream._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
+<<<<<<< .merge_file_YsBwjq
 import org.jboss.netty.handler.ssl._
 
+=======
+>>>>>>> .merge_file_bznE4s
 import org.jboss.netty.channel.group._
 import java.util.concurrent._
 import play.core._
@@ -271,6 +274,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         def cleanFlashCookie(r:PlainResult):Result = {
           val header = r.header
 
+<<<<<<< .merge_file_YsBwjq
           val flashCookie = {
             header.headers.get(SET_COOKIE)
             .map(Cookies.decode(_))
@@ -341,6 +345,79 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
 
           val eventuallyResultIteratee = if (nettyHttpRequest.isChunked) {
+=======
+          //execute normal action
+          case Right((action: Action[_], app)) => {
+
+            Logger("play").trace("Serving this request with: " + action)
+
+            val bodyParser = action.parser
+
+            val eventuallyBodyParser = server.getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
+
+            val _ =
+              eventuallyBodyParser.flatMap { bodyParser =>
+
+                requestHeader.headers.get("Expect") match {
+                  case Some("100-continue") => {
+                    bodyParser.pureFold(
+                      (_, _) => (),
+                      k => {
+                        val continue = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
+                        e.getChannel.write(continue)
+                        
+                      },
+                      (_, _) => ()
+                    )
+
+                  }
+                  case _ => Promise.pure()
+                }
+             }
+
+
+            val eventuallyResultOrBody = if (nettyHttpRequest.isChunked) {
+
+                val ( result, handler) = newRequestBodyHandler(eventuallyBodyParser,allChannels, server)
+
+                val p: ChannelPipeline = ctx.getChannel().getPipeline()
+                p.replace("handler", "handler", handler)
+
+                result
+
+            } else {
+
+              lazy val bodyEnumerator = {
+                val body = {
+                  val cBuffer = nettyHttpRequest.getContent()
+                  val bytes = new Array[Byte](cBuffer.readableBytes())
+                  cBuffer.readBytes(bytes)
+                  bytes
+                }
+                Enumerator(body).andThen(Enumerator.enumInput(EOF))
+              }
+
+              eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): Promise[Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]
+
+            }
+
+            val eventuallyResultOrRequest =
+              eventuallyResultOrBody
+                .flatMap(it => it.run)
+                .map {
+                  _.right.map(b =>
+                    new Request[action.BODY_CONTENT] {
+                      def uri = nettyHttpRequest.getUri
+                      def path = nettyUri.getPath
+                      def method = nettyHttpRequest.getMethod.getName
+                      def queryString = parameters
+                      def headers = rHeaders
+                      lazy val remoteAddress = rRemoteAddress
+                      def username = None
+                      val body = b
+                    })
+                }
+>>>>>>> .merge_file_bznE4s
 
             val (result, handler) = newRequestBodyHandler(eventuallyBodyParser, allChannels, server)
 
@@ -375,6 +452,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               response.handle( app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)))
               e.getChannel.setReadable(true)
           }
+<<<<<<< .merge_file_YsBwjq
+=======
+
+>>>>>>> .merge_file_bznE4s
         }
 
       case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)

@@ -233,6 +233,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    */
   def api: DBApi = dbApi
 
+
   /**
    * Reads the configuration and connects to every data source.
    */

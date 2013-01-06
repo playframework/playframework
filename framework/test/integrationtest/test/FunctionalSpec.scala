@@ -6,16 +6,22 @@ import play.api.libs.ws._
 import org.specs2.mutable._
 import models._
 import models.Protocol._
+<<<<<<< .merge_file_mQWzL8
 import java.util.Calendar
 import java.util.Locale
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.ws.ResponseHeaders
 import scala.concurrent.ExecutionContext.Implicits.global
 
+=======
+import org.openqa.selenium.htmlunit.HtmlUnitDriver
+import java.util.Calendar
+>>>>>>> .merge_file_SVmO6Z
 
 class FunctionalSpec extends Specification {
   "an Application" should {
     
+<<<<<<< .merge_file_mQWzL8
     def cal = Calendar.getInstance()
 
     val startDate = cal.getTime()
@@ -78,14 +84,60 @@ class FunctionalSpec extends Specification {
       localCal.setTime(new java.util.Date(f.lastModified))
       localCal.add(Calendar.HOUR, -1)
       val earlierDate =  localCal.getTime
+=======
+        
+    def cal = Calendar.getInstance()
+
+    val startDate = cal.getTime()
+
+    "pass functional test with two browsers" in {
+      running(TestServer(9002), HTMLUNIT) { browser =>
+        browser.goTo("http://localhost:9002")
+        browser.pageSource must contain("Hello world")
+      }
+    } 
+    "pass functional test" in {
+      running(TestServer(9001), HTMLUNIT) { browser =>
+        // -- Etags
+        
+        val format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.ENGLISH)
+        format.setTimeZone(java.util.TimeZone.getTimeZone("GMT"))
+        val h = await(WS.url("http://localhost:9001/public/stylesheets/main.css").get)
+        h.header("Last-Modified").isDefined must equalTo(true)
+        h.header("Etag").get.startsWith("\"") must equalTo(true)
+        h.header("Etag").get.endsWith("\"") must equalTo(true)
+        
+        val secondRequest = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get)
+        secondRequest.status must equalTo(304)
+
+        // return Date header with 304 response
+        secondRequest.header(DATE) must beSome
+       
+        val localCal = cal
+        val f = new java.io.File("public/stylesheets/main.css")
+        localCal.setTime(new java.util.Date(f.lastModified))
+        localCal.add(Calendar.HOUR, -1)
+        val earlierDate =  localCal.getTime
+
+        val third = await(WS.url("http://localhost:9001/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(earlierDate)).get)
+        third.header("Last-Modified").isDefined must equalTo(true)
+        third.status must equalTo(200)
+>>>>>>> .merge_file_SVmO6Z
 
       val third = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(earlierDate)).get)
       third.header("Last-Modified").isDefined must equalTo(true)
       third.status must equalTo(200)
 
+<<<<<<< .merge_file_mQWzL8
       val fourth = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").withHeaders("If-Modified-Since" -> "Not a date").get)
       fourth.header("Last-Modified").isDefined must equalTo(true)
       fourth.status must equalTo(200)
+=======
+
+        val contentForm: String = await(WS.url("http://localhost:9001/post").post(Map("param1"->Seq("foo")))).body
+        contentForm must contain ("AnyContentAsFormUrlEncoded")
+        contentForm must contain ("foo")
+>>>>>>> .merge_file_SVmO6Z
 
       val content: String = await(WS.url("http://localhost:" + port + "/post").post("param1=foo")).body
       content must contain ("param1")
@@ -138,6 +190,7 @@ class FunctionalSpec extends Specification {
       browser.goTo("/cookie")
       browser.getCookie("foo").getValue must equalTo("bar")
 
+<<<<<<< .merge_file_mQWzL8
       browser.goTo("/read/foo")
       browser.pageSource must contain("Cookie foo has value: bar")
 
@@ -181,6 +234,35 @@ class FunctionalSpec extends Specification {
       "Asynchronous results" in new WithBrowser() {
         browser.goTo("/async-error")
         browser.pageSource must equalTo ("Something went wrong.")
+=======
+        // --- Javascript Reverse Router
+
+        browser.webDriver match {
+          case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
+        }
+        browser.goTo("http://localhost:9001/javascript-test?name=guillaume")
+
+        browser.$("#route-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("/javascript-test?name=world")
+
+        browser.$("#route-abs-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("http://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-abs-secure-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("https://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-abs-secure-url2").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("https://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("ws://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-secure-url").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:9001/javascript-test?name=world")
+
+        browser.$("#route-ws-secure-url2").click()
+        browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:9001/javascript-test?name=world")
+>>>>>>> .merge_file_SVmO6Z
       }
     }
 

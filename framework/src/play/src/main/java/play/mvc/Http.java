@@ -40,10 +40,15 @@ public class Http {
         private final Response response;
         private final Session session;
         private final Flash flash;
+<<<<<<< .merge_file_H5knWU
 
         private Lang lang = null;
 
 
+=======
+        
+        
+>>>>>>> .merge_file_aEn6ZG
         /**
          * Creates a new HTTP context.
          *
@@ -187,7 +192,18 @@ public class Http {
             public static Context ctx() {
                 return Context.current();
             }
+<<<<<<< .merge_file_H5knWU
 
+=======
+            
+            /**
+             * Returns the current context.
+             */
+            public static Context ctx() {
+                return Context.current();
+            }
+            
+>>>>>>> .merge_file_aEn6ZG
         }
 
         public String toString() {
@@ -195,7 +211,11 @@ public class Http {
         }
 
     }
+<<<<<<< .merge_file_H5knWU
 
+=======
+    
+>>>>>>> .merge_file_aEn6ZG
     public abstract static class RequestHeader {
         /**
          * The complete request URI, containing both path and query string.
@@ -219,8 +239,19 @@ public class Http {
          * if either the local address is 127.0.0.1, or if <code>trustxforwarded</code> is configured to be true in the
          * application configuration file.
          */
+<<<<<<< .merge_file_H5knWU
         public abstract String remoteAddress();
 
+=======
+        public abstract String method();
+
+        /**
+         * The client IP address.
+         */
+        public abstract String remoteAddress();
+
+        
+>>>>>>> .merge_file_aEn6ZG
         /**
          * The request host.
          */
@@ -254,8 +285,9 @@ public class Http {
         public abstract boolean accepts(String mimeType);
 
         /**
-         * The query string content.
+         * @return The media types set in the request Accept header, not sorted in any particular order.
          */
+<<<<<<< .merge_file_H5knWU
         public abstract Map<String,String[]> queryString();
 
         /**
@@ -264,6 +296,21 @@ public class Http {
         public String getQueryString(String key) {
             return queryString().containsKey(key) && queryString().get(key).length > 0 ? queryString().get(key)[0] : null;
         }
+
+=======
+        public abstract List<String> accept();
+        
+        /**
+         * Check if this request accepts a given media type.
+         * @returns true if <code>mediaType</code> is in the Accept header, otherwise false
+         */
+        public abstract boolean accepts(String mediaType);
+        
+>>>>>>> .merge_file_aEn6ZG
+        /**
+         * The query string content.
+         */
+        public abstract Map<String,String[]> queryString();
 
         /**
          * @return the request cookies
@@ -303,7 +350,11 @@ public class Http {
         }
 
     }
+<<<<<<< .merge_file_H5knWU
 
+=======
+    
+>>>>>>> .merge_file_aEn6ZG
     /**
      * An HTTP request.
      */

@@ -50,10 +50,14 @@ sealed trait JsValue {
    *
    * @return Some[T] if it succeeds, None if it fails.
    */
+<<<<<<< .merge_file_SIB2Rw
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = fjs.reads(this).fold(
       valid = v => Some(v),
       invalid = _ => None
     ).filter {
+=======
+  def asOpt[T](implicit fjs: Reads[T]): Option[T] = catching(classOf[RuntimeException]).opt(fjs.reads(this)).filter {
+>>>>>>> .merge_file_ct48KJ
     case JsUndefined(_) => false
     case _ => true
   }

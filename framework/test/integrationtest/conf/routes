@@ -13,9 +13,12 @@ GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
 
+<<<<<<< .merge_file_korXvq
 GET     /json_java_instance     @controllers.JavaControllerInstance.index()
 GET     /json_scala_instance    @controllers.ScalaControllerInstance.index()
 
+=======
+>>>>>>> .merge_file_ea8AW1
 GET     /notintercepted         controllers.JavaApi.notIntercepted()
 GET     /intercepted-with       controllers.JavaApi.interceptedUsingWith()
 GET     /intercepted            controllers.JavaApi.intercepted()
@@ -26,6 +29,7 @@ GET     /jsonWithContentType    controllers.Application.jsonWithContentType()
 GET     /jsonWithCharset        controllers.Application.jsonWithContentTypeAndCharset()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
+<<<<<<< .merge_file_korXvq
 
 # Test that the regex is properly escaped in the generated code
 GET     /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
@@ -35,6 +39,12 @@ GET     /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
 
 GET     /take-list              controllers.Application.takeList(x: List[Int])
 GET     /take-list-java         controllers.JavaApi.takeList(x: java.util.List[java.lang.Integer])
+=======
+GET     /urldecode/:p           controllers.Application.urldecode(p, q)
+
+GET     /accept                 controllers.Application.accept()
+GET     /accept-java            controllers.JavaApi.accept()
+>>>>>>> .merge_file_ea8AW1
 
 GET     /jsonp                  controllers.Application.jsonp(callback)
 GET     /jsonp-java             controllers.JavaApi.jsonpJava(callback)
@@ -44,6 +54,7 @@ GET     /urldecode/:p           controllers.Application.urldecode(p, q)
 GET     /javascript-routes      controllers.Application.javascriptRoutes()
 GET     /javascript-test        controllers.Application.javascriptTest(name)
 
+<<<<<<< .merge_file_korXvq
 GET     /accept                 controllers.Application.accept()
 GET     /accept-java            controllers.JavaApi.accept()
 
@@ -59,6 +70,8 @@ GET     /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
 GET     /hello                  controllers.Application.hello()
 GET     /setLang                controllers.Application.setLang(lang)
 
+=======
+>>>>>>> .merge_file_ea8AW1
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 

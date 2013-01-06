@@ -9,8 +9,13 @@ object PromiseSpec extends Specification {
       val promise = Promise[Int]()
       promise.redeem(6/0)
       
+<<<<<<< .merge_file_2PHnZn
       promise.future.recover{ case e: ArithmeticException => 0 }
        .value1.get must equalTo (0)
+=======
+      promise.recover{ case e: ArithmeticException => 0 }
+       .value.get must equalTo (0)
+>>>>>>> .merge_file_dAFw4Z
     }
   }
 }

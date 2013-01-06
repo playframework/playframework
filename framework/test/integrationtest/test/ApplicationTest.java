@@ -65,6 +65,20 @@ public class ApplicationTest extends WithApplication {
         assertThat(cookie("testcookie",result).name()).isEqualTo("testcookie");
         assertThat(contentAsString(result)).isEqualTo("testcookie");
     }
+    @Test 
+    public void testCookie() {
+        final Http.Cookie c = new Http.Cookie("testcookie", "value", -1, "/", "localhost", true, true);
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                Result result = callAction(
+                    controllers.routes.ref.JavaApi.cookietest(),
+                    fakeRequest().withCookies(c)
+                );
+                assertThat(cookie("testcookie",result).name()).isEqualTo("testcookie");
+                assertThat(contentAsString(result)).isEqualTo("testcookie");
+            }
+        });
+    }
 
     @Test
     public void interceptors() {

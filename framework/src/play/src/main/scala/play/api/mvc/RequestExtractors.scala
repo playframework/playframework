@@ -12,7 +12,11 @@ trait RequestExtractors extends AcceptExtractors {
    * }}}
    */
   object & {
+<<<<<<< .merge_file_yb2SnL
     def unapply(request: RequestHeader): Option[(RequestHeader, RequestHeader)] = Some((request, request))
+=======
+    def unapply(request: RequestHeader): Option[(RequestHeader, RequestHeader)] = Some(request, request)
+>>>>>>> .merge_file_37hZ7N
   }
 
 }
@@ -33,11 +37,18 @@ trait AcceptExtractors {
    * }}}
    */
   object Accepts {
+<<<<<<< .merge_file_yb2SnL
     import play.api.http.MimeTypes
     val Json = Accepting(MimeTypes.JSON)
     val Html = Accepting(MimeTypes.HTML)
     val Xml = Accepting(MimeTypes.XML)
     val JavaScript = Accepting(MimeTypes.JAVASCRIPT)
+=======
+    val Json = Accepting("application/json")
+    val Html = Accepting("text/html")
+    val Xml = Accepting("application/xml")
+    val JavaScript = Accepting("application/javascript")
+>>>>>>> .merge_file_37hZ7N
   }
 
 }

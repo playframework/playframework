@@ -36,7 +36,11 @@ object OpenIDSpec extends Specification with Mockito {
     "generate a valid redirectUrl" in {
       val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
+<<<<<<< .merge_file_AJqpFL
       val redirectUrl = Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto"), dur)
+=======
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto").value.get
+>>>>>>> .merge_file_yKKLrZ
 
       val query = parseQueryString(redirectUrl)
 
@@ -49,8 +53,13 @@ object OpenIDSpec extends Specification with Mockito {
     "generate a valid redirectUrl with a proper required extended attributes request" in {
       val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
+<<<<<<< .merge_file_AJqpFL
       val redirectUrl = Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
         axRequired = Seq("email" -> "http://schema.openid.net/contact/email")), dur)
+=======
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
+        axRequired = Seq("email" -> "http://schema.openid.net/contact/email")).value.get
+>>>>>>> .merge_file_yKKLrZ
 
       val query = parseQueryString(redirectUrl)
 
@@ -65,8 +74,13 @@ object OpenIDSpec extends Specification with Mockito {
     "generate a valid redirectUrl with a proper 'if_available' extended attributes request" in {
       val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
+<<<<<<< .merge_file_AJqpFL
       val redirectUrl = Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
         axOptional = Seq("email" -> "http://schema.openid.net/contact/email")), dur)
+=======
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
+        axOptional = Seq("email" -> "http://schema.openid.net/contact/email")).value.get
+>>>>>>> .merge_file_yKKLrZ
 
       val query = parseQueryString(redirectUrl)
 
@@ -81,9 +95,15 @@ object OpenIDSpec extends Specification with Mockito {
     "generate a valid redirectUrl with a proper 'if_available' AND required extended attributes request" in {
       val ws = createMockWithValidOpDiscoveryAndVerification
       val openId = new OpenIDClient(ws.url)
+<<<<<<< .merge_file_AJqpFL
       val redirectUrl = Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
         axRequired = Seq("first" -> "http://axschema.org/namePerson/first"),
         axOptional = Seq("email" -> "http://schema.openid.net/contact/email")), dur)
+=======
+      val redirectUrl = openId.redirectURL("http://example.com", "http://foo.bar.com/returnto",
+        axRequired = Seq("first" -> "http://axschema.org/namePerson/first"),
+        axOptional = Seq("email" -> "http://schema.openid.net/contact/email")).value.get
+>>>>>>> .merge_file_yKKLrZ
 
       val query = parseQueryString(redirectUrl)
 
@@ -103,7 +123,11 @@ object OpenIDSpec extends Specification with Mockito {
       val openId = new OpenIDClient(ws.url)
 
       val responseQueryString = openIdResponse
+<<<<<<< .merge_file_AJqpFL
       val userInfo = Await.result(openId.verifiedId(setupMockRequest(responseQueryString)), dur)
+=======
+      val userInfo = openId.verifiedId(setupMockRequest(responseQueryString)).value.get
+>>>>>>> .merge_file_yKKLrZ
 
       "the claimedId must be present" in {
         userInfo.id must be equalTo claimedId
@@ -136,7 +160,11 @@ object OpenIDSpec extends Specification with Mockito {
       val spoofedEndpoint = "http://evilhackerendpoint.com"
       val responseQueryString = openIdResponse - "openid.op_endpoint" + ("openid.op_endpoint" -> Seq(spoofedEndpoint))
 
+<<<<<<< .merge_file_AJqpFL
       Await.result(openId.verifiedId(setupMockRequest(responseQueryString)), dur)
+=======
+      openId.verifiedId(setupMockRequest(responseQueryString)).value.get
+>>>>>>> .merge_file_yKKLrZ
 
       "direct verification does not use the openid.op_endpoint that is part of the query string" in {
         ws.urls contains(spoofedEndpoint) must beFalse
@@ -167,7 +195,11 @@ object OpenIDSpec extends Specification with Mockito {
 
       val openId = new OpenIDClient(ws.url)
 
+<<<<<<< .merge_file_AJqpFL
       Await.result(openId.verifiedId(setupMockRequest()), dur) must throwA[AUTH_ERROR.type]
+=======
+      openId.verifiedId(setupMockRequest()).value.get must throwA[AUTH_ERROR.type]
+>>>>>>> .merge_file_yKKLrZ
 
       there was one(ws.request).post(any[Params])(any[Writeable[Params]], any[ContentTypeOf[Params]])
     }
@@ -184,7 +216,11 @@ object OpenIDSpec extends Specification with Mockito {
 
       val errorResponse = (openIdResponse - "openid.mode") + ("openid.mode" -> Seq("error"))
 
+<<<<<<< .merge_file_AJqpFL
       Await.result(openId.verifiedId(setupMockRequest(errorResponse)), dur) must throwA[BAD_RESPONSE.type]
+=======
+      openId.verifiedId(setupMockRequest(errorResponse)).value.get must throwA[BAD_RESPONSE.type]
+>>>>>>> .merge_file_yKKLrZ
     }
 
     // OpenID 1.1 compatibility - 14.2.1
@@ -194,7 +230,11 @@ object OpenIDSpec extends Specification with Mockito {
 
       val responseQueryString = (openIdResponse - "openid.op_endpoint")
 
+<<<<<<< .merge_file_AJqpFL
       val userInfo = Await.result(openId.verifiedId(setupMockRequest(responseQueryString)), dur)
+=======
+      val userInfo = openId.verifiedId(setupMockRequest(responseQueryString)).value.get
+>>>>>>> .merge_file_yKKLrZ
 
       "the claimedId must be present" in {
         userInfo.id must be equalTo claimedId

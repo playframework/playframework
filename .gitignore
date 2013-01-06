@@ -20,4 +20,7 @@ RUNNING_PID
 .cache
 *.iml
 documentation/*.pdf
+<<<<<<< .merge_file_j0WWGj
 framework/test/integrationtest-java/conf/evolutions/
+=======
+>>>>>>> .merge_file_NgvEmB

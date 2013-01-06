@@ -387,7 +387,11 @@ public class Form<T> {
                 } else if(globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
+<<<<<<< .merge_file_IUV8JS
                 return new Form(rootName, backedType, data, errors, None(), groups);
+=======
+                return new Form(rootName, backedType, data, errors, None());
+>>>>>>> .merge_file_2iMScV
             }
             return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
         }

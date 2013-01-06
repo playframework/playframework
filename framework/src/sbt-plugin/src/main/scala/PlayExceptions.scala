@@ -13,6 +13,7 @@ trait PlayExceptions {
     }
   }
 
+<<<<<<< .merge_file_1oZS5s
   case class UnexpectedException(message: Option[String] = None, unexpected: Option[Throwable] = None) extends PlayException(
     "Unexpected exception",
     message.getOrElse {
@@ -51,6 +52,43 @@ trait PlayExceptions {
     def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
     def input = source.filter(_.exists()).map(scalax.file.Path(_).string).orNull
     def sourceName = source.map(_.getAbsolutePath).orNull
+=======
+  case class CompilationException(problem: xsbti.Problem) extends PlayException(
+    "Compilation error", filterAnnoyingErrorMessages(problem.message)) with PlayException.ExceptionSource {
+    def line = problem.position.line.map(m => m.asInstanceOf[Int])
+    def position = problem.position.pointer.map(m => m.asInstanceOf[Int])
+    def input = problem.position.sourceFile.map(scalax.file.Path(_))
+    def sourceName = problem.position.sourceFile.map(_.getAbsolutePath)
+    override def toString =  "in " + sourceName.getOrElse("")+" - "+ super.toString()
+  }
+
+  case class TemplateCompilationException(source: File, message: String, atLine: Int, column: Int) extends PlayException(
+    "Compilation error", message) with PlayException.ExceptionSource {
+    def line = Some(atLine)
+    def position = Some(column)
+    def input = Some(scalax.file.Path(source))
+    def sourceName = Some(source.getAbsolutePath)
+    override def toString =  "in " + source.getAbsolutePath+" - "+ super.toString()
+  }
+
+  case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException(
+    "Compilation error", message) with PlayException.ExceptionSource {
+    def line = atLine
+    def position = column
+    def input = Some(scalax.file.Path(source))
+    def sourceName = Some(source.getAbsolutePath)
+    override def toString =  "in " + source.getAbsolutePath+" - "+ super.toString()
+  }
+
+  case class AssetCompilationException(source: Option[File], message: String, atLine: Int, atColumn: Int) extends PlayException(
+    "Compilation error", message) with PlayException.ExceptionSource {
+    def line = Some(atLine)
+    def position = Some(atColumn)
+    def input = source.filter(_.exists()).map(scalax.file.Path(_))
+    def sourceName = source.map(_.getAbsolutePath)
+    override def toString =  "in " + sourceName.getOrElse("")+" - "+ super.toString()
+
+>>>>>>> .merge_file_lFZ9L7
   }
 
 }

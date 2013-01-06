@@ -9,6 +9,7 @@ import scala.concurrent.duration.Duration
 
 import java.util.concurrent.{ TimeUnit }
 
+<<<<<<< .merge_file_aDG6Tc
 import scala.concurrent.{Future, ExecutionContext}
 import scala.collection.mutable.Builder
 import scala.collection._
@@ -19,6 +20,12 @@ import play.core.Execution.internalContext
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
  */
+=======
+import scala.collection.mutable.Builder
+import scala.collection._
+import scala.collection.generic.CanBuildFrom
+
+>>>>>>> .merge_file_v3sBw1
 sealed trait PromiseValue[+A] {
 
   /**
@@ -52,9 +59,12 @@ trait NotWaiting[+A] extends PromiseValue[A] {
 
 }
 
+<<<<<<< .merge_file_aDG6Tc
 /**
  * A promise state containing an exception.
  */
+=======
+>>>>>>> .merge_file_v3sBw1
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 
 /**
@@ -83,6 +93,7 @@ class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
  */
 class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
 
+<<<<<<< .merge_file_aDG6Tc
   /**
    * Registers a callback to be invoked when (and if) the promise
    * is completed with a non-exception value. The callback may
@@ -90,6 +101,15 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    * @param k the callback
    */
   def onRedeem(k: A => Unit)(implicit ec: ExecutionContext): Unit = extend1 { case Redeemed(a) => k(a); case _ => }
+=======
+  def recover [AA >: A] (pf: PartialFunction[Throwable, AA]): Promise[AA] = extend1{
+    case Thrown(e) if pf.isDefinedAt(e) => pf(e)
+    case Thrown(e) => throw e
+    case Redeemed(a) => a
+  }
+
+  def extend[B](k: Function1[Promise[A], B]): Promise[B]
+>>>>>>> .merge_file_v3sBw1
 
   /**
    * Creates a new Promise[B], by running the function k on this promise
@@ -159,6 +179,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
       if (!ref.single()) {
         val iRedeemed = ref.single.getAndTransform(_ => true)
 
+<<<<<<< .merge_file_aDG6Tc
         if (!iRedeemed) {
           v match {
             case Redeemed(a) =>
@@ -169,10 +190,22 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
         }
       }
     }(internalContext)
+=======
+        if (! iRedeemed) { v match {
+          case Redeemed(a) =>
+            p.redeem(Left(a))
+          case Thrown(e) =>
+            p.throwing(e)
+          }
+                        }
+      }
+    }
+>>>>>>> .merge_file_v3sBw1
     other.extend1 { v =>
       if (!ref.single()) {
         val iRedeemed = ref.single.getAndTransform(_ => true)
 
+<<<<<<< .merge_file_aDG6Tc
         if (!iRedeemed) {
           v match {
             case Redeemed(a) =>
@@ -181,11 +214,21 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
               p.throwing(e)
           }
         }
+=======
+        if (! iRedeemed) { v match {
+          case Redeemed(a) =>
+            p.redeem(Right(a))
+          case Thrown(e) =>
+            p.throwing(e)
+          }
+                        }
+>>>>>>> .merge_file_v3sBw1
       }
     }(internalContext)
     p.future
   }
 
+<<<<<<< .merge_file_aDG6Tc
   /**
    * Creates a timer promise with the given message.  Message a is shown if the timer promise
    * redeems before the current promise
@@ -196,6 +239,10 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    */
   def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[Either[A, B]] = {
     or(Promise.timeout(message, duration, unit)(ec))
+=======
+  def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Promise[Either[A, B]] = {
+    or(Promise.timeout(message, duration, unit))
+>>>>>>> .merge_file_v3sBw1
   }
 
   /**
@@ -217,6 +264,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
    */
   def orTimeout(e: Throwable): Future[A] = orTimeout(e, Promise.defaultTimeout)(internalContext).map(_.fold(a => a, e => throw e))(internalContext)
 
+<<<<<<< .merge_file_aDG6Tc
 }
 
 /**
@@ -259,11 +307,26 @@ object PurePromise {
  * useful helper methods to create and compose Promises
  */
 object Promise {
+=======
+class STMPromise[A] extends Promise[A] with Redeemable[A] {
+  import scala.concurrent.stm._
+>>>>>>> .merge_file_v3sBw1
 
   private[concurrent] lazy val defaultTimeout =
     //TODO get it from conf
     Duration(10000, TimeUnit.MILLISECONDS).toMillis
 
+<<<<<<< .merge_file_aDG6Tc
+=======
+  def extend[B](k: Function1[Promise[A], B]): Promise[B] = {
+    val result = new STMPromise[B]()
+    addAction{ p =>
+      val bOrExc = scala.util.control.Exception.allCatch[B].either(k(p))
+      bOrExc.fold( e => result.throwing(e), b => result.redeem(b))
+    }
+    result
+  }
+>>>>>>> .merge_file_v3sBw1
 
 
   /**
@@ -276,6 +339,7 @@ object Promise {
    */
   def apply[A](): scala.concurrent.Promise[A] = scala.concurrent.Promise[A]()
 
+<<<<<<< .merge_file_aDG6Tc
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses.
    * This is useful only when used in conjunction with other Promises
@@ -283,12 +347,29 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
+=======
+  private def addAction(k: Promise[A] => Unit): Unit = {
+    if (redeemed.single().isDefined) {
+      invoke(this, k)
+    } else {
+      val ok: Boolean = atomic { implicit txn =>
+        if (!redeemed().isDefined) { actions() = actions() :+ k; true }
+        else false
+      }
+      if (!ok) invoke(this, k)
+    }
+  }
+>>>>>>> .merge_file_v3sBw1
 
   def timeout[A](message: => A, duration: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext): Future[A] = {
     timeout(message, duration.toMillis)
   }
 
+<<<<<<< .merge_file_aDG6Tc
   private val timer = new java.util.Timer()
+=======
+  private def invoke[T](a: T, k: T => Unit): Unit = akka.dispatch.Future{ k(a) }(play.core.Invoker.promiseDispatcher)
+>>>>>>> .merge_file_v3sBw1
 
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses.
@@ -316,6 +397,7 @@ object Promise {
     timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)(internalContext)
   }
 
+<<<<<<< .merge_file_aDG6Tc
   /**
    * Converts an optional promise into a promise containing an
    * optional value. i.e. if the original option is None, you get
@@ -348,6 +430,47 @@ object Promise {
    * @return a promise with Either[A,B]
    */
   def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_))(internalContext))
+=======
+  def flatMap[B](f: A => Promise[B]) = {
+    val result = new STMPromise[B]()
+    this.addAction(p => p.value match {
+      case Redeemed(a) =>
+       (try{ 
+         f(a)
+       } catch{
+         case e =>
+           Promise.pure[B](throw e)
+       }).extend(ip => ip.value match {
+          case Redeemed(a) => result.redeem(a)
+          case Thrown(e) => result.redeem(throw e)
+
+        })
+      case Thrown(e) => result.redeem(throw e)
+    })
+    result
+  }
+}
+
+object PurePromise {
+
+  def apply[A](lazyA: => A): Promise[A] = 
+    (try (akka.dispatch.Promise.successful(lazyA)(Promise.system.dispatcher))
+     catch{ case e => akka.dispatch.Promise.failed(e)(Promise.system.dispatcher)}).asPromise
+}
+
+object Promise {
+
+  private[concurrent] def invoke[T](t: => T): Promise[T] = akka.dispatch.Future { t }(Promise.system.dispatcher).asPromise
+  
+  /*private [concurrent] lazy val defaultTimeout = 
+    Duration(system.settings.config.getMilliseconds("promise.akka.actor.typed.timeout"), TimeUnit.MILLISECONDS).toMillis */
+
+  private [concurrent] lazy val system = ActorSystem("promise")
+
+  def pure[A](a: => A): Promise[A] = PurePromise(a)
+
+  def apply[A](): Promise[A] with Redeemable[A] = new STMPromise[A]()
+>>>>>>> .merge_file_v3sBw1
 
   /**
    * Converts an either containing a Promise on both Left and Right into a Promise
@@ -358,5 +481,13 @@ object Promise {
   @deprecated("use sequence instead", "2.1")
   def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(internalContext)).getOrElse(Promise.pure(None))
 
+<<<<<<< .merge_file_aDG6Tc
+=======
+  def sequence[A](in: Option[Promise[A]]): Promise[Option[A]] = in.map { p => p.map{ v => Some(v)}}.getOrElse { Promise.pure(None)}
+  
+  def sequence[B, M[_]](in: M[Promise[B]])(implicit toTraversableLike : M[Promise[B]] => TraversableLike[Promise[B], M[Promise[B]]], cbf: CanBuildFrom[M[Promise[B]], B, M[B]]): Promise[M[B]] = { 
+    toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa : Promise[B]) => for (r <- fr; a <- fa) yield (r += a)).map(_.result)
+  }
+>>>>>>> .merge_file_v3sBw1
 }
 

@@ -119,6 +119,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     if (server != null) {
       sys.error("Server already started!")
     }
+<<<<<<< .merge_file_7m4ko9
     //play.core.Invoker.uninit()
     try {
       server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
@@ -127,6 +128,10 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
         t.printStackTrace
         throw new RuntimeException(t)
     }
+=======
+    play.core.Invoker.uninit()
+    server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, mode = Mode.Test)
+>>>>>>> .merge_file_dQ5MAe
   }
 
   /**

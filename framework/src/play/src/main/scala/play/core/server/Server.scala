@@ -39,6 +39,15 @@ trait Server {
     Map("application.home" -> applicationProvider.path.getAbsolutePath),
     mode = mode)
 
+<<<<<<< .merge_file_FCf7f1
+=======
+  // Start the main Invoker
+  val invoker = Invoker(applicationProvider)
+
+  // store the invoker in a global variable
+  Invoker.init(invoker)
+
+>>>>>>> .merge_file_DSEAlH
   val bodyParserTimeout = {
     //put in proper config
     1 second
@@ -87,9 +96,26 @@ trait Server {
 
   }
 
+<<<<<<< .merge_file_FCf7f1
   def applicationProvider: ApplicationProvider
 
   def stop() {
+=======
+  def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
+    invoker.actionInvoker ! Invoker.HandleAction(request, response, action, app)
+  }
+
+  def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
+    val future = ask(invoker.actionInvoker, Invoker.GetBodyParser(requestHeaders, bodyFunction), bodyParserTimeout)
+    future.asPromise.map(_.asInstanceOf[Iteratee[Array[Byte], Either[Result, A]]])
+  }
+
+  def applicationProvider: ApplicationProvider
+
+  def stop() {
+    Invoker.uninit()
+    invoker.stop()
+>>>>>>> .merge_file_DSEAlH
     Logger.shutdown()
   }
 

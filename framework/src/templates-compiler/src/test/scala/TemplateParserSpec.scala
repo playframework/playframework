@@ -13,7 +13,11 @@ object TemplateParserSpec extends Specification {
     val parser = ScalaTemplateCompiler.templateParser
 
     def get(templateName: String) = {
+<<<<<<< .merge_file_uGsNF9
       new CharSequenceReader(scalax.file.Path.fromString("src/templates-compiler/src/test/templates/" + templateName).string)
+=======
+      new CharSequenceReader(scalax.file.Path.fromString("src/templates/src/test/templates/" + templateName).slurpString)
+>>>>>>> .merge_file_OSWs1c
     }
 
     def parse(templateName: String) = {

@@ -1,8 +1,11 @@
 package controllers;
 
+<<<<<<< .merge_file_npODEr
 import java.util.concurrent.Callable;
 
 import models.User;
+=======
+>>>>>>> .merge_file_899nni
 import org.codehaus.jackson.JsonNode;
 import play.*;
 import play.libs.Akka;
@@ -27,6 +30,7 @@ public class Application extends Controller {
         JsonNode node = request().body().asJson();
         return ok(node);
     }
+<<<<<<< .merge_file_npODEr
 
     public static Result asyncResult() {
         return async(Akka.future(new Callable<String>() {
@@ -63,4 +67,7 @@ public class Application extends Controller {
         return ok(user.email);
     }
 
+=======
+  
+>>>>>>> .merge_file_899nni
 }

@@ -181,7 +181,11 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, "manual/book/Book")).filter(_.exists)
           }.map { book =>
+<<<<<<< .merge_file_dUNNMN
             val pages = Path(book).string.split('\n').toSeq.map(_.trim)
+=======
+            val pages = Path(book).slurpString.split('\n').toSeq.map(_.trim)
+>>>>>>> .merge_file_UcdlkE
             Ok(views.html.play20.book(pages))
           }.getOrElse(NotFound("Resource not found [Book]"))
         }
@@ -242,7 +246,29 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
           pageWithSidebar.map {
             case (pageSource, maybeSidebar) => {
+<<<<<<< .merge_file_dUNNMN
               val relativePath = pageSource.parent.get.relativize(Path(documentationHome.get)).path
+=======
+
+              val linkRender: (String => (String, String)) = _ match {
+                case link if link.contains("|") => {
+                  val parts = link.split('|')
+                  (parts.tail.head, parts.head)
+                }
+                case image if image.endsWith(".png") => {
+                  val link = image match {
+                    case full if full.startsWith("http://") => full
+                    case absolute if absolute.startsWith("/") => "resources/manual" + absolute
+                    case relative => "resources/" + pageSource.parent.get.relativize(Path(documentationHome.get)).path + "/" + relative
+                  }
+                  (link, """<img src="""" + link + """"/>""")
+                }
+                case link => {
+                  (link, link)
+                }
+              }
+
+>>>>>>> .merge_file_UcdlkE
               Ok(
                 views.html.play20.manual(
                   page,

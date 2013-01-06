@@ -156,7 +156,11 @@ object EnumerateesSpec extends Specification {
         Enumeratee.grouped(folderIteratee) ><>
         Enumeratee.map(List(_)) |>>>
         Iteratee.consume()
+<<<<<<< .merge_file_KwMN8z
       Await.result(result, Duration.Inf) must equalTo(List("Hello","World","!"))
+=======
+      result.flatMap(_.run).value.get must equalTo(List("Hello","World","!"))
+>>>>>>> .merge_file_hcpW9k
 
     }
 

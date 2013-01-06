@@ -56,6 +56,7 @@ package play.api.mvc {
 
     /**
      * The client IP address.
+<<<<<<< .merge_file_I8Y2Dc
      *
      * If the `X-Forwarded-For` header is present, then this method will return the value in that header
      * if either the local address is 127.0.0.1, or if `trustxforwarded` is configured to be true in the
@@ -70,6 +71,11 @@ package play.api.mvc {
      */
     def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
 
+=======
+     */
+    def remoteAddress: String
+
+>>>>>>> .merge_file_7reGn0
     /**
      * The HTTP host (domain, optionally port)
      */
@@ -125,11 +131,30 @@ package play.api.mvc {
     }
 
     /**
+<<<<<<< .merge_file_I8Y2Dc
      * Check if this request accepts a given media type.
      * @return true if `mimeType` matches the Accept header, otherwise false
      */
     def accepts(mimeType: String): Boolean = {
       acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mimeType)).isDefined
+=======
+     * @return The media types set in the request Accept header, not sorted in any particular order.
+     */
+    lazy val accept: Seq[String] = {
+      for {
+        acceptHeader <- headers.get(play.api.http.HeaderNames.ACCEPT).toSeq
+        value <- acceptHeader.split(",")
+        contentType <- value.split(";").headOption
+      } yield contentType
+    }
+
+    /**
+     * Check if this request accepts a given media type.
+     * @returns true if `mediaType` matches the Accept header, otherwise false
+     */
+    def accepts(mediaType: String): Boolean = {
+      accept.contains(mediaType) || accept.contains("*/*") || accept.contains(mediaType.takeWhile(_ != '/') + "/*")
+>>>>>>> .merge_file_7reGn0
     }
 
     /**
@@ -262,7 +287,10 @@ package play.api.mvc {
     def path = request.path
     def uri = request.uri
     def method = request.method
+<<<<<<< .merge_file_I8Y2Dc
     def version = request.version
+=======
+>>>>>>> .merge_file_7reGn0
     def remoteAddress = request.remoteAddress
   }
 
@@ -402,6 +430,21 @@ package play.api.mvc {
     def path = "/"
 
     /**
+     * `true` if the Cookie should have the httpOnly flag, disabling access from Javascript. Defaults to true.
+     */
+    val httpOnly = true
+
+    /**
+     * The cookie expiration date in seconds, `-1` for a transient cookie
+     *      */
+    val maxAge = -1
+
+    /**
+     * `true` if the Cookie should have the secure flag, restricting usage to https. Defaults to false.
+     */
+    val secure = false
+
+    /**
      * Encodes the data as a `String`.
      */
     def encode(data: Map[String, String]): String = {
@@ -454,7 +497,11 @@ package play.api.mvc {
      */
     def encodeAsCookie(data: T): Cookie = {
       val cookie = encode(serialize(data))
+<<<<<<< .merge_file_I8Y2Dc
       Cookie(COOKIE_NAME, cookie, maxAge, path, domain, secure, httpOnly)
+=======
+      Cookie(COOKIE_NAME, cookie, maxAge, "/", None, secure, httpOnly)
+>>>>>>> .merge_file_7reGn0
     }
 
     /**
@@ -541,11 +588,17 @@ package play.api.mvc {
     val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
     val emptyCookie = new Session
     override val isSigned = true
+<<<<<<< .merge_file_I8Y2Dc
     override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
     override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge"))
     override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
     override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
     override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
+=======
+    override val secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
+    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge")).getOrElse(-1)
+    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
+>>>>>>> .merge_file_7reGn0
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -724,8 +777,13 @@ package play.api.mvc {
      * @param cookies the new cookies to encode
      * @return a valid Set-Cookie header value
      */
+<<<<<<< .merge_file_I8Y2Dc
     def merge(cookieHeader: String, cookies: Seq[Cookie]): String = {
       encode(cookies ++ decode(cookieHeader))
+=======
+    def merge(cookieHeader: String, cookies: Seq[Cookie], discard: Seq[String] = Nil): String = {
+      encode(cookies ++ decode(cookieHeader), discard)
+>>>>>>> .merge_file_7reGn0
     }
 
   }

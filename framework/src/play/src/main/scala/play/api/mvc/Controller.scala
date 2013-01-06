@@ -18,7 +18,11 @@ import play.api.Play
  * }
  * }}}
  */
+<<<<<<< .merge_file_C1PAPA
 trait Controller extends Results with BodyParsers with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering {
+=======
+trait Controller extends Results with BodyParsers with Status with HeaderNames with ContentTypes with RequestExtractors {
+>>>>>>> .merge_file_L2zSfu
 
   /**
    * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.

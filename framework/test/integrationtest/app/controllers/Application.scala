@@ -8,8 +8,12 @@ import play.api.cache.Cache
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.Jsonp
+<<<<<<< .merge_file_zPtVam
 import play.api.libs.concurrent.Promise
 
+=======
+import play.api.i18n._
+>>>>>>> .merge_file_IocfAs
 import models._
 import models.Protocol._
 
@@ -92,16 +96,24 @@ object Application extends Controller {
     Ok(views.html.index(Cache.get("hello").map(_.toString).getOrElse("oh noooz")))
   }
 
+<<<<<<< .merge_file_zPtVam
   def takeInt(i: Int) = Action {
     Ok(i.toString)
   }
 
+=======
+>>>>>>> .merge_file_IocfAs
   def takeBool(b: Boolean) = Action {
     Ok(b.toString())
   }
 
+<<<<<<< .merge_file_zPtVam
   def takeBool2(b: Boolean) = Action {
     Ok(b.toString())
+=======
+  def urldecode(fromPath: String, fromQueryString: String) = Action {
+    Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
+>>>>>>> .merge_file_IocfAs
   }
   
   def javascriptRoutes = Action { implicit request =>
@@ -113,6 +125,7 @@ object Application extends Controller {
     Ok(views.html.javascriptTest(name))
   }
 
+<<<<<<< .merge_file_zPtVam
   def takeList(xs: List[Int]) = Action {
     Ok(xs.mkString)
   }
@@ -126,6 +139,8 @@ object Application extends Controller {
     Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
   }
 
+=======
+>>>>>>> .merge_file_IocfAs
   def accept = Action { request =>
     request match {
       case Accepts.Json() => Ok("json")
@@ -134,6 +149,7 @@ object Application extends Controller {
     }
   }
 
+<<<<<<< .merge_file_zPtVam
   def contentNegotiation = Action { implicit request =>
     val foo = Foo("bar")
     render {
@@ -158,4 +174,11 @@ object Application extends Controller {
       Promise.pure[Result](sys.error("Error"))
     }
   }
+=======
+  def jsonp(callback: String) = Action {
+    val json = JsObject(List("foo" -> JsString("bar")))
+    Ok(Jsonp(callback, json))
+  }
+
+>>>>>>> .merge_file_IocfAs
 }

@@ -65,9 +65,15 @@ object Lang {
    */
   def get(code: String): Option[Lang] = {
     code match {
+<<<<<<< .merge_file_psddQP
       case SimpleLocale(language) => Some(Lang(language, ""))
       case CountryLocale(language, country) => Some(Lang(language, country))
       case _ => None
+=======
+      case SimpleLocale(language) => Lang(language, "")
+      case CountryLocale(language, country) => Lang(language, country)
+      case _ => sys.error("Unrecognized language: %s".format(code))
+>>>>>>> .merge_file_q7x4DW
     }
   }
 
