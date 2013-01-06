@@ -68,7 +68,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
 
         val rHeaders = getHeaders(nettyHttpRequest)
-        val rCookies = getCookies(nettyHttpRequest)
 
         def rRemoteAddress = e.getRemoteAddress match {
           case ra: java.net.InetSocketAddress => {
