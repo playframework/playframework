@@ -231,9 +231,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               }
 
               case _ =>
-                val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(500))
-                nettyResponse.setContent(channelBuffer)
+                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR)
+                nettyResponse.setContent(ChannelBuffers.EMPTY_BUFFER)
                 nettyResponse.setHeader(CONTENT_LENGTH, 0)
                 val f = e.getChannel.write(nettyResponse)
                 if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
