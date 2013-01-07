@@ -103,7 +103,7 @@ val consumeOneInputAndEventuallyReturnIt = new Iteratee[String,Int] {
     
 def fold[B](folder: Step[String,Int] => Future[B]): Future[B] = {
      folder(Step.Cont {
-       case Input.EOF => Done(0, Input.EOF)
+       case Input.EOF => Done(0, Input.EOF) //Assuming 0 for default value
        case Input.Empty => this
        case Input.El(e) => Done(e.toInt,Input.EOF) 
      })
