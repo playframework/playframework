@@ -13,7 +13,7 @@ You first need to build Play:
 ```bash
 $ cd framework/
 $ ./build
-> build-repository
+> publish-local
 ```
 
 Then, for convenience, add the framework installation directory to your system PATH.  
