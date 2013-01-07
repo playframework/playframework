@@ -4,8 +4,8 @@
  * Example:
  * {{{
  * @inputRadioGroup(
- *           contactForm("gender"),·
- *           options = options("M"->"Male","F"->"Female")
+ *           contactForm("gender"),
+ *           options = Seq("M"->"Male","F"->"Female")
  *           '_label -> "Gender",
  *           '_error -> contactForm("gender").error.map(_.withMessage("select gender")))
  *
