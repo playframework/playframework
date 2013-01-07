@@ -56,8 +56,7 @@ private[evolutions] trait Script {
    * Any ";;" found in the sql are escaped to ";".
    */
   def statements: Seq[String] = {
-    // Remember to split only on ";" that neither precede nor follow other ";", to escape ";;",
-    // and to scrub empty statements due to trailing linebreaks.
+    // Regex matches on semicolons that neither precede nor follow other semicolons
     sql.split("(?<!;);(?!;)").map(_.trim.replace(";;", ";")).filter(_ != "")
   }
 }
