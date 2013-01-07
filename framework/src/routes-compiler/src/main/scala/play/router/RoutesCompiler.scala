@@ -392,6 +392,7 @@ object RoutesCompiler {
     val filePrefix = namespace.map(_ + "/").getOrElse("") + "/routes"
 
     val (path, hash, date) = (file.path.replace(File.separator, "/"), Hash(file.byteArray), new java.util.Date().toString)
+    val routes = rules.collect { case r: Route => r }
 
     Seq((filePrefix + "_reverseRouting.scala",
       """ |// @SOURCE:%s
@@ -419,9 +420,9 @@ object RoutesCompiler {
         date,
         namespace.map(_ + ".").getOrElse(""),
         additionalImports.map("import " + _).mkString("\n"),
-        reverseRouting(rules.collect { case r: Route => r }),
-        javaScriptReverseRouting(rules.collect { case r: Route => r }),
-        refReverseRouting(rules.collect { case r: Route => r })
+        reverseRouting(routes),
+        javaScriptReverseRouting(routes),
+        refReverseRouting(routes)
       )
     ),
       (filePrefix + "_routing.scala",
