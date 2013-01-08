@@ -41,10 +41,10 @@ object EnumeratorsSpec extends Specification {
 
 }
 
-"Enumerator.fromTraversableOnce" should {
+"Enumerator.enumerate " should {
   "generate an Enumerator from a singleton Iterator" in {
     val iterator = scala.collection.Iterator.single[Int](3)
-    val futureOfResult = Enumerator.fromTraversableOnce(iterator) |>>> 
+    val futureOfResult = Enumerator.enumerate(iterator) |>>> 
                          Enumeratee.take(1) &>> 
                          Iteratee.fold(List.empty[Int])((r, e) => e::r)
     val result = Await.result(futureOfResult, Duration.Inf)
@@ -52,13 +52,25 @@ object EnumeratorsSpec extends Specification {
     result.length must equalTo(1)
   }
 
-  "take as much element as in the iterator " in {
+  "take as much element as in the iterator in the right order" in {
     val iterator = scala.collection.Iterator.range(0, 50)
-    val futureOfResult = Enumerator.fromTraversableOnce(iterator) |>>> 
+    val futureOfResult = Enumerator.enumerate(iterator) |>>> 
                          Enumeratee.take(100) &>> 
-                         Iteratee.fold(List.empty[Int])((r, e) => e::r)
+                         Iteratee.fold(Seq.empty[Int])((r, e) => r :+ e)
     val result = Await.result(futureOfResult, Duration.Inf)
     result.length must equalTo(50)
+    result(0) must equalTo(0)
+    result(49) must equalTo(49)
+  }
+  "work with Seq too" in {
+    val seq = List(1, 2, 3, 7, 42, 666)
+    val futureOfResult = Enumerator.enumerate(seq) |>>> 
+                         Enumeratee.take(100) &>> 
+                         Iteratee.fold(Seq.empty[Int])((r, e) => r :+ e)
+    val result = Await.result(futureOfResult, Duration.Inf)
+    result.length must equalTo(6)
+    result(0) must equalTo(1)
+    result(4) must equalTo(42)
   }
 }
 
