@@ -386,7 +386,9 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
   val RouteFiles = (state: State, confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
     import play.router.RoutesCompiler._
 
-    ((generatedDir ** "routes.java").get ++ (generatedDir ** "routes_*.scala").get).map(GeneratedSource(_)).foreach(_.sync())
+    val javaRoutes = (generatedDir ** "routes.java")
+    val scalaRoutes = (generatedDir ** "routes_*.scala")
+    (javaRoutes.get ++ scalaRoutes.get).map(GeneratedSource(_)).foreach(_.sync())
     try {
       { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.map { routesFile =>
         compile(routesFile, generatedDir, additionalImports)
@@ -398,7 +400,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       case e => throw e
     }
 
-    ((generatedDir ** "routes_*.scala").get ++ (generatedDir ** "routes.java").get).map(_.getAbsoluteFile)
+    (scalaRoutes.get ++ javaRoutes.get).map(_.getAbsoluteFile)
 
   }
 

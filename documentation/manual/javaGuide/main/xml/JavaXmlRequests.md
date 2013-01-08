@@ -7,7 +7,7 @@ An XML request is an HTTP request using a valid XML payload as request body. It 
 By default, an action uses an **any content** body parser, which you can use to retrieve the body as XML (actually as a `org.w3c.Document`):
 
 ```
-public static index sayHello() {
+public static Result sayHello() {
   Document dom = request().body().asXml();
   if(dom == null) {
     return badRequest("Expecting Xml data");
@@ -26,12 +26,17 @@ Of course it’s way better (and simpler) to specify our own `BodyParser` to ask
 
 ```
 @BodyParser.Of(Xml.class)
-public static index sayHello() {
-  String name = XPath.selectText("//name", dom);
-  if(name == null) {
-    return badRequest("Missing parameter [name]");
+public static Result sayHello() {
+  Document dom = request().body().asXml();
+  if(dom == null) {
+    return badRequest("Expecting Xml data");
   } else {
-    return ok("Hello " + name);
+    String name = XPath.selectText("//name", dom);
+    if(name == null) {
+      return badRequest("Missing parameter [name]");
+    } else {
+      return ok("Hello " + name);
+    }
   }
 }
 ```
@@ -64,12 +69,17 @@ In our previous example, we handled an XML request, but replied with a `text/pla
 
 ```
 @BodyParser.Of(Xml.class)
-public static index sayHello() {
-  String name = XPath.selectText("//name", dom);
-  if(name == null) {
-    return badRequest("<message \"status\"=\"KO\">Missing parameter [name]</message>");
+public static Result sayHello() {
+  Document dom = request().body().asXml();
+  if(dom == null) {
+    return badRequest("Expecting Xml data");
   } else {
-    return ok("<message \"status\"=\"OK\">Hello " + name + "</message>");
+    String name = XPath.selectText("//name", dom);
+    if(name == null) {
+      return badRequest("<message \"status\"=\"KO\">Missing parameter [name]</message>");
+    } else {
+      return ok("<message \"status\"=\"OK\">Hello " + name + "</message>");
+    }
   }
 }
 ```
