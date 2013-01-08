@@ -6,7 +6,8 @@ import Json._
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
 
-  def optional[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optional(fmt), Writes.optional(fmt) )
+  /** deleted because useless and troublesome (better to use nullable anyway) */
+  //def optional[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optional(fmt), Writes.optional(fmt) )
 
   def nullable[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.nullable(fmt), Writes.nullable(fmt) )
 }
@@ -15,8 +16,12 @@ trait PathFormat {
   def at[A](path: JsPath)(implicit f:Format[A]): OFormat[A] = 
     OFormat[A](Reads.at(path)(f), Writes.at(path)(f)) 
 
+  @deprecated("use nullable[T] instead", since = "2.1-RC2")
   def optional[A](path:JsPath)(implicit f: Format[A]): OFormat[Option[A]] = 
     OFormat(Reads.optional(path)(f), Writes.optional(path)(f))
+
+  def nullable[A](path:JsPath)(implicit f: Format[A]): OFormat[Option[A]] = 
+    OFormat(Reads.nullable(path)(f), Writes.nullable(path)(f))
 
 }
 
@@ -27,8 +32,22 @@ trait PathReads {
   def at[A](path:JsPath)(implicit reads: Reads[A]): Reads[A] =
     Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)) )
 
+  @deprecated("use nullable[T] instead", since = "2.1-RC2")
   def optional[A](path:JsPath)(implicit reads: Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).repath(path).map(Some(_))))
+
+  def nullable[A](path:JsPath)(implicit reads: Reads[A]) = Reads[Option[A]]{ json => 
+    path.applyTillLast(json).fold(
+      jserr => jserr, 
+      jsres => jsres.fold( 
+        _ => JsSuccess(None),
+        a => a match {
+          case JsNull => JsSuccess(None)
+          case js => reads.reads(js).repath(path).map(Some(_))
+        }
+      )
+    )
+  }
 
   def jsPick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
 
@@ -57,8 +76,9 @@ trait PathReads {
 trait ConstraintReads {
   def of[A](implicit r: Reads[A]) = r
 
-  def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
-    Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
+  /** deleted because useless and troublesome (better to use nullable anyway) */
+  //def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
+  //  Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
   def list[A](implicit reads:Reads[A]): Reads[List[A]] = Reads.traversableReads[List, A]
   def set[A](implicit reads:Reads[A]): Reads[Set[A]] = Reads.traversableReads[Set, A]
@@ -126,6 +146,14 @@ trait PathWrites {
       }
     }
 
+  def nullable[A](path: JsPath)(implicit wrs:Writes[A]): OWrites[Option[A]] =
+    OWrites[Option[A]]{ a => 
+      a match {
+        case Some(a) => JsPath.createObj(path -> wrs.writes(a)) 
+        case None => Json.obj()
+      }
+    }
+
   def jsPick(path: JsPath): Writes[JsValue] =
     Writes[JsValue]{ obj => path(obj).headOption.getOrElse(JsNull) }
 
@@ -147,11 +175,10 @@ trait PathWrites {
 trait ConstraintWrites {
   def of[A](implicit w: Writes[A]) = w
 
-  def optional[A](implicit wa: Writes[A]): Writes[Option[A]] = Writes[Option[A]] { a => a match {
-      case None => Json.obj()
-      case Some(av) => wa.writes(av)
-    }
-  }
+  //def optional[A](implicit wa: Writes[A]): Writes[Option[A]] = Writes[Option[A]] { a => a match {
+  //  case None => Json.obj()
+  //  case Some(av) => wa.writes(av)
+  //}}
 
   def pure[A](fixed: => A)(implicit wrs:Writes[A]): Writes[JsValue] =
     Writes[JsValue]{ js => wrs.writes(fixed) }   

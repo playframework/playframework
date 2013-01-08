@@ -183,7 +183,32 @@ object JsPathSpec extends Specification {
       (__ \\ 'key21).prune(obj) must beEqualTo(JsError( __ \\ "key21", ValidationError("validate.error.expected.keypathnode")))
     }
 
+    "get JsPath till last node" in {
+      val res = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj("tags" -> Json.arr("alpha1", "beta1", "gamma1"))),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+          )
+        )
+      )
 
+      (__ \ 'level1 \ 'key2 \ 'key21).applyTillLast(res) must beEqualTo(Right(JsSuccess(
+        Json.obj("tags" -> Json.arr("alpha2", "beta2", "gamma2"))
+      )))
+
+      (__ \ 'level1 \ 'key2 \ 'key23).applyTillLast(res) must beEqualTo(
+        Right(JsError( __ \ 'level1 \ 'key2 \ 'key23 , ValidationError("validate.error.missing-path") ))
+      )
+
+      (__ \ 'level2 \ 'key3).applyTillLast(res) must beEqualTo(
+        Left(JsError( __ \ 'level2 \ 'key3 , ValidationError("validate.error.missing-path") ))
+      )
+    }
 
 
     /*"set 1-level field in simple jsobject" in {

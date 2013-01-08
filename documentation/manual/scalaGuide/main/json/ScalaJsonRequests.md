@@ -28,7 +28,7 @@ object Application extends Controller {
         case (name, age) => Ok("Hello " + name + ", you're "+age)
       }.recover{
         case e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-      }
+      }.get
     }.getOrElse {
       BadRequest("Expecting Json data")
     }
@@ -44,7 +44,7 @@ It's better (and simpler) to specify our own `BodyParser` to ask Play to parse t
       case (name, age) => Ok("Hello " + name + ", you're "+age)
     }.recover{
       case e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-    }
+    }.get
   }
 ```
 
@@ -65,7 +65,7 @@ You can test it with **cURL** from the command line:
 
 This maps the result in case of success to transform it into an action result.
 
-#### `json.validate[(String, Long)].recover{ e: JsError => ... } `
+#### `json.validate[(String, Long)].recover{ e: JsError => ... }.get`
 
 `recover` is like `scala.concurrent.Future.recover`:
 - it ends the `JsResult` modification chain and returns the successful inner value 
@@ -159,7 +159,7 @@ In our previous example we handle a JSON request, but we reply with a `text/plai
       case (name, age) => Ok(Json.obj("status" ->"OK", "message" -> ("Hello "+name+" , you're "+age) ))
     }.recover{
       case e => BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(e)))
-    }
+    }.get
   }
 ```
 

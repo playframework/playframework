@@ -541,7 +541,7 @@ case class Creature(
 `Play2.1` provide lots of generic Reads helpers:
 
 - `JsPath.read[A](implicit reads:Reads[A])` can be passed a custom `Reads[A]` which is applied to the JSON content at this JsPath. So with this property, you can compose hierarchically `Reads[T]` which corresponds to JSON tree structure.
-- `JsPath.readOpt` allows `Reads[Option[T]]`
+- `JsPath.readNullable` allows `Reads[Option[T]]` with missing or empty field
 - `Reads.email` which validates the String has email format  
 - `Reads.minLength(nb)` validates the minimum length of a String
 - `Reads[A] or Reads[A] => Reads[A]` operator is a classic `OR` logic operator
@@ -571,7 +571,7 @@ implicit val creatureReads: Reads[Creature] = (
   	tupled
   ) and
   (__ \ "friends").lazyRead( list[Creature](creatureReads) ) and
-  (__ \ "social").readOpt[String]
+  (__ \ "social").readNullable[String]
 )(Creature)  
 ```
 
@@ -621,9 +621,9 @@ This is the most complicated line in this code. But you can understand why: the 
 - `(__ \ "friend").lazyRead[A](r: => Reads[A]))` : `lazyRead` expects a `Reads[A]` value _passed by name_ to allow the type recursive construction. This is the only refinement that you must keep in mind in this very special recursive case.
 <br/>
 
-#### `(__ \ "social").readOpt[String]`
+#### `(__ \ "social").readNullable[String]`
 
-Nothing quite complicated to understand: we need to read an option and `readOpt` helps in doing this.
+Nothing quite complicated to understand: we need to read an option and `readNullable` helps in doing this.
 
 Now we can use this `Reads[Creature]`
 

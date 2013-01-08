@@ -93,7 +93,7 @@ object JsMacroImpl {
                           val readTree = 
                             if(t.typeConstructor <:< typeOf[Option[_]].typeConstructor) 
                               Apply( 
-                                Select( jspathTree, "readOpt" ), 
+                                Select( jspathTree, "readNullable" ), 
                                 List( impl )
                               )
                             else Apply( 
@@ -107,7 +107,7 @@ object JsMacroImpl {
                           val readTree = 
                             if(t.typeConstructor <:< typeOf[Option[_]].typeConstructor) 
                               Apply(
-                                Select( jspathTree, "readOpt" ), 
+                                Select( jspathTree, "readNullable" ), 
                                 List( 
                                   Apply(
                                     Select(Apply(jsPathSelect, List()), "lazyRead"),
@@ -182,7 +182,7 @@ object JsMacroImpl {
                         List(applyMethod)
                       )
                     }
-                    println("finalTree: "+finalTree)
+                    //println("finalTree: "+finalTree)
 
                     if(!hasRec) {
                       val block = Block( 
@@ -357,7 +357,7 @@ object JsMacroImpl {
                           val writesTree = 
                             if(t.typeConstructor <:< typeOf[Option[_]].typeConstructor) 
                               Apply( 
-                                Select( jspathTree, "writeOpt" ), 
+                                Select( jspathTree, "writeNullable" ), 
                                 List( impl )
                               )
                             else Apply( 
@@ -371,7 +371,7 @@ object JsMacroImpl {
                           val writesTree = 
                             if(t.typeConstructor <:< typeOf[Option[_]].typeConstructor) 
                               Apply(
-                                Select( jspathTree, "writeOpt" ), 
+                                Select( jspathTree, "writeNullable" ), 
                                 List( 
                                   Apply(
                                     Select(Apply(jsPathSelect, List()), "lazyWrite"),
@@ -619,7 +619,7 @@ object JsMacroImpl {
                           val formatTree = 
                             if(t.typeConstructor <:< typeOf[Option[_]].typeConstructor) 
                               Apply( 
-                                Select( jspathTree, "formatOpt" ), 
+                                Select( jspathTree, "formatNullable" ), 
                                 List( impl )
                               )
                             else Apply( 
@@ -633,7 +633,7 @@ object JsMacroImpl {
                           val formatTree = 
                             if(t.typeConstructor <:< typeOf[Option[_]].typeConstructor) 
                               Apply(
-                                Select( jspathTree, "formatOpt" ), 
+                                Select( jspathTree, "formatNullable" ), 
                                 List( 
                                   Apply(
                                     Select(Apply(jsPathSelect, List()), "lazyFormat"),

@@ -326,6 +326,7 @@ jsres.fold(
 
 jsres.map( s: String => // manage value )
      .recover( jserror: JsError => // manage errors)
+     .get
 ```
 
 #### case OK: path found & conversion possible

@@ -177,13 +177,31 @@ case class JsPath(path: List[PathNode] = List()) {
   def asSingleJsResult(json: JsValue): JsResult[JsValue] = this(json) match {
     case Nil => JsError(Seq(this -> Seq(ValidationError("validate.error.missing-path"))))
     case List(js) => JsSuccess(js)
-    case head :: tail => JsError(Seq(this -> Seq(ValidationError("validate.error.multiple-result-path"))))
+    case _ :: _ => JsError(Seq(this -> Seq(ValidationError("validate.error.multiple-result-path"))))
   }
 
   def asSingleJson(json: JsValue): JsValue = this(json) match {
     case Nil => JsUndefined("not.found")
     case List(js) => js
-    case head::tail => JsUndefined("multiple.result")
+    case _ :: _ => JsUndefined("multiple.result")
+  }
+
+  def applyTillLast(json: JsValue): Either[JsError, JsResult[JsValue]] = {
+    def step(path: List[PathNode], json: JsValue): Either[JsError, JsResult[JsValue]] = path match {
+      case Nil => Left(JsError(Seq(this -> Seq(ValidationError("validate.error.empty-path")))))
+      case List(node) => node(json) match {
+        case Nil => Right(JsError(Seq(this -> Seq(ValidationError("validate.error.missing-path")))))
+        case List(js) => Right(JsSuccess(js))
+        case _ :: _ => Right(JsError(Seq(this -> Seq(ValidationError("validate.error.multiple-result-path")))))
+      }
+      case head :: tail => head(json) match {
+        case Nil => Left(JsError(Seq(this -> Seq(ValidationError("validate.error.missing-path")))))
+        case List(js) => step(tail, js)
+        case _ :: _ => Left(JsError(Seq(this -> Seq(ValidationError("validate.error.multiple-result-path")))))
+      }
+    }
+
+    step(path, json)
   }
 
   override def toString = path.mkString
@@ -236,30 +254,173 @@ case class JsPath(path: List[PathNode] = List()) {
     }    
   }
 
-  /**
-   * Reads/Writes/Format builders
-   */
-  def read[T](implicit r: Reads[T]) = Reads.at[T](this)(r)
-  def readOpt[T](implicit r: Reads[T]) = Reads.optional[T](this)(r)
+  /** Reads a T at JsPath */
+  def read[T](implicit r: Reads[T]): Reads[T] = Reads.at[T](this)(r)
+
+  /** Reads optional field at JsPath.
+    * If JsPath is not found => None
+    * If JsPath is found => applies implicit Reads[T]
+    */
+  @deprecated("use readNullable[T] instead (which manages both missing and null fields)", since = "2.1-RC2")
+  def readOpt[T](implicit r: Reads[T]): Reads[Option[T]] = Reads.optional[T](this)(r)
+
+  /** Reads a Option[T] search optional or nullable field at JsPath (field not found or null is None 
+    * and other cases are Error).
+    *
+    * It runs through JsValue following all JsPath nodes on JsValue except last node:
+    * - If one node in JsPath is not found before last node => returns JsError( "missing-path" )
+    * - If all nodes are found till last node, it runs through JsValue with last node => 
+    *   - If last node if not found => returns None
+    *   - If last node if found with value "null" => returns None
+    *   - If last node if found => applies implicit Reads[T] 
+    */
+  def readNullable[T](implicit r: Reads[T]): Reads[Option[T]] = Reads.nullable[T](this)(r)
+
+  /** Reads a T at JsPath using the explicit Reads[T] passed by name which is useful in case of 
+    * recursive case classes for ex.
+    *
+    * {{{
+    * case class User(id: Long, name: String, friend: User)
+    *
+    * implicit lazy val UserReads: Reads[User] = (
+    *   (__ \ 'id).read[Long] and
+    *   (__ \ 'name).read[String] and
+    *   (__ \ 'friend).lazyRead(UserReads)
+    * )(User.apply _)
+    * }}}
+    */
+  def lazyRead[T](r: => Reads[T]): Reads[T] = Reads( js => Reads.at[T](this)(r).reads(js) )
+
+  /** Reads lazily a Option[T] search optional or nullable field at JsPath using the explicit Reads[T] 
+    * passed by name which is useful in case of recursive case classes for ex.
+    *
+    * {{{
+    * case class User(id: Long, name: String, friend: Option[User])
+    *
+    * implicit lazy val UserReads: Reads[User] = (
+    *   (__ \ 'id).read[Long] and
+    *   (__ \ 'name).read[String] and
+    *   (__ \ 'friend).lazyReadNullable(UserReads)
+    * )(User.apply _)
+    * }}}
+    */
+  def lazyReadNullable[T](r: => Reads[T]): Reads[Option[T]] = Reads( js => Reads.nullable[T](this)(r).reads(js) )
+  
+  /** Pure Reads doesn't read anything but creates a JsObject based on JsPath with the given T value */
   def read[T](t: T) = Reads.pure(t)
   
-  def lazyRead[T](r: => Reads[T]) = Reads( js => Reads.at[T](this)(r).reads(js) )
   
-  def write[T](implicit w: Writes[T]) = Writes.at[T](this)(w)
-  def writeOpt[T](implicit w: Writes[T]) = Writes.optional[T](this)(w)
-  def lazyWrite[T](w: => Writes[T]) = OWrites( (t:T) => Writes.at[T](this)(w).writes(t) )
-  def write[T](t: T)(implicit w: Writes[T]) = Writes.pure(this, t)
+  /** Writes a T at given JsPath */
+  def write[T](implicit w: Writes[T]): OWrites[T] = Writes.at[T](this)(w)
 
-  def rw[T](implicit r:Reads[T], w:Writes[T]) = Format.at[T](this)(Format(r, w))
+  /** Writes a Option[T] at given JsPath 
+    * If None => doesn't write the field
+    * else => writes the field using implicit Writes[T]
+    */
+  @deprecated("use writeNullable[T] instead (in parallel with readNullable)", since = "2.1-RC2")
+  def writeOpt[T](implicit w: Writes[T]): OWrites[Option[T]] = Writes.optional[T](this)(w)
 
-  def format[T](implicit f: Format[T]) = Format.at[T](this)(f)
+  /** Writes a Option[T] at given JsPath 
+    * If None => doesn't write the field (never writes null actually)
+    * else => writes the field using implicit Writes[T]
+    */
+  def writeNullable[T](implicit w: Writes[T]): OWrites[Option[T]] = Writes.nullable[T](this)(w)
+
+  /** Writes a T at JsPath using the explicit Writes[T] passed by name which is useful in case of 
+    * recursive case classes for ex 
+    *
+    * {{{
+    * case class User(id: Long, name: String, friend: User)
+    *
+    * implicit lazy val UserReads: Reads[User] = (
+    *   (__ \ 'id).write[Long] and
+    *   (__ \ 'name).write[String] and
+    *   (__ \ 'friend).lazyWrite(UserReads)
+    * )(User.apply _)
+    * }}}
+    */
+  def lazyWrite[T](w: => Writes[T]): OWrites[T] = OWrites( (t:T) => Writes.at[T](this)(w).writes(t) )
+
+  /** Writes a Option[T] at JsPath using the explicit Writes[T] passed by name which is useful in case of 
+    * recursive case classes for ex 
+    *
+    * Please note that it's not writeOpt to be coherent with readNullable
+    *
+    * {{{
+    * case class User(id: Long, name: String, friend: Option[User])
+    *
+    * implicit lazy val UserReads: Reads[User] = (
+    *   (__ \ 'id).write[Long] and
+    *   (__ \ 'name).write[String] and
+    *   (__ \ 'friend).lazyWriteNullable(UserReads)
+    * )(User.apply _)
+    * }}}
+    */
+  def lazyWriteNullable[T](w: => Writes[T]): OWrites[Option[T]] = OWrites( (t:Option[T]) => Writes.nullable[T](this)(w).writes(t) )
+  
+  /** Writes a pure value at given JsPath */
+  def write[T](t: T)(implicit w: Writes[T]): OWrites[JsValue] = Writes.pure(this, t)
+
+
+  /** Reads/Writes a T at JsPath using provided implicit Format[T] */
+  def format[T](implicit f: Format[T]): OFormat[T] = Format.at[T](this)(f)
+  /** Reads/Writes a T at JsPath using provided explicit Reads[T] and implicit Writes[T]*/
+  def format[T](r: Reads[T])(implicit w: Writes[T]): OFormat[T] = Format.at[T](this)(Format(r, w))
+  /** Reads/Writes a T at JsPath using provided explicit Writes[T] and implicit Reads[T]*/
+  def format[T](w: Writes[T])(implicit r: Reads[T]): OFormat[T] = Format.at[T](this)(Format(r, w))
+
+  /** Reads/Writes a T at JsPath using provided implicit Reads[T] and Writes[T] 
+    *
+    * Please note we couldn't call it "format" to prevent conflicts
+    */
+  def rw[T](implicit r:Reads[T], w:Writes[T]): OFormat[T] = Format.at[T](this)(Format(r, w))
+
+  /** Reads/Writes a Option[T] at given JsPath 
+    *
+    * @see JsPath.readOpt to see behavior in reads
+    * @see JsPath.writeOpt to see behavior in writes
+    */
+  @deprecated("use formatNullable[T] instead (in parallel with readNullable)", since = "2.1-RC2")
   def formatOpt[T](implicit f: Format[T]): OFormat[Option[T]] = Format.optional[T](this)(f)
-  def lazyFormat[T](f: => Format[T]) = OFormat[T]( lazyRead(f), lazyWrite(f) )
-  def lazyFormat[T](r: => Reads[T], w: => Writes[T]) = OFormat[T]( lazyRead(r), lazyWrite(w) )
-  def format[T](r: Reads[T])(implicit w: Writes[T]) = Format.at[T](this)(Format(r, w))
-  def format[T](w: Writes[T])(implicit r: Reads[T]) = Format.at[T](this)(Format(r, w))
 
+  /** Reads/Writes a Option[T] (optional or nullable field) at given JsPath 
+    *
+    * @see JsPath.readNullable to see behavior in reads
+    * @see JsPath.writeNullable to see behavior in writes
+    */
+  def formatNullable[T](implicit f: Format[T]): OFormat[Option[T]] = Format.nullable[T](this)(f)
   
+  /** Lazy Reads/Writes a T at given JsPath using implicit Format[T]
+    * (useful in case of recursive case classes).
+    *
+    * @see JsPath.lazyReadNullable to see behavior in reads
+    * @see JsPath.lazyWriteNullable to see behavior in writes
+    */
+  def lazyFormat[T](f: => Format[T]): OFormat[T] = OFormat[T]( lazyRead(f), lazyWrite(f) )
+
+  /** Lazy Reads/Writes a Option[T] (optional or nullable field) at given JsPath using implicit Format[T]
+    * (useful in case of recursive case classes).
+    *
+    * @see JsPath.lazyReadNullable to see behavior in reads
+    * @see JsPath.lazyWriteNullable to see behavior in writes
+    */
+  def lazyFormatNullable[T](f: => Format[T]): OFormat[Option[T]] = OFormat[Option[T]]( lazyReadNullable(f), lazyWriteNullable(f) )
+  
+  /** Lazy Reads/Writes a T at given JsPath using explicit Reads[T] and Writes[T]
+    * (useful in case of recursive case classes).
+    *
+    * @see JsPath.lazyReadNullable to see behavior in reads
+    * @see JsPath.lazyWriteNullable to see behavior in writes
+    */
+  def lazyFormat[T](r: => Reads[T], w: => Writes[T]): OFormat[T] = OFormat[T]( lazyRead(r), lazyWrite(w) )
+  
+  /** Lazy Reads/Writes a Option[T] (optional or nullable field) at given JsPath using explicit Reads[T] and Writes[T]
+    * (useful in case of recursive case classes).
+    *
+    * @see JsPath.lazyReadNullable to see behavior in reads
+    * @see JsPath.lazyWriteNullable to see behavior in writes
+    */
+  def lazyFormatNullable[T](r: => Reads[T], w: => Writes[T]): OFormat[Option[T]] = OFormat[Option[T]]( lazyReadNullable(r), lazyWriteNullable(w) )
 
   private val self = this
 
@@ -269,6 +430,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
      * - validates this element as an object of type A (inheriting JsValue)
      * - returns a JsResult[A]
+     *
      * Useful to pick a typed JsValue at a given JsPath
      *
      * Example :
@@ -285,6 +447,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * - picks the given value at the given JsPath (WITHOUT THE PATH) from the input JS
      * - validates this element as an object of type JsValue
      * - returns a JsResult[JsValue]
+     *
      * Useful to pick a JsValue at a given JsPath
      *
      * Example :
@@ -302,6 +465,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * - validates this relative JsValue as an object of type A (inheriting JsValue) potentially modifying it
      * - creates a JsObject from JsPath and validated JsValue
      * - returns a JsResult[JsObject]
+     *
      * Useful to create/validate an JsObject from a single JsPath (potentially modifying it)
      *
      * Example :
@@ -318,6 +482,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
      * - creates a JsObject from JsPath and JsValue
      * - returns a JsResult[JsObject]
+     *
      * Useful to create/validate an JsObject from a single JsPath (potentially modifying it)
      *
      * Example :
@@ -334,6 +499,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * (__ \ 'key).put(fixedValue) is a Reads[JsObject] that:
      * - creates a JsObject setting A (inheriting JsValue) at given JsPath
      * - returns a JsResult[JsObject]
+     *
      * This Reads doesn't care about the input JS and is mainly used to set a fixed at a given JsPath
      * Please that A is passed by name allowing to use an expression reevaluated at each time.
      *
@@ -346,10 +512,46 @@ case class JsPath(path: List[PathNode] = List()) {
      */
     def put(a: => JsValue): Reads[JsObject] = Reads.jsPut(self, a)
 
+    /** (__ \ 'key).json.copyFrom(reads) is a Reads[JsObject] that:
+      * - copies a JsValue using passed Reads[A]
+      * - creates a new branch from JsPath and copies previous value into it
+      *
+      * Useful to copy a value from a Json branch into another branch
+      * 
+      * Example :
+      {{{
+      val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+      js.validate( (__ \ 'key3).copyFrom( (__ \ 'key2).json.pick
+      => JsSuccess(JsObject(Seq( ("key3", JsString("value2")) )))
+      }}}
+      */
     def copyFrom[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsCopyTo(self)(reads)
 
+    /** (__ \ 'key).json.update(reads) is the most complex Reads[JsObject] but the most powerful:
+      * - copies the whole JsValue => A
+      * - applies the passed Reads[A] on JsValue => B
+      * - deep merges both JsValues (A ++ B) so B overwrites A identical branches
+      *
+      * Please note that if you have prune a branch in B, it is still in A so you'll see it in the result
+      *
+      * Example :
+      {{{
+      val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+      js.validate( (__ \ 'key3).update( (__ \ 'key3).write("value3") )
+      => JsSuccess(JsObject(Seq( ("key1", JsString("value1")), ("key2", JsString("value2")), ("key3", JsString("value3")) )))
+      }}}
+      */
     def update[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsUpdate(self)(reads)
 
+    /** (__ \ 'key).json.prune is Reads[JsObject] that prunes the branch and returns remaining JsValue
+      *
+      * Example :
+      {{{
+      val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+      js.validate( (__ \ 'key2).prune
+      => JsSuccess(JsObject(Seq( ("key1", JsString("value1")) )))
+      }}}
+      */
     def prune: Reads[JsObject] = Reads.jsPrune(self)
   }
   

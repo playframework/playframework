@@ -17,8 +17,12 @@ object JsonValidSpec extends Specification {
       JsNumber(5L).validate[Long] must equalTo(JsSuccess(5L))
       JsNumber(5).validate[Short] must equalTo(JsSuccess(5))
       JsNumber(123.5).validate[Float] must equalTo(JsSuccess(123.5))
-      JsNumber(123456789123456.567891234).validate[Double] must equalTo(JsSuccess(123456789123456.567891234))
+      JsNumber(123456789123456.56).validate[Double] must equalTo(JsSuccess(123456789123456.56))
       JsBoolean(true).validate[Boolean] must equalTo(JsSuccess(true))
+      JsString("123456789123456.56").validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(123456789123456.56)))
+      JsNumber(123456789123456.56).validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(123456789123456.567891234)))
+      JsNumber(123456789.56).validate[java.math.BigDecimal] must equalTo(JsSuccess(new java.math.BigDecimal("123456789.56")))
+      JsString("123456789123456.56").validate[java.math.BigDecimal] must equalTo(JsSuccess(new java.math.BigDecimal("123456789123456.56")))
     }
 
     "invalidate wrong simple type conversion" in {
@@ -385,12 +389,75 @@ object JsonValidSpec extends Specification {
   }
 
   "JSON Reads" should {
+    "manage nullable/option" in {
+      case class User(name: String, email: String, phone: Option[String])
+
+      implicit val UserReads = (
+        (__ \ 'name).read[String] and
+        (__ \ 'coords \ 'email).read(Reads.email) and
+        (__ \ 'coords \ 'phone).readNullable(Reads.minLength[String](8))
+      )(User)
+
+      Json.obj(
+        "name" -> "john", 
+        "coords" -> Json.obj(
+          "email" -> "john@xxx.yyy",
+          "phone" -> "0123456789"
+        )
+      ).validate[User] must beEqualTo(
+        JsSuccess(User("john", "john@xxx.yyy", Some("0123456789")))
+      )
+
+      Json.obj(
+        "name" -> "john", 
+        "coords" -> Json.obj(
+          "email" -> "john@xxx.yyy",
+          "phone2" -> "0123456789"
+        )
+      ).validate[User] must beEqualTo(
+        JsSuccess(User("john", "john@xxx.yyy", None))
+      )
+
+
+      Json.obj(
+        "name" -> "john", 
+        "coords" -> Json.obj(
+          "email" -> "john@xxx.yyy"
+        )
+      ).validate[User] must beEqualTo(
+        JsSuccess(User("john", "john@xxx.yyy", None))
+      )
+
+      Json.obj(
+        "name" -> "john", 
+        "coords" -> Json.obj(
+          "email" -> "john@xxx.yyy",
+          "phone" -> JsNull
+        )
+      ).validate[User] must beEqualTo(
+        JsSuccess(User("john", "john@xxx.yyy", None))
+      )
+
+      Json.obj(
+        "name" -> "john", 
+        "coords2" -> Json.obj(
+          "email" -> "john@xxx.yyy",
+          "phone" -> "0123456789"
+        )
+      ).validate[User] must beEqualTo(
+        JsError(Seq(
+          __ \ 'coords \ 'phone -> Seq(ValidationError("validate.error.missing-path")),
+          __ \ 'coords \ 'email -> Seq(ValidationError("validate.error.missing-path"))
+        ))
+      )
+    }
+
     "report correct path for validation errors" in {
       case class User(email: String, phone: Option[String])
 
       implicit val UserReads = (
         (__ \ 'email).read(Reads.email) and
-        (__ \ 'phone).readOpt(Reads.minLength[String](8))
+        (__ \ 'phone).readNullable(Reads.minLength[String](8))
       )(User)
 
       Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))
@@ -434,7 +501,7 @@ object JsonValidSpec extends Specification {
       implicit lazy val UserReads: Reads[User] = (
         (__ \ 'id).read[Long] and
         (__ \ 'name).read[String] and
-        (__ \ 'friend).lazyRead[Option[User]](Reads.optional(UserReads))
+        (__ \ 'friend).lazyReadNullable(UserReads)
       )(User)
 
       val js = Json.obj(
@@ -444,6 +511,15 @@ object JsonValidSpec extends Specification {
       )
 
       js.validate[User] must beEqualTo(JsSuccess(User(123L, "bob", Some(User(124L, "john", None)))))
+
+      val js2 = Json.obj(
+        "id" -> 123L, 
+        "name" -> "bob", 
+        "friend" -> Json.obj("id" -> 124L, "name" -> "john")
+      )
+
+      js2.validate[User] must beEqualTo(JsSuccess(User(123L, "bob", Some(User(124L, "john", None)))))
+
       success
     }
 
@@ -455,13 +531,13 @@ object JsonValidSpec extends Specification {
       implicit lazy val UserWrites: Writes[User] = (
         (__ \ 'id).write[Long] and
         (__ \ 'name).write[String] and
-        (__ \ 'friend).lazyWrite[Option[User]](optional(UserWrites))
+        (__ \ 'friend).lazyWriteNullable(UserWrites)
       )(unlift(User.unapply))
 
       val js = Json.obj(
         "id" -> 123L, 
         "name" -> "bob", 
-        "friend" -> Json.obj("id" -> 124L, "name" -> "john", "friend" -> Json.obj())
+        "friend" -> Json.obj("id" -> 124L, "name" -> "john")
       )
 
       Json.toJson(User(123L, "bob", Some(User(124L, "john", None)))) must beEqualTo(js)
@@ -476,13 +552,13 @@ object JsonValidSpec extends Specification {
       implicit lazy val UserFormats: Format[User] = (
         (__ \ 'id).format[Long] and
         (__ \ 'name).format[String] and
-        (__ \ 'friend).lazyFormat[Option[User]](optional(UserFormats))
+        (__ \ 'friend).lazyFormatNullable(UserFormats)
       )(User, unlift(User.unapply))
 
       val js = Json.obj(
         "id" -> 123L, 
         "name" -> "bob", 
-        "friend" -> Json.obj("id" -> 124L, "name" -> "john", "friend" -> Json.obj())
+        "friend" -> Json.obj("id" -> 124L, "name" -> "john")
       )
 
       js.validate[User] must beEqualTo(JsSuccess(User(123L, "bob", Some(User(124L, "john", None)))))
@@ -656,7 +732,7 @@ object JsonValidSpec extends Specification {
 
       implicit val UserWrites = (
         (__ \ 'email).write[String] and
-        (__ \ 'phone).writeOpt[String]
+        (__ \ 'phone).writeNullable[String]
       )(unlift(User.unapply))
 
       Json.toJson(User("john.doe@blibli.com", None)) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com"))
@@ -674,7 +750,7 @@ object JsonValidSpec extends Specification {
 
       implicit val UserFormat = (
         (__ \ 'email).format(email) and
-        (__ \ 'phone).formatOpt(Format(minLength[String](8), Writes.of[String]))
+        (__ \ 'phone).formatNullable(Format(minLength[String](8), Writes.of[String]))
       )(User, unlift(User.unapply))
 
       Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))

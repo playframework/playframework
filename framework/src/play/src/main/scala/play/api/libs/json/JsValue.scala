@@ -47,13 +47,14 @@ sealed trait JsValue {
 
   /**
    * Tries to convert the node into a T. An implicit Reads[T] must be defined.
+   * Any error is mapped to None
    *
    * @return Some[T] if it succeeds, None if it fails.
    */
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = fjs.reads(this).fold(
-      valid = v => Some(v),
-      invalid = _ => None
-    ).filter {
+    invalid = _ => None,
+    valid = v => Some(v)
+  ).filter {
     case JsUndefined(_) => false
     case _ => true
   }
@@ -69,12 +70,12 @@ sealed trait JsValue {
   /**
    * Tries to convert the node into a JsResult[T] (Success or Error). An implicit Reads[T] must be defined.
    */
-  def validate[T](implicit _reads: Reads[T]): JsResult[T] = _reads.reads(this)
+  def validate[T](implicit rds: Reads[T]): JsResult[T] = rds.reads(this)
 
   /**
-   * Transforms a JsValue into another JsValue using given Writes[JsValue]
+   * Transforms a JsValue into another JsValue using provided Json transformer Reads[JsValue]
    */
-  def transform(implicit _writes: Writes[JsValue]): JsValue = _writes.writes(this)
+  def transform[A <: JsValue](rds: Reads[A]): JsResult[JsValue] = rds.reads(this)
 
   override def toString = Json.stringify(this)
 
