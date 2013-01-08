@@ -392,7 +392,7 @@ object MimeTypes {
         rar=application/x-rar-compressed
         ras=application/x-cmu-raster
         rast=image/cmu-raster
-        rdf=text/xml
+        rdf=application/rdf+xml
         rexx=text/x-scriptrexx
         rf=image/vndrn-realflash
         rgb=image/x-rgb
@@ -473,6 +473,7 @@ object MimeTypes {
         tsp=application/dsptype
         tsv=text/tab-separated-values
         turbot=image/florian
+        ttl=text/turtle
         txt=text/plain
         uil=text/x-uil
         uni=text/uri-list
