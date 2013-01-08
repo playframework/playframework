@@ -59,6 +59,9 @@ GET     /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
 GET     /hello                  controllers.Application.hello()
 GET     /setLang                controllers.Application.setLang(lang)
 
+POST    /any-xml                controllers.Application.anyXml
+POST    /xml                    controllers.Application.xml
+
 ->      /module                 module.Routes
 
 GET     /routes                 controllers.Application.route(abstract)

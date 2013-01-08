@@ -16,7 +16,7 @@ Will automatically set the `Content-Type` header to `text/plain`, while:
 val xmlResult = Ok(<message>Hello World!</message>)
 ```
 
-will set the Content-Type header to `text/xml`.
+will set the Content-Type header to `application/xml`.
 
 > **Tip:** this is done via the `play.api.http.ContentTypeOf` type class.
 

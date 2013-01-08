@@ -38,7 +38,7 @@ trait DefaultContentTypeOfs {
   }
 
   /**
-   * Default content type for `Xml` values (`text/xml`).
+   * Default content type for `Xml` values (`application/xml`).
    */
   implicit def contentTypeOf_Xml(implicit codec: Codec): ContentTypeOf[Xml] = {
     ContentTypeOf[Xml](Some(ContentTypes.XML))
@@ -73,14 +73,14 @@ trait DefaultContentTypeOfs {
   }
 
   /**
-   * Default content type for `NodeSeq` values (`text/xml`).
+   * Default content type for `NodeSeq` values (`application/xml`).
    */
   implicit def contentTypeOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): ContentTypeOf[C] = {
     ContentTypeOf[C](Some(ContentTypes.XML))
   }
 
   /**
-   * Default content type for `NodeBuffer` values (`text/xml`).
+   * Default content type for `NodeBuffer` values (`application/xml`).
    */
   implicit def contentTypeOf_NodeBuffer(implicit codec: Codec): ContentTypeOf[scala.xml.NodeBuffer] = {
     ContentTypeOf[scala.xml.NodeBuffer](Some(ContentTypes.XML))

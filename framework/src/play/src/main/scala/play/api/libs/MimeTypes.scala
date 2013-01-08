@@ -550,7 +550,7 @@ object MimeTypes {
         xlv=application/excel
         xlw=application/excel
         xm=audio/xm
-        xml=text/xml
+        xml=application/xml
         xmz=xgl/movie
         xpi=application/x-xpinstall
         xpix=application/x-vndls-xpix
