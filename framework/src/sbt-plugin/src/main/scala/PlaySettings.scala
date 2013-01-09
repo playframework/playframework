@@ -107,7 +107,7 @@ trait PlaySettings {
 
     parallelExecution in Test := false,
 
-    fork in Test := false,
+    fork in Test := true,
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
 
