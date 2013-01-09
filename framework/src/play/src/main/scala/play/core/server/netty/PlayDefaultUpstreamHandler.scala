@@ -160,7 +160,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                     case Redeemed(_) =>
                       play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
                       ctx.setAttachment(null)
-                      if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
+                      if (e.getChannel.isConnected() && (!keepAlive || contentLength == "-1")) e.getChannel.close()
                     case Thrown(ex) =>
                       Logger("play").debug(ex.toString) 
                       if(e.getChannel.isConnected())  e.getChannel.close()
@@ -246,7 +246,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                         })
                 }
 
-                chunks apply bodyIteratee.map { _ =>
+                chunks(bodyIteratee).map { _ =>
                   play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
                   if (e.getChannel.isConnected()) {
                     val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
