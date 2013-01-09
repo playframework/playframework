@@ -226,7 +226,9 @@ object WS {
       super.setUrl(url)
     }
 
-    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] = {
+    private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A],
+                                       trailerHandler: (Iteratee[Array[Byte], A], Map[String, Seq[String]]) => Iteratee[Array[Byte], A]
+                                      ): Future[Iteratee[Array[Byte], A]] = {
       import com.ning.http.client.AsyncHandler
       var doneOrError = false
       calculator.map(_.sign(this))
@@ -244,8 +246,12 @@ object WS {
         }
 
         override def onHeadersReceived(h: HttpResponseHeaders) = {
-          val headers = h.getHeaders()
-          iteratee = consumer(ResponseHeaders(statusCode, ningHeadersToMap(headers)))
+          val headers = ningHeadersToMap(h.getHeaders())
+          if (h.isTraillingHeadersReceived) {
+            iteratee = trailerHandler(iteratee, headers)
+          } else {
+            iteratee = consumer(ResponseHeaders(statusCode, headers))
+          }
           STATE.CONTINUE
         }
 
@@ -358,11 +364,23 @@ object WS {
     def get(): Future[Response] = prepare("GET").execute
 
     /**
-     * performs a get with supplied body
-     * @param consumer that's handling the response
+     * Performs a GET asynchronously
+     *
+     * @param consumer A function that will return an iteratee that handles the response
+     * @param trailerHandler A function to handle the trailers.  This will only be invoked if the response is a chunked
+     *                       response and it contains some trailing headers.
+     */
+    def getWithTrailers[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A])
+                          (trailerHandler: (Iteratee[Array[Byte], A], Map[String, Seq[String]]) => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
+      prepare("GET").executeStream(consumer, trailerHandler)
+
+    /**
+     * Performs a GET asynchronously
+     *
+     * @param consumer A function that will return an iteratee that handles the response
      */
     def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
-      prepare("GET").executeStream(consumer)
+      getWithTrailers(consumer)(noopTrailerHandler _)
 
     /**
      * Perform a POST on the request asynchronously.
@@ -376,10 +394,25 @@ object WS {
     def post(body: File): Future[Response] = prepare("POST", body).execute
 
     /**
-     * performs a POST with supplied body
-     * @param consumer that's handling the response
+     * Performs a POST asynchronously with the supplied body
+     *
+     * @param consumer A function that will return an iteratee that handles the response
+     * @param trailerHandler A function to handle the trailers.  This will only be invoked if the response is a chunked
+     *                       response and it contains some trailing headers.
      */
-    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
+    def postAndRetrieveStreamWithTrailers[A, T](body: T)
+                                               (consumer: ResponseHeaders => Iteratee[Array[Byte], A])
+                                               (trailerHandler: (Iteratee[Array[Byte], A], Map[String, Seq[String]]) => Iteratee[Array[Byte], A])
+                                               (implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] =
+      prepare("POST", body).executeStream(consumer, trailerHandler)
+
+    /**
+     * Performs a POST asynchronously with the supplied body
+     *
+     * @param consumer A function that will return an iteratee that handles the response
+     */
+    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] =
+      postAndRetrieveStreamWithTrailers(body)(consumer)(noopTrailerHandler _)
 
     /**
      * Perform a PUT on the request asynchronously.
@@ -393,10 +426,25 @@ object WS {
     def put(body: File): Future[Response] = prepare("PUT", body).execute
 
     /**
-     * performs a PUT with supplied body
-     * @param consumer that's handling the response
+     * Performs a PUT asynchronously with the supplied body
+     *
+     * @param consumer A function that will return an iteratee that handles the response
+     * @param trailerHandler A function to handle the trailers.  This will only be invoked if the response is a chunked
+     *                       response and it contains some trailing headers.
      */
-    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
+    def putAndRetrieveStreamWithTrailers[A, T](body: T)
+                                              (consumer: ResponseHeaders => Iteratee[Array[Byte], A])
+                                              (trailerHandler: (Iteratee[Array[Byte], A], Map[String, Seq[String]]) => Iteratee[Array[Byte], A])
+                                              (implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] =
+      prepare("PUT", body).executeStream(consumer, trailerHandler)
+
+    /**
+     * Performs a PUT asynchronously with the supplied body
+     *
+     * @param consumer A function that will return an iteratee that handles the response
+     */
+    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] =
+      putAndRetrieveStreamWithTrailers(body)(consumer)(noopTrailerHandler _)
 
     /**
      * Perform a DELETE on the request asynchronously.
@@ -475,6 +523,8 @@ object WS {
       }
       request
     }
+
+    private def noopTrailerHandler[A](iteratee: Iteratee[Array[Byte], A], headers: Map[String, Seq[String]]) = iteratee
 
   }
 }
