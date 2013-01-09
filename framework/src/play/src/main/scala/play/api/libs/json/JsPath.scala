@@ -19,6 +19,10 @@ case class RecursiveSearch(key: String) extends PathNode {
       case JsUndefined(_) => true 
       case _ => false
     }
+    case arr: JsArray => (json \\ key).toList.filterNot{ 
+      case JsUndefined(_) => true 
+      case _ => false
+    }
     case _ => List()
   }
   override def toString = "//" + key
@@ -271,8 +275,8 @@ case class JsPath(path: List[PathNode] = List()) {
     * - If one node in JsPath is not found before last node => returns JsError( "missing-path" )
     * - If all nodes are found till last node, it runs through JsValue with last node => 
     *   - If last node if not found => returns None
-    *   - If last node if found with value "null" => returns None
-    *   - If last node if found => applies implicit Reads[T] 
+    *   - If last node is found with value "null" => returns None
+    *   - If last node is found => applies implicit Reads[T] 
     */
   def readNullable[T](implicit r: Reads[T]): Reads[Option[T]] = Reads.nullable[T](this)(r)
 

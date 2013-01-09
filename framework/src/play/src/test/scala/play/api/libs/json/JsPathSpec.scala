@@ -109,6 +109,46 @@ object JsPathSpec extends Specification {
 
     }
 
+    "retrieve recursive in jsobject and jsarray" in {
+      val obj = Json.obj( 
+        "level1" -> Json.obj(
+          "key1" -> Json.arr(
+            "key11",
+            Json.obj("key111" -> Json.obj(
+              "key1111" -> Json.arr(
+                Json.obj("alpha" -> "value11111", "key11112" -> "value11112"), 
+                "beta1", 
+                Json.obj("key11121" -> "value11121", "key11122" -> "value111122")))),
+            "key12"
+          ), 
+          "key2" -> Json.obj(
+            "key21" -> Json.obj(
+              "alpha" -> Json.arr("a", "b", "c"),
+              "key212" -> Json.obj("blabla" -> "xxx", "blibli" -> "yyy")
+            )
+          )
+        ),
+        "level2" -> 5
+      )
+
+      (JsPath \ "level1" \\ "alpha")(obj) must equalTo(Seq(JsString("value11111"), Json.arr("a", "b", "c"))) 
+
+    }
+
+    "retrieve recursive in jsobject and jsarray 2" in {
+      val obj = Json.obj( 
+        "nothing" -> "really",
+        "array" -> Json.arr(
+          Json.obj("field" -> Json.obj("alpha" -> "v11", "beta" -> "v12", "gamma" -> "v13")),
+          Json.obj("field" -> Json.obj("alpha" -> "v21", "gamma" -> "v23", "beta" -> "v22")),
+          Json.obj("field" -> Json.obj("beta" -> "v32", "alpha" -> "v31", "gamma" -> "v33"))
+        )
+      )
+
+      (JsPath \ "array" \\ "beta")(obj) must equalTo(Seq(JsString("v12"), JsString("v22"), JsString("v32"))) 
+
+    }
+
     "retrieve with symbol keys" in {
       val obj = Json.obj( 
         "level1" -> Json.obj(

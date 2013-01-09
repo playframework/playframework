@@ -52,21 +52,21 @@ object Json {
    * Next is the trait that allows Simplified Json syntax :
    *
    * Example :
+   * {{{
    * JsObject(Seq(
    *    "key1", JsString("value"),
    *    "key2" -> JsNumber(123),
    *    "key3" -> JsObject(Seq("key31" -> JsString("value31")))
-   * ))
-   * ====> Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
+   * )) == Json.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
    *
-   * JsArray(JsString("value"), JsNumber(123), JsBoolean(true))
-   * ====> Json.arr( "value", 123, true )
+   * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) == Json.arr( "value", 123, true )
+   * }}}
    *
-   * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper which is an empty trait that
-   * shouldn't end into unexpected implicit conversions
+   * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper 
+   * which is an empty trait that shouldn't end into unexpected implicit conversions.
    *
-   * Something to note due to JsValueWrapper extending NotNull :
-   *    - null or None will end into compiling error : use JsNull instead
+   * Something to note due to `JsValueWrapper` extending `NotNull` : 
+   * `null` or `None` will end into compiling error : use JsNull instead.
    */
   sealed trait JsValueWrapper extends NotNull
 
@@ -80,6 +80,7 @@ object Json {
   def arr(fields: JsValueWrapper*): JsArray = JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
 
   import play.api.libs.iteratee.Enumeratee
+  
   /**
    * Transform a stream of A to a stream of JsValue
    * {{{
@@ -107,8 +108,9 @@ object Json {
   import language.experimental.macros
 
   /**
-   * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time
-   * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
+   * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time.
+   *
+   * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
    *   import play.api.libs.json.Json
    *
@@ -127,7 +129,8 @@ object Json {
 
   /**
    * Creates a Writes[T] by resolving case class fields & required implcits at COMPILE-time
-   * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
+   *
+   * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
    *   import play.api.libs.json.Json
    * 
@@ -146,7 +149,8 @@ object Json {
 
   /**
    * Creates a Format[T] by resolving case class fields & required implicits at COMPILE-time
-   * IF ANY MISSING IMPLICIT IS DISCOVERED, COMPILER WILL BREAK WITH CORRESPONDING ERROR
+   *
+   * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
    *   import play.api.libs.json.Json
    *

@@ -132,7 +132,7 @@ object JsonValidSpec extends Specification {
     "Can reads with nullable" in {
       val json = Json.obj("field" -> JsNull)
       
-      val resultPost = json.validate( (__ \ "field").read(Reads.nullable[String]) )
+      val resultPost = json.validate( (__ \ "field").read(Reads.optionWithNull[String]) )
       resultPost.get must equalTo(None)
     }
   }
