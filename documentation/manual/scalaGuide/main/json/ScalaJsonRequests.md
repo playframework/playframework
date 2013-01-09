@@ -44,7 +44,7 @@ It's better (and simpler) to specify our own `BodyParser` to ask Play to parse t
       case (name, age) => Ok("Hello " + name + ", you're "+age)
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-    }.get
+    }
   }
 ```
 
