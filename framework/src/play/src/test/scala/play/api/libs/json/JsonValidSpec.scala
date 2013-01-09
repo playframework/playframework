@@ -142,6 +142,14 @@ object JsonValidSpec extends Specification {
       JsNumber(123).validate[String].recover{
         case JsError(e) => "error"
       } must beEqualTo(JsSuccess("error"))
+
+      JsNumber(123).validate[String].recoverTotal{
+        e => "error"
+      } must beEqualTo("error")
+
+      JsNumber(123).validate[Int].recoverTotal{
+        e => 0
+      } must beEqualTo(123)
     }
   }
 

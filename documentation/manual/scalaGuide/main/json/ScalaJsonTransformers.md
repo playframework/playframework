@@ -81,7 +81,7 @@ As a consequence, a JSON transformer is a `Reads[A <: Jsvalue]`.
 
 We have provided a function helper in `JsValue` to help people consider a `Reads[T]` is a transformer and not only a validator:
 
-`JsValue.transform[A <: JsValue](reads: Reads[A])`
+`JsValue.transform[A <: JsValue](reads: Reads[A]): JsResult[A]`
 
 This is exactly the same `JsValue.validate(reads)`
 

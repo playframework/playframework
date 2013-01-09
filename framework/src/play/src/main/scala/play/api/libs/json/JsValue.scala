@@ -75,7 +75,7 @@ sealed trait JsValue {
   /**
    * Transforms a JsValue into another JsValue using provided Json transformer Reads[JsValue]
    */
-  def transform[A <: JsValue](rds: Reads[A]): JsResult[JsValue] = rds.reads(this)
+  def transform[A <: JsValue](rds: Reads[A]): JsResult[A] = rds.reads(this)
 
   override def toString = Json.stringify(this)
 
