@@ -80,7 +80,8 @@ Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no
 ## Changing the logback configuration file
 
 ### Bundling a custom logback configuration file with your application
-create an alternative logback config file called ```application-logger.xml``` and copy that to ```<app>/conf```
+
+Create an alternative logback config file called `application-logger.xml` and copy that to `<app>/conf`
 
 You can also specify another logback configuration file via a System property.
 
