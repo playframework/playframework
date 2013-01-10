@@ -188,14 +188,28 @@ trait DefaultReads {
   }
 
   /**
-   * Deserializer for BigDecimal types.
-   */
-  implicit object BigDecimalReads extends Reads[BigDecimal] {
-    def reads(json: JsValue) = json match {
-      case JsNumber(n) => JsSuccess(n)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
-    }
-  }
+    * Deserializer for BigDecimal
+    */
+  implicit val bigDecReads = Reads[BigDecimal]( js => js match {
+    case JsString(s) => 
+      scala.util.control.Exception.catching(classOf[NumberFormatException])
+        .opt( JsSuccess(BigDecimal(new java.math.BigDecimal(s))) )
+        .getOrElse( JsError(ValidationError("validate.error.expected.numberformatexception")))
+    case JsNumber(d) => JsSuccess(d.underlying)
+    case _ => JsError(ValidationError("validate.error.expected.jsnumberorjsstring"))
+  } )
+
+  /**
+    * Deserializer for BigDecimal
+    */
+  implicit val javaBigDecReads = Reads[java.math.BigDecimal]( js => js match {
+    case JsString(s) => 
+      scala.util.control.Exception.catching(classOf[NumberFormatException])
+        .opt( JsSuccess(new java.math.BigDecimal(s)) )
+        .getOrElse( JsError(ValidationError("validate.error.expected.numberformatexception")))
+    case JsNumber(d) => JsSuccess(d.underlying)
+    case _ => JsError(ValidationError("validate.error.expected.jsnumberorjsstring"))
+  } )
 
 
   /**
@@ -343,7 +357,6 @@ trait DefaultReads {
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
     }
   }
-
 
   /**
    * Deserializer for JsObject.

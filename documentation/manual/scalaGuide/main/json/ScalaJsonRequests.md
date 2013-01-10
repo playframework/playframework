@@ -26,8 +26,8 @@ object Application extends Controller {
     request.body.asJson.map { json =>
       json.validate[(String, Long)].map{ 
         case (name, age) => Ok("Hello " + name + ", you're "+age)
-      }.recover{
-        case e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+      }.recoverTotal{
+        e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
       }
     }.getOrElse {
       BadRequest("Expecting Json data")
@@ -42,8 +42,8 @@ It's better (and simpler) to specify our own `BodyParser` to ask Play to parse t
   def sayHello = Action(parse.json) { request =>
     request.body.validate[(String, Long)].map{ 
       case (name, age) => Ok("Hello " + name + ", you're "+age)
-    }.recover{
-      case e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
     }
   }
 ```
@@ -65,11 +65,11 @@ You can test it with **cURL** from the command line:
 
 This maps the result in case of success to transform it into an action result.
 
-#### `json.validate[(String, Long)].recover{ e: JsError => ... } `
+#### `json.validate[(String, Long)].recoverTotal{ e: JsError => ... }`
 
-`recover` is like `scala.concurrent.Future.recover`:
+`recoverTotal` takes a function to manage errors and returns a default value:
 - it ends the `JsResult` modification chain and returns the successful inner value 
-- or if detected a failure, it returns the result of the function provided to `recover`.
+- or if detected a failure, it returns the result of the function provided to `recoverTotal`.
 
 #### `JsError.toFlatJson(e)`
 This is a helper that transforms the `JsError` into a flattened JsObject form :
@@ -157,8 +157,8 @@ In our previous example we handle a JSON request, but we reply with a `text/plai
   def sayHello = Action(parse.json) { request =>
     request.body.validate[(String, Long)].map{ 
       case (name, age) => Ok(Json.obj("status" ->"OK", "message" -> ("Hello "+name+" , you're "+age) ))
-    }.recover{
-      case e => BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(e)))
+    }.recoverTotal{
+      e => BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(e)))
     }
   }
 ```
