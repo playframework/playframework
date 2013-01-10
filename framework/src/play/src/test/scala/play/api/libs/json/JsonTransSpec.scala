@@ -23,7 +23,7 @@ object JsonTransSpec extends Specification {
     )
 
     "pick a value at a path" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.pick
       ).get must beEqualTo(
         Json.obj(
@@ -33,7 +33,7 @@ object JsonTransSpec extends Specification {
     }
 
     "pick a branch" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.pickBranch
       ).get must beEqualTo(
         Json.obj(
@@ -43,7 +43,7 @@ object JsonTransSpec extends Specification {
     }
 
     "copy input JSON and update a branch (merge the updated branch with input JSON)" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.update( 
           __.read[JsObject].map{ o => o ++ Json.obj( "field33" -> false ) }
         )
@@ -62,7 +62,7 @@ object JsonTransSpec extends Specification {
     }
 
     "pick a branch and update its content" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.pickBranch(
           (__ \ 'field32).json.update( 
             of[JsNumber].map{ case JsNumber(nb) => JsNumber(nb + 12) }
@@ -79,7 +79,7 @@ object JsonTransSpec extends Specification {
     }
 
     "put a value in a new branch (don't keep passed json)" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.put(JsNumber(234))
       ).get must beEqualTo(
         Json.obj(
@@ -89,7 +89,7 @@ object JsonTransSpec extends Specification {
     }
 
     "create a new path by copying a branch" in {
-      js.validate(
+      js.transform(
         (__ \ 'field5).json.copyFrom( (__ \ 'field3).json.pick )
       ).get must beEqualTo(
         Json.obj(
@@ -102,7 +102,7 @@ object JsonTransSpec extends Specification {
     }
 
     "copy full json and prune a branch" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.prune
       ).get must beEqualTo(
         Json.obj(
@@ -114,7 +114,7 @@ object JsonTransSpec extends Specification {
     }
 
     "pick a single branch and prune a sub-branch" in {
-      js.validate(
+      js.transform(
         (__ \ 'field3).json.pickBranch(
           (__ \ 'field32).json.prune
         )

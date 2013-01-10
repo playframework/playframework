@@ -36,10 +36,10 @@ object JsonSpec extends Specification {
 
   implicit val PostFormat = (
     (__ \ 'body).format[String] and
-    (__ \ 'created_at).formatOpt[Option[Date]](
+    (__ \ 'created_at).formatNullable[Option[Date]](
       Format(
-        Reads.nullable(Reads.dateReads(dateFormat)), 
-        Writes.nullable(Writes.dateWrites(dateFormat))
+        Reads.optionWithNull(Reads.dateReads(dateFormat)), 
+        Writes.optionWithNull(Writes.dateWrites(dateFormat))
       )
     ).inmap( optopt => optopt.flatten, (opt: Option[Date]) => Some(opt) )
   )(Post, unlift(Post.unapply))

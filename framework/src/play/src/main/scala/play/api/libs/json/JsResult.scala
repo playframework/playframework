@@ -155,6 +155,11 @@ sealed trait JsResult[+A] { self =>
     case JsSuccess(v, p) => JsSuccess(v, p)
     case e: JsError => if(errManager isDefinedAt e) JsSuccess(errManager(e)) else this
   }
+
+  def recoverTotal[AA >: A]( errManager: JsError => AA ): AA = this match {
+    case JsSuccess(v, p) => v
+    case e: JsError => errManager(e)
+  }
 }
 
 object JsResult {
