@@ -601,7 +601,13 @@ object Enumeratee {
         case in @ (Input.El(_) | Input.Empty) =>
 
           Iteratee.flatten(f.feed(in)).pureFlatFold(
-            (a, _) => new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(folder)(k)) } &> k(Input.El(a)),
+            (a, left) => new CheckDone[From, To] {
+              def continue[A](k: K[To, A]) =
+                (left match {
+                  case Input.El(_) => step(folder)(k)(left)
+                  case _ => Cont(step(folder)(k))
+                })
+            } &> k(Input.El(a)),
             kF => Cont(step(Cont(kF))(k)),
             (msg, e) => Error(msg, in))
 
