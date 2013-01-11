@@ -21,7 +21,7 @@ That you can use as:
 
 ```scala
 def index = LoggingAction { request =>
-  Ok("Hello World")    
+  Ok("Hello World")
 }
 ```
 
@@ -40,7 +40,7 @@ And then:
 
 ```scala
 def index = LoggingAction(parse.text) { request =>
-  Ok("Hello World")    
+  Ok("Hello World")
 }
 ```
 
@@ -93,27 +93,20 @@ def index = Logging {
 
 ## A more complicated example
 
-Let’s look at the more complicated but common example of an authenticated action. The main problem is that we need to pass the authenticated user to the wrapped action and to wrap the original body parser to perform the authentication.
+Let’s look at the more complicated but common example of an authenticated action. The main problem is that we need to pass the authenticated user to the wrapped action.
 
 ```scala
-def Authenticated[A](action: User => Action[A]): Action[A] = {
+def Authenticated(action: User => EssentialAction): EssentialAction = {
   
   // Let's define a helper function to retrieve a User
   def getUser(request: RequestHeader): Option[User] = {
     request.session.get("user").flatMap(u => User.find(u))
   }
   
-  // Wrap the original BodyParser with authentication
-  val authenticatedBodyParser = parse.using { request =>
-    getUser(request).map(u => action(u).parser).getOrElse {
-      parse.error(Unauthorized)
-    }          
-  }
-  
   // Now let's define the new Action
-  Action(authenticatedBodyParser) { request =>
+  EssentialAction { request =>
     getUser(request).map(u => action(u)(request)).getOrElse {
-      Unauthorized
+      Done(Unauthorized)
     }
   }
   
@@ -125,23 +118,43 @@ You can use it like this:
 ```scala
 def index = Authenticated { user =>
   Action { request =>
-    Ok("Hello " + user.name)      
+    Ok("Hello " + user.name)
   }
 }
 ```
 
-> **Note:** There is already an `Authenticated` action in `play.api.mvc.Security.Authenticated` with a better implementation than this example.
+> **Note:** There is already an `Authenticated` action in `play.api.mvc.Security.Authenticated` with a more generic implementation than this example.
+
+In the [[previous section | ScalaBodyParsers]] we said that an `Action[A]` was a `Request[A] => Result` function but this is not entirely true. Actually the `Action[A]` trait is defined as follows:
+
+```scala
+trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result])
+
+trait Action[A] extends EssentialAction {
+  def parser: BodyParser[A]
+  def apply(request: Request[A]): Result
+  def apply(headers: RequestHeader): Iteratee[Array[Byte], Result] = …
+}
+```
+
+An `EssentialAction` is a function that takes the request headers and gives an `Iteratee` that will eventually parse the request body and produce a HTTP result. `Action[A]` implements `EssentialAction` as follow: it parses the request body using its body parser, gives the built `Request[A]` object to the action code and returns the action code’s result. An `Action[A]` can still be thought of as a `Request[A] => Result` function because it has an `apply(request: Request[A]): Result` method.
+
+The `EssentialAction` trait is useful to compose actions with code that requires to read some information from the request headers before parsing the request body.
+
+Our `Authenticated` implementation above tries to find a user id in the request session and calls the wrapped action with this user if found, otherwise it returns a `401 UNAUTHORIZED` status without even parsing the request body.
 
 ## Another way to create the Authenticated action
 
-Let’s see how to write the previous example without wrapping the whole action and without authenticating the body parser:
+Let’s see how to write the previous example without wrapping the whole action:
 
 ```scala
 def Authenticated(f: (User, Request[AnyContent]) => Result) = {
   Action { request =>
-    request.session.get("user").flatMap(u => User.find(u)).map { user =>
-      f(user, request)
-    }.getOrElse(Unauthorized)      
+    val result = for {
+      id <- request.session.get("user")
+      user <- User.find(id)
+    } yield f(user, request)
+    result getOrElse Unauthorized
   }
 }
 ```
@@ -150,7 +163,7 @@ To use this:
 
 ```scala
 def index = Authenticated { (user, request) =>
-   Ok("Hello " + user.name)    
+   Ok("Hello " + user.name)
 }
 ```
 
@@ -159,9 +172,11 @@ A problem here is that you can't mark the `request` parameter as `implicit` anym
 ```scala
 def Authenticated(f: User => Request[AnyContent] => Result) = {
   Action { request =>
-    request.session.get("user").flatMap(u => User.find(u)).map { user =>
-      f(user)(request)
-    }.getOrElse(Unauthorized)     
+    val result = for {
+      id <- request.session.get("user")
+      user <- User.find(id)
+    } yield f(user)(request)
+    result getOrElse Unauthorized
   }
 }
 ```
@@ -170,7 +185,7 @@ Then you can do this:
 
 ```scala
 def index = Authenticated { user => implicit request =>
-   Ok("Hello " + user.name)    
+   Ok("Hello " + user.name)
 }
 ```
 
@@ -183,9 +198,11 @@ case class AuthenticatedRequest(
 
 def Authenticated(f: AuthenticatedRequest => Result) = {
   Action { request =>
-    request.session.get("user").flatMap(u => User.find(u)).map { user =>
-      f(AuthenticatedRequest(user, request))
-    }.getOrElse(Unauthorized)            
+    val result = for {
+      id <- request.session.get("user")
+      user <- User.find(id)
+    } yield f(AuthenticatedRequest(user, request))
+    result getOrElse Unauthorized
   }
 }
 ```
@@ -194,7 +211,7 @@ And then:
 
 ```scala
 def index = Authenticated { implicit request =>
-   Ok("Hello " + request.user.name)    
+   Ok("Hello " + request.user.name)
 }
 ```
 
@@ -207,9 +224,11 @@ case class AuthenticatedRequest[A](
 
 def Authenticated[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result) = {
   Action(p) { request =>
-    request.session.get("user").flatMap(u => User.find(u)).map { user =>
-      f(AuthenticatedRequest(user, request))
-    }.getOrElse(Unauthorized)      
+    val result = for {
+      id <- request.session.get("user")
+      user <- User.find(id)
+    } yield f(Authenticated(user, request))
+    result getOrElse Unauthorized
   }
 }
 
