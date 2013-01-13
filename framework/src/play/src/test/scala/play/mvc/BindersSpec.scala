@@ -51,4 +51,17 @@ object BindersSpec extends Specification {
       subject.bind("key", pathStringInvalid) must equalTo(Left("Cannot parse parameter key as String: Malformed escape pair at index 17: /path/to/invalide%2"))
     }
   }
+
+  "URL StringPath binder" should {
+    val subject = implicitly[PathBindable[StringPath]]
+    val pathString = "/path/to/some+%20file"
+    val pathStringBinded = StringPath("/path/to/some+ file")
+
+    "Unbind StringPath as string" in {
+      subject.unbind("key", pathStringBinded) must equalTo(pathString)
+    }
+    "Bind Path string as StringPath" in {
+      subject.bind("key", pathString) must equalTo(Right(pathStringBinded))
+    }
+  }
 }

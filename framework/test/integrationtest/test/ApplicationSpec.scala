@@ -104,6 +104,22 @@ class ApplicationSpec extends Specification {
       }
     }
 
+    "reverse routes string path" in {
+      controllers.routes.Application.stringPathTest("path to/awesome file =^..^=").url must equalTo("/stringPath/path%20to/awesome%20file%20=%5E..%5E=")
+    }
+
+    "serve routes string path" in {
+      "unencoded" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/stringPath/path to/awesome file =^..^="))
+        status(result) must equalTo(BAD_REQUEST)
+      }
+      "encoded" in new WithApplication() {
+        val Some(result) = route(FakeRequest(GET, "/stringPath/path%20to/awesome%20file%20=%5E..%5E="))
+        status(result) must equalTo(OK)
+        contentAsString(result) must equalTo("path to/awesome file =^..^=")
+      }
+    }
+
     "bind boolean parameters" in {
       "from the query string" in new WithApplication() {
         val Some(result) = route(FakeRequest(GET, "/take-bool?b=true"))

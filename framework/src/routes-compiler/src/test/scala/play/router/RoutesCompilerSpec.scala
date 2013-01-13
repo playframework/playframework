@@ -15,7 +15,11 @@ object RoutesCompilerSpec extends Specification {
     }
 
     "parse a path with dynamic parts" in {
-      parseRoute("GET /s/:d/s p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("d", "[^/]+"), StaticPart("/s")))
+      parseRoute("GET /s/:d/s p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), StringDynamicPart("d", "[^/]+"), StaticPart("/s")))
+    }
+
+    "parse a path with multiple dynamic parts" in {
+      parseRoute("GET /s/*d/s p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), StringPathDynamicPart("d"), StaticPart("/s")))
     }
 
     "parse a single element package" in {
@@ -43,11 +47,14 @@ object RoutesCompilerSpec extends Specification {
     }
 
     "parse method with arguments" in {
-      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must beSome(Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None)))
+      val parsedRoute = parseRoute("GET /s p.c.m(s1, s2)")
+      parsedRoute.call.parameters must beSome(Seq(Parameter("s1", None, None, None), Parameter("s2", None, None, None)))
+      parsedRoute.parameterTypeName("s1") must_== "String"
+      parsedRoute.parameterTypeName("s2") must_== "String"
     }
 
     "parse argument type" in {
-      parseRoute("GET /s p.c.m(i: Int)").call.parameters.get.head.typeName must_== "Int"
+      parseRoute("GET /s p.c.m(i: Int)").call.parameters must beSome(Seq(Parameter("i", Some("Int"), None, None)))
     }
 
     "parse argument default value" in {

@@ -11,7 +11,16 @@ trait PathPart
 
 case class DynamicPart(name: String, constraint: String) extends PathPart with Positional {
   override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\")" //"
+  def defaultParamType = "String"
 }
+
+case class StringDynamicPart(override val name: String, override val constraint: String = """[^/]+""") extends DynamicPart(name, constraint)
+
+case class StringPathDynamicPart(override val name: String, override val constraint: String = """.+""") extends DynamicPart(name, constraint) {
+  override def defaultParamType = "StringPath"
+}
+
+case class RegexDynamicPart(override val name: String, override val constraint: String) extends DynamicPart(name, constraint)
 
 case class StaticPart(value: String) extends PathPart {
   override def toString = """StaticPart("""" + value + """")"""
