@@ -264,10 +264,12 @@ object Helpers extends Status with HeaderNames {
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
    */
-  def inMemoryDatabase(name: String = "default"): Map[String, String] = {
+  def inMemoryDatabase(name: String = "default", options: Map[String, String] = Map.empty[String, String]): Map[String, String] = {
+    val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+
     Map(
       ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt)
+      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
     )
   }
 

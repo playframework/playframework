@@ -108,14 +108,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
      */
     public static Map<String,String> inMemoryDatabase() {
-        return inMemoryDatabase("default");
+        return inMemoryDatabase("default", Collections.<String, String>emptyMap());
     }
 
     /**
      * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
      */
-    public static Map<String,String> inMemoryDatabase(String name) {
-        return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name));
+    public static Map<String,String> inMemoryDatabase(String name, Map<String, String> options) {
+        return Scala.asJava(play.api.test.Helpers.inMemoryDatabase(name, Scala.asScala(options)));
     }
 
     /**
