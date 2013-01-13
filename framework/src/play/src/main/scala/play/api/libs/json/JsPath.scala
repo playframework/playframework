@@ -124,16 +124,7 @@ case class IdxPathNode(idx: Int) extends PathNode {
 
 }
 
-object __ extends JsPath
-
-object JsPath {
-  def \(child: String) = JsPath() \ child
-  def \(child: Symbol) = JsPath() \ child
-
-  def \\(child: String) = JsPath() \\ child
-  def \\(child: Symbol) = JsPath() \\ child
-
-  def apply(idx: Int): JsPath = JsPath()(idx)
+object JsPath extends JsPath(List.empty) {
 
   // TODO implement it correctly (doesn't merge )
   def createObj(pathValues: (JsPath, JsValue)*) = {
