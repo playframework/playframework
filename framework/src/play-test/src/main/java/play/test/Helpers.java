@@ -108,7 +108,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
      */
     public static Map<String,String> inMemoryDatabase() {
-        return inMemoryDatabase("default", Collections.<String, String>emptyMap());
+        return inMemoryDatabase("default");
+    }
+
+    /**
+     * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+     */
+    public static Map<String,String> inMemoryDatabase(String name) {
+        return inMemoryDatabase(name, Collections.<String, String>emptyMap());
     }
 
     /**
