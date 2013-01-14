@@ -16,9 +16,9 @@ import play.api.libs.functional.syntax._
 case class Person(name: String, age: Int, lovesChocolate: Boolean)
 
 implicit val personReads = (
-	(__ \ 'name).reads[String] and
-	(__ \ 'age).reads[Int] and
-	(__ \ 'lovesChocolate).reads[Boolean]
+	(__ \ 'name).read[String] and
+	(__ \ 'age).read[Int] and
+	(__ \ 'lovesChocolate).read[Boolean]
 )(Person)
 ```
 
@@ -79,9 +79,9 @@ implicit val personReads = Json.reads[Person]
 // IS STRICTLY EQUIVALENT TO writing
 
 implicit val personReads = (
-	(__ \ 'name).reads[String] and
-	(__ \ 'age).reads[Int] and
-	(__ \ 'lovesChocolate).reads[Boolean]
+	(__ \ 'name).read[String] and
+	(__ \ 'age).read[Int] and
+	(__ \ 'lovesChocolate).read[Boolean]
 )(Person)
 ```	
 
@@ -117,9 +117,9 @@ So `Json.reads[Person]` is compiled and replaced in the compile AST by:
 
 ```
 (
-	(__ \ 'name).reads[String] and
-	(__ \ 'age).reads[Int] and
-	(__ \ 'lovesChocolate).reads[Boolean]
+	(__ \ 'name).read[String] and
+	(__ \ 'age).read[Int] and
+	(__ \ 'lovesChocolate).read[Boolean]
 )(Person)
 ```
 
