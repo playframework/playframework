@@ -29,7 +29,7 @@ public class Application extends Controller {
     public static Result liveClock() {
         return ok(new Comet("parent.clockChanged") {  
             public void onConnected() {
-               clock.tell(this); 
+               clock.tell(this, null); 
             } 
         });
     }
@@ -69,7 +69,7 @@ public class Application extends Controller {
                     // Register disconnected callback 
                     cometSocket.onDisconnected(new Callback0() {
                         public void invoke() {
-                            getContext().self().tell(cometSocket);
+                            getContext().self().tell(cometSocket, null);
                         }
                     });
                     
