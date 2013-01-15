@@ -4,7 +4,8 @@ import org.specs2.mutable._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import concurrent.{Future, Await}
-import concurrent.duration.Duration
+import concurrent.duration.{FiniteDuration, Duration}
+import concurrent.duration._
 
 object EnumeratorsSpec extends Specification {
 
@@ -133,9 +134,6 @@ object EnumeratorsSpec extends Specification {
 
   }
 
-}
-
-"Enumerator.generateM" should {
   "Can be composed with another enumerator (doesn't send EOF)" in {
 
     val a = (0 to 10).toList
@@ -145,6 +143,17 @@ object EnumeratorsSpec extends Specification {
 
     Await.result(enumerator |>>> Iteratee.fold[Int,String]("")(_ + _), Duration.Inf) must equalTo ("01234567891012")
 
+  }
+
+  "work without StackOverflowError" in {
+    var i = 0
+    Await.result(Enumerator.generateM[Long] {
+      if (i > 25000) Future.successful(None)
+      else {
+        i = i + 1
+        Future {Some(i)}
+      }
+    }|>>> Iteratee.skipToEof, concurrent.duration.DurationInt(10).seconds) must equalTo ()
   }
 
 }
@@ -158,6 +167,20 @@ object EnumeratorsSpec extends Specification {
 
   }
 
+  "work without StackOverflowError" in {
+    val enumerator = Enumerator.unfoldM[Int,Int](0)( s => Future(if(s > 20000) None else Some((s+1,s+1)))) >>> Enumerator(12)
+
+    Await.result(enumerator |>>> Iteratee.skipToEof, concurrent.duration.DurationInt(10).seconds) must equalTo ()
+  }
+
+}
+
+"Enumerator.unfold" should {
+  "work without StackOverflowError" in {
+    val enumerator = Enumerator.unfold[Int,Int](0)( s => if(s > 20000) None else Some((s+1,s+1))) >>> Enumerator(12)
+
+    Await.result(enumerator |>>> Iteratee.skipToEof, concurrent.duration.DurationInt(10).seconds) must equalTo ()
+  }
 }
 
 "Enumerator.broadcast" should {
