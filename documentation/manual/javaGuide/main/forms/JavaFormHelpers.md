@@ -107,7 +107,7 @@ This field constructor generates HTML like the following:
 
 It supports the same set of options as the default field constructor (see above).
 
-## Writing you own field constructor
+## Writing your own field constructor
 
 Often you will need to write your own field constructor. Start by writing a template like:
 
