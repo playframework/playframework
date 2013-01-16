@@ -8,4 +8,4 @@ else
   DEBUG_PARAM="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${JPDA_PORT}"
 fi
 
-java ${DEBUG_PARAM} -Xms384M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties -jar `dirname $0`/sbt/sbt-launch.jar "$@"
+java ${DEBUG_PARAM} -Xms256M -Xmx1280M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties -jar `dirname $0`/sbt/sbt-launch.jar "$@"
