@@ -2,7 +2,7 @@
 
 ## About sbt settings
 
-The sbt build script defines settings for your project. You can also define your own custom settings for your project, as described in the [[sbt documentation | https://github.com/harrah/xsbt/wiki]].  In particular, it helps to be familiar with the [[settings | https://github.com/harrah/xsbt/wiki/Getting-Started-More-About-Settings]] in sbt.
+The sbt build script defines settings for your project. You can also define your own custom settings for your project, as described in the [[sbt documentation | http://www.scala-sbt.org]].  In particular, it helps to be familiar with the [[settings | http://www.scala-sbt.org/release/docs/Getting-Started/More-About-Settings]] in sbt.
 
 To set a basic setting, use the `:=` operator:
 
