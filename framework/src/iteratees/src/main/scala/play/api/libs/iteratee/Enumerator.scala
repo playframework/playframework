@@ -579,7 +579,28 @@ object Enumerator {
 
   }
 
-  def enumerate[E](s:Seq[E]): Enumerator[E] = apply(s:_*)
+  /**
+   * Create an Enumerator from any TraversableOnce like collection of elements.
+   *
+   * Example of an iterator of lines of a file : 
+   * {{{
+   *  val enumerator: Enumerator[String] = Enumerator( scala.io.Source.fromFile("myfile.txt").getLines ) 
+   * }}}
+   */
+  def enumerate[E](traversable : TraversableOnce[E])(implicit ctx:scala.concurrent.ExecutionContext): Enumerator[E]  = {
+    val it = traversable.toIterator
+    Enumerator.unfoldM[scala.collection.Iterator[E], E](it: scala.collection.Iterator[E] )({ currentIt => 
+      if(currentIt.hasNext)
+        Future[ Option[(scala.collection.Iterator[E], E)] ]({
+          val next = currentIt.next
+          Some( (currentIt -> next) )
+        })(ctx)
+      else 
+        Future.successful[ Option[(scala.collection.Iterator[E], E)] ]({
+          None
+        })
+    })
+  }
 
   private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Future[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Future.successful(i))((i, e) =>

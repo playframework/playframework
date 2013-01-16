@@ -29,7 +29,7 @@ logger.org.springframework=TRACE
 
 The default is to define two appenders, one dispatched to the standard out stream, and the other to the `logs/application.log` file.
 
-If you want to fully customize logback, just define a `conf/logger.xml` configuration file. Here is the default configuration file used by Play:
+If you want to fully customize logback, just define a `conf/application-logger.xml` configuration file. Here is the default configuration file used by Play:
 
 ```xml
 <configuration>
@@ -66,15 +66,15 @@ You can also specify another logback configuration file via a System property. I
 
 ### Using `-Dlogger.resource`
 
-Specify another loback configuration file to be loaded from the classpath:
+Specify another logback configuration file to be loaded from the classpath:
 
 ```
-$ start -Dlogger.resource=conf/prod-logger.xml
+$ start -Dlogger.resource=prod-logger.xml
 ```
 
 ### Using `-Dlogger.file`
 
-Specify another loback configuration file to be loaded from the file system:
+Specify another logback configuration file to be loaded from the file system:
 
 ```
 $ start -Dlogger.file=/opt/prod/logger.xml
@@ -82,7 +82,7 @@ $ start -Dlogger.file=/opt/prod/logger.xml
 
 ### Using `-Dlogger.url`
 
-Specify another loback configuration file to be loaded from an URL:
+Specify another logback configuration file to be loaded from an URL:
 
 ```
 $ start -Dlogger.url=http://conf.mycompany.com/logger.xml

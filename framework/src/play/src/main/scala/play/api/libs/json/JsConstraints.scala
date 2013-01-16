@@ -6,17 +6,22 @@ import Json._
 trait ConstraintFormat {
   def of[A](implicit fmt: Format[A]): Format[A] = fmt
 
-  def optional[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optional(fmt), Writes.optional(fmt) )
+  /** deleted because useless and troublesome (better to use nullable anyway) */
+  //def optional[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optional(fmt), Writes.optional(fmt) )
 
-  def nullable[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.nullable(fmt), Writes.nullable(fmt) )
+  def optionWithNull[A](implicit fmt: Format[A]): Format[Option[A]] = Format[Option[A]]( Reads.optionWithNull(fmt), Writes.optionWithNull(fmt) )
 }
 
 trait PathFormat {
   def at[A](path: JsPath)(implicit f:Format[A]): OFormat[A] = 
     OFormat[A](Reads.at(path)(f), Writes.at(path)(f)) 
 
+  @deprecated("use nullable[T] instead", since = "2.1-RC2")
   def optional[A](path:JsPath)(implicit f: Format[A]): OFormat[Option[A]] = 
     OFormat(Reads.optional(path)(f), Writes.optional(path)(f))
+
+  def nullable[A](path:JsPath)(implicit f: Format[A]): OFormat[Option[A]] = 
+    OFormat(Reads.nullable(path)(f), Writes.nullable(path)(f))
 
 }
 
@@ -27,8 +32,36 @@ trait PathReads {
   def at[A](path:JsPath)(implicit reads: Reads[A]): Reads[A] =
     Reads[A]( js => path.asSingleJsResult(js).flatMap(reads.reads(_).repath(path)) )
 
+  /** Reads optional field at JsPath.
+    * If JsPath is not found => None
+    * If JsPath is found => applies implicit Reads[T]
+    */
+  @deprecated("use nullable[T] instead", since = "2.1-RC2")
   def optional[A](path:JsPath)(implicit reads: Reads[A]): Reads[Option[A]] = 
     Reads[Option[A]](json => path.asSingleJsResult(json).fold(_ => JsSuccess(None), a => reads.reads(a).repath(path).map(Some(_))))
+
+  /** Reads a Option[T] search optional or nullable field at JsPath (field not found or null is None 
+    * and other cases are Error).
+    *
+    * It runs through JsValue following all JsPath nodes on JsValue except last node:
+    * - If one node in JsPath is not found before last node => returns JsError( "missing-path" )
+    * - If all nodes are found till last node, it runs through JsValue with last node => 
+    *   - If last node if not found => returns None
+    *   - If last node is found with value "null" => returns None
+    *   - If last node is found => applies implicit Reads[T] 
+    */  
+  def nullable[A](path:JsPath)(implicit reads: Reads[A]) = Reads[Option[A]]{ json => 
+    path.applyTillLast(json).fold(
+      jserr => jserr, 
+      jsres => jsres.fold( 
+        _ => JsSuccess(None),
+        a => a match {
+          case JsNull => JsSuccess(None)
+          case js => reads.reads(js).repath(path).map(Some(_))
+        }
+      )
+    )
+  }
 
   def jsPick[A <: JsValue](path: JsPath)(implicit reads: Reads[A]): Reads[A] = at(path)(reads)
 
@@ -55,9 +88,21 @@ trait PathReads {
 }
 
 trait ConstraintReads {
+  /** The simpler of all Reads that just finds an implicit Reads[A] of the expected type */
   def of[A](implicit r: Reads[A]) = r
 
-  def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
+  /** deleted because useless and troublesome (better to use nullable anyway) */
+  //def optional[A](implicit reads:Reads[A]):Reads[Option[A]] =
+  //  Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
+
+  /** very simple optional field Reads that maps "null" to None */
+  def optionWithNull[T](implicit rds: Reads[T]): Reads[Option[T]] = Reads( js => js match {
+    case JsNull => JsSuccess(None)
+    case js => rds.reads(js).map(Some(_))
+  } )
+
+  /** Stupidly reads a field as an Option mapping any error (format or missing field) to None */
+  def optionNoError[A](implicit reads:Reads[A]): Reads[Option[A]] =
     Reads[Option[A]](js => JsSuccess(reads.reads(js).asOpt))
 
   def list[A](implicit reads:Reads[A]): Reads[List[A]] = Reads.traversableReads[List, A]
@@ -107,18 +152,27 @@ trait ConstraintReads {
 
   def pure[A](a: => A) = Reads[A] { js => JsSuccess(a) }
 
-  def nullable[T](implicit rds: Reads[T]): Reads[Option[T]] = Reads( js => js match {
-    case JsNull => JsSuccess(None)
-    case js => rds.reads(js).map(Some(_))
-  } )
-
 }
 
 trait PathWrites {
   def at[A](path: JsPath)(implicit wrs:Writes[A]): OWrites[A] =
     OWrites[A]{ a => JsPath.createObj(path -> wrs.writes(a)) }
 
+  @deprecated("use nullable[T] instead (in parallel with Reads.nullable(path))", since = "2.1-RC2")
+  /** writes a optional field in given JsPath : if None, doesn't write field at all. */
   def optional[A](path: JsPath)(implicit wrs:Writes[A]): OWrites[Option[A]] =
+    OWrites[Option[A]]{ a => 
+      a match {
+        case Some(a) => JsPath.createObj(path -> wrs.writes(a)) 
+        case None => Json.obj()
+      }
+    }
+
+  /** writes a optional field in given JsPath : if None, doesn't write field at all.
+    * Please note we do not write "null" but simply omit the field when None
+    * If you want to write a "null", use ConstraintWrites.optionWithNull[A]
+    */
+  def nullable[A](path: JsPath)(implicit wrs:Writes[A]): OWrites[Option[A]] =
     OWrites[Option[A]]{ a => 
       a match {
         case Some(a) => JsPath.createObj(path -> wrs.writes(a)) 
@@ -147,11 +201,11 @@ trait PathWrites {
 trait ConstraintWrites {
   def of[A](implicit w: Writes[A]) = w
 
-  def optional[A](implicit wa: Writes[A]): Writes[Option[A]] = Writes[Option[A]] { a => a match {
-      case None => Json.obj()
-      case Some(av) => wa.writes(av)
-    }
-  }
+  // deleted because troublesome...
+  // def optional[A](implicit wa: Writes[A]): Writes[Option[A]] = Writes[Option[A]] { a => a match {
+  //  case None => Json.obj()
+  //  case Some(av) => wa.writes(av)
+  //}}
 
   def pure[A](fixed: => A)(implicit wrs:Writes[A]): Writes[JsValue] =
     Writes[JsValue]{ js => wrs.writes(fixed) }   
@@ -165,7 +219,10 @@ trait ConstraintWrites {
   def seq[A](implicit writes:Writes[A]): Writes[Seq[A]] = Writes.traversableWrites[A]
   def map[A](implicit writes:Writes[A]): OWrites[collection.immutable.Map[String, A]] = Writes.mapWrites[A]
 
-  def nullable[A](implicit wa: Writes[A]) = Writes[Option[A]] { a => 
+  /** Pure Option Writer[T] which writes "null" when None which is different 
+    * from `JsPath.writeNullable which omits the field when None
+    */
+  def optionWithNull[A](implicit wa: Writes[A]) = Writes[Option[A]] { a => 
     a match {
       case None => JsNull
       case Some(av) => wa.writes(av)

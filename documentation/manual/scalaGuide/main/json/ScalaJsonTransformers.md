@@ -77,7 +77,13 @@ As a consequence, a JSON transformer is a `Reads[A <: Jsvalue]`.
 
 > **Keep in mind that a Reads[A <: JsValue] is able to transform and not only to read/validate**
 
+## <a name="step-pick">Use `JsValue.transform` instead of `JsValue.validate`</a>
 
+We have provided a function helper in `JsValue` to help people consider a `Reads[T]` is a transformer and not only a validator:
+
+`JsValue.transform[A <: JsValue](reads: Reads[A]): JsResult[A]`
+
+This is exactly the same `JsValue.validate(reads)`
 
 ## <a name="step-pick">Case 1: Pick JSON value in JsPath</a>
 
@@ -89,7 +95,7 @@ import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key23).json.pick
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res9: play.api.libs.json.JsResult[play.api.libs.json.JsValue] = 
 	JsSuccess(
 	  ["alpha","beta","gamma"],
@@ -121,7 +127,7 @@ import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key23).json.pick[JsArray]
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res10: play.api.libs.json.JsResult[play.api.libs.json.JsArray] = 
 	JsSuccess(
 	  ["alpha","beta","gamma"],
@@ -148,7 +154,7 @@ import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key24 \ 'key241).json.pickBranch
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res11: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
 	{
@@ -183,7 +189,7 @@ import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key25 \ 'key251).json.copyFrom( (__ \ 'key2 \ 'key21).json.pick )
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res12: play.api.libs.json.JsResult[play.api.libs.json.JsObject] 
   JsSuccess( 
     {
@@ -218,7 +224,7 @@ val jsonTransformer = (__ \ 'key2 \ 'key24).json.update(
 	__.read[JsObject].map{ o => o ++ Json.obj( "field243" -> "coucou" ) }
 )
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res13: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
     {
@@ -263,7 +269,7 @@ import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key24 \ 'key241).json.put(JsNumber(456))
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res14: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
     {
@@ -301,7 +307,7 @@ import play.api.libs.json._
 
 val jsonTransformer = (__ \ 'key2 \ 'key22).json.prune
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res15: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
     {
@@ -352,7 +358,7 @@ val jsonTransformer = (__ \ 'key2).json.pickBranch(
   )
 )
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res16: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
     {
@@ -405,7 +411,7 @@ val jsonTransformer = (__ \ 'key2).json.pickBranch(
   (__ \ 'key23).json.prune
 )
 
-scala> json.validate(jsonTransformer)
+scala> json.transform(jsonTransformer)
 res18: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
     {
@@ -497,7 +503,7 @@ val gizmo2gremlin = (
 	(__ \ 'hates).json.copyFrom( (__ \ 'loves).json.pick )
 ) reduce
 
-scala> gizmo.validate(gizmo2gremlin)
+scala> gizmo.transform(gizmo2gremlin)
 res22: play.api.libs.json.JsResult[play.api.libs.json.JsObject] = 
   JsSuccess(
     {

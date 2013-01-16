@@ -163,7 +163,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
     import play.api.mvc.Results._
 
-    val documentation = """/@documentation""".r
+    val documentation = """/@documentation/?""".r
     val book = """/@documentation/Book""".r
     val apiDoc = """/@documentation/api/(.*)""".r
     val wikiResource = """/@documentation/resources/(.*)""".r

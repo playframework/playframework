@@ -22,7 +22,7 @@ This can be done with a script like this (run in `app/assets/stylesheets/bootstr
 * Copy bootstrap's less files into `app/assets/stylesheets/bootstrap`
 * Modify the `project/Build.scala` file to filter out the Bootstrap LESS files we *don't* want to compile:
 
-* Define a new [BuildPath](https://github.com/harrah/xsbt/wiki/Paths) resolver function:
+* Define a new [BuildPath](http://www.scala-sbt.org/release/docs/Detailed-Topics/Paths) resolver function:
 
 ```scala
     // Only compile the bootstrap bootstrap.less file and any other *.less file in the stylesheets directory

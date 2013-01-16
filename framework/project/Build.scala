@@ -354,7 +354,8 @@ object PlayBuild extends Build {
         val previousScalaVersion = "2.9.1"
         val buildScalaVersion = "2.10.0"
         val buildScalaVersionForSbt = "2.9.2"
-        val buildSbtVersion   = "0.12.1"
+        val buildSbtVersion   = "0.12.2-RC2"
+        val buildSbtMajorVersion = "0.12"
         val buildSbtVersionBinaryCompatible = "0.12"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -416,7 +417,9 @@ object PlayBuild extends Build {
 
             "com.h2database"                    %    "h2"                       %   "1.3.168",
 
-            "tyrex"                             %    "tyrex"                    %   "1.0.1"
+            "tyrex"                             %    "tyrex"                    %   "1.0.1",
+
+            specsBuild                          %   "test"
         )
 
         val ebeanDeps = Seq(
@@ -681,8 +684,9 @@ object PlayBuild extends Build {
 
             // Retrieve all ivy files from cache
             // (since we cleaned the cache and run update just before, all these dependencies are useful)
+            // Remove SBT plugins (which live in scala_<buildScalaVersionForSbt>)
             val ivyFiles = ((repository / "../cache" * "*").filter { d =>
-              d.isDirectory && d.getName != "scala_%s".format(scalaVersion)
+              d.isDirectory && d.getName != "scala_%s".format(buildScalaVersionForSbt)
             } ** "ivy-*.xml").get
 
             // From the ivy files, deduct the dependencies
@@ -716,7 +720,7 @@ object PlayBuild extends Build {
             }
 
             // Special sbt plugins
-            val pluginIvyFiles = ((repository / "../cache/scala_%s/sbt_%s".format(buildScalaVersion, buildSbtVersion) * "*").filter { d =>
+            val pluginIvyFiles = ((repository / "../cache/scala_%s/sbt_%s".format(buildScalaVersionForSbt, buildSbtMajorVersion) * "*").filter { d =>
               d.isDirectory && d.getName != "play"
             } ** "ivy-*.xml").get
 
@@ -732,7 +736,7 @@ object PlayBuild extends Build {
             val pluginDependenciesWithArtifacts = pluginDependencies.map {
               case (descriptor, (organization, name, version)) => {
                 var jars = (descriptor.getParentFile ** ("*-" + version + ".jar")).get
-                s.log.info("Found dependency %s::%s::%s -> %s".format(
+                s.log.info("Found plugin dependency %s::%s::%s -> %s".format(
                   organization, name, version, jars.map(_.getName).mkString(", ")
                 ))
                 (descriptor, jars, (organization, name, version))
@@ -742,7 +746,7 @@ object PlayBuild extends Build {
             // Build the local repository from these informations
             pluginDependenciesWithArtifacts.foreach {
               case (descriptor, jars, (organization, name, version)) => {
-                val dependencyDir = repository / organization / name / "scala_%s".format(buildScalaVersion) / "sbt_%s".format(buildSbtVersion) / version
+                val dependencyDir = repository / organization / name / "scala_%s".format(buildScalaVersionForSbt) / "sbt_%s".format(buildSbtMajorVersion) / version
                 val artifacts = jars.map(j => dependencyDir / j.getParentFile.getName / (j.getName.dropRight(5 + version.size) + ".jar"))
                 val ivy = dependencyDir / "ivys/ivy.xml"
 

@@ -38,7 +38,9 @@ CREATE TABLE User (
 DROP TABLE User;
 ```
 
-As you see you have to delimitate the both Ups and Downs section by using comments in your SQL script.
+As you see you have to delimit the both Ups and Downs section by using comments in your SQL script.
+
+> Play splits your `.sql` files into a series of semicolon-delimited statements before executing them one-by-one against the database. So if you need to use a semicolon *within* a statement, escape it by entering `;;` instead of `;`. For example, `INSERT INTO punctuation(name, character) VALUES ('semicolon', ';;');`.
 
 Evolutions are automatically activated if a database is configured in `application.conf` and evolution scripts are present. You can disable them by setting `evolutionplugin=disabled`. For example when tests set up their own database you can disable evolutions for the test environment.
 

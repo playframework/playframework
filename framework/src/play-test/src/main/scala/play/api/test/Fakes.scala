@@ -110,7 +110,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * @param _method The request HTTP method, <tt>POST</tt> by default.
    * @return the current fake request
    */
-  @deprecated("Use FakeRequest(method, path) to specify the method")
+  @deprecated("Use FakeRequest(method, path) to specify the method", "2.1.0")
   def withJsonBody(node: JsValue, _method: String): FakeRequest[AnyContentAsJson] = {
     _copy(method = _method, body = AnyContentAsJson(node))
       .withHeaders(play.api.http.HeaderNames.CONTENT_TYPE -> "application/json")
