@@ -10,8 +10,7 @@ env:
 before_install:
   - sudo dpkg -r sbt
   - sudo rm /usr/bin/sbt
-  - wget http://files.travis-ci.org/packages/deb/sbt/sbt-0.12.1.deb -O /tmp/sbt.deb
-  - sudo dpkg -i /tmp/sbt.deb
+  - framwork/build exit
 script: cd framework ; ./runtests
 after_success:
   - sudo apt-get install -qq ncftp
