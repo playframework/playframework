@@ -406,8 +406,8 @@ object PlayBuild extends Build {
 
       // Some common dependencies here so they don't need to be declared over and over
       val specsBuild = "org.specs2" %% "specs2" % "1.12.3"
-      // The 2.10 version of scala-io-file 0.4.1 doesn't work with 2.10.0.
-      val scalaIoFileBuild = "com.github.scala-incubator.io" % "scala-io-file_2.10.0-RC1" % "0.4.1" exclude("javax.transaction", "jta")
+      // The 2.10 version of scala-io-file 0.4.1 was released on 6th Jan 2013, now works with 2.10.0.
+      val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude("javax.transaction", "jta")
 
 
       val jdbcDeps = Seq(
