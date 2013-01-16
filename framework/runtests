@@ -57,20 +57,5 @@ $PLAY "$@" clean-all test
 cd $CURRENT
 
 echo "[info]"
-echo "[info] ---- TESTING SAMPLE APPLICATIONS"
-echo "[info]"
-
-x=`find ../samples -name app`
-for i in $(echo $x | tr ";" "\n")
-do
-  echo "[info]"
-  echo "[info] ---- TESTING ${i/app/}"
-  echo "[info]"
-  cd ${i/app/}
-  $PLAY "$@" clean-all test
-  cd $CURRENT
-done
-
-echo "[info]"
 echo "[info] ALL TESTS PASSED"
 echo "[info]"
