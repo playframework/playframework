@@ -10,6 +10,9 @@ import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
+import play.api.libs.iteratee.Input.El
+import scala.Some
 
 private[netty] trait Helpers {
 
@@ -53,5 +56,49 @@ private[netty] trait Helpers {
       override def toString = cookies.toString
     }
 
+  }
+
+  def cleanFlashCookie(requestHeader: RequestHeader)(r:PlainResult):Result = {
+    val header = r.header
+
+    val flashCookie = {
+      header.headers.get(SET_COOKIE)
+        .map(Cookies.decode(_))
+        .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
+        Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
+          Flash.discard.toCookie
+        }
+      }
+    }
+
+    flashCookie.map { newCookie =>
+      r.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
+    }.getOrElse(r)
+  }
+
+  /**
+   * Copy headers to netty response
+   * @param headers
+   * @param nettyResponse
+   */
+  def setNettyHeaders(headers: Map[String, String], nettyResponse: DefaultHttpResponse) {
+    headers.foreach {
+
+      // Fix a bug for Set-Cookie header.
+      // Multiple cookies could be merged in a single header
+      // but it's not properly supported by some browsers
+      case (name@play.api.http.HeaderNames.SET_COOKIE, value) => {
+
+        import scala.collection.JavaConverters._
+        import play.api.mvc._
+
+        nettyResponse.setHeader(name, Cookies.decode(value).map {
+          c => Cookies.encode(Seq(c))
+        }.asJava)
+
+      }
+
+      case (name, value) => nettyResponse.setHeader(name, value)
+    }
   }
 }
