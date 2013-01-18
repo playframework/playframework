@@ -281,12 +281,13 @@ object Forms {
    *
    * @param min minimum value
    * @param max maximum value
+   * @param strict should it be a strict comparison
    */
-  def number(min: Int = Int.MinValue, max: Int = Int.MaxValue): Mapping[Int] = (min, max) match {
+  def number(min: Int = Int.MinValue, max: Int = Int.MaxValue, strict: Boolean = false): Mapping[Int] = (min, max) match {
     case (Int.MinValue, Int.MaxValue) => number
-    case (min, Int.MaxValue) => number verifying Constraints.min(min)
-    case (Int.MinValue, max) => number verifying Constraints.max(max)
-    case (min, max) => number verifying (Constraints.min(min), Constraints.max(max))
+    case (min, Int.MaxValue) => number verifying Constraints.min(min, strict)
+    case (Int.MinValue, max) => number verifying Constraints.max(max, strict)
+    case (min, max) => number verifying (Constraints.min(min, strict), Constraints.max(max, strict))
   }
 
   /**
@@ -299,12 +300,13 @@ object Forms {
    *
    * @param min minimum value
    * @param max maximum value
+   * @param strict should it be a strict comparison
    */
-  def longNumber(min: Long = Long.MinValue, max: Long = Long.MaxValue): Mapping[Long] = (min, max) match {
+  def longNumber(min: Long = Long.MinValue, max: Long = Long.MaxValue, strict: Boolean = false): Mapping[Long] = (min, max) match {
     case (Long.MinValue, Long.MaxValue) => longNumber
-    case (min, Long.MaxValue) => longNumber verifying Constraints.min(min)
-    case (Long.MinValue, max) => longNumber verifying Constraints.max(max)
-    case (min, max) => longNumber verifying (Constraints.min(min), Constraints.max(max))
+    case (min, Long.MaxValue) => longNumber verifying Constraints.min(min, strict)
+    case (Long.MinValue, max) => longNumber verifying Constraints.max(max, strict)
+    case (min, max) => longNumber verifying (Constraints.min(min, strict), Constraints.max(max, strict))
   }
 
   /**
@@ -483,7 +485,7 @@ object Forms {
   //
   // --- Deprecated members, to remove in  Play 2.1
   //
-  // ----------------------------------------------  
+  // ----------------------------------------------
 
   @deprecated("Use mapping(...) instead", "2.0")
   def of[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]])(a1: (String, Mapping[A1])): Mapping[R] = {

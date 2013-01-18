@@ -75,43 +75,31 @@ trait Constraints {
   }
 
   /**
-   * Defines a minimum value for `Int` values, i.e. the value must be greater than or equal to the constraint parameter
+   * Defines a minimum value for `Ordered` values, by default the value must be greater than or equal to the constraint parameter
    *
    * '''name'''[constraint.min(minValue)]
-   * '''error'''[error.min(minValue)]
+   * '''error'''[error.min(minValue)] or [error.min.strict(minValue)]
    */
-  def min(minValue: Int): Constraint[Int] = Constraint[Int]("constraint.min", minValue) { o =>
-    if (o >= minValue) Valid else Invalid(ValidationError("error.min", minValue))
+  def min[T](minValue: T, strict: Boolean = false)(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.min", minValue) { o =>
+    ( ordering.compare(o,minValue).signum, strict ) match {
+      case ( 1, _ ) | ( 0, false ) => Valid
+      case ( _, false ) => Invalid(ValidationError("error.min", minValue))
+      case ( _, true ) => Invalid(ValidationError("error.min.strict", minValue))
+    }
   }
 
   /**
-   * Defines a minimum value for `Long` values, i.e. the value must be greater than or equal to the constraint parameter
-   *
-   * '''name'''[constraint.min(minValue)]
-   * '''error'''[error.min(minValue)]
-   */
-  def min(minValue: Long): Constraint[Long] = Constraint[Long]("constraint.min", minValue) { o =>
-    if (o >= minValue) Valid else Invalid(ValidationError("error.min", minValue))
-  }
-
-  /**
-   * Defines a maximum value constraint for `Int` values, i.e. value must be less than or equal to the constraint parameter
+   * Defines a maximum value for `Ordered` values, by default the value must be less than or equal to the constraint parameter
    *
    * '''name'''[constraint.max(maxValue)]
-   * '''error'''[error.max(maxValue)]
+   * '''error'''[error.max(maxValue)] or [error.max.strict(maxValue)]
    */
-  def max(maxValue: Int): Constraint[Int] = Constraint[Int]("constraint.max", maxValue) { o =>
-    if (o <= maxValue) Valid else Invalid(ValidationError("error.max", maxValue))
-  }
-
-  /**
-   * Defines a maximum value constraint for `Long` values, i.e. value must be less than or equal to the constraint parameter
-   *
-   * '''name'''[constraint.max(maxValue)]
-   * '''error'''[error.max(maxValue)]
-   */
-  def max(maxValue: Long): Constraint[Long] = Constraint[Long]("constraint.max", maxValue) { o =>
-    if (o <= maxValue) Valid else Invalid(ValidationError("error.max", maxValue))
+  def max[T](maxValue: T, strict: Boolean = false)(implicit ordering: scala.math.Ordering[T]): Constraint[T] = Constraint[T]("constraint.max", maxValue) { o =>
+    ( ordering.compare(o, maxValue).signum, strict ) match {
+      case ( -1, _ ) | ( 0, false ) => Valid
+      case ( _, false ) => Invalid(ValidationError("error.max", maxValue))
+      case ( _, true ) => Invalid(ValidationError("error.max.strict", maxValue))
+    }
   }
 
   /**
