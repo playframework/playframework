@@ -1,4 +1,4 @@
-language: java
+language: scala
 jdk:
   # Choosing Oracle JDK as the default system one
   # see https://github.com/travis-ci/travis-cookbooks/issues/35
