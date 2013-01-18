@@ -187,4 +187,20 @@ object EnumerateesSpec extends Specification {
 
   }
 
+  "Enumeratee.recover" should {
+
+    "perform computations and log errors" in {
+      var shouldBecomeTrue = false
+
+      val result = Enumerator(0, 2, 4) &> Enumeratee.recover { _ =>
+        shouldBecomeTrue = true
+      } &> Enumeratee.map { i =>
+          8 / i
+      } |>>> Iteratee.getChunks // => List(4, 2)
+
+      Await.result(result, Duration.Inf) must equalTo(List(4, 2))
+      shouldBecomeTrue must equalTo(true)
+    }
+  }
+
 }
