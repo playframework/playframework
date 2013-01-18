@@ -1,5 +1,6 @@
-language: scala 
+language: java
 jdk:
+  # Choosing Oracle JDK as the default system one
   # see https://github.com/travis-ci/travis-cookbooks/issues/35
   - oraclejdk7
 env:
