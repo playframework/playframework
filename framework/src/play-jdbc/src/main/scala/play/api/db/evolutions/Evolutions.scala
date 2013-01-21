@@ -413,6 +413,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
   import Evolutions._
 
+  lazy val dbApi = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
+
   /**
    * Is this plugin enabled.
    *
@@ -428,16 +430,15 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
    * Checks the evolutions state.
    */
   override def onStart() {
-    val api = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
-    api.datasources.foreach {
+    dbApi.datasources.foreach {
       case (ds, db) => {
         withLock(ds) {
-          val script = evolutionScript(api, app.path, app.classloader, db)
+          val script = evolutionScript(dbApi, app.path, app.classloader, db)
           if (!script.isEmpty) {
             app.mode match {
-              case Mode.Test => Evolutions.applyScript(api, db, script)
-              case Mode.Dev if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
-              case Mode.Prod if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
+              case Mode.Test => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Dev if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Prod if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
               case Mode.Prod => {
                 Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
                 Logger("play").warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
@@ -510,8 +511,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
-    lazy val dbApi = new BoneCPApi(app.configuration.getConfig("db").get, app.classloader)
-    
+        
     request.path match {
 
       case applyEvolutions(db) => {
