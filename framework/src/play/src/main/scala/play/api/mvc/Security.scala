@@ -12,7 +12,7 @@ object Security {
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
-   * Furthermore, it lets users to configure where to retrieve the username from
+   * Furthermore, it lets users to configure where to retrieve the user info from
    * and what to do in case unsuccessful authentication
    *
    * For example:
@@ -31,29 +31,21 @@ object Security {
    * }
    * }}}
    *
-   * @tparam A the type of the request body
-   * @param username function used to retrieve the user name from the request header - the default is to read from session cookie
-   * @param onUnauthorized function used to generate alternative result if the user is not authenticated - the default is a simple 401 page
+   * @tparam A the type of the user info value (e.g. `String` if user info consists only in a user name)
+   * @param userinfo function used to retrieve the user info from the request header
+   * @param onUnauthorized function used to generate alternative result if the user is not authenticated
    * @param action the action to wrap
    */
   def Authenticated[A](
-    username: RequestHeader => Option[String],
-    onUnauthorized: RequestHeader => Result)(action: String => Action[A]): Action[(Action[A], A)] = {
+    userinfo: RequestHeader => Option[A],
+    onUnauthorized: RequestHeader => Result)(action: A => EssentialAction): EssentialAction = {
 
-    val authenticatedBodyParser = BodyParser { request =>
-      username(request).map { user =>
-        val innerAction = action(user)
-        innerAction.parser(request).mapDone { body =>
-          body.right.map(innerBody => (innerAction, innerBody))
-        }
+    EssentialAction { request =>
+      userinfo(request).map { user =>
+        action(user)(request)
       }.getOrElse {
-        Done(Left(onUnauthorized(request)), Input.Empty)
+        Done(onUnauthorized(request), Input.Empty)
       }
-    }
-
-    Action(authenticatedBodyParser) { request =>
-      val (innerAction, innerBody) = request.body
-      innerAction(request.map(_ => innerBody))
     }
 
   }
@@ -61,7 +53,7 @@ object Security {
   /**
    * Key of the username attribute stored in session.
    */
-  lazy val username: String = Play.maybeApplication map (_.configuration.getString("session.username")) flatMap (e => e) getOrElse ("username")
+  lazy val username: String = Play.maybeApplication.flatMap(_.configuration.getString("session.username")) getOrElse ("username")
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.
@@ -83,10 +75,9 @@ object Security {
    * }
    * }}}
    *
-   * @tparam A the type of the request body
    * @param action the action to wrap
    */
-  def Authenticated[A](action: String => Action[A]): Action[(Action[A], A)] = Authenticated(
+  def Authenticated(action: String => EssentialAction): EssentialAction = Authenticated(
     req => req.session.get(username),
     _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
 
