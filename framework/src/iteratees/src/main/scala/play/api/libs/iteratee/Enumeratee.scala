@@ -88,6 +88,16 @@ object Enumeratee {
         case _ => Done(it, Input.Empty)
       }
   }
+  
+  /**
+   * flatten a [[scala.concurrent.Future]] of [[play.api.libs.iteratee.Enumeratee]]] into an Enumeratee
+   *
+   * @param futureOfEnumeratee a future of enumeratee
+   */
+  def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]) = new Enumeratee[From, To] {
+    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To,A]] = 
+      Iteratee.flatten(futureOfEnumeratee map(_.applyOn[A](it)))
+  }
 
   /**
    * Create an Enumeratee that zips two Iteratees together.
