@@ -287,7 +287,7 @@ object Helpers extends Status with HeaderNames {
 
     Map(
       ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl + ";DB_CLOSE_DELAY=-1")
+      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt)
     )
   }
 
