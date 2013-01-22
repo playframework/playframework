@@ -354,7 +354,7 @@ object PlayBuild extends Build {
         val previousScalaVersion = "2.9.1"
         val buildScalaVersion = "2.10.0"
         val buildScalaVersionForSbt = "2.9.2"
-        val buildSbtVersion   = "0.12.2-RC2"
+        val buildSbtVersion   = "0.12.2"
         val buildSbtMajorVersion = "0.12"
         val buildSbtVersionBinaryCompatible = "0.12"
 
