@@ -267,7 +267,7 @@ object Helpers extends Status with HeaderNames {
   def inMemoryDatabase(name: String = "default"): Map[String, String] = {
     Map(
       ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + ";DB_CLOSE_DELAY=-1")
+      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt)
     )
   }
 
