@@ -18,6 +18,7 @@ error.invalid=Invalid value
 error.required=This field is required
 error.number=Numeric value expected
 error.real=Real number value expected
+error.real.precision=Real number value with no more than {0} digit(s) including {1} decimal(s) expected
 error.min=Must be greater or equal to {0}
 error.max=Must be less or equal to {0}
 error.minLength=Minimum length is {0}
