@@ -206,7 +206,10 @@ trait ActionBuilder {
    */
   def apply[A](bodyParser: BodyParser[A])(block: Request[A] => Result): Action[A] = new Action[A] {
     def parser = bodyParser
-    def apply(ctx: Request[A]) = block(ctx)
+    def apply(ctx: Request[A]) = {
+      try block(ctx)
+      catch { case e: Throwable => Logger.error("Uncatched exception", e) ; throw e }
+    }
   }
 
   /**
