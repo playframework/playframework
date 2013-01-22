@@ -385,8 +385,9 @@ object Forms {
    * }}}
    *
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
+   * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def date(pattern: String): Mapping[java.util.Date] = of[java.util.Date] as dateFormat(pattern)
+  def date(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.util.Date] = of[java.util.Date] as dateFormat(pattern, timeZone)
 
   /**
    * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
@@ -407,8 +408,9 @@ object Forms {
    * }}}
    *
    * @param pattern the date pattern, as defined in `java.text.SimpleDateFormat`
+   * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def sqlDate(pattern: String): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern)
+  def sqlDate(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Mapping[java.sql.Date] = of[java.sql.Date] as sqlDateFormat(pattern, timeZone)
 
   /**
    * Constructs a simple mapping for a date field (mapped as `org.joda.time.DateTime type`).
@@ -429,8 +431,9 @@ object Forms {
    * }}}
    *
    * @param pattern the date pattern, as defined in `org.joda.time.format.DateTimeFormat`
+   * @param timeZone the `org.joda.time.DateTimeZone` to use for parsing and formatting
    */
-  def jodaDate(pattern: String): Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime] as jodaDateTimeFormat(pattern)
+  def jodaDate(pattern: String, timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault): Mapping[org.joda.time.DateTime] = of[org.joda.time.DateTime] as jodaDateTimeFormat(pattern, timeZone)
 
   /**
    * Constructs a simple mapping for a date field (mapped as `org.joda.time.LocalDatetype`).
