@@ -84,10 +84,47 @@ object ConcurrentSpec extends Specification {
         c.push(b)
         c.eofAndEnd()
       }
-    val promise = (enumerator |>> Iteratee.fold[String, String]("")(_ ++ _)).flatMap(_.run)
+      val promise = (enumerator |>> Iteratee.fold[String, String]("")(_ ++ _)).flatMap(_.run)
 
-    Await.result(promise, Duration.Inf) must equalTo (a + b)
+      Await.result(promise, Duration.Inf) must equalTo (a + b)
+    }
+
+    "call the onComplete callback when the iteratee is done" in {
+      val completed = Promise[String]
+
+      val enumerator = Concurrent.unicast[String](onStart = { c =>
+        c.push("foo")
+        c.push("bar")
+      }, onComplete = {
+        completed.success("called")
+      })
+
+      val future = enumerator |>>> Cont {
+        case Input.El(data) => Done(data)
+        case _ => Done("didn't get data")
+      }
+
+      Await.result(future, Duration.Inf) must_== "foo"
+      Await.result(completed.future, Duration.Inf) must_== "called"
+    }
+
+    "call the onError callback when the iteratee encounters an error" in {
+      val error = Promise[String]
+
+      val enumerator = Concurrent.unicast[String](onStart = { c =>
+        c.push("foo")
+        c.push("bar")
+      }, onError = { (err, input) =>
+        error.success(err)
+      })
+
+      enumerator |>> Cont {
+        case Input.El(data) => Error(data, Input.Empty)
+        case in => Error("didn't get data", in)
+      }
+
+      Await.result(error.future, Duration.Inf) must_== "foo"
+    }
   }
-}
 
 }
