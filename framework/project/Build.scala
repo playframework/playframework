@@ -129,6 +129,7 @@ object PlayBuild extends Build {
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
+            mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
             resolvers += typesafe,
             parallelExecution in Test := false,
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
@@ -829,6 +830,12 @@ object PlayBuild extends Build {
 
             (generatedDir ** "*.scala").get.map(_.getAbsoluteFile)
         }
+
+        def scalaTemplateSourceMappings = (excludeFilter in unmanagedSources, unmanagedSourceDirectories in Compile, baseDirectory) map { (excludes, sdirs, base) =>
+          val scalaTemplateSources = sdirs.descendantsExcept("*.scala.html", excludes)
+          ( (scalaTemplateSources --- sdirs --- base) pair (relativeTo(sdirs)|relativeTo(base)|flat)) toSeq
+        }
+
 
     }
 
