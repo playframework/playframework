@@ -24,6 +24,10 @@ trait PlayKeys {
 
   val requireJs = SettingKey[Seq[String]]("play-require-js")
 
+  val requireJsFolder = SettingKey[String]("play-require-js-folder")
+
+  val requireJsShim = SettingKey[String]("play-require-js-shim")
+
   val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
 
   val playOnStarted = SettingKey[Seq[(java.net.InetSocketAddress) => Unit]]("play-onStarted")
