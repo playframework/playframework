@@ -24,7 +24,7 @@ The Iteratee interface `Iteratee[E,A]` takes two type parameters, `E` representi
 An iteratee has one of three states, `Cont` meaning accepting more input, `Error` to indicate an error state and `Done` which carries the calculated result. These three states are defined by the `fold` method of an `Iteratee[E,A]` interface:
 
 ```scala
-def fold[B](folder: Step[E, A] => Promise[B]): Promise[B]
+def fold[B](folder: Step[E, A] => Future[B]): Future[B]
 ```
 where `Step`  object has 3 states :
 ```scala
@@ -63,44 +63,37 @@ By implementing the iteratee, and more specifically its fold method, we can now 
 
 ```scala
 val doneIteratee = new Iteratee[String,Int] {
-  def fold[B](
-    done: (Int, Input[String]) => Promise[B],
-    cont: (Input[String] => Iteratee[String, Int]) => Promise[B],
-    error: (String, Input[String]) => Promise[B]): Promise[B] = done(1,Input.Empty)
+  def fold[B](folder: Step[String,Int] => Future[B]): Future[B] = folder(Step.Done(1, Input.Empty))
 }
 ```
 
 As shown above, this is easily done by calling the appropriate callback function, in our case `done`, with the necessary information.
 
-To use this iteratee we will make use of the `Promise.pure` that is a promise already in the Redeemed state.
+To use this iteratee we will make use of the `Future` that holds a promised value.
 
 ```scala
-val eventuallyMaybeResult: Promise[Option[Int]] = {
-  doneIteratee.fold(
-  
-    // if done return the computed result
-    (a,in) => Promise.pure(Some(a)),
+def folder(step: Step[String,Int]):Future[Option[Int]] = step match {
+  case Step.Done(a, e) => future(Some(a))
+  case Step.Cont(k) => future(None)
+  case Step.Error(msg,e) => future(None)
+} 
 
-    //if continue return None
-    k => Promise.pure(None),
+val eventuallyMaybeResult: Future[Option[Int]] = doneIteratee.fold(folder)
 
-    //on error return None
-    (msg,in) => Promise.pure(None) 
-  ) 
-}
+eventuallyMaybeResult.onComplete(i => println(i))
 ```
 
-of course to see what is inside the `Promise` when it is redeemed we use `onRedeem`
+of course to see what is inside the `Future` when it is redeemed we use `onComplete`
 
 ```scala
 // will eventually print 1
-eventuallyMaybeResult.onRedeem(i => println(i)) 
+eventuallyMaybeResult.onComplete(i => println(i))
 ```
 
 There is already a built-in way allowing us to create an iteratee in the `Done` state by providing a result and input, generalizing what is implemented above:
 
 ```scala
-val doneIteratee = Done[Int,String](1, Input.Empty)
+val doneIteratee = Done[String,Int](1, Input.Empty)
 ```
 
 Creating a `Done` iteratee is simple, and sometimes useful, but it obviously does not consume any input. Let's create an iteratee that consumes one chunk and eventually returns it as the computed result:
@@ -108,24 +101,31 @@ Creating a `Done` iteratee is simple, and sometimes useful, but it obviously doe
 ```scala
 val consumeOneInputAndEventuallyReturnIt = new Iteratee[String,Int] {
     
-  def fold[B](
-    done: (Int, Input[String]) => Promise[B],
-    cont: (Input[String] => Iteratee[String, Int]) => Promise[B],
-    error: (String, Input[String]) => Promise[B]
-  ): Promise[B] = {
-        
-    cont(in => Done(in, Input.Empty))
-      
+def fold[B](folder: Step[String,Int] => Future[B]): Future[B] = {
+     folder(Step.Cont {
+       case Input.EOF => Done(0, Input.EOF) //Assuming 0 for default value
+       case Input.Empty => this
+       case Input.El(e) => Done(e.toInt,Input.EOF) 
+     })
   }
-  
 }
+
+def folder(step: Step[String,Int]):Future[Int] = step match {
+  case Step.Done(a, _) => future(a)
+  case Step.Cont(k) => k(Input.EOF).fold({
+    case Step.Done(a1, _) => Future.successful(a1)
+    case _ => throw new Exception("Erroneous or diverging iteratee")
+  })
+  case _ => throw new Exception("Erroneous iteratee")
+} 
+
 ```
 
 As for `Done` there is a built-in way to define an iteratee in the `Cont` state by providing a function that takes `Input[E]` and returns a state of `Iteratee[E,A]` :
 
 ```scala
 val consumeOneInputAndEventuallyReturnIt = {
-  Cont[String,Int](in => Done(in,Input.Empty))
+  Cont[String,Int](in => Done(100,Input.Empty))
 }
 ```
 
@@ -146,7 +146,7 @@ Reading the signature one can realize that this fold takes an initial state `A`,
 One example can be creating an iteratee that counts the number of bytes pushed in:
 
 ```scala
-val inputLength: Iteratee[Array[Byte],A] = {
+val inputLength: Iteratee[Array[Byte],Int] = {
   Iteratee.fold[Array[Byte],Int](0) { (length, bytes) => length + bytes.size }
 }
 ```
