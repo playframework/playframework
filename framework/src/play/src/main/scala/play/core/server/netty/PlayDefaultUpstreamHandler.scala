@@ -46,8 +46,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
   }
 
   override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val rh = ctx.getAttachment
-    if(rh!=null) play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(rh.asInstanceOf[RequestHeader]))
+    val cleanup = ctx.getAttachment
+    if(cleanup!=null) cleanup.asInstanceOf[() => Unit]()
     ctx.setAttachment(null)
   }
 
@@ -98,8 +98,17 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           lazy val remoteAddress = rRemoteAddress
           def username = None
         }
-        //attach the request to the channel context for after cleaning
-        ctx.setAttachment(requestHeader)
+        
+        // Call onRequestCompletion after all request processing is done. Protected with an AtomicBoolean to ensure can't be executed more than once.
+        val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
+        def cleanup() {
+          if (!alreadyClean.getAndSet(true)) {
+            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))            
+          }
+        }
+        
+        // attach the cleanup function to the channel context for after cleaning
+        ctx.setAttachment(cleanup)
 
         // converting netty response to play's
         val response = new Response {
@@ -158,7 +167,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                   (body |>>> bodyIteratee).extend1 {
                     case Redeemed(_) =>
-                      play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
+                      cleanup()
                       ctx.setAttachment(null)
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
@@ -184,7 +193,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   })
                   p.extend1 {
                     case Redeemed(_) =>
-                      play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
+                      cleanup()
                       ctx.setAttachment(null)
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
@@ -247,7 +256,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 }
 
                 chunks apply bodyIteratee.map { _ =>
-                  play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
+                  cleanup()
                   if (e.getChannel.isConnected()) {
                     val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
                     if (!keepAlive)  f.addListener(ChannelFutureListener.CLOSE)
