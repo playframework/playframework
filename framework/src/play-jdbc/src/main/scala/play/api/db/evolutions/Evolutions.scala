@@ -433,11 +433,21 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       case (ds, db) => {
         withLock(ds) {
           val script = evolutionScript(api, app.path, app.classloader, db)
+          val hasDown = script.find(_.isInstanceOf[DownScript]).isDefined
           if (!script.isEmpty) {
             app.mode match {
               case Mode.Test => Evolutions.applyScript(api, db, script)
               case Mode.Dev if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
-              case Mode.Prod if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
+              case Mode.Prod if !hasDown && app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
+              case Mode.Prod if hasDown &&
+                app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined &&
+                app.configuration.getBoolean("applyDownEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
+              case Mode.Prod if hasDown => {
+                Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
+                Logger("play").warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically (be careful)")
+
+                throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+              }
               case Mode.Prod => {
                 Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
                 Logger("play").warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
