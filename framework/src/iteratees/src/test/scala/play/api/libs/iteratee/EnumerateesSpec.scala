@@ -117,6 +117,22 @@ object EnumerateesSpec extends Specification {
     }
 
   }
+  
+  "Enumeratee.flatten" should {
+
+    "passAlong a future enumerator" in {
+
+      val passAlongFuture = Enumeratee.flatten {
+        concurrent.future { 
+          Enumeratee.passAlong[Int]
+        }
+      }
+      val sum = Iteratee.fold[Int, Int](0)(_+_)
+      val enumerator = Enumerator(1,2,3,4,5,6,7,8,9)
+      Await.result(enumerator |>>> passAlongFuture &>> sum, Duration.Inf) must equalTo(45)
+    }
+
+  }
 
   "Enumeratee.filter" should {
 

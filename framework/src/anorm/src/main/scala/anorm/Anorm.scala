@@ -388,6 +388,8 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])],
     val s = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
     else connection.prepareStatement(sql.query)
 
+    sql.queryTimeout.foreach(timeout => s.setQueryTimeout(timeout))
+
     val argsMap = Map(params: _*)
     sql.argsInitialOrder.map(argsMap)
       .zipWithIndex
@@ -397,6 +399,7 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])],
 
   def using[U](p: RowParser[U]): SimpleSql[U] = SimpleSql(sql, params, p)
 
+  def withQueryTimeout(seconds: Option[Int]): SimpleSql[T] = this.copy(sql = sql.withQueryTimeout(seconds))
 }
 
 case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]) {
@@ -410,6 +413,9 @@ case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]
   def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
     val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
     else connection.prepareStatement(sql.query)
+    
+    sql.queryTimeout.foreach(timeout => statement.setQueryTimeout(timeout))
+    
     params.foldLeft(statement)((s, ps) => {
       val argsMap = Map(ps: _*)
       val result = sql.argsInitialOrder
@@ -426,6 +432,7 @@ case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]
 
   def execute()(implicit connection: java.sql.Connection): Array[Int] = getFilledStatement(connection).executeBatch()
 
+  def withQueryTimeout(seconds: Option[Int]): BatchSql = this.copy(sql = sql.withQueryTimeout(seconds))
 }
 
 trait Sql {
@@ -469,10 +476,12 @@ trait Sql {
 
 }
 
-case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty) extends Sql {
+case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
 
   def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement =
     asSimple.getFilledStatement(connection, getGeneratedKeys)
+
+  def withQueryTimeout(seconds: Option[Int]): SqlQuery = this.copy(queryTimeout = seconds)
 
   private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
 

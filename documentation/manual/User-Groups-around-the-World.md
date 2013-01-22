@@ -27,3 +27,7 @@ http://www.meetup.com/Play-Montpellier/
 
 ## Belgium
 http://www.play-be.org
+
+## Japan
+http://www.playframework-ja.org/
+https://groups.google.com/forum/?fromgroups#!forum/play_ja
