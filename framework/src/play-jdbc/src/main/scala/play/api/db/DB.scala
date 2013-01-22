@@ -339,6 +339,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
     val MysqlFullUrl = "^mysql://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
     val MysqlCustomProperties = ".*\\?(.*)".r
+    val H2DefaultUrl = "^jdbc:h2:mem:.+".r
 
     conf.getString("url") match {
       case Some(PostgresFullUrl(username, password, host, dbname)) =>
@@ -351,6 +352,10 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         datasource.setJdbcUrl("jdbc:mysql://%s/%s".format(host, dbname + addDefaultPropertiesIfNeeded))
         datasource.setUsername(username)
         datasource.setPassword(password)
+      case Some(url @ H2DefaultUrl()) if !url.contains("DB_CLOSE_DELAY") =>
+        Logger("play").warn("datasource [" + url + "] is an in-memory H2 DB, but does not have DB_CLOSE_DELAY=-1 set. " +
+          "This means H2 will lose all DB content if all DB connections are closed, so evolutions and the h2-browser might not work correctly.")
+        datasource.setJdbcUrl(url)
       case Some(s: String) =>
         datasource.setJdbcUrl(s)
       case _ =>

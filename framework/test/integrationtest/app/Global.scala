@@ -18,7 +18,7 @@ object Global extends GlobalSettings {
       """
         |applyEvolutions.mock=false
         |db.mock.driver=org.h2.Driver
-        |db.mock.url="jdbc:h2:mem:mock"
+        |db.mock.url="jdbc:h2:mem:mock;DB_CLOSE_DELAY=-1"
       """.stripMargin
     
     Configuration(ConfigFactory.parseString(extraConfig))
