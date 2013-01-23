@@ -443,8 +443,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
                 app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined &&
                 app.configuration.getBoolean("applyDownEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(api, db, script)
               case Mode.Prod if hasDown => {
-                Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
-                Logger("play").warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically (be careful)")
+                Logger("play").warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
+                Logger("play").warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
 
                 throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
               }
