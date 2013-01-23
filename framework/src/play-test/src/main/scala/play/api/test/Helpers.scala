@@ -222,9 +222,14 @@ object Helpers extends Status with HeaderNames {
     val rhWithCt = w.contentType.map(ct => rh.copy(
       headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
     )).getOrElse(rh)
-    app.global.onRouteRequest(rhWithCt).flatMap {
+    val handler = app.global.onRouteRequest(rhWithCt)
+    val taggedRh = handler.map({
+      case h: RequestTaggingHandler => h.tagRequest(rhWithCt)
+      case _ => rh
+    }).getOrElse(rhWithCt)
+    handler.flatMap {
       case a: EssentialAction => {
-        Some(AsyncResult(app.global.doFilter(a)(rhWithCt).feed(Input.El(w.transform(body))).flatMap(_.run)))
+        Some(AsyncResult(app.global.doFilter(a)(taggedRh).feed(Input.El(w.transform(body))).flatMap(_.run)))
       }
       case _ => None
     }
