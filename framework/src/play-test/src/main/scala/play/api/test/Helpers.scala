@@ -10,7 +10,7 @@ import play.api.http._
 
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ Json, JsValue }
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
@@ -102,6 +102,11 @@ object Helpers extends Status with HeaderNames {
   def contentAsBytes(of: Content): Array[Byte] = of.body.getBytes
 
   /**
+   * Extracts the content as Json.
+   */
+  def contentAsJson(of: Content): JsValue = Json.parse(of.body)
+
+  /**
    * Extracts the Content-Type of this Result value.
    */
   def contentType(of: Result): Option[String] = header(CONTENT_TYPE, of).map(_.split(";").take(1).mkString.trim)
@@ -129,6 +134,11 @@ object Helpers extends Status with HeaderNames {
     }
     case AsyncResult(p) => contentAsBytes(p.await.get)
   }
+
+  /**
+   * Extracts the content as Json.
+   */
+  def contentAsJson(of: Result): JsValue = Json.parse(contentAsString(of))
 
   /**
    * Extracts the Status code of this Result value.
