@@ -308,7 +308,7 @@ object Router {
       routes.lift(request)
     }
 
-    private def tagRequest(rh: RequestHeader, handler: HandlerDef): RequestHeader = rh.copy(tags = rh.tags ++ Map(
+    private def doTagRequest(rh: RequestHeader, handler: HandlerDef): RequestHeader = rh.copy(tags = rh.tags ++ Map(
       play.api.Routes.ROUTE_PATTERN -> handler.path,
       play.api.Routes.ROUTE_VERB -> handler.verb,
       play.api.Routes.ROUTE_CONTROLLER -> handler.controller,
@@ -318,19 +318,18 @@ object Router {
 
     def invokeHandler[T](call: => T, handler: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {
       d.call(call, handler) match {
-        case javaAction: play.core.j.JavaAction => new play.core.j.JavaAction {
+        case javaAction: play.core.j.JavaAction => new play.core.j.JavaAction with RequestTaggingHandler {
           def invocation = javaAction.invocation
           def controller = javaAction.controller
           def method = javaAction.method
-          override def apply(req: Request[play.mvc.Http.RequestBody]): Result = {
-            javaAction(Request(tagRequest(req, handler), req.body))
-          }
+          def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
         }
-        case action: EssentialAction => new EssentialAction {
-          def apply(rh: RequestHeader) = action(tagRequest(rh, handler))
+        case action: EssentialAction => new EssentialAction with RequestTaggingHandler {
+          def apply(rh: RequestHeader) = action(rh)
+          def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
         }
         case ws @ WebSocket(f) => {
-          WebSocket[ws.FRAMES_TYPE](rh => f(tagRequest(rh, handler)))(ws.frameFormatter)
+          WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handler)))(ws.frameFormatter)
         }
         case handler => handler
       }

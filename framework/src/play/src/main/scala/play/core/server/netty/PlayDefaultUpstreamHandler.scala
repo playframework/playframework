@@ -86,7 +86,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
         //mapping netty request to Play's
 
-        val requestHeader = new RequestHeader {
+        val untaggedRequestHeader = new RequestHeader {
           val id = requestIDs.incrementAndGet
           val tags = Map.empty[String,String]
           def uri = nettyHttpRequest.getUri
@@ -98,7 +98,16 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           lazy val remoteAddress = rRemoteAddress
           def username = None
         }
-        
+
+        // get handler for request
+        val handler = server.getHandlerFor(untaggedRequestHeader)
+
+        // tag request if necessary
+        val requestHeader = handler.right.toOption.map({
+          case (h: RequestTaggingHandler, _) => h.tagRequest(untaggedRequestHeader)
+          case _ => untaggedRequestHeader
+        }).getOrElse(untaggedRequestHeader)
+
         // Call onRequestCompletion after all request processing is done. Protected with an AtomicBoolean to ensure can't be executed more than once.
         val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
         def cleanup() {
@@ -274,8 +283,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             }
           }
         }
-        // get handler for request
-        val handler = server.getHandlerFor(requestHeader)
 
         def cleanFlashCookie(r:PlainResult):Result = {
           val header = r.header
