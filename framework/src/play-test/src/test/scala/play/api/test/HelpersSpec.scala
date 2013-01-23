@@ -2,6 +2,11 @@ package play.api.test
 
 import play.api.test._
 import play.api.test.Helpers._
+import play.api.mvc._
+import play.api.mvc.Results._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 import org.specs2.mutable._
 
 class HelpersSpec extends Specification {
@@ -24,5 +29,26 @@ class HelpersSpec extends Specification {
       }
     }
   }
+
+  "contentAsString" should {
+
+    "extract the content from Result as String" in {
+      contentAsString(Ok("abc")) must_== "abc"
+    }
+
+  }
+
+  "contentAsBytes" should {
+
+    "extract the content from Result as Bytes" in {
+      contentAsBytes(Ok("abc")) must_== Array(97, 98, 99)
+    }
+
+    "extract the content from AsyncResult as Bytes" in {
+      contentAsBytes(AsyncResult { Future(Ok("abc")) }) must_== Array(97, 98, 99)
+    }
+
+  }
+
 
 }
