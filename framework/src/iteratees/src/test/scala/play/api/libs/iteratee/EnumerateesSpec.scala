@@ -50,6 +50,17 @@ object EnumerateesSpec extends Specification {
 
     }
 
+    "not trigger callback on take 0" in {
+      var triggered = false
+      val enumerator = Enumerator.fromCallback {
+        () =>
+          triggered = true
+          Future(Some(1))
+      }
+      Await.result(enumerator &> Enumeratee.take(0) |>>> Iteratee.fold(0)(_ + _), Duration.Inf) must equalTo(0)
+      triggered must beFalse
+    }
+
   }
 
   "Enumeratee.takeWhile" should {
