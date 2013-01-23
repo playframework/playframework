@@ -4,9 +4,12 @@ import scala.language.reflectiveCalls
 import scala.reflect.macros.Context
 import language.experimental.macros
 
+
 object JsMacroImpl {
   def readsImpl[A : c.WeakTypeTag](c: Context) : c.Expr[Reads[A]] = {
     import c.universe._
+    import c.universe.Flag._
+
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
@@ -29,19 +32,31 @@ object JsMacroImpl {
           case TypeRef(_, _, args) => 
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
-              case TypeRef(_, _, args) => Some(args)
+              case t @ TypeRef(_, _, args) => 
+                if(t <:< typeOf[Option[_]]) Some(List(t))
+                else if(t <:< typeOf[Seq[_]]) Some(List(t))
+                else if(t <:< typeOf[Set[_]]) Some(List(t))
+                else if(t <:< typeOf[Map[_,_]]) Some(List(t))
+                else if(t <:< typeOf[Product]) Some(args)
               case _ => None
             }
           case _ => None
         }
 
-        //println("Unapply return type:" + unapplyReturnTypes)
+        println("Unapply return type:" + unapply.returnType)
 
         companionType.declaration(stringToTermName("apply")) match {
           case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
           case s => 
             // searches apply method corresponding to unapply
             val applies = s.asMethod.alternatives
+            applies.foreach { case (apply: MethodSymbol) => 
+              println("%s %s %s ".format(
+                apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)), 
+                unapplyReturnTypes,
+                apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes)
+              ) 
+            }
             val apply = applies.collectFirst{ 
               case (apply: MethodSymbol) if(apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes) => apply 
             }
@@ -161,7 +176,18 @@ object JsMacroImpl {
                     }
 
                     // builds the final Reads using apply method
-                    val applyMethod = Ident( companionSymbol.name )
+                    val applyMethod = 
+                      Function(
+                        params.foldLeft(List[ValDef]())((l, e) => 
+                          l :+ ValDef(Modifiers(PARAM), newTermName(e.name.encoded), TypeTree(), EmptyTree)
+                        ), 
+                        Apply(
+                          Select(Ident(companionSymbol.name), newTermName("apply")), 
+                          params.foldLeft(List[Tree]())((l, e) => 
+                            l :+ Ident(newTermName(e.name.encoded))
+                          )
+                        )
+                      )
 
                     val unapplyMethod = Apply(
                       unliftIdent,
@@ -190,8 +216,15 @@ object JsMacroImpl {
                         finalTree
                       )
 
-                      //println("block:"+block)
-                      
+                      println("block:"+block)
+ 
+                      /*val reif = reify(
+                        /*new play.api.libs.json.util.LazyHelper[Format, A] {
+                          override lazy val lazyStuff: Format[A] = null
+                        }*/
+                      )
+                      println("RAW:"+showRaw(reif.tree, printKinds = true))*/
+
                       c.Expr[Reads[A]](block) 
                     } else {
                       val helper = newTermName("helper")
@@ -248,20 +281,14 @@ object JsMacroImpl {
                         newTermName("lazyStuff")
                       )
                           
-                      //println("block:"+block)
+                      println("block:"+block)
 
-                      /*val reif = reify(
-                        new play.api.libs.json.util.LazyHelper[Format, A] {
-                          override lazy val lazyStuff: Format[A] = null
-                        }
-                      )
-                      println("RAW:"+showRaw(reif.tree, printKinds = true))*/
                       c.Expr[Reads[A]](block)
                     } 
                   case l => c.abort(c.enclosingPosition, s"No implicit Reads for ${l.mkString(", ")} available.")
                 }
 
-              case None => c.abort(c.enclosingPosition, "No apply function found matching unapply parameters") 
+              case None => c.abort(c.enclosingPosition, "No apply function found matching unapply return types") 
             }
             
         }
@@ -271,6 +298,8 @@ object JsMacroImpl {
 
   def writesImpl[A : c.WeakTypeTag](c: Context) : c.Expr[Writes[A]] = {
     import c.universe._
+    import c.universe.Flag._
+
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
@@ -293,7 +322,12 @@ object JsMacroImpl {
           case TypeRef(_, _, args) => 
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
-              case TypeRef(_, _, args) => Some(args)
+              case t @ TypeRef(_, _, args) => 
+                if(t <:< typeOf[Option[_]]) Some(List(t))
+                else if(t <:< typeOf[Seq[_]]) Some(List(t))
+                else if(t <:< typeOf[Set[_]]) Some(List(t))
+                else if(t <:< typeOf[Map[_,_]]) Some(List(t))
+                else if(t <:< typeOf[Product]) Some(args)
               case _ => None
             }
           case _ => None
@@ -425,7 +459,19 @@ object JsMacroImpl {
                     }
 
                     // builds the final Reads using apply method
-                    val applyMethod = Ident( companionSymbol.name )
+                    //val applyMethod = Ident( companionSymbol.name )
+                    val applyMethod = 
+                      Function(
+                        params.foldLeft(List[ValDef]())((l, e) => 
+                          l :+ ValDef(Modifiers(PARAM), newTermName(e.name.encoded), TypeTree(), EmptyTree)
+                        ), 
+                        Apply(
+                          Select(Ident(companionSymbol.name), newTermName("apply")), 
+                          params.foldLeft(List[Tree]())((l, e) => 
+                            l :+ Ident(newTermName(e.name.encoded))
+                          )
+                        )
+                      )
 
                     val unapplyMethod = Apply(
                       unliftIdent,
@@ -453,6 +499,7 @@ object JsMacroImpl {
                         Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                         finalTree
                       )
+                      println("block:"+block)
                       c.Expr[Writes[A]](block)
                     } else {
                       val helper = newTermName("helper")
@@ -532,6 +579,8 @@ object JsMacroImpl {
 
   def formatImpl[A : c.WeakTypeTag](c: Context) : c.Expr[Format[A]] = {
     import c.universe._
+    import c.universe.Flag._
+
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
@@ -555,7 +604,12 @@ object JsMacroImpl {
           case TypeRef(_, _, args) => 
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
-              case TypeRef(_, _, args) => Some(args)
+              case t @ TypeRef(_, _, args) => 
+                if(t <:< typeOf[Option[_]]) Some(List(t))
+                else if(t <:< typeOf[Seq[_]]) Some(List(t))
+                else if(t <:< typeOf[Set[_]]) Some(List(t))
+                else if(t <:< typeOf[Map[_,_]]) Some(List(t))
+                else if(t <:< typeOf[Product]) Some(args)
               case _ => None
             }
           case _ => None
@@ -703,7 +757,19 @@ object JsMacroImpl {
                     }
 
                     // builds the final Reads using apply method
-                    val applyMethod = Ident( companionSymbol.name )
+                    //val applyMethod = Ident( companionSymbol.name )
+                    val applyMethod = 
+                      Function(
+                        params.foldLeft(List[ValDef]())((l, e) => 
+                          l :+ ValDef(Modifiers(PARAM), newTermName(e.name.encoded), TypeTree(), EmptyTree)
+                        ), 
+                        Apply(
+                          Select(Ident(companionSymbol.name), newTermName("apply")), 
+                          params.foldLeft(List[Tree]())((l, e) => 
+                            l :+ Ident(newTermName(e.name.encoded))
+                          )
+                        )
+                      )
 
                     val unapplyMethod = Apply(
                       unliftIdent,
@@ -731,6 +797,7 @@ object JsMacroImpl {
                         Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                         finalTree
                       )
+                      println("block:"+block)
                       c.Expr[Format[A]](block)
                     } else {
                       val helper = newTermName("helper")
