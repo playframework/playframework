@@ -11,6 +11,13 @@ import scala.concurrent.Future
 trait Handler
 
 /**
+ * A handler that is able to tag requests
+ */
+trait RequestTaggingHandler extends Handler {
+  def tagRequest(request: RequestHeader): RequestHeader
+}
+
+/**
  * Reference to an Handler.
  */
 class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(implicit handlerInvoker: play.core.Router.HandlerInvoker[T]) extends play.mvc.HandlerRef {
