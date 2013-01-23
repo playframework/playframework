@@ -3,7 +3,7 @@ package play.api.test
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
 import org.openqa.selenium.WebDriver
-import org.specs2.execute.Result
+import org.specs2.execute.{AsResult,Result}
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
@@ -16,8 +16,8 @@ import org.specs2.execute.Result
  */
 abstract class WithApplication(val app: FakeApplication = FakeApplication()) extends Around with Scope {
   implicit def implicitApp = app
-  def around[T](t: => T)(implicit evidence: (T) => Result) = {
-    Helpers.running(app)(t)
+  override def around[T: AsResult](t: => T): Result = {
+    Helpers.running(app)(AsResult(t))
   }
 }
 
@@ -32,7 +32,7 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
-  def around[T](t: => T)(implicit evidence: (T) => Result) = Helpers.running(TestServer(port, app))(t)
+  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult(t))
 }
 
 /**
@@ -52,9 +52,9 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
 
   lazy val browser: TestBrowser = TestBrowser.of(webDriver, Some("http://localhost:" + port))
 
-  def around[T](t: => T)(implicit evidence: (T) => Result) = {
+  override def around[T: AsResult](t: => T): Result = {
     try {
-      Helpers.running(TestServer(port, app))(t)
+      Helpers.running(TestServer(port, app))(AsResult(t))
     } finally {
       browser.quit()
     }
