@@ -153,7 +153,7 @@ object Json {
    * Creates a Format[T] by resolving case class fields & required implicits at COMPILE-time
    *
    * If any missing implicit is discovered, compiler will break with corresponding error.
-   * {{{git bran
+   * {{{
    *   import play.api.libs.json.Json
    *
    *   case class User(name: String, age: Int)
