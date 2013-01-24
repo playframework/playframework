@@ -104,6 +104,8 @@ This import give access to the most basic JSON features :
 You can easily parse any JSON string as a `JsValue`:
 
 ```
+import play.api.libs.json.Json
+
 val json: JsValue = Json.parse("""
 { 
   "user": {
@@ -133,6 +135,8 @@ The previous sample Json object can be created in other ways too.
 Here is the raw approach.
 
 ```
+import play.api.libs.json._
+
 JsObject(
   "users" -> JsArray(
     JsObject(
@@ -156,6 +160,8 @@ Play now provides a simplified syntax to build your JSON.
 The previous JsObject can be constructed as following:
 
 ```
+import play.api.libs.json.Json
+
 Json.obj(
   "users" -> Json.arr(
     Json.obj(
@@ -178,6 +184,8 @@ Json.obj(
 Serializing a `JsValue` to its JSON String representation is easy:
 
 ```
+import play.api.libs.json.Json
+
 val jsonString: String = Json.stringify(jsValue)
 ```
 
@@ -190,6 +198,9 @@ The API looks like the one provided to navigate into XML document by Scala using
 ### Simple path `\`
 
 ```scala
+// Here we import everything under json in case we need to manipulate different Json types
+scala> import play.api.libs.json._
+
 scala> val name: JsValue = json \ "user" \ "name"
 name: play.api.libs.json.JsValue = "toto"
 ```
@@ -310,6 +321,8 @@ maybeNameLong: Option[Long] = None
 A few samples of usage:
 
 ```scala
+scala> import play.api.libs.json._
+
 scala> val jsres: JsResult[String] = JsString("toto").validate[String]
 jsres: JsSuccess("toto")
 
@@ -381,6 +394,8 @@ jsonNumber: play.api.libs.json.JsValue = 4
 ### Create a JSON array from a Seq[T]
 
 ```
+import play.api.libs.json.Json
+
 val jsonArray = Json.toJson(Seq(1, 2, 3, 4))
 jsonArray: play.api.libs.json.JsValue = [1,2,3,4]
 ```
@@ -390,6 +405,8 @@ jsonArray: play.api.libs.json.JsValue = [1,2,3,4]
 Here we have no problem to convert a `Seq[Int]` into a Json array. However it is more complicated if the `Seq` contains heterogeneous values:
 
 ```
+import play.api.libs.json.Json
+
 val jsonArray = Json.toJson(Seq(1, "Bob", 3, 4))
 <console>:11: error: No Json deserializer found for type Seq[Any]. Try to implement an implicit Writes or Format for this type.
        val jsonArray = Json.toJson(Seq(1, "Bob", 3, 4))
@@ -400,6 +417,8 @@ You get an error because there is no way to convert a `Seq[Any]` to Json (`Any` 
 A simple solution is to handle it as a `Seq[JsValue]`:
 
 ```
+import play.api.libs.json.Json
+
 val jsonArray = Json.toJson(Seq(
   toJson(1), toJson("Bob"), toJson(3), toJson(4)
 ))
@@ -409,6 +428,8 @@ val jsonArray = Json.toJson(Seq(
 ### Create a JSON object from a Map[String, T]
 
 ```
+import play.api.libs.json.Json
+
 val jsonObject = Json.toJson(
   Map(
     "users" -> Seq(

@@ -193,6 +193,22 @@ object JsonSpec extends Specification {
       parsedJson must equalTo(expectedJson)
     }
 
+    "JSON pretty print" in {
+      val js = Json.obj(
+        "key1" -> "toto",
+        "key2" -> Json.obj("key21" -> "tata", "key22" -> 123),
+        "key3" -> Json.arr(1, "tutu")
+      )
+
+      Json.prettyPrint(js) must beEqualTo("""{
+  "key1" : "toto",
+  "key2" : {
+    "key21" : "tata",
+    "key22" : 123
+  },
+  "key3" : [ 1, "tutu" ]
+}""")
+    }
   }
 
   "JSON Writes" should {
@@ -226,6 +242,7 @@ object JsonSpec extends Specification {
       )
     }
   }
+
 
 }
 

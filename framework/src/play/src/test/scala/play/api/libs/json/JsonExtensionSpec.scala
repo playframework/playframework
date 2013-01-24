@@ -45,6 +45,15 @@ object Person {
   implicit val personWrites = Json.writes[Person]
 }
 
+import play.api.libs.json._
+
+case class Person2(names: List[String])
+
+object Person2{
+  implicit val person2Fmt = Json.format[Person2]
+}
+
+
 object JsonExtensionSpec extends Specification {
 
   "JsonExtension" should {
@@ -398,6 +407,10 @@ object JsonExtensionSpec extends Specification {
 
     "test case reads in companion object" in {
       Json.fromJson[Person](Json.toJson(Person("bob", 15))).get must beEqualTo(Person("bob", 15))
+    }
+
+    "test case single-field in companion object" in {
+      Json.fromJson[Person2](Json.toJson(Person2(List("bob", "bobby")))).get must beEqualTo(Person2(List("bob", "bobby")))
     }
 
   }    

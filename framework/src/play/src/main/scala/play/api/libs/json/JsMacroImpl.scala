@@ -43,20 +43,13 @@ object JsMacroImpl {
           case _ => None
         }
 
-        println("Unapply return type:" + unapply.returnType)
+        //println("Unapply return type:" + unapply.returnType)
 
         companionType.declaration(stringToTermName("apply")) match {
           case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
           case s => 
             // searches apply method corresponding to unapply
             val applies = s.asMethod.alternatives
-            applies.foreach { case (apply: MethodSymbol) => 
-              println("%s %s %s ".format(
-                apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)), 
-                unapplyReturnTypes,
-                apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes)
-              ) 
-            }
             val apply = applies.collectFirst{ 
               case (apply: MethodSymbol) if(apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes) => apply 
             }
@@ -216,7 +209,7 @@ object JsMacroImpl {
                         finalTree
                       )
 
-                      println("block:"+block)
+                      //println("block:"+block)
  
                       /*val reif = reify(
                         /*new play.api.libs.json.util.LazyHelper[Format, A] {
@@ -281,7 +274,7 @@ object JsMacroImpl {
                         newTermName("lazyStuff")
                       )
                           
-                      println("block:"+block)
+                      //println("block:"+block)
 
                       c.Expr[Reads[A]](block)
                     } 
@@ -499,7 +492,7 @@ object JsMacroImpl {
                         Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                         finalTree
                       )
-                      println("block:"+block)
+                      //println("block:"+block)
                       c.Expr[Writes[A]](block)
                     } else {
                       val helper = newTermName("helper")
@@ -797,7 +790,7 @@ object JsMacroImpl {
                         Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
                         finalTree
                       )
-                      println("block:"+block)
+                      //println("block:"+block)
                       c.Expr[Format[A]](block)
                     } else {
                       val helper = newTermName("helper")
