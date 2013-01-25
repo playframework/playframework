@@ -622,7 +622,7 @@ object PlayBuild extends Build {
         // ----- Generate API docs
 
         val generateAPIDocs = TaskKey[Unit]("api-docs")
-        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams, baseDirectory) map { (classpath, cs, s, base) =>
+        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams, baseDirectory, scalaBinaryVersion) map { (classpath, cs, s, base, sbv) =>
 
           val allJars = (file("src") ** "*.jar").get
 
@@ -637,7 +637,7 @@ object PlayBuild extends Build {
             (file("src/anorm/src/main/scala") ** "*.scala").get ++
             (file("src/play-filters-helpers/src/main/scala") ** "*.scala").get ++
             (file("src/play-jdbc/src/main/scala") ** "*.scala").get ++
-            (file("src/play/target/scala-" + buildScalaVersion + "/src_managed/main/views/html/helper") ** "*.scala").get
+            (file("src/play/target/scala-" + sbv + "/src_managed/main/views/html/helper") ** "*.scala").get
           val options = Seq("-sourcepath", base.getAbsolutePath, "-doc-source-url", "https://github.com/playframework/Play20/tree/" + BuildSettings.buildVersion + "/framework€{FILE_PATH}.scala")
           new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data) ++ allJars, file("../documentation/api/scala"), options , s.log)
 
