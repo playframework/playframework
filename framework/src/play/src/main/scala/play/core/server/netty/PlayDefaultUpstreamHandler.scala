@@ -40,13 +40,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
       case e: ClosedChannelException => {
         // One example of when this happens is when renegotiating SSL to use peer certificates in Chrome,
         // Chrome doesn't support renegotiation properly, so it just closes the channel and reconnects.
-        Logger.debug("Channel closed early", e)
+        Logger("play").debug("Channel closed early", e)
       }
       case e: SSLHandshakeException => {
         // This could be thrown when requesting a peer certificate, and none is provided
-        Logger.debug("SSL Handshake exception", e)
+        Logger("play").debug("SSL Handshake exception", e)
       }
-      case _ => Logger.warn("Exception caught in Netty", e.getCause)
+      case _ => Logger("play").warn("Exception caught in Netty", e.getCause)
     }
     e.getChannel.close()
   }
@@ -80,11 +80,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
         val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
           sslCatcher.opt {
-            logger.debug("checking for certs in ssl session")
+            Logger("play").debug("checking for certs in ssl session")
             val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq
             Promise.pure[IndexedSeq[Certificate]](res)
           } orElse {
-            logger.debug("attempting to request certs from client")
+            Logger("play").debug("attempting to request certs from client")
             //need to make use of the certificate sessions in the setup process
             //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
             sslh.setEnableRenegotiation(true)
@@ -98,7 +98,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             })
           }
          }
-        logger.debug("returning Promise")
+        Logger("play").debug("returning Promise")
         res.getOrElse(Promise.pure(throw new SSLException("No SSLHandler!")))
       }
     }

@@ -87,6 +87,19 @@ class SslSpec extends Specification {
     }
   }
 
+  def contentAsString(conn: HttpURLConnection) = {
+    resource.managed(new InputStreamReader(conn.getInputStream)).acquireAndGet { in =>
+      val buf = new Array[Char](1024)
+      var i = 0
+      val answer = new StringBuffer()
+      while( i!= -1) {
+        answer.append(buf,0,i)
+        i = in.read(buf)
+      }
+      answer.toString
+    }
+  }
+
   def createConn = {
     val conn = new URL("https://localhost:" + SslPort + "/json").openConnection().asInstanceOf[HttpsURLConnection]
     conn.setSSLSocketFactory(sslFactory())
