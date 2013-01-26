@@ -1,7 +1,10 @@
 #!/bin/bash
 #
 # Author: Jonathan Dray <jonathan.dray@gmail.com> aka Spiroid
-# Licence: GPLv3
+# License: Apache 2
+#          Licensed under the Apache License, Version 2.0 (the "License"); 
+#          you may not use this project except in compliance with the License.
+#          You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 #
 # This package script is a rewrite of the one shipped with play2
 # It launches the compilation process and generates a "production ready" archive
