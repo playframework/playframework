@@ -4,14 +4,12 @@ import java.security.cert.X509Certificate
 import java.security.KeyStore
 import javax.net.ssl._
 import javax.security.auth.x500.X500Principal
-import org.apache.commons.io.IOUtils
-import org.specs2.execute.Result
+import org.specs2.execute.{Result, AsResult}
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
-import scala.Some
 
 class SslSpec extends Specification {
 
@@ -21,13 +19,13 @@ class SslSpec extends Specification {
 
   "SSL support" should {
     "generate a self signed certificate when no keystore configuration is provided" in new Ssl {
-      val conn = jsonRequest
+      val conn = createConn
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal(FakeKeyStore.DnName)
     }
 
     "use a configured keystore" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password")) {
-      val conn = jsonRequest
+      val conn = createConn
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal("CN=localhost, OU=Unit Test, O=Unit Testers, L=Testland, ST=Test, C=TT")
     }
@@ -36,7 +34,7 @@ class SslSpec extends Specification {
       val conn = clientCertRequest()
       conn.getResponseCode must_== 200
       contentAsString(conn) must_== "Bob Client"
-    }
+  }
 
     "not trust untrusted client certificates" in new Ssl(None, None, trustStore=Some("default")) {
       val conn = clientCertRequest()
@@ -62,7 +60,7 @@ class SslSpec extends Specification {
 
     implicit lazy val app = FakeApplication()
 
-    def around[T](t: => T)(implicit evidence: (T) => Result) = {
+    override def around[T: AsResult](t: => T): Result = {
       val props = System.getProperties
 
       def setOrUnset(name: String, value: Option[String]) = value match {
@@ -80,7 +78,7 @@ class SslSpec extends Specification {
         setOrUnset("https.keyStore", keyStore)
         setOrUnset("https.keyStorePassword", password)
         setOrUnset("https.trustStore", trustStore)
-        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(t)
+        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult(t))
       } finally {
         props.remove("https.keyStore")
         props.remove("https.keyStorePassword")
@@ -89,20 +87,7 @@ class SslSpec extends Specification {
     }
   }
 
-  def contentAsString(conn: HttpURLConnection) = {
-    resource.managed(new InputStreamReader(conn.getInputStream)).acquireAndGet { in =>
-      val buf = new Array[Char](1024)
-      var i = 0
-      val answer = new StringBuffer()
-      while( i!= -1) {
-         answer.append(buf,0,i)
-         i = in.read(buf)
-      }
-      answer.toString
-    }
-  }
-
-  def jsonRequest = {
+  def createConn = {
     val conn = new URL("https://localhost:" + SslPort + "/json").openConnection().asInstanceOf[HttpsURLConnection]
     conn.setSSLSocketFactory(sslFactory())
     conn

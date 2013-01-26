@@ -2,7 +2,7 @@ package play.api.mvc
 
 import org.specs2.mutable._
 import org.specs2.specification.{AroundOutside, Scope}
-import org.specs2.execute.{Result => SpecsResult}
+import org.specs2.execute.{Result => SpecsResult,AsResult}
 import play.api.Application
 
 object ResultsSpec extends Specification {
@@ -170,10 +170,10 @@ object ResultsSpec extends Specification {
           "ehcacheplugin" -> "disabled") ++ config.toMap)
       }
 
-    def around[T <% SpecsResult](t: => T) = {
+    override def around[T: AsResult](t: => T): SpecsResult = {
       Play.start(app)
       try {
-        t
+        AsResult(t)
       } finally {
         Play.stop()
       }

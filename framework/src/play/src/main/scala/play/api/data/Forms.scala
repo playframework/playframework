@@ -308,6 +308,28 @@ object Forms {
   }
 
   /**
+   * Constructs a simple mapping for a BigDecimal field.
+   *
+   * For example:
+   * {{{
+   * Form("montant" -> bigDecimal)
+   * }}}
+   */
+  val bigDecimal: Mapping[BigDecimal] = of[BigDecimal]
+
+  /**
+   * Constructs a mapping for a BigDecimal field.
+   *
+   * For example:
+   * {{{
+   * Form("montant" -> bigDecimal(10, 2))
+   * }}}
+   * @param precision The maximun total number of digits (including decimals)
+   * @param scale The maximun number of decimals
+   */
+  def bigDecimal( precision : Int, scale: Int ): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some(precision,scale))
+
+  /**
    * Constructs a simple mapping for a date field.
    *
    * For example:
@@ -486,7 +508,7 @@ object Forms {
   //
   // --- Deprecated members, to remove in  Play 2.1
   //
-  // ----------------------------------------------  
+  // ----------------------------------------------
 
   @deprecated("Use mapping(...) instead", "2.0")
   def of[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]])(a1: (String, Mapping[A1])): Mapping[R] = {
