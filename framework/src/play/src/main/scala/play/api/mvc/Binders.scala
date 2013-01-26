@@ -490,7 +490,12 @@ object PathBindable {
       uri.getRawPath
     },
     (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
-  )
+  ) {
+    /**
+     * Javascript function to unbind in the Javascript router.
+     */
+    override def javascriptUnbind: String = """function(k,v) {return encodeURI(v)}"""
+  }
 
   /**
    * Path binder for Int.

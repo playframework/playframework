@@ -106,7 +106,10 @@ object Application extends Controller {
   
   def javascriptRoutes = Action { implicit request =>
     import play.api.Routes
-    Ok(Routes.javascriptRouter("routes")(routes.javascript.Application.javascriptTest)).as("text/javascript")
+    Ok(Routes.javascriptRouter("routes")(
+      routes.javascript.Application.javascriptTest,
+      routes.javascript.Application.stringPathTest
+    )).as("text/javascript")
   }
 
   def javascriptTest(name: String) = Action {
