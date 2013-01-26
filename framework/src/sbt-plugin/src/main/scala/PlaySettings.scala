@@ -111,7 +111,7 @@ trait PlaySettings {
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
 
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "junitxml", "console", "--ignore-runners=org.specs2.runner.JUnitRunner"),
 
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
@@ -182,6 +182,10 @@ trait PlaySettings {
     playAssetsDirectories <+= baseDirectory / "public",
 
     requireJs := Nil,
+
+    requireJsFolder := "",
+
+    requireJsShim := "",
 
     requireNativePath := None,
 

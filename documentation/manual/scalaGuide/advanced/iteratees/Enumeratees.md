@@ -84,15 +84,21 @@ val toInt: Enumeratee[String,Int] = Enumeratee.map[String]{ s => s.toInt }
 val adaptedIteratee: Iteratee[String,Iteratee[Int,Int]] = toInt(sum)
 
 // pushing some strings
-val afterPushingStrings: Iteratee[String,Iteratee[Int,Int]] = {
-  Enumerator("1","2","3","4") >>> adaptedIteratee
+val afterPushingStrings: Future[Iteratee[String,Iteratee[Int,Int]]] = {
+   Enumerator("1","2","3","4") |>> adaptedIteratee
 }
 
-val originalIteratee: Iteratee[Int,Int] = flatten(afterPushingString.run)
+val flattenAndRun:Future[Iteratee[Int,Int]] = Iteratee.flatten(afterPushingStrings).run
 
-val moreInts: Iteratee[Int,Int] = Enumerator(5,6,7) >>> originalIteratee
+val originalIteratee = Iteratee.flatten(flattenAndRun)
 
-moreInts.run.onRedeem(sum => println(sum) ) // eventually prints 28
+val moreInts: Future[Iteratee[Int,Int]] = Enumerator(5,6,7) |>> originalIteratee
+
+val sumFuture:Future[Int] = Iteratee.flatten(moreInts).run
+
+sumFuture onSuccess {
+  case s => println(s)// eventually prints 28 
+} 
 ```
 
 That’s why we call the adapted (original) `Iteratee` ‘inner’ and the resulting `Iteratee` ‘outer’.
@@ -123,7 +129,7 @@ val numbers = Enumerator(1,2,3,4,5,6,7,8,9,10)
 
 val onlyOdds = Enumeratee.filter[Int](i => i % 2 != 0)
 
-numbers.through(onlyOdds) >>> sum
+numbers.through(onlyOdds) |>> sum
 ```
 
 There are methods, such as `Enumeratee.collect`, `Enumeratee.drop`, `Enumeratee.dropWhile`, `Enumeratee.take`, `Enumeratee.takeWhile`, which work on the same principle.
@@ -131,15 +137,15 @@ Let try to use the `Enumeratee.take` on an Input of chunks of bytes:
 
 ```scala
 // computes the size in bytes
-val fillInMemory: Iteratee[Array[Byte],Int] = {
+val fillInMemory: Iteratee[Array[Byte],Array[Byte]] = {
   Iteratee.consume[Array[Byte]]()
 }
 
-val limitTo100: Enumeratee[Array[Byte],[Array[Byte]]] = {
+val limitTo100: Enumeratee[Array[Byte],Array[Byte]] = {
   Enumeratee.take[Array[Byte]](100)
 }
 
-val limitedFillInMemory: Iteratee[Array[Byte,Int]] = {
+val limitedFillInMemory: Iteratee[Array[Byte],Array[Byte]] = {
   limitTo100 &>> fillInMemory
 }
 ```
@@ -149,17 +155,16 @@ It looks good, but how many bytes are we taking? What would ideally limit the si
 Luckily there is a `Traversable` object that offers a set of methods for creating `Enumeratee` instances for Input types that are `TraversableLike`. An `Array[Byte]` is `TraversableLike` and so we can use`Traversable.take`:
 
 ```scala
-// computes the size in bytes
-val fillInMemory: Iteratee[Array[Byte],Int] = {
+val fillInMemory: Iteratee[Array[Byte],Array[Byte]] = {
   Iteratee.consume[Array[Byte]]()
 }
 
-val limitTo100: Enumeratee[Array[Byte],[Array[Byte]]] = {
+val limitTo100: Enumeratee[Array[Byte],Array[Byte]] = {
   Traversable.take[Array[Byte]](100)
 }
 
 // We are sure not to get more than 100 bytes loaded into memory
-val limitedFillInMemory: Iteratee[Array[Byte,Int]] = {
+val limitedFillInMemory: Iteratee[Array[Byte],Array[Byte]] = {
   limitTo100 &>> fillInMemory
 }
 ```

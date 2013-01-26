@@ -223,9 +223,14 @@ object Helpers extends Status with HeaderNames {
     val rhWithCt = w.contentType.map(ct => rh.copy(
       headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
     )).getOrElse(rh)
-    app.global.onRouteRequest(rhWithCt).flatMap {
+    val handler = app.global.onRouteRequest(rhWithCt)
+    val taggedRh = handler.map({
+      case h: RequestTaggingHandler => h.tagRequest(rhWithCt)
+      case _ => rh
+    }).getOrElse(rhWithCt)
+    handler.flatMap {
       case a: EssentialAction => {
-        Some(AsyncResult(app.global.doFilter(a)(rhWithCt).feed(Input.El(w.transform(body))).flatMap(_.run)))
+        Some(AsyncResult(app.global.doFilter(a)(taggedRh).feed(Input.El(w.transform(body))).flatMap(_.run)))
       }
       case _ => None
     }
@@ -265,10 +270,12 @@ object Helpers extends Status with HeaderNames {
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
    */
-  def inMemoryDatabase(name: String = "default"): Map[String, String] = {
+  def inMemoryDatabase(name: String = "default", options: Map[String, String] = Map.empty[String, String]): Map[String, String] = {
+    val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+
     Map(
       ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt)
+      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
     )
   }
 

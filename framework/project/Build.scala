@@ -129,6 +129,7 @@ object PlayBuild extends Build {
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
+            mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
             resolvers += typesafe,
             parallelExecution in Test := false,
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
@@ -354,7 +355,7 @@ object PlayBuild extends Build {
         val previousScalaVersion = "2.9.1"
         val buildScalaVersion = "2.10.0"
         val buildScalaVersionForSbt = "2.9.2"
-        val buildSbtVersion   = "0.12.2-RC2"
+        val buildSbtVersion   = "0.12.2"
         val buildSbtMajorVersion = "0.12"
         val buildSbtVersionBinaryCompatible = "0.12"
 
@@ -405,9 +406,8 @@ object PlayBuild extends Build {
     object Dependencies {
 
       // Some common dependencies here so they don't need to be declared over and over
-      val specsBuild = "org.specs2" %% "specs2" % "1.12.3"
-      // The 2.10 version of scala-io-file 0.4.1 doesn't work with 2.10.0.
-      val scalaIoFileBuild = "com.github.scala-incubator.io" % "scala-io-file_2.10.0-RC1" % "0.4.1" exclude("javax.transaction", "jta")
+      val specsBuild = "org.specs2" %% "specs2" % "1.13"
+      val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
 
       val jdbcDeps = Seq(
@@ -508,7 +508,7 @@ object PlayBuild extends Build {
             specsBuild % "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.9"      %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.10-M2"  %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test" exclude("org.jboss.netty", "netty"),
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"
@@ -581,7 +581,7 @@ object PlayBuild extends Build {
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
             specsBuild,
-            "com.novocode"                      %    "junit-interface"          %   "0.9",
+            "com.novocode"                      %    "junit-interface"          %   "0.10-M2",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3" exclude("org.jboss.netty", "netty")
         )
@@ -622,7 +622,7 @@ object PlayBuild extends Build {
         // ----- Generate API docs
 
         val generateAPIDocs = TaskKey[Unit]("api-docs")
-        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams) map { (classpath, cs, s) =>
+        val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams, baseDirectory) map { (classpath, cs, s, base) =>
 
           val allJars = (file("src") ** "*.jar").get
 
@@ -638,7 +638,8 @@ object PlayBuild extends Build {
             (file("src/play-filters-helpers/src/main/scala") ** "*.scala").get ++
             (file("src/play-jdbc/src/main/scala") ** "*.scala").get ++
             (file("src/play/target/scala-" + buildScalaVersion + "/src_managed/main/views/html/helper") ** "*.scala").get
-          new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data) ++ allJars, file("../documentation/api/scala"), Nil, s.log)
+          val options = Seq("-sourcepath", base.getAbsolutePath, "-doc-source-url", "https://github.com/playframework/Play20/tree/" + BuildSettings.buildVersion + "/framework€{FILE_PATH}.scala")
+          new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data) ++ allJars, file("../documentation/api/scala"), options , s.log)
 
           // Javadoc
           val javaSources = Seq(
@@ -829,6 +830,12 @@ object PlayBuild extends Build {
 
             (generatedDir ** "*.scala").get.map(_.getAbsoluteFile)
         }
+
+        def scalaTemplateSourceMappings = (excludeFilter in unmanagedSources, unmanagedSourceDirectories in Compile, baseDirectory) map { (excludes, sdirs, base) =>
+          val scalaTemplateSources = sdirs.descendantsExcept("*.scala.html", excludes)
+          ( (scalaTemplateSources --- sdirs --- base) pair (relativeTo(sdirs)|relativeTo(base)|flat)) toSeq
+        }
+
 
     }
 

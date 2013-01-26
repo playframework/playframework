@@ -23,7 +23,7 @@ val main = play.Project(appName, appVersion, appDependencies).settings(
 Lastly, update your `project/build.properties` file:
 
 ```
-sbt.version=0.12.1
+sbt.version=0.12.2
 ```
 
 Then clean and re-compile your project using the `play` command in the **Play 2.1.0** distribution:
@@ -37,7 +37,7 @@ If any compilation errors cropped up, this document will help you figure out wha
 
 ## Changes to the build file
 
-Because Play 2.1 introduces further modularization, you now have to explicitely specify the dependencies your application needs. By default any `play.Project` will only contain a dependency to the core Play library.  You have to select the exact set of optional dependencies your application need.  Here are the new modularized dependencies in **Play 2.1**:
+Because Play 2.1 introduces further modularization, you now have to explicitly specify the dependencies your application needs. By default any `play.Project` will only contain a dependency to the core Play library.  You have to select the exact set of optional dependencies your application need.  Here are the new modularized dependencies in **Play 2.1**:
 
 - `jdbc` : The **JDBC** connection pool and the the `play.api.db` API.
 - `anorm` : The **Anorm** component.
@@ -70,7 +70,7 @@ object ApplicationBuild extends Build {
 }
 ```
 
-Notice the modularized dependencies in the `appDependencies` section.
+The `mainLang` parameter for the project is not required anymore. The main language is determined based on the dependencies added to the project. If dependencies contains `javaCore` then the language is set to `JAVA` otherwise `SCALA`.Notice the modularized dependencies in the `appDependencies` section. 
 
 ## play.mvc.Controller.form() renamed to play.data.Form.form()
 
@@ -134,7 +134,7 @@ Generally speaking, if you see error message "error: could not find implicit val
 import play.api.libs.concurrent.Execution.Implicits._
 ```
 
-_(Please see the Scala documentation about Execution context for mor informations)_
+_(Please see the Scala documentation about Execution context for more informations)_
 
 And remember that:
 
@@ -257,7 +257,7 @@ More information about these features can be found here:
 
 http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/
 
-_(TODO: Itegrate this to the documentation)_
+_(TODO: Integrate this to the documentation)_
 
 
 ## Changes to Cookie handling
