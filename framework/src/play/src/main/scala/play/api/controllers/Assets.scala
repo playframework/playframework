@@ -9,11 +9,12 @@ import Play.current
 
 import java.io._
 import java.net.JarURLConnection
-import scalax.io.{ Resource }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 import scala.util.control.NonFatal
+import collection.concurrent.TrieMap
+import org.apache.commons.codec.digest.DigestUtils
 
 /**
  * Controller that serves static resources.
@@ -35,6 +36,64 @@ import scala.util.control.NonFatal
  * }}}
  */
 object Assets extends AssetsBuilder
+
+object Asset {
+  /**
+   * /path/filename-fingerprint.ext
+   * /path/filename-.ext
+   */
+  implicit def pathBinder = new PathBindable[Asset] {
+    def bind(key: String, value: String) = {
+      val lastDot = value.lastIndexOf('.')
+      val file = value.slice(0, value.lastIndexOf('-', lastDot)) + value.slice(lastDot, value.length)
+      Right(Asset(file))
+    }
+
+    def unbind(key: String, value: Asset) = {
+      val resourceName = Option(value.path + "/" + value.file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+      val fingerprint = Play.resource(resourceName).flatMap {
+        fingerprintFor(_)
+      }.getOrElse("fingerprint-error-file-not-found")
+      val lastDot = value.file.lastIndexOf('.')
+      value.file.slice(0, lastDot) + '-' + fingerprint + value.file.slice(lastDot, value.file.length)
+    }
+  }
+
+  import scala.language.implicitConversions
+
+  implicit def stringToAsset(asset: String) = {
+    Asset(asset)
+  }
+
+  private val fingerprints = new TrieMap[String, Option[String]]
+
+  def fingerprintFor(resource: java.net.URL): Option[String] = {
+    def fingerprintSha1Hex: Option[String] = {
+      try {
+        val stream = resource.openStream()
+        try {
+          if (stream.available < 0) {
+            None
+          } else {
+            Some(DigestUtils.sha1Hex(stream))
+          }
+        } finally {
+          stream.close()
+        }
+      } catch {
+        case e: IOException => None
+      }
+    }
+    if (Play.isDev) {
+      fingerprintSha1Hex
+    } else {
+      fingerprints.getOrElseUpdate(resource.toExternalForm, fingerprintSha1Hex)
+    }
+  }
+
+}
+
+case class Asset(file: String, path: String = "/public")
 
 class AssetsBuilder extends Controller {
 
@@ -158,6 +217,16 @@ class AssetsBuilder extends Controller {
 
   }
 
+  /**
+   * Generates an `Action` that serves a static resource.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`
+   * @param file the file part extracted from the URL
+   */
+  def versionedAt(path: String, file: Asset): Action[AnyContent] = {
+    Assets.at(file.path, file.file)
+  }
+
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {
@@ -185,7 +254,7 @@ class AssetsBuilder extends Controller {
 
   private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
-  private def etagFor(resource: java.net.URL): Option[String] = {
+  protected def etagFor(resource: java.net.URL): Option[String] = {
     etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
       val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\"" + Codecs.sha1(_) + "\"")
       maybeEtag.foreach(etags.put(resource.toExternalForm, _))

@@ -490,12 +490,15 @@ object PlayBuild extends Build {
             "org.joda"                          %    "joda-convert"             %   "1.2",
 
             "org.apache.commons"                %    "commons-lang3"            %   "3.1",
+            "commons-codec"                     %    "commons-codec"            %   "1.7",
 
             ("com.ning"                         %    "async-http-client"        %   "1.7.6" notTransitive())
               .exclude("org.jboss.netty", "netty")
             ,
 
-            "oauth.signpost"                    %    "signpost-core"            %   "1.2.1.2",
+            ("oauth.signpost"                    %    "signpost-core"            %   "1.2.1.2" notTransitive())
+              .exclude("commons-codec", "commons-codec")
+            ,
             "oauth.signpost"                    %    "signpost-commonshttp4"    %   "1.2.1.2",
 
             "org.codehaus.jackson"              %    "jackson-core-asl"         %   "1.9.10",
