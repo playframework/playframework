@@ -573,7 +573,6 @@ object PlayBuild extends Build {
         val iterateesDependencies = Seq(
             "org.scala-stm"                     %    "scala-stm_2.10.0"         %   "0.6",
             "com.typesafe"                      %    "config"                   %   "1.0.0",
-            scalaIoFileBuild,
             specsBuild % "test"
       )
 

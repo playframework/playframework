@@ -364,7 +364,6 @@ object Enumerator {
 
   }
 
-  import scalax.io.JavaConverters._
 
   def unfoldM[S,E](s:S)(f: S => Future[Option[(S,E)]] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
 
