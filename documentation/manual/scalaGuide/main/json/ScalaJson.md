@@ -92,7 +92,8 @@ import play.api.libs.json.Json
 This import give access to the most basic JSON features :
 
 - `Json.parse` : parses a string to JsValue
-- `Json.stringify` : stringifies a JsValue
+- `Json.stringify` : stringifies a JsValue using compact printer (NO line feed/indentation)
+- `Json.prettyPrint` : stringifies a JsValue using pretty printer (line feed + indentation)
 - `Json.toJson[T](t: T)(implicit writes: Writes[T])` : tries to convert a Scala structure to a `JsValue` using the resolved implicit `Writes[T]`
 - `Json.fromJson[T](json: JsValue)(implicit reads: Reads[T])` : tries to convert a `JsValue` to a Scala structure using the resolved implicit `Reads[T]`
 - `Json.obj()` : simplified syntax to create a `JsObject`
