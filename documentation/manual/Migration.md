@@ -76,6 +76,10 @@ The `mainLang` parameter for the project is not required anymore. The main langu
 
 Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`
 
+## play.db.ebean.Model.Finder.join() renamed to fetch()
+
+As part of the cleanup the Finder API join methods are replaced with fetch methods. They behave exactly same.
+
 ## Play's Promise to become Scala's Future
 
 With the introduction of `scala.concurrent.Future` in Scala 2.10 the scala ecosystem made a huge jump to unify the various Future and Promise libraries out there.
