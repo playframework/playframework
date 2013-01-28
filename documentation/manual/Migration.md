@@ -95,7 +95,9 @@ import akka.util.duration._
 def stream = Action {
     AsyncResult {
       implicit val timeout = Timeout(5.seconds)
-      (ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]].asPromise.map { chunks =>
+      val akkaFuture =  (ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]]
+      //convert to play promise before sending the response
+      akkaFuture.asPromise.map { chunks =>
         Ok.stream(chunks &> Comet( callback = "parent.message"))
       }
     }
@@ -115,7 +117,8 @@ import scala.concurrent.duration._
   def stream = Action {
     AsyncResult {
       implicit val timeout = Timeout(5.seconds)
-      (ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]].map { chunks =>
+      val scalaFuture = (ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]]
+      scalaFuture.map { chunks =>
         Ok.stream(chunks &> Comet( callback = "parent.message"))
       }
     }
