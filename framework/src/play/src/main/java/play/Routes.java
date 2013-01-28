@@ -16,7 +16,7 @@ public class Routes {
      * Generates a JavaScript router.
      */
     public static String javascriptRouter(String name, play.core.Router.JavascriptReverseRoute... routes) {
-        return javascriptRouter(name, "jQuery.ajax", routes);
+        return javascriptRouter(name, "$.ajax", routes);
     }
 
     /**
@@ -24,7 +24,7 @@ public class Routes {
      */
     public static String javascriptRouter(String name, String ajaxMethod, play.core.Router.JavascriptReverseRoute... routes) {
         return play.api.Routes.javascriptRouter(
-            name, Scala.Option(ajaxMethod), play.mvc.Http.Context.current().request().host(), Scala.toSeq(routes)
+            name, ajaxMethod, play.mvc.Http.Context.current().request().host(), Scala.toSeq(routes)
         );
     }
 
