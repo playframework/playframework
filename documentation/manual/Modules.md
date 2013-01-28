@@ -306,3 +306,9 @@ your Play 2 application.
 * **Website:** http://literalice.github.com/play-xwiki-rendering/
 * **Documentation:** https://github.com/literalice/play-xwiki-rendering/
 * **Short description:** XWiki Rendering Framework integration for Play 2.0
+
+## Origami: OrientDB O/G Mapper (Java)
+
+* **Website:** [For Play2.1.X](https://github.com/sgougi/play21-origami-plugin) / [For Play2.0.X](https://github.com/sgougi/play20-origami-plugin) 
+* **Documentation:** [For Play2.1.X](https://github.com/sgougi/play21-origami-plugin#what-is-origami) / [For Play2.0.4.X](https://github.com/sgougi/play20-origami-plugin#what-is-origami)
+* **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.
