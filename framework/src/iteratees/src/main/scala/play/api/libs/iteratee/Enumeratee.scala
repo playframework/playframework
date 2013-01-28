@@ -542,15 +542,15 @@ object Enumeratee {
    * and use the previous state of the iteratee to handle the next input.
    *
    * {{{
-   *  Enumerator(0, 2, 4) &> Enumeratee.recover { error =>
-   *    Logger.error("oops failure occured", error)
+   *  Enumerator(0, 2, 4) &> Enumeratee.recover { (error, input) =>
+   *    Logger.error(f"oops failure occured with input: $input", error)
    *  } &> Enumeratee.map { i =>
    *    8 / i
    *  } |>>> Iteratee.getChunks // => List(4, 2)
    * }}}
    *
    */
-  def recover[E](f: Throwable => Unit = _ =>())(implicit executionContext: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
+  def recover[E](f: (Throwable, Input[E]) => Unit = (_:Throwable, _:Input[E]) => ())(implicit executionContext: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
     def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
       def step(it: Iteratee[E, A])(input: Input[E]): Iteratee[E, Iteratee[E, A]] = input match {
@@ -566,7 +566,7 @@ object Enumeratee {
           }.unflatten.map({ s =>
             s.it
           })(play.api.libs.iteratee.internal.defaultExecutionContext).recover({ case e: Throwable =>
-            f(e)
+            f(e, in)
             Cont(step(it))
           })(executionContext)
             Iteratee.flatten(next)
