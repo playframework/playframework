@@ -134,6 +134,9 @@ class FunctionalSpec extends Specification {
 
       browser.$("#route-ws-secure-url2").click()
       browser.$("#result").getTexts().get(0) must equalTo ("wss://localhost:" + port + "/javascript-test?name=world")
+
+      browser.$("#route-stringpath").click()
+      browser.$("#result").getTexts().get(0) must equalTo ("/stringPath/path%20to/awesome%20file%20=%5E..%5E=")
     }
 
     "Provide a hook to handle errors" in {

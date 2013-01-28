@@ -31,13 +31,24 @@ object RoutesCompiler {
       "(" + params.mkString(", ") + ")"
     }.getOrElse("")
   }
-  case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
+  case class Parameter(name: String, typeName: Option[String], fixed: Option[String], default: Option[String]) extends Positional {
     override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
   }
 
   sealed trait Rule extends Positional
 
-  case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall, comments: List[Comment] = List()) extends Rule
+  case class Route(verb: HttpVerb, path: PathPattern, call: HandlerCall, comments: List[Comment] = List()) extends Rule {
+    def parameterTypeName(parameter: String): String = {
+      call.parameters.getOrElse(Nil).find(_.name == parameter).flatMap(_.typeName).getOrElse(
+        path.parts.find({
+          case DynamicPart(name, _) if name == parameter => true
+          case _ => false
+        }).map({
+          case part: DynamicPart => part.defaultParamType
+        }).getOrElse("String")
+      )
+    }
+  }
   case class Include(prefix: String, router: String) extends Rule
 
   case class Comment(comment: String)
@@ -149,16 +160,16 @@ object RoutesCompiler {
       case v => HttpVerb(v)
     }
 
-    def singleComponentPathPart: Parser[DynamicPart] = (":" ~> identifier) ^^ {
-      case name => DynamicPart(name, """[^/]+""")
+    def singleComponentPathPart: Parser[StringDynamicPart] = (":" ~> identifier) ^^ {
+      case name => StringDynamicPart(name)
     }
 
-    def multipleComponentsPathPart: Parser[DynamicPart] = ("*" ~> identifier) ^^ {
-      case name => DynamicPart(name, """.+""")
+    def multipleComponentsPathPart: Parser[StringPathDynamicPart] = ("*" ~> identifier) ^^ {
+      case name => StringPathDynamicPart(name)
     }
 
-    def regexComponentPathPart: Parser[DynamicPart] = "$" ~> identifier ~ ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
-      case name ~ regex => DynamicPart(name, regex)
+    def regexComponentPathPart: Parser[RegexDynamicPart] = "$" ~> identifier ~ ("<" ~> (not(">") ~> """[^\s]""".r +) <~ ">" ^^ { case c => c.mkString }) ^^ {
+      case name ~ regex => RegexDynamicPart(name, regex)
     }
 
     def staticPathPart: Parser[StaticPart] = (not(":") ~> not("*") ~> not("$") ~> """[^\s]""".r +) ^^ {
@@ -186,7 +197,7 @@ object RoutesCompiler {
     }
 
     def parameter: Parser[Parameter] = (identifier <~ ignoreWhiteSpace) ~ opt(parameterType) ~ (ignoreWhiteSpace ~> opt(parameterDefaultValue | parameterFixedValue)) ^^ {
-      case name ~ t ~ d => Parameter(name, t.getOrElse("String"), d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
+      case name ~ t ~ d => Parameter(name, t, d.filter(_.startsWith("=")).map(_.drop(1)), d.filter(_.startsWith("?")).map(_.drop(2)))
     }
 
     def parameters: Parser[List[Parameter]] = "(" ~> repsep(ignoreWhiteSpace ~> positioned(parameter) <~ ignoreWhiteSpace, ",") <~ ")"
@@ -582,7 +593,7 @@ object RoutesCompiler {
                         case StaticPart(part) => " + \"" + part + "\""
                         case DynamicPart(name, _) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                            " + (\"\"\" + implicitly[PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
+                            " + (\"\"\" + implicitly[PathBindable[" + route.parameterTypeName(param.name) + "]].javascriptUnbind + \"\"\")" + """("""" + param.name + """", """ + localNames.get(param.name).getOrElse(param.name) + """)"""
                           }.getOrElse {
                             throw new Error("missing key " + name)
                           }
@@ -602,9 +613,9 @@ object RoutesCompiler {
                         } else {
                           """ + _qS([%s])""".format(
                             queryParams.map { p =>
-                              ("(\"\"\" + implicitly[QueryStringBindable[" + p.typeName + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
+                              ("(\"\"\" + implicitly[QueryStringBindable[" + route.parameterTypeName(p.name) + "]].javascriptUnbind + \"\"\")" + """("""" + p.name + """", """ + localNames.get(p.name).getOrElse(p.name) + """)""") -> p
                             }.map {
-                              case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == null ? \"\"\" +  implicitly[JavascriptLitteral[" + typeName + "]].to(" + default + ") + \"\"\" : " + u + ")"
+                              case (u, Parameter(name, typeName, None, Some(default))) => """(""" + localNames.get(name).getOrElse(name) + " == null ? \"\"\" +  implicitly[JavascriptLitteral[" + route.parameterTypeName(name) + "]].to(" + default + ") + \"\"\" : " + u + ")"
                               case (u, Parameter(name, typeName, None, None)) => u
                             }.mkString(", "))
 
@@ -666,7 +677,7 @@ object RoutesCompiler {
                               Option(route.call.parameters.getOrElse(Nil).filter { p =>
                                 localNames.contains(p.name) && p.fixed.isDefined
                               }.map { p =>
-                                p.name + " == \"\"\" + implicitly[JavascriptLitteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
+                                p.name + " == \"\"\" + implicitly[JavascriptLitteral[" + route.parameterTypeName(p.name) + "]].to(" + p.fixed.get + ") + \"\"\""
                               }).filterNot(_.isEmpty).map(_.mkString(" && ")).getOrElse("true"),
 
                               genCall(route, localNames))
@@ -728,7 +739,7 @@ object RoutesCompiler {
 
                     val parameters = route.call.parameters.getOrElse(Nil)
 
-                    val reverseSignature = parameters.map(p => safeKeyword(p.name) + ":" + p.typeName).mkString(", ")
+                    val reverseSignature = parameters.map(p => safeKeyword(p.name) + ":" + route.parameterTypeName(p.name)).mkString(", ")
 
                     val controllerCall = if (route.call.instantiate) {
                       "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + packageName + "." + controller + "])." + route.call.method + "(" + { parameters.map(x => safeKeyword(x.name)).mkString(", ") } + ")"
@@ -748,7 +759,7 @@ object RoutesCompiler {
                       controllerCall,
                       packageName + "." + controller,
                       route.call.method,
-                      "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
+                      "Seq(" + { parameters.map(p => "classOf[" + route.parameterTypeName(p.name) + "]").mkString(", ") } + ")",
                       route.verb,
                       "\"\"\""+route.comments.map(_.comment).mkString("\n")+"\"\"\"",
                       "\"\"\""+route.path+"\"\"\""
@@ -800,7 +811,8 @@ object RoutesCompiler {
 
                     assert(routes.size > 0, "Empty routes set???")
 
-                    val parameters = routes(0).call.parameters.getOrElse(Nil)
+                    val route = routes(0)
+                    val parameters = route.call.parameters.getOrElse(Nil)
 
                     val reverseParameters = parameters.zipWithIndex.filterNot {
                       case (p, i) => {
@@ -809,7 +821,7 @@ object RoutesCompiler {
                       }
                     }
 
-                    val reverseSignature = reverseParameters.map(p => safeKeyword(p._1.name) + ":" + p._1.typeName + {
+                    val reverseSignature = reverseParameters.map(p => safeKeyword(p._1.name) + ":" + route.parameterTypeName(p._1.name) + {
                       Option(routes.map(_.call.parameters.get(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
                         case None => ""
                         case Some(default) => " = " + default
@@ -822,7 +834,7 @@ object RoutesCompiler {
                         case StaticPart(part) => "\"" + part + "\""
                         case DynamicPart(name, _) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
-                            """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
+                            """implicitly[PathBindable[""" + route.parameterTypeName(param.name) + """]].unbind("""" + param.name + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
                           }.getOrElse {
                             throw new Error("missing key " + name)
                           }
@@ -843,7 +855,7 @@ object RoutesCompiler {
                         } else {
                           """ + queryString(List(%s))""".format(
                             queryParams.map { p =>
-                              ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
+                              ("""implicitly[QueryStringBindable[""" + route.parameterTypeName(p.name) + """]].unbind("""" + p.name + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
                             }.map {
                               case (u, Parameter(name, typeName, None, Some(default))) => """if(""" + localNames.get(name).getOrElse(name) + """ == """ + default + """) None else Some(""" + u + """)"""
                               case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
@@ -995,9 +1007,9 @@ object RoutesCompiler {
           r.call.parameters.filterNot(_.isEmpty).map { params =>
             params.map { p =>
               p.fixed.map { v =>
-                """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
+                """Param[""" + r.parameterTypeName(p.name) + """]("""" + p.name + """", Right(""" + v + """))"""
               }.getOrElse {
-                """params.""" + (if (r.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
+                """params.""" + (if (r.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + r.parameterTypeName(p.name) + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
               }
             }.mkString(", ")
           }.map("(" + _ + ")").getOrElse(""),
@@ -1021,7 +1033,7 @@ object RoutesCompiler {
 
           // definition
           """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map("classOf[" + _.typeName + "]").mkString(", ")
+            params.map(p => "classOf[" + r.parameterTypeName(p.name) + "]").mkString(", ")
           }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ +"\"\"\""+ r.comments.map(_.comment).mkString("\n")+"\"\"\", Routes.prefix + \"\"\"" + r.path + "\"\"\")")
     }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 

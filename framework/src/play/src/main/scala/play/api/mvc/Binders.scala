@@ -4,13 +4,19 @@ import scala.annotation._
 
 import play.api.mvc._
 
-import java.net.{ URLEncoder, URLDecoder }
+import java.net.{URI, URLEncoder}
 import java.util.UUID
 import scala.annotation._
 
 import scala.collection.JavaConverters._
 import reflect.ClassTag
 
+case class StringPath(path: String) extends AnyVal
+object StringPath {
+  import scala.language.implicitConversions
+  implicit def stringToPath(p: String): StringPath = StringPath(p)
+  implicit def pathToString(p: StringPath): String = p.path
+}
 /**
  * Binder for query string parameters.
  *
@@ -459,7 +465,7 @@ object PathBindable {
 
     def bind(key: String, value: String): Either[String, A] = {
       try {
-        Right(parse(URLDecoder.decode(value, codec.charset)))
+        Right(parse(new URI(value).getPath()))
       } catch {
         case e: Exception => Left(error(key, e))
       }
@@ -473,6 +479,23 @@ object PathBindable {
   implicit object bindableString extends Parsing[String](
     (s: String) => s, (s: String) => s, (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
   )
+
+  /**
+   * Path binder for StringPath.
+   */
+  implicit object bindableStringPath extends Parsing[StringPath](
+    (s: String) => StringPath(s),
+    (s: StringPath) => {
+      val uri = new URI(null, null, s, null)
+      uri.getRawPath
+    },
+    (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
+  ) {
+    /**
+     * Javascript function to unbind in the Javascript router.
+     */
+    override def javascriptUnbind: String = """function(k,v) {return encodeURI(v)}"""
+  }
 
   /**
    * Path binder for Int.

@@ -13,11 +13,16 @@
   <button type=button id="route-ws-url" onclick="display(route.webSocketURL())">webSocketURL()</button>
   <button type=button id="route-ws-secure-url" onclick="display(route.webSocketURL(true))">webSocketURL(true)</button>
   <button type=button id="route-ws-secure-url2" onclick="display(route.webSocketURL({ secure: true }))">webSocketURL({ secure: true })</button>
-  
+  <button type=button id="route-stringpath" onclick="displayStringPathUrl()">url</button>
+
   <script type="text/javascript">
     route = routes.controllers.Application.javascriptTest("world");
     display = function (content) {
       document.getElementById('result').innerHTML = content;
+    };
+    displayStringPathUrl = function () {
+      var stringPathRoute = routes.controllers.Application.stringPathTest("path to/awesome file =^..^=");
+      document.getElementById('result').innerHTML = stringPathRoute.url;
     };
   </script>
 }
