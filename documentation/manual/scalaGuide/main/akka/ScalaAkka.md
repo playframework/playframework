@@ -4,7 +4,7 @@
 
 ## The application actor system
 
-Akka 2.0 can work with several containers called `ActorSystems`. An actor system manages the resources it is configured to use in order to run the actors which it contains. 
+Akka 2.x can work with several containers called `ActorSystems`. An actor system manages the resources it is configured to use in order to run the actors which it contains. 
 
 A Play application defines a special actor system to be used by the application. This actor system follows the application life-cycle and restarts automatically when the application restarts.
 
@@ -29,19 +29,18 @@ akka.actor.debug.receive = on
 
 ## Converting Akka `Future` to Play `Promise`
 
-When you interact asynchronously with an Akka actor you will get a `Future` object. You can easily convert it to a Play `Promise` using the implicit conversion provided in `play.api.libs.concurrent._`:
+When you interact asynchronously with an Akka actor you will get a `Future` object. You can easily convert it to a Play `Promise` using the implicit conversion provided in `play.api.libs.concurrent.Execution.Implicits.defaultContext`:
 
 ```scala
-import play.api.Play.current
 import akka.pattern.ask
 import akka.util.Timeout
-import akka.util.duration._
-import play.api.libs.concurrent._
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 def index = Action {
   Async {
     implicit  val timeout= Timeout(5.seconds)
-    (myActor ? "hello").mapTo[String].asPromise.map { response =>
+    (myActor ? "hello").mapTo[String].map { response =>
       Ok(response)      
     }    
   }
