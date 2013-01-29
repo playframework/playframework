@@ -134,7 +134,6 @@ As this example [[demonstrates it|https://github.com/guillaumebort/play20-spring
 
 The new Scala JSON API provide great features such as transformation and validation of JSON tree.
 
-
 ## New Filter API and CSRF protection
 
 Play 2.1 provides a new and really powerful filter API allowing to intercept each part of the HTTP request or response, in a fully non-blocking way.
