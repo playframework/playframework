@@ -134,9 +134,6 @@ As this example [[demonstrates it|https://github.com/guillaumebort/play20-spring
 
 The new Scala JSON API provide great features such as transformation and validation of JSON tree.
 
-http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/
-
-_(TODO: integrate into the main documentation)_
 
 ## New Filter API and CSRF protection
 
@@ -155,10 +152,6 @@ EssentialAction => EssentialAction
 ```
 
 > __Note__: The old `Action[A]` type is still available for compatibility.
-
-You can read further [[about this new action type|https://gist.github.com/3026886]].
-
-_(TODO: Integrate this?)_
 
 The `filters` project that is part of the standard Play distribution contain a set of standard filter, such as the `CSRF` providing automatic token management against the CSRF security issue. 
 
