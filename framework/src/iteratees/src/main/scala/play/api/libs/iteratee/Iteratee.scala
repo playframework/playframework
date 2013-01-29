@@ -5,7 +5,7 @@ import internal.defaultExecutionContext
 
 
 /**
- * various helper methods to constract, compose and traverse Iteratees
+ * Various helper methods to construct, compose and traverse Iteratees.
  */
 object Iteratee {
 
@@ -449,7 +449,7 @@ trait Iteratee[E, +A] {
   def flatMapInput[B](f: Step[E, A] => Iteratee[E, B]): Iteratee[E, B] = self.pureFlatFold(f)
 
   /**
-   * Like flatMap except that it concatenates left inputs if the Iteratee returned by evaluating f is a Done.
+   * Like flatMap except that it concatenates left over inputs if the Iteratee returned by evaluating f is a Done.
    */
   def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold {
     case Step.Done(a, Input.Empty) => f(a)

@@ -6,12 +6,11 @@ import play.api.libs.iteratee.internal.defaultExecutionContext
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
- * type E Type of the input
  */
 trait Enumerator[E] {
   parent =>
    
-   /*
+  /**
    * Attaches this Enumerator to an [[play.api.libs.iteratee.Iteratee]], driving the
    * Iteratee to (asynchronously) consume the input. The Iteratee may enter its
    * [[play.api.libs.iteratee.Done]] or [[play.api.libs.iteratee.Error]]
@@ -23,7 +22,7 @@ trait Enumerator[E] {
    */
   def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]]
  
-  /*
+  /**
    * Alias for `apply`, produces input driving the given [[play.api.libs.iteratee.Iteratee]]
    * to consume it.
    */
@@ -60,7 +59,7 @@ trait Enumerator[E] {
   */
   def |>>|[A](i: Iteratee[E, A]): Future[Step[E,A]] = apply(i).flatMap(_.unflatten)
   
-  /*
+  /**
    * Sequentially combine this Enumerator with another Enumerator. The resulting enumerator
    * will produce both input streams, this one first, then the other.
    * Note: the current implementation will break if the first enumerator
@@ -155,8 +154,20 @@ object Enumerator {
       }
   }
 
+  /**
+   * Interleave multiple enumerators together.
+   *
+   * Interleaving is done based on whichever enumerator next has input ready, if multiple have input ready, the order
+   * is undefined.
+   */
   def interleave[E](e1: Enumerator[E], es: Enumerator[E] *): Enumerator[E] = interleave(e1 +: es)
 
+  /**
+   * Interleave multiple enumerators together.
+   *
+   * Interleaving is done based on whichever enumerator next has input ready, if multiple have input ready, the order
+   * is undefined.
+   */
   def interleave[E](es: Seq[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
 
     import scala.concurrent.stm._
@@ -225,6 +236,12 @@ object Enumerator {
 
   }
 
+  /**
+   * Interleave two enumerators together.
+   *
+   * Interleaving is done based on whichever enumerator next has input ready, if both have input ready, the order is
+   * undefined.
+   */
   def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2] {
 
     import scala.concurrent.stm._
@@ -366,6 +383,13 @@ object Enumerator {
 
   import scalax.io.JavaConverters._
 
+  /**
+   * Like [[play.api.libs.iteratee.Enumerator.unfold]], but allows the unfolding to be done asynchronously.
+   *
+   * @param s The value to unfold
+   * @param f The unfolding function. This will take the value, and return a future for some tuple of the next value
+   *          to unfold and the next input, or none if the value is completely unfolded.
+   */
   def unfoldM[S,E](s:S)(f: S => Future[Option[(S,E)]] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
 
     def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s).flatMap {
@@ -374,6 +398,22 @@ object Enumerator {
     }
   })
 
+  /**
+   * Unfold a value of type S into input for an enumerator.
+   *
+   * For example, the following would enumerate the elements of a list, implementing the same behavior as
+   * Enumerator.enumerate:
+   *
+   * {{{
+   *   Enumerator.sequence[List[Int], Int]{ list =>
+   *     list.headOption.map(input => list.tail -> input)
+   *   }
+   * }}}
+   *
+   * @param s The value to unfold
+   * @param f The unfolding function. This will take the value, and return some tuple of the next value to unfold and
+   *          the next input, or none if the value is completely unfolded.
+   */
   def unfold[S,E](s:S)(f: S => Option[(S,E)] ): Enumerator[E] = checkContinue1(s)(new TreatCont1[E,S]{
 
     def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s) match {
@@ -382,18 +422,35 @@ object Enumerator {
     }
   })
 
+  /**
+   * Repeat the given input function indefinitely.
+   *
+   * @param e The input function.
+   */
   def repeat[E](e: => E): Enumerator[E] = checkContinue0( new TreatCont0[E]{
 
     def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = loop(k(Input.El(e)))
 
   })
 
+  /**
+   * Like [[play.api.libs.iteratee.Enumerator.repeat]], but allows repeated values to be asynchronously fetched.
+   *
+   * @param e The input function
+   */
   def repeatM[E](e: => Future[E]): Enumerator[E] = checkContinue0( new TreatCont0[E]{
 
     def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap(ee => loop(k(Input.El(ee))))
 
   })
 
+  /**
+   * Like [[play.api.libs.iteratee.Enumerator.repeatM]], but the callback returns an Option, which allows the stream
+   * to be eventually terminated by returning None.
+   *
+   * @param e The input function.  Returns a future eventually redeemed with Some value if there is input to pass, or a
+   *          future eventually redeemed with None if the end of the stream has been reached.
+   */
   def generateM[E](e: => Future[Option[E]]): Enumerator[E] = checkContinue0( new TreatCont0[E] {
 
     def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap {
@@ -522,6 +579,16 @@ object Enumerator {
     }
   }
 
+  /**
+   * Create an enumerator from the given input stream.
+   *
+   * This enumerator will block on reading the input stream, in the default iteratee thread pool.  Care must therefore
+   * be taken to ensure that this isn't a slow stream.  If using this with slow input streams, consider setting the
+   * value of iteratee-threadpool-size to a value appropriate for handling the blocking.
+   *
+   * @param input The input stream
+   * @param chunkSize The size of chunks to read from the stream.
+   */
   def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
     fromCallback(() => {
       val buffer = new Array[Byte](chunkSize)
@@ -536,11 +603,26 @@ object Enumerator {
     }, input.close)
   }
 
+  /**
+   * Create an enumerator from the given input stream.
+   *
+   * Note that this enumerator will block when it reads from the file.
+   *
+   * @param file The file to create the enumerator from.
+   * @param chunkSize The size of chunks to read from the file.
+   */
   def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = {
     fromStream(new java.io.FileInputStream(file), chunkSize)
   }
 
-  /** Create an Enumerator of bytes with an OutputStream.
+  /**
+   * Create an Enumerator of bytes with an OutputStream.
+   *
+   * Not that calls to write will not block, so if the iteratee that is being fed to is slow to consume the input, the
+   * OutputStream will not push back.  This means it should not be used with large streams since there is a risk of
+   * running out of memory.
+   *
+   * @param a A callback that provides the output stream when this enumerator is written to an iteratee.
    */
   def outputStream(a: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
     Concurrent.unicast[Array[Byte]] { channel =>
@@ -563,6 +645,9 @@ object Enumerator {
     }
   }
 
+  /**
+   * An enumerator that produces EOF and nothing else.
+   */
   def eof[A] = enumInput[A](Input.EOF)
 
   /**

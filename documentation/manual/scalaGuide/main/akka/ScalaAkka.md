@@ -65,7 +65,7 @@ For example, to send a message to the `testActor` every 30 minutes:
 Akka.system.scheduler.schedule(0 seconds, 30 minutes, testActor, "tick")
 ```
 
-> **Note:** This example uses implicit conversions defined in `akka.util.duration` to convert numbers to `Duration` objects with various time units.
+> **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
 
 Similarly, to run a block of code ten seconds from now:
 

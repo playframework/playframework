@@ -3,8 +3,9 @@ package play.api.libs.iteratee
 import org.specs2.mutable._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import concurrent.{Future, Await}
+import concurrent.{Promise, Future, Await}
 import concurrent.duration.Duration
+import java.io.OutputStream
 
 object EnumeratorsSpec extends Specification {
 
@@ -38,6 +39,14 @@ object EnumeratorsSpec extends Specification {
       val result = Await.result(kk, Duration.Inf)
       result.length must equalTo (7)
     }
+
+  "not necessarily go alternatively between two enumerators" in {
+    val firstDone = Promise[Unit]
+    val e1 = Enumerator(1, 2, 3, 4).onDoneEnumerating(firstDone.success(Unit))
+    val e2 = Enumerator.unfoldM[Boolean, Int](true) { first => if (first) firstDone.future.map(_ => Some(false, 5)) else Future.successful(None)}
+    val result = Await.result((e1 interleave e2) |>>> Iteratee.getChunks[Int], Duration.Inf)
+    result must_== Seq(1, 2, 3, 4, 5)
+  }
 
 }
 
@@ -185,6 +194,20 @@ object EnumeratorsSpec extends Specification {
     val promise = (enumerator |>>> Iteratee.fold[Array[Byte],Array[Byte]](Array[Byte]())(_ ++ _))
 
     Await.result(promise, Duration.Inf).map(_.toChar).foldLeft("")(_+_) must equalTo (a+b)
+  }
+
+  "not block" in {
+    var os: OutputStream = null
+    val enumerator = Enumerator.outputStream(o => os = o)
+    val promiseIteratee = Promise[Iteratee[Array[Byte], Array[Byte]]]
+    val future = enumerator |>>> Iteratee.flatten(promiseIteratee.future)
+    // os should now be set
+    os.write("hello".getBytes)
+    os.write(" ".getBytes)
+    os.write("world".getBytes)
+    os.close()
+    promiseIteratee.success(Iteratee.consume[Array[Byte]]())
+    Await.result(future, Duration("10s")) must_== "hello world".getBytes
   }
 }
 
