@@ -1,6 +1,6 @@
-# Play 2.0 
+# Play 2.1 
 
-Play 2.0 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. 
+Play 2.1 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. 
 
 It is based on a lightweight stateless Web friendly architecture and features predictable and minimal resources consumption (CPU, Memory, Threads) for highly scalable applications thanks to its reactive model based on Iteratee IO.
 
@@ -20,7 +20,7 @@ Then, for convenience, add the framework installation directory to your system P
 On UNIX systems, it would be something like:
 
 ```bash
-export PATH=$PATH:/path/to/play2.0
+export PATH=$PATH:/path/to/play2.1
 ```
 
 On windows systems you'll need to set it in the global environment variables.
@@ -29,7 +29,7 @@ On windows systems you'll need to set it in the global environment variables.
 
 ## Getting started
 
-Enter any existing Play 2.0 application directory and use the `play` command to launch the development console:
+Enter any existing Play 2.1 application directory and use the `play` command to launch the development console:
 
 ```bash
 $ cd ~/workspace/myApplication
@@ -62,7 +62,7 @@ $ play
 There are several samples applications included in the `samples/` directory. For example, to run the included Scala Hello World application:
 
 ```bash
-$ cd ~/workspace/play2.0/samples/scala/helloworld/
+$ cd ~/workspace/play2.1/samples/scala/helloworld/
 $ play run
 ```
 > The application will be available on port 9000.
