@@ -67,7 +67,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
     allChannels.add(e.getChannel)
   }
 
-  val emptySeq: immutable.IndexedSeq[Certificate] = Nil.toIndexedSeq
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
 
     trait Certs { req: RequestHeader =>
@@ -78,12 +77,16 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         import javax.net.ssl.SSLPeerUnverifiedException
         val sslCatcher = catching(classOf[SSLPeerUnverifiedException])
 
-        val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).flatMap { sslh =>
+        def getCerts(sslh: SslHandler): Option[IndexedSeq[Certificate]] = {
+          Logger("play").debug("checking for certs in ssl session")
           sslCatcher.opt {
-            Logger("play").debug("checking for certs in ssl session")
-            val res = sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq
-            Promise.pure[IndexedSeq[Certificate]](res)
-          } orElse {
+            sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq
+          }
+        }
+        val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).map { sslh =>
+          getCerts(sslh).map { res=>
+            Future[IndexedSeq[Certificate]](res)
+          } getOrElse  {
             Logger("play").debug("attempting to request certs from client")
             //need to make use of the certificate sessions in the setup process
             //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
@@ -93,13 +96,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             } else {
               sslh.getEngine.setWantClientAuth(true)
             }
-            Some(NettyPromise(sslh.handshake()).extend{ p=>
-                sslCatcher.opt(sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq).getOrElse(Nil)
-            })
+            NettyPromise(sslh.handshake()).map{ _ =>
+              getCerts(sslh).getOrElse(Nil)
+            }
           }
          }
-        Logger("play").debug("returning Promise")
-        res.getOrElse(Promise.pure(throw new SSLException("No SSLHandler!")))
+         res.getOrElse(Future.failed(new SSLException("No SSLHandler!")))
       }
     }
 
@@ -128,6 +130,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             } yield xff).getOrElse(remoteAddress)
           }
         }
+
+        import org.jboss.netty.util.CharsetUtil;
 
         //mapping netty request to Play's
 
