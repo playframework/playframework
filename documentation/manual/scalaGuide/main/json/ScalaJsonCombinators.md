@@ -962,9 +962,10 @@ This useful to create `Writes[TupleX]`
 ).tupled : Writes[(String, Int)]
 ```
 
-It also works with JsArray and indexes
+**Known limitation** please note that the following doesn't work: it compiles but it will break at runtime as Writes combinators only know how to generate JsObject but not JsArray.
 
 ```
+// BE CAREFUL: IT COMPILES BUT BREAKS AT RUNTIME
 (
   (__(0)).write[String] and 
   (__(1)).write[Int]
