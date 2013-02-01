@@ -2,7 +2,7 @@
 
 @main("Comet") {
     
-    @helper.javascriptRouter("jsRoutes")(
+    @helper.javascriptRouter("jsRoutes", ajaxMethod = Some("function (s) {s=s||{};s.url=this.url;s.type=this.method;return $.ajax(s)}"))(
         routes.javascript.Application.say
     )
     
