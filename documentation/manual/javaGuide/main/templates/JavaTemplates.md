@@ -114,6 +114,8 @@ You can use the `for` keyword, in a pretty standard way:
 </ul>
 ```
 
+> **Note:** Make sure that `{` is on the same line with `for` to indicate that the expression continues to next line.  
+
 ## If-blocks
 
 If-blocks are nothing special. Simply use Scala’s standard `if` statement:

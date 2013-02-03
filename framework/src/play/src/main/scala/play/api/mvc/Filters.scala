@@ -8,7 +8,7 @@ import play.api.libs.concurrent._
  * Implement this interface if you want to add a Filter to your application
  * {{{
  * object AccessLog extends Filter {
- * 	 override def apply[A](next: Request[A] => Result)(request: Request[A]): Result = {
+ *   override def apply(next: RequestHeader => Result)(request: RequestHeader): Result = {
  *		 val result = next(request)
  *		 play.Logger.info(request + "\n\t => " + result)
  *		 result

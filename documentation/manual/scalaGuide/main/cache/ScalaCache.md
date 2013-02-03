@@ -28,6 +28,12 @@ val user: User = Cache.getOrElse[User]("item.key") {
 }
 ```
 
+To remove an item from the cache use the `remove` method:
+
+```
+Cache.remove("item.key")
+```
+
 ## Caching HTTP responses
 
 You can easily create smart cached actions using standard Action composition. 
