@@ -168,8 +168,6 @@ def index = Action {
 }
 ```
 
-> **Tip:** `Enumerator.callbackEnumerator` and `Enumerator.pushEnumerator` are two convenient way of creating reactive non-blocking enumerators in an imperative style.
-
 We can inspect the HTTP response sent by the server:
 
 ```

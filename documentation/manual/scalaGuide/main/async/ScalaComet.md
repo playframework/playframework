@@ -54,8 +54,6 @@ def comet = Action {
 }
 ```
 
-> **Tip:** `Enumerator.callbackEnumerator` and `Enumerator.pushEnumerator` are two convenient ways to create reactive non-blocking enumerators in an imperative style.
-
 ## The forever iframe technique
 
 The standard technique to write a Comet socket is to load an infinite chunked comet response in an HTML `iframe` and to specify a callback calling the parent frame:
