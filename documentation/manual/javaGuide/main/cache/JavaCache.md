@@ -32,15 +32,13 @@ You can retrieve the data later:
 News news = Cache.get("item.key");
 ```
 
-How to remove the key is as follows.
+
+To remove an item from the cache use the `remove` method:
 
 ```
-// 2.0 final
-Cache.set("item.key", null, 0)
-// later
 Cache.remove("item.key")
-
 ```
+
 
 ## Caching HTTP responses
 
