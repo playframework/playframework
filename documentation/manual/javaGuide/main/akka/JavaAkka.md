@@ -87,7 +87,8 @@ Akka.system().scheduler().schedule(
   Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
   Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
   testActor, 
-  "tick"
+  "tick",
+  Akka.system().dispatcher()
 );
 ```
 
@@ -100,7 +101,8 @@ Akka.system().scheduler().scheduleOnce(
     public void run() {
       file.delete()
     }
-  }
+  },
+  Akka.system().dispatcher()
 ); 
 ```
 

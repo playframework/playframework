@@ -88,8 +88,17 @@ def index = Logging {
 >     Logger.info("Calling action")
 >     action(request)
 >   }
-> }
+> } 
 > ```
+
+The following example is wrapping an existing action to add session variable:
+
+```scala
+def addSessionVar[A](action: Action[A]) = Action(action.parser) { request =>
+  action(request).withSession("foo" -> "bar")
+}
+``` 
+
 
 ## A more complicated example
 

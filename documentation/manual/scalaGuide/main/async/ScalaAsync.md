@@ -56,12 +56,11 @@ It is often useful to handle time-outs properly, to avoid having the web browser
 
 def index = Action {
   val futureInt = scala.concurrent.Future { intensiveComputation() }
+  val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 2.seconds)
   Async {
-    futureInt.orTimeout("Oops", 1000).map { eitherIntOrTimeout =>
-      eitherIntOrTimeout.fold(
-        i => Ok("Got result: " + i),
-        timeout => InternalServerError(timeout)
-      )    
+    Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map { 
+      case i: Int => Ok("Got result: " + i)
+      case t: String => InternalServerError(t)
     }  
   }
 }
