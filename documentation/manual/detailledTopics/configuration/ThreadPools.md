@@ -90,7 +90,7 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 ```scala
 object Contexts {
-  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("my-context")
+  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("my-dispatcher")
 }
 ```
 
