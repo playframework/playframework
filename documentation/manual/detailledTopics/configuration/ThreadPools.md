@@ -99,7 +99,7 @@ In this case, we are using Akka to create the execution context, but you could a
 ```
 akka {
   actor {
-    my-dispatcher {
+    my-context {
       fork-join-executor {
         parallelism-factor = 20.0
         parallelism-max = 200
