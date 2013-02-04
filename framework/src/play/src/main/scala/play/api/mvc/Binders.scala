@@ -9,7 +9,6 @@ import java.util.UUID
 import scala.annotation._
 
 import scala.collection.JavaConverters._
-import reflect.ClassTag
 
 /**
  * Binder for query string parameters.
@@ -427,10 +426,10 @@ object QueryStringBindable {
   /**
    * QueryString binder for QueryStringBindable.
    */
-  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: ClassTag[T]) = new QueryStringBindable[T] {
+  implicit def javaQueryStringBindable[T <: play.mvc.QueryStringBindable[T]](implicit ct: Manifest[T]) = new QueryStringBindable[T] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       try {
-        val o = ct.runtimeClass.newInstance.asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
+        val o = ct.erasure.newInstance.asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
         if (o.isDefined) {
           Some(Right(o.get))
         } else {
@@ -443,7 +442,7 @@ object QueryStringBindable {
     def unbind(key: String, value: T) = {
       value.unbind(key)
     }
-    override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
+    override def javascriptUnbind = Option(ct.erasure.newInstance.asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
 
@@ -559,10 +558,10 @@ object PathBindable {
   /**
    * Path binder for Java PathBindable
    */
-  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]) = new PathBindable[T] {
+  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: Manifest[T]) = new PathBindable[T] {
     def bind(key: String, value: String) = {
       try {
-        Right(ct.runtimeClass.newInstance.asInstanceOf[T].bind(key, value))
+        Right(ct.erasure.newInstance.asInstanceOf[T].bind(key, value))
       } catch {
         case e: Exception => Left(e.getMessage)
       }
@@ -570,7 +569,7 @@ object PathBindable {
     def unbind(key: String, value: T) = {
       value.unbind(key)
     }
-    override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
+    override def javascriptUnbind = Option(ct.erasure.newInstance.asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
 }

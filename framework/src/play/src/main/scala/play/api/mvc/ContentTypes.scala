@@ -1,7 +1,5 @@
 package play.api.mvc
 
-import scala.language.reflectiveCalls
-
 import java.io._
 
 import scala.xml._

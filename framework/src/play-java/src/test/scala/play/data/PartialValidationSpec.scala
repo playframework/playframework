@@ -1,7 +1,7 @@
 package play.data
 
 import validation.Constraints.{MaxLength, Required}
-import beans.BeanProperty
+import scala.reflect.BeanProperty
 import org.specs2.mutable.Specification
 import scala.collection.JavaConverters._
 

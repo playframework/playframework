@@ -1,14 +1,15 @@
 package models
 
 import akka.actor._
-import scala.concurrent.duration._
+import akka.util._
+import akka.util.duration._
 
 import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
+import play.api.libs.concurrent.Akka._
 
-import akka.util.Timeout
 import akka.pattern.ask
 
 import play.api.Play.current

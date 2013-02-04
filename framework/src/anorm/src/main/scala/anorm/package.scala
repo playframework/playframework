@@ -11,8 +11,6 @@
  * }}}
  */
 package object anorm {
-  import scala.language.implicitConversions	
-
   implicit def sqlToSimple(sql: SqlQuery): SimpleSql[Row] = sql.asSimple
   implicit def sqlToBatch(sql: SqlQuery): BatchSql = sql.asBatch
 

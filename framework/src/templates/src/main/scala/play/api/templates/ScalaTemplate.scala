@@ -29,8 +29,6 @@ package play.api.templates {
 
 package play.templates {
 
-import reflect.ClassTag
-
 trait Appendable[T] {
     def +=(other: T): T
     override def equals(x: Any): Boolean = super.equals(x)
@@ -44,9 +42,9 @@ trait Appendable[T] {
 
   case class BaseScalaTemplate[T <: Appendable[T], F <: Format[T]](format: F) {
 
-    def _display_(o: Any)(implicit ct: ClassTag[T]): T = {
+    def _display_(o: Any)(implicit m: Manifest[T]): T = {
       o match {
-        case escaped if escaped != null && escaped.getClass == ct.runtimeClass => escaped.asInstanceOf[T]
+        case escaped if escaped != null && escaped.getClass == m.erasure => escaped.asInstanceOf[T]
         case () => format.raw("")
         case None => format.raw("")
         case Some(v) => _display_(v)

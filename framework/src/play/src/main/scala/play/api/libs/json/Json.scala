@@ -1,7 +1,5 @@
 package play.api.libs.json
 
-import scala.language.reflectiveCalls
-
 /**
  * Helper functions to handle JsValues.
  */
@@ -72,8 +70,6 @@ object Json {
 
   private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper
 
-  import scala.language.implicitConversions
-
   implicit def toJsFieldJsValueWrapper[T](field: T)(implicit w: Writes[T]): JsValueWrapper = JsValueWrapperImpl(w.writes(field))
 
   def obj(fields: (String, JsValueWrapper)*): JsObject = JsObject(fields.map(f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
@@ -104,8 +100,8 @@ object Json {
    * Reads[T]/Writes[T]/Format[T] from case class at COMPILE time using 
    * new Scala 2.10 macro & reflection features.
    */
-  import scala.reflect.macros.Context
-  import language.experimental.macros
+  // import scala.reflect.macros.Context
+  // import language.experimental.macros
 
   /**
    * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time.
@@ -125,7 +121,7 @@ object Json {
    *   )(User)
    * }}}
    */
-  def reads[A] = macro JsMacroImpl.readsImpl[A]
+//  def reads[A] = macro JsMacroImpl.readsImpl[A]
 
   /**
    * Creates a Writes[T] by resolving case class fields & required implcits at COMPILE-time
@@ -145,7 +141,7 @@ object Json {
    *   )(unlift(User.unapply))
    * }}}
    */
-  def writes[A] = macro JsMacroImpl.writesImpl[A]  
+//  def writes[A] = macro JsMacroImpl.writesImpl[A]
 
   /**
    * Creates a Format[T] by resolving case class fields & required implicits at COMPILE-time
@@ -165,6 +161,6 @@ object Json {
    *   )(User.apply, unlift(User.unapply))
    * }}}
    */
-  def format[A] = macro JsMacroImpl.formatImpl[A]
+  // def format[A] = macro JsMacroImpl.formatImpl[A]
 
 }

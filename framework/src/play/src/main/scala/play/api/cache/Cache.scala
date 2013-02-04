@@ -2,7 +2,6 @@ package play.api.cache
 
 import play.api._
 
-import reflect.{ClassTag, ClassManifest}
 import org.apache.commons.lang3.reflect.TypeUtils
 /**
  * API for a Cache plugin.
@@ -72,7 +71,7 @@ object Cache {
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was found in cache.
    */
-  def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
+  def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, ct: Manifest[A]): A = {
     getAs[A](key).getOrElse {
       val value = orElse
       set(key, value, expiration)
@@ -86,9 +85,9 @@ object Cache {
    * @param key Item key.
    * @return result as Option[T]
    */
-  def getAs[T](key: String)(implicit app: Application, ct: ClassTag[T]): Option[T] = {
+  def getAs[T](key: String)(implicit app: Application, ct: Manifest[T]): Option[T] = {
     get(key)(app).map { item =>
-      if (TypeUtils.isInstance(item, ct.runtimeClass)) Some(item.asInstanceOf[T]) else None
+      if (TypeUtils.isInstance(item, ct.erasure)) Some(item.asInstanceOf[T]) else None
     }.getOrElse(None)
   }
 

@@ -1,12 +1,9 @@
 package play.api.libs.json
 
-import scala.language.higherKinds
-
 import scala.collection._
 import Json._
 import scala.annotation.implicitNotFound
 import play.api.data.validation.ValidationError
-import reflect.ClassTag
 
 /**
  * Json deserializer: write an implicit to define a deserializer for any type.
@@ -480,7 +477,7 @@ trait DefaultReads {
   /**
    * Deserializer for Array[T] types.
    */
-  implicit def ArrayReads[T: Reads: ClassTag]: Reads[Array[T]] = new Reads[Array[T]] {
+  implicit def ArrayReads[T: Reads: Manifest]: Reads[Array[T]] = new Reads[Array[T]] {
     def reads(json: JsValue) = json.validate[List[T]].map( _.toArray )
   }
 

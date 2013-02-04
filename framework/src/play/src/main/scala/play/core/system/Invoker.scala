@@ -1,6 +1,7 @@
 package play.core
 
 import akka.actor._
+import play.api.libs.concurrent.Akka._
 
 import com.typesafe.config._
 import play.api.{Logger, Play}

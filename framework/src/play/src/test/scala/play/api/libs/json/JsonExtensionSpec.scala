@@ -21,7 +21,7 @@ case class UserFail(name: String, bd: Toto)
 case class Id[A](id: A)
 case class C1[A](id: Id[A], name: String)
 
-
+/*
 object JsonExtensionSpec extends Specification {
 
   "JsonExtension" should {
@@ -311,3 +311,4 @@ object JsonExtensionSpec extends Specification {
   }
 
 }
+*/

@@ -12,7 +12,6 @@ import scala.collection.JavaConverters._
 import annotation.implicitNotFound
 
 import java.lang.reflect.InvocationTargetException
-import reflect.ClassTag
 import scala.util.control.NonFatal
 
 
@@ -232,7 +231,7 @@ trait Application {
    * @return The plugin instance used by this application.
    * @throws Error if no plugins of type T are loaded by this application.
    */
-  def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
+  def plugin[T](implicit ct: Manifest[T]): Option[T] = plugin(ct.erasure).asInstanceOf[Option[T]]
 
 
   /**

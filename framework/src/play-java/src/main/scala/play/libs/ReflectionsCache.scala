@@ -13,17 +13,19 @@ import org.reflections.util.FilterBuilder
 object ReflectionsCache {
   import ref.SoftReference
   import org.reflections.{scanners, util, Reflections}
-  import scala.collection.concurrent._
+  import java.util.concurrent.ConcurrentHashMap
+  import scala.collection.JavaConverters._
+  import scala.collection.mutable
 
   // A soft reference is used so that we don't force the classloader or reflections to be live after a test run,
   // but we don't use weak reference as this is the only reference to the tuple, and it will just always get collected
   // on each eden space collection if it was weak.
-  @volatile private var reflectionsMapRef: Option[SoftReference[(ClassLoader, Map[String, Reflections])]] = None
+  @volatile private var reflectionsMapRef: Option[SoftReference[(ClassLoader, mutable.ConcurrentMap[String, Reflections])]] = None
 
   def getReflections(classLoader: ClassLoader, pkg: String) = {
     // Detect if the classloader is different from last time, if it is, create a new cache and replace the old
     val reflectionsMap = reflectionsMapRef.flatMap(_.get).filter(_._1 == classLoader).map(_._2).getOrElse {
-      val map = TrieMap.empty[String, Reflections]
+      val map = new ConcurrentHashMap[String, Reflections]().asScala
       reflectionsMapRef = Some(new SoftReference((classLoader, map), null))
       map
     }
