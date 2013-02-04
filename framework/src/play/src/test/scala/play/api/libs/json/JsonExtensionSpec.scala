@@ -4,6 +4,7 @@ import org.specs2.mutable._
 import play.api.libs.json._
 import play.api.libs.json.Json._
 
+/*
 case class User(age: Int, name: String)
 case class Dog(name: String, master: User)
 
@@ -416,3 +417,4 @@ object JsonExtensionSpec extends Specification {
   }    
 
 }
+*/

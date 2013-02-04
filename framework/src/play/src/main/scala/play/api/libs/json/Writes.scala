@@ -3,7 +3,6 @@ package play.api.libs.json
 import Json._
 import scala.collection._
 import scala.annotation.implicitNotFound
-import scala.reflect.ClassTag
 
 /**
  * Json serializer: write an implicit to define a serializer for any type
@@ -148,7 +147,7 @@ trait DefaultWrites {
   /**
    * Serializer for Array[T] types.
    */
-  implicit def arrayWrites[T : ClassTag](implicit fmt: Writes[T]): Writes[Array[T]] = new Writes[Array[T]] {
+  implicit def arrayWrites[T](implicit fmt: Writes[T]): Writes[Array[T]] = new Writes[Array[T]] {
     def writes(ts: Array[T]) = JsArray((ts.map(t => toJson(t)(fmt))).toList)
   }
 

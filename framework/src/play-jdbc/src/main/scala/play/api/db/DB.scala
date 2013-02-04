@@ -1,7 +1,5 @@
 package play.api.db
 
-import scala.language.reflectiveCalls
-
 import play.api._
 import play.api.libs._
 

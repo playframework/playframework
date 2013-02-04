@@ -1,7 +1,5 @@
 package play.core.j
 
-import scala.language.reflectiveCalls
-
 import play.api.mvc._
 import play.api.http._
 import play.api.libs.iteratee._

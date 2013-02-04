@@ -5,9 +5,9 @@ import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
 
-import scala.concurrent.duration.*;
 import akka.actor.*;
 import akka.dispatch.*;
+import akka.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.node.*;
@@ -37,8 +37,7 @@ public class Robot {
             Duration.create(30, SECONDS),
             Duration.create(30, SECONDS),
             chatRoom,
-            new ChatRoom.Talk("Robot", "I'm still alive"),
-            Akka.system().dispatcher()
+            new ChatRoom.Talk("Robot", "I'm still alive")
         );
         
     }

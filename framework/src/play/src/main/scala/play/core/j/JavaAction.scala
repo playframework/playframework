@@ -1,7 +1,5 @@
 package play.core.j
 
-import scala.language.existentials
-
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }

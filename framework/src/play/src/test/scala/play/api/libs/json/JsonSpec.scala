@@ -38,10 +38,10 @@ object JsonSpec extends Specification {
     (__ \ 'body).format[String] and
     (__ \ 'created_at).formatNullable[Option[Date]](
       Format(
-        Reads.optionWithNull(Reads.dateReads(dateFormat)), 
+        Reads.optionWithNull(Reads.dateReads(dateFormat)),
         Writes.optionWithNull(Writes.dateWrites(dateFormat))
       )
-    ).inmap( optopt => optopt.flatten, (opt: Option[Date]) => Some(opt) )
+    ).inmap( _.flatMap(o => o), (opt: Option[Date]) => Some(opt) )
   )(Post, unlift(Post.unapply))
 
   "JSON" should {

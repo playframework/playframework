@@ -1,7 +1,5 @@
 package test
 
-import scala.language.reflectiveCalls
-
 import play.api.test._
 import play.api.test.Helpers._
 import java.util.concurrent.CountDownLatch

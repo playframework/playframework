@@ -8,10 +8,10 @@ object ScriptSpec extends Specification {
     "separate SQL into semicolon-delimited statements" in {
       val statements = IndexedSeq("FIRST", "SECOND", "THIRD", "FOURTH")
       
-      val scriptStatements = ScriptSansEvolution(s"""
-        ${statements(0)};
+      val scriptStatements = ScriptSansEvolution("""
+        %s;
 
-        ${statements(1)}; ${statements(2)};${statements(3)};""").statements
+        %s; %s;%s;""".format(statements(0), statements(1), statements(2), statements(3))).statements
 
       scriptStatements.toList must beEqualTo(statements.toList)
     }
@@ -25,9 +25,9 @@ object ScriptSpec extends Specification {
       // double the semicolons
       val statementsWithEscapeSequence = statements.map(_.replace(";", ";;"))
 
-      val scriptStatements = ScriptSansEvolution(s"""
-        ${statementsWithEscapeSequence(0)}; 
-        ${statementsWithEscapeSequence(1)};""").statements
+      val scriptStatements = ScriptSansEvolution("""
+        %s;
+        %s;""".format(statementsWithEscapeSequence(0), statementsWithEscapeSequence(1))).statements
 
       scriptStatements.toList must beEqualTo(statements.toList)
     }
@@ -35,9 +35,9 @@ object ScriptSpec extends Specification {
     "not produce an empty-string trailing statement if the script ends with a new-line" in {
       val statement = "SELECT cream_filling FROM twinkies"
 
-      val scriptStatements = ScriptSansEvolution(s"""
-        $statement;
-      """).statements
+      val scriptStatements = ScriptSansEvolution("""
+        %s;
+      """.format(statement)).statements
 
       scriptStatements.toList must beEqualTo(List(statement))
     }

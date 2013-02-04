@@ -4,10 +4,9 @@ import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
 
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
 import akka.actor.*;
 import akka.dispatch.*;
+import akka.util.*;
 import static akka.pattern.Patterns.ask;
 
 import org.codehaus.jackson.*;

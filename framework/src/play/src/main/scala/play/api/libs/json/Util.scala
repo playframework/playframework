@@ -1,7 +1,5 @@
 package play.api.libs.json.util
 
-import scala.language.higherKinds
-
 trait LazyHelper[M[_], T] {
   def lazyStuff: M[T]
 }

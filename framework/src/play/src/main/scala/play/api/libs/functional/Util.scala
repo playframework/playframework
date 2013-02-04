@@ -1,8 +1,5 @@
 package play.api.libs.functional
 
-import scala.language.higherKinds
-import scala.language.implicitConversions
-
 class FunctorOps[M[_],A](ma: M[A])(implicit fu: Functor[M]){
 
   def fmap[B](f: A => B):M[B] = fu.fmap(ma, f)

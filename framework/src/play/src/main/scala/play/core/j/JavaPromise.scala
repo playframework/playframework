@@ -15,7 +15,7 @@ import play.core.Execution.internalContext
 object JavaPromise {
 
   def akkaAsk (actor: akka.actor.ActorRef, message: Any, timeout: akka.util.Timeout): scala.concurrent.Future[AnyRef] =
-    akka.pattern.Patterns.ask(actor,message,timeout)
+    Akka.wrapAkkaFuture(akka.pattern.Patterns.ask(actor,message,timeout))
 
   def akkaFuture[T](callable: java.util.concurrent.Callable[T]) = play.libs.Akka.asPromise(akka.dispatch.Futures.future(callable, play.libs.Akka.system.dispatcher))
 

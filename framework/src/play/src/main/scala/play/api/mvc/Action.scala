@@ -217,7 +217,7 @@ trait ActionBuilder {
       block(ctx)
     } catch {
       // NotImplementedError is not caught by NonFatal, wrap it
-      case e: NotImplementedError => throw new RuntimeException(e)
+      // case e: NotImplementedError => throw new RuntimeException(e)
       // LinkageError is similarly harmless in Play Framework, since automatic reloading could easily trigger it
       case e: LinkageError => throw new RuntimeException(e)
     }

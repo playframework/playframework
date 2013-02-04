@@ -170,10 +170,11 @@ object ResultsSpec extends Specification {
           "ehcacheplugin" -> "disabled") ++ config.toMap)
       }
 
-    override def around[T: AsResult](t: => T): SpecsResult = {
+
+    def around[T](t: => T)(implicit evidence$1: (T) => SpecsResult) = {
       Play.start(app)
       try {
-        AsResult(t)
+        t
       } finally {
         Play.stop()
       }

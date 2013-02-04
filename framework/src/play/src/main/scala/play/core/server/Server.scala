@@ -1,7 +1,5 @@
 package play.core.server
 
-import scala.language.postfixOps
-
 import play.api._
 import play.core._
 import play.api.mvc._
