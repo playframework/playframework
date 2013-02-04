@@ -11,7 +11,7 @@ $ play new myFirstApp
 This will ask for some information.
 
 - The application name (just for display, this name will be used later in several messages).
-- The template to use for this application. You can choose either a default Scala application, a default Java application, or an empty application.
+- The template to use for this application. You can choose either a default Scala application or a default Java application.
 
 [[images/playNew.png]]
 
@@ -39,10 +39,10 @@ In `project/plugins.sbt`, add:
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("play" % "sbt-plugin" % "2.0")
+addSbtPlugin("play" % "sbt-plugin" % "2.1.0")
 ```
 
-Be sure to replace `2.0` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
+Be sure to replace `2.1.0` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
 
 ```
 // Typesafe snapshots
