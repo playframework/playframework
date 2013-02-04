@@ -37,7 +37,7 @@
 1. [[Managing database evolutions | Evolutions]]
 1. [[Configuration file syntax and features | Configuration]]
     1. [[Configuring the JDBC connection pool | SettingsJDBC]]
-    1. [[Configuring the internal Akka system | AkkaCore]]
+    1. [[Configuring Play's thread pools | ThreadPools]]
     1. [[Configuring logging | SettingsLogger]]
 1. [[Deploying your application | Production]]
     1. [[Creating a standalone package | ProductionDist]]
