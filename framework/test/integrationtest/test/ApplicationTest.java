@@ -50,9 +50,9 @@ public class ApplicationTest extends WithApplication {
         start();
         Result result = callAction(
             controllers.routes.ref.JavaApi.headers(),
-            fakeRequest().withHeader(HOST, "playframework.org")
+            fakeRequest().withHeader(HOST, "playframework.com")
         );
-        assertThat(contentAsString(result)).isEqualTo("playframework.org");
+        assertThat(contentAsString(result)).isEqualTo("playframework.com");
     }
     @Test 
     public void testCookie() {

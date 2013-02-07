@@ -13,7 +13,7 @@ public void renderTemplate() {
 }
 ```
 
-You can find the complete list of the *test helpers* in the [Helper class API documentation](http://www.playframework.org/documentation/api/2.0.1/java/play/test/Helpers.html). 
+You can find the complete list of the *test helpers* in the [Helper class API documentation](http://www.playframework.com/documentation/api/2.0.1/java/play/test/Helpers.html). 
 
 ## Testing your controllers
 

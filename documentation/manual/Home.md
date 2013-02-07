@@ -15,7 +15,7 @@
 1. [[Using the Play console | PlayConsole ]]
 1. [[Setting up your preferred IDE | IDE]]
 1. [[Sample applications | Samples]]
-1. [[Security policy | http://www.playframework.org/code/security]]
+1. [[Security policy | http://www.playframework.com/code/security]]
 
 ## Working with Play
 
