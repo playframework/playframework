@@ -97,7 +97,7 @@
 
 * **Website:** <https://github.com/mbknor/gt-engine-play2>
 * **Documentation:** <https://github.com/mbknor/gt-engine-play2/blob/master/README.markdown>
-* **Short description:** This module brings the Groovy Template engine from play 1 to Play 2. It uses gt-engine which is used by the Play 1 module "Faster Groovy Templates" <http://www.playframework.org/modules/fastergt>
+* **Short description:** This module brings the Groovy Template engine from play 1 to Play 2. It uses gt-engine which is used by the Play 1 module "Faster Groovy Templates" <http://www.playframework.com/modules/fastergt>
 * **Samples:** <https://github.com/mbknor/gt-engine-play2/tree/master/samples>
 
 ## Guice Plugin (Java and Scala)
