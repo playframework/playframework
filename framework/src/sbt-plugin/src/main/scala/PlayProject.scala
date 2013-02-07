@@ -25,7 +25,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
       |Looks like you are using a deprecated version of Play's SBT Project (PlayProject in project/Build.scala).
       |We are adding all of the new Play artifacts to your libraryDependencies for now but consider switching to the new API (i.e. play.Project).
       |
-      |For any migration related issues, please consult the migration manual at http://www.playframework.org
+      |For any migration related issues, please consult the migration manual at http://www.playframework.com
       """).stripMargin)
 
     val allDependencies = (dependencies ++ Seq(jdbc, anorm, javaCore, javaJdbc, javaEbean )).toSet.toSeq

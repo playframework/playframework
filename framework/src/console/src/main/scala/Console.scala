@@ -21,7 +21,7 @@ object Console {
            ||  __/|_|\____|\__ (_)
            ||_|            |__/
            |
-           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + " (using Java " + System.getProperty("java.version") + " and Scala " + play.core.PlayVersion.scalaVersion + "), http://www.playframework.org")
+           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + " (using Java " + System.getProperty("java.version") + " and Scala " + play.core.PlayVersion.scalaVersion + "), http://www.playframework.com")
 
   // -- Commands
 
@@ -225,7 +225,7 @@ object Console {
             |license            Display licensing informations.
             |new [directory]    Create a new Play application in the specified directory.
             |
-            |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin, 0)
+            |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin, 0)
   }
 
   def main(args: Array[String]) {
@@ -241,7 +241,7 @@ object Console {
            |Use `play new` to create a new Play application in the current directory,
            |or go to an existing application and launch the development console using `play`.
            |
-           |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin), -1)
+           |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin), -1)
     }
 
     println(text)
