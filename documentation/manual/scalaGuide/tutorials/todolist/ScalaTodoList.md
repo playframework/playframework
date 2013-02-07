@@ -319,14 +319,11 @@ To fill the form we need to have the `request` in the scope, so it can be used b
 
 ## Persist the tasks in a database
 
-It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application. In the `conf/application.conf` file, add:
+It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application.
 
-```
-db.default.driver=org.h2.Driver
-db.default.url="jdbc:h2:mem:play"
-```
+For now we will use a simple in memory database using **H2**, follow the process described in the [[Accessing an SQL database|ScalaDatabase]] page.
 
-For now we will use a simple in memory database using **H2**. No need to restart the server, refreshing the browser is enough to set up the database.
+No need to restart the server, refreshing the browser is enough to set up the database.
 
 We will use **Anorm** in this tutorial to query the database. First we need to define the database schema. Let’s use Play evolutions for that, so create a first evolution script in `conf/evolutions/default/1.sql`:
 

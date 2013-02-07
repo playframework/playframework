@@ -1,5 +1,18 @@
 # Integrating with JPA
 
+## Adding dependencies to your project
+
+First you need to tell play that your project need javaJpa plugin which provide JDBC and JPA api dependencies.
+
+There is no built-in JPA implementation in Play 2.0; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
+
+```
+val appDependencies = Seq(
+  javaJpa,
+  "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final" // replace by your jpa implementation
+)
+```
+
 ## Exposing the datasource through JNDI
 
 JPA requires the datasource to be accessible via JNDI. You can expose any Play-managed datasource via JDNI by adding this configuration in `conf/application.conf`:
@@ -8,16 +21,6 @@ JPA requires the datasource to be accessible via JNDI. You can expose any Play-m
 db.default.driver=org.h2.Driver
 db.default.url="jdbc:h2:mem:play"
 db.default.jndiName=DefaultDS
-```
-
-## Adding a JPA implementation to your project
-
-There is no built-in JPA implementation in Play 2.0; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
-
-```
-val appDependencies = Seq(
-  "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
-)
 ```
 
 ## Creating a persistence unit
