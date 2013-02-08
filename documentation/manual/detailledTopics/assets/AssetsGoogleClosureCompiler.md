@@ -36,4 +36,4 @@ javascriptEntryPoints <<= (sourceDirectory in Compile)(base =>
 )
 ```
 
-> **Next:** [[Using require.js to manage dependencies | requirejs]]
+> **Next:** [[Using require.js to manage dependencies | RequireJS-support]]
