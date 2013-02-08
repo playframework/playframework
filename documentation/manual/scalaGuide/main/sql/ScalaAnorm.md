@@ -67,7 +67,7 @@ If you are inserting data that has an auto-generated `Long` primary key, you can
 
 ```scala
 val id: Option[Long] = SQL("insert into City(name, country) values ({name}, {country})")
-              .on("Cambridge", "New Zealand").executeInsert()
+              .on('name -> "Cambridge", 'country -> "New Zealand").executeInsert()
 ```
 Since Scala supports multi-line strings, feel free to use them for complex SQL statements:
 
