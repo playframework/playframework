@@ -179,6 +179,10 @@
 * **Website (docs, sample):** <https://github.com/dontcare4free/nina>
 * **Short description:** provides a typesafe way to query SQL databases with a special emphasis on selective querying
 
+## Origami: OrientDB O/G Mapper (Java and Scala)
+* **Website (docs, sample):** (<https://github.com/sgougi/play21-origami-plugin>
+* **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.
+
 ## PDF module (Java)
 
 * **Website:** <https://github.com/joergviola/play20-pdf>
@@ -277,6 +281,10 @@ your Play 2 application.
 * **Website:** <https://github.com/patiencelabs/play-stylus>
 * **Short description:** Support for [Stylus](https://github.com/learnboost/stylus) CSS compilation
 
+## TinkerPop Frames O/G Mapper Plugins (Java)
+* **Website (docs, sample):** [Neo4j](https://github.com/sgougi/play21-frames-neo4j-plugin) / [OrientDB](https://github.com/sgougi/play21-frames-orientdb-plugin) / [Titan](https://github.com/sgougi/play21-frames-titan-plugin)
+* **Short description:** Java O/G mapper plugins for GraphDBs
+
 ## Typesafe util Plugin (Scala)
 * **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
 * **Short description:** provides request header based security and syntactic sugar to deal with plugins
@@ -307,7 +315,3 @@ your Play 2 application.
 * **Documentation:** https://github.com/literalice/play-xwiki-rendering/
 * **Short description:** XWiki Rendering Framework integration for Play 2.0
 
-## Origami: OrientDB O/G Mapper (Java and Scala)
-* **Website:** [For Play2.1.X](https://github.com/sgougi/play21-origami-plugin) / [For Play2.0.X](https://github.com/sgougi/play20-origami-plugin) 
-* **Documentation:** [For Play2.1.X](https://github.com/sgougi/play21-origami-plugin#what-is-origami) / [For Play2.0.4.X](https://github.com/sgougi/play20-origami-plugin#what-is-origami)
-* **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.
