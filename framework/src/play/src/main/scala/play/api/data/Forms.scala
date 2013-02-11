@@ -401,6 +401,17 @@ object Forms {
   def seq[A](mapping: Mapping[A]): Mapping[Seq[A]] = RepeatedMapping(mapping).transform(_.toSeq, _.toList)
 
   /**
+   * Defines a keyed mapping.
+   * {{{
+   * Form(
+   *    "name" -> keyed(text)
+   * }}}
+   *
+   * @param mapping The mapping to make keyed.
+   */
+  def keyed[A](mapping: Mapping[A]): Mapping[Map[String, A]] = KeyedMapping(mapping)
+
+  /**
    * Constructs a simple mapping for a date field.
    *
    * For example:

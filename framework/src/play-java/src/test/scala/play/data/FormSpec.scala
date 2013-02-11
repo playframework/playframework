@@ -92,6 +92,13 @@ object ScalaForms {
       )
     )
 
+    val keyedForm = Form(
+      tuple(
+        "name" -> nonEmptyText,
+        "emails" -> keyed(nonEmptyText)
+      )
+    )
+
     val form = Form(
           "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
@@ -237,6 +244,14 @@ object FormSpec extends Specification {
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")) ).hasErrors must equalTo(true)
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+  }
+
+  "support keyed values" in {
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki")) ).get must equalTo("Kiki", Map[String,String]())
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[personal]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Map("personal" -> "kiki@gmail.com")))
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[personal]" -> Seq("kiki@gmail.com"), "emails[work]" -> Seq("kiki@acme.corp")) ).get must equalTo(("Kiki", Map("work" -> "kiki@acme.corp", "personal" -> "kiki@gmail.com")))
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[personal]" -> Seq("kiki@gmail.com"), "emails[work]" -> Seq("kiki@acme.corp"), "emails[]" -> Seq("kiki@zen.com"), "emails" -> Seq("kiki@x.com")) ).get must equalTo(("Kiki", Map("0" -> "kiki@zen.com", "work" -> "kiki@acme.corp", "personal" -> "kiki@gmail.com")))
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@acme.corp"), "emails" -> Seq("kiki@zen.com")) ).get must equalTo(("Kiki", Map("0" -> "kiki@gmail.com", "1" -> "kiki@acme.corp")))
   }
 
   "support repeated values for Java binding" in {
