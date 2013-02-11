@@ -501,7 +501,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     val sbtLoader = this.getClass.getClassLoader
     def commonLoaderEither = Project.runTask(playCommonClassloader, state).get._2.toEither
     val commonLoader = commonLoaderEither.right.toOption.getOrElse {
-      state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
+      state.log.warn("Some of the dependencies were not recompiled properly, so classloader is not available")
       throw commonLoaderEither.left.get
     }
     val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
