@@ -15,7 +15,6 @@ class RunWithSpec extends Specification {
 
   "Specs with runWith" should {
       "execute once" in new ScopeVar {
-        println("khdskfhdkfhd")
         RunWithSpecVar.count === 1
       }
   }
