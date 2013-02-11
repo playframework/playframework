@@ -2,7 +2,16 @@
 
 ## Configuring Ebean
 
-Play 2.0 comes with the [[Ebean| http://www.avaje.org/]] ORM. To enable it, add the following line to `conf/application.conf`:
+Play 2.0 comes with the [[Ebean| http://www.avaje.org/]] ORM. To enable it, add javaEbean to your
+dependencies : 
+
+```scala
+val appDependencies = Seq(
+  javaEbean
+)
+```
+
+then add the following line to `conf/application.conf`:
 
 ```properties
 ebean.default="models.*"

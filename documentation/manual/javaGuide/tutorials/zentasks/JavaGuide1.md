@@ -218,14 +218,10 @@ One more thing before starting to code.  For the task engine, we will need a dat
 
 At the beginning, we will do a lot of testing and changes in the application model.  For that reason, it's better to use an in-memory database so we always start with a fresh data set.
 
-To set up the database, open the `conf/application.conf` file and uncomment the following lines:
+Follow instructions to setup an in-memory H2 database on [[Accessing an SQL database|JavaDatabase]] page.
 
-    db.default.driver=org.h2.Driver
-    db.default.url="jdbc:h2:mem:play"
-
-You can easily set up any JDBC compliant database and even configure the connection pool, but for now we'll keep it at this.  Additionally, we need to enable Ebean, so uncoment the following line:
-
-    ebean.default="models.*"
+You can easily set up any JDBC compliant database and even configure the connection pool, but for now we'll keep it at this.  Additionally, we need to enable Ebean.
+Define a default Ebean server following instructions on [[Using the Ebean ORM page|JavaEbean]] page.
 
 ## Using a version control system (VCS) to track changes
 

@@ -4,7 +4,16 @@
 
 Play 2.0 provides a plug-in for managing JDBC connection pools. You can configure as many databases as you need.
 
-To enable the database plug-in, configure a connection pool in the `conf/application.conf` file. By convention, the default JDBC data source must be called `default` and the corresponding configuration properties are `db.default.driver` and `db.default.url`.
+
+To enable the database plug-in, add jdbc in your build dependencies :
+
+```scala
+val appDependencies = Seq(
+  jdbc
+)
+```
+
+Then you must configure a connection pool in the `conf/application.conf` file. By convention, the default JDBC data source must be called `default` and the corresponding configuration properties are `db.default.driver` and `db.default.url`.
 
 If something isn’t properly configured you will be notified directly in your browser:
 

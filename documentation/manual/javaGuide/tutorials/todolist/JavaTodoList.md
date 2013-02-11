@@ -351,20 +351,13 @@ We use `bindFromRequest` to create a new form filled with the request data. If t
 
 ## Persist the tasks in a database
 
-It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application. In the `conf/application.conf` file, add:
+It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application. 
 
-```
-db.default.driver=org.h2.Driver
-db.default.url="jdbc:h2:mem:play"
-```
+For now we will use a simple in memory database using **H2**, follow the process described in the [[Accessing an SQL database|JavaDatabase]] page.
 
-For now we will use a simple in memory database using **H2**. No need to restart the server, refreshing the browser is enough to set up the database.
+No need to restart the server, refreshing the browser is enough to set up the database.
 
-We will use **EBean** (Play's default ORM) in this tutorial to query the database. So you’ll have to enable it in the `application.conf` file as well:
-
-```
-ebean.default="models.*"
-```
+We will use **EBean** (Play's default ORM) in this tutorial to query the database. So you’ll have to enable it as well. Define a default Ebean server following instructions on [[Using the Ebean ORM page|JavaEbean]] page.
 
 By doing this we create an Ebean server connected to the `default` datasource, managing all entities found in the `models` package. Now it’s time to transform our `Task` class to a valid EBean entity:
 

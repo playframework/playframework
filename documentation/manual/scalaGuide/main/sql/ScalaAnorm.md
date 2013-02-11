@@ -40,6 +40,17 @@ Object Relational Mapping works well for trivial cases, but when you have to dea
 
 Writing SQL queries yourself can be tedious for a simple ‘Hello World’ application, but for any real-life application, you will eventually save time and simplify your code by taking full control of your SQL code.
 
+## Add Anorm to your project
+
+You will need to add Anorm and jdbc plugin to your dependencies : 
+
+```scala
+val appDependencies = Seq(
+  jdbc,
+  anorm
+)
+```
+
 ## Executing SQL queries
 
 To start you need to learn how to execute SQL queries.
