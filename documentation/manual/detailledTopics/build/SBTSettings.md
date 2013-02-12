@@ -7,7 +7,7 @@ The sbt build script defines settings for your project. You can also define your
 To set a basic setting, use the `:=` operator:
 
 ```scala
-val main = PlayProject(appName, appVersion, appDependencies).settings(
+val main = play.Project(appName, appVersion, appDependencies).settings(
   confDirectory := "myConfFolder"     
 )
 ```
@@ -17,7 +17,7 @@ val main = PlayProject(appName, appVersion, appDependencies).settings(
 Play defines a default set of settings suitable for Java-based applications. To enable them add the `defaultJavaSettings` set of settings to your application definition:
 
 ```scala
-val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA)
+val main = play.Project(appName, appVersion, appDependencies, mainLang = JAVA)
 ```
 
 These default settings mostly define the default imports for generated templates. For example, it imports `java.lang.*`, so types like `Long` are the Java ones by default instead of the Scala ones. It also imports `java.util.*` so the default collection library will be the Java one.
@@ -27,14 +27,14 @@ These default settings mostly define the default imports for generated templates
 Play defines a default set of settings suitable for Scala-based applications. To enable them add the `defaultScalaSettings` set of settings to your application definition:
 
 ```scala
-val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA)
+val main = play.Project(appName, appVersion, appDependencies, mainLang = SCALA)
 ```
 
 These default settings define the default imports for generated templates (such as internationalized messages, and core APIs).
 
 ## Play project settings with their default value
 
-When you define your sbt project using `PlayProject` instead of `Project`, you will get a default set of settings. Here is the default configuration:
+When you define your sbt project using `play.Project` instead of `Project`, you will get a default set of settings. Here is the default configuration:
 
 ```scala
     resolvers ++= Seq(
