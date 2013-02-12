@@ -626,7 +626,7 @@ object RepeatedMapping {
 object KeyedMapping {
 
   def keys(key: String, data: Map[String, String]): Seq[String] = {
-    val KeyPattern = ("^" + java.util.regex.Pattern.quote(key) + """\[([^\[]+)\].*$""").r
+    val KeyPattern = ("^" + java.util.regex.Pattern.quote(key) + """\[(.+?)\].*$""").r
     data.toSeq.collect { case (KeyPattern(dataKey), _) => dataKey }.sorted.distinct
   }
 }
