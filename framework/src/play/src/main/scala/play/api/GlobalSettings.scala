@@ -106,11 +106,11 @@ trait GlobalSettings {
         }
       })
     } catch {
-      case e: Throwable => {
+      case e: Exception => {
         Logger.error("Error while rendering default error page", e)
         InternalServerError
       }
-    } 
+    }
   }
 
   /**

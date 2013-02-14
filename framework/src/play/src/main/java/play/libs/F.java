@@ -17,56 +17,56 @@ public class F {
      * A Callback with no arguments.
      */
     public static interface Callback0 {
-        public void invoke() throws Throwable;
+        public void invoke() throws Exception;
     }
 
     /**
      * A Callback with a single argument.
      */
     public static interface Callback<A> {
-        public void invoke(A a) throws Throwable;
+        public void invoke(A a) throws Exception;
     }
 
     /**
      * A Callback with 2 arguments.
      */
     public static interface Callback2<A,B> {
-        public void invoke(A a, B b) throws Throwable;
+        public void invoke(A a, B b) throws Exception;
     }
 
     /**
      * A Callback with 3 arguments.
      */
     public static interface Callback3<A,B,C> {
-        public void invoke(A a, B b, C c) throws Throwable;
+        public void invoke(A a, B b, C c) throws Exception;
     }
 
     /**
      * A Function with no arguments.
      */
     public static interface Function0<R> {
-        public R apply() throws Throwable;
+        public R apply() throws Exception;
     }
 
     /**
      * A Function with a single argument.
      */
     public static interface Function<A,R> {
-        public R apply(A a) throws Throwable;
+        public R apply(A a) throws Exception;
     }
 
     /**
      * A Function with 2 arguments.
      */
     public static interface Function2<A,B,R> {
-        public R apply(A a, B b) throws Throwable;
+        public R apply(A a, B b) throws Exception;
     }
 
     /**
      * A Function with 3 arguments.
      */
     public static interface Function3<A,B,C,R> {
-        public R apply(A a, B b, C c) throws Throwable;
+        public R apply(A a, B b, C c) throws Exception;
     }
 
     /**
@@ -131,7 +131,7 @@ public class F {
          *
          * The returned Promise is usually combined with other Promises.
          *
-         * @return a promise without a real value 
+         * @return a promise without a real value
          *
          */
         public static Promise<scala.Unit> timeout() throws TimeoutException {
@@ -226,7 +226,7 @@ public class F {
 
         /**
          * combines the current promise with <code>another</code> promise using `or`
-         * @param another 
+         * @param another
          */
         public <B> Promise<Either<A,B>> or(Promise<B> another) {
             return (new Promise(new play.api.libs.concurrent.PlayPromise(this.promise).or(another.getWrappedPromise()))).map(
@@ -250,14 +250,14 @@ public class F {
                                     return 0;
                                 } catch(RuntimeException e) {
                                     throw e;
-                                } catch(Throwable t) {
+                                } catch(Exception t) {
                                     throw new RuntimeException(t);
                                 }
                             }
                         }, a, context);
                     } catch (RuntimeException e) {
                         throw e;
-                    } catch (Throwable t) {
+                    } catch (Exception t) {
                         throw new RuntimeException(t);
                     }
                     return null;
@@ -284,7 +284,7 @@ public class F {
                             return run(function, a, context);
                         } catch (RuntimeException e) {
                             throw e;
-                        } catch(Throwable t) {
+                        } catch(Exception t) {
                             throw new RuntimeException(t);
                         }
                     }
@@ -312,7 +312,7 @@ public class F {
                             return run(function,t, context);
                         } catch (RuntimeException e) {
                             throw e;
-                        } catch(Throwable e) {
+                        } catch(Exception e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -339,7 +339,7 @@ public class F {
                             return run(function, a, context);
                         } catch (RuntimeException e) {
                             throw e;
-                        } catch(Throwable t) {
+                        } catch(Exception t) {
                             throw new RuntimeException(t);
                         }
                     }
@@ -387,8 +387,8 @@ public class F {
                 id = context.id();
             }
             return play.core.j.JavaPromise.akkaAsk(
-                            actors().get((int)(id % actors().size())), 
-                            Tuple3(f, a, context), 
+                            actors().get((int)(id % actors().size())),
+                            Tuple3(f, a, context),
                             akka.util.Timeout.apply(60000 * 60 * 1) // Let's wait 1h here. Unfortunately we can't avoid a timeout.
                    ).map(new scala.runtime.AbstractFunction1<Object,B> () {
                         public B apply(Object o) {
@@ -401,7 +401,7 @@ public class F {
                                     throw new RuntimeException(t);
                                 }
                             }
-                           
+
                             return r.right.get();
                 }
             },Invoker.executionContext());
@@ -418,7 +418,7 @@ public class F {
                 try {
                     play.mvc.Http.Context.current.set(context);
                     getSender().tell(Either.Right(f.apply(a)));
-                } catch(Throwable t) {
+                } catch(Exception t) {
                     getSender().tell(Either.Left(t));
                 } finally {
                     play.mvc.Http.Context.current.remove();
@@ -496,7 +496,7 @@ public class F {
                     return Some(function.apply(get()));
                 } catch (RuntimeException e) {
                     throw e;
-                } catch (Throwable t) {
+                } catch (Exception t) {
                     throw new RuntimeException(t);
                 }
             } else {

@@ -25,28 +25,28 @@ import org.springframework.context.support.*;
 public class Form<T> {
 
     // -- Form utilities
-    
+
     /**
      * Instantiates a dynamic form.
      */
     public static DynamicForm form() {
         return new DynamicForm();
     }
-    
+
     /**
      * Instantiates a new form that wraps the specified class.
      */
     public static <T> Form<T> form(Class<T> clazz) {
         return new Form<T>(clazz);
     }
-    
+
     /**
      * Instantiates a new form that wraps the specified class.
      */
     public static <T> Form<T> form(String name, Class<T> clazz) {
         return new Form<T>(name, clazz);
     }
-    
+
     /**
      * Instantiates a new form that wraps the specified class.
      */
@@ -62,7 +62,7 @@ public class Form<T> {
     }
 
     // ---
-    
+
     /**
      * Defines a form element's display name.
      */
@@ -145,7 +145,7 @@ public class Form<T> {
         Map<String,String> jsonData = new HashMap<String,String>();
         if(request.body().asJson() != null) {
             jsonData = play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("", 
+                play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
                         play.libs.Json.stringify(request.body().asJson())
                     )
@@ -256,7 +256,7 @@ public class Form<T> {
     public Form<T> bind(org.codehaus.jackson.JsonNode data, String... allowedFields) {
         return bind(
             play.libs.Scala.asJava(
-                play.api.data.FormUtils.fromJson("", 
+                play.api.data.FormUtils.fromJson("",
                     play.api.libs.json.Json.parse(
                         play.libs.Json.stringify(data)
                     )
@@ -358,12 +358,12 @@ public class Form<T> {
                 for(Object arg: error.getArguments()) {
                     if(!(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable)) {
                         arguments.add(arg);
-                    }                    
+                    }
                 }
                 if(!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<ValidationError>()); 
+                   errors.put(key, new ArrayList<ValidationError>());
                 }
-                errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
+                errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));
             }
             return new Form(rootName, backedType, data, errors, None(), groups);
         } else {
@@ -373,7 +373,7 @@ public class Form<T> {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
                     globalError = v.invoke(result.getTarget());
                 } catch(NoSuchMethodException e) {
-                } catch(Throwable e) {
+                } catch(Exception e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -532,7 +532,7 @@ public class Form<T> {
      */
     public void reject(ValidationError error) {
         if(!errors.containsKey(error.key())) {
-           errors.put(error.key(), new ArrayList<ValidationError>()); 
+           errors.put(error.key(), new ArrayList<ValidationError>());
         }
         errors.get(error.key()).add(error);
     }
@@ -553,7 +553,7 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
-     */    
+     */
     public void reject(String key, String error) {
         reject(key, error, new ArrayList<Object>());
     }
@@ -572,7 +572,7 @@ public class Form<T> {
      * Add a global error to this form.
      *
      * @param error the error message.
-     */    
+     */
     public void reject(String error) {
         reject("", error, new ArrayList<Object>());
     }
@@ -757,7 +757,7 @@ public class Form<T> {
 
         /**
          * Returns the expected format for this field.
-         * 
+         *
          * @return The expected format for this field.
          */
         public Tuple<String,List<Object>> format() {

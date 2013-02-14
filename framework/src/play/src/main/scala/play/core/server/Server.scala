@@ -60,7 +60,7 @@ trait Server {
       } catch {
         case e: ThreadDeath => throw e
         case e: VirtualMachineError => throw e
-        case e: Throwable => Left(e)
+        case e: Exception => Left(e)
       }
     }
 

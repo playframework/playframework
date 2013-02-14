@@ -38,7 +38,7 @@ public class Json {
 
     /**
      * Creates a new empty ObjectNode.
-     */ 
+     */
     public static ObjectNode newObject() {
         return new ObjectMapper().createObjectNode();
     }
@@ -56,7 +56,7 @@ public class Json {
     public static JsonNode parse(String src) {
         try {
             return new ObjectMapper().readValue(src, JsonNode.class);
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }
