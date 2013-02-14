@@ -608,6 +608,7 @@ object MimeTypes {
     lazy val additionalText =
     """
         application/json
+        application/javascript
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#')
 
 }
