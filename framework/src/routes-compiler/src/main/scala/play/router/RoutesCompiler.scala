@@ -45,11 +45,11 @@ object RoutesCompiler {
 
   object Hash {
 
-    def apply(bytes: Array[Byte]): String = {
+    def apply(routesFile: scalax.file.Path, imports: Seq[String]): String = {
       import java.security.MessageDigest
       val digest = MessageDigest.getInstance("SHA-1")
       digest.reset()
-      digest.update(bytes)
+      digest.update(routesFile.byteArray ++ imports.flatMap(_.getBytes))
       digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft("") { _ + _ }
     }
 
@@ -259,10 +259,10 @@ object RoutesCompiler {
       if (!source.get.exists) file.delete() else false
     }
 
-    def needsRecompilation: Boolean = {
+    def needsRecompilation(imports: Seq[String]): Boolean = {
       val hash = lines.find(_.startsWith("// @HASH:")).map(m => m.trim.drop(9)).getOrElse("")
       source.filter(_.exists).map { p =>
-        Hash(p.byteArray) != hash
+        Hash(p, imports) != hash
       }.getOrElse(true)
     }
 
@@ -294,7 +294,7 @@ object RoutesCompiler {
     val packageDir = namespace.map(pkg => new File(generatedDir, pkg)).getOrElse(generatedDir)
     val generated = GeneratedSource(new File(packageDir, "routes_routing.scala"))
 
-    if (generated.needsRecompilation) {
+    if (generated.needsRecompilation(additionalImports)) {
 
       val parser = new RouteFileParser
       val routeFile = Path(file).toAbsolute
@@ -391,7 +391,7 @@ object RoutesCompiler {
 
     val filePrefix = namespace.map(_ + "/").getOrElse("") + "/routes"
 
-    val (path, hash, date) = (file.path.replace(File.separator, "/"), Hash(file.byteArray), new java.util.Date().toString)
+    val (path, hash, date) = (file.path.replace(File.separator, "/"), Hash(file, additionalImports), new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
 
     Seq((filePrefix + "_reverseRouting.scala",
