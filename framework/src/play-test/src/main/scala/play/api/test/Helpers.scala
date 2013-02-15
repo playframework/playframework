@@ -215,13 +215,14 @@ object Helpers extends Status with HeaderNames {
   def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Result] = route(app, rh, body)(Writeable.wBytes)
   def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Result] = jRoute(Play.current, rh, body)
   def jRoute[T](app: Application, r: FakeRequest[T]): Option[Result] = {
-    r.body match {
+    (r.body: @unchecked) match {
       case body: AnyContentAsFormUrlEncoded => route(app, r, body)
       case body: AnyContentAsJson => route(app, r, body)
       case body: AnyContentAsXml => route(app, r, body)
       case body: AnyContentAsText => route(app, r, body)
       case body: AnyContentAsRaw => route(app, r, body)
-      case _ => route(app, r, AnyContentAsEmpty)
+      case body: AnyContentAsEmpty.type => route(app, r, body)
+      //case _ => MatchError is thrown
     }
   }
 
