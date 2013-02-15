@@ -114,6 +114,19 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
+    lazy val DataValidationProject = Project(
+        "Play-DataValidation",
+        file("src/play-datavalidation"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-datavalidation_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := dataValidationDependencies,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+
     lazy val PlayExceptionsProject = Project(
         "Play-Exceptions",
         file("src/play-exceptions"),
@@ -148,7 +161,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, FunctionalProject)
+    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, FunctionalProject, DataValidationProject)
 
     lazy val PlayJdbcProject = Project(
         "Play-JDBC",
@@ -344,6 +357,7 @@ object PlayBuild extends Build {
         TemplatesCompilerProject,
         IterateesProject,
         FunctionalProject,
+        DataValidationProject,
         RoutesCompilerProject,
         PlayProject,
         PlayJdbcProject,
@@ -595,6 +609,9 @@ object PlayBuild extends Build {
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
         )
 
+        val dataValidationDependencies  = Seq(
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
+        )
 
 
         val testDependencies = Seq(
