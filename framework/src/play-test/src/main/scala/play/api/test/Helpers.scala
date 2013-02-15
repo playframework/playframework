@@ -1,6 +1,7 @@
 package play.api.test
 
 import scala.language.reflectiveCalls
+import scala.xml.NodeSeq
 
 import play.api._
 import libs.ws.WS
@@ -9,6 +10,7 @@ import play.api.http._
 
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
+import play.api.libs.json.JsValue
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
@@ -212,6 +214,16 @@ object Helpers extends Status with HeaderNames {
   def jRoute(app: Application, rh: RequestHeader): Option[Result] = route(app, rh, AnyContentAsEmpty)
   def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Result] = route(app, rh, body)(Writeable.wBytes)
   def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Result] = jRoute(Play.current, rh, body)
+  def jRoute[T](app: Application, r: FakeRequest[T]): Option[Result] = {
+    r.body match {
+      case body: AnyContentAsFormUrlEncoded => route(app, r, body)
+      case body: AnyContentAsJson => route(app, r, body)
+      case body: AnyContentAsXml => route(app, r, body)
+      case body: AnyContentAsText => route(app, r, body)
+      case body: AnyContentAsRaw => route(app, r, body)
+      case _ => route(app, r, AnyContentAsEmpty)
+    }
+  }
 
   /**
    * Use the Router to determine the Action to call for this request and execute it.
