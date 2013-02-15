@@ -101,6 +101,19 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
+    lazy val FunctionalProject = Project(
+        "Play-Functional",
+        file("src/play-functional"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-functional_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := functionalDependencies,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+
     lazy val PlayExceptionsProject = Project(
         "Play-Exceptions",
         file("src/play-exceptions"),
@@ -135,7 +148,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject)
+    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, FunctionalProject)
 
     lazy val PlayJdbcProject = Project(
         "Play-JDBC",
@@ -330,6 +343,7 @@ object PlayBuild extends Build {
         TemplatesProject,
         TemplatesCompilerProject,
         IterateesProject,
+        FunctionalProject,
         RoutesCompilerProject,
         PlayProject,
         PlayJdbcProject,
@@ -575,7 +589,12 @@ object PlayBuild extends Build {
             "com.typesafe"                      %    "config"                   %   "1.0.0",
             scalaIoFileBuild,
             specsBuild % "test"
-      )
+        )
+        
+        val functionalDependencies  = Seq(
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
+        )
+
 
 
         val testDependencies = Seq(
