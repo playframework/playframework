@@ -36,10 +36,10 @@ object MimeTypes {
       }.toMap
     }
   }.getOrElse(Map.empty)
-  
+
   /**
    * tells you if mimeType is text or not.
-   * Useful to determine whether the charset suffix should be attached to Content-Type or not 
+   * Useful to determine whether the charset suffix should be attached to Content-Type or not
    * @param mimeType mimeType to check
    * @return true if mimeType is text
    */
@@ -125,6 +125,7 @@ object MimeTypes {
         deepv=application/x-deepv
         def=text/plain
         der=application/x-x509-ca-cert
+        dfont=application/x-font-ttf
         dif=video/x-dv
         dir=application/x-director
         divx=video/divx
@@ -473,6 +474,8 @@ object MimeTypes {
         tsp=application/dsptype
         tsv=text/tab-separated-values
         turbot=image/florian
+        tte=application/x-font-ttf
+        ttf=application/x-font-ttf
         ttl=text/turtle
         txt=text/plain
         uil=text/x-uil
@@ -584,7 +587,7 @@ object MimeTypes {
         ppam=application/vnd.ms-powerpoint.addin.macroEnabled.12
         sldx=application/vnd.openxmlformats-officedocument.presentationml.slide
         sldm=application/vnd.ms-powerpoint.slide.macroEnabled.12
-        thmx=application/vnd.ms-officetheme 
+        thmx=application/vnd.ms-officetheme
         onetoc=application/onenote
         onetoc2=application/onenote
         onetmp=application/onenote
