@@ -127,6 +127,20 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
+    lazy val JsonProject = Project(
+        "Play-Json",
+        file("src/play-json"),
+        settings = buildSettingsWithMIMA ++ Seq(
+            previousArtifact := Some("play" % {"play-json_"+previousScalaVersion} % previousVersion),
+            libraryDependencies := jsonDependencies,
+            publishTo := Some(playRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
+            publishArtifact in packageDoc := buildWithDoc,
+            publishArtifact in (Compile, packageSrc) := true
+        )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    .dependsOn(IterateesProject, FunctionalProject, DataValidationProject)
+
     lazy val PlayExceptionsProject = Project(
         "Play-Exceptions",
         file("src/play-exceptions"),
@@ -161,7 +175,7 @@ object PlayBuild extends Build {
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, FunctionalProject, DataValidationProject)
+    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, JsonProject)
 
     lazy val PlayJdbcProject = Project(
         "Play-JDBC",
@@ -358,6 +372,7 @@ object PlayBuild extends Build {
         IterateesProject,
         FunctionalProject,
         DataValidationProject,
+        JsonProject,
         RoutesCompilerProject,
         PlayProject,
         PlayJdbcProject,
@@ -613,6 +628,15 @@ object PlayBuild extends Build {
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
         )
 
+        val jsonDependencies  = Seq(        
+            "joda-time"                         %    "joda-time"                %   "2.1",
+            "org.joda"                          %    "joda-convert"             %   "1.2",
+            "org.codehaus.jackson"              %    "jackson-core-asl"         %   "1.9.10",
+            "org.codehaus.jackson"              %    "jackson-mapper-asl"       %   "1.9.10",
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0",
+            specsBuild % "test"
+        )
+        
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
