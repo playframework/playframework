@@ -2,6 +2,7 @@ package play.api.cache
 
 import play.api._
 
+import scala.concurrent.duration._
 import reflect.{ClassTag, ClassManifest}
 import org.apache.commons.lang3.reflect.TypeUtils
 /**
@@ -14,7 +15,7 @@ trait CacheAPI {
    *
    * @param key Item key.
    * @param value Item value.
-   * @param expiration Expiration time in seconds (0 second means eternity).
+   * @param expiration Cache lifetime in seconds (0 second means eternity).
    */
   def set(key: String, value: Any, expiration: Int)
 
@@ -45,8 +46,25 @@ object Cache {
     }
   }
 
+  private[cache] def durationToExpiration( duration : Duration ) : Int =
+  {
+    if (duration == Duration.Inf)  0              //return 0 (Infinite cache) for the case of positive Infinity
+    else duration.toUnit(SECONDS).max( 1 ).toInt  //Return the time in seconds, returning times < 1s as the minimum specifiable time of one second
+  }
+
   /**
-   * Sets a value without expiration
+   * Sets a value, with expiration as a Duration
+   *
+   * @param key Item key.
+   * @param value Item value.
+   * @param expiration expiration period as Duration (Rounded to nearest positive second, use Duration.Inf for infinite duration)
+   */
+  def set(key: String, value: Any, expiration: Duration)(implicit app: Application) = {
+    cacheAPI.set(key, value, durationToExpiration(expiration) )
+  }
+
+  /**
+   * Sets a value, with infinite expiration by default
    *
    * @param key Item key.
    * @param value Item value.
@@ -69,7 +87,18 @@ object Cache {
    * Retrieve a value from the cache, or set it from a default function.
    *
    * @param key Item key.
-   * @param expiration expiration period in seconds.
+   * @param expiration expiration period as a duration (Rounded to nearest positive second, use Duration.Inf for infinite duration)
+   * @param orElse The default function to invoke if the value was found in cache.
+   */
+  def getOrElse[A](key: String, expiration:Duration)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
+    getOrElse( key, durationToExpiration(expiration))(orElse)
+  }
+
+  /**
+   * Retrieve a value from the cache, or set it from a default function, with infinite duration as default
+   *
+   * @param key Item key.
+   * @param expiration expiration period in seconds; defaults to infinite.
    * @param orElse The default function to invoke if the value was found in cache.
    */
   def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
