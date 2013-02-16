@@ -54,7 +54,7 @@ object Cached {
    * @param action Action to cache
    */
   def apply[A](key: String, duration: Duration)(action: Action[A])(implicit app: Application): Cached[A] = {
-    apply(key, duration = Cache.durationToExpiration(duration) )(action)
+    apply(key, duration = Cache.durationToExpiration(duration))(action)
   }
 
   /**

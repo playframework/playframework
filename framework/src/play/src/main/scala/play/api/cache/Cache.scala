@@ -46,10 +46,10 @@ object Cache {
     }
   }
 
-  private[cache] def durationToExpiration( duration : Duration ) : Int =
+  private[cache] def durationToExpiration(duration: Duration) : Int =
   {
-    if (duration == Duration.Inf)  0              //return 0 (Infinite cache) for the case of positive Infinity
-    else duration.toUnit(SECONDS).max( 1 ).toInt  //Return the time in seconds, returning times < 1s as the minimum specifiable time of one second
+    if   (duration == Duration.Inf) 0             //return 0 (Infinite cache) for the case of positive Infinity
+    else duration.toUnit(SECONDS).max(1).toInt    //Return the time in seconds, returning times < 1s as the minimum specifiable time of one second
   }
 
   /**
@@ -60,7 +60,7 @@ object Cache {
    * @param expiration expiration period as Duration (Rounded to nearest positive second, use Duration.Inf for infinite duration)
    */
   def set(key: String, value: Any, expiration: Duration)(implicit app: Application) = {
-    cacheAPI.set(key, value, durationToExpiration(expiration) )
+    cacheAPI.set(key, value, durationToExpiration(expiration))
   }
 
   /**
@@ -90,8 +90,8 @@ object Cache {
    * @param expiration expiration period as a duration (Rounded to nearest positive second, use Duration.Inf for infinite duration)
    * @param orElse The default function to invoke if the value was found in cache.
    */
-  def getOrElse[A](key: String, expiration:Duration)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
-    getOrElse( key, durationToExpiration(expiration))(orElse)
+  def getOrElse[A](key: String, expiration: Duration)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
+    getOrElse(key, durationToExpiration(expiration))(orElse)
   }
 
   /**
