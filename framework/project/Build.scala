@@ -114,12 +114,12 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
-    lazy val DataValidationProject = Project(
-        "Play-DataValidation",
-        file("src/play-datavalidation"),
+    lazy val DataCommonsProject = Project(
+        "Play-DataCommons",
+        file("src/play-datacommons"),
         settings = buildSettingsWithMIMA ++ Seq(
-            previousArtifact := Some("play" % {"play-datavalidation_"+previousScalaVersion} % previousVersion),
-            libraryDependencies := dataValidationDependencies,
+            previousArtifact := Some("play" % {"play-datacommons"+previousScalaVersion} % previousVersion),
+            libraryDependencies := dataCommonsDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -139,7 +139,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(IterateesProject, FunctionalProject, DataValidationProject)
+    .dependsOn(IterateesProject, FunctionalProject, DataCommonsProject)
 
     lazy val PlayExceptionsProject = Project(
         "Play-Exceptions",
@@ -371,7 +371,7 @@ object PlayBuild extends Build {
         TemplatesCompilerProject,
         IterateesProject,
         FunctionalProject,
-        DataValidationProject,
+        DataCommonsProject,
         JsonProject,
         RoutesCompilerProject,
         PlayProject,
@@ -624,7 +624,7 @@ object PlayBuild extends Build {
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
         )
 
-        val dataValidationDependencies  = Seq(
+        val dataCommonsDependencies  = Seq(
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
         )
 
