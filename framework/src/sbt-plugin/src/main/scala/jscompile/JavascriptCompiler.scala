@@ -124,9 +124,8 @@ object JavascriptCompiler {
     val scope = ctx.initStandardObjects(global)
     val writer = new java.io.StringWriter()
     try {
-      val defineArguments = """arguments = ['-o', '""" + source.getAbsolutePath + "']"
-      ctx.evaluateString(scope, defineArguments, null,
-        1, null)
+      var argsArray = ctx.newArray(scope, Array[Object]("-o", source.getAbsolutePath))
+      scope.put("arguments", scope, argsArray)
       val r = ctx.evaluateReader(scope, new InputStreamReader(
         this.getClass.getClassLoader.getResource("r.js").openConnection().getInputStream()),
         "r.js", 1, null)
