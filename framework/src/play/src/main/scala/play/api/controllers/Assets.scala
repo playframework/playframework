@@ -84,7 +84,7 @@ class AssetsBuilder extends Controller {
 
       val resource = {
         gzippedResource.map(_ -> true)
-          .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
+          .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_.trim == "gzip" && Play.isProd)).getOrElse(false))
           .orElse(Play.resource(resourceName).map(_ -> false))
       }
 
