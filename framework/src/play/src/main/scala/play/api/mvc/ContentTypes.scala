@@ -264,7 +264,7 @@ trait BodyParsers {
      * parsers.text.maxLength = 512k
      * }}}
      */
-    lazy val DEFAULT_MAX_TEXT_LENGTH: Int = Play.maybeApplication.flatMap { app =>
+    def DEFAULT_MAX_TEXT_LENGTH: Int = Play.maybeApplication.flatMap { app =>
       app.configuration.getBytes("parsers.text.maxLength").map(_.toInt)
     }.getOrElse(1024 * 100)
 
