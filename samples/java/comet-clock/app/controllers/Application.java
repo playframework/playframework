@@ -85,7 +85,8 @@ public class Application extends Controller {
             if("TICK".equals(message)) {
                 
                 // Send the current time to all comet sockets
-                for(Comet cometSocket: sockets) {
+                List<Comet> shallowCopy = new ArrayList<Comet>(sockets); //prevent ConcurrentModificationException
+                for(Comet cometSocket: shallowCopy) {
                     cometSocket.sendMessage(dateFormat.format(new Date()));
                 }
                 
