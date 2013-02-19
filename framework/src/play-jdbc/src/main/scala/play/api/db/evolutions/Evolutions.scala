@@ -182,15 +182,15 @@ object Evolutions {
       case NonFatal(_) => try {
         execute(
           """
-                    create table play_evolutions (
-                        id int not null primary key, hash varchar(255) not null, 
-                        applied_at timestamp not null, 
-                        apply_script text, 
-                        revert_script text, 
-                        state varchar(255), 
-                        last_problem text
-                    )
-                """)
+              create table play_evolutions (
+                  id int not null primary key, hash varchar(255) not null, 
+                  applied_at timestamp not null, 
+                  apply_script text, 
+                  revert_script text, 
+                  state varchar(255), 
+                  last_problem text
+              )
+          """)
       } catch { case NonFatal(ex) => Logger.warn("play_evolutions table already existed") }
     } finally {
       connection.close()
@@ -303,19 +303,23 @@ object Evolutions {
    */
   def evolutionScript(api: DBApi, path: File, applicationClassloader: ClassLoader, db: String): Seq[Product with Serializable with Script] = {
     val application = applicationEvolutions(path, applicationClassloader, db)
-    val database = databaseEvolutions(api, db)
 
-    val (nonConflictingDowns, dRest) = database.span(e => !application.headOption.exists(e.revision <= _.revision))
-    val (nonConflictingUps, uRest) = application.span(e => !database.headOption.exists(_.revision >= e.revision))
+    Option(application).filterNot(_.isEmpty).map {
+      case application =>
+        val database = databaseEvolutions(api, db)
 
-    val (conflictingDowns, conflictingUps) = dRest.zip(uRest).takeWhile {
-      case (down, up) => down.hash != up.hash
-    }.unzip
+        val (nonConflictingDowns, dRest) = database.span(e => !application.headOption.exists(e.revision <= _.revision))
+        val (nonConflictingUps, uRest) = application.span(e => !database.headOption.exists(_.revision >= e.revision))
 
-    val ups = (nonConflictingUps ++ conflictingUps).reverse.map(e => UpScript(e, e.sql_up))
-    val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e, e.sql_down))
+        val (conflictingDowns, conflictingUps) = dRest.zip(uRest).takeWhile {
+          case (down, up) => down.hash != up.hash
+        }.unzip
 
-    downs ++ ups
+        val ups = (nonConflictingUps ++ conflictingUps).reverse.map(e => UpScript(e, e.sql_up))
+        val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e, e.sql_down))
+
+        downs ++ ups
+    }.getOrElse(Nil)
   }
 
   /**
@@ -333,8 +337,8 @@ object Evolutions {
 
       Collections.unfoldLeft(executeQuery(
         """
-                    select id, hash, apply_script, revert_script from play_evolutions order by id
-                """)) { rs =>
+            select id, hash, apply_script, revert_script from play_evolutions order by id
+        """)) { rs =>
         rs.next match {
           case false => None
           case true => {
