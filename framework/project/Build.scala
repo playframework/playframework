@@ -15,9 +15,8 @@ object PlayBuild extends Build {
     lazy val SbtLinkProject = Project(
         "SBT-link",
         file("src/sbt-link"),
-        settings = buildSettingsWithMIMA ++ Seq(
+        settings = buildSettings ++ Seq(
             autoScalaLibrary := false,
-            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
             libraryDependencies := link,
             publishTo := Some(playRepository),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
@@ -46,10 +45,9 @@ object PlayBuild extends Build {
     lazy val RoutesCompilerProject = Project(
         "Routes-Compiler",
         file("src/routes-compiler"),
-        settings = buildSettingsWithMIMA ++ Seq(
+        settings = buildSettings ++ Seq(
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            previousArtifact := Some("play" % {"routes-compiler_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := routersCompilerDependencies,
             publishArtifact in packageDoc := false,
@@ -62,10 +60,9 @@ object PlayBuild extends Build {
     lazy val TemplatesCompilerProject = Project(
         "Templates-Compiler",
         file("src/templates-compiler"),
-        settings = buildSettingsWithMIMA ++ Seq(
+        settings = buildSettings ++ Seq(
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            previousArtifact := Some("play" % {"templates-compiler_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := templatesCompilerDependencies,
             publishArtifact in packageDoc := false,
@@ -106,7 +103,7 @@ object PlayBuild extends Build {
         file("src/play-exceptions"),
         settings = buildSettingsWithMIMA ++ Seq(
             autoScalaLibrary := false,
-            previousArtifact := Some("play" % {"play-exceptions"+previousScalaVersion} % previousVersion),
+            previousArtifact := Some("play" % "play-exceptions" % previousVersion),
             publishTo := Some(playRepository),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
@@ -207,7 +204,7 @@ object PlayBuild extends Build {
         "Play-Java-JPA",
         file("src/play-java-jpa"),
         settings = buildSettingsWithMIMA ++ Seq(
-            previousArtifact := Some("play" % {"play-java-jpa"+previousScalaVersion} % previousVersion),
+            previousArtifact := Some("play" % {"play-java-jpa_"+previousScalaVersion} % previousVersion),
             libraryDependencies := jpaDeps,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -297,7 +294,7 @@ object PlayBuild extends Build {
         "Filters-Helpers",
         file("src/play-filters-helpers"),
         settings = buildSettingsWithMIMA ++ Seq(
-            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
+            previousArtifact := Some("play" % {"filters-helpers_"+previousScalaVersion} % previousVersion),
             libraryDependencies := runtime,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
@@ -351,8 +348,8 @@ object PlayBuild extends Build {
         val buildOrganization = "play"
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
         val buildWithDoc      = Option(System.getProperty("generate.doc")).isDefined
-        val previousVersion   = "2.0.3"
-        val previousScalaVersion = "2.9.1"
+        val previousVersion   = "2.1.0"
+        val previousScalaVersion = "2.10"
         val buildScalaVersion = "2.10.0"
         val buildScalaVersionForSbt = "2.9.2"
         val buildSbtVersion   = "0.12.2"
@@ -364,7 +361,6 @@ object PlayBuild extends Build {
             version             := buildVersion,
             scalaVersion        := buildScalaVersion,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersion),
-            logManager          <<= extraLoggers(PlayLogManager.default),
             ivyLoggingLevel     := UpdateLogging.DownloadOnly
         )
         val buildSettingsWithMIMA = buildSettings ++ mimaDefaultSettings
