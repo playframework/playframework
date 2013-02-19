@@ -3,7 +3,7 @@
 > Please note this documentation was initially published as an article by Pascal Voitot ([@mandubian](http://www.github.com/mandubian)) on [mandubian.com](http://mandubian.com/2012/11/11/JSON-inception/) 
 
 
-> **This feature is still experimental even if working.**
+> **This feature is still experimental because Scala Macros are still experimental in Scala 2.10.0. If you prefer not using an experimental feature from Scala, please use hand-written Reads/Writes/Format which are strictly equivalent.**
 
 ## <a name="wtf-inception-boring">Writing a default case class Reads/Writes/Format is so boring!</a>
 
@@ -16,9 +16,9 @@ import play.api.libs.functional.syntax._
 case class Person(name: String, age: Int, lovesChocolate: Boolean)
 
 implicit val personReads = (
-	(__ \ 'name).read[String] and
-	(__ \ 'age).read[Int] and
-	(__ \ 'lovesChocolate).read[Boolean]
+  (__ \ 'name).read[String] and
+  (__ \ 'age).read[Int] and
+  (__ \ 'lovesChocolate).read[Boolean]
 )(Person)
 ```
 
@@ -74,14 +74,17 @@ Questions you may ask immediately:
 As explained just before:
 
 ```
+import play.api.libs.json._
+// please note we don't import functional.syntax._ as it is managed by the macro itself
+
 implicit val personReads = Json.reads[Person]
 
 // IS STRICTLY EQUIVALENT TO writing
 
 implicit val personReads = (
-	(__ \ 'name).read[String] and
-	(__ \ 'age).read[Int] and
-	(__ \ 'lovesChocolate).read[Boolean]
+  (__ \ 'name).read[String] and
+  (__ \ 'age).read[Int] and
+  (__ \ 'lovesChocolate).read[Boolean]
 )(Person)
 ```	
 
@@ -117,9 +120,9 @@ So `Json.reads[Person]` is compiled and replaced in the compile AST by:
 
 ```
 (
-	(__ \ 'name).read[String] and
-	(__ \ 'age).read[Int] and
-	(__ \ 'lovesChocolate).read[Boolean]
+  (__ \ 'name).read[String] and
+  (__ \ 'age).read[Int] and
+  (__ \ 'lovesChocolate).read[Boolean]
 )(Person)
 ```
 
@@ -176,7 +179,7 @@ Great power means greater responsability so it's better to discuss all together 
 <br/>
 # <a name="writes-format">Writes[T] & Format[T]</a>
 
->Please remark that JSON inception just works for case class having `unapply/apply` functions.
+>Please remark that JSON inception just works for structures having `unapply/apply` functions with corresponding input/output types.
 
 Naturally, you can also _incept_ `Writes[T]`and `Format[T]`.
 
@@ -184,7 +187,6 @@ Naturally, you can also _incept_ `Writes[T]`and `Format[T]`.
 
 ```
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
  
 implicit val personWrites = Json.writes[Person]
 ```
@@ -193,9 +195,43 @@ implicit val personWrites = Json.writes[Person]
 
 ```
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 
 implicit val personWrites = Json.format[Person]
 ```
+
+## <a name="cando">Special patterns</a>
+
+- **You can define your Reads/Writes in your companion object**
+This is useful because then the implicit Reads/Writes is implicitly infered as soon as you manipulate an instance of your class.
+
+```
+import play.api.libs.json._
+
+case class Person(name: String, age: Int)
+
+object Person{
+  implicit val personFmt = Json.format[Person]
+}
+```
+
+- **You can now define Reads/Writes for single-field case class** (known limitation until 2.1-RC2)
+
+```
+import play.api.libs.json._
+
+case class Person(names: List[String])
+
+object Person{
+  implicit val personFmt = Json.format[Person]
+}
+```
+
+
+## <a name="limitations">Known limitations</a>
+
+- **Don't override apply function in companion object** because then the Macro will have several apply functions and won't choose.
+- **Json Macros only work when apply and  unapply have corresponding input/output types**: This is naturally the case for case classes. But if you want to the same with a trait, you must implement the same apply/unapply you would have in a case class.
+- **Json Macros are known to accept Option/Seq/List/Set & Map[String, _]**. For other generic types, test and if not working, use traditional way of writing Reads/Writes manually.
+
 
 > **Next:** [[Handling and serving JSON requests | ScalaJsonRequests]]

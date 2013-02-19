@@ -29,10 +29,51 @@ object Json {
   /**
    * Convert a JsValue to its string representation.
    *
+   * {{{
+   * scala> Json.stringify(Json.obj(
+   *   "field1" -> Json.obj(
+   *     "field11" -> "value11", 
+   *     "field12" -> Json.arr("alpha", 123L)
+   *   )
+   * ))
+   * res0: String = {"field1":{"field11":"value11","field12":["alpha",123]}}
+   * 
+   * scala> Json.stringify(res0)
+   * res1: String = {"field1":{"field11":"value11","field12":["alpha",123]}}
+   * }}}
+   *   
    * @param json the JsValue to convert
    * @return a String with the json representation
    */
   def stringify(json: JsValue): String = JacksonJson.generateFromJsValue(json)
+
+  /**
+   * Convert a JsValue to its pretty string representation using default Jackson
+   * pretty printer (line feeds after each fields and 2-spaces indentation).
+   *
+   * {{{
+   * scala> Json.stringify(Json.obj(
+   *   "field1" -> Json.obj(
+   *     "field11" -> "value11", 
+   *     "field12" -> Json.arr("alpha", 123L)
+   *   )
+   * ))
+   * res0: String = {"field1":{"field11":"value11","field12":["alpha",123]}}
+   * 
+   * scala> Json.prettyPrint(res0)
+   * res1: String = 
+   * {
+   *   "field1" : {
+   *     "field11" : "value11",
+   *     "field12" : [ "alpha", 123 ]
+   *   }
+   * }
+   * }}}
+   *
+   * @param json the JsValue to convert
+   * @return a String with the json representation
+   */
+  def prettyPrint(json: JsValue): String = JacksonJson.prettyPrint(json)
 
   /**
    * Provided a Reads implicit for its type is available, convert any object into a JsValue.
