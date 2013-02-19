@@ -95,6 +95,8 @@ trait PlaySettings {
 
     distExcludes := Seq.empty,
 
+    javacOptions in (Compile, doc) := List("-encoding", "utf8"),
+
     libraryDependencies <+= (playPlugin) { isPlugin =>
       val d = "play" %% "play" % play.core.PlayVersion.current
       if(isPlugin)
