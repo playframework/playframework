@@ -7,16 +7,21 @@
 - `Reads[T]` / `Writes[T]` / `Format[T]` combinators based on JsPath and simple logic operators
 
 ```	
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
 val customReads: Reads[(String, Float, List[String])] = 
-	(JsPath \ "key1").read[String](email keepAnd minLength(5)) and 
-	(JsPath \ "key2").read[Float](min(45)) and
-	(JsPath \ "key3").read[List[String]] 
-	tupled
+  (JsPath \ "key1").read[String](email keepAnd minLength(5)) and 
+  (JsPath \ "key2").read[Float](min(45)) and
+  (JsPath \ "key3").read[List[String]] 
+  tupled
 ```
 
 - `Reads[T]` API now validates JSON by returning a monadic `JsResult[T]` being a `JsSuccess[T]` or a `JsError` aggregating all validation errors 
 
 ```
+import play.api.libs.json.Json
+
 val js = Json.obj(
   "key1" -> "alpha", 
   "key2" -> 123.345F, 
@@ -51,6 +56,8 @@ All following examples use JSON defined in previous paragraph.
 ### Building JsPath
 
 ```
+import play.api.libs.json._
+
 // Simple path
 JsPath \ "key1"
 
@@ -73,6 +80,9 @@ _You can use it or not. This is just a visual facility because with it, you imme
 You can write:
 
 ```
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
 // Simple path
 __ \ "key1"
 
@@ -140,6 +150,8 @@ As you can see, this function retrieves a `List[JsValue]`
 You can simply use it like:
 
 ```
+import play.api.libs.json._
+
 // build a JsPath
 scala> (__ \ "key1")(js) 
 res12: List[play.api.libs.json.JsValue] = List("value1")  // actually this is JsString("value1")
@@ -340,6 +352,8 @@ val res: JsResult[Creature] = js.validate[Creature])
 So when manipulating a `JsResult`, you don't access the value directly and it's preferable to use `map/flatmap/fold` to modify the value.
 
 ```
+import play.api.libs.json._
+
 val res: JsResult[Creature] = js.validate[Creature]
 
 // managing the success/error and potentially return something
@@ -390,6 +404,8 @@ You could imagine simply compose Reads[T] with flatMap :
 **Following code is WRONG**
 
 ```
+import play.api.libs.json._
+
 // DO NOT USE, WRONG CODE
 implicit val creatureReads = new Reads[Creature] {
   def reads(js: JsValue): JsResult[Creature] = {
@@ -429,6 +445,8 @@ Reads[String] AND Reads[Boolean] AND Reads[Float]
 ### Minimal import to work with combinators
 
 ```
+// if you need Json structures in your scope
+import play.api.libs.json._
 // IMPORTANT import this to have the required tools in your scope
 import play.api.libs.functional.syntax._
 ```
@@ -439,6 +457,7 @@ Go directly to the example as practice is often the best :
 
 ```
 // IMPORTANT import this to have the required tools in your scope
+import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 implicit val creatureReads = (
@@ -628,6 +647,9 @@ Nothing quite complicated to understand: we need to read an option and `readNull
 Now we can use this `Reads[Creature]`
 
 ```
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
 val gizmojs = Json.obj( 
   "name" -> "gremlins", 
   "isDead" -> false, 
@@ -664,6 +686,54 @@ val errorjs = Json.obj(
 scala> errorjs.validate[Creature] 
 res0: play.api.libs.json.JsResult[Creature] = JsError(List((/favorites/string,List(ValidationError(validate.error.unexpected.value,WrappedArray(ni)))), (/email,List(ValidationError(validate.error.email,WrappedArray()), ValidationError(validate.error.minlength,WrappedArray(5)))), (/favorites/number,List(ValidationError(validate.error.max,WrappedArray(86)), ValidationError(validate.error.min,WrappedArray(875))))))
 ```
+
+## Reads[A] other features
+
+### `(Reads[A] and Reads[B]).tupled: Reads[(A, B)]` 
+This useful to create `Reads[TupleX]`
+
+```
+(
+  (__ \ 'field1).read[String] and 
+  (__ \ 'field2).read[Int]
+).tupled : Reads[(String, Int)]
+```
+
+It also works with JsArray and indexes
+
+```
+(
+  (__(0)).read[String] and 
+  (__(1)).read[Int]
+).tupled : Reads[(String, Int)]
+```
+
+
+### `(Reads[A1 <: A] and Reads[A2 <: A]).reduce(implicit reducer: Reducer[A, B]): Reads[B]` 
+Useful to read several parts of a JSON and then aggregate them.
+This one requires an implicit Reducer/Monoid.
+We provide the ones for `JsObject` and `JsArray`.
+
+Here are a few examples using Json transformers presented in next paragraph:
+
+#### **Reduce a JsObject (copies branches and aggregates them in a JsObject)**
+
+```
+(
+  (__ \ 'field1).json.pickBranch[JsString] and 
+  (__ \ 'field2).json.pickBranch[JsNumber]
+).reduce : Reads[JsObject]
+```
+
+#### **Reduce a JsArray (copies leaf values and aggregates them in a JsArray)**
+
+```
+(
+  (__ \ 'field1).json.pick[JsString] and 
+  (__ \ 'field2).json.pick[JsNumber]
+).reduce : Reads[JsArray]
+```
+
 
 <br/>
 <br/>
@@ -846,12 +916,14 @@ Here are the few things to explain:
 
 ##### `(__ \ "favorites").write(…)`
 
-    (__ \ "string").write[String] and
-  	(__ \ "number").write[Int]
-  	tupled
-
+```
+  (__ \ "string").write[String] and
+  (__ \ "number").write[Int]
+  tupled
+```
 - Remember that `(__ \ "string").write[String](…) and (__ \ "number").write[Int](…) => Builder[Writes[String ~ Int]]`  
-- What means `tupled` ? as for `Reads[T]`, it _"tuplizes"_ your Builder: `Builder[Writes[A ~ B]].tupled => Writes[(A, B)]` 
+- What means `tupled` ? as for `Reads[T]`, it _"tuplizes"_ your Builder: `Builder[Writes[A ~ B]].tupled => Writes[(A, B)]`
+
 <br/>
 ##### `(__ \ "friend").lazyWrite(Writes.traversableWrites[Creature](creatureWrites))`
 
@@ -862,6 +934,62 @@ It's the symmetric code for `lazyRead` to treat recursive field on `Creature` cl
 
 > FYI, you may wonder why `Writes.traversableWrites[Creature]: Writes[Traversable[Creature]]` can replace `Writes[List[Creature]]`?  
 > This is because `Writes[-T]` is contravariant meaning: if you can write a `Traversable[Creature]`, you can write a `List[Creature]` as `List` inherits `Traversable` (relation of inheritance is reverted by contravariance).
+
+## Writes[A] other features
+
+### `Writes[A].contramap( B => A ): Writes[B]` 
+
+`Writes[A]` is a contravariant functor that can be _contramapped_.
+So you must give a function `B => A` to transform into a `Writes[B]`.
+
+For example:
+
+```
+scala> case class Person(name: String)
+defined class Person
+
+scala> __.write[String].contramap( (p: Person) => p.name )
+res5: play.api.libs.json.OWrites[Person] = play.api.libs.json.OWrites$$anon$2@61df9fa8
+```
+
+### `(Writes[A] and Writes[B]).tupled: Writes[(A, B)]` 
+This useful to create `Writes[TupleX]`
+
+```
+(
+  (__ \ 'field1).write[String] and 
+  (__ \ 'field2).write[Int]
+).tupled : Writes[(String, Int)]
+```
+
+**Known limitation** please note that the following doesn't work: it compiles but it will break at runtime as Writes combinators only know how to generate JsObject but not JsArray.
+
+```
+// BE CAREFUL: IT COMPILES BUT BREAKS AT RUNTIME
+(
+  (__(0)).write[String] and 
+  (__(1)).write[Int]
+).tupled : Writes[(String, Int)]
+```
+
+
+### `(Writes[A1 <: A] and Writes[A2 <: A]).join: Writes[A]` 
+Useful to write the same value in several branches.
+
+For example:
+
+```
+// Please note you must give the type of resulting Writes
+scala> val jsWrites: Writes[JsString] = (
+     |   (__ \ 'field1).write[JsString] and 
+     |   (__ \ 'field2).write[JsString]
+     | ).join
+jsWrites: play.api.libs.json.Writes[play.api.libs.json.JsString] = play.api.libs.json.OWrites$$anon$2@732db69a
+
+scala> jsWrites.writes(JsString("toto"))
+res3: play.api.libs.json.JsObject = {"field1":"toto","field2":"toto"}
+```
+
 
 ## <a name="format">What about combinators for Format?</a>
 
@@ -883,6 +1011,7 @@ case class Creature(
 Here is how you write the `Reads[Creature]`:
 
 ```
+import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 val creatureReads = (
@@ -897,6 +1026,7 @@ val creatureReads = (
 Here is how you write the `Writes[Creature]`:
 
 ```
+import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 val creatureWrites = (
@@ -1050,6 +1180,9 @@ Json.fromJson[Creature](Json.toJson(creature)) != creature
 Hopefully, as done previously, we can build a `Format[T]` from a `Reads[T]` and a `Writes[T]`.
 
 ```
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
 implicit val creatureFormat: Format[Creature] = Format(creatureReads, creatureWrites)
 
 // Testing Serialization of Creature to Json
@@ -1090,6 +1223,23 @@ val zombie2 = Creature("zombie", true, 100.0F, "shaun@dead.com", ("n", 2), List(
 
 assert(Json.fromJson[Creature](zombiejs).get == zombie2)
 
+```
+
+## Format[A] other features
+
+### `Format[A].inmap( A => B, B => A ): Format[B]` 
+
+`Format[A]` is both covariant and contravariant (invariant) functor.
+So you must give both functions `A => B` and `B => A` to transform into a `Format[B]`.
+
+For example:
+
+```
+scala> case class Person(name: String)
+defined class Person
+
+scala> __.format[String].inmap( (name: String) => Person(name), (p: Person) => p.name )
+res6: play.api.libs.json.OFormat[Person] = play.api.libs.json.OFormat$$anon$1@2dc083c1
 ```
 
 > **Next:** [[JSON Transformers | ScalaJsonTransformers]]

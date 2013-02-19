@@ -746,6 +746,26 @@ object JsonValidSpec extends Specification {
       Json.toJson(User("john.doe@blibli.com", None)) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com"))
       Json.toJson(User("john.doe@blibli.com", Some("12345678"))) must beEqualTo(Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678"))
     }
+
+    "join" in {
+      val joinWrites = (
+        (__ \ 'alpha).write[JsString] and
+        (__ \ 'beta).write[JsValue]
+      ).join
+
+      joinWrites.writes(JsString("toto")) must beEqualTo(Json.obj("alpha" -> "toto", "beta" -> "toto"))
+
+
+      val joinWrites2 = (
+        (__ \ 'alpha).write[JsString] and
+        (__ \ 'beta).write[JsValue] and
+        (__ \ 'gamma).write[JsString] and
+        (__ \ 'delta).write[JsValue]
+      ).join
+
+      joinWrites2.writes(JsString("toto")) must beEqualTo(Json.obj("alpha" -> "toto", "beta" -> "toto", "gamma" -> "toto", "delta" -> "toto"))
+
+    }
   }
 
 
