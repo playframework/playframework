@@ -82,3 +82,5 @@ RequestHeader => Array[Byte] ==> Result
 ```
 
 Which reads as the following: Take the `RequestHeader` then take chunks of `Array[Byte]` and return a response. A response consists of `ResponseHeaders` and a body which is chunks of values convertible to `Array[Byte]` to be written to the socket represented in the `Enumerator[E]` type.
+
+> **Next:** [[HTTP Filters | ScalaHttpFilters]]

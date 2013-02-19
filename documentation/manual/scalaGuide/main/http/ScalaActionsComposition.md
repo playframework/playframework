@@ -248,4 +248,6 @@ def Authenticated(f: AuthenticatedRequest[AnyContent] => Result): Action[AnyCont
 }
 ```
 
+> Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
+
 > **Next:** [[Content negotiation | ScalaContentNegotiation]]
