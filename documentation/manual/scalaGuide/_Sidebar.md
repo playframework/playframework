@@ -18,7 +18,8 @@
 ### Advanced topics
 
 - [[Handling data streams reactively | Iteratees]]
-- [[Play 2 HTTP API | HttpApi]]
+- [[HTTP API | HttpApi]]
+- [[HTTP Filters | ScalaHttpFilters]]
 
 ### Tutorials
 
