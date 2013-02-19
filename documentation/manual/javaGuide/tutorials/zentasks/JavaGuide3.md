@@ -249,7 +249,7 @@ And now refresh the page to make sure it all works.  We should see the list of p
 
 ## Adding some style
 
-Now the first version of the dashboard is almost done, but it's not very pretty.  We'll add some style to make it shinier.  As you have seen, the main template file `mail.scala.html` includes the `public/stylesheets/main.css`.  The first thing to do is delete this stylesheet, because we are not going to use it.  Rather, we are going to implement our stylesheets using LESS.
+Now the first version of the dashboard is almost done, but it's not very pretty.  We'll add some style to make it shinier.  As you have seen, the main template file `main.scala.html` includes the `public/stylesheets/main.css`.  The first thing to do is delete this stylesheet, because we are not going to use it.  Rather, we are going to implement our stylesheets using LESS.
 
 > There is nothing stopping you from using plain CSS for your stylesheets, but Play framework comes in built with LESS support, which allows you to define stylesheets in a more dynamic fashion, using varaibles, mixins, functions etc.
 
