@@ -318,14 +318,6 @@ object RoutesCompiler {
    */
   private def check(file: java.io.File, routes: List[Route]) {
 
-    if(routes.isEmpty) {
-      throw RoutesCompilationError(
-        file,
-        "Empty routes file",
-        None,
-        None)
-    }
-
     routes.foreach { route =>
 
       if (route.call.packageName.isEmpty) {
@@ -945,7 +937,7 @@ object RoutesCompiler {
         )
     }.mkString("\n") +
       """|
-         |def documentation = List(%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e match {
+         |def documentation = List(%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
          |  case r @ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
          |  case l => s ++ l.asInstanceOf[List[(String,String,String)]] 
          |}}
