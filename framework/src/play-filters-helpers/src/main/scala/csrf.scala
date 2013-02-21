@@ -88,14 +88,14 @@ package play.filters.csrf {
        * Add Token to the Response session if necessary
        */
        def addSessionToken: PlainResult = {
-         if(req.session.get(TOKEN_NAME).isDefined){
+         val session = Cookies(r.header.headers.get("Set-Cookie"))
+           .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+           .getOrElse(req.session.data)
+         if(session.get(TOKEN_NAME).isDefined){
            logger.trace("[CSRF] session already contains token")
            r
          }
          else {
-           val session = Cookies(r.header.headers.get("Set-Cookie"))
-             .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
-             .getOrElse(Map.empty)
            val newSession = if(session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
            logger.trace("[CSRF] Adding session token to response")
            logger.trace("[CSRF] response was: " + r)
