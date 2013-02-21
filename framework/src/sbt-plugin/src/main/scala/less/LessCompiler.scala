@@ -111,7 +111,7 @@ object LessCompiler {
 
     (source: File) => {
       val result = Context.call(null, compilerFunction, scope, scope, Array(source)).asInstanceOf[Scriptable]
-      val css = ScriptableObject.getProperty(result, "css").asInstanceOf[String]
+      val css = ScriptableObject.getProperty(result, "css").toString
       val dependencies = ScriptableObject.getProperty(result, "dependencies").asInstanceOf[NativeArray]
 
       css -> (0 until dependencies.getLength.toInt).map(ScriptableObject.getProperty(dependencies, _) match {
