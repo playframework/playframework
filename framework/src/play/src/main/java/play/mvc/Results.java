@@ -901,7 +901,7 @@ public class Results {
             f = new scala.runtime.AbstractFunction1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
                     final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
-                    play.api.libs.iteratee.PushEnumerator<A> enumerator = play.core.j.JavaResults.chunked(
+                    Tuple<play.api.libs.iteratee.Enumerator<A>, play.api.libs.iteratee.Concurrent.Channel<A>> t = play.core.j.JavaResults.chunked(
                             new scala.runtime.AbstractFunction0<scala.runtime.BoxedUnit>() {
                                 public scala.runtime.BoxedUnit apply() {
                                     for(Callback0 callback: disconnectedCallbacks) {
@@ -915,8 +915,8 @@ public class Results {
                                 }
                             }
                             );
-                    enumerator.apply(iteratee);
-                    Chunks.Out<A> chunked = new Chunks.Out<A>(enumerator, disconnectedCallbacks);
+                    t._1.apply(iteratee);
+                    Chunks.Out<A> chunked = new Chunks.Out<A>(t._2, disconnectedCallbacks);
                     self.onReady(chunked);
                     return null;
                 }
@@ -936,10 +936,10 @@ public class Results {
         public static class Out<A> {
 
             final List<Callback0> disconnectedCallbacks;
-            final play.api.libs.iteratee.PushEnumerator<A>  enumerator;
+            final play.api.libs.iteratee.Concurrent.Channel<A> channel;
 
-            public Out(play.api.libs.iteratee.PushEnumerator<A> enumerator, List<Callback0> disconnectedCallbacks) {
-                this.enumerator = enumerator;
+            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, List<Callback0> disconnectedCallbacks) {
+                this.channel = channel;
                 this.disconnectedCallbacks = disconnectedCallbacks;
             }
 
@@ -947,7 +947,7 @@ public class Results {
              * Write a Chunk.
              */
             public void write(A chunk) {
-                enumerator.push(chunk);
+                channel.push(chunk);
             }
 
             /**
@@ -961,7 +961,7 @@ public class Results {
              * Closes the stream.
              */
             public void close() {
-                enumerator.close();
+                channel.eofAndEnd();
             }
 
         }

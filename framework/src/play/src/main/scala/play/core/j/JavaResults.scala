@@ -5,6 +5,7 @@ import scala.language.reflectiveCalls
 import play.api.mvc._
 import play.api.http._
 import play.api.libs.iteratee._
+import play.api.libs.iteratee.Concurrent._
 
 import scala.collection.JavaConverters._
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
@@ -24,7 +25,11 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
   def async(p: scala.concurrent.Future[Result]) = AsyncResult(p)
-  def chunked[A](onDisconnected: () => Unit) = play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
+  def chunked[A](onDisconnected: () => Unit): play.libs.F.Tuple[Enumerator[A], Channel[A]] = {
+    val (enumerator, channel) = Concurrent.broadcast[A]
+    play.libs.F.Tuple(enumerator.onDoneEnumerating(onDisconnected), channel)
+  }
+  //play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
 }
@@ -72,6 +77,7 @@ object JavaResultExtractor {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.internalContext).value1.get
     }
+    case r: PlainResult => Array.empty[Byte]
   }
 
   class ResultWrapper(r: play.api.mvc.Result) extends play.mvc.Result {

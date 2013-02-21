@@ -3,6 +3,7 @@ package play.api.libs.iteratee
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Try, Success, Failure }
 import play.api.libs.iteratee.internal.defaultExecutionContext
+import scala.language.reflectiveCalls
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
@@ -589,7 +590,7 @@ object Enumerator {
    * @param chunkSize The size of chunks to read from the stream.
    */
   def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
-    fromCallback(() => {
+    generateM({
       val buffer = new Array[Byte](chunkSize)
       val chunk = input.read(buffer) match {
         case -1 => None
@@ -598,8 +599,7 @@ object Enumerator {
           System.arraycopy(buffer, 0, input, 0, read)
           Some(input)
       }
-      Future.successful(chunk)
-    }, input.close)
+      Future.successful(chunk)}).onDoneEnumerating(input.close)
   }
 
   /**

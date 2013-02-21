@@ -3,6 +3,7 @@ package play.api.libs.iteratee
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.reflectiveCalls
 
 import org.specs2.mutable._
 

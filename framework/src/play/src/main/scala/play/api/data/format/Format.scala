@@ -129,7 +129,7 @@ object Formats {
   */
   def bigDecimalFormat(precision: Option[(Int, Int)]): Formatter[BigDecimal] = new Formatter[BigDecimal] {
 
-    override val format = Some("format.real", Nil)
+    override val format = Some(("format.real", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
       Formats.stringFormat.bind(key, data).right.flatMap { s =>

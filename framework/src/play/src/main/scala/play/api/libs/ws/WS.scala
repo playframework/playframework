@@ -477,7 +477,6 @@ object WS {
       }
       request
     }
-
   }
 }
 
