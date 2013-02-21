@@ -31,7 +31,7 @@ public class JPA {
         }
 
         return em;
-    } 
+    }
 
     /**
      * Get the default EntityManager for this thread.
@@ -56,7 +56,7 @@ public class JPA {
      *
      * @param block Block of code to execute.
      */
-    public static <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
+    public static <T> T withTransaction(play.libs.F.Function0<T> block) throws Exception {
         return withTransaction("default", false, block);
     }
 
@@ -68,12 +68,12 @@ public class JPA {
     public static void withTransaction(final play.libs.F.Callback0 block) {
         try {
             withTransaction("default", false, new play.libs.F.Function0<Void>() {
-                public Void apply() throws Throwable {
+                public Void apply() throws Exception {
                     block.invoke();
                     return null;
                 }
             });
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }
@@ -85,7 +85,7 @@ public class JPA {
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute.
      */
-    public static <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
+    public static <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Exception {
         EntityManager em = null;
         EntityTransaction tx = null;
         try {
@@ -110,9 +110,9 @@ public class JPA {
 
             return result;
 
-        } catch(Throwable t) {
+        } catch(Exception t) {
             if(tx != null) {
-                try { tx.rollback(); } catch(Throwable e) {}
+                try { tx.rollback(); } catch(Exception e) {}
             }
             throw t;
         } finally {

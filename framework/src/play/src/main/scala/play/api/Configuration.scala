@@ -59,7 +59,7 @@ object Configuration {
       if (currentMode == Mode.Prod) Configuration(dontAllowMissingConfig) else Configuration(loadDev(appPath, devSettings))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
-      case e : Throwable => throw e
+      case e : Exception => throw e
     }
   }
 

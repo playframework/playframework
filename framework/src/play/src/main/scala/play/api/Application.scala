@@ -54,7 +54,7 @@ trait WithDefaultGlobal {
       case e: PlayException => throw e
       case e: ThreadDeath => throw e
       case e: VirtualMachineError => throw e
-      case e: Throwable => throw new PlayException(
+      case e: Exception => throw new PlayException(
         "Cannot init the Global object",
         e.getMessage,
         e
@@ -140,7 +140,7 @@ trait WithDefaultPlugins {
             case e: PlayException => throw e
             case e: VirtualMachineError => throw e
             case e: ThreadDeath => throw e
-            case e: Throwable => throw new PlayException(
+            case e: Exception => throw new PlayException(
               "Cannot load plugin",
               "Plugin [" + className + "] cannot been instantiated.",
               e)
@@ -153,7 +153,7 @@ trait WithDefaultPlugins {
         case e: PlayException => throw e
         case e: ThreadDeath => throw e
         case e: VirtualMachineError => throw e
-        case e: Throwable => throw new PlayException(
+        case e: Exception => throw new PlayException(
           "Cannot load plugin",
           "Plugin [" + className + "] cannot been instantiated.",
           e)

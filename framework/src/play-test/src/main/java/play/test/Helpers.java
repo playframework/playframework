@@ -272,7 +272,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return new String(contentAsBytes(result), charset);
         } catch(RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }
@@ -288,7 +288,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return routeAndCall((Class<? extends play.core.Router.Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest);
         } catch(RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }
@@ -308,7 +308,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             }
         } catch(RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }
@@ -426,7 +426,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             startedServer = server;
             browser = testBrowser(webDriver);
             block.invoke(browser);
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         } finally {
             if(browser != null) {
@@ -467,7 +467,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return new TestBrowser(webDriver, "http://localhost:" + port);
         } catch(RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }

@@ -123,7 +123,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     try {
       server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
     } catch {
-      case t: Throwable =>
+      case t: Exception =>
         t.printStackTrace
         throw new RuntimeException(t)
     }

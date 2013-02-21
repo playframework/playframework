@@ -7,7 +7,7 @@ import play.mvc.Http.*;
  * Cache another action.
  */
 public class CachedAction extends Action<Cached> {
-    
+
     public Result call(Context ctx) {
         try {
             String key = configuration.key();
@@ -20,7 +20,7 @@ public class CachedAction extends Action<Cached> {
             return result;
         } catch(RuntimeException e) {
             throw e;
-        } catch(Throwable t) {
+        } catch(Exception t) {
             throw new RuntimeException(t);
         }
     }

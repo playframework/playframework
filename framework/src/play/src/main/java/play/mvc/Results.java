@@ -907,7 +907,7 @@ public class Results {
                                     for(Callback0 callback: disconnectedCallbacks) {
                                         try {
                                             callback.invoke();
-                                        } catch(Throwable e) {
+                                        } catch(Exception e) {
                                             play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
                                         }
                                     }
@@ -1118,7 +1118,7 @@ public class Results {
                 throw new NullPointerException("null content");
             }
             wrappedResult = status.stream(
-                    play.core.j.JavaResults.chunked(content, chunkSize), 
+                    play.core.j.JavaResults.chunked(content, chunkSize),
                     play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
                     );
         }
@@ -1128,7 +1128,7 @@ public class Results {
                 throw new NullPointerException("null content");
             }
             wrappedResult = status.stream(
-                    play.core.j.JavaResults.chunked(content, chunkSize), 
+                    play.core.j.JavaResults.chunked(content, chunkSize),
                     play.core.j.JavaResults.writeBytes()
                     );
         }

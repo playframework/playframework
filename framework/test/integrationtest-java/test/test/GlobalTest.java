@@ -14,7 +14,7 @@ public class GlobalTest {
     public void threadLocalContextShouldBeSet() {
         running(testServer(9001), HTMLUNIT, new F.Callback<TestBrowser>() {
             @Override
-            public void invoke(TestBrowser testBrowser) throws Throwable {
+            public void invoke(TestBrowser testBrowser) throws Exception {
                 testBrowser.goTo("http://localhost:9001/this/path/not/found");
                 Cookie sessionCookie = testBrowser.getCookie(Session$.MODULE$.COOKIE_NAME());
                 assertThat(sessionCookie).isNotNull();

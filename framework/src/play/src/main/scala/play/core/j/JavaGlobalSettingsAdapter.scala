@@ -55,7 +55,7 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
     try {
       Filters(super.doFilter(a), underlying.filters.map(_.newInstance:play.api.mvc.EssentialFilter):_*)
     } catch {
-      case e: Throwable => EssentialAction(req => play.api.libs.iteratee.Done(onError(req, e)))
+      case e: Exception => EssentialAction(req => play.api.libs.iteratee.Done(onError(req, e)))
     }
   }
 
