@@ -1,7 +1,8 @@
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifact
+import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
+import com.typesafe.tools.mima.core.{ProblemFilters, IncompatibleResultTypeProblem}
 
 object PlayBuild extends Build {
 
@@ -124,6 +125,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
             parallelExecution in Test := false,
+            binaryIssueFilters += ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.utils.ProxyDriver.getParentLogger"),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
