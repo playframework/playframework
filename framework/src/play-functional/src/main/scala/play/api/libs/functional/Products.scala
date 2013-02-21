@@ -1,36 +1,13 @@
 package play.api.libs.functional
 
 import scala.language.higherKinds
-import scala.language.implicitConversions
 
-class FunctorOps[M[_],A](ma: M[A])(implicit fu: Functor[M]){
+case class ~[A,B](_1:A,_2:B)
 
-  def fmap[B](f: A => B):M[B] = fu.fmap(ma, f)
+trait FunctionalCanBuild[M[_]]{
 
-}
+  def apply[A,B](ma: M[A], mb: M[B]): M[A ~ B]
 
-class ContravariantFunctorOps[M[_],A](ma:M[A])(implicit fu:ContravariantFunctor[M]){
-
-  def contramap[B](f: B => A):M[B] = fu.contramap(ma, f)
-
-}
-
-class InvariantFunctorOps[M[_],A](ma:M[A])(implicit fu:InvariantFunctor[M]){
-
-  def inmap[B](f: A => B, g: B => A):M[B] = fu.inmap(ma, f, g)
-
-}
-
-class ApplicativeOps[M[_],A](ma:M[A])(implicit a:Applicative[M]){
-
-  def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
-  def andKeep[B](mb: M[B]):M[B] = ~>(mb)
-
-  def <~[B](mb: M[B]):M[A] = a(a(a.pure((a:A) => (_:B) => a), ma),mb)
-  def keepAnd[B](mb: M[B]):M[A] = <~(mb)
-
-  def <~>[B,C](mb: M[B])(implicit witness: <:<[A,B => C]): M[C] = apply(mb)
-  def apply[B,C](mb: M[B])(implicit witness: <:<[A,B => C]): M[C] = a(a.map(ma,witness),mb)
 }
 
 class FunctionalBuilderOps[M[_],A](ma: M[A])(implicit fcb: FunctionalCanBuild[M]){
@@ -42,82 +19,6 @@ class FunctionalBuilderOps[M[_],A](ma: M[A])(implicit fcb: FunctionalCanBuild[M]
 
   def and[B](mb: M[B]): FunctionalBuilder[M]#CanBuild2[A,B] = this.~(mb)
 }
-
-trait Applicative[M[_]]{
-
-  def pure[A](a: A): M[A]
-  def map[A,B](m: M[A], f: A => B): M[B]
-  def apply[A,B](mf: M[A => B], ma: M[A]): M[B]
-
-}
-
-class AlternativeOps[M[_],A](alt1: M[A])(implicit a: Alternative[M]){
-
-  def |[B >: A](alt2: M[B]):M[B] = a.|(alt1,alt2)
-  def or[B >: A](alt2: M[B]):M[B] = |(alt2)
-}
-
-trait Alternative[M[_]]{
-
-  def app: Applicative[M]
-  def |[A,B >: A](alt1: M[A], alt2 : M[B]): M[B]
-  def empty: M[Nothing]
-  //def some[A](m: M[A]): M[List[A]]
-  //def many[A](m: M[A]): M[List[A]]
-
-}
-
-trait FunctionalCanBuild[M[_]]{
-
-  def apply[A,B](ma: M[A], mb: M[B]): M[A ~ B]
-
-}
-
-trait Variant[M[_]]
-
-trait Functor[M[_]] extends Variant[M]{
-
-  def fmap[A,B](m: M[A], f: A => B): M[B]
-
-}
-
-trait InvariantFunctor[M[_]] extends Variant[M]{
-
-  def inmap[A,B](m: M[A], f1: A => B, f2: B => A): M[B]
-
-}
-
-trait ContravariantFunctor[M[_]] extends Variant[M]{
-
-  def contramap[A,B](m: M[A], f1: B => A): M[B]
-
-}
-
-trait Monoid[A] {
-  def append(a1: A, a2: A): A
-  def identity: A
-}
-
-/* A practical variant of monoid act/action/operator (search on wikipedia)
- * - allows to take an element A to create a B
- * - allows a prepend/append a A to a B
- * cf Reducer[JsValue, JsArray]
- */
-trait Reducer[A, B] {
-  def unit(a: A): B
-  def prepend(a: A, b: B): B
-  def append(b: B, a: A): B
-}
-
-object Reducer {
-  def apply[A, B](f: A => B)(implicit m: Monoid[B]) = new Reducer[A, B] {
-    def unit(a: A): B = f(a)
-    def prepend(a: A, b: B) = m.append(unit(a), b)
-    def append(b: B, a: A) = m.append(b, unit(a))
-  }
-}
-
-case class ~[A,B](_1:A,_2:B)
 
 class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
 
@@ -803,48 +704,6 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]){
   class CanBuild22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](m1: M[A1 ~ A2 ~ A3 ~ A4 ~ A5 ~ A6 ~ A7 ~ A8 ~ A9 ~ A10 ~ A11 ~ A12 ~ A13 ~ A14 ~ A15 ~ A16 ~ A17 ~ A18 ~ A19 ~ A20 ~ A21], m2: M[A22]){
   }
 
-}
-package syntax {
-
-  object `package` {
-
-    implicit def toAlternativeOps[M[_],A](a: M[A])(implicit app: Alternative[M]): AlternativeOps[M,A] = new AlternativeOps(a)
-
-    implicit def toApplicativeOps[M[_],A](a: M[A])(implicit app: Applicative[M]): ApplicativeOps[M,A] = new ApplicativeOps(a)
-
-    implicit def toFunctionalBuilderOps[M[_],A](a: M[A])(implicit fcb: FunctionalCanBuild[M]) = new FunctionalBuilderOps[M,A](a)(fcb)
-
-    implicit def functionalCanBuildApplicative[M[_]](implicit app: Applicative[M]): FunctionalCanBuild[M] = new FunctionalCanBuild[M] {
-
-      def apply[A,B](a: M[A], b: M[B]): M[A~B] = app.apply(app.map[A, B => A ~ B](a, a => ((b: B) => new ~(a,b))),b)
-
-    }
-
-    implicit def functorOption: Functor[Option] = new Functor[Option] {
-
-      def fmap[A,B](a:Option[A], f: A => B):Option[B] = a.map(f)
-
-    }
-
-    implicit def applicativeOption: Applicative[Option] = new Applicative[Option]{
-
-      def pure[A](a: A):Option[A] = Some(a)
-
-      def map[A,B](m:Option[A], f: A => B):Option[B] = m.map(f)
-
-      def apply[A,B](mf:Option[A => B], ma: Option[A]):Option[B] = mf.flatMap(f => ma.map(f))
-
-    }
-
-    implicit def toFunctorOps[M[_], A](ma: M[A])(implicit fu: Functor[M]): FunctorOps[M, A] = new FunctorOps(ma)
-    implicit def toContraFunctorOps[M[_], A](ma: M[A])(implicit fu: ContravariantFunctor[M]): ContravariantFunctorOps[M, A] = new ContravariantFunctorOps(ma)
-    implicit def toInvariantFunctorOps[M[_], A](ma: M[A])(implicit fu: InvariantFunctor[M]): InvariantFunctorOps[M, A] = new InvariantFunctorOps(ma)
-
-    def unapply[B, A](f: B => Option[A]) = { b: B => f(b).get }
-
-    def unlift[A, B](f: A => Option[B]): A => B = Function.unlift(f)
-
-  }
 }
 
 
