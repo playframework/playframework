@@ -4,7 +4,7 @@ import scala.annotation._
 
 import play.api.mvc._
 
-import java.net.{ URLEncoder, URLDecoder }
+import java.net.{URI, URLEncoder}
 import java.util.UUID
 import scala.annotation._
 
@@ -459,7 +459,7 @@ object PathBindable {
 
     def bind(key: String, value: String): Either[String, A] = {
       try {
-        Right(parse(URLDecoder.decode(value, codec.charset)))
+        Right(parse(new URI(value).getPath()))
       } catch {
         case e: Exception => Left(error(key, e))
       }

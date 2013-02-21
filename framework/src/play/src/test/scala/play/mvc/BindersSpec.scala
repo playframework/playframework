@@ -48,7 +48,7 @@ object BindersSpec extends Specification {
       subject.bind("key", pathString) must equalTo(Right(pathStringBinded))
     }
     "Fail on unparseable Path string" in {
-      subject.bind("key", pathStringInvalid) must equalTo(Left("Cannot parse parameter key as String: URLDecoder: Incomplete trailing escape (%) pattern"))
+      subject.bind("key", pathStringInvalid) must equalTo(Left("Cannot parse parameter key as String: Malformed escape pair at index 17: /path/to/invalide%2"))
     }
   }
 }
