@@ -1,7 +1,7 @@
 package play.utils
 
 import java.sql._
-import java.util._
+import java.util.logging.Logger
 
 class ProxyDriver(proxied: Driver) extends Driver {
 
@@ -11,6 +11,6 @@ class ProxyDriver(proxied: Driver) extends Driver {
   def getMinorVersion() = proxied.getMinorVersion
   def getPropertyInfo(user: String, properties: java.util.Properties) = proxied.getPropertyInfo(user, properties)
   def jdbcCompliant() = proxied.jdbcCompliant
-  def getParentLogger() = null
+  def getParentLogger(): Logger = null
 
 }
