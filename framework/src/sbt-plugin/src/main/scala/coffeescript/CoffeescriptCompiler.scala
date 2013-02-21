@@ -2,7 +2,7 @@ package play.core.coffeescript
 
 import java.io._
 import play.api._
-import sbt.PlayExceptions.AssetCompilationException
+import play.sbt.PlayExceptions.AssetCompilationException
 
 object CoffeescriptCompiler {
 

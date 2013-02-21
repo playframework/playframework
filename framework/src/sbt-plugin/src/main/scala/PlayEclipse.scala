@@ -1,6 +1,7 @@
-package sbt
+package play.sbt
 
-import Keys._
+import sbt._
+import sbt.Keys._
 
 trait PlayEclipse {
   this: PlayCommands =>

@@ -1,4 +1,4 @@
-package sbt
+package play.sbt
 
 import sbt._
 import java.lang.{ ProcessBuilder => JProcessBuilder }

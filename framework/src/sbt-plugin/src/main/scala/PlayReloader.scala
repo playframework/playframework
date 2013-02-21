@@ -1,8 +1,9 @@
-package sbt
+package play.sbt
 
 import play.api._
 import play.core._
-import Keys._
+import sbt._
+import sbt.Keys._
 import PlayExceptions._
 
 trait PlayReloader {

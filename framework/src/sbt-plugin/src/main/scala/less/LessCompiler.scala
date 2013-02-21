@@ -1,6 +1,6 @@
 package play.core.less
 
-import sbt.PlayExceptions.AssetCompilationException
+import play.sbt.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 

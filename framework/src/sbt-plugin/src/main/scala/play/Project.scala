@@ -2,8 +2,9 @@ package play
 
 import play.api._
 import play.core._
-import sbt.{Project=>_,_}
-import Keys._
+import play.sbt._
+import _root_.sbt.{Project => SbtProject, _}
+import _root_.sbt.Keys._
 
 import play.console.Colors
 
@@ -13,7 +14,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
   // ~~ Alerts  
   if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
     println()
-    this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
+    this.getClass.getClassLoader.asInstanceOf[PluginManagement.PluginClassLoader].getURLs.foreach { el =>
       println(Colors.green(el.toString))
     }
     println()
@@ -34,7 +35,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
 
   // ----- Create a Play project with default settings
  
-  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Defaults.defaultSettings): sbt.Project = {
+  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Defaults.defaultSettings): SbtProject = {
     val mainLang = if (dependencies.contains(javaCore)) JAVA else SCALA
 
     lazy val playSettings =
@@ -47,7 +48,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
 
     lazy val allSettings = settings ++ playSettings
 
-    sbt.Project(name, path, settings = allSettings)
+    SbtProject(name, path, settings = allSettings)
 
   }
 }
