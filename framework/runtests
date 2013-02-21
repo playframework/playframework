@@ -36,6 +36,15 @@ echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
 echo "[info]"
 
 $PLAY "$@" clean-all test
+if [ ! -f target/junit-running ]
+then
+  echo "[Error]"
+  echo "[Error] ---- Junit tests might not be running"
+  echo "[Error]"
+  exit 1
+fi
+
+
 cd $CURRENT
 
 cd ./test/integrationtest-scala
