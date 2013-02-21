@@ -31,12 +31,26 @@ class AssetsSpec extends Specification {
       keys must not(contain("ETAG"))
     }
 
+    "add etag and cache control headers with 304 response" in new WithServer() {
+      // -- Etags
+      val resp = await(assetAt("stylesheets/main.css").get())
+      val etag = resp.header("Etag").get
+      val cacheControl = resp.header("Cache-Control").get
+      val notModifiedResponse = await(assetAt("stylesheets/main.css").withHeaders("If-None-Match"-> etag).get())
+      notModifiedResponse.header("Etag").get must_== etag
+      notModifiedResponse.header("Cache-Control").get must_== cacheControl
+    }
+
     "return 304 if the if modified since header is after the date modified" in new WithServer() {
       val resp = await(assetAt("stylesheets/main.css").withHeaders("If-Modified-Since"-> format.format(startDate)).get())
       resp.status must_== 304
 
       // return Date header with 304 response
       resp.header(DATE) must beSome
+
+      resp.header("Etag") must beNone
+      resp.header("Cache-Control") must beNone
+
     }
 
     "return 200 if the if modified since header is before the date modified" in new WithServer() {

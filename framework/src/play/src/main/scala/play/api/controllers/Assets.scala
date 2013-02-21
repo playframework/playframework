@@ -88,6 +88,32 @@ class AssetsBuilder extends Controller {
           .orElse(Play.resource(resourceName).map(_ -> false))
       }
 
+      def maybeNotModified(url: java.net.URL) = {
+        request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch =>
+          etagFor(url).filter(_ == ifNoneMatch)
+        }.map(_ => cacheableResult(url, NotModified)).orElse {
+          request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
+            lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
+          }.map(_ => NotModified.withHeaders(
+            DATE -> df.print({ new java.util.Date }.getTime)))
+        }
+      }
+
+      def cacheableResult[A <: Result](url: java.net.URL, r: A) = {
+        // Add Etag if we are able to compute it
+        val taggedResponse = etagFor(url).map(etag => r.withHeaders(ETAG -> etag)).getOrElse(r)
+        val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
+
+        // Add Cache directive if configured
+        val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
+          Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
+            case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+            case _ => "no-cache"
+          })
+        })
+        cachedResponse
+      }
+
       resource.map {
 
         case (url, _) if new File(url.getFile).isDirectory => NotFound
@@ -99,55 +125,31 @@ class AssetsBuilder extends Controller {
             try {
               (stream.available, Enumerator.fromStream(stream))
             } catch {
-              case _ => (-1, Enumerator[Array[Byte]]())
+              case _: Throwable => (-1, Enumerator[Array[Byte]]())
             }
           }
 
           if (length == -1) {
             NotFound
           } else {
-            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch =>
-              etagFor(url).filter(_ == ifNoneMatch)
-            }.map(_ => NotModified).getOrElse {
-              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
-                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-              }.map(_ => NotModified.withHeaders(
-                DATE -> df.print({ new java.util.Date }.getTime))).getOrElse {
+            maybeNotModified(url).getOrElse {
+              // Prepare a streamed response
+              val response = SimpleResult(
+                header = ResponseHeader(OK, Map(
+                  CONTENT_LENGTH -> length.toString,
+                  CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
+                  DATE -> df.print({ new java.util.Date }.getTime))),
+                resourceData)
 
-                // Prepare a streamed response
-                val response = SimpleResult(
-                  header = ResponseHeader(OK, Map(
-                    CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
-                    DATE -> df.print({ new java.util.Date }.getTime))),
-                  resourceData)
-
-                // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
-                // Vary header so proxy servers will cache both the gzip and the non gzipped version
-                val gzippedResponse = (gzippedResource.isDefined, isGzipped) match {
-                  case (true, true) => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-                  case (true, false) => response.withHeaders(VARY -> ACCEPT_ENCODING)
-                  case _ => response
-                }
-
-                // Add Etag if we are able to compute it
-                val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
-
-                // Add Cache directive if configured
-                val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
-                  Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-                    case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-                    case _ => "no-cache"
-                  })
-                })
-
-                cachedResponse
-
-              }: Result
-
+              // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
+              // Vary header so proxy servers will cache both the gzip and the non gzipped version
+              val gzippedResponse = (gzippedResource.isDefined, isGzipped) match {
+                case (true, true) => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
+                case (true, false) => response.withHeaders(VARY -> ACCEPT_ENCODING)
+                case _ => response
+              }
+              cacheableResult(url, gzippedResponse)
             }
-
           }
 
         }
@@ -155,7 +157,6 @@ class AssetsBuilder extends Controller {
       }.getOrElse(NotFound)
 
     }
-
   }
 
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
