@@ -115,8 +115,8 @@ object LessCompiler {
       val dependencies = ScriptableObject.getProperty(result, "dependencies").asInstanceOf[NativeArray]
 
       css -> (0 until dependencies.getLength.toInt).map(ScriptableObject.getProperty(dependencies, _) match {
-        case f: File => f
-        case o: NativeJavaObject => o.unwrap.asInstanceOf[File]
+        case f: File => f.getCanonicalFile
+        case o: NativeJavaObject => o.unwrap.asInstanceOf[File].getCanonicalFile
       })
     }
   }
