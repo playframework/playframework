@@ -4,6 +4,7 @@ import org.specs2.mutable._
 import scala.concurrent.ExecutionContext.Implicits.global
 import concurrent._
 import concurrent.duration.Duration
+import scala.language.reflectiveCalls
 import java.util.concurrent.TimeUnit._
 
 object ConcurrentSpec extends Specification {

@@ -22,16 +22,16 @@ object JavaWebSocket extends JavaHelpers {
         JContext.current.remove()
       }
 
-      val enumerator = Enumerator.imperative[A]()
+      val (enumerator, channel) = Concurrent.broadcast[A]
 
       val socketOut = new play.mvc.WebSocket.Out[A] {
 
         def write(frame: A) {
-          enumerator.push(frame)
+          channel.push(frame)
         }
 
         def close() {
-          enumerator.close()
+          channel.eofAndEnd()
         }
 
       }

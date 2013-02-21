@@ -6,6 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import concurrent.{Promise, Future, Await}
 import concurrent.duration.Duration
 import java.io.OutputStream
+import scala.language.reflectiveCalls
 
 object EnumeratorsSpec extends Specification {
 
