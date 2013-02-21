@@ -66,7 +66,7 @@ public class Application extends Controller {
     public static Result javascriptRoutes() {
         response().setContentType("text/javascript");
         return ok(
-            Routes.javascriptRouter("jsRoutes",
+            Routes.javascriptRouter("jsRoutes", "function(s){s=s||{};s.url=this.url;s.type=this.method;return $.ajax(s)}",
             
                 // Routes for Projects
                 controllers.routes.javascript.Projects.add(), 

@@ -64,7 +64,9 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[Enumerators | Enumerators]]
     1. [[Enumeratees | Enumeratees]]
 1. Reverse routing
-    1. [[Javascript Routing | ScalaJavascriptRouting]]
+    1. [[Javascript reverse routing | ScalaJavascriptRouting]]
+1. HTTP API
+    1. [[HTTP API | HttpApi]]
 
 ## Tutorials
 

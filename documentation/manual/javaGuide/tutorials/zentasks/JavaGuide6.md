@@ -4,15 +4,15 @@ In the last the last chapter of the tutorial, we implemented a number of new act
 
 ## Javascript routes
 
-The first thing we need to do is implement a Javascript router.  While you could always just make AJAX calls using hard coded URLs, Play provides a client side router that will build these URLs and make the AJAX requests for you.  Building URLs to make AJAX calls can be quite fragile, and if you change your URL structure or parameter names at all, it can be easy to miss things when you update your Javascript code.  For this reason, Play has a Javascript router, that lets us call actions on the server, from Javascript, as if we were invoking them directly.
+The first thing we need to do is implement a Javascript router.  While you could always just make AJAX calls using hard coded URLs, Play provides a client side router that will build these URLs and can make the AJAX requests for you.  Building URLs to make AJAX calls can be quite fragile, and if you change your URL structure or parameter names at all, it can be easy to miss things when you update your Javascript code.  For this reason, Play has a Javascript reverse router, that lets us call actions on the server, from Javascript, as if we were invoking them directly.
 
-A Javascript router needs to be generated from our code, to say what actions it should include.  It can be implemented as a regular action that your client side code can download using a script tag.  Alternatively Play has support for embedding the router in a template, but for now we'll just use the action method.  Write a Javascript router action in `app/controllers/Application.java`:
+A Javascript reverse router needs to be generated from our code, to say what actions it should include.  It can be implemented as a regular action that your client side code can download using a script tag.  Alternatively Play has support for embedding the router in a template, but for now we'll just use the action method.  Write a Javascript router action in `app/controllers/Application.java`:
 
 ```java
 public static Result javascriptRoutes() {
     response().setContentType("text/javascript");
     return ok(
-        Routes.javascriptRouter("jsRoutes",
+        Routes.javascriptRouter("jsRoutes", "function (s) { s = s || {}; s.url = this.url; s.type = this.method; return $.ajax(s) }",
             controllers.routes.javascript.Projects.add(),
             controllers.routes.javascript.Projects.delete(),
             controllers.routes.javascript.Projects.rename(),
@@ -22,7 +22,7 @@ public static Result javascriptRoutes() {
 }
 ```
 
-We've set the response content type to be `text/javascript`, because the router will be a Javascript file.  Then we've used `Routes.javascriptRouter` to generate the routes.  The first parameter that we've passed to it is `jsRoutes`, this means the router will be bound to the global variable by that name, so in our Javascript/CoffeeScript code, we'll be able to access the router using that variable name.  Then we've passed the list of actions that we want in the router.
+We've set the response content type to be `text/javascript`, because the router will be a Javascript file.  Then we've used `Routes.javascriptRouter` to generate the routes.  The first parameter that we've passed to it is `jsRoutes`, this means the router will be bound to the global variable by that name, so in our Javascript/CoffeeScript code, we'll be able to access the router using that variable name. The second parameter allows us to say how to perform Ajax calls. In our case we just delegated to the `$.ajax` method, using the route URL and HTTP verb. Then we've passed the list of actions that we want in the router.
 
 Of course, we need to add a route for that in the `conf/routes` file:
 
@@ -157,9 +157,9 @@ class Group extends Backbone.View
                 $.error("Error: " + err)
 ```
 
-Now you can see that are are using the `jsRoutes` Javascript router that we created before.  It almast looks like we are just making an ordinary call to the `Projects.add` action.  Invoking this actually returns an object that gives us a method for making ajax requests, as well as the ability to get the URL and method for the action.  But, this time you can see we are invoking the `ajax` method, passing in the group name as part of the `data`, and then passing `success` and `error` callbacks.  In fact, the `ajax` method just delegates straight to jQuery's `ajax` method, supplying the URL and the method along the way, so anything you can do with jQuery, you can do here.
+Now you can see that we are using the `jsRoutes` Javascript reverse router that we created before. It almost looks like we are just making an ordinary call to the `Projects.add` action.  Invoking this actually returns an object that gives us a method for making ajax requests, as well as the ability to get the URL and method for the action.  But, this time you can see we are invoking the `ajax` method, passing in the group name as part of the `data`, and then passing `success` and `error` callbacks.
 
-> You don't have to use jQuery with the Javascript router, it's just the default implementation that Play provides.  You could use anything, by supplying your own ajax function name to call to the Javascript router when you generate it.
+> You don't have to use jQuery with the Javascript reverse router. You can supply your own JavaScript function instead of the one we defined. In fact, Play provides an implementation of the `ajax` method that you can just use directly without external dependency. Just pass `true` for the `ajaxMethod` parameter of the reverse router generator: `Routes.javascriptRouter("jsRoutes", true, …)`.
 
 Now if you refresh the page, you should be able to create a new project.  However, the new projects name is "New Project", not really what we want.  Let's implement the functionality to rename it:
 

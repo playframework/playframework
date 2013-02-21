@@ -52,7 +52,7 @@ object Application extends Controller {
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(
-      Routes.javascriptRouter("jsRoutes")(
+      Routes.javascriptRouter("jsRoutes", ajaxMethod = "function(s){s.url=this.url;s.type=this.method;return $.ajax(s)}")(
         Projects.add, Projects.delete, Projects.rename,
         Projects.addGroup, Projects.deleteGroup, Projects.renameGroup,
         Projects.addUser, Projects.removeUser, Tasks.addFolder, 
