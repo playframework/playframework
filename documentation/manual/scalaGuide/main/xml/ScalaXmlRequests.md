@@ -2,7 +2,7 @@
 
 ## Handling an XML request
 
-An XML request is an HTTP request using a valid XML payload as the request body. It must specify the `text/xml` MIME type in its `Content-Type` header.
+An XML request is an HTTP request using a valid XML payload as the request body. It must specify the `application/xml` or `text/xml` MIME type in its `Content-Type` header.
 
 By default an `Action` uses a **any content** body parser, which lets you retrieve the body as XML (actually as a `NodeSeq`):
 
@@ -38,7 +38,7 @@ You can test it with **cURL** from a command line:
 
 ```
 curl 
-  --header "Content-type: text/xml" 
+  --header "Content-type: application/xml" 
   --request POST 
   --data '<name>Guillaume</name>' 
   http://localhost:9000/sayHello
@@ -72,7 +72,7 @@ Now it replies with:
 
 ```
 HTTP/1.1 200 OK
-Content-Type: text/xml; charset=utf-8
+Content-Type: application/xml; charset=utf-8
 Content-Length: 46
 
 <message status="OK">Hello Guillaume</message>

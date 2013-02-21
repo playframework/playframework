@@ -175,9 +175,9 @@ class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Conte
   override def toString = buffer.toString
 
   /**
-   * Content type of XML (`text/xml`).
+   * Content type of XML (`application/xml`).
    */
-  def contentType = "text/xml"
+  def contentType = "application/xml"
 
   def body = toString
 

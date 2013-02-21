@@ -271,6 +271,31 @@ class ApplicationSpec extends Specification {
       route._2 must_== "/read/$name<[^/]+>"
       route._3 must startWith("controllers.JavaApi.readCookie")
     }
+
+    "support xml" in {
+      "detect xml when content type is application/xml" in new WithServer() {
+        await(wsUrl("/any-xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "detect xml when content type is text/xml" in new WithServer() {
+        await(wsUrl("/any-xml").withHeaders("Content-Type" -> "text/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "detect xml when content type is application/atom+xml" in new WithServer() {
+        await(wsUrl("/any-xml").withHeaders("Content-Type" -> "application/atom+xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "accept xml when content type is application/xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "accept xml when content type is text/xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "text/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "accept xml when content type is application/atom+xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "application/atom+xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "send xml responses as application/xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).header("Content-Type").get must startWith("application/xml")
+      }
+    }
+    
   }
 
 }

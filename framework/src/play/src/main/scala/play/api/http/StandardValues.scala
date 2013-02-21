@@ -86,7 +86,7 @@ trait MimeTypes {
   /**
    * Content-Type of xml.
    */
-  val XML = "text/xml"
+  val XML = "application/xml"
 
   /**
    * Content-Type of css.

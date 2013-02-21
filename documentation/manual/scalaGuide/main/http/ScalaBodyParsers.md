@@ -48,7 +48,7 @@ This body parser checks the `Content-Type` header and decides what kind of body 
 
 - **text/plain**: `String`
 - **application/json**: `JsValue`
-- **text/xml**: `NodeSeq`
+- **application/xml**, **text/xml** or **application/XXX+xml**: `NodeSeq`
 - **application/form-url-encoded**: `Map[String, Seq[String]]`
 - **multipart/form-data**: `MultipartFormData[TemporaryFile]`
 - any other content type: `RawBuffer`

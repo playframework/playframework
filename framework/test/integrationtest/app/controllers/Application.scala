@@ -166,4 +166,12 @@ object Application extends Controller {
   def routetest(parameter: String) = Action {
     Ok("")
   }
+
+  def anyXml = Action { request =>
+    request.body.asXml.map(xml => Ok(xml)).getOrElse(NotFound("Not XML"))
+  }
+
+  def xml = Action(parse.xml) { request =>
+    Ok(request.body)
+  }
 }
