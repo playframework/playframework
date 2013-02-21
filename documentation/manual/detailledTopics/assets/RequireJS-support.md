@@ -62,7 +62,7 @@ After rendering the page in Dev mode you should see: ```9``` popping up in an al
 
 ## When running stage, dist or start
 
-your application's jar file should contain (```public/javascript/main.js```):
+your application's jar file should contain (```public/javascripts-min/main.js```):
 
 ```js
 define("helper/lib",[],function(){return{sum:function(e,t){return e+t}}}),require(["helper/lib"],function(e){var t=e.sum(5,4);alert(t)}),define("main",function(){})
