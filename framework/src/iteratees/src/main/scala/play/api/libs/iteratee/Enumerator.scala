@@ -381,7 +381,6 @@ object Enumerator {
 
   }
 
-  import scalax.io.JavaConverters._
 
   /**
    * Like [[play.api.libs.iteratee.Enumerator.unfold]], but allows the unfolding to be done asynchronously.
