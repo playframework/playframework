@@ -200,6 +200,11 @@
 * **Website (docs, sample):** <https://github.com/typesafehub/play2-mini>
 * **Short description:** uses play as an HTTP library (in a standard SBT project)
 
+## Play-pac4j (Java and Scala)
+* **Website:** <https://github.com/leleuj/play-pac4j>
+* **Documentation:** <https://github.com/leleuj/play-pac4j/blob/master/README.md>
+* **Short description:** Play 2.x client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
+
 ## Play Plovr Plugin
 * **Website (docs, sample):** <https://github.com/benmccann/play-plovr-plugin>
 * **Short description:** Adds Closure Compiler and Closure Library support to Play
