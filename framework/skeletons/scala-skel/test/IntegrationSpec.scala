@@ -13,14 +13,12 @@ class IntegrationSpec extends Specification {
   
   "Application" should {
     
-    "work from within a browser" in {
-      running(TestServer(3333), HTMLUNIT) { browser =>
+    "work from within a browser" in new WithBrowser{
 
-        browser.goTo("http://localhost:3333/")
+      browser.goTo("http://localhost:" + port)
 
-        browser.pageSource must contain("Your new application is ready.")
+      browser.pageSource must contain("Your new application is ready.")
        
-      }
     }
     
   }
