@@ -42,8 +42,31 @@ object BindersSpec extends Specification {
     val pathStringInvalid = "/path/to/invalide%2"
 
     "Unbind Path string as string" in {
-      subject.unbind("key", pathString) must equalTo(pathString)
+      subject.unbind("key", pathStringBinded) must equalTo(pathString)
     }
+
+    "Unbind path with unicode character" in {
+      subject.unbind("key", "hello/中文") must equalTo("hello/%E4%B8%AD%E6%96%87")
+    }
+
+    "Unbind path in javascript with unicode characters" in {
+
+      import org.mozilla.javascript.Context
+
+      val subject = implicitly[PathBindable[String]]
+
+      try {
+        val cx = Context.enter()
+        val scope = cx.initStandardObjects()
+        cx.evaluateString(scope, "var reverseRoute = " + subject.javascriptUnbind, "javascriptUnbind", 1, null)
+        val fct = scope.get("reverseRoute", scope).asInstanceOf[org.mozilla.javascript.Function]
+        val result = fct.call(cx, scope, scope, Array("someName", "hello/中文"))
+        Context.jsToJava(result, classOf[String]) must beEqualTo("hello/%E4%B8%AD%E6%96%87")
+      } finally {
+        Context.exit()
+      }
+    }
+
     "Bind Path string as string" in {
       subject.bind("key", pathString) must equalTo(Right(pathStringBinded))
     }

@@ -4,7 +4,7 @@ import scala.annotation._
 
 import play.api.mvc._
 
-import java.net.{URI, URLEncoder}
+import java.net.{URLDecoder, URI, URLEncoder}
 import java.util.UUID
 import scala.annotation._
 
@@ -467,12 +467,16 @@ object PathBindable {
     def unbind(key: String, value: A): String = serialize(value)
   }
 
+  private val percentEncoding = (s:String) => s.split("/").map(URLEncoder.encode(_, "UTF-8").replaceAll("\\+", "%20")).mkString("/")
+
   /**
    * Path binder for String.
    */
   implicit object bindableString extends Parsing[String](
-    (s: String) => s, (s: String) => s, (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
-  )
+    (s: String) => s, (s: String) => percentEncoding(s), (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
+  ) {
+    override def javascriptUnbind: String = """function(k, v){var t = (v != null ? v : "").split("/");for(i=0;i<t.length;i++) {t[i]= encodeURI(t[i])};return t.join("/");}"""
+  }
 
   /**
    * Path binder for Int.

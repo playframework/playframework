@@ -548,6 +548,7 @@ object PlayBuild extends Build {
             specsBuild % "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
+            "org.mozilla"                       %    "rhino"                    %   "1.7R4"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.10-M2"  %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test" exclude("org.jboss.netty", "netty"),
