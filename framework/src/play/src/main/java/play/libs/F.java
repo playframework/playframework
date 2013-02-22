@@ -352,6 +352,20 @@ public class F {
         }
 
         /**
+         * Zips the values of this promise with <code>another</code>, and creates a new promise holding the tuple of their results
+         * @param another
+         */
+        public <B> Promise<Tuple<A, B>> zip(Promise<B> another) {
+            return new Promise(getWrappedPromise().zip(another.getWrappedPromise())).map(
+                new Function<scala.Tuple2<A, B>, Tuple<A, B>>() {
+                    public Tuple<A, B> apply(scala.Tuple2<A, B> scalaTuple) {
+                        return new Tuple(scalaTuple._1, scalaTuple._2);
+                    }
+                }
+            );
+        }
+
+        /**
          * Get the underlying Scala promise
          *
          * @return The scala promise
