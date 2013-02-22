@@ -62,7 +62,7 @@ case class PathPattern(parts: Seq[PathPart]) {
  * provides Play's router implementation
  */
 object Router {
-  
+
    object Route {
 
     trait ParamsExtractor {

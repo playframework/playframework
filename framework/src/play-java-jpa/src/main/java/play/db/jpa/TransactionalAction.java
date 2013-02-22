@@ -9,7 +9,7 @@ import javax.persistence.*;
  * Wraps an action in am JPA transaction.
  */
 public class TransactionalAction extends Action<Transactional> {
-    
+
     public Result call(final Context ctx) throws Throwable {
         return JPA.withTransaction(
             configuration.value(),
@@ -21,5 +21,5 @@ public class TransactionalAction extends Action<Transactional> {
             }
         );
     }
-    
+
 }

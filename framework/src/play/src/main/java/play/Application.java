@@ -12,9 +12,9 @@ import play.libs.Scala;
  * Application creation is handled by the framework engine.
  */
 public class Application {
-    
+
     private final play.api.Application application;
-    
+
     public play.api.Application getWrappedApplication() {
       return application;
     }
@@ -25,7 +25,7 @@ public class Application {
     public Application(play.api.Application application) {
         this.application = application;
     }
-    
+
     /**
      * Retrieves the application path.
      * <p>
@@ -34,7 +34,7 @@ public class Application {
     public File path() {
         return application.path();
     }
-    
+
     /**
      * Retrieves the application configuration/
      * <p>
@@ -43,7 +43,7 @@ public class Application {
     public Configuration configuration() {
         return new Configuration(application.configuration());
     }
-    
+
     /**
      * Retrieves the application classloader.
      * <p>
@@ -52,7 +52,7 @@ public class Application {
     public ClassLoader classloader() {
         return application.classloader();
     }
-    
+
     /**
      * Retrieves a file relative to the application root path.
      *
@@ -62,7 +62,7 @@ public class Application {
     public File getFile(String relativePath) {
         return application.getFile(relativePath);
     }
-    
+
     /**
      * Retrieves a resource from the classpath.
      *
@@ -72,7 +72,7 @@ public class Application {
     public URL resource(String relativePath) {
         return Scala.orNull(application.resource(relativePath));
     }
-    
+
     /**
      * Retrieves a resource stream from the classpath.
      *
@@ -82,33 +82,33 @@ public class Application {
     public InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(application.resourceAsStream(relativePath));
     }
-    
+
     /**
      * Retrieve the plugin instance for the class.
      */
     public <T> T plugin(Class<T> pluginClass) {
         return Scala.orNull(application.plugin(pluginClass));
     }
-    
+
     /**
      * Returns `true` if the application is `DEV` mode.
      */
     public boolean isDev() {
         return play.api.Play.isDev(application);
     }
-    
+
     /**
      * Returns `true` if the application is `PROD` mode.
      */
     public boolean isProd() {
         return play.api.Play.isProd(application);
     }
-    
+
     /**
      * Returns `true` if the application is `TEST` mode.
      */
     public boolean isTest() {
         return play.api.Play.isTest(application);
     }
-    
+
 }

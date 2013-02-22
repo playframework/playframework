@@ -11,7 +11,7 @@ import java.util.*;
 import views.html.*;
 
 public class Application extends Controller {
-    
+
     /**
      * Describes the hello form.
      */
@@ -19,10 +19,10 @@ public class Application extends Controller {
         @Required public String name;
         @Required @Min(1) @Max(100) public Integer repeat;
         public String color;
-    } 
-    
+    }
+
     // -- Actions
-  
+
     /**
      * Home page
      */
@@ -31,7 +31,7 @@ public class Application extends Controller {
             index.render(form(Hello.class))
         );
     }
-  
+
     /**
      * Handles the form submission.
      */
@@ -46,5 +46,5 @@ public class Application extends Controller {
             );
         }
     }
-  
+
 }

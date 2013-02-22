@@ -12,14 +12,14 @@ import akka.actor._
 import scala.concurrent.duration._
 
 object Application extends Controller {
-  
+
   /**
    * Just display the home page.
    */
   def index = Action { implicit request =>
     Ok(views.html.index())
   }
-  
+
   /**
    * Display the chat room page.
    */
@@ -32,14 +32,14 @@ object Application extends Controller {
       )
     }
   }
-  
+
   /**
    * Handles the chat websocket.
    */
   def chat(username: String) = WebSocket.async[JsValue] { request  =>
 
     ChatRoom.join(username)
-    
+
   }
-  
+
 }

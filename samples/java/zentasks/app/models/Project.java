@@ -12,29 +12,29 @@ import com.avaje.ebean.*;
 /**
  * Project entity managed by Ebean
  */
-@Entity 
+@Entity
 public class Project extends Model {
 
     @Id
     public Long id;
-    
+
     public String name;
-    
+
     public String folder;
-    
+
     @ManyToMany
     public List<User> members = new ArrayList<User>();
-    
+
     public Project(String name, String folder, User owner) {
         this.name = name;
         this.folder = folder;
         this.members.add(owner);
     }
-    
+
     // -- Queries
-    
+
     public static Model.Finder<Long,Project> find = new Model.Finder(Long.class, Project.class);
-    
+
     /**
      * Retrieve project for user
      */
@@ -43,7 +43,7 @@ public class Project extends Model {
             .eq("members.email", user)
             .findList();
     }
-    
+
     /**
      * Delete all project in a folder
      */
@@ -52,7 +52,7 @@ public class Project extends Model {
             "delete from project where folder = :folder"
         ).setParameter("folder", folder).execute();
     }
-    
+
     /**
      * Create a new project.
      */
@@ -62,7 +62,7 @@ public class Project extends Model {
         project.saveManyToManyAssociations("members");
         return project;
     }
-    
+
     /**
      * Rename a project
      */
@@ -72,7 +72,7 @@ public class Project extends Model {
         project.update();
         return newName;
     }
-    
+
     /**
      * Rename a folder
      */
@@ -82,7 +82,7 @@ public class Project extends Model {
         ).setParameter("folder", folder).setParameter("newName", newName).execute();
         return newName;
     }
-    
+
     /**
      * Add a member to this project
      */
@@ -93,7 +93,7 @@ public class Project extends Model {
         );
         p.saveManyToManyAssociations("members");
     }
-    
+
     /**
      * Remove a member from this project
      */
@@ -104,7 +104,7 @@ public class Project extends Model {
         );
         p.saveManyToManyAssociations("members");
     }
-    
+
     /**
      * Check if a user is a member of this project
      */
@@ -113,10 +113,10 @@ public class Project extends Model {
             .eq("members.email", user)
             .eq("id", project)
             .findRowCount() > 0;
-    } 
-    
+    }
+
     // --
-    
+
     public String toString() {
         return "Project(" + id + ") with " + (members == null ? "null" : members.size()) + " members";
     }

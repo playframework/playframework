@@ -21,7 +21,7 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
-  
+
   //- mainly scala, mainly java or none
 
   val JAVA = "java"
@@ -115,10 +115,10 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
           play.core.jscompile.JavascriptCompiler.require(buildDesc)
         }
         s.log.info("RequireJS optimization finished.")
-      } catch {case ex: Exception => 
+      } catch {case ex: Exception =>
         s.log.error("RequireJS optimization has failed...")
         throw ex
-      }  
+      }
       //clean-up
       IO.delete(buildDesc)
     }
@@ -475,10 +475,10 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
   private def filterArgs(args: Seq[String], defaultPort: Int): (Seq[(String, String)], Int) = {
     val (properties, others) = args.span(_.startsWith("-D"))
-    // collect arguments plus config file property if present 
+    // collect arguments plus config file property if present
     val httpPort = Option(System.getProperty("http.port"))
     val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
-    //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property 
+    //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property
     val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(defaultPort)
 
     (javaProperties, port)
@@ -621,7 +621,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
           // Call back myself
           executeContinuously(watched, newState, reloader, Some(newWatchState))
         } else {
-          // Stop 
+          // Stop
           Some("Okay, i'm done")
         }
       }
@@ -751,7 +751,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         |test                       Run Junit tests and/or Specs from the command line
         |eclipse                    generate eclipse project file
         |idea                       generate Intellij IDEA project file
-        |sh <command to run>        execute a shell command 
+        |sh <command to run>        execute a shell command
         |start <port>               Start the current application in another JVM in PROD mode.
         |update                     Update application dependencies.
         |

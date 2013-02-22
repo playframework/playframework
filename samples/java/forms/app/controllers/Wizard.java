@@ -14,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public class Wizard extends Controller {
-    
+
 	/**
 	 * Read a map and convert it to an User object
 	 */
@@ -53,9 +53,9 @@ public class Wizard extends Controller {
 	}
 
     /**
-     * Navigate between states. We saved the current user into the session. 
+     * Navigate between states. We saved the current user into the session.
      * This is of course only possible because we have little data.
-     */ 
+     */
     public static Result step(int step) {
 	
 	   	User user = toUser(session());
@@ -78,7 +78,7 @@ public class Wizard extends Controller {
 			return handleStep2Submission();
 		}
     }
-  
+
     private static Result handleStep1Submission() {
 		// We restrict the validation to the Step1 "group"
 		Form<User> filledForm = form(User.class, User.Step1.class).bindFromRequest();

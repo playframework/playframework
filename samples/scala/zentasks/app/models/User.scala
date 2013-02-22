@@ -9,9 +9,9 @@ import anorm.SqlParser._
 case class User(email: String, name: String, password: String)
 
 object User {
-  
+
   // -- Parsers
-  
+
   /**
    * Parse a User from a ResultSet
    */
@@ -22,9 +22,9 @@ object User {
       case email~name~password => User(email, name, password)
     }
   }
-  
+
   // -- Queries
-  
+
   /**
    * Retrieve a User from email.
    */
@@ -35,7 +35,7 @@ object User {
       ).as(User.simple.singleOpt)
     }
   }
-  
+
   /**
    * Retrieve all users.
    */
@@ -44,7 +44,7 @@ object User {
       SQL("select * from user").as(User.simple *)
     }
   }
-  
+
   /**
    * Authenticate a User.
    */
@@ -52,7 +52,7 @@ object User {
     DB.withConnection { implicit connection =>
       SQL(
         """
-         select * from user where 
+         select * from user where
          email = {email} and password = {password}
         """
       ).on(
@@ -61,7 +61,7 @@ object User {
       ).as(User.simple.singleOpt)
     }
   }
-   
+
   /**
    * Create a User.
    */
@@ -78,10 +78,10 @@ object User {
         'name -> user.name,
         'password -> user.password
       ).executeUpdate()
-      
+
       user
-      
+
     }
   }
-  
+
 }

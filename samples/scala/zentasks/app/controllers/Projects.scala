@@ -22,8 +22,8 @@ object Projects extends Controller with Secured {
     User.findByEmail(username).map { user =>
       Ok(
         html.dashboard(
-          Project.findInvolving(username), 
-          Task.findTodoInvolving(username), 
+          Project.findInvolving(username),
+          Task.findTodoInvolving(username),
           user
         )
       )
@@ -41,7 +41,7 @@ object Projects extends Controller with Secured {
       folder => Ok(
         views.html.projects.item(
           Project.create(
-            Project(NotAssigned, folder, "New project"), 
+            Project(NotAssigned, folder, "New project"),
             Seq(username)
           )
         )
@@ -63,9 +63,9 @@ object Projects extends Controller with Secured {
   def rename(project: Long) = IsMemberOf(project) { _ => implicit request =>
     Form("name" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
-      newName => { 
-        Project.rename(project, newName) 
-        Ok(newName) 
+      newName => {
+        Project.rename(project, newName)
+        Ok(newName)
       }
     )
   }

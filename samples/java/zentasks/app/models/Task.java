@@ -12,32 +12,32 @@ import com.avaje.ebean.*;
 /**
  * Task entity managed by Ebean
  */
-@Entity 
+@Entity
 public class Task extends Model {
 
     @Id
     public Long id;
-    
+
     @Constraints.Required
     public String title;
-    
+
     public boolean done = false;
-    
+
     @Formats.DateTime(pattern="MM/dd/yy")
     public Date dueDate;
-    
+
     @ManyToOne
     public User assignedTo;
-    
+
     public String folder;
-    
+
     @ManyToOne
     public Project project;
-    
+
     // -- Queries
-    
+
     public static Model.Finder<Long,Task> find = new Model.Finder(Long.class, Task.class);
-    
+
     /**
      * Retrieve todo tasks for the user.
      */
@@ -48,7 +48,7 @@ public class Task extends Model {
                 .eq("project.members.email", user)
            .findList();
     }
-    
+
     /**
      * Find tasks related to a project
      */
@@ -57,7 +57,7 @@ public class Task extends Model {
             .eq("project.id", project)
             .findList();
     }
-    
+
     /**
      * Delete all tasks in a folder
      */
@@ -68,7 +68,7 @@ public class Task extends Model {
          .setParameter("project", project)
          .execute();
     }
-    
+
     /**
      * Rename a folder
      */
@@ -81,7 +81,7 @@ public class Task extends Model {
             .execute();
         return newName;
     }
-    
+
     /**
      * Create a task
      */
@@ -91,7 +91,7 @@ public class Task extends Model {
         task.save();
         return task;
     }
-    
+
     /**
      * Mark a task as done or not
      */
@@ -100,7 +100,7 @@ public class Task extends Model {
         task.done = done;
         task.update();
     }
-    
+
     /**
      * Check if a user is the owner of this task
      */

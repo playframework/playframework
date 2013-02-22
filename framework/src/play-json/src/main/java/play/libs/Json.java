@@ -38,7 +38,7 @@ public class Json {
 
     /**
      * Creates a new empty ObjectNode.
-     */ 
+     */
     public static ObjectNode newObject() {
         return new ObjectMapper().createObjectNode();
     }

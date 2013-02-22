@@ -13,7 +13,7 @@ import static org.fest.assertions.Assertions.*;
 import models.*;
 
 public class ModelTest {
-    
+
     private String formatted(Date date) {
         return new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
     }
@@ -32,7 +32,7 @@ public class ModelTest {
            }
         });
     }
-    
+
     @Test
     public void pagination() {
         running(fakeApplication(inMemoryDatabase()), new Runnable() {
@@ -47,5 +47,5 @@ public class ModelTest {
            }
         });
     }
-    
+
 }

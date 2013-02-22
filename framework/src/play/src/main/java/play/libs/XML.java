@@ -17,10 +17,10 @@ import org.xml.sax.SAXException;
  * XML utilities.
  */
 public class XML {
-    
+
     /**
      * Parse an XML string as DOM.
-     */ 
+     */
     public static Document fromString(String xml) {
         try {
             return fromInputStream(
@@ -44,7 +44,7 @@ public class XML {
 
            InputSource is = new InputSource(in);
            is.setEncoding(encoding);
-           
+
            return builder.parse(is);
 
        } catch (ParserConfigurationException e) {

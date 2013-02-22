@@ -1,4 +1,4 @@
-package test 
+package test
 import org.specs2.mutable._
 
 
@@ -11,7 +11,7 @@ class AssetsBuilderSpec extends Specification {
       "work with Java API" in {
          controllers.my.JavaAssets.delegate.at("sdfd","dsfd").toString must equalTo ("Action(parser=BodyParser(anyContent))")
       }
-      
+
     }
   }
 

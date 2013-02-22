@@ -41,7 +41,7 @@ public class Scala {
         return play.utils.Conversions.newMap(
                 scala.collection.JavaConverters.mapAsScalaMapConverter(javaMap).asScala().toSeq()
                 );
-    } 
+    }
 
     /**
      * Converts a Scala List to Java.
@@ -73,14 +73,14 @@ public class Scala {
 
     /**
      * Wrap a value into a Scala Option.
-     */ 
+     */
     public static <T> scala.Option<T> Option(T t) {
         return scala.Option.apply(t);
     }
 
     /**
      * None
-     */ 
+     */
     public static <T> scala.Option<T> None() {
         return scala.Option.apply(null);
     }
@@ -93,15 +93,15 @@ public class Scala {
         return new scala.Tuple2<A, B>(a, b);
     }
 
-    /** 
+    /**
      * Creates an empty Scala Seq.
-     */ 
+     */
     @SuppressWarnings("unchecked")
     public static <T> scala.collection.Seq<T> emptySeq() {
         return (scala.collection.Seq<T>)toSeq(new Object[] {});
     }
 
-    /** 
+    /**
      * Creates an empty Scala Map.
      */
     public static <A,B> scala.collection.immutable.Map<A,B> emptyMap() {

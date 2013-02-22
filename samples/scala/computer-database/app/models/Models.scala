@@ -20,9 +20,9 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
 }
 
 object Computer {
-  
+
   // -- Parsers
-  
+
   /**
    * Parse a Computer from a ResultSet
    */
@@ -35,16 +35,16 @@ object Computer {
       case id~name~introduced~discontinued~companyId => Computer(id, name, introduced, discontinued, companyId)
     }
   }
-  
+
   /**
    * Parse a (Computer,Company) from a ResultSet
    */
   val withCompany = Computer.simple ~ (Company.simple ?) map {
     case computer~company => (computer,company)
   }
-  
+
   // -- Queries
-  
+
   /**
    * Retrieve a computer from the id.
    */
@@ -53,7 +53,7 @@ object Computer {
       SQL("select * from computer where id = {id}").on('id -> id).as(Computer.simple.singleOpt)
     }
   }
-  
+
   /**
    * Return a page of (Computer,Company).
    *
@@ -63,21 +63,21 @@ object Computer {
    * @param filter Filter applied on the name column
    */
   def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Computer, Option[Company])] = {
-    
+
     val offest = pageSize * page
-    
+
     DB.withConnection { implicit connection =>
-      
+
       val computers = SQL(
         """
-          select * from computer 
+          select * from computer
           left join company on computer.company_id = company.id
           where computer.name like {filter}
           order by {orderBy} nulls last
           limit {pageSize} offset {offset}
         """
       ).on(
-        'pageSize -> pageSize, 
+        'pageSize -> pageSize,
         'offset -> offest,
         'filter -> filter,
         'orderBy -> orderBy
@@ -85,7 +85,7 @@ object Computer {
 
       val totalRows = SQL(
         """
-          select count(*) from computer 
+          select count(*) from computer
           left join company on computer.company_id = company.id
           where computer.name like {filter}
         """
@@ -94,11 +94,11 @@ object Computer {
       ).as(scalar[Long].single)
 
       Page(computers, page, offest, totalRows)
-      
+
     }
-    
+
   }
-  
+
   /**
    * Update a computer.
    *
@@ -122,7 +122,7 @@ object Computer {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Insert a new computer.
    *
@@ -133,7 +133,7 @@ object Computer {
       SQL(
         """
           insert into computer values (
-            (select next value for computer_seq), 
+            (select next value for computer_seq),
             {name}, {introduced}, {discontinued}, {company_id}
           )
         """
@@ -145,7 +145,7 @@ object Computer {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Delete a computer.
    *
@@ -156,11 +156,11 @@ object Computer {
       SQL("delete from computer where id = {id}").on('id -> id).executeUpdate()
     }
   }
-  
+
 }
 
 object Company {
-    
+
   /**
    * Parse a Company from a ResultSet
    */
@@ -170,13 +170,13 @@ object Company {
       case id~name => Company(id, name)
     }
   }
-  
+
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
   def options: Seq[(String,String)] = DB.withConnection { implicit connection =>
     SQL("select * from company order by name").as(Company.simple *).map(c => c.id.toString -> c.name)
   }
-  
+
 }
 

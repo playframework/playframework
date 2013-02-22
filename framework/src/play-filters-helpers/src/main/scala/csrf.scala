@@ -1,5 +1,5 @@
 package play.filters.csrf {
-  
+
   import scala.language.reflectiveCalls
 
   import play.api.mvc._
@@ -274,10 +274,10 @@ package play.filters.csrf {
           case Some(ct) if ct.trim.startsWith("text/plain") =>
             logger.trace("[CSRF] request is text/playn")
             checkTextBody(request, token, next)
-          case None if request.method == "GET" => 
+          case None if request.method == "GET" =>
             logger.trace("[CSRF] GET request, adding the token")
             next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))
-          case ct => 
+          case ct =>
             logger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
             next(request)
         }
@@ -308,7 +308,7 @@ package views.html.helper {
     def apply(call: Call)(implicit token: play.filters.csrf.CSRF.Token): Call = {
       new Call(
         call.method,
-        call.url + { 
+        call.url + {
           if(call.url.contains("?")) "&" else "?"
         } + play.filters.csrf.CSRF.Conf.TOKEN_NAME + "=" + token.value
       )

@@ -12,7 +12,7 @@ import play.data.validation.*;
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
 
     private final Map<String, String> rawData;
-    
+
     /**
      * Creates a new empty dynamic form.
      */
@@ -20,7 +20,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         super(DynamicForm.Dynamic.class);
         rawData = new HashMap<String, String>();
     }
-    
+
     /**
      * Creates a new dynamic form.
      *
@@ -36,7 +36,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
 
     }
-    
+
     /**
      * Gets the concrete value if the submission was a success.
      */
@@ -96,11 +96,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
             }
             data = newData;
         }
-        
+
         Form<Dynamic> form = super.bind(data, allowedFields);
         return new DynamicForm(form.data(), form.errors(), form.value());
     }
-    
+
     /**
      * Retrieves a field.
      *
@@ -137,7 +137,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      *
      * @param key the error key
      * @param error the error message
-     */    
+     */
     public void reject(String key, String error) {
         super.reject(asDynamicKey(key), error);
     }
@@ -161,7 +161,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     // -- /
-    
+
     /**
      * Simple data structure used by <code>DynamicForm</code>.
      */
@@ -196,6 +196,6 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         }
 
     }
-    
+
 }
 

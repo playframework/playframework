@@ -3,10 +3,10 @@ package models;
 import com.sun.management.OperatingSystemMXBean;
 import java.lang.management.*;
 
-public class CPU { 
-    
+public class CPU {
+
     private int  availableProcessors = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
-    
+
     private long lastSystemTime = 0;
     private long lastProcessCpuTime = 0;
 
@@ -38,5 +38,5 @@ public class CPU {
             lastProcessCpuTime = ( (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean() ).getProcessCpuTime();
         }
     }
-    
+
 }

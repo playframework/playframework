@@ -27,7 +27,7 @@ object ConcurrentSpec extends Specification {
     "not slow down the enumerator if the iteratee is slow" in {
       val slowIteratee = Iteratee.foldM(List[Long]()){ (s,e:Long) => timeout(s :+ e, Duration(100, MILLISECONDS)) }
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10)
-      val result = 
+      val result =
         fastEnumerator &>
         Enumeratee.scanLeft((now,0L)){ case ((s,v),_) => val ms = now;  (ms,(ms - s)) } &>
         Enumeratee.map(_._2) &>
@@ -41,7 +41,7 @@ object ConcurrentSpec extends Specification {
       val p = Promise[List[Long]]()
       val stuckIteratee = Iteratee.foldM(List[Long]()){ (s,e:Long) => p.future }
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10)
-      val result = 
+      val result =
         fastEnumerator &>
         Concurrent.buffer(7) |>>>
         stuckIteratee
@@ -53,7 +53,7 @@ object ConcurrentSpec extends Specification {
       val p = Promise[List[Long]]()
       val slowIteratee = Iteratee.flatten(timeout(Cont[Long,List[Long]]{case Input.El(e) => Done(List(e),Input.Empty)}, Duration(100, MILLISECONDS)))
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
-      val result = 
+      val result =
         fastEnumerator |>>>
         (Concurrent.buffer(20) &>>
         slowIteratee).flatMap( l => Iteratee.getChunks.map(l ++ _))

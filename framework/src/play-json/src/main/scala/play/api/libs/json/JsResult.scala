@@ -11,7 +11,7 @@ case class JsError(errors: Seq[(JsPath, Seq[ValidationError])]) extends JsResult
   def get: Nothing = throw new NoSuchElementException("JsError.get")
 
   def ++(error: JsError): JsError = JsError.merge(this, error)
-  
+
   def :+(error: (JsPath, ValidationError) ): JsError = JsError.merge(this, JsError(error))
   def append(error: (JsPath, ValidationError) ): JsError = this.:+(error)
 
@@ -42,7 +42,7 @@ object JsError {
   def toFlatForm(e: JsError): Seq[(String, Seq[ValidationError])] = e.errors.map{ case(path, seq) => path.toJsonString -> seq }
   def toFlatJson(e: JsError): JsObject = toFlatJson(e.errors)
   def toFlatJson(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
-    errors.foldLeft(Json.obj()){ (obj, error) => 
+    errors.foldLeft(Json.obj()){ (obj, error) =>
       obj ++ Json.obj(error._1.toJsonString -> error._2.foldLeft(Json.arr()){ (arr, err) =>
         arr :+ Json.obj(
           "msg" -> err.message,
@@ -132,7 +132,7 @@ sealed trait JsResult[+A] { self =>
   def get: A
 
   def getOrElse[AA >: A](t: => AA): AA = this match {
-    case JsSuccess(a,_) => a 
+    case JsSuccess(a,_) => a
     case JsError(_) => t
   }
 
@@ -149,7 +149,7 @@ sealed trait JsResult[+A] { self =>
   def asEither = this match {
     case JsSuccess(v,_) => Right(v)
     case JsError(e) => Left(e)
-  }  
+  }
 
   def recover[AA >: A]( errManager: PartialFunction[JsError, AA] ): JsResult[AA] = this match {
     case JsSuccess(v, p) => JsSuccess(v, p)
@@ -173,7 +173,7 @@ object JsResult {
       case (JsSuccess(t,p), _) => JsSuccess(t,p)
       case (JsError(e1), JsError(e2)) => JsError(JsError.merge(e1, e2))
     }
-    def empty:JsResult[Nothing] = JsError(Seq())   
+    def empty:JsResult[Nothing] = JsError(Seq())
   }
 
   implicit val applicativeJsResult:Applicative[JsResult] = new Applicative[JsResult] {

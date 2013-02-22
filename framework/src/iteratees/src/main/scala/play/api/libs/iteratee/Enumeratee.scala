@@ -89,14 +89,14 @@ object Enumeratee {
         case _ => Done(it, Input.Empty)
       }
   }
-  
+
   /**
    * flatten a [[scala.concurrent.Future]] of [[play.api.libs.iteratee.Enumeratee]]] into an Enumeratee
    *
    * @param futureOfEnumeratee a future of enumeratee
    */
   def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]) = new Enumeratee[From, To] {
-    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To,A]] = 
+    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To,A]] =
       Iteratee.flatten(futureOfEnumeratee map(_.applyOn[A](it)))
   }
 
@@ -548,7 +548,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that recovers an iteratee in Error state.
    *
-   * This will ignore the input that caused the iteratee's error state 
+   * This will ignore the input that caused the iteratee's error state
    * and use the previous state of the iteratee to handle the next input.
    *
    * {{{
@@ -566,7 +566,7 @@ object Enumeratee {
       def step(it: Iteratee[E, A])(input: Input[E]): Iteratee[E, Iteratee[E, A]] = input match {
         case in @ (Input.El(_) | Input.Empty) =>
           val next: Future[Iteratee[E, Iteratee[E, A]]] = it.pureFlatFold[E, Iteratee[E, A]] {
-            case Step.Cont(k) => 
+            case Step.Cont(k) =>
               val n = k(in)
               n.pureFlatFold {
                 case Step.Cont(k) => Cont(step(n))

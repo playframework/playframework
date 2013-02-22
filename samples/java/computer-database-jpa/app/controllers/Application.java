@@ -16,14 +16,14 @@ import models.*;
  * Manage a database of computers
  */
 public class Application extends Controller {
-    
+
     /**
      * This result directly redirect to application home.
      */
     public static Result GO_HOME = redirect(
         routes.Application.list(0, "name", "asc", "")
     );
-    
+
     /**
      * Handle default path requests, redirect to computers list
      */
@@ -48,7 +48,7 @@ public class Application extends Controller {
             )
         );
     }
-    
+
     /**
      * Display the 'edit form' of a existing Computer.
      *
@@ -63,9 +63,9 @@ public class Application extends Controller {
             editForm.render(id, computerForm)
         );
     }
-    
+
     /**
-     * Handle the 'edit form' submission 
+     * Handle the 'edit form' submission
      *
      * @param id Id of the computer to edit
      */
@@ -79,7 +79,7 @@ public class Application extends Controller {
         flash("success", "Computer " + computerForm.get().name + " has been updated");
         return GO_HOME;
     }
-    
+
     /**
      * Display the 'new computer form'.
      */
@@ -90,9 +90,9 @@ public class Application extends Controller {
             createForm.render(computerForm)
         );
     }
-    
+
     /**
-     * Handle the 'new computer form' submission 
+     * Handle the 'new computer form' submission
      */
     @Transactional
     public static Result save() {
@@ -104,7 +104,7 @@ public class Application extends Controller {
         flash("success", "Computer " + computerForm.get().name + " has been created");
         return GO_HOME;
     }
-    
+
     /**
      * Handle computer deletion
      */
@@ -114,7 +114,7 @@ public class Application extends Controller {
         flash("success", "Computer has been deleted");
         return GO_HOME;
     }
-    
+
 
 }
-            
+

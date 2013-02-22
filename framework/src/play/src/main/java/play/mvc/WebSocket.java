@@ -16,17 +16,17 @@ public abstract class WebSocket<A> {
      * @param out The Socket out.
      */
     public abstract void onReady(In<A> in, Out<A> out);
-    
+
     /**
      * A WebSocket out.
      */
     public static interface Out<A> {
-        
+
         /**
          * Writes a frame.
          */
         public void write(A frame);
-        
+
         /**
          * Close this channel.
          */
@@ -42,7 +42,7 @@ public abstract class WebSocket<A> {
          * Callbacks to invoke at each frame.
          */
         public final List<Callback<A>> callbacks = new ArrayList<Callback<A>>();
-        
+
         /**
          * Callbacks to invoke on close.
          */
@@ -54,10 +54,10 @@ public abstract class WebSocket<A> {
         public void onMessage(Callback<A> callback) {
             callbacks.add(callback);
         }
-        
+
         /**
          * Registers a close callback.
-         */ 
+         */
         public void onClose(Callback0 callback) {
             closeCallbacks.add(callback);
         }

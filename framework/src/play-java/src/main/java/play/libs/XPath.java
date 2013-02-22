@@ -29,7 +29,7 @@ public class XPath {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             javax.xml.xpath.XPath xpath = factory.newXPath();
-            
+
             if (namespaces != null) {
                 SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
                 nsContext.setBindings(namespaces);
@@ -57,7 +57,7 @@ public class XPath {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             javax.xml.xpath.XPath xpath = factory.newXPath();
-            
+
             if (namespaces != null) {
                 SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
                 nsContext.setBindings(namespaces);

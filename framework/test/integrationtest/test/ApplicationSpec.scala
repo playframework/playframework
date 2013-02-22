@@ -11,7 +11,7 @@ import module.Routes
 class ApplicationSpec extends Specification {
 
   "an Application" should {
-  
+
     "execute index" in new WithApplication() {
       val action = controllers.Application.index()
       val result = action(FakeRequest())
@@ -36,7 +36,7 @@ class ApplicationSpec extends Specification {
        anyData.put("email", "peter.hausel@yay.com")
        userForm.bind(anyData).get.toString must contain ("")
     }
-  
+
     "execute index again" in new WithApplication() {
       val action = controllers.Application.index()
       val result = action(FakeRequest())
@@ -46,7 +46,7 @@ class ApplicationSpec extends Specification {
       charset(result) must equalTo(Some("utf-8"))
       contentAsString(result) must contain("Hello world")
     }
-    
+
     "execute json" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/json"))
       status(result) must equalTo(OK)
@@ -84,7 +84,7 @@ class ApplicationSpec extends Specification {
       val Some(result) = route(FakeRequest(GET, "/public//"))
       status(result) must equalTo (NOT_FOUND)
     }
-   
+
     "remove cache elements" in new WithApplication() {
       import play.api.cache.Cache
       Cache.set("foo", "bar")
@@ -295,7 +295,7 @@ class ApplicationSpec extends Specification {
         await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).header("Content-Type").get must startWith("application/xml")
       }
     }
-    
+
   }
 
 }

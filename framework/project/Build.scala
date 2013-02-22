@@ -615,16 +615,16 @@ object PlayBuild extends Build {
             "com.typesafe"                      %    "config"                   %   "1.0.0",
             specsBuild % "test"
         )
-        
+
         val functionalDependencies  = Seq(
-            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"
         )
 
         val dataCommonsDependencies  = Seq(
-            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
+            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"
         )
 
-        val jsonDependencies  = Seq(        
+        val jsonDependencies  = Seq(
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
             "org.codehaus.jackson"              %    "jackson-core-asl"         %   "1.9.10",
@@ -632,7 +632,7 @@ object PlayBuild extends Build {
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0",
             specsBuild % "test"
         )
-        
+
 
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",

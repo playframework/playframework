@@ -25,7 +25,7 @@ public class Messages {
         Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
         return play.api.i18n.Messages.apply(key, scalaArgs, lang);
     }
-    
+
     /**
     * Translates a message.
     *

@@ -13,16 +13,16 @@ import models._
 /**
  * Manage a database of computers
  */
-object Application extends Controller { 
-  
+object Application extends Controller {
+
   /**
    * This result directly redirect to the application home.
    */
   val Home = Redirect(routes.Application.list(0, 2, ""))
-  
+
   /**
    * Describe the computer form (used in both edit and create screens).
-   */ 
+   */
   val computerForm = Form(
     mapping(
       "id" -> ignored(NotAssigned:Pk[Long]),
@@ -32,14 +32,14 @@ object Application extends Controller {
       "company" -> optional(longNumber)
     )(Computer.apply)(Computer.unapply)
   )
-  
+
   // -- Actions
 
   /**
    * Handle default path requests, redirect to computers list
-   */  
+   */
   def index = Action { Home }
-  
+
   /**
    * Display the paginated list of computers.
    *
@@ -53,7 +53,7 @@ object Application extends Controller {
       orderBy, filter
     ))
   }
-  
+
   /**
    * Display the 'edit form' of a existing Computer.
    *
@@ -64,9 +64,9 @@ object Application extends Controller {
       Ok(html.editForm(id, computerForm.fill(computer), Company.options))
     }.getOrElse(NotFound)
   }
-  
+
   /**
-   * Handle the 'edit form' submission 
+   * Handle the 'edit form' submission
    *
    * @param id Id of the computer to edit
    */
@@ -79,14 +79,14 @@ object Application extends Controller {
       }
     )
   }
-  
+
   /**
    * Display the 'new computer form'.
    */
   def create = Action {
     Ok(html.createForm(computerForm, Company.options))
   }
-  
+
   /**
    * Handle the 'new computer form' submission.
    */
@@ -99,7 +99,7 @@ object Application extends Controller {
       }
     )
   }
-  
+
   /**
    * Handle computer deletion.
    */
@@ -109,4 +109,4 @@ object Application extends Controller {
   }
 
 }
-            
+

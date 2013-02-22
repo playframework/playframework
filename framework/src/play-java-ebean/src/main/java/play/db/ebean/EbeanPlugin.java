@@ -17,27 +17,27 @@ import com.avaje.ebeaninternal.api.*;
  * A Play plugin that automatically manages Ebean configuration.
  */
 public class EbeanPlugin extends Plugin {
-    
+
     private final Application application;
-    
+
     public EbeanPlugin(Application application) {
         this.application = application;
     }
-    
+
     // --
-    
+
     private final Map<String,EbeanServer> servers = new HashMap<String,EbeanServer>();
-    
+
     /**
      * Reads the configuration file and initialises required Ebean servers.
      */
     public void onStart() {
 
         Configuration ebeanConf = Configuration.root().getConfig("ebean");
-        
+
         if(ebeanConf != null) {
             for(String key: ebeanConf.keys()) {
-                
+
                 ServerConfig config = new ServerConfig();
                 config.setName(key);
                 config.loadFromProperties();
@@ -53,7 +53,7 @@ public class EbeanPlugin extends Plugin {
                 if(key.equals("default")) {
                     config.setDefaultServer(true);
                 }
-                
+
                 String[] toLoad = ebeanConf.getString(key).split(",");
                 Set<String> classes = new HashSet<String>();
                 for(String load: toLoad) {
@@ -75,9 +75,9 @@ public class EbeanPlugin extends Plugin {
                         );
                     }
                 }
-                
+
                 servers.put(key, EbeanServerFactory.create(config));
-                
+
                 // DDL
                 if(!application.isProd()) {
                     boolean evolutionsEnabled = !"disabled".equals(application.configuration().getString("evolutionplugin"));
@@ -92,12 +92,12 @@ public class EbeanPlugin extends Plugin {
                         }
                     }
                 }
-                
+
             }
         }
-        
+
     }
-    
+
     /**
      * Helper method that generates the required evolution to properly run Ebean.
      */
@@ -105,71 +105,71 @@ public class EbeanPlugin extends Plugin {
         DdlGenerator ddl = new DdlGenerator((SpiEbeanServer)server, config.getDatabasePlatform(), config);
         String ups = ddl.generateCreateDdl();
         String downs = ddl.generateDropDdl();
-        
+
         if(ups == null || ups.trim().isEmpty()) {
             return null;
         }
-        
+
         return (
             "# --- Created by Ebean DDL\n" +
             "# To stop Ebean DDL generation, remove this comment and start using Evolutions\n" +
-            "\n" + 
+            "\n" +
             "# --- !Ups\n" +
-            "\n" + 
+            "\n" +
             ups +
-            "\n" + 
+            "\n" +
             "# --- !Downs\n" +
             "\n" +
             downs
         );
     }
-    
+
     /**
      * <code>DataSource</code> wrapper to ensure that every retrieved connection has auto-commit disabled.
      */
     static class WrappingDatasource implements javax.sql.DataSource {
-        
+
         public java.sql.Connection wrap(java.sql.Connection connection) throws java.sql.SQLException {
             connection.setAutoCommit(false);
             return connection;
         }
-        
+
         // --
-        
+
         final javax.sql.DataSource wrapped;
-        
+
         public WrappingDatasource(javax.sql.DataSource wrapped) {
             this.wrapped = wrapped;
         }
-        
+
         public java.sql.Connection getConnection() throws java.sql.SQLException {
             return wrap(wrapped.getConnection());
         }
-        
+
         public java.sql.Connection getConnection(String username, String password) throws java.sql.SQLException {
             return wrap(wrapped.getConnection(username, password));
         }
-        
+
         public int getLoginTimeout() throws java.sql.SQLException {
             return wrapped.getLoginTimeout();
         }
-        
+
         public java.io.PrintWriter getLogWriter() throws java.sql.SQLException {
             return wrapped.getLogWriter();
         }
-        
+
         public void setLoginTimeout(int seconds) throws java.sql.SQLException {
             wrapped.setLoginTimeout(seconds);
         }
-        
+
         public void setLogWriter(java.io.PrintWriter out) throws java.sql.SQLException {
             wrapped.setLogWriter(out);
         }
-        
+
         public boolean isWrapperFor(Class<?> iface) throws java.sql.SQLException {
             return wrapped.isWrapperFor(iface);
         }
-        
+
         public <T> T unwrap(Class<T> iface) throws java.sql.SQLException {
             return wrapped.unwrap(iface);
         }
@@ -177,8 +177,8 @@ public class EbeanPlugin extends Plugin {
         public java.util.logging.Logger getParentLogger() {
             return null;
         }
-        
+
     }
-    
-    
+
+
 }

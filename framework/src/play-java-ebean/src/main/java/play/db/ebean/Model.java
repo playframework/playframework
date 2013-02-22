@@ -31,12 +31,12 @@ import org.springframework.beans.*;
  */
 @javax.persistence.MappedSuperclass
 public class Model {
-    
+
     // -- Magic to dynamically access the @Id property
-    
+
     @javax.persistence.Transient
     private Tuple<Method,Method> _idGetSet;
-    
+
     private Tuple<Method,Method> _idAccessors() {
         if(_idGetSet == null) {
             try {
@@ -49,9 +49,9 @@ public class Model {
                         }
                     }
                     clazz = clazz.getSuperclass();
-                }                
+                }
                 if(_idGetSet == null) {
-                    throw new RuntimeException("No @javax.persistence.Id field found in class [" + this.getClass() + "]");                    
+                    throw new RuntimeException("No @javax.persistence.Id field found in class [" + this.getClass() + "]");
                 }
             } catch(RuntimeException e) {
                 throw e;
@@ -61,7 +61,7 @@ public class Model {
         }
         return _idGetSet;
     }
-    
+
     private Object _getId() {
         try {
             return _idAccessors()._1.invoke(this);
@@ -71,7 +71,7 @@ public class Model {
             throw new RuntimeException(e);
         }
     }
-    
+
     private void _setId(Object id) {
         try {
             _idAccessors()._2.invoke(this,id);
@@ -81,16 +81,16 @@ public class Model {
             throw new RuntimeException(e);
         }
     }
-    
+
     // --
-    
+
     /**
      * Saves (inserts) this entity.
      */
     public void save() {
         Ebean.save(this);
     }
-    
+
     /**
      * Saves (inserts) this entity.
      *
@@ -99,14 +99,14 @@ public class Model {
     public void save(String server) {
         Ebean.getServer(server).save(this);
     }
-    
+
     /**
      * Persist a many-to-many association.
      */
     public void saveManyToManyAssociations(String path) {
         Ebean.saveManyToManyAssociations(this, path);
     }
-    
+
     /**
      * Persist a many-to-many association.
      *
@@ -114,25 +114,25 @@ public class Model {
      */
     public void saveManyToManyAssociations(String server, String path) {
         Ebean.getServer(server).saveManyToManyAssociations(this, path);
-    }    
-    
-    
+    }
+
+
     /**
      * Deletes a many-to-many association
-     * 
+     *
      * @parama path name of the many-to-many association we want to delete
      */
     public void deleteManyToManyAssociations(String path) {
         Ebean.deleteManyToManyAssociations(this, path);
     }
-    
+
     /**
      * Updates this entity.
      */
     public void update() {
         Ebean.update(this);
     }
-    
+
     /**
      * Updates this entity, using a specific Ebean server.
      *
@@ -141,7 +141,7 @@ public class Model {
     public void update(String server) {
         Ebean.getServer(server).update(this);
     }
-    
+
     /**
      * Updates this entity, by specifying the entity ID.
      */
@@ -149,7 +149,7 @@ public class Model {
         _setId(id);
         Ebean.update(this);
     }
-    
+
     /**
      * Updates this entity, by specifying the entity ID, using a specific Ebean server.
      *
@@ -159,14 +159,14 @@ public class Model {
         _setId(id);
         Ebean.getServer(server).update(this);
     }
-    
+
     /**
      * Deletes this entity.
      */
     public void delete() {
         Ebean.delete(this);
     }
-    
+
     /**
      * Deletes this entity, using a specific Ebean server.
      *
@@ -175,14 +175,14 @@ public class Model {
     public void delete(String server) {
         Ebean.getServer(server).delete(this);
     }
-    
+
     /**
      * Refreshes this entity from the database.
      */
     public void refresh() {
         Ebean.refresh(this);
     }
-    
+
     /**
      * Refreshes this entity from the database, using a specific Ebean server.
      *
@@ -191,7 +191,7 @@ public class Model {
     public void refresh(String server) {
         Ebean.getServer(server).refresh(this);
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if(this == other) return true;
@@ -202,20 +202,20 @@ public class Model {
         if(otherId == null) return false;
         return id.equals(otherId);
     }
-    
+
     @Override
     public int hashCode() {
         Object id = _getId();
         return id == null ? super.hashCode() : id.hashCode();
     }
-    
+
     /**
      * Helper for Ebean queries.
      *
      * @see <a href="http://www.avaje.org/static/javadoc/pub/">Ebean API documentation</a>
      */
     public static class Finder<I,T> implements Query<T> {
-        
+
         private final Class<I> idType;
         private final Class<T> type;
         private final String serverName;
@@ -226,7 +226,7 @@ public class Model {
         public Finder(Class<I> idType, Class<T> type) {
             this("default", idType, type);
         }
-        
+
         /**
           * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>, using a specific Ebean server.
           */
@@ -235,18 +235,18 @@ public class Model {
             this.idType = idType;
             this.serverName = serverName;
         }
-        
+
         private EbeanServer server() {
             return Ebean.getServer(serverName);
         }
-        
+
         /**
          * Changes the Ebean server.
          */
         public Finder<I,T> on(String server) {
             return new Finder(server, idType, type);
         }
-        
+
         /**
          * Retrieves all entities of the given type.
          */
@@ -267,70 +267,70 @@ public class Model {
         public T ref(I id) {
              return server().getReference(type, id);
         }
-        
+
         /**
          *  Creates a filter for sorting and filtering lists of entities locally without going back to the database.
          */
         public Filter<T> filter() {
             return server().filter(type);
         }
-        
+
         /**
          * Creates a query.
          */
         public Query<T> query() {
             return server().find(type);
         }
-        
+
         /**
          * Returns the next identity value.
          */
         public I nextId() {
             return (I)server().nextId(type);
         }
-        
+
         /**
          * Cancels query execution, if supported by the underlying database and driver.
          */
         public void cancel() {
             query().cancel();
         }
-        
+
         /**
          * Copies this query.
          */
         public Query<T> copy() {
             return query().copy();
         }
-        
+
         /**
          * Specifies a path to load including all its properties.
          */
         public Query<T> fetch(String path) {
             return query().fetch(path);
         }
-        
+
         /**
          * Additionally specifies a <code>JoinConfig</code> to specify a 'query join' and/or define the lazy loading query.
          */
         public Query<T> fetch(String path, FetchConfig joinConfig) {
             return query().fetch(path, joinConfig);
         }
-        
+
         /**
          * Specifies a path to fetch with a specific list properties to include, to load a partial object.
          */
         public Query<T> fetch(String path, String fetchProperties) {
             return query().fetch(path, fetchProperties);
         }
-        
+
         /**
          * Additionally specifies a <code>FetchConfig</code> to use a separate query or lazy loading to load this path.
          */
         public Query<T> fetch(String assocProperty, String fetchProperties, FetchConfig fetchConfig) {
             return query().fetch(assocProperty, fetchProperties, fetchConfig);
         }
-        
+
         /**
          * Applies a filter on the 'many' property list rather than the root level objects.
          */
@@ -379,7 +379,7 @@ public class Model {
         public Map<?,T> findMap() {
             return query().findMap();
         }
-        
+
         /**
          * Executes the query and returns the results as a map of the objects.
          */
@@ -414,11 +414,11 @@ public class Model {
         public T findUnique() {
             return query().findUnique();
         }
-        
+
         public void findVisit(QueryResultVisitor<T> visitor) {
             query().findVisit(visitor);
         }
-        
+
         public QueryIterator<T> findIterate() {
             return query().findIterate();
         }
@@ -581,7 +581,7 @@ public class Model {
         public Query<T> setListener(QueryListener<T> queryListener) {
             return query().setListener(queryListener);
         }
-        
+
         /**
          * When set to <code>true</code>, all the beans from this query are loaded into the bean cache.
          */
@@ -676,7 +676,7 @@ public class Model {
         public Query<T> setUseQueryCache(boolean useQueryCache) {
             return query().setUseQueryCache(useQueryCache);
         }
-        
+
         public Query<T> setUseIndex(UseIndex useIndex) {
             return query().setUseIndex(useIndex);
         }
@@ -733,5 +733,5 @@ public class Model {
             return query().isForUpdate();
         }
     }
-    
+
 }

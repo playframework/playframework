@@ -112,10 +112,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
         def cleanup() {
           if (!alreadyClean.getAndSet(true)) {
-            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))            
+            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
           }
         }
-        
+
         // attach the cleanup function to the channel context for after cleaning
         ctx.setAttachment(cleanup)
 
@@ -143,7 +143,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 // Set response headers
                 headers.filterNot(_ == (CONTENT_LENGTH, "-1")).foreach {
 
-                  // Fix a bug for Set-Cookie header. 
+                  // Fix a bug for Set-Cookie header.
                   // Multiple cookies could be merged in a single header
                   // but it's not properly supported by some browsers
                   case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
@@ -180,7 +180,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       ctx.setAttachment(null)
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
-                      Logger("play").debug(ex.toString) 
+                      Logger("play").debug(ex.toString)
                       if(e.getChannel.isConnected())  e.getChannel.close()
                   }
                 }.getOrElse {
@@ -189,7 +189,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   val channelBuffer = ChannelBuffers.dynamicBuffer(512)
                   val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
                   val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-                  val p = (body |>>> Enumeratee.grouped(stringIteratee) &>> Cont { 
+                  val p = (body |>>> Enumeratee.grouped(stringIteratee) &>> Cont {
                     case Input.El(buffer) =>
                       nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
                       nettyResponse.setContent(buffer)
@@ -206,7 +206,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       ctx.setAttachment(null)
                       if (e.getChannel.isConnected() && !keepAlive) e.getChannel.close()
                     case Thrown(ex) =>
-                      Logger("play").debug(ex.toString) 
+                      Logger("play").debug(ex.toString)
                       if(e.getChannel.isConnected())  e.getChannel.close()
                   }
                 }
@@ -221,7 +221,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 // Copy headers to netty response
                 headers.foreach {
 
-                  // Fix a bug for Set-Cookie header. 
+                  // Fix a bug for Set-Cookie header.
                   // Multiple cookies could be merged in a single header
                   // but it's not properly supported by some browsers
                   case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
@@ -243,10 +243,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       case (true,Input.El(x)) =>
                          Iteratee.flatten(
                            NettyPromise(e.getChannel.write(new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))))
-                             .extend1{ 
+                             .extend1{
                                case Redeemed(_) => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty)
                                case Thrown(ex) =>
-                                 Logger("play").debug(ex.toString) 
+                                 Logger("play").debug(ex.toString)
                                  if(e.getChannel.isConnected())  e.getChannel.close()
                                  throw ex
                              })
@@ -255,10 +255,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                     }
                     Iteratee.flatten(
                       NettyPromise(e.getChannel.write(nettyResponse))
-                        .extend1{ 
+                        .extend1{
                           case Redeemed(_) => if(e.getChannel.isConnected()) Cont(step) else Done((),Input.Empty:Input[r.BODY_CONTENT])
                           case Thrown(ex) =>
-                            Logger("play").debug(ex.toString) 
+                            Logger("play").debug(ex.toString)
                             if(e.getChannel.isConnected())  e.getChannel.close()
                             throw ex
                         })

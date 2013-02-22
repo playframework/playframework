@@ -18,4 +18,4 @@ object ApplicationBuild extends Build {
                   requireJs += "main.js"
              ).settings(distTestSettings: _*)
 }
-            
+

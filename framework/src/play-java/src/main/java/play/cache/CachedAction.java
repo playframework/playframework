@@ -7,7 +7,7 @@ import play.mvc.Http.*;
  * Cache another action.
  */
 public class CachedAction extends Action<Cached> {
-    
+
     public Result call(Context ctx) {
         try {
             String key = configuration.key();

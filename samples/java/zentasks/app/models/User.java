@@ -12,7 +12,7 @@ import com.avaje.ebean.*;
 /**
  * User entity managed by Ebean
  */
-@Entity 
+@Entity
 @Table(name="account")
 public class User extends Model {
 
@@ -20,17 +20,17 @@ public class User extends Model {
     @Constraints.Required
     @Formats.NonEmpty
     public String email;
-    
+
     @Constraints.Required
     public String name;
-    
+
     @Constraints.Required
     public String password;
-    
+
     // -- Queries
-    
+
     public static Model.Finder<String,User> find = new Model.Finder(String.class, User.class);
-    
+
     /**
      * Retrieve all users.
      */
@@ -44,7 +44,7 @@ public class User extends Model {
     public static User findByEmail(String email) {
         return find.where().eq("email", email).findUnique();
     }
-    
+
     /**
      * Authenticate a User.
      */
@@ -54,9 +54,9 @@ public class User extends Model {
             .eq("password", password)
             .findUnique();
     }
-    
+
     // --
-    
+
     public String toString() {
         return "User(" + email + ")";
     }

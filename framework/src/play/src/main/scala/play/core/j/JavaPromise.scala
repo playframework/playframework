@@ -21,7 +21,7 @@ object JavaPromise {
 
   def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS, ec: ExecutionContext): scala.concurrent.Future[A] =
     play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)(ec)
-    
+
 
   def sequence[A](promises: JList[F.Promise[_ <: A]]): Future[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))

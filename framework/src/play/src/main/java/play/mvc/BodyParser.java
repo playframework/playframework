@@ -22,7 +22,7 @@ public interface BodyParser {
     /**
      * Guess the body content by checking the Content-Type header.
      */
-    public static class AnyContent implements BodyParser {        
+    public static class AnyContent implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
             return play.core.j.JavaParsers.anyContent(maxLength);
         }

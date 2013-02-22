@@ -35,8 +35,8 @@ public class GlobalSettings {
 
     /**
      * Called when an exception occurred.
-     * 
-     * The default is to send the framework's default error page. This is achieved by returning <code>null</code>, 
+     *
+     * The default is to send the framework's default error page. This is achieved by returning <code>null</code>,
      * so that the Scala engine handles the excepetion and shows an error page.
      *
      * By overriding this method one can provide an alternative error page.
@@ -47,7 +47,7 @@ public class GlobalSettings {
     public Result onError(RequestHeader request, Throwable t) {
         return null;
     }
-    
+
     /**
      * Call to create the root Action of a request for a Java application.
      * The request and actionMethod values are passed for information.
@@ -68,11 +68,11 @@ public class GlobalSettings {
     /**
     *
     * Called when an HTTP request has been received.
-    * The default implementation (return null) means to use the application router to find the appropriate action 
-    * 
-    * By overriding this method one can provide an alternative routing mechanism. 
+    * The default implementation (return null) means to use the application router to find the appropriate action
+    *
+    * By overriding this method one can provide an alternative routing mechanism.
     * Please note, though, this API is very low level, useful for plugin/module authors only.
-    * 
+    *
     * @param request the HTTP request header as seen by the core framework (the body has not been parsed yet)
     * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
     */
@@ -83,8 +83,8 @@ public class GlobalSettings {
     /**
      * Called when no action was found to serve a request.
      *
-     * The default behavior is to render the framework's default 404 page. This is achieved by returning <code>null</code>, 
-     * so that the Scala engine handles <code>onHandlerNotFound</code>. 
+     * The default behavior is to render the framework's default 404 page. This is achieved by returning <code>null</code>,
+     * so that the Scala engine handles <code>onHandlerNotFound</code>.
      *
      * By overriding this method one can provide an alternative 404 page.
      *
@@ -94,11 +94,11 @@ public class GlobalSettings {
     public Result onHandlerNotFound(RequestHeader request) {
         return null;
     }
-    
+
     /**
      * Called when an action has been found, but the request parsing has failed.
      *
-     * The default behavior is to render the framework's default 400 page. This is achieved by returning <code>null</code>, 
+     * The default behavior is to render the framework's default 400 page. This is achieved by returning <code>null</code>,
      * so that the Scala engine handles <code>onBadRequest</code>.
      *
      * By overriding this method one can provide an alternative 400 page.
@@ -135,5 +135,5 @@ public class GlobalSettings {
     public <T extends play.api.mvc.EssentialFilter> Class<T>[] filters() {
         return new Class[0];
     }
-    
+
 }

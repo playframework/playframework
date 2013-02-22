@@ -19,44 +19,44 @@ object Dummyform {
   )
 }
 class FormSpec extends Specification {
-  
+
   val userForm = Dummyform.provide
-  
+
   "the userForm" should {
-  
+
     "don't bind the address if missing" in {
-      
+
       val (email, address) = userForm.bind(
         Map("email" -> "coco")
       ).get
-      
+
       email must equalTo("coco")
       address must beNone
-      
+
     }
-    
+
     "don't bind the address if blank" in {
-      
+
       val (email, address) = userForm.bind(
         Map("email" -> "coco", "address.city" -> "")
       ).get
-      
+
       email must equalTo("coco")
       address must beNone
-      
+
     }
-    
+
     "bind the address" in {
-      
+
       val (email, address) = userForm.bind(
         Map("email" -> "coco", "address.city" -> "Paris")
       ).get
-      
+
       email must equalTo("coco")
       address must beSome.which(_ == "Paris")
-      
+
     }
-  
+
   }
-  
+
 }

@@ -13,14 +13,14 @@ object Global extends GlobalSettings {
   // Ensure that the Evolutions code uses the same configuration as the running application
   // See: https://play.lighthouseapp.com/projects/82401-play-20/tickets/844
   override def configuration = {
-    
-    val extraConfig = 
+
+    val extraConfig =
       """
         |applyEvolutions.mock=false
         |db.mock.driver=org.h2.Driver
         |db.mock.url="jdbc:h2:mem:mock;DB_CLOSE_DELAY=-1"
       """.stripMargin
-    
+
     Configuration(ConfigFactory.parseString(extraConfig))
-  }  
+  }
 }
