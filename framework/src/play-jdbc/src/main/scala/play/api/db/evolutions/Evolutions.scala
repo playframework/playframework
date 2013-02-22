@@ -636,7 +636,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
  * @param db the database name
  */
 case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException.RichDescription(
-  "Database '" + db + "' is in inconsistent state!",
+  "Database '" + db + "' is in an inconsistent state!",
   "An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved.") {
 
   def subTitle = "We got the following error: " + error + ", while trying to run this SQL script:"
