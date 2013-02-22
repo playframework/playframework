@@ -103,7 +103,6 @@ object PlayBuild extends Build {
         file("src/play-functional"),
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"play-functional_"+previousScalaVersion} % previousVersion),
-            libraryDependencies := functionalDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -116,7 +115,6 @@ object PlayBuild extends Build {
         file("src/play-datacommons"),
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % {"play-datacommons"+previousScalaVersion} % previousVersion),
-            libraryDependencies := dataCommonsDependencies,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -616,14 +614,6 @@ object PlayBuild extends Build {
             specsBuild % "test"
         )
         
-        val functionalDependencies  = Seq(
-            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
-        )
-
-        val dataCommonsDependencies  = Seq(
-            "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"            
-        )
-
         val jsonDependencies  = Seq(        
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
