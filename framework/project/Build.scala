@@ -635,7 +635,7 @@ object PlayBuild extends Build {
         
 
         val testDependencies = Seq(
-            "junit"                             %    "junit-dep"                %   "4.10",
+            "junit"                             %    "junit"                    %   "4.11",
             specsBuild,
             "com.novocode"                      %    "junit-interface"          %   "0.10-M2",
 
