@@ -9,9 +9,9 @@ import anorm.SqlParser._
 case class Project(id: Pk[Long], folder: String, name: String)
 
 object Project {
-  
+
   // -- Parsers
-  
+
   /**
    * Parse a Project from a ResultSet
    */
@@ -22,9 +22,9 @@ object Project {
       case id~folder~name => Project(id, folder, name)
     }
   }
-  
+
   // -- Queries
-    
+
   /**
    * Retrieve a Project from id.
    */
@@ -35,7 +35,7 @@ object Project {
       ).as(Project.simple.singleOpt)
     }
   }
-  
+
   /**
    * Retrieve project for user
    */
@@ -43,8 +43,8 @@ object Project {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          select * from project 
-          join project_member on project.id = project_member.project_id 
+          select * from project
+          join project_member on project.id = project_member.project_id
           where project_member.user_email = {email}
         """
       ).on(
@@ -52,7 +52,7 @@ object Project {
       ).as(Project.simple *)
     }
   }
-  
+
   /**
    * Update a project.
    */
@@ -63,29 +63,29 @@ object Project {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Delete a project.
    */
   def delete(id: Long) {
-    DB.withConnection { implicit connection => 
+    DB.withConnection { implicit connection =>
       SQL("delete from project where id = {id}").on(
         'id -> id
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Delete all project in a folder
    */
   def deleteInFolder(folder: String) {
-    DB.withConnection { implicit connection => 
+    DB.withConnection { implicit connection =>
       SQL("delete from project where folder = {folder}").on(
         'folder -> folder
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Rename a folder
    */
@@ -96,7 +96,7 @@ object Project {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Retrieve project member
    */
@@ -104,8 +104,8 @@ object Project {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          select user.* from user 
-          join project_member on project_member.user_email = user.email 
+          select user.* from user
+          join project_member on project_member.user_email = user.email
           where project_member.project_id = {project}
         """
       ).on(
@@ -113,7 +113,7 @@ object Project {
       ).as(User.simple *)
     }
   }
-  
+
   /**
    * Add a member to the project team.
    */
@@ -125,7 +125,7 @@ object Project {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Remove a member from the project team.
    */
@@ -137,7 +137,7 @@ object Project {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Check if a user is a member of this project
    */
@@ -145,8 +145,8 @@ object Project {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          select count(user.email) = 1 from user 
-          join project_member on project_member.user_email = user.email 
+          select count(user.email) = 1 from user
+          join project_member on project_member.user_email = user.email
           where project_member.project_id = {project} and user.email = {email}
         """
       ).on(
@@ -155,18 +155,18 @@ object Project {
       ).as(scalar[Boolean].single)
     }
   }
-   
+
   /**
    * Create a Project.
    */
   def create(project: Project, members: Seq[String]): Project = {
      DB.withTransaction { implicit connection =>
-       
+
        // Get the project id
        val id: Long = project.id.getOrElse {
          SQL("select next value for project_seq").as(scalar[Long].single)
        }
-       
+
        // Insert the project
        SQL(
          """
@@ -179,15 +179,15 @@ object Project {
          'name -> project.name,
          'folder -> project.folder
        ).executeUpdate()
-       
+
        // Add members
        members.foreach { email =>
          SQL("insert into project_member values ({id}, {email})").on('id -> id, 'email -> email).executeUpdate()
        }
-       
+
        project.copy(id = Id(id))
-       
+
      }
   }
-  
+
 }

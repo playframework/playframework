@@ -31,7 +31,7 @@ public class JPA {
         }
 
         return em;
-    } 
+    }
 
     /**
      * Get the default EntityManager for this thread.

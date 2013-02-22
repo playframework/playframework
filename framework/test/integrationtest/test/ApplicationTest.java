@@ -12,8 +12,8 @@ import java.util.concurrent.Callable;
 import java.util.*;
 
 public class ApplicationTest extends WithApplication {
-    
-    @Test 
+
+    @Test
     public void compute() {
         assertThat(1 + 1).isEqualTo(2);
     }
@@ -39,13 +39,13 @@ public class ApplicationTest extends WithApplication {
         assertThat(j).isEqualTo("world");
     }
 
-    @Test 
+    @Test
     public void testAdditionPlugin() throws Exception {
         start(fakeApplication(Collections.<String, String>emptyMap(), Arrays.asList("test.DummyPlugin")));
         assertThat(play.Play.application().plugin(test.DummyPlugin.class).foo()).isEqualTo("yay");
     }
 
-    @Test 
+    @Test
     public void test() {
         start();
         Result result = callAction(
@@ -54,7 +54,7 @@ public class ApplicationTest extends WithApplication {
         );
         assertThat(contentAsString(result)).isEqualTo("playframework.com");
     }
-    @Test 
+    @Test
     public void testCookie() {
         start();
         final Http.Cookie c = new Http.Cookie("testcookie", "value", -1, "/", "localhost", true, true);

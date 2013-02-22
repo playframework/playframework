@@ -23,17 +23,17 @@ object MessagesSpec extends Specification {
       // Direct lookups
       translate("title", "fr", "CH") must be equalTo Some("Titre suisse")
       translate("title", "fr", "") must be equalTo Some("Titre francais")
-      
+
       // Region that is missing
       translate("title", "fr", "FR") must be equalTo Some("Titre francais")
-      
+
       // Translation missing in the given region
       translate("foo", "fr", "CH") must be equalTo Some("foo francais")
       translate("bar", "fr", "CH") must be equalTo Some("English pub")
-      
+
       // Unrecognized language
       translate("title", "bo", "GO") must be equalTo Some("English Title")
-      
+
       // Missing translation
       translate("garbled", "fr", "CH") must be equalTo None
     }

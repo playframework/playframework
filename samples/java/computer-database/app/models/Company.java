@@ -14,15 +14,15 @@ import com.avaje.ebean.*;
 /**
  * Company entity managed by Ebean
  */
-@Entity 
+@Entity
 public class Company extends Model {
 
     @Id
     public Long id;
-    
+
     @Constraints.Required
     public String name;
-    
+
     /**
      * Generic query helper for entity Company with id Long
      */

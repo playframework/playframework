@@ -18,7 +18,7 @@ object JsonRichSpec extends Specification {
             "key4" -> Json.arr("value41", 345.6, JsString("test"), JsObject(Seq("key411" -> obj("key4111" -> 987.654))))
           )
 
-       js must equalTo( 
+       js must equalTo(
        		JsObject(Seq(
             	"key1" -> JsObject(Seq(
                 	"key11" -> JsString("value11"),
@@ -28,7 +28,7 @@ object JsonRichSpec extends Specification {
             	"key2" -> JsNumber(123),
             	"key3" -> JsBoolean(true),
               "key4" -> JsArray(Seq(
-                          JsString("value41"), JsNumber(345.6), 
+                          JsString("value41"), JsNumber(345.6),
                           JsString("test"), JsObject(Seq("key411" -> JsObject(Seq("key4111" -> JsNumber(987.654)))))
                         ))
           ))

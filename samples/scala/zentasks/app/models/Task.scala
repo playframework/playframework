@@ -11,9 +11,9 @@ import anorm.SqlParser._
 case class Task(id: Pk[Long], folder: String, project: Long, title: String, done: Boolean, dueDate: Option[Date], assignedTo: Option[String])
 
 object Task {
-  
+
   // -- Parsers
-  
+
   /**
    * Parse a Task from a ResultSet
    */
@@ -30,9 +30,9 @@ object Task {
       )
     }
   }
-  
+
   // -- Queries
-  
+
   /**
    * Retrieve a Task from the id.
    */
@@ -43,7 +43,7 @@ object Task {
       ).as(Task.simple.singleOpt)
     }
   }
-  
+
   /**
    * Retrieve todo tasks for the user.
    */
@@ -51,8 +51,8 @@ object Task {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          select * from task 
-          join project_member on project_member.project_id = task.project 
+          select * from task
+          join project_member on project_member.project_id = task.project
           join project on project.id = project_member.project_id
           where task.done = false and project_member.user_email = {email}
         """
@@ -63,7 +63,7 @@ object Task {
       } *)
     }
   }
-  
+
   /**
    * Find tasks related to a project
    */
@@ -71,7 +71,7 @@ object Task {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          select * from task 
+          select * from task
           where task.project = {project}
         """
       ).on(
@@ -90,7 +90,7 @@ object Task {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Delete all task in a folder.
    */
@@ -101,7 +101,7 @@ object Task {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Mark a task as done or not
    */
@@ -113,7 +113,7 @@ object Task {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Rename a folder.
    */
@@ -124,7 +124,7 @@ object Task {
       ).executeUpdate()
     }
   }
-  
+
   /**
    * Check if a user is the owner of this task
    */
@@ -132,9 +132,9 @@ object Task {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          select count(task.id) = 1 from task 
-          join project on task.project = project.id 
-          join project_member on project_member.project_id = project.id 
+          select count(task.id) = 1 from task
+          join project on task.project = project.id
+          join project_member on project_member.project_id = project.id
           where project_member.user_email = {email} and task.id = {task}
         """
       ).on(
@@ -149,12 +149,12 @@ object Task {
    */
   def create(task: Task): Task = {
     DB.withConnection { implicit connection =>
-      
+
       // Get the task id
       val id: Long = task.id.getOrElse {
         SQL("select next value for task_seq").as(scalar[Long].single)
       }
-      
+
       SQL(
         """
           insert into task values (
@@ -170,10 +170,10 @@ object Task {
         'dueDate -> task.dueDate,
         'assignedTo -> task.assignedTo
       ).executeUpdate()
-      
+
       task.copy(id = Id(id))
-      
+
     }
   }
-  
+
 }

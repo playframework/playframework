@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class FunctionalSpec extends Specification {
   "an Application" should {
-    
+
 
     "charset should be defined" in new WithServer() {
       val h = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").get)
@@ -148,5 +148,5 @@ class FunctionalSpec extends Specification {
     }
 
   }
-  
+
 }

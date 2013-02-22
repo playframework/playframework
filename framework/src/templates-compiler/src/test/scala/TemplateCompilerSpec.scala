@@ -46,7 +46,7 @@ object TemplateCompilerSpec extends Specification {
 5 match @test.length""")
 
       val hello = helper.compile[((String) => Html)]("hello.scala.html", "html.hello")("World").toString.trim
-      
+
       hello must be_==(
         "<h1>Hello World!</h1><h1>xml</h1>")
 

@@ -37,7 +37,7 @@ trait PlayEclipse {
         setting(crossTarget in ref, state) map { ct =>
           new RewriteRule {
             override def transform(node: Node): Seq[Node] = node match {
-              //add classes_managed  
+              //add classes_managed
               case elem if (elem.label == "classpathentry" &&
                 elem.attribute("path").getOrElse(err(elem)).toString.contains("org.scala-ide.sdt.launching.SCALA_CONTAINER") &&
                 new java.io.File(ct + f + "classes_managed").exists) =>
@@ -58,7 +58,7 @@ trait PlayEclipse {
               //add javabuilder
               case elem if (elem.text == "org.scala-ide.sdt.core.scalabuilder") =>
                 <name>org.eclipse.jdt.core.javabuilder</name>
-              //remove scala nature   
+              //remove scala nature
               case elem if (elem.text == "org.scala-ide.sdt.core.scalanature") =>
                 <name></name>
               case other =>

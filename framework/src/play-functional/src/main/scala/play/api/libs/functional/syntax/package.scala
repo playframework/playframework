@@ -6,7 +6,7 @@ import scala.language.implicitConversions
 import play.api.libs.functional._
 
 /**
-  * Don't forget to {{{import play.api.libs.functional.syntax._}}} to enable functional combinators 
+  * Don't forget to {{{import play.api.libs.functional.syntax._}}} to enable functional combinators
   * when using Json API.
   */
 object `package` {

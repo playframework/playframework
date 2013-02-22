@@ -131,7 +131,7 @@ public class F {
          *
          * The returned Promise is usually combined with other Promises.
          *
-         * @return a promise without a real value 
+         * @return a promise without a real value
          *
          */
         public static Promise<scala.Unit> timeout() throws TimeoutException {
@@ -226,7 +226,7 @@ public class F {
 
         /**
          * combines the current promise with <code>another</code> promise using `or`
-         * @param another 
+         * @param another
          */
         public <B> Promise<Either<A,B>> or(Promise<B> another) {
             return (new Promise(new play.api.libs.concurrent.PlayPromise(this.promise).or(another.getWrappedPromise()))).map(
@@ -387,8 +387,8 @@ public class F {
                 id = context.id();
             }
             return play.core.j.JavaPromise.akkaAsk(
-                            actors().get((int)(id % actors().size())), 
-                            Tuple3(f, a, context), 
+                            actors().get((int)(id % actors().size())),
+                            Tuple3(f, a, context),
                             akka.util.Timeout.apply(60000 * 60 * 1) // Let's wait 1h here. Unfortunately we can't avoid a timeout.
                    ).map(new scala.runtime.AbstractFunction1<Object,B> () {
                         public B apply(Object o) {
@@ -401,7 +401,7 @@ public class F {
                                     throw new RuntimeException(t);
                                 }
                             }
-                           
+
                             return r.right.get();
                 }
             },Invoker.executionContext());

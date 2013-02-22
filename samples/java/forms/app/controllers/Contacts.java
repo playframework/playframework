@@ -10,19 +10,19 @@ import views.html.contact.*;
 import models.*;
 
 public class Contacts extends Controller {
-    
+
     /**
      * Defines a form wrapping the Contact class.
-     */ 
+     */
     final static Form<Contact> contactForm = form(Contact.class);
-  
+
     /**
      * Display a blank form.
-     */ 
+     */
     public static Result blank() {
         return ok(form.render(contactForm));
     }
-  
+
     public static Result edit() {
         Contact existingContact = new Contact(
             "Fake", "Contact", "Fake company",
@@ -38,13 +38,13 @@ public class Contacts extends Controller {
         );
         return ok(form.render(contactForm.fill(existingContact)));
     }
-  
+
     /**
      * Handle the form submission.
      */
     public static Result submit() {
         Form<Contact> filledForm = contactForm.bindFromRequest();
-        
+
         if(filledForm.hasErrors()) {
             return badRequest(form.render(filledForm));
         } else {
@@ -52,5 +52,5 @@ public class Contacts extends Controller {
             return ok(summary.render(created));
         }
     }
-  
+
 }

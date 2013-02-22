@@ -7,7 +7,7 @@ object ScriptSpec extends Specification {
 
     "separate SQL into semicolon-delimited statements" in {
       val statements = IndexedSeq("FIRST", "SECOND", "THIRD", "FOURTH")
-      
+
       val scriptStatements = ScriptSansEvolution(s"""
         ${statements(0)};
 
@@ -18,7 +18,7 @@ object ScriptSpec extends Specification {
 
     "not delimit statements on double-semicolons, rather escaping them to a single semicolon" in {
       val statements = IndexedSeq(
-        "SELECT * FROM punctuation WHERE characters = ';' OR characters = ';;'", 
+        "SELECT * FROM punctuation WHERE characters = ';' OR characters = ';;'",
         "DROP the_beat"
       )
 
@@ -26,7 +26,7 @@ object ScriptSpec extends Specification {
       val statementsWithEscapeSequence = statements.map(_.replace(";", ";;"))
 
       val scriptStatements = ScriptSansEvolution(s"""
-        ${statementsWithEscapeSequence(0)}; 
+        ${statementsWithEscapeSequence(0)};
         ${statementsWithEscapeSequence(1)};""").statements
 
       scriptStatements.toList must beEqualTo(statements.toList)

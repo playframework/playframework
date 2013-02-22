@@ -9,9 +9,9 @@ import com.avaje.ebean.*;
  * Wraps an action in an Ebean transaction.
  */
 public class TransactionalAction extends Action<Transactional> {
-    
+
     public Result call(final Context ctx) throws Throwable {
-        return Ebean.execute(new TxCallable<Result>() {  
+        return Ebean.execute(new TxCallable<Result>() {
             public Result call() {
                 try {
                     return delegate.call(ctx);
@@ -23,5 +23,5 @@ public class TransactionalAction extends Action<Transactional> {
             }
         });
     }
-    
+
 }

@@ -15,12 +15,12 @@ sealed trait PathNode {
 
 case class RecursiveSearch(key: String) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => (json \\ key).toList.filterNot{ 
-      case JsUndefined(_) => true 
+    case obj: JsObject => (json \\ key).toList.filterNot{
+      case JsUndefined(_) => true
       case _ => false
     }
-    case arr: JsArray => (json \\ key).toList.filterNot{ 
-      case JsUndefined(_) => true 
+    case arr: JsArray => (json \\ key).toList.filterNot{
+      case JsUndefined(_) => true
       case _ => false
     }
     case _ => List()
@@ -32,37 +32,37 @@ case class RecursiveSearch(key: String) extends PathNode {
    * First found, first set and never goes down after setting
    */
   def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
-    case obj: JsObject => 
-      var found = false 
-      val o = JsObject(obj.fields.map{ case (k,v) => 
-        if(k == this.key) { 
+    case obj: JsObject =>
+      var found = false
+      val o = JsObject(obj.fields.map{ case (k,v) =>
+        if(k == this.key) {
           found = true
-          k -> transform(v) 
+          k -> transform(v)
         }
-        else k -> set(v, transform) 
+        else k -> set(v, transform)
       })
 
       o
     case _ => json
-  }  
+  }
 
   private[json] def splitChildren(json: JsValue) = json match {
-    case obj: JsObject => obj.fields.toList.map{ case (k,v) => 
+    case obj: JsObject => obj.fields.toList.map{ case (k,v) =>
       if(k == this.key) Right(this -> v)
       else Left(KeyPathNode(k) -> v)
     }
-    case arr: JsArray => 
+    case arr: JsArray =>
       arr.value.toList.zipWithIndex.map{ case (js, j) => Left(IdxPathNode(j) -> js) }
-    
+
     case _ => List()
-  } 
+  }
 }
- 
+
 case class KeyPathNode(key: String) extends PathNode{
 
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => List(json \ key).filterNot{ 
-      case JsUndefined(_) => true 
+    case obj: JsObject => List(json \ key).filterNot{
+      case JsUndefined(_) => true
       case _ => false
     }
     case _ => List()
@@ -72,14 +72,14 @@ case class KeyPathNode(key: String) extends PathNode{
   def toJsonString = "." + key
 
   def set(json: JsValue, transform: JsValue => JsValue): JsValue = json match {
-    case obj: JsObject => 
-      var found = false 
-      val o = JsObject(obj.fields.map{ case (k,v) => 
-        if(k == this.key) { 
+    case obj: JsObject =>
+      var found = false
+      val o = JsObject(obj.fields.map{ case (k,v) =>
+        if(k == this.key) {
           found = true
-          k -> transform(v) 
+          k -> transform(v)
         }
-        else k -> v 
+        else k -> v
       })
       if(!found) o ++ Json.obj(this.key -> transform(Json.obj()))
       else o
@@ -87,12 +87,12 @@ case class KeyPathNode(key: String) extends PathNode{
   }
 
   private[json] def splitChildren(json: JsValue) = json match {
-    case obj: JsObject => obj.fields.toList.map{ case (k,v) => 
+    case obj: JsObject => obj.fields.toList.map{ case (k,v) =>
       if(k == this.key) Right(this -> v)
       else Left(KeyPathNode(k) -> v)
     }
     case _ => List()
-  } 
+  }
 
   private[json] override def toJsonField(value: JsValue) = Json.obj(key -> value)
 
@@ -113,12 +113,12 @@ case class IdxPathNode(idx: Int) extends PathNode {
   }
 
   private[json] def splitChildren(json: JsValue) = json match {
-    case arr: JsArray => arr.value.toList.zipWithIndex.map{ case (js, j) => 
-      if(j == idx) Right(this -> js) 
+    case arr: JsArray => arr.value.toList.zipWithIndex.map{ case (js, j) =>
+      if(j == idx) Right(this -> js)
       else Left(IdxPathNode(j) -> js)
     }
     case _ => List()
-  } 
+  }
 
   private[json] override def toJsonField(value: JsValue) = value
 
@@ -150,7 +150,7 @@ object JsPath extends JsPath(List.empty) {
       step(path.path, value)
     }
 
-    pathValues.foldLeft(Json.obj()){ (obj, pv) => 
+    pathValues.foldLeft(Json.obj()){ (obj, pv) =>
       val (path, value) = (pv._1, pv._2)
       val subobj = buildSubPath(path, value)
       obj.deepMerge(subobj)
@@ -229,10 +229,10 @@ case class JsPath(path: List[PathNode] = List()) {
         case List(p) => stepNode(json, p).repath(lpath)
         case head :: tail => head(json) match {
           case Nil => JsError(lpath, ValidationError("validate.error.missing-path"))
-          case List(js) => 
+          case List(js) =>
             js match {
-              case o: JsObject => 
-                step(o, JsPath(tail)).repath(lpath).flatMap( value => 
+              case o: JsObject =>
+                step(o, JsPath(tail)).repath(lpath).flatMap( value =>
                    filterPathNode(json, head, value)
                 )
               case _ => JsError(lpath, ValidationError("validate.error.expected.jsobject"))
@@ -244,9 +244,9 @@ case class JsPath(path: List[PathNode] = List()) {
 
     js match {
       case o: JsObject => step(o, this)
-      case _ => 
+      case _ =>
         JsError(this, ValidationError("validate.error.expected.jsobject"))
-    }    
+    }
   }
 
   /** Reads a T at JsPath */
@@ -259,19 +259,19 @@ case class JsPath(path: List[PathNode] = List()) {
   @deprecated("use readNullable[T] instead (which manages both missing and null fields)", since = "2.1-RC2")
   def readOpt[T](implicit r: Reads[T]): Reads[Option[T]] = Reads.optional[T](this)(r)
 
-  /** Reads a Option[T] search optional or nullable field at JsPath (field not found or null is None 
+  /** Reads a Option[T] search optional or nullable field at JsPath (field not found or null is None
     * and other cases are Error).
     *
     * It runs through JsValue following all JsPath nodes on JsValue except last node:
     * - If one node in JsPath is not found before last node => returns JsError( "missing-path" )
-    * - If all nodes are found till last node, it runs through JsValue with last node => 
+    * - If all nodes are found till last node, it runs through JsValue with last node =>
     *   - If last node if not found => returns None
     *   - If last node is found with value "null" => returns None
-    *   - If last node is found => applies implicit Reads[T] 
+    *   - If last node is found => applies implicit Reads[T]
     */
   def readNullable[T](implicit r: Reads[T]): Reads[Option[T]] = Reads.nullable[T](this)(r)
 
-  /** Reads a T at JsPath using the explicit Reads[T] passed by name which is useful in case of 
+  /** Reads a T at JsPath using the explicit Reads[T] passed by name which is useful in case of
     * recursive case classes for ex.
     *
     * {{{
@@ -286,7 +286,7 @@ case class JsPath(path: List[PathNode] = List()) {
     */
   def lazyRead[T](r: => Reads[T]): Reads[T] = Reads( js => Reads.at[T](this)(r).reads(js) )
 
-  /** Reads lazily a Option[T] search optional or nullable field at JsPath using the explicit Reads[T] 
+  /** Reads lazily a Option[T] search optional or nullable field at JsPath using the explicit Reads[T]
     * passed by name which is useful in case of recursive case classes for ex.
     *
     * {{{
@@ -300,29 +300,29 @@ case class JsPath(path: List[PathNode] = List()) {
     * }}}
     */
   def lazyReadNullable[T](r: => Reads[T]): Reads[Option[T]] = Reads( js => Reads.nullable[T](this)(r).reads(js) )
-  
+
   /** Pure Reads doesn't read anything but creates a JsObject based on JsPath with the given T value */
   def read[T](t: T) = Reads.pure(t)
-  
-  
+
+
   /** Writes a T at given JsPath */
   def write[T](implicit w: Writes[T]): OWrites[T] = Writes.at[T](this)(w)
 
-  /** Writes a Option[T] at given JsPath 
+  /** Writes a Option[T] at given JsPath
     * If None => doesn't write the field
     * else => writes the field using implicit Writes[T]
     */
   @deprecated("use writeNullable[T] instead (in parallel with readNullable)", since = "2.1-RC2")
   def writeOpt[T](implicit w: Writes[T]): OWrites[Option[T]] = Writes.optional[T](this)(w)
 
-  /** Writes a Option[T] at given JsPath 
+  /** Writes a Option[T] at given JsPath
     * If None => doesn't write the field (never writes null actually)
     * else => writes the field using implicit Writes[T]
     */
   def writeNullable[T](implicit w: Writes[T]): OWrites[Option[T]] = Writes.nullable[T](this)(w)
 
-  /** Writes a T at JsPath using the explicit Writes[T] passed by name which is useful in case of 
-    * recursive case classes for ex 
+  /** Writes a T at JsPath using the explicit Writes[T] passed by name which is useful in case of
+    * recursive case classes for ex
     *
     * {{{
     * case class User(id: Long, name: String, friend: User)
@@ -336,8 +336,8 @@ case class JsPath(path: List[PathNode] = List()) {
     */
   def lazyWrite[T](w: => Writes[T]): OWrites[T] = OWrites( (t:T) => Writes.at[T](this)(w).writes(t) )
 
-  /** Writes a Option[T] at JsPath using the explicit Writes[T] passed by name which is useful in case of 
-    * recursive case classes for ex 
+  /** Writes a Option[T] at JsPath using the explicit Writes[T] passed by name which is useful in case of
+    * recursive case classes for ex
     *
     * Please note that it's not writeOpt to be coherent with readNullable
     *
@@ -352,7 +352,7 @@ case class JsPath(path: List[PathNode] = List()) {
     * }}}
     */
   def lazyWriteNullable[T](w: => Writes[T]): OWrites[Option[T]] = OWrites( (t:Option[T]) => Writes.nullable[T](this)(w).writes(t) )
-  
+
   /** Writes a pure value at given JsPath */
   def write[T](t: T)(implicit w: Writes[T]): OWrites[JsValue] = Writes.pure(this, t)
 
@@ -364,13 +364,13 @@ case class JsPath(path: List[PathNode] = List()) {
   /** Reads/Writes a T at JsPath using provided explicit Writes[T] and implicit Reads[T]*/
   def format[T](w: Writes[T])(implicit r: Reads[T]): OFormat[T] = Format.at[T](this)(Format(r, w))
 
-  /** Reads/Writes a T at JsPath using provided implicit Reads[T] and Writes[T] 
+  /** Reads/Writes a T at JsPath using provided implicit Reads[T] and Writes[T]
     *
     * Please note we couldn't call it "format" to prevent conflicts
     */
   def rw[T](implicit r:Reads[T], w:Writes[T]): OFormat[T] = Format.at[T](this)(Format(r, w))
 
-  /** Reads/Writes a Option[T] at given JsPath 
+  /** Reads/Writes a Option[T] at given JsPath
     *
     * @see JsPath.readOpt to see behavior in reads
     * @see JsPath.writeOpt to see behavior in writes
@@ -378,13 +378,13 @@ case class JsPath(path: List[PathNode] = List()) {
   @deprecated("use formatNullable[T] instead (in parallel with readNullable)", since = "2.1-RC2")
   def formatOpt[T](implicit f: Format[T]): OFormat[Option[T]] = Format.optional[T](this)(f)
 
-  /** Reads/Writes a Option[T] (optional or nullable field) at given JsPath 
+  /** Reads/Writes a Option[T] (optional or nullable field) at given JsPath
     *
     * @see JsPath.readNullable to see behavior in reads
     * @see JsPath.writeNullable to see behavior in writes
     */
   def formatNullable[T](implicit f: Format[T]): OFormat[Option[T]] = Format.nullable[T](this)(f)
-  
+
   /** Lazy Reads/Writes a T at given JsPath using implicit Format[T]
     * (useful in case of recursive case classes).
     *
@@ -400,7 +400,7 @@ case class JsPath(path: List[PathNode] = List()) {
     * @see JsPath.lazyWriteNullable to see behavior in writes
     */
   def lazyFormatNullable[T](f: => Format[T]): OFormat[Option[T]] = OFormat[Option[T]]( lazyReadNullable(f), lazyWriteNullable(f) )
-  
+
   /** Lazy Reads/Writes a T at given JsPath using explicit Reads[T] and Writes[T]
     * (useful in case of recursive case classes).
     *
@@ -408,7 +408,7 @@ case class JsPath(path: List[PathNode] = List()) {
     * @see JsPath.lazyWriteNullable to see behavior in writes
     */
   def lazyFormat[T](r: => Reads[T], w: => Writes[T]): OFormat[T] = OFormat[T]( lazyRead(r), lazyWrite(w) )
-  
+
   /** Lazy Reads/Writes a Option[T] (optional or nullable field) at given JsPath using explicit Reads[T] and Writes[T]
     * (useful in case of recursive case classes).
     *
@@ -430,8 +430,8 @@ case class JsPath(path: List[PathNode] = List()) {
      *
      * Example :
     {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> 123) 
-    js.validate( (__ \ 'key2).json.pick[JsNumber] ) 
+    val js = Json.obj("key1" -> "value1", "key2" -> 123)
+    js.validate( (__ \ 'key2).json.pick[JsNumber] )
     => JsSuccess(JsNumber(123))
     }}}
      */
@@ -447,8 +447,8 @@ case class JsPath(path: List[PathNode] = List()) {
      *
      * Example :
     {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.validate( (__ \ 'key2).json.pick ) 
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2")
+    js.validate( (__ \ 'key2).json.pick )
     => JsSuccess(JsString("value2"))
     }}}
      */
@@ -471,7 +471,7 @@ case class JsPath(path: List[PathNode] = List()) {
     }}}
      */
     def pickBranch[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsPickBranch[A](self)(reads)
-    
+
     /**
      * (__ \ 'key).json.pickBranch is a Reads[JsObject] that:
      * - copies the given branch (JsPath + relative JsValue) from the input JS at this given JsPath
@@ -500,8 +500,8 @@ case class JsPath(path: List[PathNode] = List()) {
      *
      * Example :
     {{{
-    val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
-    js.validate( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) ) 
+    val js = Json.obj("key1" -> "value1", "key2" -> "value2")
+    js.validate( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) )
     => JsSuccess(JsObject(Seq( ("key3", JsNumber(123364687568756)) )))
     }}}
      */
@@ -512,10 +512,10 @@ case class JsPath(path: List[PathNode] = List()) {
       * - creates a new branch from JsPath and copies previous value into it
       *
       * Useful to copy a value from a Json branch into another branch
-      * 
+      *
       * Example :
       {{{
-      val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+      val js = Json.obj("key1" -> "value1", "key2" -> "value2")
       js.validate( (__ \ 'key3).copyFrom( (__ \ 'key2).json.pick
       => JsSuccess(JsObject(Seq( ("key3", JsString("value2")) )))
       }}}
@@ -531,7 +531,7 @@ case class JsPath(path: List[PathNode] = List()) {
       *
       * Example :
       {{{
-      val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+      val js = Json.obj("key1" -> "value1", "key2" -> "value2")
       js.validate( (__ \ 'key3).update( (__ \ 'key3).write("value3") )
       => JsSuccess(JsObject(Seq( ("key1", JsString("value1")), ("key2", JsString("value2")), ("key3", JsString("value3")) )))
       }}}
@@ -542,12 +542,12 @@ case class JsPath(path: List[PathNode] = List()) {
       *
       * Example :
       {{{
-      val js = Json.obj("key1" -> "value1", "key2" -> "value2") 
+      val js = Json.obj("key1" -> "value1", "key2" -> "value2")
       js.validate( (__ \ 'key2).prune
       => JsSuccess(JsObject(Seq( ("key1", JsString("value1")) )))
       }}}
       */
     def prune: Reads[JsObject] = Reads.jsPrune(self)
   }
-  
+
 }

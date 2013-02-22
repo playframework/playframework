@@ -10,7 +10,7 @@ import scala.language.reflectiveCalls
  */
 trait Enumerator[E] {
   parent =>
-   
+
   /**
    * Attaches this Enumerator to an [[play.api.libs.iteratee.Iteratee]], driving the
    * Iteratee to (asynchronously) consume the input. The Iteratee may enter its
@@ -22,7 +22,7 @@ trait Enumerator[E] {
    * contain a computed result and the remaining (unconsumed) input.
    */
   def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]]
- 
+
   /**
    * Alias for `apply`, produces input driving the given [[play.api.libs.iteratee.Iteratee]]
    * to consume it.
@@ -53,13 +53,13 @@ trait Enumerator[E] {
    * or an exception.
    */
   def run[A](i: Iteratee[E, A]): Future[A] = |>>>(i)
-  
- /** 
+
+ /**
   * A variation on `apply` or `|>>` which returns the state of the iteratee rather
   * than the iteratee itself. This can make your code a little shorter.
   */
   def |>>|[A](i: Iteratee[E, A]): Future[Step[E,A]] = apply(i).flatMap(_.unflatten)
-  
+
   /**
    * Sequentially combine this Enumerator with another Enumerator. The resulting enumerator
    * will produce both input streams, this one first, then the other.
@@ -105,7 +105,7 @@ trait Enumerator[E] {
   * Alias for `andThen`
   */
   def >>>(e: Enumerator[E]): Enumerator[E] = andThen(e)
-  
+
   /**
    * maps the given function f onto parent Enumerator
    * @param f function to map
@@ -132,8 +132,8 @@ trait Enumerator[E] {
 
 }
 /**
- * Enumerator is the source that pushes input into a given iteratee. 
- * It enumerates some input into the iteratee and eventually returns the new state of that iteratee. 
+ * Enumerator is the source that pushes input into a given iteratee.
+ * It enumerates some input into the iteratee and eventually returns the new state of that iteratee.
  */
 object Enumerator {
 
@@ -149,7 +149,7 @@ object Enumerator {
    */
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] =
-      i.fold{ 
+      i.fold{
         case Step.Cont(k) => Future(k(e))
         case _ =>  Future.successful(i)
       }
@@ -200,7 +200,7 @@ object Enumerator {
                     case Step.Cont(kk) =>
                       p.success(Cont(kk))
                       Future.successful(Cont(step))
-                    case _ => 
+                    case _ =>
                       p.success(n)
                       Future.successful(Done((), Input.Empty: Input[EE]))
                   }
@@ -226,7 +226,7 @@ object Enumerator {
                      .map(_.flatMap(_.pureFold(any => ())))
 
       Future.sequence(ps).onComplete {
-        case Success(_) => 
+        case Success(_) =>
           redeemResultIfNotYet(iter.single())
         case Failure(e) => result.failure(e)
 
@@ -274,7 +274,7 @@ object Enumerator {
                     case Step.Cont(kk) =>
                       p.success(Cont(kk))
                       Future.successful(Cont(step))
-                    case _ => 
+                    case _ =>
                       p.success(n)
                       Future.successful(Done((), Input.Empty: Input[EE]))
                   }
@@ -302,7 +302,7 @@ object Enumerator {
       val r1 = e1 |>>| itE1
       val r2 = e2 |>>| itE2
       r1.flatMap(_ => r2).onComplete {
-        case Success(_) => 
+        case Success(_) =>
           redeemResultIfNotYet(iter.single())
         case Failure(e) => result.failure(e)
 
@@ -666,20 +666,20 @@ object Enumerator {
   /**
    * Create an Enumerator from any TraversableOnce like collection of elements.
    *
-   * Example of an iterator of lines of a file : 
+   * Example of an iterator of lines of a file :
    * {{{
-   *  val enumerator: Enumerator[String] = Enumerator( scala.io.Source.fromFile("myfile.txt").getLines ) 
+   *  val enumerator: Enumerator[String] = Enumerator( scala.io.Source.fromFile("myfile.txt").getLines )
    * }}}
    */
   def enumerate[E](traversable : TraversableOnce[E])(implicit ctx:scala.concurrent.ExecutionContext): Enumerator[E]  = {
     val it = traversable.toIterator
-    Enumerator.unfoldM[scala.collection.Iterator[E], E](it: scala.collection.Iterator[E] )({ currentIt => 
+    Enumerator.unfoldM[scala.collection.Iterator[E], E](it: scala.collection.Iterator[E] )({ currentIt =>
       if(currentIt.hasNext)
         Future[ Option[(scala.collection.Iterator[E], E)] ]({
           val next = currentIt.next
           Some( (currentIt -> next) )
         })(ctx)
-      else 
+      else
         Future.successful[ Option[(scala.collection.Iterator[E], E)] ]({
           None
         })
@@ -688,7 +688,7 @@ object Enumerator {
 
   private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Future[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Future.successful(i))((i, e) =>
-      i.flatMap(it => it.pureFold{ 
+      i.flatMap(it => it.pureFold{
         case Step.Cont(k) => k(Input.El(e))
         case _ => it
       }))

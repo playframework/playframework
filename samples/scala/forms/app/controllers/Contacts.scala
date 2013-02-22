@@ -11,18 +11,18 @@ import views._
 import models._
 
 object Contacts extends Controller {
-  
+
   /**
    * Contact Form definition.
    */
   val contactForm: Form[Contact] = Form(
-    
+
     // Defines a mapping that will handle Contact values
     mapping(
       "firstname" -> nonEmptyText,
       "lastname" -> nonEmptyText,
       "company" -> optional(text),
-      
+
       // Defines a repeated mapping
       "informations" -> seq(
         mapping(
@@ -30,20 +30,20 @@ object Contacts extends Controller {
           "email" -> optional(email),
           "phones" -> list(
             text verifying pattern("""[0-9.+]+""".r, error="A valid phone number is required")
-          ) 
+          )
         )(ContactInformation.apply)(ContactInformation.unapply)
       )
-      
+
     )(Contact.apply)(Contact.unapply)
   )
-  
+
   /**
    * Display an empty form.
    */
   def form = Action {
     Ok(html.contact.form(contactForm));
   }
-  
+
   /**
    * Display a form pre-filled with an existing Contact.
    */
@@ -63,7 +63,7 @@ object Contacts extends Controller {
     )
     Ok(html.contact.form(contactForm.fill(existingContact)))
   }
-  
+
   /**
    * Handle form submission.
    */
@@ -73,5 +73,5 @@ object Contacts extends Controller {
       contact => Ok(html.contact.summary(contact))
     )
   }
-  
+
 }

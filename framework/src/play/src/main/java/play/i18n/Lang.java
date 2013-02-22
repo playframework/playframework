@@ -7,35 +7,35 @@ import play.libs.*;
  * A Lang supported by the application.
  */
 public class Lang extends play.api.i18n.Lang {
-    
+
     public final play.api.i18n.Lang underlyingLang;
-    
+
     public Lang(play.api.i18n.Lang underlyingLang) {
         super(underlyingLang.language(), underlyingLang.country());
         this.underlyingLang = underlyingLang;
     }
-    
+
     /**
      * A valid ISO Language Code.
      */
     public String language() {
         return underlyingLang.language();
     }
-    
+
     /**
      * A valid ISO Country Code.
      */
     public String country() {
         return underlyingLang.country();
     }
-    
+
     /**
      * The Lang code (such as fr or en-US).
      */
     public String code() {
         return underlyingLang.code();
     }
-    
+
     /**
      * Convert to a Java Locale value.
      */
@@ -52,7 +52,7 @@ public class Lang extends play.api.i18n.Lang {
     public int hashCode() {
         return underlyingLang.hashCode();
     }
-    
+
     /**
      * Create a Lang value from a code (such as fr or en-US).
      */
@@ -63,7 +63,7 @@ public class Lang extends play.api.i18n.Lang {
             return null;
         }
     }
-    
+
     /**
      * Retrieve Lang availables from the application configuration.
      */
@@ -75,7 +75,7 @@ public class Lang extends play.api.i18n.Lang {
         }
         return result;
     }
-    
+
     /**
      * Guess the preferred lang in the langs set passed as argument.
      * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.

@@ -11,33 +11,33 @@ import play.db.jpa.*;
 /**
  * Computer entity managed by JPA
  */
-@Entity 
+@Entity
 @SequenceGenerator(name = "computer_seq", sequenceName = "computer_seq")
 public class Computer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "computer_seq")
     public Long id;
-    
+
     @Constraints.Required
     public String name;
-    
+
     @Formats.DateTime(pattern="yyyy-MM-dd")
     public Date introduced;
-    
+
     @Formats.DateTime(pattern="yyyy-MM-dd")
     public Date discontinued;
-    
+
     @ManyToOne(cascade = CascadeType.MERGE)
     public Company company;
-    
+
     /**
      * Find a company by id.
      */
     public static Computer findById(Long id) {
         return JPA.em().find(Computer.class, id);
     }
-    
+
     /**
      * Update this computer.
      */
@@ -50,7 +50,7 @@ public class Computer {
         this.id = id;
         JPA.em().merge(this);
     }
-    
+
     /**
      * Insert this new computer.
      */
@@ -63,14 +63,14 @@ public class Computer {
         this.id = id;
         JPA.em().persist(this);
     }
-    
+
     /**
      * Delete this computer.
      */
     public void delete() {
         JPA.em().remove(this);
     }
-     
+
     /**
      * Return a page of computer
      *
@@ -94,51 +94,51 @@ public class Computer {
             .getResultList();
         return new Page(data, total, page, pageSize);
     }
-    
+
     /**
      * Used to represent a computers page.
      */
     public static class Page {
-        
+
         private final int pageSize;
         private final long totalRowCount;
         private final int pageIndex;
         private final List<Computer> list;
-        
+
         public Page(List<Computer> data, long total, int page, int pageSize) {
             this.list = data;
             this.totalRowCount = total;
             this.pageIndex = page;
             this.pageSize = pageSize;
         }
-        
+
         public long getTotalRowCount() {
             return totalRowCount;
         }
-        
+
         public int getPageIndex() {
             return pageIndex;
         }
-        
+
         public List<Computer> getList() {
             return list;
         }
-        
+
         public boolean hasPrev() {
             return pageIndex > 1;
         }
-        
+
         public boolean hasNext() {
             return (totalRowCount/pageSize) >= pageIndex;
         }
-        
+
         public String getDisplayXtoYofZ() {
             int start = ((pageIndex - 1) * pageSize + 1);
             int end = start + Math.min(pageSize, list.size()) - 1;
             return start + " to " + end + " of " + totalRowCount;
         }
-        
+
     }
-    
+
 }
 

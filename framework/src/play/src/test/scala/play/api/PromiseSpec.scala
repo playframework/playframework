@@ -8,7 +8,7 @@ object PromiseSpec extends Specification {
     "recover after an exception using recover" in {
       val promise = Promise[Int]()
       promise.redeem(6/0)
-      
+
       promise.future.recover{ case e: ArithmeticException => 0 }
        .value1.get must equalTo (0)
     }

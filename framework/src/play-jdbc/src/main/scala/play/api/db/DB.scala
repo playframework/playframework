@@ -353,7 +353,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         datasource.setUsername(username)
         datasource.setPassword(password)
       case Some(url @ H2DefaultUrl()) if !url.contains("DB_CLOSE_DELAY") =>
-        if (Play.maybeApplication.exists(_.mode == Mode.Dev)) {      
+        if (Play.maybeApplication.exists(_.mode == Mode.Dev)) {
           Logger("play").warn("datasource [" + url + "] is an in-memory H2 DB, but does not have DB_CLOSE_DELAY=-1 set. " +
             "This means H2 will lose all DB content if all DB connections are closed, so evolutions and the h2-browser might not work correctly.")
         }

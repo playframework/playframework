@@ -18,11 +18,11 @@ public class Cache {
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.
-   * 
+   *
    * @param key Item key.
    * @param value to set if key does not exist
    * @param expiration expiration period in seconds.
-   * @return value 
+   * @return value
    */
   @SuppressWarnings("unchecked")
 public static <T> T getOrElse(String key, Callable<T> block, int expiration) throws Exception{
@@ -32,12 +32,12 @@ public static <T> T getOrElse(String key, Callable<T> block, int expiration) thr
          set(key,value,expiration);
          return value;
      } else return (T)r;
-     
+
   }
-  
+
   /**
    * Sets a value with expiration.
-   * 
+   *
    * @param expiration expiration in seconds
    */
   public static void set(String key, Object value, int expiration) {
@@ -45,7 +45,7 @@ public static <T> T getOrElse(String key, Callable<T> block, int expiration) thr
   }
     /**
    * Sets a value without expiration.
-   * 
+   *
    * @param expiration expiration in seconds
    */
   public static void set(String key, Object value) {

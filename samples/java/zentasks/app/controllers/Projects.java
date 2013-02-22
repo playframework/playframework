@@ -17,7 +17,7 @@ import views.html.projects.*;
  */
 @Security.Authenticated(Secured.class)
 public class Projects extends Controller {
-  
+
     /**
      * Display the dashboard.
      */
@@ -38,13 +38,13 @@ public class Projects extends Controller {
      */
     public static Result add() {
         Project newProject = Project.create(
-            "New project", 
+            "New project",
             form().bindFromRequest().get("group"),
             request().username()
         );
         return ok(item.render(newProject));
     }
-    
+
     /**
      * Rename a project.
      */
@@ -52,7 +52,7 @@ public class Projects extends Controller {
         if(Secured.isMemberOf(project)) {
             return ok(
                 Project.rename(
-                    project, 
+                    project,
                     form().bindFromRequest().get("name")
                 )
             );
@@ -60,7 +60,7 @@ public class Projects extends Controller {
             return forbidden();
         }
     }
-    
+
     /**
      * Delete a project.
      */
@@ -83,7 +83,7 @@ public class Projects extends Controller {
             group.render("New group", new ArrayList<Project>())
         );
     }
-  
+
     /**
      * Delete a project group.
      */
@@ -91,7 +91,7 @@ public class Projects extends Controller {
         Project.deleteInFolder(group);
         return ok();
     }
-  
+
     /**
      * Rename a project group.
      */
@@ -100,9 +100,9 @@ public class Projects extends Controller {
             Project.renameFolder(group, form().bindFromRequest().get("name"))
         );
     }
-  
+
     // -- Members
-  
+
     /**
      * Add a project member.
      */
@@ -117,7 +117,7 @@ public class Projects extends Controller {
             return forbidden();
         }
     }
-  
+
     /**
      * Remove a project member.
      */
@@ -132,6 +132,6 @@ public class Projects extends Controller {
             return forbidden();
         }
     }
-  
+
 }
 

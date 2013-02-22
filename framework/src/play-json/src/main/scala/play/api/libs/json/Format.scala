@@ -8,7 +8,7 @@ import scala.annotation.implicitNotFound
   "No Json formatter found for type ${A}. Try to implement an implicit Format for this type."
 )
 trait Format[A] extends Writes[A] with Reads[A]
-trait OFormat[A] extends OWrites[A] with Reads[A] with Format[A] 
+trait OFormat[A] extends OWrites[A] with Reads[A] with Format[A]
 
 object OFormat {
 
@@ -16,7 +16,7 @@ object OFormat {
 
   implicit def functionalCanBuildFormats(implicit rcb: FunctionalCanBuild[Reads], wcb: FunctionalCanBuild[OWrites]): FunctionalCanBuild[OFormat] = new FunctionalCanBuild[OFormat] {
 
-    def apply[A,B](fa: OFormat[A], fb: OFormat[B]): OFormat[A~B] = 
+    def apply[A,B](fa: OFormat[A], fb: OFormat[B]): OFormat[A~B] =
       OFormat[A~B](
         rcb(fa, fb),
         wcb(fa, fb)
@@ -43,7 +43,7 @@ object OFormat {
   def apply[A](r: Reads[A], w: OWrites[A]):OFormat[A] = new OFormat[A] {
     def reads(js:JsValue):JsResult[A] = r.reads(js)
 
-    def writes(a:A):JsObject = w.writes(a)    
+    def writes(a:A):JsObject = w.writes(a)
   }
 }
 

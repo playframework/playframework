@@ -16,7 +16,7 @@ import java.lang.reflect.*;
  * Formatters helper.
  */
 public class Formatters {
-    
+
     /**
      * Parses this string as instance of the given class.
      *
@@ -27,7 +27,7 @@ public class Formatters {
     public static <T> T parse(String text, Class<T> clazz) {
         return conversion.convert(text, clazz);
     }
-    
+
     /**
      * Parses this string as instance of a specific field in the given class
      *
@@ -39,7 +39,7 @@ public class Formatters {
     public static <T> T parse(Field field, String text, Class<T> clazz) {
         return (T)conversion.convert(text, new TypeDescriptor(field), TypeDescriptor.valueOf(clazz));
     }
-    
+
     /**
      * Computes the display string for any value.
      *
@@ -56,7 +56,7 @@ public class Formatters {
             return t.toString();
         }
     }
-    
+
     /**
      * Computes the display string for any value, for a specific field.
      *
@@ -74,7 +74,7 @@ public class Formatters {
      * @param desc the field descriptor - custom formatters are extracted from this descriptor.
      * @param t the value to print
      * @return the formatted string
-     */    
+     */
     public static <T> String print(TypeDescriptor desc, T t) {
         if(t == null) {
             return "";
@@ -87,25 +87,25 @@ public class Formatters {
             return t.toString();
         }
     }
-    
+
     // --
-    
+
     /**
      * The underlying conversion service.
      */
     public final static FormattingConversionService conversion = new FormattingConversionService();
-    
+
     static {
         register(Date.class, new Formats.DateFormatter("yyyy-MM-dd"));
         register(Date.class, new Formats.AnnotationDateFormatter());
         register(String.class, new Formats.AnnotationNonEmptyFormatter());
     }
-    
+
     /**
      * Super-type for custom simple formatters.
      */
     public static abstract class SimpleFormatter<T> {
-        
+
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
@@ -114,7 +114,7 @@ public class Formatters {
          * @return a new value
          */
         public abstract T parse(String text, Locale locale) throws java.text.ParseException;
-        
+
         /**
          * Unbinds this field - transforms a concrete value to plain string.
          *
@@ -123,14 +123,14 @@ public class Formatters {
          * @return printable version of the value
          */
         public abstract String print(T t, Locale locale);
-        
+
     }
-    
+
     /**
      * Super-type for annotation-based formatters.
      */
     public static abstract class AnnotationFormatter<A extends Annotation,T> {
-        
+
         /**
          * Binds the field - constructs a concrete value from submitted data.
          *
@@ -140,7 +140,7 @@ public class Formatters {
          * @return a new value
          */
         public abstract T parse(A annotation, String text, Locale locale) throws java.text.ParseException;
-        
+
         /**
          * Unbind this field (ie. transform a concrete value to plain string)
          *
@@ -151,7 +151,7 @@ public class Formatters {
          */
         public abstract String print(A annotation, T value, Locale locale);
     }
-    
+
     /**
      * Registers a simple formatter.
      *
@@ -160,22 +160,22 @@ public class Formatters {
      */
     public static <T> void register(final Class<T> clazz, final SimpleFormatter<T> formatter) {
         conversion.addFormatterForFieldType(clazz, new org.springframework.format.Formatter<T>() {
-            
+
             public T parse(String text, Locale locale) throws java.text.ParseException {
                 return formatter.parse(text, locale);
             }
-            
+
             public String print(T t, Locale locale) {
                 return formatter.print(t, locale);
             }
-            
+
             public String toString() {
                 return formatter.toString();
             }
-            
+
         });
     }
-    
+
     /**
      * Registers an annotation-based formatter.
      *
@@ -186,7 +186,7 @@ public class Formatters {
         final Class<? extends Annotation> annotationType = (Class<? extends Annotation>)GenericTypeResolver.resolveTypeArguments(
             formatter.getClass(), AnnotationFormatter.class
         )[0];
-        
+
         conversion.addConverter(new ConditionalGenericConverter() {
             public Set<GenericConverter.ConvertiblePair> getConvertibleTypes() {
                 Set<GenericConverter.ConvertiblePair> types = new HashSet<GenericConverter.ConvertiblePair>();
@@ -214,9 +214,9 @@ public class Formatters {
                     + String.class.getName() + ": "
                     + formatter;
             }
-        
+
         });
-                            
+
         conversion.addConverter(new ConditionalGenericConverter() {
             public Set<GenericConverter.ConvertiblePair> getConvertibleTypes() {
                 Set<GenericConverter.ConvertiblePair> types = new HashSet<GenericConverter.ConvertiblePair>();
@@ -232,10 +232,10 @@ public class Formatters {
                 final A a = (A)targetType.getAnnotation(annotationType);
                 Locale locale = LocaleContextHolder.getLocale();
                 try {
-                    return formatter.parse(a, (String)source, locale);     
+                    return formatter.parse(a, (String)source, locale);
                 } catch (Exception ex) {
                     throw new ConversionFailedException(sourceType, targetType, source, ex);
-                }      
+                }
             }
 
             public String toString() {
@@ -247,5 +247,5 @@ public class Formatters {
         });
 
     }
-    
+
 }

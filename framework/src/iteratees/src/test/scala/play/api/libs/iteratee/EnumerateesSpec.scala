@@ -12,7 +12,7 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.drop" should {
 
     "ignore 3 chunkes when applied with 3" in {
-      
+
       val drop3AndConsume = Enumeratee.drop[String](3) &>>  Iteratee.consume[String]()
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> drop3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
@@ -24,7 +24,7 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.dropWhile" should {
 
     "ignore chunkes while predicate is valid" in {
-      
+
       val drop3AndConsume = Enumeratee.dropWhile[String](_ != "4") &>>  Iteratee.consume[String]()
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> drop3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
@@ -36,7 +36,7 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.take" should {
 
     "pass only first 3 chunkes to Iteratee when applied with 3" in {
-      
+
       val take3AndConsume = Enumeratee.take[String](3) &>>  Iteratee.consume()
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(List(1,2,3).map(_.toString).mkString)
@@ -44,7 +44,7 @@ object EnumerateesSpec extends Specification {
     }
 
     "passes along what's left of chunks after taking 3" in {
-      
+
       val take3AndConsume = (Enumeratee.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
@@ -68,14 +68,14 @@ object EnumerateesSpec extends Specification {
 
     "pass chunks until condition is not met" in {
       val take3AndConsume = Enumeratee.takeWhile[String](_ != "4" ) &>>  Iteratee.consume()
-      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(List(1,2,3).map(_.toString).mkString)
     }
 
     "passes along what's left of chunks after taking" in {
-      
+
       val take3AndConsume = (Enumeratee.takeWhile[String](_ != "4") &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
-      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
+      val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
 
     }
@@ -86,17 +86,17 @@ object EnumerateesSpec extends Specification {
   "Traversable.take" should {
 
     "pass only first 3 elements to Iteratee when applied with 3" in {
-      
+
       val take3AndConsume = Traversable.take[String](3) &>>  Iteratee.consume()
-      val enumerator = Enumerator("he","ybbb","bbb")  
+      val enumerator = Enumerator("he","ybbb","bbb")
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo("hey")
 
     }
 
     "pass alnog what's left after taking 3 elements" in {
-      
+
       val take3AndConsume = (Traversable.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
-      val enumerator = Enumerator("he","ybbb","bbb")  
+      val enumerator = Enumerator("he","ybbb","bbb")
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo("bbbbbb")
 
     }
@@ -106,36 +106,36 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.map" should {
 
     "add one to each of the ints enumerated" in {
-      
+
       val add1AndConsume = Enumeratee.map[Int](i => List(i+1)) &>>  Iteratee.consume()
-      val enumerator = Enumerator(1,2,3,4)  
+      val enumerator = Enumerator(1,2,3,4)
       Await.result(enumerator |>>> add1AndConsume, Duration.Inf) must equalTo(Seq(2,3,4,5))
 
     }
 
 
     "infer its types correctly from previous enumeratee" in {
-      
+
       val add1AndConsume = Enumeratee.map[Int](i => i+1) ><> Enumeratee.map(i => List(i)) &>>  Iteratee.consume()
       add1AndConsume : Iteratee[Int,List[Int]]
       true //this test is about compilation and if it compiles it means we got it right
     }
 
     "infer its types correctly from the preceeding enumerator" in {
-      
-      val addOne = Enumerator(1,2,3,4) &> Enumeratee.map(i => i+1) 
+
+      val addOne = Enumerator(1,2,3,4) &> Enumeratee.map(i => i+1)
       addOne : Enumerator[Int]
       true //this test is about compilation and if it compiles it means we got it right
     }
 
   }
-  
+
   "Enumeratee.flatten" should {
 
     "passAlong a future enumerator" in {
 
       val passAlongFuture = Enumeratee.flatten {
-        concurrent.future { 
+        concurrent.future {
           Enumeratee.passAlong[Int]
         }
       }
@@ -149,7 +149,7 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.filter" should {
 
     "ignore input that doesn't satisfy the predicate" in {
-      
+
       val takesOnlyStringsWithLessThan4Chars = Enumeratee.filter[String](_.length < 4) &>>  Iteratee.consume()
       val enumerator = Enumerator("One","Two","Three","Four", "Five", "Six")
       Await.result(enumerator |>>> takesOnlyStringsWithLessThan4Chars, Duration.Inf) must equalTo("OneTwoSix")
@@ -161,9 +161,9 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.collect" should {
 
     "ignores input that doesn't satisfy the predicate and transform the input when matches" in {
-      
+
       val takesOnlyStringsWithLessThan4Chars = Enumeratee.collect[String]{ case e@("One" | "Two" | "Six") => e.toUpperCase } &>>  Iteratee.consume()
-      val enumerator = Enumerator("One","Two","Three","Four", "Five", "Six")  
+      val enumerator = Enumerator("One","Two","Three","Four", "Five", "Six")
       Await.result(enumerator |>>> takesOnlyStringsWithLessThan4Chars, Duration.Inf) must equalTo("ONETWOSIX")
 
     }
@@ -173,13 +173,13 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.grouped" should {
 
     "group input elements according to a folder iteratee" in {
-      val folderIteratee = 
-        Enumeratee.mapInput[String]{ 
+      val folderIteratee =
+        Enumeratee.mapInput[String]{
           case Input.El("Concat") => Input.EOF;
           case other => other } &>>
         Iteratee.fold("")((s,e) => s + e)
 
-      val result = 
+      val result =
         Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat","!") &>
         Enumeratee.grouped(folderIteratee) ><>
         Enumeratee.map(List(_)) |>>>
@@ -203,8 +203,8 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.scanLeft" should {
 
     "transform elements using a sate" in {
-      val result = 
-        Enumerator(1,2,3,4) &> 
+      val result =
+        Enumerator(1,2,3,4) &>
         Enumeratee.scanLeft[Int](0)(_ + _) ><>
         Enumeratee.map(List(_)) |>>>
         Iteratee.consume()

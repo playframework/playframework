@@ -27,10 +27,10 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
-      
+
       // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
 
-      lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
+      lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading
 
         try {
 
@@ -116,7 +116,7 @@ trait PlayReloader {
           }
         }
 
-        
+
       }
 
       val (monitoredFiles, monitoredDirs) = {
@@ -224,13 +224,13 @@ trait PlayReloader {
                 sourceFile: java.io.File
               } -> line)
             }
-          }.headOption.map { 
+          }.headOption.map {
             case (source, maybeLine) => {
               play.templates.MaybeGeneratedSource.unapply(source).map { generatedSource =>
                 generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l):java.lang.Integer).orNull
               }.getOrElse(source -> maybeLine)
             }
-          }     
+          }
         }.map {
           case (file, line) => {
             Array[java.lang.Object](file, line)
@@ -252,11 +252,11 @@ trait PlayReloader {
       private def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
         allProblems(inc :: Nil)
       }
-        
+
       private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] = {
         problems(Incomplete.allExceptions(incs).toSeq)
       }
-        
+
       private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] = {
         es flatMap {
           case cf: xsbti.CompileFailed => cf.problems

@@ -224,7 +224,7 @@ object RoutesCompiler {
     def sentence: Parser[Product with Serializable] = namedError((comment | positioned(include) | positioned(route)), "HTTP Verb (GET, POST, ...), include (->) or comment (#) expected") <~ (newLine | EOF)
 
     def parser: Parser[List[Rule]] = phrase((blankLine | sentence *) <~ end) ^^ {
-      case routes => 
+      case routes =>
         routes.reverse.foldLeft(List[(Option[Rule],List[Comment])]()) {
           case (s,r@Route(_,_,_,_)) => (Some(r),List()) :: s
           case (s,i@Include(_,_)) => (Some(i),List()) :: s
@@ -445,7 +445,7 @@ object RoutesCompiler {
             |private var _prefix = "/"
             |
             |def setPrefix(prefix: String) {
-            |  _prefix = prefix  
+            |  _prefix = prefix
             |  List[(String,Routes)](%s).foreach {
             |    case (p, router) => router.setPrefix(prefix + (if(prefix.endsWith("/")) "" else "/") + p)
             |  }
@@ -453,14 +453,14 @@ object RoutesCompiler {
             |
             |def prefix = _prefix
             |
-            |lazy val defaultPrefix = { if(Routes.prefix.endsWith("/")) "" else "/" } 
+            |lazy val defaultPrefix = { if(Routes.prefix.endsWith("/")) "" else "/" }
             |
-            |%s 
-            |    
-            |def routes:PartialFunction[RequestHeader,Handler] = {        
+            |%s
+            |
+            |def routes:PartialFunction[RequestHeader,Handler] = {
             |%s
             |}
-            |    
+            |
             |}
         """.stripMargin.format(
           path,
@@ -490,11 +490,11 @@ object RoutesCompiler {
                   |public class routes {
                   |%s
                   |public static class javascript {
-                  |%s    
-                  |}   
+                  |%s
+                  |}
                   |public static class ref {
-                  |%s    
-                  |} 
+                  |%s
+                  |}
                   |}
               """.stripMargin.format(
                 path, hash, date,
@@ -551,9 +551,9 @@ object RoutesCompiler {
               """
                   |%s
                   |class Reverse%s {
-                  |    
+                  |
                   |%s
-                  |    
+                  |
                   |}
               """.stripMargin.format(
                 markLines(routes: _*),
@@ -708,9 +708,9 @@ object RoutesCompiler {
               """
                               |%s
                               |class Reverse%s {
-                              |    
+                              |
                               |%s
-                              |    
+                              |
                               |}
                           """.stripMargin.format(
                 markLines(routes: _*),
@@ -784,9 +784,9 @@ object RoutesCompiler {
               """
                               |%s
                               |class Reverse%s {
-                              |    
+                              |
                               |%s
-                              |    
+                              |
                               |}
                           """.stripMargin.format(
                 markLines(routes: _*),
@@ -947,7 +947,7 @@ object RoutesCompiler {
       """|
          |def documentation = List(%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e match {
          |  case r @ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
-         |  case l => s ++ l.asInstanceOf[List[(String,String,String)]] 
+         |  case l => s ++ l.asInstanceOf[List[(String,String,String)]]
          |}}
       """.stripMargin.format(
         rules.map {

@@ -97,7 +97,7 @@ public class Http {
         }
 
         /**
-         * The original Play request Header used to create this context. 
+         * The original Play request Header used to create this context.
          * For internal usage only.
          */
         public play.api.mvc.RequestHeader _requestHeader() {
@@ -136,7 +136,7 @@ public class Http {
             }
         }
 
-        /** 
+        /**
          * Free space to store your request specific data
          */
         public Map<String, Object> args;
@@ -372,7 +372,7 @@ public class Http {
 
         /**
          * A file part.
-         */ 
+         */
         public static class FilePart {
 
             final String key;
@@ -396,7 +396,7 @@ public class Http {
 
             /**
              * The file name.
-             */ 
+             */
             public String getFilename() {
                 return filename;
             }
@@ -516,7 +516,7 @@ public class Http {
 
         /**
          * Adds a new header to the response.
-         */ 
+         */
         public void setHeader(String name, String Stringue) {
             this.headers.put(name, Stringue);
         }
@@ -919,7 +919,7 @@ public class Http {
         String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
         String ORIGIN = "Origin";
         String ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method";
-        String ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";        
+        String ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";
     }
 
     /**

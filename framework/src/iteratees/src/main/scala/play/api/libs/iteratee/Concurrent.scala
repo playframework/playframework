@@ -435,7 +435,7 @@ object Concurrent {
       val pushee = new Channel[E] {
         def close() {
           iteratee.single.swap(Future.successful(None)).onComplete{
-            case Success(maybeK) => maybeK.foreach { k => 
+            case Success(maybeK) => maybeK.foreach { k =>
               promise.success(k(Input.EOF))
             }
             case Failure(e) => promise.failure(e)
@@ -443,7 +443,7 @@ object Concurrent {
         }
 
         def end(e: Throwable) {
-          iteratee.single.swap(Future.successful(None)).onComplete { 
+          iteratee.single.swap(Future.successful(None)).onComplete {
             case Success(maybeK) =>
               maybeK.foreach(_ => promise.failure(e))
             case Failure(e) => promise.failure(e)
@@ -478,7 +478,7 @@ object Concurrent {
                   }
                 }
               eventuallyNext.completeWith(n)
-          case Failure(e) => 
+          case Failure(e) =>
             promise.failure(e)
             eventuallyNext.success(None)
           }

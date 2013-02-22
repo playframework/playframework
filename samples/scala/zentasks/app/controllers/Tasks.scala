@@ -40,12 +40,12 @@ object Tasks extends Controller with Secured {
 
   /**
    * Create a task in this project.
-   */  
+   */
   def add(project: Long, folder: String) =  IsMemberOf(project) { _ => implicit request =>
     taskForm.bindFromRequest.fold(
       errors => BadRequest,
       {
-        case (title, dueDate, assignedTo) => 
+        case (title, dueDate, assignedTo) =>
           val task =  Task.create(
             Task(NotAssigned, folder, project, title, false, dueDate, assignedTo)
           )
@@ -60,9 +60,9 @@ object Tasks extends Controller with Secured {
   def update(task: Long) = IsOwnerOf(task) { _ => implicit request =>
     Form("done" -> boolean).bindFromRequest.fold(
       errors => BadRequest,
-      isDone => { 
+      isDone => {
         Task.markAsDone(task, isDone)
-        Ok 
+        Ok
       }
     )
   }
@@ -98,9 +98,9 @@ object Tasks extends Controller with Secured {
   def renameFolder(project: Long, folder: String) = IsMemberOf(project) { _ => implicit request =>
     Form("name" -> nonEmptyText).bindFromRequest.fold(
       errors => BadRequest,
-      newName => { 
-        Task.renameFolder(project, folder, newName) 
-        Ok(newName) 
+      newName => {
+        Task.renameFolder(project, folder, newName)
+        Ok(newName)
       }
     )
   }

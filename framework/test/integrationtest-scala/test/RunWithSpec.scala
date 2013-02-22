@@ -23,4 +23,4 @@ class RunWithSpec extends Specification {
 object RunWithSpecVar {
   var count = 0
 }
-  
+

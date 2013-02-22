@@ -185,7 +185,7 @@ public class WS {
         }
 
         /**
-         * Sets a header with the given name, this can be called repeatedly 
+         * Sets a header with the given name, this can be called repeatedly
          *
          * @param name
          * @param value

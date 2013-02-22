@@ -18,7 +18,7 @@ import scala.util.control.NonFatal
     /**
      * The request ID.
      */
-    def id: Long 
+    def id: Long
 
     /**
      * The request Tags.
@@ -398,7 +398,7 @@ import scala.util.control.NonFatal
     def secure = false
 
     /**
-     *  The cookie path. 
+     *  The cookie path.
      */
     def path = "/"
 

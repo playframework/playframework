@@ -1,7 +1,7 @@
 package models
 
 object Countries {
-  
+
   val list = List(
     "France",
     "Austria",
@@ -36,5 +36,5 @@ object Countries {
     "Sweden",
     "United Kingdom"
   )
-  
+
 }

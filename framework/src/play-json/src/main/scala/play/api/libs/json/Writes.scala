@@ -24,7 +24,7 @@ trait Writes[-A] {
   def transform(transformer: JsValue => JsValue): Writes[A] = Writes[A]{ a => transformer(this.writes(a)) }
 
   /**
-   * transforms resulting JsValue using Writes[JsValue] 
+   * transforms resulting JsValue using Writes[JsValue]
    */
   def transform(transformer: Writes[JsValue]): Writes[A] = Writes[A]{ a => transformer.writes(this.writes(a)) }
 
@@ -196,7 +196,7 @@ trait DefaultWrites {
    * Default Serializer java.uti.Date -> JsNumber(d.getTime (nb of ms))
    */
   implicit object DefaultDateWrites extends Writes[java.util.Date] {
-    def writes(d: java.util.Date): JsValue = JsNumber(d.getTime) 
+    def writes(d: java.util.Date): JsValue = JsNumber(d.getTime)
   }
 
   /**
@@ -211,7 +211,7 @@ trait DefaultWrites {
    * Default Serializer org.joda.time.DateTime -> JsNumber(d.getMillis (nb of ms))
    */
   implicit object DefaultJodaDateWrites extends Writes[org.joda.time.DateTime] {
-    def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis) 
+    def writes(d: org.joda.time.DateTime): JsValue = JsNumber(d.getMillis)
   }
 
 /**

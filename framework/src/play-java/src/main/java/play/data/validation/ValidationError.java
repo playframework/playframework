@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableList;
  * A form validation error.
  */
 public class ValidationError {
-    
+
     private String key;
     private String message;
     private List<Object> arguments;
@@ -22,7 +22,7 @@ public class ValidationError {
     public ValidationError(String key, String message) {
         this(key, message, ImmutableList.of());
     }
-    
+
     /**
      * Constructs a new <code>ValidationError</code>.
      *
@@ -35,14 +35,14 @@ public class ValidationError {
         this.message = message;
         this.arguments = arguments;
     }
-    
+
     /**
      * Returns the error key.
      */
     public String key() {
         return key;
     }
-    
+
     /**
      * Returns the error message.
      */
@@ -56,9 +56,9 @@ public class ValidationError {
     public List<Object> arguments() {
         return arguments;
     }
-    
+
     public String toString() {
         return "ValidationError(" + key + "," + message + "," + arguments + ")";
     }
-    
+
 }

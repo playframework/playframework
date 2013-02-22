@@ -22,7 +22,7 @@ object LangSpec extends Specification {
 
         // Make sure we get back fr
         browser.goTo("http://localhost:3333/hello")
-        browser.title must equalTo ("Bonjour")        
+        browser.title must equalTo ("Bonjour")
       }
     }
 

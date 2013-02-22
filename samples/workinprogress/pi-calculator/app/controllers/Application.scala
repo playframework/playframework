@@ -13,10 +13,10 @@ import play.api.libs.concurrent._
 import play.api.libs.concurrent.Execution.Implicits._
 
 object Application extends Controller {
-  
+
   val system = ActorSystem("pi")
   val actor = system.actorOf(Props[Calculator])
-  
+
   def index = Action {
     Ok(views.html.index())
   }
@@ -29,5 +29,5 @@ object Application extends Controller {
       }
     }
   }
-  
+
 }

@@ -43,10 +43,10 @@ trait Reads[A] {
   def collect[B](error:ValidationError)(f: PartialFunction[A,B]) =
     Reads[B] { json => self.reads(json).collect(error)(f) }
 
-  def orElse(v: Reads[A]): Reads[A] = 
+  def orElse(v: Reads[A]): Reads[A] =
     Reads[A] { json => self.reads(json).orElse(v.reads(json)) }
 
-  def compose[B <: JsValue](rb: Reads[B]): Reads[A] = 
+  def compose[B <: JsValue](rb: Reads[B]): Reads[A] =
     Reads[A] { js => rb.reads(js) match {
       case JsSuccess(b, p) => this.reads(b).repath(p)
       case JsError(e) => JsError(e)
@@ -126,7 +126,7 @@ trait DefaultReads {
    *    __VAL__ : "current known erroneous jsvalue",
    *    __ERR__ : "the i18n key of the error msg",
    *    __ARGS__ : "the args for the error msg" (JsArray)
-   * } 
+   * }
    */
   def JsErrorObj(knownValue: JsValue, key: String, args: JsValue*) = {
     Json.obj(
@@ -190,7 +190,7 @@ trait DefaultReads {
     * Deserializer for BigDecimal
     */
   implicit val bigDecReads = Reads[BigDecimal]( js => js match {
-    case JsString(s) => 
+    case JsString(s) =>
       scala.util.control.Exception.catching(classOf[NumberFormatException])
         .opt( JsSuccess(BigDecimal(new java.math.BigDecimal(s))) )
         .getOrElse( JsError(ValidationError("validate.error.expected.numberformatexception")))
@@ -202,7 +202,7 @@ trait DefaultReads {
     * Deserializer for BigDecimal
     */
   implicit val javaBigDecReads = Reads[java.math.BigDecimal]( js => js match {
-    case JsString(s) => 
+    case JsString(s) =>
       scala.util.control.Exception.catching(classOf[NumberFormatException])
         .opt( JsSuccess(new java.math.BigDecimal(s)) )
         .getOrElse( JsError(ValidationError("validate.error.expected.numberformatexception")))
@@ -218,7 +218,7 @@ trait DefaultReads {
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
   def dateReads(pattern: String, corrector: String => String = identity): Reads[java.util.Date] = new Reads[java.util.Date] {
-    
+
     def reads(json: JsValue): JsResult[java.util.Date] = json match {
       case JsNumber(d) => JsSuccess(new java.util.Date(d.toLong))
       case JsString(s) => parseDate(corrector(s)) match {
@@ -241,13 +241,13 @@ trait DefaultReads {
 
   /**
    * the default implicit java.util.Date reads
-   */ 
+   */
   implicit val DefaultDateReads = dateReads("yyyy-MM-dd")
 
   /**
    * ISO 8601 Reads
    */
-  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input => 
+  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input =>
     // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
     // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
     // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
@@ -255,7 +255,7 @@ trait DefaultReads {
       input.substring( 0, input.length() - 1) + "GMT-00:00"
     } else {
       val inset = 6
-  
+
       val s0 = input.substring( 0, input.length - inset )
       val s1 = input.substring( input.length - inset, input.length )
 
@@ -273,7 +273,7 @@ trait DefaultReads {
     import org.joda.time.DateTime
 
     val df = org.joda.time.format.DateTimeFormat.forPattern(pattern)
-    
+
     def reads(json: JsValue): JsResult[DateTime] = json match {
       case JsNumber(d) => JsSuccess(new DateTime(d.toLong))
       case JsString(s) => parseDate(corrector(s)) match {
@@ -287,12 +287,12 @@ trait DefaultReads {
       scala.util.control.Exception.allCatch[DateTime] opt (DateTime.parse(input, df))
 
   }
- 
+
   /**
    * the default implicit JodaDate reads
-   */ 
+   */
   implicit val DefaultJodaDateReads = jodaDateReads("yyyy-MM-dd")
- 
+
  /**
   * Reads for the `org.joda.time.LocalDate` type.
   *
@@ -329,12 +329,12 @@ trait DefaultReads {
    * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
-  def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] = 
+  def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] =
     dateReads(pattern, corrector).map(d => new java.sql.Date(d.getTime))
 
   /**
    * the default implicit JodaDate reads
-   */ 
+   */
   implicit val DefaultSqlDateReads = sqlDateReads("yyyy-MM-dd")
 
   /**
@@ -417,13 +417,13 @@ trait DefaultReads {
         // the aim is to find all errors prod then to merge them all
         var hasErrors = false
 
-        val r = m.map { case (key, value) => 
+        val r = m.map { case (key, value) =>
           fromJson[V](value)(fmtv) match {
             case JsSuccess(v,_) => Right( (key, v, value) )
             case JsError(e) =>
               hasErrors = true
               Left( e.map{ case (p, valerr) => (JsPath \ key) ++ p -> valerr } )
-          } 
+          }
         }
 
         // if errors, tries to merge them into a single JsError
@@ -445,14 +445,14 @@ trait DefaultReads {
   implicit def traversableReads[F[_], A](implicit bf: generic.CanBuildFrom[F[_], A, F[A]], ra: Reads[A]) = new Reads[F[A]] {
     def reads(json: JsValue) = json match {
       case JsArray(ts) => {
-        
+
         var hasErrors = false
 
         // first validates prod separates JsError / JsResult in an Seq[Either]
         // the aim is to find all errors prod then to merge them all
         val r = ts.zipWithIndex.map { case (elt, idx) => fromJson[A](elt)(ra) match {
             case JsSuccess(v,_) => Right(v)
-            case JsError(e) => 
+            case JsError(e) =>
               hasErrors = true
               Left( e.map{ case (p, valerr) => (JsPath(idx)) ++ p -> valerr } )
           }
@@ -461,7 +461,7 @@ trait DefaultReads {
         // if errors, tries to merge them into a single JsError
         if(hasErrors) {
           val fulle = r.filter( _.isLeft ).map( _.left.get )
-                                .foldLeft(List[(JsPath, Seq[ValidationError])]())( (acc, v) => (acc ++ v) )          
+                                .foldLeft(List[(JsPath, Seq[ValidationError])]())( (acc, v) => (acc ++ v) )
           JsError(fulle)
         }
         // no error, rebuilds the map

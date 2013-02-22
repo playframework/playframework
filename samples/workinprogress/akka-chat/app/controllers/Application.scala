@@ -16,17 +16,17 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 
 object Application extends Controller {
-  
+
   def index = Action {
-    Ok(views.html.index()) 
+    Ok(views.html.index())
   }
-  
+
   // -- Comet chat room
-  
+
   def chatRoom = Action { implicit request =>
     Ok(views.html.room())
   }
-  
+
   def stream = Action {
     AsyncResult {
       implicit val timeout = Timeout(5.seconds)
@@ -35,7 +35,7 @@ object Application extends Controller {
       }
     }
   }
-  
+
   def say(message: String) = Action {
     ChatRoomActor.ref ! Message(message)
     Ok("Said " + message)

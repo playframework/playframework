@@ -11,15 +11,15 @@ import play.db.jpa.*;
 /**
  * Company entity managed by JPA
  */
-@Entity 
+@Entity
 public class Company {
 
     @Id
     public Long id;
-    
+
     @Constraints.Required
     public String name;
-    
+
     public static Company findById(Long id) {
         return JPA.em().find(Company.class, id);
     }

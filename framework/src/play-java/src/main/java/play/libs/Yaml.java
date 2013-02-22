@@ -10,7 +10,7 @@ import org.yaml.snakeyaml.constructor.*;
  * Yaml utilities.
  */
 public class Yaml {
-    
+
     /**
      * Load a Yaml file from the classpath.
      */
@@ -20,8 +20,8 @@ public class Yaml {
             play.Play.application().classloader()
         );
     }
-    
-    /** 
+
+    /**
      * Load the specified InputStream as Yaml.
      *
      * @param classloader The classloader to use to instantiate Java objects.
@@ -30,5 +30,5 @@ public class Yaml {
         org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader));
         return yaml.load(is);
     }
-    
+
 }

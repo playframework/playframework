@@ -53,7 +53,7 @@ import play.libs.F.*;
  * size parameters if you pleased.
  */
 public interface QueryStringBindable<T extends QueryStringBindable<T>> {
-    
+
     /**
      * Bind a query string parameter.
      *
@@ -63,7 +63,7 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
      *      or None if it couldn't.
      */
     public Option<T> bind(String key, Map<String,String[]> data);
-    
+
     /**
      * Unbind a query string parameter.  This should return a query string fragment, in the form
      * <code>key=value[&amp;key2=value2...]</code>.
@@ -71,12 +71,12 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
      * @param key Parameter key
      */
     public String unbind(String key);
-    
+
     /**
      * Javascript function to unbind in the Javascript router.
      *
      * If this bindable just represents a single value, you may return null to let the default implementation handle it.
      */
     public String javascriptUnbind();
-    
+
 }

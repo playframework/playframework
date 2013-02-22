@@ -11,21 +11,21 @@ public class Play {
     public static Application application() {
         return new Application(play.api.Play.current());
     }
-    
+
     /**
      * Returns `true` if the current application is `DEV` mode.
      */
     public static boolean isDev() {
         return play.api.Play.isDev(play.api.Play.current());
     }
-    
+
     /**
      * Returns `true` if the current application is `PROD` mode.
      */
     public static boolean isProd() {
         return play.api.Play.isProd(play.api.Play.current());
     }
-    
+
     /**
      * Returns `true` if the current application is `TEST` mode.
      */

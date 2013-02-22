@@ -5,7 +5,7 @@ import PlayKeys._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper =>
-  
+
   protected def whichLang(name: String): Seq[Setting[_]] = {
     if (name == JAVA) {
       defaultJavaSettings

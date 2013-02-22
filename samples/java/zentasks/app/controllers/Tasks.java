@@ -31,12 +31,12 @@ public class Tasks extends Controller {
             return forbidden();
         }
     }
-  
+
     // -- Tasks
-  
+
     /**
      * Create a task in this project.
-     */ 
+     */
     public static Result add(Long project, String folder) {
         if(Secured.isMemberOf(project)) {
             Form<Task> taskForm = form(Task.class).bindFromRequest();
@@ -50,11 +50,11 @@ public class Tasks extends Controller {
         } else {
             return forbidden();
         }
-    } 
-  
+    }
+
     /**
      * Update a task
-     */  
+     */
     public static Result update(Long task) {
         if(Secured.isOwnerOf(task)) {
             Task.markAsDone(
@@ -68,7 +68,7 @@ public class Tasks extends Controller {
             return forbidden();
         }
     }
-  
+
     /**
      * Delete a task
      */
@@ -80,7 +80,7 @@ public class Tasks extends Controller {
             return forbidden();
         }
     }
-  
+
     // -- Task folders
 
     /**
@@ -89,7 +89,7 @@ public class Tasks extends Controller {
     public static Result addFolder() {
         return ok(folder.render("New folder", new ArrayList<Task>()));
     }
-  
+
     /**
      * Delete a full tasks folder.
      */
@@ -101,7 +101,7 @@ public class Tasks extends Controller {
             return forbidden();
         }
     }
-  
+
     /**
      * Rename a tasks folder.
      */

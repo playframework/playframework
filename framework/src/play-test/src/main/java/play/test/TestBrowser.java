@@ -37,7 +37,7 @@ public class TestBrowser extends FluentAdapter {
     }
 
     /**
-     * Creates a generic FluentWait<WebDriver> instance 
+     * Creates a generic FluentWait<WebDriver> instance
      * using the underlying web driver
      */
     public FluentWait<WebDriver> fluentWait() {
