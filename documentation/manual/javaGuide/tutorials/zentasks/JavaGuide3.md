@@ -42,7 +42,7 @@ Now run the application using `play run` and display the <http://localhost:9000>
 
 This time, we can really start to code the dashboard.
 
-Do you remember how the first page is displayed?  First the `routes` file defines that the `/` URL will invoke the `controllers.Application.index()` action method.  Then this method calls `render()` and executes the `app/views/Application/index.scala.html` template.
+Do you remember how the first page is displayed?  First the `routes` file defines that the `/` URL will invoke the `controllers.Application.index()` action method.  Then this method calls `render()` and executes the `app/views/index.scala.html` template.
 
 We will keep these components but add code to them to load the tasks list and display them.
 
