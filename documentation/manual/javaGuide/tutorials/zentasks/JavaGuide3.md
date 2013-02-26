@@ -171,7 +171,7 @@ Edit the `app/views/main.scala.html` file:
     <head>
         <title>Zentasks</title>
         <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.7.1.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
     </head>
     <body>
         <header>
@@ -194,7 +194,7 @@ Edit the `app/views/main.scala.html` file:
 </html>
 ```
 
-Like with the rendering of each `Task` in our index page, we have made the rendering of a group of projects its own template, for later reuse.  Let's implement that template now, open `app/views/html/projects/group.scala.html`:
+Like with the rendering of each `Task` in our index page, we have made the rendering of a group of projects its own template, for later reuse.  Let's implement that template now, open `app/views/projects/group.scala.html`:
 
 ```html
 @(group: String, projects: List[Project])
@@ -218,7 +218,7 @@ Like with the rendering of each `Task` in our index page, we have made the rende
 </li>
 ```
 
-And again, the individual project items are implemented using their own template, `app/views/html/projects/item.scala.html`:
+And again, the individual project items are implemented using their own template, `app/views/projects/item.scala.html`:
 
 ```html
 @(project: Project)
@@ -236,7 +236,7 @@ Refresh the page.
 
 [[images/dashboard2.png]]
 
-Uh oh!  We have a compile error.  We haven't updated the call to the `main` template from our `index` template to pass a list of projects instead of a string.  Let's fix that now, by editing `app/views/html/index.scala.html`:
+Uh oh!  We have a compile error.  We haven't updated the call to the `main` template from our `index` template to pass a list of projects instead of a string.  Let's fix that now, by editing `app/views/index.scala.html`:
 
 ```html
 @(projects: List[Project], todoTasks: List[Task])
