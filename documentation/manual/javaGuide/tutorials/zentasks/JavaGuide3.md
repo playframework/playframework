@@ -34,7 +34,7 @@ Now this will be called whenever play starts up.
 
 > In fact this job will be run differently in dev or prod modes.  In dev mode, play waits for a first request to start. So this job will be executed synchronously at the first request.  That way, if the job fails, you will get the error message in your browser.  In prod mode however, the job will be executed at application start (synchronously with the `start` command) and will prevent the application from starting in case of an error.
 
-You have to create an `initial-data.yml` in the `conf` directory.  You can of course reuse the `test-data.yml` content that we just used for tests previously.
+You can reuse the `initial-data.yml` in the `conf` directory from previous section.
 
 Now run the application using `play run` and display the <http://localhost:9000> page in the browser.
 
