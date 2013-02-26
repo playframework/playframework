@@ -80,6 +80,35 @@ object JavaResultExtractor {
     case r: PlainResult => Array.empty[Byte]
   }
 
+  def enumChunks(result: play.mvc.Result): Enumerator[Array[Byte]] = result.getWrappedResult match {
+    case r: AsyncResult => enumChunks(new ResultWrapper(r.result.await.get))
+    case r @ ChunkedResult(_, chunks) => {
+      Enumerator.outputStream {
+        outputStream => {
+          val writer: Iteratee[r.BODY_CONTENT, Unit] = {
+            def step(i: Input[r.BODY_CONTENT]): Iteratee[r.BODY_CONTENT, Unit] = i match {
+              case Input.EOF => { outputStream.close; Done((), Input.EOF) }
+              case Input.Empty => Cont[r.BODY_CONTENT, Unit](i => step(i))
+              case Input.El(e) => { outputStream.write(r.writeable.transform(e)); Cont[r.BODY_CONTENT, Unit](i => step(i)) }
+            }
+            Cont[r.BODY_CONTENT, Unit](i => step(i))
+          }
+
+          chunks(writer)
+        }
+      }
+    }
+  }
+
+  def headChunks(result: play.mvc.Result): Option[Array[Byte]] = {
+    enumChunks(result)(Iteratee.head).flatMap(_.run)(play.core.Execution.internalContext).value1.get
+  }
+
+  // CAUTION: If your chunks is generating something indefinitely, getChunks() would lead resource exhaustion.
+  def getChunks(result: play.mvc.Result): List[Array[Byte]] = {
+    enumChunks(result)(Iteratee.getChunks).flatMap(_.run)(play.core.Execution.internalContext).value1.get
+  }
+
   class ResultWrapper(r: play.api.mvc.Result) extends play.mvc.Result {
     def getWrappedResult = r
   }
