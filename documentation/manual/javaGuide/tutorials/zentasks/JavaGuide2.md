@@ -293,7 +293,7 @@ Now we create a test case that loads this data and runs some assertions over it:
 ```java
     @Test
     public void fullTest() {
-        Ebean.save((List)Yaml.load("test-data.yml"));
+        Ebean.save((List)Yaml.load("initial-data.yml"));
 
         // Count things
         assertEquals(4, User.finder.findRowCount());
