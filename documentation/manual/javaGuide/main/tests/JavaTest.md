@@ -29,6 +29,15 @@ public class SimpleTest {
 }
 ```
 
+> **Note:** A new process is forked each time `test` or `test-only` is run.  The new process uses default JVM settings.  Custom settings can be added to `play.Project.settings` in `Build.scala`.  For example:  
+> ```
+> javaOptions in (Test) += "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9998",
+> javaOptions in (Test) += "-Xms512M",
+> javaOptions in (Test) += "-Xmx1536M",
+> javaOptions in (Test) += "-Xss1M",
+> javaOptions in (Test) += "-XX:MaxPermSize=384M"
+> ```
+
 ## Running in a fake application
 
 If the code you want to test depends on a running application, you can easily create a `FakeApplication` on the fly:
