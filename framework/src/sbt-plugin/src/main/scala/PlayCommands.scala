@@ -789,7 +789,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       """
       |This software is licensed under the Apache 2 license, quoted below.
       |
-      |Copyright 2012 Typesafe <http://www.typesafe.com>
+      |Copyright 2013 Typesafe <http://www.typesafe.com>
       |
       |Licensed under the Apache License, Version 2.0 (the "License"); you may not
       |use this file except in compliance with the License. You may obtain a copy of
