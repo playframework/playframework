@@ -114,6 +114,10 @@
 * **Website:** <https://github.com/seratch/inputvalidator/tree/master/play-module>
 * **Short description:** provides a simple validation API for Play20
 
+## JackRabbit Plugin (Java and Scala)
+* **Website (docs, sample):** [JackRabbit Plugin GitHub](http://goo.gl/2OXEp)
+* **Short description:** Apache JackRabbit Plugin for play! framework 2
+
 ## Japid module
 
 * **Website:** <https://github.com/branaway/japid42>
