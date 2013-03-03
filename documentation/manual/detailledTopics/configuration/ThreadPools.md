@@ -135,7 +135,7 @@ Below we outline a few common profiles that people may want to use in Play Frame
 
 ### Pure asynchronous
 
-In this case, you are doing no blocking IO in your application.  Since you are never blocking, the default configuration of one thread per processor suits your use case prefectly, so no extra configuration needs to be done.  The Play default execution context can be used in all cases.
+In this case, you are doing no blocking IO in your application.  Since you are never blocking, the default configuration of one thread per processor suits your use case perfectly, so no extra configuration needs to be done.  The Play default execution context can be used in all cases.
 
 ### Highly synchronous
 
