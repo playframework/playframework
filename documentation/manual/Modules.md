@@ -55,6 +55,11 @@
 * **Repository(snapshot):** <http://hakandilek.github.com/play2-cache/snapshots/>
 * **Short description:** Utilities for simplifying caching
 
+## ClojureScript Plugin
+
+* **Website:** <https://bitbucket.org/jmhofer/play-clojurescript> (docs, code)
+* **Short description:** Compiles ClojureScript asset files to JavaScript
+
 ## Cloudfront module (Scala)
 
 * **Website:** <https://github.com/mchv/play2-cloudfront>
