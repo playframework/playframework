@@ -2,9 +2,8 @@ import sbt._
 import Keys._
 
 object Generators {
-
-  val PlayVersion = {
-    dir: File =>
+  // Generates a scala file that contains the play version for use at runtime.
+  def PlayVersion(dir: File): Seq[File] = {
       val file = dir / "PlayVersion.scala"
       IO.write(file,
         """|package play.core
@@ -16,7 +15,6 @@ object Generators {
           """.stripMargin.format(BuildSettings.buildVersion, BuildSettings.buildScalaVersion))
       Seq(file)
   }
-
 }
 
 object Tasks {
