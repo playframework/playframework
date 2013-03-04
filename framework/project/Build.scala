@@ -59,7 +59,7 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject)
 
   lazy val PlayJavaJdbcProject = PlayRuntimeProject("Play-Java-JDBC", "play-java-jdbc")
-    .dependsOn(PlayJdbcProject)
+    .dependsOn(PlayJdbcProject, PlayJavaProject)
 
   lazy val PlayEbeanProject = PlayRuntimeProject("Play-Java-Ebean", "play-java-ebean")
     .settings(
