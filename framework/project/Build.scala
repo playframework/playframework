@@ -346,7 +346,7 @@ object PlayBuild extends Build {
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayProject)
+    .dependsOn(PlayProject, PlayTestProject)
 
     val Root = Project(
         "Root",
