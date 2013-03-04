@@ -260,9 +260,6 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
       cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
-      resetRepositoryTask,
-      buildRepositoryTask,
-      distTask,
       generateAPIDocsTask,
       publish := {}
     ).aggregate(publishedProjects: _*)
