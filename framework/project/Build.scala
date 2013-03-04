@@ -219,20 +219,23 @@ object PlayBuild extends Build {
 
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .dependsOn(PlayProject)
-
-  val Root = Project(
-    "Root",
-    file("."))
-    .settings(playCommonSettings: _*)
+    
+    
+  import RepositoryBuilder._
+  val RepositoryProject = Project(
+      "Play-Repository", file("repository"))
+    .settings(localRepoCreationSettings:_*)
     .settings(
-      libraryDependencies := (runtime ++ jdbcDeps),
-      cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
-      resetRepositoryTask,
-      buildRepositoryTask,
-      distTask,
-      generateAPIDocsTask,
-      publish := {}
-    ).aggregate(
+      localRepoProjectsPublished <<= (Seq(PlayProject, IterateesProject) map (publishLocal in _)).dependOn,
+      addProjectsToRepository(Seq(PlayProject, IterateesProject)),
+      localRepoArtifacts ++= Seq(
+        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion,
+        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt,
+        "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
+      )
+    )
+    
+  lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     SbtLinkProject,
     AnormProject,
@@ -255,6 +258,20 @@ object PlayBuild extends Build {
     PlayExceptionsProject,
     PlayFiltersHelpersProject
   )
+    
+  val Root = Project(
+    "Root",
+    file("."))
+    .settings(playCommonSettings: _*)
+    .settings(
+      libraryDependencies := (runtime ++ jdbcDeps),
+      cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
+      resetRepositoryTask,
+      buildRepositoryTask,
+      distTask,
+      generateAPIDocsTask,
+      publish := {}
+    ).aggregate(publishedProjects: _*)
 
   object LocalSBT {
 
