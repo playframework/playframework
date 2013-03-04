@@ -12,239 +12,62 @@ object PlayBuild extends Build {
   import LocalSBT._
   import Tasks._
 
-  lazy val SbtLinkProject = Project(
-    "SBT-link",
-    file("src/sbt-link"),
-    settings = buildSettings ++ Seq(
-      autoScalaLibrary := false,
-      libraryDependencies := link,
-      publishTo := Some(playRepository),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe,
-      crossPaths := false
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val SbtLinkProject = PlaySharedJavaProject("SBT-link", "sbt-link")
+    .settings(libraryDependencies := link)
 
-  lazy val TemplatesProject = Project(
-    "Templates",
-    file("src/templates"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "templates_" + previousScalaVersion
-      } % previousVersion),
-      publishTo := Some(playRepository),
-      libraryDependencies := templatesDependencies,
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val TemplatesProject = PlayRuntimeProject("Templates", "templates")
+    .settings(libraryDependencies := templatesDependencies)
 
-  lazy val RoutesCompilerProject = Project(
-    "Routes-Compiler",
-    file("src/routes-compiler"),
-    settings = buildSettings ++ Seq(
-      scalaVersion := buildScalaVersionForSbt,
-      scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-      publishTo := Some(playRepository),
-      libraryDependencies := routersCompilerDependencies,
-      publishArtifact in packageDoc := false,
-      publishArtifact in(Compile, packageSrc) := false,
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
+    .settings(libraryDependencies := routersCompilerDependencies)
 
-  lazy val TemplatesCompilerProject = Project(
-    "Templates-Compiler",
-    file("src/templates-compiler"),
-    settings = buildSettings ++ Seq(
-      scalaVersion := buildScalaVersionForSbt,
-      scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-      publishTo := Some(playRepository),
+  lazy val TemplatesCompilerProject = PlaySbtProject("Templates-Compiler", "templates-compiler")
+    .settings(
       libraryDependencies := templatesCompilerDependencies,
-      publishArtifact in packageDoc := false,
-      publishArtifact in(Compile, packageSrc) := false,
       unmanagedJars in Compile <+= (baseDirectory) map {
         b => compilerJar(b / "../..")
-      },
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      resolvers += typesafe
+      }
     )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
-  lazy val AnormProject = Project(
-    "Anorm",
-    file("src/anorm"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "anorm_" + previousScalaVersion
-      } % previousVersion),
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
 
-  lazy val IterateesProject = Project(
-    "Play-Iteratees",
-    file("src/iteratees"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-iteratees_" + previousScalaVersion
-      } % previousVersion),
-      libraryDependencies := iterateesDependencies,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
+    .settings(libraryDependencies := iterateesDependencies)
 
-  lazy val FunctionalProject = Project(
-    "Play-Functional",
-    file("src/play-functional"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-functional_" + previousScalaVersion
-      } % previousVersion),
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val FunctionalProject = PlayRuntimeProject("Play-Functional", "play-functional")
 
-  lazy val DataCommonsProject = Project(
-    "Play-DataCommons",
-    file("src/play-datacommons"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-datacommons" + previousScalaVersion
-      } % previousVersion),
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val DataCommonsProject = PlayRuntimeProject("Play-DataCommons", "play-datacommons")
 
-  lazy val JsonProject = Project(
-    "Play-Json",
-    file("src/play-json"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-json_" + previousScalaVersion
-      } % previousVersion),
-      libraryDependencies := jsonDependencies,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val JsonProject = PlayRuntimeProject("Play-Json", "play-json")
+    .settings(libraryDependencies := jsonDependencies)
     .dependsOn(IterateesProject, FunctionalProject, DataCommonsProject)
 
-  lazy val PlayExceptionsProject = Project(
-    "Play-Exceptions",
-    file("src/play-exceptions"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      autoScalaLibrary := false,
-      previousArtifact := Some("play" % "play-exceptions" % previousVersion),
-      publishTo := Some(playRepository),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      crossPaths := false
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val PlayExceptionsProject = PlaySharedJavaProject("Play-Exceptions", "play-exceptions",
+    testBinaryCompatibility = true)
 
-  lazy val PlayProject = Project(
-    "Play",
-    file("src/play"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play_" + previousScalaVersion
-      } % previousVersion),
+  lazy val PlayProject = PlayRuntimeProject("Play", "play")
+    .settings(
       libraryDependencies := runtime,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
-      resolvers += typesafe,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, JsonProject)
+    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, JsonProject)
 
-  lazy val PlayJdbcProject = Project(
-    "Play-JDBC",
-    file("src/play-jdbc"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-jdbc_" + previousScalaVersion
-      } % previousVersion),
-      libraryDependencies := jdbcDeps,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayJavaProject)
+  lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
+    .settings(libraryDependencies := jdbcDeps)
+    .dependsOn(PlayProject)
 
-  lazy val PlayJavaJdbcProject = Project(
-    "Play-Java-JDBC",
-    file("src/play-java-jdbc"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-java-jdbc_" + previousScalaVersion
-      } % previousVersion),
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val PlayJavaJdbcProject = PlayRuntimeProject("Play-Java-JDBC", "play-java-jdbc")
     .dependsOn(PlayJdbcProject)
 
-  lazy val PlayEbeanProject = Project(
-    "Play-Java-Ebean",
-    file("src/play-java-ebean"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-java-ebean_" + previousScalaVersion
-      } % previousVersion),
+  lazy val PlayEbeanProject = PlayRuntimeProject("Play-Java-Ebean", "play-java-ebean")
+    .settings(
       libraryDependencies := ebeanDeps ++ jpaDeps,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe,
       compile in (Compile) <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map {
         (deps, analysis, classes) =>
 
         // Ebean (really hacky sorry)
-
           val cp = deps.map(_.data.toURL).toArray :+ classes.toURL
           val cl = new java.net.URLClassLoader(cp)
 
@@ -257,73 +80,24 @@ object PlayBuild extends Build {
 
           analysis
       }
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).dependsOn(PlayJavaJdbcProject)
+
+  lazy val PlayJpaProject = PlayRuntimeProject("Play-Java-JPA", "play-java-jpa")
+    .settings(libraryDependencies := jpaDeps)
     .dependsOn(PlayJavaJdbcProject)
 
-  lazy val PlayJpaProject = Project(
-    "Play-Java-JPA",
-    file("src/play-java-jpa"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-java-jpa_" + previousScalaVersion
-      } % previousVersion),
-      libraryDependencies := jpaDeps,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayJavaJdbcProject)
-
-  lazy val PlayJavaProject = Project(
-    "Play-Java",
-    file("src/play-java"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-java_" + previousScalaVersion
-      } % previousVersion),
-      libraryDependencies := javaDeps,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
+    .settings(libraryDependencies := javaDeps)
     .dependsOn(PlayProject)
 
-  lazy val PlayTestProject = Project(
-    "Play-Test",
-    file("src/play-test"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "play-test_" + previousScalaVersion
-      } % previousVersion),
+  lazy val PlayTestProject = PlayRuntimeProject("Play-Test", "play-test")
+    .settings(
       libraryDependencies := testDependencies,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe,
       parallelExecution in Test := false
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
+    ).dependsOn(PlayProject)
 
-  lazy val SbtPluginProject = Project(
-    "SBT-Plugin",
-    file("src/sbt-plugin"),
-    settings = buildSettings ++ Seq(
-      scalaVersion := buildScalaVersionForSbt,
-      scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
+  lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
+    .settings(
       sbtPlugin := true,
       publishMavenStyle := false,
       libraryDependencies := sbtDependencies,
@@ -333,58 +107,27 @@ object PlayBuild extends Build {
       unmanagedJars in Compile <++= (baseDirectory) map {
         b => sbtJars(b / "../..")
       },
-      publishTo := Some(playIvyRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
+      publishTo := Some(playIvyRepository)
+    ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
 
-
-  lazy val ConsoleProject = Project(
-    "Console",
-    file("src/console"),
-    settings = buildSettings ++ Seq(
-      scalaVersion := buildScalaVersionForSbt,
-      scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
+  // todo this can be 2.10
+  lazy val ConsoleProject = PlaySbtProject("Console", "console")
+    .settings(
       libraryDependencies := consoleDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       unmanagedJars in Compile <++= (baseDirectory) map {
         b => sbtJars(b / "../..")
-      },
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
+      }
     )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
-  lazy val PlayFiltersHelpersProject = Project(
-    "Filters-Helpers",
-    file("src/play-filters-helpers"),
-    settings = buildSettingsWithMIMA ++ Seq(
-      previousArtifact := Some("play" % {
-        "filters-helpers_" + previousScalaVersion
-      } % previousVersion),
-      libraryDependencies := runtime,
-      publishTo := Some(playRepository),
-      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
-      javacOptions in doc := Seq("-source", "1.6"),
-      publishArtifact in packageDoc := buildWithDoc,
-      publishArtifact in(Compile, packageSrc) := true,
-      resolvers += typesafe
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+  lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .dependsOn(PlayProject)
 
   val Root = Project(
     "Root",
-    file("."),
-    settings = buildSettings ++ Seq(
+    file("."))
+    .settings(playCommonSettings: _*)
+    .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
       cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
       resetRepositoryTask,
@@ -392,9 +135,7 @@ object PlayBuild extends Build {
       distTask,
       generateAPIDocsTask,
       publish := {}
-    )
-  ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .aggregate(
+    ).aggregate(
     PlayProject,
     SbtLinkProject,
     AnormProject,
@@ -433,15 +174,62 @@ object PlayBuild extends Build {
     val buildSbtMajorVersion = "0.12"
     val buildSbtVersionBinaryCompatible = "0.12"
 
-    val buildSettings = Defaults.defaultSettings ++ Seq(
+    val playCommonSettings = Seq(
       organization := buildOrganization,
       version := buildVersion,
       scalaVersion := buildScalaVersion,
       scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
-      ivyLoggingLevel := UpdateLogging.DownloadOnly
+      ivyLoggingLevel := UpdateLogging.DownloadOnly,
+      publishTo := Some(playRepository),
+      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
+      javacOptions in doc := Seq("-source", "1.6"),
+      resolvers += typesafe
     )
-    val buildSettingsWithMIMA = buildSettings ++ mimaDefaultSettings
 
+    def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
+      val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
+        mimaDefaultSettings ++ Seq(previousArtifact := Some("play" % name % previousVersion))
+      } else Nil
+      Project(name, file("src/" + dir))
+        .settings(playCommonSettings: _*)
+        .settings(bcSettings: _*)
+        .settings(
+          autoScalaLibrary := false,
+          crossPaths := false,
+          publishArtifact in packageDoc := buildWithDoc,
+          publishArtifact in(Compile, packageSrc) := true
+        )
+    }
+
+    def PlayRuntimeProject(name: String, dir: String): Project = {
+      Project(name, file("src/" + dir))
+        .settings(playCommonSettings: _*)
+        .settings(mimaDefaultSettings: _*)
+        .settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+        .settings(playRuntimeSettings(name): _*)
+    }
+
+    def playRuntimeSettings(name: String): Seq[Setting[_]] = Seq(
+      previousArtifact := Some("play" %% name % previousVersion),
+      scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
+      publishArtifact in packageDoc := buildWithDoc,
+      publishArtifact in(Compile, packageSrc) := true
+    )
+
+    def PlaySbtProject(name: String, dir: String): Project = {
+      Project(name, file("src/" + dir))
+        .settings(playCommonSettings: _*)
+        .settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+        .settings(
+          scalaVersion := buildScalaVersionForSbt,
+          scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
+          publishTo := Some(playRepository),
+          publishArtifact in packageDoc := false,
+          publishArtifact in(Compile, packageSrc) := false,
+          scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked")
+      )
+
+    }
 
   }
 
