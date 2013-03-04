@@ -139,6 +139,7 @@ object Dependencies {
     "net.contentobjects.jnotify" % "jnotify" % "0.94")
 
   val consoleDependencies = Seq(
+    "org.scala-sbt" % "launcher-interface" % BuildSettings.buildSbtVersion,
     "net.databinder.giter8" % "giter8_2.9.1" % "0.5.0")
 
   val templatesDependencies = Seq(

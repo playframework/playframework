@@ -106,7 +106,6 @@ object PlayBuild extends Build {
   import Dependencies._
   import BuildSettings._
   import Generators._
-  import LocalSBT._
   import Tasks._
 
   lazy val SbtLinkProject = PlaySharedJavaProject("SBT-link", "sbt-link")
@@ -121,8 +120,8 @@ object PlayBuild extends Build {
   lazy val TemplatesCompilerProject = PlaySbtProject("Templates-Compiler", "templates-compiler")
     .settings(
       libraryDependencies := templatesCompilerDependencies,
-      unmanagedJars in Compile <+= (baseDirectory) map {
-        b => compilerJar(b / "../..")
+      libraryDependencies <+= scalaVersion apply { sv =>
+        "org.scala-lang" % "scala-compiler" % sv
       }
     )
 
@@ -201,20 +200,15 @@ object PlayBuild extends Build {
       libraryDependencies += "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
       libraryDependencies += "com.typesafe.sbtidea" % "sbt-idea" % "1.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
       libraryDependencies += "org.specs2" %% "specs2" % "1.12.3" % "test" exclude("javax.transaction", "jta"),
-      unmanagedJars in Compile <++= (baseDirectory) map {
-        b => sbtJars(b / "../..")
-      },
+      libraryDependencies += "org.scala-sbt" % "sbt" % buildSbtVersion % "provided",
       publishTo := Some(playIvyRepository)
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
 
-  // todo this can be 2.10
+  // todo this can be 2.10 and not cross-versioned or anything.  GO HOG WILD JAMES!
   lazy val ConsoleProject = PlaySbtProject("Console", "console")
     .settings(
       libraryDependencies := consoleDependencies,
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-      unmanagedJars in Compile <++= (baseDirectory) map {
-        b => sbtJars(b / "../..")
-      }
+      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion
     )
 
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
@@ -227,7 +221,7 @@ object PlayBuild extends Build {
     .settings(localRepoCreationSettings:_*)
     .settings(
       localRepoProjectsPublished <<= (Seq(PlayProject, IterateesProject) map (publishLocal in _)).dependOn,
-      addProjectsToRepository(Seq(PlayProject, IterateesProject)),
+      addProjectsToRepository(Seq(PlayProject, SbtPluginProject)),
       localRepoArtifacts ++= Seq(
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion,
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt,
@@ -272,22 +266,5 @@ object PlayBuild extends Build {
       generateAPIDocsTask,
       publish := {}
     ).aggregate(publishedProjects: _*)
-
-  object LocalSBT {
-
-    import BuildSettings._
-
-    def isJar(f: java.io.File) = f.getName.endsWith(".jar")
-
-    def sbtJars(baseDirectory: File): Seq[java.io.File] = {
-      (baseDirectory / ("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-sbt/sbt/" + buildSbtVersion)).listFiles.filter(isJar) ++
-        (baseDirectory / ("sbt/boot/scala-" + buildScalaVersionForSbt + "/org.scala-sbt/sbt/" + buildSbtVersion + "/xsbti")).listFiles.filter(isJar) ++
-        Seq(baseDirectory / ("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/jline.jar"))
-    }
-
-    def compilerJar(baseDirectory: File): java.io.File = {
-      baseDirectory / ("sbt/boot/scala-" + buildScalaVersionForSbt + "/lib/scala-compiler.jar")
-    }
-  }
 
 }
