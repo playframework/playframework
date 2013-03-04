@@ -216,7 +216,7 @@ object PlayBuild extends Build {
     
     
   import RepositoryBuilder._
-  val RepositoryProject = Project(
+  lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
     .settings(localRepoCreationSettings:_*)
     .settings(
@@ -253,7 +253,7 @@ object PlayBuild extends Build {
     PlayFiltersHelpersProject
   )
     
-  val Root = Project(
+  lazy val Root = Project(
     "Root",
     file("."))
     .settings(playCommonSettings: _*)
@@ -261,7 +261,8 @@ object PlayBuild extends Build {
       libraryDependencies := (runtime ++ jdbcDeps),
       cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
       generateAPIDocsTask,
-      publish := {}
+      publish := {},
+      generateDistTask
     ).aggregate(publishedProjects: _*)
 
 }

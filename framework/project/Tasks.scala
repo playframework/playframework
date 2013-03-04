@@ -21,9 +21,39 @@ object Tasks {
 
   import BuildSettings._
 
+  // ----- Generate Distribution
+  lazy val generateDist = TaskKey[Unit]("create-dist")
+  val generateDistTask: Setting[_] = 
+    generateDist <<= (/*generateAPIDocs,*/ RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target) map {
+      (/*_,*/ repo, bd, t) =>
+        generateDistribution(repo, bd, t)
+    }
+
+  def generateDistribution(repo: File, bd: File, target: File): File = {
+    // Go down to the play checkout and get rid of the dumbness.
+    val playBase = bd.getParentFile
+    // Assert if we have the right directory...
+    assert(playBase / ".git" isDirectory, "%s is not play's home directory" format(playBase))
+    
+    val coreFiles = Seq("play", "play.bat", "README.md", "CONTRIBUTING.md") map (playBase /)
+    
+    val dist = target / "dist"
+    IO.createDirectory(dist)
+    IO.createDirectory(dist / "repository")
+    
+    def copyDistFiles(name: String) = IO.copyDirectory(playBase / name, dist / name, true, false)
+    copyDistFiles("documentation")
+    copyDistFiles("samples")
+    // TODO - Don't be stupid about this
+    //copyDistFiles("framework")
+    // Copy the core files
+    IO.copy(coreFiles map (f => f -> (dist / f.getName)))
+    IO.copyDirectory(repo, dist / "repository" / "local", true, false)
+    bd
+  }
   // ----- Generate API docs
 
-  val generateAPIDocs = TaskKey[Unit]("api-docs")
+  lazy val generateAPIDocs = TaskKey[Unit]("api-docs")
   val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams, baseDirectory, scalaBinaryVersion) map {
     (classpath, cs, s, base, sbv) =>
 
