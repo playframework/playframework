@@ -476,7 +476,7 @@ object PlayBuild extends Build {
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.5",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.5",
 
-            "org.scala-stm"                     %%   "scala-stm"                %   "0.6",
+            "org.scala-stm"                     %%   "scala-stm"                %   "0.7",
 
             "joda-time"                         %    "joda-time"                %   "2.1",
             "org.joda"                          %    "joda-convert"             %   "1.2",
@@ -563,7 +563,7 @@ object PlayBuild extends Build {
         )
 
         val iterateesDependencies = Seq(
-            "org.scala-stm"                     %%   "scala-stm"                %   "0.6",
+            "org.scala-stm"                     %%   "scala-stm"                %   "0.7",
             "com.typesafe"                      %    "config"                   %   "1.0.0",
             scalaIoFileBuild,
             specsBuild % "test"

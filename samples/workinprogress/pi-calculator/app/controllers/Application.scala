@@ -2,6 +2,8 @@ package controllers
 
 import play.api._
 import akka.util.Timeout
+import akka.util.Duration
+import java.util.concurrent.TimeUnit
 import akka.pattern.ask
 import play.api.mvc._
 import akka.actor._
@@ -23,10 +25,10 @@ object Application extends Controller {
 
   def compute(start: Int, elements: Int) = Action {
     AsyncResult {
-      implicit val timeout= Timeout(5.seconds)
-      (actor ? Work(start, elements) ).mapTo[Double].map { result =>
+      implicit val timeout = Timeout(Duration(5, TimeUnit.SECONDS))
+      Akka.wrapAkkaFuture((actor ? Work(start, elements) ).mapTo[Double].map { result =>
         Ok(views.html.computingResult(start, elements, result))
-      }
+      })
     }
   }
   

@@ -11,8 +11,11 @@ import play.api.libs.concurrent._
 import actors._
 import actors.ChatRoomActor._
 import akka.util.Timeout
+import akka.util.Duration
+import java.util.concurrent.TimeUnit
 import akka.pattern.ask
 import play.api.libs.concurrent.Execution.Implicits._
+
 
 
 object Application extends Controller {
@@ -29,10 +32,10 @@ object Application extends Controller {
   
   def stream = Action {
     AsyncResult {
-      implicit val timeout = Timeout(5.seconds)
-      (ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]].map { chunks =>
+      implicit val timeout = Timeout(Duration(5, TimeUnit.SECONDS))
+      Akka.wrapAkkaFuture((ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]].map { chunks =>
         Ok.stream(chunks &> Comet( callback = "parent.message"))
-      }
+      })
     }
   }
   

@@ -41,15 +41,65 @@ object TestController extends Controller {
         case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
       }
     }
+//  case class Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", 
+  //domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
 
-    implicit val cookieReads = Json.reads[Cookie]
-    implicit val cookieWrites = Json.writes[Cookie]
+    implicit val cookieReads = new Reads[Cookie] {
+      def reads(json: JsValue) = JsSuccess(Cookie(
+          (json \ "name").as[String],
+          (json \ "value").as[String],
+          (json \ "maxAge").asOpt[Int],
+          (json \ "path").as[String],
+          (json \ "domain").asOpt[String],
+          (json \ "secure").as[Boolean],
+          (json \ "httpOnly").as[Boolean]
+        ))
+    }
+    implicit val cookieWrites = new Writes[Cookie] {
+      def writes(c: Cookie) = JsObject(Seq())
+    }
 
-    implicit val echoReads = Json.reads[Echo]
-    implicit val echoWrites = Json.writes[Echo]
+    implicit val echoReads = new Reads[Echo] {
+      def reads(json: JsValue) = JsSuccess(Echo(
+        (json \ "method").as[String],
+        (json \ "version").as[String],
+        (json \ "body").asOpt[Array[Byte]],
+        (json \ "headers").as[Map[String, Seq[String]]],
+        (json \ "session").as[Map[String, String]],
+        (json \ "flash").as[Map[String, String]],
+        (json \ "remoteAddress").as[String],
+        (json \ "queryString").as[Map[String, Seq[String]]],
+        (json \ "uri").as[String],
+        (json \ "path").as[String]
+      ))
+    }
+    implicit val echoWrites = new Writes[Echo] {
+      def writes(e: Echo) = JsObject(Seq())
+    }
 
-    implicit val toReturnReads = Json.reads[ToReturn]
-    implicit val toReturnWrites = Json.writes[ToReturn]
+    implicit val toReturnReads = new Reads[ToReturn]{
+      def reads(json: JsValue) = JsSuccess(ToReturn(
+        (json \ "status").as[Int],
+        (json \ "body").asOpt[Array[Byte]],
+        (json \ "headers").as[Map[String, String]],
+        (json \ "cookies").as[List[Cookie]],
+        (json \ "session").as[Map[String, String]],
+        (json \ "flash").as[Map[String, String]]
+      ))
+    }
+    implicit val toReturnWrites = new Writes[ToReturn] {
+      import Json._
+      def writes(t: ToReturn) = toJson(
+        Map(
+          "status" -> toJson(t.status),
+          "body" -> toJson(t.body),
+          "headers" -> toJson(t.headers),
+          "cookies" -> toJson(t.cookies),
+          "session" -> toJson(t.session),
+          "flash" -> toJson(t.flash)
+        )
+      )
+    }
   }
 
   import Model._
