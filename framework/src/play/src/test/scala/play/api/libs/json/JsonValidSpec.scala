@@ -454,8 +454,8 @@ object JsonValidSpec extends Specification {
         )
       ).validate[User] must beEqualTo(
         JsError(Seq(
-          __ \ 'coords \ 'phone -> Seq(ValidationError("validate.error.missing-path")),
-          __ \ 'coords \ 'email -> Seq(ValidationError("validate.error.missing-path"))
+          __ \ 'coords \ 'email -> Seq(ValidationError("validate.error.missing-path")),
+          __ \ 'coords \ 'phone -> Seq(ValidationError("validate.error.missing-path"))
         ))
       )
     }

@@ -61,7 +61,7 @@ object DistTest {
 
     val root = ".*/%s-%s" format (appName, appVersion)
     val lib = root + "/lib/"
-    val scalaVersionPattern = "[0-9]+[.][0-9]+"
+    val scalaVersionPattern = "[0-9]+[.][0-9]+[.][0-9]+"
 
     mustContain(lib + "%s_%s-%s.jar" format (appName, scalaVersionPattern, appVersion))
     mustContain(lib + MUST_DIST_FILENAME)
