@@ -19,7 +19,6 @@ object PlayBuild extends Build {
         settings = buildSettings ++ Seq(
             autoScalaLibrary := false,
             libraryDependencies := link,
-            publishTo := Some(playRepository),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
@@ -100,8 +99,7 @@ object PlayBuild extends Build {
         file("src/play-exceptions"),
         settings = buildSettingsWithMIMA ++ Seq(
             autoScalaLibrary := false,
-            previousArtifact := Some("play" % "play-exceptions" % previousVersion),
-            publishTo := Some(playRepository),
+            previousArtifact := Some("play" % {"play-exceptions"+previousScalaVersion} % previousVersion),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,

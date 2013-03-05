@@ -26,7 +26,7 @@ object Application extends Controller {
   def compute(start: Int, elements: Int) = Action {
     AsyncResult {
       implicit val timeout = Timeout(Duration(5, TimeUnit.SECONDS))
-      Akka.wrapAkkaFuture((actor ? Work(start, elements) ).mapTo[Double].map { result =>
+      Akka.asScalaFuture((actor ? Work(start, elements) ).mapTo[Double].map { result =>
         Ok(views.html.computingResult(start, elements, result))
       })
     }
