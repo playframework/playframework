@@ -12,7 +12,7 @@ import javax.sql._
 
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
-import scala.util.control.NonFatal
+import scala.util.control.{NonFatal, ControlThrowable}
 
 /**
  * The Play Database API manages several connection pools.
@@ -101,6 +101,7 @@ trait DBApi {
         connection.commit()
         r
       } catch {
+        case e: ControlThrowable => connection.commit(); throw e
         case NonFatal(e) => connection.rollback(); throw e
       }
     }
