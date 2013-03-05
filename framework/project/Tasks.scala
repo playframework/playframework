@@ -41,6 +41,34 @@ object Tasks {
     IO.createDirectory(dist)
     IO.createDirectory(dist / "repository")
     
+    // First, let's do the dangerously fun copy of our current sources.
+    def copyDist(): Unit = {
+      val code = playBase / "framework"
+      val distCode = dist / "framework"
+      object files extends Traversable[File] {
+        val badNames = Seq(".git", ".lock", ".history", "target", ".gitmodules", ".DS_store", "bin")
+        def foreach[U](f: File => U): Unit = {
+          @annotation.tailrec
+          def drive(files: Seq[File]): Unit = files match {
+            // Don't go down any of the "bad" directory names.
+            case Seq(head, tail @ _*) if badNames contains head.getName => drive(tail)
+            case Seq(head, tail @ _*) =>
+              f(head)
+              drive(IO.listFiles(head) ++ tail)
+            case Nil => ()
+          }
+          drive(IO.listFiles(code))
+        }
+      }
+      val toCopy =
+        for {
+          (file, name) <- files.toSeq x relativeTo(code)
+        } yield file -> (distCode / name)
+      IO.copy(toCopy)
+    }
+    copyDist()
+
+
     def copyDistFiles(name: String) = IO.copyDirectory(playBase / name, dist / name, true, false)
     copyDistFiles("documentation")
     copyDistFiles("samples")
