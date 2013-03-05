@@ -45,6 +45,18 @@ object Akka {
     Future(body)(system.dispatcher)
   }
 
+  /**
+   * Transforms akka.dispatch.Future to scala.concurrent.Future.
+   *
+   * Example:
+   * {{{
+   *  AsyncResult{
+   *    Akka.asScalaFuture(someAkkaFuture)
+   *  }
+   * }}}
+   */
+  def asScalaFuture[T](akkaFuture: AkkaFuture[T]): Future[T] = wrapAkkaFuture(akkaFuture)
+
   implicit def wrapAkkaFuture[T](wrapped: AkkaFuture[T]): Future[T] = new Future[T] {
     def result(atMost: Duration)(implicit permit: CanAwait) = AkkaAwait.result(wrapped, atMost)
     def isCompleted = wrapped.isCompleted

@@ -33,7 +33,7 @@ object Application extends Controller {
   def stream = Action {
     AsyncResult {
       implicit val timeout = Timeout(Duration(5, TimeUnit.SECONDS))
-      Akka.wrapAkkaFuture((ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]].map { chunks =>
+      Akka.asScalaFuture((ChatRoomActor.ref ? (Join()) ).mapTo[Enumerator[String]].map { chunks =>
         Ok.stream(chunks &> Comet( callback = "parent.message"))
       })
     }
