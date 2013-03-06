@@ -189,7 +189,7 @@ object PlayBuild extends Build {
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayJavaProject)
+    .dependsOn(PlayProject)
 
     lazy val PlayJavaJdbcProject = Project(
         "Play-Java-JDBC",
@@ -205,7 +205,7 @@ object PlayBuild extends Build {
             resolvers += typesafe
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
-    .dependsOn(PlayJdbcProject)
+    .dependsOn(PlayJdbcProject, PlayJavaProject)
 
     lazy val PlayEbeanProject = Project(
         "Play-Java-Ebean",
