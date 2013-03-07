@@ -268,7 +268,7 @@ class ApplicationSpec extends Specification {
       val someRoute = app.routes.flatMap(_.documentation.find(r => r._1 == "GET" && r._2.startsWith("/read/")))
       someRoute must beSome[(String, String, String)]
       val route = someRoute.get
-      route._2 must_== "/read/$name<[^/]+>"
+      route._2 must_== "/read/$name<[^/]+>(encode = true)"
       route._3 must startWith("controllers.JavaApi.readCookie")
     }
 

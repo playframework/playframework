@@ -14,8 +14,17 @@ object RoutesCompilerSpec extends Specification {
       parseRoute("GET /s p.c.m").path must_== PathPattern(Seq(StaticPart("s")))
     }
 
-    "parse a path with dynamic parts" in {
-      parseRoute("GET /s/:d/s p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("d", "[^/]+"), StaticPart("/s")))
+    "parse a path with dynamic parts and it should be encodeable" in {
+      parseRoute("GET /s/:d/s p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("d", "[^/]+", true), StaticPart("/s")))
+    }
+
+    "parse a path with multiple dynamic parts and it should not be encodeable" in {
+      parseRoute("GET /s/*e p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("e", ".+", false)))
+    }
+
+    "path with regex should not be encodeable" in {
+      parseRoute("GET /s/$id<[0-9]+> p.c.m").path must_== PathPattern(Seq(StaticPart("s/"), DynamicPart("id", "[0-9]+", false)))
+
     }
 
     "parse a single element package" in {
