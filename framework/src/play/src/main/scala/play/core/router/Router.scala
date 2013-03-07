@@ -7,10 +7,12 @@ import org.apache.commons.lang3.reflect.MethodUtils
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
+import java.net.URI
+import scala.util.control.Exception
 
 trait PathPart
 
-case class DynamicPart(name: String, constraint: String) extends PathPart {
+case class DynamicPart(name: String, constraint: String, encodeable: Boolean) extends PathPart {
   override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\")" // "
 }
 
@@ -22,12 +24,23 @@ case class PathPattern(parts: Seq[PathPart]) {
 
   import java.util.regex._
 
+  private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] = matcher =>
+    Exception.allCatch[String].either {
+      if(decode)
+         new URI(matcher.group(groupCount)).getPath
+      else
+        matcher.group(groupCount)
+    }
+
+
   lazy val (regex, groups) = {
-    Some(parts.foldLeft("", Map.empty[String, Int], 0) { (s, e) =>
+    Some(parts.foldLeft("", Map.empty[String, Matcher => Either[Throwable, String]], 0) { (s, e) =>
       e match {
         case StaticPart(p) => ((s._1 + Pattern.quote(p)), s._2, s._3)
-        case DynamicPart(k, r) => {
-          ((s._1 + "(" + r + ")"), (s._2 + (k -> (s._3 + 1))), s._3 + 1 + Pattern.compile(r).matcher("").groupCount)
+        case DynamicPart(k, r, encodeable) => {
+          ((s._1 + "(" + r + ")"),
+            (s._2 + (k -> decodeIfEncoded(encodeable, s._3 + 1))),
+            s._3 + 1 + Pattern.compile(r).matcher("").groupCount)
         }
       }
     }).map {
@@ -35,24 +48,20 @@ case class PathPattern(parts: Seq[PathPart]) {
     }.get
   }
 
-  def apply(path: String): Option[Map[String, String]] = {
+
+  def apply(path: String): Option[Map[String, Either[Throwable, String]]] = {
     val matcher = regex.matcher(path)
     if (matcher.matches) {
       Some(groups.map {
-        case (name, g) => name -> matcher.group(g)
+        case (name, g) => name -> g(matcher)
       }.toMap)
     } else {
       None
     }
   }
 
-  def has(key: String): Boolean = parts.exists {
-    case DynamicPart(name, _) if name == key => true
-    case _ => false
-  }
-
   override def toString = parts.map {
-    case DynamicPart(name, constraint) => "$" + name + "<" + constraint + ">"
+    case DynamicPart(name, constraint, _) => "$" + name + "<" + constraint + ">"
     case StaticPart(path) => path
   }.mkString
 
@@ -100,10 +109,10 @@ object Router {
 
   case class Param[T](name: String, value: Either[String, T])
 
-  case class RouteParams(path: Map[String, String], queryString: Map[String, Seq[String]]) {
+  case class RouteParams(path: Map[String, Either[Throwable, String]], queryString: Map[String, Seq[String]]) {
 
     def fromPath[T](key: String, default: Option[T] = None)(implicit binder: PathBindable[T]): Param[T] = {
-      Param(key, path.get(key).map(binder.bind(key, _)).getOrElse {
+      Param(key, path.get(key).map(v => v.fold(t => Left(t.getMessage), binder.bind(key, _))).getOrElse {
         default.map(d => Right(d)).getOrElse(Left("Missing parameter: " + key))
       })
     }
