@@ -39,16 +39,12 @@ object BindersSpec extends Specification {
     val subject = implicitly[PathBindable[String]]
     val pathString = "/path/to/some%20file"
     val pathStringBinded = "/path/to/some file"
-    val pathStringInvalid = "/path/to/invalide%2"
 
     "Unbind Path string as string" in {
       subject.unbind("key", pathString) must equalTo(pathString)
     }
-    "Bind Path string as string" in {
-      subject.bind("key", pathString) must equalTo(Right(pathStringBinded))
-    }
-    "Fail on unparseable Path string" in {
-      subject.bind("key", pathStringInvalid) must equalTo(Left("Cannot parse parameter key as String: Malformed escape pair at index 17: /path/to/invalide%2"))
+    "Bind Path string as string without any decoding" in {
+      subject.bind("key", pathString) must equalTo(Right(pathString))
     }
   }
 }
