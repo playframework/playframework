@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
-import com.typesafe.tools.mima.core.{ProblemFilters, IncompatibleResultTypeProblem}
+import com.typesafe.tools.mima.core._
 
 object PlayBuild extends Build {
 
@@ -125,7 +125,13 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
             parallelExecution in Test := false,
-            binaryIssueFilters += ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.utils.ProxyDriver.getParentLogger"),
+            binaryIssueFilters ++= Seq(
+              ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.utils.ProxyDriver.getParentLogger"),
+              ProblemFilters.exclude[MissingTypesProblem]("play.core.DynamicPart$"),
+              ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.DynamicPart.apply"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.toString"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.copy")
+            ),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)

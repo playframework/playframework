@@ -459,7 +459,7 @@ object PathBindable {
 
     def bind(key: String, value: String): Either[String, A] = {
       try {
-        Right(parse(URLDecoder.decode(value, codec.charset)))
+        Right(parse(value))
       } catch {
         case e: Exception => Left(error(key, e))
       }
