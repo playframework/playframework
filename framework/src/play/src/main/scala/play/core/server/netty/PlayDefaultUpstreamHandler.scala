@@ -47,7 +47,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
   override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     val cleanup = ctx.getAttachment
-    if(cleanup!=null) cleanup.asInstanceOf[() => Unit]()
+    if(cleanup != null) cleanup.asInstanceOf[() => Unit]()
     ctx.setAttachment(null)
   }
 
@@ -117,7 +117,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         }
         
         // attach the cleanup function to the channel context for after cleaning
-        ctx.setAttachment(cleanup)
+        ctx.setAttachment(cleanup _)
 
         // converting netty response to play's
         val response = new Response {
