@@ -21,7 +21,7 @@ By default, any JavaScript file not prepended by an underscore will be compiled.
 For example, to compile only `.js` file from the `app/assets/javascripts/main` directory:
 
 ```
-val main = PlayProject(appName, appVersion, mainLang = SCALA).settings(
+val main = play.Project(appName, appVersion, appDependencies).settings(
    javascriptEntryPoints <<= baseDirectory(base =>
       base / "app" / "assets" / "javascripts" / "main" ** "*.js"
    )

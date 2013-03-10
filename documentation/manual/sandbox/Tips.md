@@ -37,7 +37,7 @@ This can be done with a script like this (run in `app/assets/stylesheets/bootstr
 * Override the default `lessEntryPoints` setting key with the new function:
 
 ```scala
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
+    val main = play.Project(appName, appVersion, appDependencies).settings(
         lessEntryPoints <<= baseDirectory(customLessEntryPoints)
     )
 ```

@@ -43,8 +43,8 @@ You can also publish your application to a Maven repository. This publishes both
 You have to configure the repository you want to publish to, in the `project/Build.scala` file:
 
 ```scala
-val main = PlayProject(appName, appVersion, appDependencies).settings(
-  
+val main = play.Project(appName, appVersion, appDependencies).settings(
+
   publishTo := Some(
     "My resolver" at "http://mycompany.com/repo"
   ),
