@@ -163,7 +163,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val isEnabled = configuration.getString("engine.isEnabled")
+   * val isEnabled = configuration.getBoolean("engine.isEnabled")
    * }}}
    *
    * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
