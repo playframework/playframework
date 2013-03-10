@@ -1,6 +1,7 @@
 package sbt
 
 import Keys._
+import PlayKeys._
 
 trait PlayEclipse {
   this: PlayCommands =>
@@ -120,7 +121,7 @@ trait PlayEclipse {
       EclipseKeys.createSrc := EclipseCreateSrc.Default,
       EclipseKeys.eclipseOutput := Some(".target"),
       EclipseKeys.projectFlavor := flavor,
-      EclipseKeys.preTasks := Seq(compile in Compile),
+      EclipseKeys.preTasks := Seq(compile in Compile) ++ Seq(scalaIdePlay2Prefs),
       EclipseKeys.projectTransformerFactories := projectTransformers,
       EclipseKeys.classpathTransformerFactories := classPathTransformers)
   }

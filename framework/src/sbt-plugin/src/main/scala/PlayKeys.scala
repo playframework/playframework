@@ -68,5 +68,6 @@ trait PlayKeys {
 
   val devSettings = SettingKey[Seq[(String,String)]]("play-dev-settings")
 
+  val scalaIdePlay2Prefs = TaskKey[Unit]("scala-ide-play2-prefs")
 }
 object PlayKeys extends PlayKeys
