@@ -62,7 +62,7 @@ This can be configured in `project/Build.scala` by overriding the `lessEntryPoin
 For example, to compile `app/assets/stylesheets/main.less` and nothing else:
 
 ```
- val main = PlayProject(appName, appVersion, mainLang = SCALA).settings(
+ val main = play.Project(appName, appVersion, appDependencies).settings(
    lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "main.less")
  )
 ```
