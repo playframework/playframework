@@ -155,7 +155,7 @@ You can also specify an optional parameter that does not need to be present in a
 
 ```
 # The version parameter is optional. E.g. /api/list-all?version=3.0
-GET   /api/list-all         controllers.Api.list(Option[version])
+GET   /api/list-all         controllers.Api.list(version: Option[String])
 ```
 
 ## Routing priority
