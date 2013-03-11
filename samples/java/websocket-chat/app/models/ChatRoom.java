@@ -45,7 +45,7 @@ public class ChatRoom extends UntypedActor {
                public void invoke(JsonNode event) {
                    
                    // Send a Talk message to the room.
-                   defaultRoom.tell(new Talk(username, event.get("text").asText()));
+                   defaultRoom.tell(new Talk(username, event.get("text").asText()), null);
                    
                } 
             });
@@ -55,7 +55,7 @@ public class ChatRoom extends UntypedActor {
                public void invoke() {
                    
                    // Send a Quit message to the room.
-                   defaultRoom.tell(new Quit(username));
+                   defaultRoom.tell(new Quit(username), null);
                    
                }
             });
@@ -85,11 +85,11 @@ public class ChatRoom extends UntypedActor {
             
             // Check if this username is free.
             if(members.containsKey(join.username)) {
-                getSender().tell("This username is already used");
+                getSender().tell("This username is already used", getSelf());
             } else {
                 members.put(join.username, join.channel);
                 notifyAll("join", join.username, "has entered the room");
-                getSender().tell("OK");
+                getSender().tell("OK", getSelf());
             }
             
         } else if(message instanceof Talk)  {
