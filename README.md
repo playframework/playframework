@@ -69,7 +69,7 @@ $ play run
 
 ## Issues tracker
 
-Report issues at https://play.lighthouseapp.com/projects/82401-play-20/overview.
+Report issues at https://github.com/playframework/Play20/issues.
 
 ## Contributors
 
