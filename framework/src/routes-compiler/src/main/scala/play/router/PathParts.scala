@@ -24,7 +24,7 @@ case class PathPattern(parts: Seq[PathPart]) {
   }
 
   override def toString = parts.map {
-    case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">(encode = " + encode + ")"
+    case DynamicPart(name, constraint, encode) => "$" + name + "<" + constraint + ">"
     case StaticPart(path) => path
   }.mkString
 
