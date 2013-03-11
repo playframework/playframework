@@ -147,6 +147,12 @@ class FunctionalSpec extends Specification {
       }
     }
 
+    "% character in the query string" in new WithServer() {
+      scala.io.Source.fromURL("http://localhost:" + port + "/?%") must throwAn[java.io.IOException].like {
+        case e => e.getMessage must contain("Server returned HTTP response code: 400 for URL")
+      }
+    }
+
   }
   
 }
