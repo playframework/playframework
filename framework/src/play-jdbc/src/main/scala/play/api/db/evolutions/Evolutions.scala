@@ -185,8 +185,8 @@ object Evolutions {
               create table play_evolutions (
                   id int not null primary key, hash varchar(255) not null, 
                   applied_at timestamp not null, 
-                  apply_script text, 
-                  revert_script text, 
+                  apply_script longtext, 
+                  revert_script longtext, 
                   state varchar(255), 
                   last_problem text
               )
