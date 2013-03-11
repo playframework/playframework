@@ -66,7 +66,7 @@ The default thread pool can be configured using standard Akka configuration in `
 ```
 play {
   akka {
-    event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+    loggers = ["akka.event.slf4j.Slf4jEventHandler"]
     loglevel = WARNING
     actor {
       default-dispatcher = {
@@ -146,7 +146,7 @@ In this profile, you would simply use the default execution context everywhere, 
 ```
 play {
   akka {
-    event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+    loggers = ["akka.event.slf4j.Slf4jEventHandler"]
     loglevel = WARNING
     actor {
       default-dispatcher = {
