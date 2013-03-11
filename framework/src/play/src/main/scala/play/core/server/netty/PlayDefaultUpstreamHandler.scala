@@ -26,6 +26,7 @@ import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
+import scala.util.control.Exception
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
@@ -55,6 +56,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
     allChannels.add(e.getChannel)
   }
 
+
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
 
@@ -65,8 +67,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-        val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
-
         val rHeaders = getHeaders(nettyHttpRequest)
         val rCookies = getCookies(nettyHttpRequest)
 
@@ -82,25 +82,37 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
         }
 
-        import org.jboss.netty.util.CharsetUtil;
-
-        //mapping netty request to Play's
-
-        val untaggedRequestHeader = new RequestHeader {
-          val id = requestIDs.incrementAndGet
-          val tags = Map.empty[String,String]
-          def uri = nettyHttpRequest.getUri
-          def path = nettyUri.getPath
-          def method = nettyHttpRequest.getMethod.getName
-          def version = nettyVersion.getText
-          def queryString = parameters
-          def headers = rHeaders
-          lazy val remoteAddress = rRemoteAddress
-          def username = None
+        def tryToCreateRequest = {
+          val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
+          createRequestHeader(parameters)
         }
 
-        // get handler for request
-        val handler = server.getHandlerFor(untaggedRequestHeader)
+        def createRequestHeader(parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
+          //mapping netty request to Play's
+          val untaggedRequestHeader = new RequestHeader {
+            val id = requestIDs.incrementAndGet
+            val tags = Map.empty[String,String]
+            def uri = nettyHttpRequest.getUri
+            def path = nettyUri.getPath
+            def method = nettyHttpRequest.getMethod.getName
+            def version = nettyVersion.getText
+            def queryString = parameters
+            def headers = rHeaders
+            lazy val remoteAddress = rRemoteAddress
+            def username = None
+          }
+          untaggedRequestHeader
+        }
+
+        val (untaggedRequestHeader, handler) = Exception
+            .allCatch[RequestHeader].either(tryToCreateRequest)
+            .fold(
+               e => {
+                 val rh = createRequestHeader()
+                 val r = server.applicationProvider.get.fold(e => DefaultGlobal, a => a.global).onBadRequest(rh, e.getMessage)
+                 (rh, Left(r))
+               },
+               rh => (rh, server.getHandlerFor(rh)))
 
         // tag request if necessary
         val requestHeader = handler.right.toOption.map({
