@@ -319,7 +319,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     public static Result route(Application app, FakeRequest fakeRequest) {
       final scala.Option<play.api.mvc.Result> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
-      final play.api.mvc.Result r = opt.getOrElse(null);
+      final play.api.mvc.Result r = Scala.orNull(opt);
       if(r != null){
         return new Result() {
           public play.api.mvc.Result getWrappedResult(){
@@ -331,7 +331,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static <T> Result route(Application app, FakeRequest fakeRequest, byte[] body) {
-      final play.api.mvc.Result r = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body).getOrElse(null);
+      final play.api.mvc.Result r = Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body));
       if(r != null){
         return new Result() {
           public play.api.mvc.Result getWrappedResult(){
