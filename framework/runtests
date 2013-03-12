@@ -11,11 +11,11 @@ export PLAY=`pwd`/../play
 
 ./build "$@" publish-local
 
-echo "[info]"
-echo "[info] ---- CHECKING BINARY COMPATIBILITY"
-echo "[info]"
+# echo "[info]"
+# echo "[info] ---- CHECKING BINARY COMPATIBILITY"
+# echo "[info]"
 
-./build "$@" mima-report-binary-issues
+# ./build "$@" mima-report-binary-issues
 
 echo "[info]"
 echo "[info] ---- RUNNING FRAMEWORK SPECS"
