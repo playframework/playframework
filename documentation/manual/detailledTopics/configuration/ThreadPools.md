@@ -66,7 +66,7 @@ The default thread pool can be configured using standard Akka configuration in `
 ```
 play {
   akka {
-    event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+    event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
     loglevel = WARNING
     actor {
       default-dispatcher = {
@@ -90,7 +90,7 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 ```scala
 object Contexts {
-  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("my-context")
+  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.my-context")
 }
 ```
 
@@ -135,7 +135,7 @@ Below we outline a few common profiles that people may want to use in Play Frame
 
 ### Pure asynchronous
 
-In this case, you are doing no blocking IO in your application.  Since you are never blocking, the default configuration of one thread per processor suits your use case prefectly, so no extra configuration needs to be done.  The Play default execution context can be used in all cases.
+In this case, you are doing no blocking IO in your application.  Since you are never blocking, the default configuration of one thread per processor suits your use case perfectly, so no extra configuration needs to be done.  The Play default execution context can be used in all cases.
 
 ### Highly synchronous
 
@@ -166,43 +166,45 @@ This profile is recommended for Java applications that do synchronous IO, since 
 
 This profile is for when you want to do a lot of synchronous IO, but you also want to control exactly how much of which types of operations your application does at once.  In this profile, you would only do non blocking operations in the default execution context, and then dispatch blocking operations to different execution contexts for those specific operations.
 
-In this case, you might create a number of different execution contexts for different types of opreations, like this:
+In this case, you might create a number of different execution contexts for different types of operations, like this:
 
 ```scala
 object Contexts {
-  implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("simple-db-lookups")
-  implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("expensive-db-lookups")
-  implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("db-write-operations")
-  implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("expensive-cpu-operations")
+  implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.simple-db-lookups")
+  implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.expensive-db-lookups")
+  implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.db-write-operations")
+  implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.expensive-cpu-operations")
 }
 ```
 
 These might then be configured like so:
 
 ```
-akka {
-  actor {
-    simple-db-lookups {
-      fork-join-executor {
-        parallelism-factor = 10.0
+play {
+  akka {
+    actor {
+      simple-db-lookups {
+        fork-join-executor {
+          parallelism-factor = 10.0
+        }
+      }
+      expensive-db-lookups {
+        fork-join-executor {
+          parallelism-max = 4
+        }
+      }
+      db-write-operations {
+        fork-join-executor {
+          parallelism-factor = 2.0
+        }
+      }
+      expensive-cpu-operations {
+        fork-join-executor {
+          parallelism-max = 2
+        }
       }
     }
-    expensive-db-lookups {
-      fork-join-executor {
-        parallelism-max = 4
-      }
-    }
-    db-write-operations {
-      fork-join-executor {
-        parallelism-factor = 2.0
-      }
-    }
-    expensive-cpu-operations {
-      fork-join-executor {
-        parallelism-max = 2
-      }
-    }
-  }
+  }  
 }
 ```
 
@@ -210,4 +212,4 @@ Then in your code, you would create futures and pass the relevant execution cont
 
 ### Few specific thread pools
 
-This is a combination between the many specific thread pools and the highly synchronised profile.  You would do most simple IO in the default execution context and set the number of threads there to be reasonably high (say 100), but then dispatch certain expensive operations to specific contexts, where you can limit the number of them that are done at one time.
+This is a combination between the many specific thread pools and the highly synchronized profile.  You would do most simple IO in the default execution context and set the number of threads there to be reasonably high (say 100), but then dispatch certain expensive operations to specific contexts, where you can limit the number of them that are done at one time.
