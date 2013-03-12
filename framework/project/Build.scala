@@ -550,7 +550,7 @@ object PlayBuild extends Build {
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.10-M2"  %  "test",
 
-            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test" exclude("org.jboss.netty", "netty"),
+            "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.6"    %  "test" exclude("org.jboss.netty", "netty"),
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"
         )
 
