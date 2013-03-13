@@ -4,7 +4,7 @@ import Keys._
 import PlayKeys._
 
 trait PlaySettings {
-  this: PlayCommands with PlayPositionMapper =>
+  this: PlayCommands with PlayPositionMapper with PlayRun =>
   
   protected def whichLang(name: String): Seq[Setting[_]] = {
     if (name == JAVA) {
@@ -131,7 +131,9 @@ trait PlaySettings {
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get },
 
-    commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+
+    run <<= playRunSetting,
 
     shellPrompt := playPrompt,
 

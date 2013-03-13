@@ -336,7 +336,7 @@ trait PlayReloader {
 
       def reload: AnyRef = {
 
-        PlayProject.synchronized {
+        play.Project.synchronized {
 
           if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
