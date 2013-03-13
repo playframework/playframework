@@ -25,7 +25,7 @@ object LoggingFilter extends Filter {
 
     def logTime(result: PlainResult): Result = {
       val time = System.currentTimeMillis - start
-      Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}"))
+      Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
       result.withHeaders("Request-Time" -> time.toString)
     }
     
@@ -57,7 +57,7 @@ val loggingFilter = Filter { (next, rh) =>
 
   def logTime(result: PlainResult): Result = {
     val time = System.currentTimeMillis - start
-    Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}"))
+    Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
     result.withHeaders("Request-Time" -> time.toString)
   }
     
@@ -102,7 +102,7 @@ Since filters are applied after routing is done, it is possible to access routin
   def logTime(result: PlainResult): Result = {
     val time = System.currentTimeMillis - start
     val action = rh.tags(Routes.ROUTE_CONTROLLER) + "." + rh.tags(Routes.ROUTE_ACTION_METHOD)
-    Logger.info(s"${action} took ${time}ms and returned ${result.header.status}"))
+    Logger.info(s"${action} took ${time}ms and returned ${result.header.status}")
     result.withHeaders("Request-Time" -> time.toString)
   }
 ```
@@ -125,7 +125,7 @@ object LoggingFilter extends EssentialFilter {
 
       def logTime(result: PlainResult): Result = {
         val time = System.currentTimeMillis - start
-        Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}"))
+        Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
         result.withHeaders("Request-Time" -> time.toString)
       }
     
