@@ -31,7 +31,7 @@ trait DBApi {
   /**
    * Retrieves a JDBC connection, with auto-commit set to `true`.
    *
-   * Don’t forget to release the connection at some point by calling close().
+   * Don't forget to release the connection at some point by calling close().
    *
    * @param name the data source name
    * @return a JDBC connection
@@ -43,7 +43,7 @@ trait DBApi {
    * Retrieves the JDBC connection URL for a particular data source.
    *
    * @param name the data source name
-   * @return The JDBC URL connection string, i.e. `jdbc:…`
+   * @return The JDBC URL connection string, i.e. `jdbc:...`
    * @throws an error if the required data source is not registered
    */
   def getDataSourceURL(name: String): String = {
@@ -56,7 +56,7 @@ trait DBApi {
   /**
    * Retrieves a JDBC connection.
    *
-   * Don’t forget to release the connection at some point by calling close().
+   * Don't forget to release the connection at some point by calling close().
    *
    * @param name the data source name
    * @param autocommit when `true`, sets this connection to auto-commit
@@ -353,11 +353,11 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         datasource.setUsername(username)
         datasource.setPassword(password)
       case Some(url @ H2DefaultUrl()) if !url.contains("DB_CLOSE_DELAY") =>
-        if (Play.maybeApplication.exists(_.mode == Mode.Dev)) {      
-          Logger("play").warn("datasource [" + url + "] is an in-memory H2 DB, but does not have DB_CLOSE_DELAY=-1 set. " +
-            "This means H2 will lose all DB content if all DB connections are closed, so evolutions and the h2-browser might not work correctly.")
+        if (Play.maybeApplication.exists(_.mode == Mode.Dev)) {
+          datasource.setJdbcUrl(url + ";DB_CLOSE_DELAY=-1")
+        } else {
+          datasource.setJdbcUrl(url)
         }
-        datasource.setJdbcUrl(url)
       case Some(s: String) =>
         datasource.setJdbcUrl(s)
       case _ =>
@@ -417,7 +417,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
   /**
    * Retrieves a JDBC connection, with auto-commit set to `true`.
    *
-   * Don’t forget to release the connection at some point by calling close().
+   * Don't forget to release the connection at some point by calling close().
    *
    * @param name the data source name
    * @return a JDBC connection
