@@ -124,6 +124,8 @@ Often you will need to write your own field constructor. Start by writing a temp
 </div>
 ```
 
+Save it in `views\` and name `myFieldConstructorTemplate.scala.html`
+
 > **Note:** This is just a sample. You can make it as complicated as you need. You have also access to the original field using `@elements.field`.
 
 Now create a `FieldConstructor` somewhere, using:
