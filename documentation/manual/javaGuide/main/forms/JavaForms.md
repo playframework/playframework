@@ -65,7 +65,44 @@ public class User {
     }
 }
 ```
+
+In this example the message goes to `globalError` and can be retrieved in your templates in the following way:
+
+```html
+@if(form.hasGlobalErrors) {
+    <p class="error">
+        @form.globalError.message
+    </p>
+}
+```
+
 Since 2.0.2 the `validate`-method can return the following types: `String`, `List<ValidationError>` or `Map<String,List<ValidationError>>`
+
+`validate` method is called after checking annotation-based constraints and only if they pass.
+If validation passes you must return `null` . Returning any not-`null` value (empty string or empty list) is treated as failed validation.
+
+Usage `List<ValidationError>` may be useful when you have additional validations for fields. For example:
+
+```java
+public List<ValidationError> validate() {
+    List<ValidationError> errors = new ArrayList<>();
+    if (User.byEmail(email) != null) {
+        errors.add(new ValidationError("email", "Such e-mail is already registered."));
+    }
+    return errors.isEmpty() ? null : errors;
+}
+```
+
+You can retrieve errors for `email` field in the following manner:
+
+```html
+@for(error <- someForm("email").errors) {
+    <p>@error.message</p>
+}
+```
+
+Using `Map<String,List<ValidationError>>` is similar to `List<ValidationError>` where map's keys are error codes similar to `email` in the example above.
+
 ## Handling binding failure
 
 Of course if you can define constraints, then you need to be able to handle the binding errors.
