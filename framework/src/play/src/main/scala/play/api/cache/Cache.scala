@@ -110,17 +110,19 @@ abstract class CachePlugin extends Plugin {
 
 }
 
+
+import net.sf.ehcache._
+
 /**
  * EhCache implementation.
  */
 class EhCachePlugin(app: Application) extends CachePlugin {
 
-  import net.sf.ehcache._
+  lazy val manager = CacheManager.create()
 
-  lazy val (manager, cache) = {
-    val manager = CacheManager.create()
+  lazy val cache: Ehcache = {
     manager.addCache("play")
-    (manager, manager.getCache("play"))
+    manager.getEhcache("play")
   }
 
   /**
@@ -142,22 +144,24 @@ class EhCachePlugin(app: Application) extends CachePlugin {
     manager.shutdown()
   }
 
-  lazy val api = new CacheAPI {
+  lazy val api = new EhCacheImpl(cache)
 
-    def set(key: String, value: Any, expiration: Int) {
-      val element = new Element(key, value)
-      if (expiration == 0) element.setEternal(true)
-      element.setTimeToLive(expiration)
-      cache.put(element)
-    }
+}
 
-    def get(key: String): Option[Any] = {
-      Option(cache.get(key)).map(_.getObjectValue)
-    }
+class EhCacheImpl(private val cache: Ehcache) extends CacheAPI {
 
-    def remove(key: String) {
-      cache.remove(key)
-    }
+  def set(key: String, value: Any, expiration: Int) {
+    val element = new Element(key, value)
+    if (expiration == 0) element.setEternal(true)
+    element.setTimeToLive(expiration)
+    cache.put(element)
   }
 
+  def get(key: String): Option[Any] = {
+    Option(cache.get(key)).map(_.getObjectValue)
+  }
+
+  def remove(key: String) {
+    cache.remove(key)
+  }
 }
