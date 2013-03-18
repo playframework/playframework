@@ -148,10 +148,10 @@ object ApplicationBuild extends Build {
 
     val mainDeps = Seq()
   
-   lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
+    lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
 
 
-  lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
+    lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
       // Add your own project settings here      
     ).dependsOn(admin).aggregate(admin)
 
