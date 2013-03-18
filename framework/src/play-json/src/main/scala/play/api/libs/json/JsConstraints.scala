@@ -189,7 +189,7 @@ trait PathWrites {
   def jsPickBranchUpdate(path: JsPath, wrs: OWrites[JsValue]): OWrites[JsValue] =
     OWrites[JsValue]{ js => 
       JsPath.createObj(
-        path -> path(js).headOption.flatMap( js => js.asOpt[JsObject].map( obj => obj ++ wrs.writes(obj) ) ).getOrElse(JsNull)
+        path -> path(js).headOption.flatMap( js => js.asOpt[JsObject].map( obj => obj.deepMerge(wrs.writes(obj)) ) ).getOrElse(JsNull)
       )
     }
 

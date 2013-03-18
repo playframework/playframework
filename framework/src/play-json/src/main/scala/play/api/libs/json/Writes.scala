@@ -44,7 +44,7 @@ object OWrites extends PathWrites with ConstraintWrites {
 
   implicit val functionalCanBuildOWrites:FunctionalCanBuild[OWrites] = new FunctionalCanBuild[OWrites] {
 
-    def apply[A,B](wa: OWrites[A], wb: OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a) ++ wb.writes(b)}
+    def apply[A,B](wa: OWrites[A], wb: OWrites[B]):OWrites[A~B] = OWrites[A~B]{ case a ~ b => wa.writes(a).deepMerge(wb.writes(b)) }
 
   }
 
