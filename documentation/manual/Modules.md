@@ -205,9 +205,9 @@
 * **Documentation:** <https://github.com/joscha/play-authenticate/blob/master/README.md>
 * **Short description:** A highly customizable authentication module for Play 2.0
 
-## Play Mini (Java and Scala)
-* **Website (docs, sample):** <https://github.com/typesafehub/play2-mini>
-* **Short description:** uses play as an HTTP library (in a standard SBT project)
+## play-jaxrs (Java)
+* **Website (docs, sample):** [play-jaxrs](https://github.com/pk11/play-jaxrs/)
+* **Short description:** a JAX-RS router plugin for play java apps 
 
 ## Play-pac4j (Java and Scala)
 * **Website:** <https://github.com/leleuj/play-pac4j>
