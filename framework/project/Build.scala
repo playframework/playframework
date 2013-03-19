@@ -446,7 +446,7 @@ object PlayBuild extends Build {
     object Dependencies {
 
       // Some common dependencies here so they don't need to be declared over and over
-      val specsBuild = "org.specs2" %% "specs2" % "1.13"
+      val specsBuild = "org.specs2" %% "specs2" % "1.14"
       val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
 
