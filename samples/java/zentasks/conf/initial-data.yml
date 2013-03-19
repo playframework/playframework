@@ -1,7 +1,6 @@
-
 # Users
 
-users:
+# users:
 
     - !!models.User
         email:      guillaume@sample.com
@@ -25,7 +24,7 @@ users:
     
 # Projects
 
-projects:
+# projects:
 
     - !!models.Project
         id:         1
@@ -135,7 +134,7 @@ projects:
                 
 # Task
 
-tasks:
+# tasks:
     
     - !!models.Task
         title:      Fix the documentation

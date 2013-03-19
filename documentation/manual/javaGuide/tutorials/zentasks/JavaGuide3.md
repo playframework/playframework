@@ -10,7 +10,7 @@ Here is a mock of what we want to achieve:
 
 In fact before coding the first screen we need one more thing.  Working on a web application without test data is not fun.  You can't even test what you're doing.  But because we haven't developed the screens for managing tasks yet, we can't populate the task dashboard with tasks ourselves.
 
-One way to inject default data into the blog is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onApplicationStart()` method.  Let's do that now, by creating the `app/Global.java` file:
+One way to inject default data into the blog is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onStart()` method.  Let's do that now, by creating the `app/Global.java` file:
 
 ```java
 import play.*;
@@ -34,7 +34,7 @@ Now this will be called whenever play starts up.
 
 > In fact this job will be run differently in dev or prod modes.  In dev mode, play waits for a first request to start. So this job will be executed synchronously at the first request.  That way, if the job fails, you will get the error message in your browser.  In prod mode however, the job will be executed at application start (synchronously with the `start` command) and will prevent the application from starting in case of an error.
 
-You have to create an `initial-data.yml` in the `conf` directory.  You can of course reuse the `test-data.yml` content that we just used for tests previously.
+You can reuse the `initial-data.yml` in the `conf` directory from previous section.
 
 Now run the application using `play run` and display the <http://localhost:9000> page in the browser.
 
@@ -42,7 +42,7 @@ Now run the application using `play run` and display the <http://localhost:9000>
 
 This time, we can really start to code the dashboard.
 
-Do you remember how the first page is displayed?  First the `routes` file defines that the `/` URL will invoke the `controllers.Application.index()` action method.  Then this method calls `render()` and executes the `app/views/Application/index.scala.html` template.
+Do you remember how the first page is displayed?  First the `routes` file defines that the `/` URL will invoke the `controllers.Application.index()` action method.  Then this method calls `render()` and executes the `app/views/index.scala.html` template.
 
 We will keep these components but add code to them to load the tasks list and display them.
 
@@ -171,7 +171,7 @@ Edit the `app/views/main.scala.html` file:
     <head>
         <title>Zentasks</title>
         <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.7.1.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
     </head>
     <body>
         <header>
@@ -194,7 +194,7 @@ Edit the `app/views/main.scala.html` file:
 </html>
 ```
 
-Like with the rendering of each `Task` in our index page, we have made the rendering of a group of projects its own template, for later reuse.  Let's implement that template now, open `app/views/html/projects/group.scala.html`:
+Like with the rendering of each `Task` in our index page, we have made the rendering of a group of projects its own template, for later reuse.  Let's implement that template now, open `app/views/projects/group.scala.html`:
 
 ```html
 @(group: String, projects: List[Project])
@@ -218,7 +218,7 @@ Like with the rendering of each `Task` in our index page, we have made the rende
 </li>
 ```
 
-And again, the individual project items are implemented using their own template, `app/views/html/projects/item.scala.html`:
+And again, the individual project items are implemented using their own template, `app/views/projects/item.scala.html`:
 
 ```html
 @(project: Project)
@@ -236,7 +236,7 @@ Refresh the page.
 
 [[images/dashboard2.png]]
 
-Uh oh!  We have a compile error.  We haven't updated the call to the `main` template from our `index` template to pass a list of projects instead of a string.  Let's fix that now, by editing `app/views/html/index.scala.html`:
+Uh oh!  We have a compile error.  We haven't updated the call to the `main` template from our `index` template to pass a list of projects instead of a string.  Let's fix that now, by editing `app/views/index.scala.html`:
 
 ```html
 @(projects: List[Project], todoTasks: List[Task])

@@ -293,25 +293,25 @@ Now we create a test case that loads this data and runs some assertions over it:
 ```java
     @Test
     public void fullTest() {
-        Ebean.save((List) Yaml.load("test-data.yml"));
+        Ebean.save((List)Yaml.load("initial-data.yml"));
 
         // Count things
-        assertEquals(3, User.find.findRowCount());
-        assertEquals(7, Project.find.findRowCount());
-        assertEquals(5, Task.find.findRowCount());
+        assertEquals(4, User.finder.findRowCount());
+        assertEquals(11, Project.finder.findRowCount());
+        assertEquals(6, Task.finder.findRowCount());
 
         // Try to authenticate as users
-        assertNotNull(User.authenticate("bob@example.com", "secret"));
-        assertNotNull(User.authenticate("jane@example.com", "secret"));
-        assertNull(User.authenticate("jeff@example.com", "badpassword"));
+        assertNotNull(User.authenticate("sadek@sample.com", "secret"));
+        assertNotNull(User.authenticate("erwan@sample.com", "secret"));
+        assertNull(User.authenticate("sadek@sample.com", "badpassword"));
         assertNull(User.authenticate("tom@example.com", "secret"));
 
-        // Find all Bob's projects
-        List<Project> bobsProjects = Project.findInvolving("bob@example.com");
-        assertEquals(5, bobsProjects.size());
+        // Find all of Maxime's projects
+        List<Project> bobsProjects = Project.findInvolving("maxime@sample.com");
+        assertEquals(6, bobsProjects.size());
 
-        // Find all Bob's todo tasks
-        List<Task> bobsTasks = Task.findTodoInvolving("bob@example.com");
+        // Find all of Guillaume's tasks
+        List<Task> bobsTasks = Task.findTodoInvolving("guillaume@sample.com");
         assertEquals(4, bobsTasks.size());
     }
 ```
