@@ -53,6 +53,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
       val newPipeline = pipeline()
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
+      newPipeline.addLast("compressor", new HttpContentCompressor())
+      newPipeline.addLast("decompressor", new HttpContentDecompressor())	  
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
