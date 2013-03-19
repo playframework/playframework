@@ -137,11 +137,11 @@ Templates are simple text files that live in the `/app/views` directory.  To see
 
 The template content seems pretty light.  In fact, all you see are Scala template directives.
 
-The `@(message: String)` directive declares the arguments that this template accepts, in this case, it is a single parameter called `message` of type `String`.  The message parameter gets used later in the template.
+The `@(message: String)` directive declares the arguments that this template accepts, in this case, it is a single parameter called `message` of type `String`.  The `message` parameter gets used later in the template.
 
 The `@play20.welcome()` directive is a call to the built in Play 2 welcome template that generate the welcome message you saw in the browser.  You can see that it passes the `message` parameter that our arguments directive declared earlier.
 
-The `@main()` directive is a call to another template called `main.scala.html`.  Both the `@play2.welcome()` and the `@main()` calls are examples of template composition.  Template composition is a powerful concept that allows you to create complex web pages by reusing common parts.
+The `@main()` directive is a call to another template called `main.scala.html`.  Both the `@play20.welcome()` and the `@main()` calls are examples of template composition.  Template composition is a powerful concept that allows you to create complex web pages by reusing common parts.
 
 Open the `app/views/main.scala.html` template:
 
