@@ -171,7 +171,7 @@ trait WithDefaultPlugins {
  * If you need to create an ad-hoc application,
  * for example in case of unit testing, you can easily achieve this using:
  * {{{
- * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
+ * val application = new DefaultApplication(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
  * }}}
  *
  * This will create an application using the current classloader.
