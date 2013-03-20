@@ -110,6 +110,7 @@ List<Task> tasks = find.where()
     .ilike("name", "%coco%")
     .orderBy("dueDate asc")
     .findPagingList(25)
+    .setFetchAhead(false)
     .getPage(1);
 ```
 
