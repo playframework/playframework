@@ -5,6 +5,8 @@ object Dependencies {
   // Some common dependencies here so they don't need to be declared over and over
   val specsBuild = "org.specs2" %% "specs2" % "1.14"
   val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
+  val scalaIoFileSbt = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude ("javax.transaction", "jta")
+
 
   val jdbcDeps = Seq(
     ("com.jolbox" % "bonecp" % "0.7.1.RELEASE" notTransitive ())
@@ -103,11 +105,11 @@ object Dependencies {
     "org.javassist" % "javassist" % "3.16.1-GA")
 
   val routersCompilerDependencies = Seq(
-    "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude ("javax.transaction", "jta"),
+    scalaIoFileSbt,
     "org.specs2" %% "specs2" % "1.12.3" % "test" exclude ("javax.transaction", "jta"))
 
   val templatesCompilerDependencies = Seq(
-    "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude ("javax.transaction", "jta"),
+    scalaIoFileSbt,
     "org.specs2" %% "specs2" % "1.12.3" % "test"
       exclude ("javax.transaction", "jta"))
 
@@ -139,8 +141,10 @@ object Dependencies {
     "net.contentobjects.jnotify" % "jnotify" % "0.94")
 
   val consoleDependencies = Seq(
+    scalaIoFileSbt,
     "org.scala-sbt" % "launcher-interface" % BuildSettings.buildSbtVersion,
-    "net.databinder.giter8" % "giter8_2.9.1" % "0.5.0")
+    "jline" % "jline" % "1.0"
+  )
 
   val templatesDependencies = Seq(
     scalaIoFileBuild,

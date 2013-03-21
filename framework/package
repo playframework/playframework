@@ -10,31 +10,8 @@ else
 fi
 
 if test "$1" != "test" -a "$2" != "incremental"; then
-    `dirname $0`/cleanEverything
     `dirname $0`/build clean 
 fi
 
-`dirname $0`/build -Dplay.version=${PLAY_VERSION} publish-local build-repository api-docs
-
-echo "[info] Cleaning previous package"
-rm -rf /tmp/play-*
-
-echo "[info] Copying to /tmp/play-${PLAY_VERSION}..."
-cp -rf `dirname $0`/.. /tmp/play-${PLAY_VERSION}
-
-cd /tmp
-
-# Small patch (this is the only way for now)
-echo "[info] fixing version"
-sed -i '' -e '7s/version: .*/version: '$PLAY_VERSION'/' play-${PLAY_VERSION}/framework/sbt/play.boot.properties
-sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSION}/framework/build
-sed -i '' -e 's/PLAY_VERSION=.*/PLAY_VERSION="'$PLAY_VERSION'"/' play-${PLAY_VERSION}/framework/build.bat
-
-echo "[info] zipping..."
-zip -9 -r play-${PLAY_VERSION}.zip play-${PLAY_VERSION} -x '*.git/*' '*.lock' '*.history' '*.gitmodules' 'play-'${PLAY_VERSION}'/.gitignore' '*.DS_Store' 'play-'${PLAY_VERSION}'/dist/*' '*/target/*' 'play-'${PLAY_VERSION}'/framework/sbt/boot/*' 'play-'${PLAY_VERSION}'/repository/cache/*' 'play-'${PLAY_VERSION}'/samples/workinprogress/*' '*/logs/*' '*/tmp/*' '*/dist/*' '*/project/project/*' '*.log'
-
-rm -rf /tmp/play-${PLAY_VERSION}
-
-echo "[info] Package is available at /tmp/play-${PLAY_VERSION}.zip"
-    
+`dirname $0`/build -Dplay.version=${PLAY_VERSION} publish-local api-docs create-dist
 

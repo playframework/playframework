@@ -221,7 +221,7 @@ object PlayBuild extends Build {
     .settings(localRepoCreationSettings:_*)
     .settings(
       localRepoProjectsPublished <<= (Seq(PlayProject, IterateesProject) map (publishLocal in _)).dependOn,
-      addProjectsToRepository(Seq(PlayProject, SbtPluginProject)),
+      addProjectsToRepository(publishedProjects),
       localRepoArtifacts ++= Seq(
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion,
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt,
