@@ -21,8 +21,7 @@ object PlayBuild extends Build {
             libraryDependencies := link,
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
+            publishTo := Some(playDummyRepository),
             crossPaths := false
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -46,10 +45,8 @@ object PlayBuild extends Build {
         settings = buildSettings ++ Seq(
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            publishTo := Some(playRepository),
+            publishTo := Some(playDummyRepository),
             libraryDependencies := routersCompilerDependencies,
-            publishArtifact in packageDoc := false,
-            publishArtifact in (Compile, packageSrc) := false,
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -60,10 +57,8 @@ object PlayBuild extends Build {
         settings = buildSettings ++ Seq(
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            publishTo := Some(playRepository),
+            publishTo := Some(playDummyRepository),
             libraryDependencies := templatesCompilerDependencies,
-            publishArtifact in packageDoc := false,
-            publishArtifact in (Compile, packageSrc) := false,
             unmanagedJars in Compile <+= (baseDirectory) map { b => compilerJar(b / "../..") },
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
@@ -102,9 +97,8 @@ object PlayBuild extends Build {
             previousArtifact := Some("play" % {"play-exceptions"+previousScalaVersion} % previousVersion),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            crossPaths := false
+            crossPaths := false,
+            publishTo := Some(playDummyRepository)
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -258,10 +252,8 @@ object PlayBuild extends Build {
             libraryDependencies += "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
             libraryDependencies += "com.typesafe.sbtidea" % "sbt-idea" % "1.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
             unmanagedJars in Compile <++= (baseDirectory) map { b => sbtJars(b / "../..") },
-            publishTo := Some(playIvyRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true
+            publishTo := Some(playDummyRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
@@ -276,10 +268,8 @@ object PlayBuild extends Build {
             libraryDependencies := consoleDependencies,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             unmanagedJars in Compile <++=  (baseDirectory) map { b => sbtJars(b / "../..") },
-            publishTo := Some(playRepository),
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true
+            publishTo := Some(playDummyRepository),
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -380,6 +370,8 @@ object PlayBuild extends Build {
         import BuildSettings._
 
         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)
+        // Used so that artifacts that should not be cross built for the 2.9.3 don't get published anywhere
+        val playDummyRepository = Resolver.file("Play Dummy Repository", file("../repository/dummy"))(Resolver.ivyStylePatterns)
 
         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
