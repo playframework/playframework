@@ -1,6 +1,6 @@
 # A first iteration for the data model
 
-Here we will start to write the model for our blog engine.
+Here we will start to write the model for our task management system.
 
 ## Introduction to Ebean
 
