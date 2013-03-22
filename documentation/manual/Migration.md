@@ -281,14 +281,3 @@ requireJs := "main.js"
 ```
 
 More information about this feature can be found on the [[RequireJS documentation page|RequireJS-support]].
-
-## Changes to H2 in-memory DB
-
-By default, the H2 in-memory DB will lose all of its content when the last DB connection to it is closed. In **Play 2.0**, connections were accidentally left open, so this was rarely noticed. 
-
-However, in **Play 2.1**, connections are properly closed, so if you use default H2 settings, evolutions and the h2-browser won't work correctly. To work around this, specify the H2 URL with the `DB_CLOSE_DELAY` parameter set to `-1`:
-
-```
-db.default.driver=org.h2.Driver
-db.default.url="jdbc:h2:mem:play;DB_CLOSE_DELAY=-1"
-```
