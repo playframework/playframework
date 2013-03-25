@@ -299,7 +299,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
       case JsArray(elements) => {
         json.writeStartArray()
         elements.foreach { t =>
-          json.writeObject(t)
+          serialize(t, json, provider)
         }
         json.writeEndArray()
       }
@@ -307,7 +307,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeStartObject()
         values.foreach { t =>
           json.writeFieldName(t._1)
-          json.writeObject(t._2)
+          serialize(t._2, json, provider)
         }
         json.writeEndObject()
       }
