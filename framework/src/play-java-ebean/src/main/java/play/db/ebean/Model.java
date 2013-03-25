@@ -43,7 +43,7 @@ public class Model {
                 Class<?> clazz = this.getClass();
                 while(clazz != null) {
                     for(Field f:clazz.getDeclaredFields()) {
-                        if(f.isAnnotationPresent(javax.persistence.Id.class)) {
+                        if(f.isAnnotationPresent(javax.persistence.Id.class) || f.isAnnotationPresent(javax.persistence.EmbeddedId.class)) {
                             PropertyDescriptor idProperty = new BeanWrapperImpl(this).getPropertyDescriptor(f.getName());
                             _idGetSet = Tuple(idProperty.getReadMethod() , idProperty.getWriteMethod());
                         }
