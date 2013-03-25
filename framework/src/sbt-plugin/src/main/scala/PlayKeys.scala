@@ -70,3 +70,11 @@ trait PlayKeys {
 
 }
 object PlayKeys extends PlayKeys
+
+trait PlayInternalKeys {
+  val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
+  val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
+  val buildRequire = TaskKey[Seq[(File, File)]]("play-build-require-assets")
+  val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
+  val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
+}

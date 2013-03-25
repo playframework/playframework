@@ -1,14 +1,11 @@
 package play
 
-import play.api._
-import play.core._
 import sbt.{Project=>_,_}
-import Keys._
-
 import play.console.Colors
+import sbt.Keys._
 
 object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
-    with PlaySettings with PlayPositionMapper {
+    with PlayRun with PlaySettings with PlayPositionMapper {
 
   // ~~ Alerts  
   if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
