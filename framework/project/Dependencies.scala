@@ -59,7 +59,7 @@ object Dependencies {
     specsBuild % "test")
 
   val runtime = Seq(
-    "io.netty" % "netty" % "3.5.9.Final",
+    "io.netty" % "netty" % "3.6.3.Final",
 
     "org.slf4j" % "slf4j-api" % "1.6.6",
     "org.slf4j" % "jul-to-slf4j" % "1.6.6",
