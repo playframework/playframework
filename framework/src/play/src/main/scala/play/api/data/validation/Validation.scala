@@ -71,7 +71,7 @@ trait Constraints {
    * '''error'''[error.required]
    */
   def nonEmpty: Constraint[String] = Constraint[String]("constraint.required") { o =>
-    if (o.isEmpty) Invalid(ValidationError("error.required")) else Valid
+    if (o.trim.isEmpty) Invalid(ValidationError("error.required")) else Valid
   }
 
   /**
