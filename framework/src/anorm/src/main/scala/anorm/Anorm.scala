@@ -330,6 +330,8 @@ object ToStatement {
         case None => stmt.setObject(index, null)
         case bd: java.math.BigDecimal => stmt.setBigDecimal(index, bd)
         case date: java.util.Date => stmt.setTimestamp(index, new java.sql.Timestamp(date.getTime()))
+        case Id(id) => stmt.setObject(index, id)
+        case NotAssigned => stmt.setObject(index, null)
         case o => stmt.setObject(index, o)
       }
       stmt
