@@ -168,7 +168,7 @@ object Tasks {
 
   // ----- Compile templates
 
-  val ScalaTemplates = {
+  lazy val ScalaTemplates = {
     (classpath: Seq[Attributed[File]], templateEngine: File, sourceDirectory: File, generatedDir: File, streams: sbt.std.TaskStreams[sbt.Project.ScopedKey[_]]) =>
       val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, this.getClass.getClassLoader)
       val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
