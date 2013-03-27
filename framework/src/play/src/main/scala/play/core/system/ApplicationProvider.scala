@@ -95,6 +95,14 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
     synchronized {
 
+      // Let's load the application on another thread
+      // as we are now on the Netty IO thread.
+      //
+      // Because we are on DEV mode here, it doesn't really matter
+      // but it's more coherent with the way it works in PROD mode.
+      implicit val ec = play.core.Execution.internalContext
+      Await.result(scala.concurrent.Future {
+
         val reloaded = sbtLink.reload match {
           case t: Throwable => Left(t)
           case cl: ClassLoader => Right(Some(cl))
@@ -156,6 +164,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
           maybeApplication.getOrElse(lastState)
         }
 
+      }, Duration.Inf)
     }
   }
 
