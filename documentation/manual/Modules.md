@@ -218,6 +218,10 @@
 * **Website (docs, sample):** <https://github.com/benmccann/play-plovr-plugin>
 * **Short description:** Adds Closure Compiler and Closure Library support to Play
 
+## Play-Slick
+* **Website (docs, sample):** <https://github.com/freekh/play-slick>
+* **Short description:** This plugin makes Slick a first-class citizen of Play 2.1.
+
 ## Pusher
 * **Website:** https://github.com/tindr/Play2Pusher
 * **Short description:** Easily interact with the [Pusher Service](http://www.pusher.com) within 
