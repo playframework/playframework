@@ -164,5 +164,5 @@ Apache also provides a way to view the status of your cluster. Simply point your
 
 Because Play is completely stateless you don’t have to manage sessions between the 2 clusters. You can actually easily scale to more than 2 Play instances.
 
-Note that [Apache does not support Websockets](https://issues.apache.org/bugzilla/show_bug.cgi?id=47485), and so you may wish to use another front end proxy (such as haproxy or ngnix) that does implement this functionality.
+Note that [Apache does not support Websockets](https://issues.apache.org/bugzilla/show_bug.cgi?id=47485), and so you may wish to use another front end proxy (such as haproxy or nginx) that does implement this functionality.
 
