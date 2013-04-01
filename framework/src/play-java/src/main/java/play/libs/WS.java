@@ -26,8 +26,8 @@ import org.w3c.dom.Document;
 
 import play.libs.F.Promise;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -533,14 +533,13 @@ public class WS {
         }
 
         /**
-         * Get the response body as a {@link org.codehaus.jackson.JsonNode}
+         * Get the response body as a {@link com.fasterxml.jackson.databind.JsonNode}
          * @return the json response
          */
         public JsonNode asJson() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
                 // Jackson will automatically detect the correct encoding according to the rules in RFC-4627
-                return mapper.readValue(ahcResponse.getResponseBodyAsStream(), JsonNode.class);
+                return Json.parse(ahcResponse.getResponseBodyAsStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

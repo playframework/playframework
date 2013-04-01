@@ -1,13 +1,14 @@
 package play.libs;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.node.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Helper functions to handle JsonNode values.
  */
 public class Json {
+    private static ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Convert an object to JsonNode.
@@ -16,7 +17,7 @@ public class Json {
      */
     public static JsonNode toJson(final Object data) {
         try {
-            return new ObjectMapper().valueToTree(data);
+            return mapper.valueToTree(data);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
@@ -30,7 +31,7 @@ public class Json {
      */
     public static <A> A fromJson(JsonNode json, Class<A> clazz) {
         try {
-            return new ObjectMapper().treeToValue(json, clazz);
+            return mapper.treeToValue(json, clazz);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
@@ -40,7 +41,7 @@ public class Json {
      * Creates a new empty ObjectNode.
      */ 
     public static ObjectNode newObject() {
-        return new ObjectMapper().createObjectNode();
+        return mapper.createObjectNode();
     }
 
     /**
@@ -55,7 +56,18 @@ public class Json {
      */
     public static JsonNode parse(String src) {
         try {
-            return new ObjectMapper().readValue(src, JsonNode.class);
+            return mapper.readValue(src, JsonNode.class);
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     * Parse a InputStream representing a json, and return it as a JsonNode.
+     */
+    public static JsonNode parse(java.io.InputStream src) {
+        try {
+            return mapper.readValue(src, JsonNode.class);
         } catch(Throwable t) {
             throw new RuntimeException(t);
         }

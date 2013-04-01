@@ -44,11 +44,8 @@ object JavaParsers extends BodyParsers {
     }
 
     override lazy val asJson = {
-      import org.codehaus.jackson._
-      import org.codehaus.jackson.map._
-
       json.map { json =>
-        new ObjectMapper().readValue(json.toString, classOf[JsonNode])
+        play.libs.Json.parse(json.toString)
       }.orNull
     }
 

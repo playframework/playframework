@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import controllers.routes;
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.*;
 
 import play.libs.Json;

@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import org.w3c.dom.*;
-import org.codehaus.jackson.*;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import play.i18n.Lang;
 import play.Play;
