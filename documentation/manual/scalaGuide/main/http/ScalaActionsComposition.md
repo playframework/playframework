@@ -236,7 +236,7 @@ def Authenticated[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result) = {
     val result = for {
       id <- request.session.get("user")
       user <- User.find(id)
-    } yield f(Authenticated(user, request))
+    } yield f(AuthenticatedRequest(user, request))
     result getOrElse Unauthorized
   }
 }
