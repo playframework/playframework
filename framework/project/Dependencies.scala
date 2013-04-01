@@ -6,12 +6,15 @@ object Dependencies {
   val specsBuild = "org.specs2" %% "specs2" % "1.14"
   val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
   val scalaIoFileSbt = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude ("javax.transaction", "jta")
+  val guava = "com.google.guava" % "guava" % "13.0.1"
 
 
   val jdbcDeps = Seq(
-    ("com.jolbox" % "bonecp" % "0.7.1.RELEASE" notTransitive ())
-      .exclude("com.google.guava", "guava")
-      .exclude("org.slf4j", "slf4j-api"),
+    "com.jolbox" % "bonecp" % "0.7.1.RELEASE" exclude ("com.google.guava", "guava"),
+
+    // bonecp needs it, but due to guavas stupid version numbering of older versions ("r08"), we need to explicitly
+    // declare a dependency on the newer version so that ivy can know which one to include
+    guava,
 
     "com.h2database" % "h2" % "1.3.168",
 
@@ -50,7 +53,7 @@ object Dependencies {
       .exclude("com.google.guava", "guava")
       .exclude("javassist", "javassist"),
 
-    "com.google.guava" % "guava" % "13.0.1",
+    guava,
 
     "com.google.code.findbugs" % "jsr305" % "2.0.1",
 
