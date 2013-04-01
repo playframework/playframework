@@ -13,7 +13,6 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
 
-import org.codehaus.jackson.*;
 
 import java.util.*;
 

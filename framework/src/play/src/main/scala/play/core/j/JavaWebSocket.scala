@@ -63,5 +63,5 @@ object JavaWebSocket extends JavaHelpers {
     play.libs.Json.stringify, play.libs.Json.parse
   )
 
-  def ofJson(retrieveWebSocket: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode]): Handler = webSocketWrapper[org.codehaus.jackson.JsonNode](retrieveWebSocket)
+  def ofJson(retrieveWebSocket: => play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]): Handler = webSocketWrapper[com.fasterxml.jackson.databind.JsonNode](retrieveWebSocket)
 }

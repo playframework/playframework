@@ -86,8 +86,9 @@ object Dependencies {
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2",
 
-    "org.codehaus.jackson" % "jackson-core-asl" % "1.9.10",
-    "org.codehaus.jackson" % "jackson-mapper-asl" % "1.9.10",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.1.1",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.1.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.1.1",
 
     "net.sf.ehcache" % "ehcache-core" % "2.6.0",
 
@@ -158,8 +159,9 @@ object Dependencies {
   val jsonDependencies = Seq(
     "joda-time" % "joda-time" % "2.1",
     "org.joda" % "joda-convert" % "1.2",
-    "org.codehaus.jackson" % "jackson-core-asl" % "1.9.10",
-    "org.codehaus.jackson" % "jackson-mapper-asl" % "1.9.10",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.1.1",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.1.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.1.1",
     "org.scala-lang" % "scala-reflect" % "2.10.0",
     specsBuild % "test")
 
