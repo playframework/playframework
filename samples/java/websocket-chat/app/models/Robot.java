@@ -9,8 +9,7 @@ import scala.concurrent.duration.*;
 import akka.actor.*;
 import akka.dispatch.*;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.node.*;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import static java.util.concurrent.TimeUnit.*;
 

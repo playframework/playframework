@@ -10,8 +10,11 @@ import akka.actor.*;
 import akka.dispatch.*;
 import static akka.pattern.Patterns.ask;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.node.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+
 
 import java.util.*;
 

@@ -162,8 +162,8 @@ object Router {
       def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
     }
 
-    implicit def javaJsonWebSocket: HandlerInvoker[play.mvc.WebSocket[org.codehaus.jackson.JsonNode]] = new HandlerInvoker[play.mvc.WebSocket[org.codehaus.jackson.JsonNode]] {
-      def call(call: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofJson(call)
+    implicit def javaJsonWebSocket: HandlerInvoker[play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]] = new HandlerInvoker[play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]] {
+      def call(call: => play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofJson(call)
     }
 
   }
