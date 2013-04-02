@@ -72,7 +72,18 @@ object Configuration {
    * Create a ConfigFactory object from the data passed as a Map.
    */
   def from(data: Map[String, Any]) = {
-    Configuration(ConfigFactory.parseMap(data.asJava))
+
+    def asJavaRecursively[A](data: Map[A, Any]): Map[A, Any] = {
+      data.mapValues { value =>
+        value match {
+          case v: Map[_, _] => asJavaRecursively(v).asJava
+          case v: Iterable[_] => v.asJava
+          case v => v
+        }
+      }
+    }
+
+    Configuration(ConfigFactory.parseMap(asJavaRecursively[String](data).asJava))
   }
 
   private def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
