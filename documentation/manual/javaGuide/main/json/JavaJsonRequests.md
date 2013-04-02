@@ -7,7 +7,7 @@ A JSON request is an HTTP request using a valid JSON payload as request body. It
 By default an action uses an **any content** body parser, which you can use to retrieve the body as JSON (actually as a Jackson `JsonNode`):
 
 ```java
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 ...
 
 public static Result sayHello() {
@@ -28,7 +28,7 @@ public static Result sayHello() {
 Of course it’s way better (and simpler) to specify our own `BodyParser` to ask Play to parse the content body directly as JSON:
 
 ```java
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import play.mvc.BodyParser;
 ...
 
@@ -72,7 +72,7 @@ In our previous example we handled a JSON request, but replied with a `text/plai
 
 ```java
 import play.libs.Json;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 ...
 
 @BodyParser.Of(BodyParser.Json.class)
