@@ -22,7 +22,7 @@ String contentType = res.getHeader("Content-Type");
 
 org.w3c.dom.Document doc = res.asXml();
 
-org.codehaus.jackson.JsonNode json = res.asJson();
+com.fasterxml.jackson.databind.JsonNode json = res.asJson();
 
 ```
 
