@@ -463,6 +463,8 @@ object PlayBuild extends Build {
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.6.3.Final",
 
+            "org.typesafe"                      %    "netty-http-pipelining"    %   "1.0.0",
+
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.6",
             "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.6",
             "org.slf4j"                         %    "jcl-over-slf4j"           %   "1.6.6",
