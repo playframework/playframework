@@ -23,7 +23,7 @@ val main = play.Project(appName, appVersion, appDependencies).settings(
 Lastly, update your `project/build.properties` file:
 
 ```
-sbt.version=0.12.3
+sbt.version=0.12.2
 ```
 
 Then clean and re-compile your project using the `play` command in the **Play 2.1.0** distribution:
