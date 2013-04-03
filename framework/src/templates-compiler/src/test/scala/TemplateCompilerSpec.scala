@@ -127,7 +127,7 @@ object Helper {
 
     def compile[T](templateName: String, className: String): T = {
       val templateFile = new File(sourceDir, templateName)
-      val Some(generated) = templateCompiler.compile(templateFile, sourceDir, generatedDir, "play.templates.test.Helper.Html", "play.templates.test.Helper.HtmlFormat")
+      val Some(generated) = templateCompiler.compile(templateFile, sourceDir, generatedDir, "play.templates.test.Helper.HtmlFormat")
 
       val mapper = GeneratedSource(generated)
 

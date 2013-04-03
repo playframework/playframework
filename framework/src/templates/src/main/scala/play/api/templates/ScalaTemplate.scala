@@ -31,14 +31,32 @@ package play.templates {
 
 import reflect.ClassTag
 
+/**
+ * A type that has a binary `+=` operation.
+ */
 trait Appendable[T] {
     def +=(other: T): T
-    override def equals(x: Any): Boolean = super.equals(x)
+    override def equals(x: Any): Boolean = super.equals(x) // FIXME Why do we need these overrides?
     override def hashCode() = super.hashCode()
   }
 
+/**
+ * A template format defines how to properly integrate content for a type `T` (e.g. to prevent cross-site scripting attacks)
+ * @tparam T The underlying type that this format applies to.
+ */
   trait Format[T <: Appendable[T]] {
+    type Appendable = T
+
+    /**
+     * Integrate `text` without performing any escaping process.
+     * @param text Text to integrate
+     */
     def raw(text: String): T
+
+    /**
+     * Integrate `text` after escaping special characters. e.g. for HTML, “<” becomes “&amp;lt;”
+     * @param text Text to integrate
+     */
     def escape(text: String): T
   }
 

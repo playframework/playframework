@@ -1,3 +1,5 @@
+// TODO Get rid of this file which just demonstrates how harmful copy-pasting is.
+
 package play.api.templates {
 
   trait Template0[Result] { def render(): Result }
@@ -35,6 +37,7 @@ package play.templates {
   }
 
   trait Format[T <: Appendable[T]] {
+    type Appendable = T
     def raw(text: String): T
     def escape(text: String): T
   }

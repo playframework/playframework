@@ -4,7 +4,6 @@ import play.api.mvc._
 import play.templates._
 import play.api.http.MimeTypes
 
-// TODO Derive ContentTypeOf instances from any Content
 
 /**
  * Appendable content using a StringBuilder.

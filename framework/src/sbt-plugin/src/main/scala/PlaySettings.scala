@@ -218,13 +218,14 @@ trait PlaySettings {
 
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 
-    templatesTypes := {
-      case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
-      case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
-      case "xml" => ("play.api.templates.Xml", "play.api.templates.XmlFormat")
-    },
 
-    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) }
+    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) },
+
+    templatesTypes := Map(
+      "html" -> "play.api.templates.HtmlFormat",
+      "txt" -> "play.api.templates.TxtFormat",
+      "xml" -> "play.api.templates.XmlFormat"
+    )
 
   )
 
