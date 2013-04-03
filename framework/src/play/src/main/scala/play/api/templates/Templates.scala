@@ -3,6 +3,7 @@ package play.api.templates
 import play.api.mvc._
 import play.templates._
 import play.api.http.MimeTypes
+import org.apache.commons.lang3.StringEscapeUtils
 
 
 /**
@@ -171,6 +172,44 @@ object XmlFormat extends Format[Xml] {
    * Creates an escaped XML fragment.
    */
   def escape(text: String) = Xml(org.apache.commons.lang3.StringEscapeUtils.escapeXml(text))
+
+}
+
+/**
+ * Type used in default JavaScript templates.
+ */
+class JavaScript(buffer: StringBuilder) extends BufferedContent[JavaScript](buffer) {
+  /**
+   * Content type of JavaScript
+   */
+  val contentType = MimeTypes.JAVASCRIPT
+}
+
+/**
+ * Helper for JavaScript utility methods.
+ */
+object JavaScript {
+  /**
+   * Creates a JavaScript fragment with initial content specified
+   */
+  def apply(content: String) = new JavaScript(new StringBuilder(content))
+}
+
+/**
+ * Formatter for JavaScript content.
+ */
+object JavaScriptFormat extends Format[JavaScript] {
+  /**
+   * Integrate `text` without performing any escaping process.
+   * @param text Text to integrate
+   */
+  def raw(text: String): JavaScript = JavaScript(text)
+
+  /**
+   * Escapes `text` using JavaScript String rules.
+   * @param text Text to integrate
+   */
+  def escape(text: String): JavaScript = JavaScript(StringEscapeUtils.escapeEcmaScript(text))
 
 }
 

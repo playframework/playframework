@@ -224,7 +224,8 @@ trait PlaySettings {
     templatesTypes := Map(
       "html" -> "play.api.templates.HtmlFormat",
       "txt" -> "play.api.templates.TxtFormat",
-      "xml" -> "play.api.templates.XmlFormat"
+      "xml" -> "play.api.templates.XmlFormat",
+      "js" -> "play.api.templates.JavaScriptFormat"
     )
 
   )
