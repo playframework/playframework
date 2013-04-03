@@ -19,7 +19,7 @@ import play.core.server.netty._
 import java.security.cert.X509Certificate
 import java.io.{File, FileInputStream}
 import scala.util.control.NonFatal
-import org.typesafe.netty.http.pipelining.HttpPipeliningHandler
+import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 
 /**
  * provides a stopable Server
