@@ -6,11 +6,7 @@ Most of the requests received by a Play application are handled by an `Action`.
 
 A `play.api.mvc.Action` is basically a `(play.api.mvc.Request => play.api.mvc.Result)` function that handles a request and generates a result to be sent to the client.
 
-```scala
-val echo = Action { request =>
-  Ok("Got request [" + request + "]")
-}
-```
+@[echo-action](code/ScalaActions.scala)
 
 An action returns a `play.api.mvc.Result` value, representing the HTTP response to send to the web client. In this example `Ok` constructs a **200 OK** response containing a **text/plain** response body.
 

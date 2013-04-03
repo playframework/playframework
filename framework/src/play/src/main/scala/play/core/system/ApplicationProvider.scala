@@ -259,12 +259,13 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
           pageWithSidebar.map {
             case (pageSource, maybeSidebar) => {
-              val relativePath = pageSource.parent.get.relativize(Path(documentationHome.get)).path
+              val home = documentationHome.get
+              val relativePath = pageSource.parent.get.relativize(Path(home)).path
               Ok(
                 views.html.play20.manual(
                   page,
-                  Some(sbtLink.markdownToHtml(pageSource.string, relativePath)),
-                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string, relativePath))
+                  Some(sbtLink.markdownToHtml(pageSource.string, relativePath, home)),
+                  maybeSidebar.map(s => sbtLink.markdownToHtml(s.string, relativePath, home))
                 )
               )
             }
