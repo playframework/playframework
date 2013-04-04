@@ -36,7 +36,7 @@ object BuildSettings {
     scalaVersion := buildScalaVersion,
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    publishTo := Some(publishingRepository),
+    publishTo := Some(publishingMavenRepository),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers)
@@ -76,7 +76,7 @@ object BuildSettings {
       .settings(
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-        publishTo := Some(publishingRepository),
+        publishTo := Some(publishingMavenRepository),
         publishArtifact in packageDoc := false,
         publishArtifact in (Compile, packageSrc) := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
@@ -89,15 +89,17 @@ object Resolvers {
 
   import BuildSettings._
 
-  val typesafeReleases = "Typesafe Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
-  val typesafeSnapshot = "Typesafe Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
+  val typesafeReleases = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+  val typesafeSnapshots = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+  val typesafeMavenReleases = "Typesafe Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
+  val typesafeMavenSnapshots = "Typesafe Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
   val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  val typesafeIvySnapshot = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+  val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
   val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
-  val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeSnapshot) else Seq(typesafeReleases)
-  val publishingRepository = if (isSnapshotBuild) typesafeSnapshot else typesafeReleases
-  val publishingIvyRepository = if (isSnapshotBuild) typesafeIvySnapshot else typesafeIvyReleases
+  val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeSnapshots) else Seq(typesafeReleases)
+  val publishingMavenRepository = if (isSnapshotBuild) typesafeMavenSnapshots else typesafeMavenReleases
+  val publishingIvyRepository = if (isSnapshotBuild) typesafeIvySnapshots else typesafeIvyReleases
 }
 
 
