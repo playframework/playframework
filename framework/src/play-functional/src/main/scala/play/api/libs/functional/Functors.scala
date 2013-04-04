@@ -10,6 +10,16 @@ trait Functor[M[_]] extends Variant[M]{
 
 }
 
+object Functor {
+
+  implicit def functorOption: Functor[Option] = new Functor[Option] {
+
+    def fmap[A,B](a:Option[A], f: A => B):Option[B] = a.map(f)
+
+  }
+
+}
+
 trait InvariantFunctor[M[_]] extends Variant[M]{
 
   def inmap[A,B](m: M[A], f1: A => B, f2: B => A): M[B]
