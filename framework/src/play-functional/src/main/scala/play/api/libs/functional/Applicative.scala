@@ -10,6 +10,32 @@ trait Applicative[M[_]]{
 
 }
 
+object Applicative {
+
+  implicit def applicativeOption: Applicative[Option] = new Applicative[Option]{
+
+    def pure[A](a: A):Option[A] = Some(a)
+
+    def map[A,B](m:Option[A], f: A => B):Option[B] = m.map(f)
+
+    def apply[A,B](mf:Option[A => B], ma: Option[A]):Option[B] = mf.flatMap(f => ma.map(f))
+
+  }
+
+  implicit def applicativeFuture(implicit ec: scala.concurrent.ExecutionContext): Applicative[scala.concurrent.Future] = new Applicative[scala.concurrent.Future]{
+
+    import scala.concurrent.Future
+
+    def pure[A](a: A):Future[A] = Future.successful(a)
+
+    def map[A,B](m:Future[A], f: A => B):Future[B] = m.map(f)
+
+    def apply[A,B](mf:Future[A => B], ma: Future[A]):Future[B] = mf.flatMap(f => ma.map(f))
+
+  }
+
+}
+
 class ApplicativeOps[M[_],A](ma:M[A])(implicit a:Applicative[M]){
 
   def ~>[B](mb: M[B]):M[B] = a(a(a.pure((_:A) => (b:B) => b), ma),mb)
