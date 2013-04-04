@@ -379,6 +379,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     datasource.setIdleMaxAge(conf.getMilliseconds("idleMaxAge").getOrElse(1000 * 60 * 10), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setMaxConnectionAge(conf.getMilliseconds("maxConnectionAge").getOrElse(1000 * 60 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setDisableJMX(conf.getBoolean("disableJMX").getOrElse(true))
+    datasource.setStatisticsEnabled(conf.getBoolean("statisticsEnabled").getOrElse(false))
     datasource.setIdleConnectionTestPeriod(conf.getMilliseconds("idleConnectionTestPeriod").getOrElse(1000 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     // Release helper threads has caused users issues, and the feature has been removed altogether from BoneCP 0.8.0
     // (which is yet to be released) because it offered no real performance advantage.  Once we upgrade to BoneCP 0.8.x,
