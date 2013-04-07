@@ -1,5 +1,8 @@
 package play.api
 
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTimeZone
+
 /**
  * Contains standard HTTP constants.
  * For example:
@@ -9,4 +12,7 @@ package play.api
  * val accept = HeaderNames.ACCEPT
  * }}}
  */
-package object http
+package object http {
+  /** HTTP date formatter, compliant to RFC 1123 */
+  val dateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID("GMT"))
+}
