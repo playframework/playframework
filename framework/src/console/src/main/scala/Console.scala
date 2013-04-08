@@ -22,10 +22,10 @@ object Console {
            ||_|            |__/
            |
            |""".stripMargin) +
-    ("play! " + play.core.PlayVersion.current +
-      " (using Java " + System.getProperty("java.version") +
-      " and Scala " + scala.util.Properties.scalaPropOrElse("version.number", "unknown") +
-      "), http://www.playframework.com")
+    ("play! " + play.core.PlayVersion.current  +
+      " built with Scala " + play.core.PlayVersion.scalaVersion +
+      " (running Java " + System.getProperty("java.version") + ")," +
+      " http://www.playframework.com")
 
   // -- Commands
 
