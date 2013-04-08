@@ -27,10 +27,14 @@ object RouterSpec extends Specification {
   "PathPattern" should {
     val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
     val pathString = "/path/to/some%20file"
+    val pathNonEncodedString = "/path/to/bar:baz"
     val pathStringInvalid = "/path/to/invalide%2"
 
     "Bind Path string as string" in {
       pathPattern(pathString).get("foo") must beEqualTo(Right("some file"))
+    }
+    "Bind Path with incorrectly encoded string as string" in {
+      pathPattern(pathNonEncodedString).get("foo") must beEqualTo(Right("bar:baz"))
     }
     "Fail on unparseable Path string" in {
       val Left(e) = pathPattern(pathStringInvalid).get("foo")
