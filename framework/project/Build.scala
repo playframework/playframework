@@ -26,7 +26,7 @@ object BuildSettings {
   val buildScalaVersion = propOr("scala.version", "2.10.0")
   // TODO - Try to compute this from SBT...
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.9.2")
-  val buildSbtVersion = propOr("play.sbt.version", "0.12.2")
+  val buildSbtVersion = propOr("play.sbt.version", "0.12.3")
   val buildSbtMajorVersion = "0.12"
   val buildSbtVersionBinaryCompatible = "0.12"
 
