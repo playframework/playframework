@@ -50,7 +50,7 @@ trait PlayKeys {
 
   val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 
-  val templatesTypes = SettingKey[PartialFunction[String, (String, String)]]("play-templates-formats")
+  val templatesTypes = SettingKey[Map[String, String]]("play-templates-formats")
 
   val closureCompilerOptions = SettingKey[Seq[String]]("play-closure-compiler-options")
 

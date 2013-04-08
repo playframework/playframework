@@ -181,4 +181,4 @@ And on an extended template that not need an extra script, just like this :
 
 }
 ```
-> **Next:** [[HTTP form submission and validation | ScalaForms]]
+> **Next:** [[Custom format | ScalaCustomTemplateFormat]]
