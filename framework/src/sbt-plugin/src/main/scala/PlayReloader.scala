@@ -346,13 +346,17 @@ trait PlayReloader {
                 Incomplete.allExceptions(incomplete).headOption.map {
                   case e: PlayException => e
                   case e: xsbti.CompileFailed => {
-                    getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                      UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
-                    }
+                    getProblems(incomplete)
+                      .filter(_.severity == xsbti.Severity.Error)
+                      .headOption
+                      .map(CompilationException(_))
+                      .getOrElse {
+                        UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e))
+                      }
                   }
                   case e: Exception => UnexpectedException(unexpected = Some(e))
                 }.getOrElse {
-                  UnexpectedException(Some("Compilation task failed without any exception!?"))
+                  UnexpectedException(Some("The compilation task failed without any exception!"))
                 }
               }
               .right.map { compilationResult =>
