@@ -218,7 +218,6 @@ trait PlaySettings {
 
     templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
 
-
     scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) },
 
     templatesTypes := Map(
