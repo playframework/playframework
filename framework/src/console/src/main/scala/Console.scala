@@ -19,7 +19,11 @@ object Console {
            ||  __/|_|\____|\__ (_)
            ||_|            |__/
            |
-           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + " (using Java " + System.getProperty("java.version") + " and Scala " + play.core.PlayVersion.scalaVersion + "), http://www.playframework.com")
+           |""".stripMargin) +
+    ("play! " + play.core.PlayVersion.current  +
+      " built with Scala " + play.core.PlayVersion.scalaVersion +
+      " (running Java " + System.getProperty("java.version") + ")," +
+      " http://www.playframework.com")
 
   // -- Commands
 
