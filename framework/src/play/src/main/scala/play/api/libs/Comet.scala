@@ -53,7 +53,7 @@ object Comet {
     def applyOn[A](inner: Iteratee[Html, A]): Iteratee[E, Iteratee[Html, A]] = {
 
       val fedWithInitialChunk = Iteratee.flatten(Enumerator(initialChunk) |>> inner)
-      val eToScript = Enumeratee.map[E](data => Html("""<script type="text/javascript">""" + callback + """(""" + encoder.toJavascriptMessage(data) + """);</script>"""))
+      val eToScript = Enumeratee.map[E, Html](data => Html("""<script type="text/javascript">""" + callback + """(""" + encoder.toJavascriptMessage(data) + """);</script>"""))
       eToScript.applyOn(fedWithInitialChunk)
     }
   }

@@ -129,7 +129,7 @@ object Helpers extends Status with HeaderNames {
    */
   def contentAsBytes(of: Result): Array[Byte] = of match {
     case r @ SimpleResult(_, bodyEnumerator) => {
-      var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
+      var readAsBytes = Enumeratee.map[r.BODY_CONTENT, Array[Byte]](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run).value1.get
     }
     case AsyncResult(p) => contentAsBytes(p.await.get)

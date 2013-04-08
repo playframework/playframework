@@ -32,7 +32,7 @@ object EventSource {
 
   object EventIdExtractor extends LowPriorityEventIdExtractor
 
-  def apply[E]()(implicit encoder: Comet.CometMessage[E], eventNameExtractor: EventNameExtractor[E], eventIdExtractor: EventIdExtractor[E]) = Enumeratee.map[E] { chunk =>
+  def apply[E]()(implicit encoder: Comet.CometMessage[E], eventNameExtractor: EventNameExtractor[E], eventIdExtractor: EventIdExtractor[E]) = Enumeratee.map[E, String] { chunk =>
     eventNameExtractor.eventName(chunk).map("event: " + _ + "\r\n").getOrElse("") +
     eventIdExtractor.eventId(chunk).map("id: " + _ + "\r\n").getOrElse("") +
       "data: " + encoder.toJavascriptMessage(chunk) + "\r\n\r\n"

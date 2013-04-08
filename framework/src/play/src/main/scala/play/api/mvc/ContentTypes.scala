@@ -606,7 +606,7 @@ trait BodyParsers {
 
             val readPart = collectHeaders.flatMap { case (headers, left) => Iteratee.flatten(partHandler(headers).feed(Input.El(left))) }
 
-            val handlePart = Enumeratee.map[MatchInfo[Array[Byte]]](_.content).transform(readPart)
+            val handlePart = Enumeratee.map[MatchInfo[Array[Byte]], Array[Byte]](_.content).transform(readPart)
 
             Traversable.take[Array[Byte]](boundary.size - 2).transform(Iteratee.consume()).flatMap { firstBoundary =>
 

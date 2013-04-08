@@ -172,103 +172,84 @@ object Enumeratee {
    * This is like the `map` function, except that it allows the Enumeratee to, for example, send EOF to the inner
    * iteratee before EOF is encountered.
    */
-  def mapInput[From] = new {
-    def apply[To](f: Input[From] => Input[To]) = new CheckDone[From, To] {
+  def mapInput[From, To](f: Input[From] => Input[To]): Enumeratee[From, To] = new CheckDone[From, To] {
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
-        case in @ (Input.El(_) | Input.Empty) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(f(in))
+    def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      case in @ (Input.El(_) | Input.Empty) =>
+        new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(f(in))
 
-        case Input.EOF => Done(Cont(k), Input.EOF)
-      }
-
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      case Input.EOF => Done(Cont(k), Input.EOF)
     }
+
+    def continue[A](k: K[To, A]) = Cont(step(k))
   }
 
   /**
    * Create an enumeratee that transforms its input into a sequence of inputs for the target iteratee.
    */
-  def mapConcatInput[From] = new {
-    def apply[To](f: From => Seq[Input[To]]) = mapFlatten[From](in => Enumerator.enumerateSeq2(f(in)))
-  }
+  def mapConcatInput[From, To](f: From => Seq[Input[To]]) = mapFlatten[From, To](in => Enumerator.enumerateSeq2(f(in)))
 
   /**
    * Create an Enumeratee that transforms its input elements into a sequence of input elements for the target Iteratee.
    */
-  def mapConcat[From] = new {
-    def apply[To](f: From => Seq[To]) = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))
-  }
+  def mapConcat[From, To](f: From => Seq[To]) = mapFlatten[From, To](in => Enumerator.enumerateSeq1(f(in)))
 
   /**
    * Create an Enumeratee that transforms its input elements into an Enumerator that is fed into the target Iteratee.
    */
-  def mapFlatten[From] = new {
-    def apply[To](f: From => Enumerator[To]) = new CheckDone[From, To] {
+  def mapFlatten[From, To](f: From => Enumerator[To]) = new CheckDone[From, To] {
+    def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      case Input.El(e) =>
+        new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(e)(Cont(k)))
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
-        case Input.El(e) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(e)(Cont(k)))
+      case in @ Input.Empty =>
+        new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
 
-        case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
-
-        case Input.EOF => Done(Cont(k), Input.EOF)
-      }
-
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      case Input.EOF => Done(Cont(k), Input.EOF)
     }
+
+    def continue[A](k: K[To, A]) = Cont(step(k))
   }
 
   /**
    * Create an Enumeratee that transforms its input into an Enumerator that is fed into the target Iteratee.
    */
-  def mapInputFlatten[From] = new {
-    def apply[To](f: Input[From] => Enumerator[To]) = new CheckDone[From, To] {
-
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
-        case in =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in)(Cont(k)))
-      }
-
-      def continue[A](k: K[To, A]) = Cont(step(k))
+  def mapInputFlatten[From, To](f: Input[From] => Enumerator[To]) = new CheckDone[From, To] {
+    def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      case in =>
+        new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in)(Cont(k)))
     }
+
+    def continue[A](k: K[To, A]) = Cont(step(k))
   }
 
   /**
    * Like `mapInput`, but allows the map function to asynchronously return the mapped input.
    */
-  def mapInputM[From] = new {
-    def apply[To](f: Input[From] => Future[Input[To]]) = new CheckDone[From, To] {
+  def mapInputM[From, To](f: Input[From] => Future[Input[To]]) = new CheckDone[From, To] {
+    def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      case in @ (Input.El(_) | Input.Empty) =>
+        new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in).map(k(_)))
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
-        case in @ (Input.El(_) | Input.Empty) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in).map(k(_)))
-
-        case Input.EOF => Done(Cont(k), Input.EOF)
-      }
-
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      case Input.EOF => Done(Cont(k), Input.EOF)
     }
+
+    def continue[A](k: K[To, A]) = Cont(step(k))
   }
 
   /**
    * Like `map`, but allows the map function to asynchronously return the mapped element.
    */
-  def mapM[E] = new {
-    def apply[NE](f: E => Future[NE]): Enumeratee[E, NE] = mapInputM[E] {
-      case Input.Empty => Future.successful(Input.Empty)
-      case Input.EOF => Future.successful(Input.EOF)
-      case Input.El(e) => f(e).map(Input.El(_))
-    }
+  def mapM[E, NE](f: E => Future[NE]): Enumeratee[E, NE] = mapInputM[E, NE] {
+    case Input.Empty => Future.successful(Input.Empty)
+    case Input.EOF => Future.successful(Input.EOF)
+    case Input.El(e) => f(e).map(Input.El(_))
   }
 
   /**
    * Create an Enumeratee which transforms its input using a given function
    */
-  def map[E] = new {
-    def apply[NE](f: E => NE): Enumeratee[E, NE] = mapInput[E](in => in.map(f))
-  }
+  def map[E, NE](f: E => NE): Enumeratee[E, NE] = mapInput[E, NE](in => in.map(f))
 
   /**
    * Create an Enumeratee that will take `count` input elements to pass to the target Iteratee, and then be done
