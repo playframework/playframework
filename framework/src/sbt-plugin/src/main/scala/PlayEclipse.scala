@@ -153,7 +153,7 @@ object PlayEclipse {
     Project.getProject(ref, structure).foreach { p =>
       (templatesImport in ref get structure.data).foreach { imports =>
         val value = imports.mkString ("import ", "\nimport ", "\n")
-        val properties = Seq(("eclipse.preferences.version", "1"), ("templateImport", value))
+        val properties = Seq(("eclipse.preferences.version", "1"), ("templateImports", value))
         saveProperties(baseDir / ".settings" / "org.scala-ide.play2.prefs", properties)
       }
     }
