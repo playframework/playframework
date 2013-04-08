@@ -169,7 +169,7 @@ object Dependencies {
     specsBuild % "test")
 
   val testDependencies = Seq(
-    "junit" % "junit-dep" % "4.10",
+    "junit" % "junit" % "4.11",
     specsBuild,
     "com.novocode" % "junit-interface" % "0.10-M2",
    ("com.google.guava" % "guava" % "10.0.1" notTransitive()),
