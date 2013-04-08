@@ -22,7 +22,7 @@ object Application extends Controller {
 
   def twitter(term: String) = Action { request =>
     val tokens = Twitter.sessionTokenPair(request).get
-    val toComet = Enumeratee.map[Array[Byte]](bytes => new String(bytes)) ><> Comet(callback = "window.parent.twitts")(Comet.CometMessage(identity))
+    val toComet = Enumeratee.map[Array[Byte], String](bytes => new String(bytes)) ><> Comet(callback = "window.parent.twitts")(Comet.CometMessage(identity))
 
     Ok.stream { socket: Socket.Out[play.api.templates.Html] =>
       WS.url("https://stream.twitter.com/1/statuses/filter.json?track=" + term)
