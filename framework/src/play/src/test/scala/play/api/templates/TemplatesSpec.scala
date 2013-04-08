@@ -27,4 +27,10 @@ object TemplatesSpec extends Specification {
     }
   }
 
+  "JavaScriptFormat" should {
+    """escape ''', '"' and '\'""" in {
+      JavaScriptFormat.escape("""foo ' bar " baz \""").body must equalTo ("""foo \' bar \" baz \\""")
+    }
+  }
+
 }
