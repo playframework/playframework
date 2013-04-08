@@ -107,7 +107,7 @@ object EnumerateesSpec extends Specification {
 
     "add one to each of the ints enumerated" in {
       
-      val add1AndConsume = Enumeratee.map[Int](i => List(i+1)) &>>  Iteratee.consume()
+      val add1AndConsume = Enumeratee.map[Int, List[Int]](i => List(i+1)) &>>  Iteratee.consume()
       val enumerator = Enumerator(1,2,3,4)  
       Await.result(enumerator |>>> add1AndConsume, Duration.Inf) must equalTo(Seq(2,3,4,5))
 
@@ -116,7 +116,7 @@ object EnumerateesSpec extends Specification {
 
     "infer its types correctly from previous enumeratee" in {
       
-      val add1AndConsume = Enumeratee.map[Int](i => i+1) ><> Enumeratee.map(i => List(i)) &>>  Iteratee.consume()
+      val add1AndConsume = Enumeratee.map[Int, Int](i => i+1) ><> Enumeratee.map(i => List(i)) &>>  Iteratee.consume()
       add1AndConsume : Iteratee[Int,List[Int]]
       true //this test is about compilation and if it compiles it means we got it right
     }
@@ -174,7 +174,7 @@ object EnumerateesSpec extends Specification {
 
     "group input elements according to a folder iteratee" in {
       val folderIteratee = 
-        Enumeratee.mapInput[String]{ 
+        Enumeratee.mapInput[String, String]{ 
           case Input.El("Concat") => Input.EOF;
           case other => other } &>>
         Iteratee.fold("")((s,e) => s + e)

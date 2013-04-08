@@ -74,7 +74,7 @@ object JavaResultExtractor {
   def getBody(result: play.mvc.Result): Array[Byte] = result.getWrappedResult match {
     case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
     case r @ SimpleResult(_, bodyEnumerator) => {
-      var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
+      var readAsBytes = Enumeratee.map[r.BODY_CONTENT, Array[Byte]](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
       bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.internalContext).value1.get
     }
     case r: PlainResult => Array.empty[Byte]
