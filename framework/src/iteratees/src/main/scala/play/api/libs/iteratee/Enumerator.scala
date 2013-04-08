@@ -111,9 +111,9 @@ trait Enumerator[E] {
    * @param f function to map
    * @return enumerator
    */
-  def map[U](f: E => U): Enumerator[U] = parent &> Enumeratee.map[E](f)
+  def map[U](f: E => U): Enumerator[U] = parent &> Enumeratee.map[E, U](f)
 
-  def mapInput[U](f: Input[E] => Input[U]) = parent &> Enumeratee.mapInput[E](f)
+  def mapInput[U](f: Input[E] => Input[U]) = parent &> Enumeratee.mapInput[E, U](f)
 
   /**
    * flatmaps the given function f onto parent Enumerator
