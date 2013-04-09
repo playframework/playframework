@@ -52,7 +52,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
+      newPipeline.addLast("decoder", new HttpRequestDecoder(Option(System.getProperty("http.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096), 8192, 8192))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
       newPipeline.addLast("http-pipelining", new HttpPipeliningHandler())
