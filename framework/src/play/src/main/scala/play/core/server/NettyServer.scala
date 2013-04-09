@@ -51,7 +51,10 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, address: String =
   class DefaultPipelineFactory extends ChannelPipelineFactory {
     def getPipeline = {
       val newPipeline = pipeline()
-      newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
+      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
+      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
