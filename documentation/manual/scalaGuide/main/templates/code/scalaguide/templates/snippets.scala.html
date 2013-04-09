@@ -1,0 +1,71 @@
+@(products: Seq[Product], user: User, article: Article)
+
+
+@* #escape-at *@
+My email is bob@@example.com
+@* #escape-at *@
+
+<span class="for-loop">
+@* #for-loop *@
+<ul>
+@for(p <- products) {
+  <li>@p.name ($@p.price)</li>
+}
+</ul>
+@* #for-loop *@
+</span>
+
+@defining(List("a", "b")) { items =>
+  @* #conditional *@
+  @if(items.isEmpty) {
+    <h1>Nothing to display</h1>
+  } else {
+    <h1>@items.size items!</h1>
+  }
+  @* #conditional *@
+}
+
+<span class="reusable">
+@* #reusable *@
+@display(product: Product) = {
+  @product.name ($@product.price)
+}
+
+<ul>
+@for(product <- products) {
+  @display(product)
+}
+</ul>
+@* #reusable *@
+</span>
+
+@* #pure-reusable *@
+@title(text: String) = @{
+  text.split(' ').map(_.capitalize).mkString(" ")
+}
+
+<h1>@title("hello world")</h1>
+@* #pure-reusable *@
+
+@* #implicits *@
+@implicitFieldConstructor = @{ MyFieldConstructor() }
+@* #implicits *@
+@ImplicitTester.test
+
+@* #defining *@
+@defining(user.firstName + " " + user.lastName) { fullName =>
+  <div>Hello @fullName</div>
+}
+@* #defining *@
+
+@* #comment *@
+@*********************
+* This is a comment *
+*********************@
+@* #comment *@
+
+@* #raw-html *@
+<p>
+  @Html(article.content)
+</p>
+@* #raw-html *@

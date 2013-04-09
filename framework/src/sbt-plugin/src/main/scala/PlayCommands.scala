@@ -272,59 +272,6 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     analysis
   }
 
-  // ----- Source generators
-
-  val RouteFiles = (state: State, confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
-    import play.router.RoutesCompiler._
-
-    val javaRoutes = (generatedDir ** "routes.java")
-    val scalaRoutes = (generatedDir ** "routes_*.scala")
-    (javaRoutes.get ++ scalaRoutes.get).map(GeneratedSource(_)).foreach(_.sync())
-    try {
-      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.map { routesFile =>
-        compile(routesFile, generatedDir, additionalImports)
-      }
-    } catch {
-      case RoutesCompilationError(source, message, line, column) => {
-        throw reportCompilationError(state, RoutesCompilationException(source, message, line, column.map(_ - 1)))
-      }
-      case e => throw e
-    }
-
-    (scalaRoutes.get ++ javaRoutes.get).map(_.getAbsoluteFile)
-
-  }
-
-  val ScalaTemplates = (state: State, sourceDirectory: File, generatedDir: File, templateTypes: Map[String, String], additionalImports: Seq[String]) => {
-    import play.templates._
-
-    val templateExt: PartialFunction[File, (File, String, String)] = {
-      case p if templateTypes.contains(p.name.split('.').last) =>
-        val extension = p.name.split('.').last
-        val exts = templateTypes(extension)
-        (p, extension, exts)
-    }
-    (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
-    try {
-
-      (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
-        case (template, extension, format) =>
-          ScalaTemplateCompiler.compile(
-            template,
-            sourceDirectory,
-            generatedDir,
-            format,
-            additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
-      }
-    } catch {
-      case TemplateCompilationError(source, message, line, column) => {
-        throw reportCompilationError(state, TemplateCompilationException(source, message, line, column - 1))
-      }
-    }
-
-    (generatedDir ** "*.template.scala").get.map(_.getAbsoluteFile)
-  }
-
   // ----- Play prompt
 
   val playPrompt = { state: State =>

@@ -5,7 +5,7 @@ import PlayKeys._
 import PlayEclipse._
 
 trait PlaySettings {
-  this: PlayCommands with PlayPositionMapper with PlayRun =>
+  this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
   
   protected def whichLang(name: String): Seq[Setting[_]] = {
     if (name == JAVA) {
@@ -16,28 +16,10 @@ trait PlaySettings {
       Seq.empty
     }
   }
+
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    templatesImport ++= Seq(
-      "models._",
-      "controllers._",
-
-      "java.lang._",
-      "java.util._",
-
-      "scala.collection.JavaConversions._",
-      "scala.collection.JavaConverters._",
-
-      "play.api.i18n._",
-      "play.core.j.PlayMagicForJava._",
-
-      "play.mvc._",
-      "play.data._",
-      "play.api.data.Field",
-
-      "play.mvc.Http.Context.Implicit._",
-
-      "views.%format%._"),
+    templatesImport ++= defaultJavaTemplatesImport,
 
     routesImport ++= Seq(
       "play.libs.F"
@@ -48,17 +30,8 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-
-    templatesImport ++= Seq(
-      "models._",
-      "controllers._",
-
-      "play.api.i18n._",
-
-      "play.api.mvc._",
-      "play.api.data._",
-
-      "views.%format%._"))
+    templatesImport ++= defaultScalaTemplatesImport
+  )
 
   def closureCompilerSettings(optionCompilerOptions: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
     resourceGenerators in Compile <<= JavascriptCompiler(Some(optionCompilerOptions))(Seq(_)),
@@ -216,7 +189,7 @@ trait PlaySettings {
 
     // Templates
 
-    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
+    templatesImport := defaultTemplatesImport,
 
     scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) },
 
