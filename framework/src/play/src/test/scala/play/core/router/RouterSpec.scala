@@ -42,7 +42,7 @@ object RouterSpec extends Specification {
     }
     "Fail on unparseable Path string" in {
       val Left(e) = pathPattern(pathStringInvalid).get("foo")
-      e.getMessage must beEqualTo("Malformed escape pair at index 8: invalide%2")
+      e.getMessage must beEqualTo("Malformed escape pair at index 9: /invalide%2")
     }
 
     "multipart path is not decoded" in {
