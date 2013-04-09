@@ -28,10 +28,8 @@ case class PathPattern(parts: Seq[PathPart]) {
     Exception.allCatch[String].either {
       if(decode) {
         val group = matcher.group(groupCount)
-        val unsafeDecode = new URI(group).getPath
-
-        // If param is not correctly encoded, unsafeDecode will be null
-        Option(unsafeDecode).getOrElse(group)
+        // If param is not correctly encoded, get path will return null, so we prepend a / to it
+        new URI("/"+group).getPath.drop(1)
       } else
         matcher.group(groupCount)
     }
