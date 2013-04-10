@@ -1,16 +1,14 @@
 package play.markdown
 
-import java.io.File
-import org.pegdown.plugins.{PegDownPlugins, ToHtmlSerializerPlugin}
-import org.pegdown.ast.{VerbatimNode, Visitor, Node}
-import org.pegdown.Printer
+import java.io.{IOException, File}
+import org.pegdown.plugins._
+import org.pegdown.ast._
+import org.pegdown._
 import scalax.file.Path
 import java.util
 
 object MarkdownSupport {
   def markdownToHtml(markdown: String, pagePath: String, root: File): String = {
-    import org.pegdown._
-    import org.pegdown.ast._
 
     val link:(String => (String, String)) = _ match {
       case link if link.contains("|") => {
@@ -67,7 +65,7 @@ object MarkdownSupport {
         }
 
         if (!sourceFile.exists()) {
-          throw new IllegalArgumentException("Could not find source file: " + sourceFile)
+          throw new IOException("Could not find source file: " + sourceFile)
         }
 
         // Find the code segment
