@@ -1,7 +1,6 @@
-package views.helper
+package views.html.helper
 
 import org.specs2.mutable.Specification
-import views.html.helper._
 import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.Lang
