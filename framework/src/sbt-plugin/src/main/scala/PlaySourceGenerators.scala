@@ -5,7 +5,7 @@ import play.api.PlayException
 
 trait PlaySourceGenerators {
 
-  val RouteFiles = (state: State, confDirectory: File, generatedDir: File, additionalImports: Seq[String]) => {
+  val RouteFiles = (state: State, confDirectory: File, generatedDir: File, additionalImports: Seq[String], reverseRouter: Boolean) => {
     import play.router.RoutesCompiler._
 
     val javaRoutes = (generatedDir ** "routes.java")
@@ -13,7 +13,7 @@ trait PlaySourceGenerators {
     (javaRoutes.get ++ scalaRoutes.get).map(GeneratedSource(_)).foreach(_.sync())
     try {
       { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.map { routesFile =>
-        compile(routesFile, generatedDir, additionalImports)
+        compile(routesFile, generatedDir, additionalImports, reverseRouter)
       }
     } catch {
       case RoutesCompilationError(source, message, line, column) => {

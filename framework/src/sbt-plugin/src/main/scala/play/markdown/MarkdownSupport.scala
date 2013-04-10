@@ -45,7 +45,8 @@ object MarkdownSupport {
 
   // Directives to insert code, skip code and replace code
   val Insert = """.*###insert: (.*?)(?:###.*)?""".r
-  val Skip = """.*###skip:\s*(\d+).*""".r
+  val SkipN = """.*###skip:\s*(\d+).*""".r
+  val Skip = """.*###skip.*""".r
   val ReplaceNext = """.*###replace: (.*?)(?:###.*)?""".r
 
   class CodeReferenceSerializer(root: File, pagePath: String) extends ToHtmlSerializerPlugin {
@@ -105,7 +106,8 @@ object MarkdownSupport {
             case Some(n) => state.copy(skip = None)
             case None => line match {
               case Insert(code) => state.appendLine(code)
-              case Skip(n) => state.copy(skip = Some(n.toInt))
+              case SkipN(n) => state.copy(skip = Some(n.toInt))
+              case Skip() => state
               case ReplaceNext(code) => state.appendLine(code).copy(skip = Some(1))
               case _ => state.dropIndentAndAppendLine(line)
             }

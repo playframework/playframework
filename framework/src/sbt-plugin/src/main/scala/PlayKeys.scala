@@ -48,6 +48,8 @@ trait PlayKeys {
 
   val routesImport = SettingKey[Seq[String]]("play-routes-imports")
 
+  val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router")
+
   val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 
   val templatesTypes = SettingKey[Map[String, String]]("play-templates-formats")

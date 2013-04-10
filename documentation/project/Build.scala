@@ -6,7 +6,7 @@ import PlaySourceGenerators._
 
 object ApplicationBuild extends Build {
 
-  val main = Project("Play-Documentation", file(".")).settings(
+  lazy val main = Project("Play-Documentation", file(".")).settings(
     version := PlayVersion.current,
     scalaVersion := PlayVersion.scalaVersion,
     libraryDependencies ++= Seq(
@@ -28,6 +28,14 @@ object ApplicationBuild extends Build {
       ds.flatMap(d => ScalaTemplates(s, d, g, t, defaultTemplatesImport ++ defaultScalaTemplatesImport))
     },
 
+    sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
+      ds.flatMap(d => RouteFiles(s, d, g, Seq("play.libs.F"), false))
+    },
+    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
+      ds.flatMap(d => RouteFiles(s, d, g, Seq(), false))
+    },
+
+
     templatesTypes := {
       case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
       case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
@@ -38,5 +46,7 @@ object ApplicationBuild extends Build {
 
   lazy val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
   lazy val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
+
+  // We can't use the Play SBT routes compiler function, since we need to do some special stuff with imports
 
 }

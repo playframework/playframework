@@ -1,0 +1,32 @@
+
+# #static-path
+GET   /clients/all          controllers.Clients.list()
+# #static-path
+
+# #clients-show-comment
+# Display a client.
+# #clients-show ###skip
+GET   /clients/:id          controllers.Clients.show(id: Long)
+# #clients-show #clients-show-comment
+
+# #spanning-path
+GET   /files/*name          controllers.Application.download(name)
+# #spanning-path
+
+# #regex-path
+GET   /items/$id<[0-9]+>    controllers.Items.show(id: Long)
+# #regex-path
+
+# #home-page
+GET   /                     controllers.Application.homePage()
+# #home-page
+
+# #page
+# Extract the page parameter from the path.
+GET   /:page                controllers.Application.show(page)
+# #page
+
+# #optional
+# The version parameter is optional. E.g. /api/list-all?version=3.0
+GET   /api/list-all         controllers.Api.list(version: Option[String])
+# #optional

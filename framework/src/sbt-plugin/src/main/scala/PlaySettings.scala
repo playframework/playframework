@@ -95,7 +95,9 @@ trait PlaySettings {
 
     testResultReporterReset <<= testResultReporterResetTask,
 
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
+    generateReverseRouter := true,
+
+    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter) map RouteFiles,
 
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
