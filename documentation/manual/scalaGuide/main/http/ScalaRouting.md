@@ -112,10 +112,6 @@ You can also provide a default value that will be used if no value is found in t
 You can also specify an optional parameter that does not need to be present in all requests:
 
 @[optional](code/scalaguide.http.routing.routes)
-```
-# The version parameter is optional. E.g. /api/list-all?version=3.0
-GET   /api/list-all         controllers.Api.list(version: Option[String])
-```
 
 ## Routing priority
 
@@ -131,35 +127,14 @@ The `play.api.mvc.Call` defines an HTTP call, and provides both the HTTP method 
 
 For example, if you create a controller like:
 
-```scala
-package controllers
-
-import play.api._
-import play.api.mvc._
-
-object Application extends Controller {
-    
-  def hello(name: String) = Action {
-      Ok("Hello " + name + "!")
-  }
-    
-}
-```
+@[reverse-controller](code/ScalaRouting.scala)
 
 And if you map it in the `conf/routes` file:
 
-```
-# Hello action
-GET   /hello/:name          controllers.Application.hello(name)
-```
+@[route](code/scalaguide.http.routing.reverse.routes)
 
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
-```scala
-// Redirect to /hello/Bob
-def helloBob = Action {
-    Redirect(routes.Application.hello("Bob"))    
-}
-```
+@[reverse-router](code/ScalaRouting.scala)
 
 > **Next:** [[Manipulating results | ScalaResults]]

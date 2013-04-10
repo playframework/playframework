@@ -48,7 +48,11 @@ trait PlayKeys {
 
   val routesImport = SettingKey[Seq[String]]("play-routes-imports")
 
-  val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router")
+  val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router",
+    "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
+
+  val namespaceReverseRouter = SettingKey[Boolean]("play-namespace-reverse-router",
+    "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
 
   val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 

@@ -288,7 +288,7 @@ object RoutesCompiler {
   }
 
 
-  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true) {
+  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false) {
 
     val namespace = Option(Path(file).name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
     val packageDir = namespace.map(pkg => new File(generatedDir, pkg)).getOrElse(generatedDir)
@@ -301,7 +301,7 @@ object RoutesCompiler {
       val routesContent = routeFile.string
 
       (parser.parse(routesContent) match {
-        case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter)
+        case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter, namespaceReverseRouter)
         case parser.NoSuccess(message, in) => {
           throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
         }
@@ -377,7 +377,7 @@ object RoutesCompiler {
   /**
    * Generate the actual Scala code for this router
    */
-  private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean): Seq[(String, String)] = {
+  private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
 
     check(new File(file.path), rules.collect { case r: Route => r })
 
@@ -388,8 +388,8 @@ object RoutesCompiler {
 
     val files = Seq(filePrefix + "_routing.scala" -> generateRouter(path, hash, date, namespace, additionalImports, rules))
     if (reverseRouter) {
-      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(path, hash, date, namespace, additionalImports, routes)) ++
-        generateJavaWrappers(path, hash, date, rules)
+      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(path, hash, date, namespace, additionalImports, routes, namespaceReverseRouter)) ++
+        generateJavaWrappers(path, hash, date, rules, namespace.filter(_ => namespaceReverseRouter))
     } else {
       files
     }
@@ -443,7 +443,7 @@ object RoutesCompiler {
     routing(rules)
   )
 
-  def generateReverseRouter(path: String, hash: String, date: String, namespace: Option[String], additionalImports: Seq[String], routes: List[Route]) =
+  def generateReverseRouter(path: String, hash: String, date: String, namespace: Option[String], additionalImports: Seq[String], routes: List[Route], namespaceReverseRouter: Boolean) =
     """ |// @SOURCE:%s
         |// @HASH:%s
         |// @DATE:%s
@@ -470,15 +470,15 @@ object RoutesCompiler {
       date,
       namespace.map(_ + ".").getOrElse(""),
       additionalImports.map("import " + _).mkString("\n"),
-      reverseRouting(routes),
-      javaScriptReverseRouting(routes),
-      refReverseRouting(routes)
+      reverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
+      javaScriptReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
+      refReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter))
     )
 
-  def generateJavaWrappers(path: String, hash: String, date: String, rules: List[Rule]) =
+  def generateJavaWrappers(path: String, hash: String, date: String, rules: List[Rule], namespace: Option[String]) =
     rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
-      case (packageName, routes) => {
-
+      case (pn, routes) => {
+        val packageName = namespace.map(_ + "." + pn).getOrElse(pn)
         (packageName.replace(".", "/") + "/routes.java") -> {
 
           """ |// @SOURCE:%s
@@ -525,7 +525,7 @@ object RoutesCompiler {
   /**
    * Generate the reverse routing operations
    */
-  def javaScriptReverseRouting(routes: List[Route]): String = {
+  def javaScriptReverseRouting(routes: List[Route], namespace: Option[String]): String = {
 
     routes.groupBy(_.call.packageName).map {
       case (packageName, routes) => {
@@ -537,7 +537,7 @@ object RoutesCompiler {
             |}
         """.stripMargin.format(
           markLines(routes: _*),
-          packageName,
+          namespace.map(_ + "." + packageName).getOrElse(packageName),
 
           routes.groupBy(_.call.controller).map {
             case (controller, routes) =>
@@ -685,20 +685,22 @@ object RoutesCompiler {
   /**
    * Generate the routing refs
    */
-  def refReverseRouting(routes: List[Route]): String = {
+  def refReverseRouting(routes: List[Route], namespace: Option[String]): String = {
 
     routes.groupBy(_.call.packageName).map {
       case (packageName, routes) => {
-
         """
-                      |%s
-                      |package %s.ref {
-                      |%s
-                      |}
-                  """.stripMargin.format(
+          |%s
+          |package %s.ref {
+          |%s
+          |%s
+          |}
+        """.stripMargin.format(
           markLines(routes: _*),
-          packageName,
-
+          namespace.map(_ + "." + packageName).getOrElse(packageName),
+          // This import statement is inserted mostly for the doc code samples, to ensure that controllers relative
+          // to the namespace are in scope
+          namespace.map("import " + _ + "._").getOrElse(""),
           routes.groupBy(_.call.controller).map {
             case (controller, routes) =>
               """
@@ -761,7 +763,7 @@ object RoutesCompiler {
   /**
    * Generate the reverse routing operations
    */
-  def reverseRouting(routes: List[Route]): String = {
+  def reverseRouting(routes: List[Route], namespace: Option[String]): String = {
 
     routes.groupBy(_.call.packageName).map {
       case (packageName, routes) => {
@@ -773,7 +775,7 @@ object RoutesCompiler {
                       |}
                   """.stripMargin.format(
           markLines(routes: _*),
-          packageName,
+          namespace.map(_ + "." + packageName).getOrElse(packageName),
 
           routes.groupBy(_.call.controller).map {
             case (controller, routes) =>

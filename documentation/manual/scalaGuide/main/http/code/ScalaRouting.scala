@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import play.api.test.FakeRequest
 import play.api.mvc._
 import play.api.test.Helpers._
+import play.api.test._
 import play.core.Router
 
 package controllers {
@@ -67,6 +68,23 @@ package defaultvalue.controllers {
   }
 }
 
+// #reverse-controller
+// ###replace: package controllers
+package reverse.controllers {
+
+import play.api._
+import play.api.mvc._
+
+object Application extends Controller {
+
+  def hello(name: String) = Action {
+    Ok("Hello " + name + "!")
+  }
+
+}
+// #reverse-controller
+}
+
 object ScalaRoutingSpec extends Specification {
   "the scala router" should {
     "support simple routing with a long parameter" in {
@@ -102,10 +120,24 @@ object ScalaRoutingSpec extends Specification {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version None"
       contentOf(FakeRequest("GET", "/api/list-all?version=3.0")) must_== "version Some(3.0)"
     }
+    "support reverse routing" in {
+      import reverse.controllers.routes
+      import Results.Redirect
+      // #reverse-router
+      // Redirect to /hello/Bob
+      def helloBob = Action {
+        Redirect(routes.Application.hello("Bob"))
+      }
+      // #reverse-router
+      val result = helloBob(FakeRequest())
+      header(LOCATION, result) must beSome("/hello/Bob")
+    }
 
   }
 
-  def contentOf(rh: RequestHeader, router: Router.Routes = Routes) = contentAsString(router.routes(rh) match {
-    case e: EssentialAction => AsyncResult(e(rh).run)
-  })
+  def contentOf(rh: RequestHeader, router: Router.Routes = Routes) = running(FakeApplication())(contentAsString(router.routes(rh) match {
+    case e: EssentialAction => {
+      AsyncResult(e(rh).run)
+    }
+  }))
 }

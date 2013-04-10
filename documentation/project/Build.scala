@@ -29,10 +29,10 @@ object ApplicationBuild extends Build {
     },
 
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
-      ds.flatMap(d => RouteFiles(s, d, g, Seq("play.libs.F"), false))
+      ds.flatMap(d => RouteFiles(s, d, g, Seq("play.libs.F"), true, true))
     },
     sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
-      ds.flatMap(d => RouteFiles(s, d, g, Seq(), false))
+      ds.flatMap(d => RouteFiles(s, d, g, Seq(), true, true))
     },
 
 

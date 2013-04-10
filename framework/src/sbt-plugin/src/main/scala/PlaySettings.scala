@@ -97,7 +97,9 @@ trait PlaySettings {
 
     generateReverseRouter := true,
 
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter) map RouteFiles,
+    namespaceReverseRouter := false,
+
+    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map RouteFiles,
 
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
