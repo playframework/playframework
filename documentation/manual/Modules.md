@@ -270,6 +270,12 @@ your Play 2 application.
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/session-cache/README.md>
 * **Short description:** Session cache for Play 2.0 
 
+## Sitemap Generator (Java)
+
+* **Website:** <https://github.com/blabluble/play-sitemap-module>
+* **Documentation:** <https://github.com/blabluble/play-sitemap-module/blob/master/README.md>
+* **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play 2.1
+
 ## Snapshot Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/vznet/play-snapshot>
 * **Short description:** provides a hash bang snapshot functionality using HtmlUnit, as described by Google [here](https://developers.google.com/webmasters/ajax-crawling/docs/html-snapshot)
