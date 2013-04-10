@@ -5,3 +5,4 @@
 - [[Repositories | Repositories]]
 - [[Issues tracker | Issues]]
 - [[Contributor guidelines | Guidelines]]
+- [[Documentation guidelines | Documentation]]
