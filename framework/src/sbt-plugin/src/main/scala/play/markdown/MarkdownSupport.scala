@@ -7,7 +7,7 @@ import org.pegdown._
 import scalax.file.Path
 import java.util
 
-object MarkdownSupport {
+trait MarkdownSupport {
   def markdownToHtml(markdown: String, pagePath: String, root: File): String = {
 
     val link:(String => (String, String)) = _ match {
@@ -42,12 +42,12 @@ object MarkdownSupport {
   }
 
   // Directives to insert code, skip code and replace code
-  val Insert = """.*###insert: (.*?)(?:###.*)?""".r
-  val SkipN = """.*###skip:\s*(\d+).*""".r
-  val Skip = """.*###skip.*""".r
-  val ReplaceNext = """.*###replace: (.*?)(?:###.*)?""".r
+  private val Insert = """.*###insert: (.*?)(?:###.*)?""".r
+  private val SkipN = """.*###skip:\s*(\d+).*""".r
+  private val Skip = """.*###skip.*""".r
+  private val ReplaceNext = """.*###replace: (.*?)(?:###.*)?""".r
 
-  class CodeReferenceSerializer(root: File, pagePath: String) extends ToHtmlSerializerPlugin {
+  private class CodeReferenceSerializer(root: File, pagePath: String) extends ToHtmlSerializerPlugin {
     def visit(node: Node, visitor: Visitor, printer: Printer) = node match {
       case code: CodeReferenceNode => {
 

@@ -26,25 +26,24 @@ trait PlaySourceGenerators {
 
   }
 
-  val ScalaTemplates = (state: State, sourceDirectory: File, generatedDir: File, templateTypes: PartialFunction[String, (String, String)], additionalImports: Seq[String]) => {
+  val ScalaTemplates = (state: State, sourceDirectory: File, generatedDir: File, templateTypes: Map[String, String], additionalImports: Seq[String]) => {
     import play.templates._
 
-    val templateExt: PartialFunction[File, (File, String, String, String)] = {
-      case p if templateTypes.isDefinedAt(p.name.split('.').last) =>
+    val templateExt: PartialFunction[File, (File, String, String)] = {
+      case p if templateTypes.contains(p.name.split('.').last) =>
         val extension = p.name.split('.').last
         val exts = templateTypes(extension)
-        (p, extension, exts._1, exts._2)
+        (p, extension, exts)
     }
     (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
     try {
 
       (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
-        case (template, extension, t, format) =>
+        case (template, extension, format) =>
           ScalaTemplateCompiler.compile(
             template,
             sourceDirectory,
             generatedDir,
-            t,
             format,
             additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
       }

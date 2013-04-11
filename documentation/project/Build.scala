@@ -1,7 +1,10 @@
+import play.console.Colors
+import play.core.server.ServerWithStop
+import play.markdown.MarkdownSupport
 import sbt._
 import Keys._
 import PlayKeys._
-import play.core.PlayVersion
+import play.core.{SBTLink, PlayVersion}
 import PlaySourceGenerators._
 
 object ApplicationBuild extends Build {
@@ -35,18 +38,89 @@ object ApplicationBuild extends Build {
       ds.flatMap(d => RouteFiles(s, d, g, Seq(), true, true))
     },
 
+    templatesTypes := Map(
+      "html" -> "play.api.templates.HtmlFormat"
+    ),
 
-    templatesTypes := {
-      case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
-      case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
-      case "xml" => ("play.api.templates.Xml", "play.api.templates.XmlFormat")
-    }
+    run <<= docsRunSetting
 
   )
 
+  val docsRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    (argsTask, state) map { (args, state) =>
+      val extracted = Project.extract(state)
+
+      val port = args.headOption.map(_.toInt).getOrElse(9000)
+
+      // Get classloader
+      val sbtLoader = this.getClass.getClassLoader
+      Project.runTask(dependencyClasspath in Test, state).get._2.toEither.right.map { classpath: Seq[Attributed[File]] =>
+        val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
+          val sharedClasses = Seq(
+            classOf[play.core.SBTLink].getName,
+            classOf[play.core.server.ServerWithStop].getName,
+            classOf[play.api.UsefulException].getName,
+            classOf[play.api.PlayException].getName,
+            classOf[play.api.PlayException.InterestingLines].getName,
+            classOf[play.api.PlayException.RichDescription].getName,
+            classOf[play.api.PlayException.ExceptionSource].getName,
+            classOf[play.api.PlayException.ExceptionAttachment].getName)
+
+          override def loadClass(name: String): Class[_] = {
+            if (sharedClasses.contains(name)) {
+              sbtLoader.loadClass(name)
+            } else {
+              super.loadClass(name)
+            }
+          }
+        }
+
+        import scala.collection.JavaConverters._
+        // create sbt link
+        val sbtLink = new SBTLink with MarkdownSupport {
+          def runTask(name: String) = null
+          def reload() = null
+          def projectPath() = extracted.currentProject.base
+          def settings() = Map.empty[String, String].asJava
+          def forceReload() {}
+          def findSource(className: String, line: java.lang.Integer) = null
+        }
+
+        val clazz = classloader.loadClass("play.core.system.DocumentationServer")
+        val constructor = clazz.getConstructor(classOf[SBTLink], classOf[java.lang.Integer])
+        val server = constructor.newInstance(sbtLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+
+        println()
+        println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
+        println()
+
+        waitForKey()
+
+        server.stop()
+      }
+
+      state
+    }
+  }
+
+  private val consoleReader = new jline.ConsoleReader
+
+  private def waitForKey() = {
+    consoleReader.getTerminal.disableEcho()
+    def waitEOF() {
+      consoleReader.readVirtualKey() match {
+        case 4 => // STOP
+        case 11 => consoleReader.clearScreen(); waitEOF()
+        case 10 => println(); waitEOF()
+        case _ => waitEOF()
+      }
+
+    }
+    waitEOF()
+    consoleReader.getTerminal.enableEcho()
+  }
+
   lazy val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
   lazy val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
-
-  // We can't use the Play SBT routes compiler function, since we need to do some special stuff with imports
 
 }

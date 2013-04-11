@@ -15,7 +15,7 @@ trait PlayReloader {
 
     val extracted = Project.extract(state)
 
-    new SBTLink {
+    new SBTLink with MarkdownSupport {
 
       lazy val projectPath = extracted.currentProject.base
 
@@ -148,11 +148,6 @@ trait PlayReloader {
         import scala.collection.JavaConverters._
         extracted.get(PlayKeys.devSettings).toMap.asJava
       }
-
-      // --- Utils
-
-      def markdownToHtml(markdown: String, pagePath: String, root: File) =
-        MarkdownSupport.markdownToHtml(markdown, pagePath, root)
 
       // ---
 
