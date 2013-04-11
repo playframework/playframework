@@ -1,7 +1,7 @@
 ### Hacking Play
 
 - [[Building Play from source | BuildingFromSource]]
-- [[CI server at Cloudbees | CIServer]]
+- [[3rd Party Tools | ThirdPartyTools]]
 - [[Repositories | Repositories]]
 - [[Issues tracker | Issues]]
 - [[Contributor guidelines | Guidelines]]
