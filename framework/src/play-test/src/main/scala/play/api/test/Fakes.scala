@@ -171,6 +171,9 @@ object FakeRequest {
     FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
   }
 
+  def apply(method: String, call: Call): FakeRequest[AnyContentAsEmpty.type] = {
+    apply(method, call.url)
+  }
 }
 
 /**
