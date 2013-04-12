@@ -4,7 +4,7 @@ Test source files must be placed in your application’s `test` folder. You can 
 
 ## Using specs2
 
-The default way to test a Play 2 application is by using [[specs2| http://etorreborre.github.com/specs2/]].
+The default way to test a Play 2 application is by using [specs2](http://etorreborre.github.com/specs2/).
 
 Unit specifications extend the `org.specs2.mutable.Specification` trait and are using the should/in format:
 

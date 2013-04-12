@@ -1,6 +1,6 @@
 # Deploying to Heroku
 
-[[Heroku | http://www.heroku.com/]] is a cloud application platform – a new way of building and deploying web apps.
+[Heroku](http://www.heroku.com/) is a cloud application platform – a new way of building and deploying web apps.
 
 To get started:
 

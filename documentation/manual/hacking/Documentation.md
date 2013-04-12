@@ -18,6 +18,8 @@ Links to other pages in the documentation should be created using wiki markup sy
 
 Images should also use the above syntax.
 
+> External links should not use the above syntax, but rather, should use the standard Markdown link syntax.
+
 ## Code samples
 
 All supported code samples should be imported from external compiled files.  The syntax for doing this is:
@@ -98,3 +100,11 @@ At current, SBT code samples cannot be pulled out of the documentation, since co
 ### Other code
 
 Other code may or may not be testable.  It may make sense to test Javascript code by running an integration test using HTMLUnit.  It may make sense to test configuration by loading it.  Common sense should be used here.
+
+## Testing the docs
+
+To ensure that the docs render correctly, run `./build run` from within the documentation directory.  This will start a small Play server that does nothing but serve the documentation.
+
+To ensure that the code samples compile, run and tests pass, run `./build test`.
+
+To validate that the documentation is structurely sound, run `./build validate-docs`.  This checks that there are no broken wiki links, code references or resource links, ensures that all documentation markdown filenames are unique, and ensures that there are no orphaned pages.

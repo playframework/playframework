@@ -50,7 +50,7 @@ This launches the Play console. There are several things you can do from the Pla
 
 [[images/run.png]]
 
-The application is now running in development mode. Open a browser at [[http://localhost:9000/]]:
+The application is now running in development mode. Open a browser at <http://localhost:9000/>:
 
 [[images/welcome.png]]
 
@@ -177,7 +177,7 @@ object Application extends Controller {
 
 As you see we use `TODO` to define our action implementations. Because we don’t want to write the action implementations yet, we can use the built-in `TODO` action that will return a `501 Not Implemented` HTTP response. 
 
-You can try to access the [[http://localhost:9000/tasks]] to see that:
+You can try to access the <http://localhost:9000/tasks> to see that:
 
 [[images/todo.png]]
 
@@ -293,7 +293,7 @@ def tasks = Action {
 
 This renders a **200 OK** result filled with the HTML rendered by the `index.scala.html` template called with the tasks list and the task form.
 
-You can now try to access [[http://localhost:9000/tasks]] in your browser:
+You can now try to access <http://localhost:9000/tasks> in your browser:
 
 [[images/blank.png]]
 

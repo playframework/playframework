@@ -1,6 +1,6 @@
 # Using LESS CSS
 
-[[LESS CSS | http://lesscss.org/]] is a dynamic stylesheet language. It allows greater flexibility in the way you write CSS files: including support for variables, mixins and more.
+[LESS CSS](http://lesscss.org/) is a dynamic stylesheet language. It allows greater flexibility in the way you write CSS files: including support for variables, mixins and more.
 
 Compilable assets in Play must be defined in the `app/assets` directory. They are handled by the build process, and LESS sources are compiled into standard CSS files. The generated CSS files are distributed as standard resources into the same `public/` folder as the unmanaged assets, meaning that there is no difference in the way you use them once compiled.
 

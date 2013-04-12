@@ -20,7 +20,7 @@ public class CodeReferenceParser extends Parser implements BlockPluginParser {
     public Rule CodeReference() {
         StringVar label = new StringVar();
         StringVar source = new StringVar();
-        return Sequence(
+        return NodeSequence(
                 '@',
                 '[',
                 Sequence(ZeroOrMore(TestNot(']'), ANY), label.set(match())),

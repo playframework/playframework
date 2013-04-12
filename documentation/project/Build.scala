@@ -1,6 +1,6 @@
 import play.console.Colors
 import play.core.server.ServerWithStop
-import play.markdown.MarkdownSupport
+import play.markdown._
 import sbt._
 import Keys._
 import PlayKeys._
@@ -42,10 +42,13 @@ object ApplicationBuild extends Build {
       "html" -> "play.api.templates.HtmlFormat"
     ),
 
-    run <<= docsRunSetting
+    run <<= docsRunSetting,
+
+    DocValidation.validateDocs <<= DocValidation.ValidateDocsTask
 
   )
 
+  // Run a documentation server
   val docsRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
     (argsTask, state) map { (args, state) =>
       val extracted = Project.extract(state)
