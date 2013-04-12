@@ -70,7 +70,7 @@ echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
 
 cd ../documentation
-$PLAY "$@" clean-all test
+$PLAY "$@" clean-all test validate-docs
 cd $CURRENT
 
 echo "[info]"
