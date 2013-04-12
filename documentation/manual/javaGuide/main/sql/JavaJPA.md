@@ -34,7 +34,7 @@ Here is a sample configuration file to use with Hibernate:
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
-             
+
     <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
         <non-jta-data-source>DefaultDS</non-jta-data-source>
@@ -42,8 +42,14 @@ Here is a sample configuration file to use with Hibernate:
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
         </properties>
     </persistence-unit>
-    
+
 </persistence>
+```
+
+Finally you have to tell Play, which persistent unit should be used by your JPA provider. This is done by the `jpa.default` property in your `application.conf`.
+
+```
+jpa.default=defaultPerstistenceUnit
 ```
 
 ## Annotating JPA actions with `@Transactional`
@@ -77,4 +83,3 @@ public static Company findById(Long id) {
 ```
 
 > **Next:** [[Using the cache | JavaCache]]
-
