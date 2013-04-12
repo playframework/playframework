@@ -1,3 +1,0 @@
-# Missing parts
-
-Model Syntax

@@ -4,7 +4,7 @@ Play includes a simple data access layer called Anorm that uses plain SQL to int
 
 **Anorm is Not an Object Relational Mapper**
 
-> In the following documentation, we will use the [[MySQL world sample database | http://dev.mysql.com/doc/index-other.html]]. 
+> In the following documentation, we will use the [MySQL world sample database](http://dev.mysql.com/doc/index-other.html). 
 > 
 > If you want to enable it for your application, follow the MySQL website instructions, and configure it as  explained [[on the Scala database page | ScalaDatabase]].
 

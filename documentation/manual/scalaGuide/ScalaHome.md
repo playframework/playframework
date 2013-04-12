@@ -52,7 +52,6 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[The application Global object | ScalaGlobal]]
     1. [[Application global settings | ScalaGlobal]]
     1. [[Intercepting requests | ScalaInterceptors]]
-    1. [[Dependency injection of controllers | ScalaDependencyInjection]]
 1. [[Testing your application | ScalaTest]]
     1. [[Writing tests | ScalaTest]]
     1. [[Writing functional tests | ScalaFunctionalTest]]
@@ -68,6 +67,8 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[HTTP Filters | ScalaHttpFilters]]
 1. [[Reverse routing | ScalaJavascriptRouting]]
     1. [[Javascript Routing | ScalaJavascriptRouting]]
+1. [[Extending Play|ScalaPlugins]]
+    1. [[Writing Plugins|ScalaPlugins]]
 
 ## Tutorials
 

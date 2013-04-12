@@ -14,7 +14,7 @@ Note that using a front-end HTTP server will rarely give you better performance 
 
 ## Set-up with lighttpd
 
-This example shows you how to configure [[lighttpd | http://www.lighttpd.net/]] as a front-end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, lighttpd is a very good choice and much easier to configure!
+This example shows you how to configure [lighttpd](http://www.lighttpd.net/) as a front-end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, lighttpd is a very good choice and much easier to configure!
 
 The `/etc/lighttpd/lighttpd.conf` file should define things like this:
 
@@ -40,7 +40,7 @@ $HTTP["host"] =~ "www.loadbalancedapp.com" {
 
 ## Set-up with nginx
 
-This example shows you how to configure [[nginx| http://wiki.nginx.org/Main]] as a front-end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
+This example shows you how to configure [nginx](http://wiki.nginx.org/Main) as a front-end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
 
 The `/etc/nginx/nginx.conf` file should define things like this:
 
@@ -80,7 +80,7 @@ http {
 
 ## Set-up with Apache
 
-The example below shows a simple set-up with [[Apache httpd server | http://httpd.apache.org/]] running in front of a standard Play configuration.
+The example below shows a simple set-up with [Apache httpd server](http://httpd.apache.org/) running in front of a standard Play configuration.
 
 ```
 LoadModule proxy_module modules/mod_proxy.so

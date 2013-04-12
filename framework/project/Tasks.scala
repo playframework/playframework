@@ -100,9 +100,7 @@ object Tasks {
     }
     copyDist("framework")
     copyDist("samples")
-
-    // Documentation
-    IO.copyDirectory(playBase / "documentation", dist / "documentation", true, false)
+    copyDist("documentation")
 
     // Copy the core files
     copyMaintainPerms(coreFiles map (f => f -> (dist / f.getName)))

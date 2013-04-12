@@ -128,7 +128,7 @@ GET     /                  @controllers.Application.index()
 
 Play will invoke the `getControllerInstance` method which in return will provide an instance of `controllers.Application` (by default this is happening via the default constructor). Therefore, if you want to manage controller class instantiation either via a dependency injection framework or manually you can do so by overriding getControllerInstance in your application’s Global class.
 
-As this example [[demonstrates it|https://github.com/guillaumebort/play20-spring-demo]], it allows to wire any dependency injection framework such as __Spring__ into your Play application.
+As this example [demonstrates it](https://github.com/guillaumebort/play20-spring-demo), it allows to wire any dependency injection framework such as __Spring__ into your Play application.
 
 ## New Scala JSON API
 
@@ -156,7 +156,7 @@ The `filters` project that is part of the standard Play distribution contain a s
 
 ## RequireJS
 
-In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use [[requireJS|http://requirejs.org/]] instead.
+In play 2.0 the default behavior for Javascript was to use google closure's commonJS module support. In 2.1 this was changed to use [requireJS](http://requirejs.org/) instead.
 
 What this means in practice is that by default Play will only minify and combine files in stage, dist, start modes only. In dev mode Play will resolve dependencies client side.
 

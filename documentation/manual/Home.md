@@ -15,7 +15,7 @@
 1. [[Using the Play console | PlayConsole ]]
 1. [[Setting up your preferred IDE | IDE]]
 1. [[Sample applications | Samples]]
-1. [[Security policy | http://www.playframework.com/code/security]]
+1. [Security policy](http://www.playframework.com/code/security)
 
 ## Working with Play
 
@@ -49,11 +49,11 @@
 
 ## Additional documentation
 
-1. [[Scala|http://docs.scala-lang.org/]]
-1. [[Akka|http://akka.io/docs/]]
-1. [[sbt|http://www.scala-sbt.org/learn.html]]
-1. [[Configuration|https://github.com/typesafehub/config]]
-1. [[Logback|http://logback.qos.ch/documentation.html]]
+1. [Scala](http://docs.scala-lang.org/)
+1. [Akka](http://akka.io/docs/)
+1. [sbt](http://www.scala-sbt.org/learn.html)
+1. [Configuration](https://github.com/typesafehub/config)
+1. [Logback](http://logback.qos.ch/documentation.html)
 
 ## Hacking Play
 
@@ -62,6 +62,11 @@
 1. [[Repositories | Repositories]]
 1. [[Issue tracker | Issues]]
 1. [[Contributor guidelines | Guidelines]]
+
+## About Play
+
+1. [[Play Philosophy|Philosophy]]
+1. [[Play User Groups|PlayUserGroups]]
 
 ## Modules and plugins
 

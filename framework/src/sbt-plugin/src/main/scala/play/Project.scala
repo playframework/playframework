@@ -5,7 +5,7 @@ import play.console.Colors
 import sbt.Keys._
 
 object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
-    with PlayRun with PlaySettings with PlayPositionMapper {
+    with PlayRun with PlaySettings with PlayPositionMapper with PlaySourceGenerators {
 
   // ~~ Alerts  
   if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {

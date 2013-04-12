@@ -1,0 +1,4 @@
+# #route
+# Hello action
+GET   /hello/:name          controllers.Application.hello(name)
+# #route

@@ -54,7 +54,7 @@ val appDependencies = Seq(
 
 ### Resolvers
 
-Not all packages live on the same server; sbt uses the standard Maven2 repository and the Scala Tools Releases ([[http://scala-tools.org/repo-releases]]) repositories by default. If your dependency isn’t on one of the default repositories, you’ll have to add a resolver to help Ivy find it.
+Not all packages live on the same server; sbt uses the standard Maven2 repository and the Scala Tools Releases (<http://scala-tools.org/repo-releases>) repositories by default. If your dependency isn’t on one of the default repositories, you’ll have to add a resolver to help Ivy find it.
 
 Use the `resolvers` setting key to add your own resolver.
 

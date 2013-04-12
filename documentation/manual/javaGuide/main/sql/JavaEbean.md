@@ -2,7 +2,7 @@
 
 ## Configuring Ebean
 
-Play 2.0 comes with the [[Ebean| http://www.avaje.org/]] ORM. To enable it, add javaEbean to your
+Play 2.0 comes with the [Ebean](http://www.avaje.org/) ORM. To enable it, add javaEbean to your
 dependencies : 
 
 ```scala
@@ -48,7 +48,7 @@ public class MyServerConfigStartup implements ServerConfigStartup {
 
 Note that Ebean will also make use of a `conf/orm.xml` file (if present), to configure `<entity-mappings>`.
 
-> For more information about Ebean, see the [[Ebean documentation | http://www.avaje.org/ebean/documentation.html]].
+> For more information about Ebean, see the [Ebean documentation](http://www.avaje.org/ebean/documentation.html).
 
 ## Using the play.db.ebean.Model superclass
 
