@@ -48,6 +48,12 @@ trait PlayKeys {
 
   val routesImport = SettingKey[Seq[String]]("play-routes-imports")
 
+  val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router",
+    "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
+
+  val namespaceReverseRouter = SettingKey[Boolean]("play-namespace-reverse-router",
+    "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
+
   val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 
   val templatesTypes = SettingKey[Map[String, String]]("play-templates-formats")
@@ -69,6 +75,42 @@ trait PlayKeys {
   val devSettings = SettingKey[Seq[(String,String)]]("play-dev-settings")
 
   val scalaIdePlay2Prefs = TaskKey[Unit]("scala-ide-play2-prefs")
+
+  // Constants that may be useful elsewhere
+  val defaultJavaTemplatesImport = Seq(
+    "models._",
+    "controllers._",
+
+    "java.lang._",
+    "java.util._",
+
+    "scala.collection.JavaConversions._",
+    "scala.collection.JavaConverters._",
+
+    "play.api.i18n._",
+    "play.core.j.PlayMagicForJava._",
+
+    "play.mvc._",
+    "play.data._",
+    "play.api.data.Field",
+
+    "play.mvc.Http.Context.Implicit._",
+
+    "views.%format%._")
+
+  val defaultScalaTemplatesImport = Seq(
+    "models._",
+    "controllers._",
+
+    "play.api.i18n._",
+
+    "play.api.mvc._",
+    "play.api.data._",
+
+    "views.%format%._")
+
+  val defaultTemplatesImport = Seq("play.api.templates._", "play.api.templates.PlayMagic._")
+
 }
 object PlayKeys extends PlayKeys
 

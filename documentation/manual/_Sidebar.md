@@ -6,7 +6,7 @@
 - [[Using the Play console | PlayConsole ]]
 - [[Setting-up your preferred IDE | IDE]]
 - [[Sample applications | Samples]]
-- [[Security policy | http://www.playframework.com/code/security]]
+- [Security policy](http://www.playframework.com/code/security)
 
 ### Working with Play
 
@@ -23,8 +23,8 @@
 
 ### Additional documentation
 
-- [[Scala|http://docs.scala-lang.org/]]
-- [[Akka|http://akka.io/docs/]]
-- [[sbt|http://www.scala-sbt.org/learn.html]]
-- [[Configuration|https://github.com/typesafehub/config]]
-- [[Logback|http://logback.qos.ch/documentation.html]]
+- [Scala](http://docs.scala-lang.org/)
+- [Akka](http://akka.io/docs/)
+- [sbt](http://www.scala-sbt.org/learn.html)
+- [Configuration](https://github.com/typesafehub/config)
+- [Logback](http://logback.qos.ch/documentation.html)

@@ -1,0 +1,4 @@
+# #clients
+# Pagination links, like /clients?page=3
+GET   /clients              controllers.Clients.list(page: Int ?= 1)
+# #clients

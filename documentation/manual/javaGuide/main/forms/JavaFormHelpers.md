@@ -84,7 +84,7 @@ This default field constructor supports additional options you can pass in the i
 
 ## Twitter bootstrap field constructor
 
-There is another built-in field constructor that can be used with [[Twitter Bootstrap | http://twitter.github.com/bootstrap/]].
+There is another built-in field constructor that can be used with [Twitter Bootstrap](http://twitter.github.com/bootstrap/).
 
 To use it, just import it in the current scope:
 

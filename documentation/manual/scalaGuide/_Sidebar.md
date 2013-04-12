@@ -20,6 +20,7 @@
 - [[Handling data streams reactively | Iteratees]]
 - [[HTTP API | HttpApi]]
 - [[HTTP Filters | ScalaHttpFilters]]
+- [[Extending Play|ScalaPlugins]]
 
 ### Tutorials
 

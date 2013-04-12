@@ -514,4 +514,4 @@ So now we have a working and tested navigation drawer. We've seen how to impleme
 
 Commit your work to git.
 
-> Go to the [next part](JavaGuide7)
+> Go to the [[next part|JavaGuide7]]

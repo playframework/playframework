@@ -1,6 +1,6 @@
 # OpenID Support in Play
 
-OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [[Google account | http://code.google.com/apis/accounts/docs/OpenID.html]]. In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
+OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](http://code.google.com/apis/accounts/docs/OpenID.html). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
 
 ## The OpenID flow in a nutshell
 
@@ -56,7 +56,7 @@ def openIDCallback = Action { implicit request =>
 
 ## Extended Attributes
 
-The OpenID of a user gives you his identity. The protocol also supports getting [[extended attributes | http://openid.net/specs/openid-attribute-exchange-1_0.html]] such as the e-mail address, the first name, or the last name.
+The OpenID of a user gives you his identity. The protocol also supports getting [extended attributes](http://openid.net/specs/openid-attribute-exchange-1_0.html) such as the e-mail address, the first name, or the last name.
 
 You may request *optional* attributes and/or *required* attributes from the OpenID server. Asking for required attributes means the user cannot login to your service if he doesn’t provides them.
 

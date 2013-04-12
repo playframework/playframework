@@ -66,6 +66,14 @@ $PLAY "$@" clean-all test
 cd $CURRENT
 
 echo "[info]"
+echo "[info] ---- RUNNING DOCUMENTATION TESTS"
+echo "[info]"
+
+cd ../documentation
+$PLAY "$@" clean-all test validate-docs
+cd $CURRENT
+
+echo "[info]"
 echo "[info] ---- TESTING SAMPLE APPLICATIONS"
 echo "[info]"
 

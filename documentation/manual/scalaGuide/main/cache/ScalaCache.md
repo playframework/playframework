@@ -1,6 +1,6 @@
 # The Play cache API
 
-The default implementation of the Cache API uses [[EHCache| http://ehcache.org/]]. You can also provide your own implementation via a plug-in.
+The default implementation of the Cache API uses [EHCache](http://ehcache.org/). You can also provide your own implementation via a plug-in.
 
 ## Accessing the Cache API
 

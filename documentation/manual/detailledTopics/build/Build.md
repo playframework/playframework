@@ -1,6 +1,6 @@
 # The Build System
 
-The Play build system is based on [[sbt|http://www.scala-sbt.org/]], a minimally non-intrusive build tool for Scala and Java projects.
+The Play build system is based on [sbt](http://www.scala-sbt.org/), a minimally non-intrusive build tool for Scala and Java projects.
 
 ## The `/project` directory
 
