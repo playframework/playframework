@@ -89,10 +89,10 @@ object Resolvers {
 
   import BuildSettings._
 
-  val typesafeReleases = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-  val typesafeSnapshots = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
-  val typesafeMavenReleases = "Typesafe Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
-  val typesafeMavenSnapshots = "Typesafe Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
+  val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
+  val typesafeSnapshots = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+  val typesafeMavenReleases = "Typesafe Maven Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
+  val typesafeMavenSnapshots = "Typesafe Maven Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
   val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
   val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
