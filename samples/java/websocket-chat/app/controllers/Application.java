@@ -29,6 +29,10 @@ public class Application extends Controller {
         }
         return ok(chatRoom.render(username));
     }
+
+    public static Result chatRoomJs(String username) {
+        return ok(views.js.chatRoom.render(username));
+    }
     
     /**
      * Handle the chat websocket.

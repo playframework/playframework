@@ -241,6 +241,27 @@ object JsonSpec extends Specification {
         )
       )
     }
+
+    "write in 2nd level" in {
+      case class TestCase(id: String, attr1: String, attr2: String)
+
+      val js = Json.obj(
+        "id" -> "my-id",
+        "data" -> Json.obj(
+          "attr1" -> "foo",
+          "attr2" -> "bar"
+        )
+      )
+
+      implicit val testCaseWrites: Writes[TestCase] = (
+        (__ \ "id").write[String] and
+        (__ \ "data" \ "attr1").write[String] and
+        (__ \ "data" \ "attr2").write[String]
+      )(unlift(TestCase.unapply))
+
+      Json.toJson(TestCase("my-id", "foo", "bar")) must beEqualTo(js)
+
+    }    
   }
 
 

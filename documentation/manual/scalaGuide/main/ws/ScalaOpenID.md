@@ -15,10 +15,10 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 The OpenID API has two important functions:
 
-* `OpenID.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page, this is why it returns a `Promise[String]` rather than a `String`. If the OpenID is invalid, the returned `Promise` will be a `Thrown`.
-* `OpenID.verifiedId` needs an implicit `Request`, and inspects it to establish the user information, including his verified OpenID. It will do a call to the OpenID server to check the authenticity of the information, this is why it returns a `Promise[UserInfo]` rather than just `UserInfo`. If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Promise` will be a `Thrown`.
+* `OpenID.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Future[String]`. If the OpenID is invalid, the returned `Future` will fail.
+* `OpenID.verifiedId` needs an implicit `Request` and inspects it to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, this is why a `Future[UserInfo]`  is returned. If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Future` will fail.
 
-In any case, when the `Promise` you get is a `Thrown`, you should look at the `Throwable` and redirect back the user to the login page with relevant information.
+If the `Future` fails, you can define a fallback, which redirects back the user to the login page or return a `BadRequest`.
 
 Here is an example of usage (from a controller):
 
@@ -34,27 +34,23 @@ def loginPost = Action { implicit request =>
     error => {
       Logger.info("bad request " + error.toString)
       BadRequest(error.toString)
-    },
-    {
-      case (openid) => AsyncResult(OpenID.redirectURL(openid, routes.Application.openIDCallback.absoluteURL())
-          .extend( _.value match {
-              case Redeemed(url) => Redirect(url)
-              case Thrown(t) => Redirect(routes.Application.login)
-          }))
+    }, {
+      case (openid) => AsyncResult {
+        val url = OpenID.redirectURL(openid,
+         routes.Application.openIDCallback.absoluteURL())
+        url.map(a => Redirect(a)).
+         fallbackTo(Future(Redirect(routes.Application.login)))
+      }
     }
   )
 }
 
 def openIDCallback = Action { implicit request =>
   AsyncResult(
-    OpenID.verifiedId.extend( _.value match {
-      case Redeemed(info) => Ok(info.id + "\n" + info.attributes)
-      case Thrown(t) => {
-        // Here you should look at the error, and give feedback to the user
-        Redirect(routes.Application.login)
-      }
-    })
-  )
+    OpenID.verifiedId.map((info: UserInfo) =>
+      Ok(info.id + "\n" + info.attributes)).
+       fallbackTo(Future(Forbidden))
+    )
 }
 ```
 

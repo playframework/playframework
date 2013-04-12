@@ -170,7 +170,8 @@ package play.templates {
     case class Block(whitespace: String, args: Option[PosString], content: Seq[TemplateTree]) extends ScalaExpPart with Positional
     case class Value(ident: PosString, block: Block) extends Positional
 
-    def compile(source: File, sourceDirectory: File, generatedDirectory: File, resultType: String, formatterType: String, additionalImports: String = "") = {
+    def compile(source: File, sourceDirectory: File, generatedDirectory: File, formatterType: String, additionalImports: String = "") = {
+      val resultType = formatterType + ".Appendable"
       val (templateName, generatedSource) = generatedFile(source, sourceDirectory, generatedDirectory)
       if (generatedSource.needRecompilation) {
         val generated = parseAndGenerateCode(templateName, Path(source).byteArray, source.getAbsolutePath, resultType, formatterType, additionalImports)
