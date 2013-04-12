@@ -36,10 +36,10 @@ object BuildSettings {
     scalaVersion := buildScalaVersion,
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    publishTo := Some(playRepository),
+    publishTo := Some(publishingMavenRepository),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
-    resolvers += typesafe)
+    resolvers ++= typesafeResolvers)
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
@@ -76,7 +76,7 @@ object BuildSettings {
       .settings(
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-        publishTo := Some(playRepository),
+        publishTo := Some(publishingMavenRepository),
         publishArtifact in packageDoc := false,
         publishArtifact in (Compile, packageSrc) := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
@@ -89,14 +89,17 @@ object Resolvers {
 
   import BuildSettings._
 
-  val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)
-  val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-  val typesafeReleases = "Typesafe Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
-  val typesafeSnapshot = "Typesafe Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
-  val playRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeSnapshot else typesafeReleases
+  val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
+  val typesafeSnapshots = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+  val typesafeMavenReleases = "Typesafe Maven Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
+  val typesafeMavenSnapshots = "Typesafe Maven Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
   val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  val typesafeIvySnapshot = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
-  val playIvyRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeIvySnapshot else typesafeIvyReleases
+  val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+
+  val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
+  val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeSnapshots) else Seq(typesafeReleases)
+  val publishingMavenRepository = if (isSnapshotBuild) typesafeMavenSnapshots else typesafeMavenReleases
+  val publishingIvyRepository = if (isSnapshotBuild) typesafeIvySnapshots else typesafeIvyReleases
 }
 
 
@@ -201,7 +204,7 @@ object PlayBuild extends Build {
       libraryDependencies += "com.typesafe.sbtidea" % "sbt-idea" % "1.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
       libraryDependencies += "org.specs2" %% "specs2" % "1.12.3" % "test" exclude("javax.transaction", "jta"),
       libraryDependencies += "org.scala-sbt" % "sbt" % buildSbtVersion % "provided",
-      publishTo := Some(playIvyRepository)
+      publishTo := Some(publishingIvyRepository)
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
 
   // todo this can be 2.10 and not cross-versioned or anything.  GO HOG WILD JAMES!
