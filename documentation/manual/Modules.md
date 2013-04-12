@@ -140,6 +140,11 @@
 * **Documentation:** <https://github.com/joscha/play-jsonminify/blob/master/README.md>
 * **Short description:** Allows JSON asset pretty-printing and minification
 
+## JSONP filter
+
+* **Website:** <https://github.com/julienrf/play-jsonp-filter>
+* **Short description:** Enables JSONP on your existing HTTP API.
+
 ## Manual Dependency Injection Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
 * **Short description:** provides DI via manual injection
