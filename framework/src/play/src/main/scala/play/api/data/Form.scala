@@ -53,7 +53,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form, filled with the new data
    */
   def bind(data: Map[String, String]): Form[T] = mapping.bind(data).fold(
-    errors => this.copy(data = data, errors = errors, value = None),
+    newErrors => this.copy(data = data, errors = errors ++ newErrors, value = None),
     value => this.copy(data = data, errors = errors, value = Some(value)))
 
   /**
