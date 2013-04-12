@@ -20,7 +20,7 @@
     1. [[Set-up a front-end HTTP server | HTTPServer]]
 1. Hacking Play 2.0
     1. [[Building Play 2.0 from source | BuildingFromSource]]
-    1. [[CI server at Cloudbees | CIServer]]
+    1. [[Third party tools | ThirdPartyTools]]
     1. [[Repositories | Repositories]]
     1. [[Issue tracker | Issues]]
     1. [[Contributor guidelines | Guidelines]]

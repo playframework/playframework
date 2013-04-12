@@ -15,7 +15,7 @@ resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/
 
 ## Accessing snapshots
 
-Snapshots are published daily from our [[Continuous Server|CIServer]] to the Typesafe snapshots repository at <http://repo.typesafe.com/typesafe/snapshots/>.
+Snapshots are published daily from our [[Continuous Integration Server|ThirdPartyTools]] to the Typesafe snapshots repository at <http://repo.typesafe.com/typesafe/snapshots/>.
 
 ```
 // The Typesafe snapshots repository

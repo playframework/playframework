@@ -121,6 +121,7 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
         }
 
       }
+      case _ => None
     }
   }
 }
