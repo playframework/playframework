@@ -83,6 +83,8 @@ trait Appendable[T] {
 
   object TemplateMagic {
 
+    import scala.language.implicitConversions
+
     // --- UTILS
 
     def defining[T](t: T)(handler: T => Any) = {
