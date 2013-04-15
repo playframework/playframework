@@ -32,7 +32,9 @@ trait ServerWithStop {
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+
+  require(port.isDefined || sslPort.isDefined, "Neither http.port nor https.port is specified")
 
   def applicationProvider = appProvider
 
@@ -123,7 +125,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
 
   // The HTTP server channel
-  val HTTP = {
+  val HTTP = port.map { port =>
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory)
     val channel = bootstrap.bind(new InetSocketAddress(address, port))
@@ -143,7 +145,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   mode match {
     case Mode.Test =>
     case _ => {
-      Logger("play").info("Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
+      HTTP.foreach { http =>
+        Logger("play").info("Listening for HTTP on %s".format(http._2.getLocalAddress))
+      }
       HTTPS.foreach { https =>
         Logger("play").info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
@@ -173,14 +177,20 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     allChannels.close().awaitUninterruptibly()
 
     // Release the HTTP server
-    HTTP._1.releaseExternalResources()
+    HTTP.foreach(_._1.releaseExternalResources())
 
     // Release the HTTPS server if needed
     HTTPS.foreach(_._1.releaseExternalResources())
 
   }
 
-  override lazy val mainAddress = HTTP._2.getLocalAddress.asInstanceOf[InetSocketAddress]
+  override lazy val mainAddress = {
+    if(HTTP.isDefined) {
+      HTTP.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
+    } else {
+      HTTPS.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
+    }
+  }
 
 }
 
@@ -228,7 +238,7 @@ object NettyServer {
     try {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
-        Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
+        Option(System.getProperty("http.port")).fold(Option(9000))(p => if(p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
@@ -264,15 +274,24 @@ object NettyServer {
       }
   }
 
+
+  def mainDevOnlyHttpsMode(sbtLink: SBTLink, httpsPort: Int): NettyServer = {
+    mainDev(sbtLink, None, Some(httpsPort))
+  }
+
   /**
    * provides a NettyServer for the dev environment
    */
-  def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
+  def mainDevHttpMode(sbtLink: SBTLink, httpPort: Int): NettyServer = {
+    mainDev(sbtLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+  }
+
+  private def mainDev(sbtLink: SBTLink, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val appProvider = new ReloadableApplication(sbtLink)
-        new NettyServer(appProvider, port,
-          Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
+        new NettyServer(appProvider, httpPort,
+          httpsPort,
           mode = Mode.Dev)
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause
