@@ -35,8 +35,8 @@ This is the process for a contributor (that is, a non Play core developer) to co
         * Java and Scala APIs should be implemented the following way:
             * implement the core API in scala (`play.api.xxx`)
             * if your component requires life cycle management or needs to be swappable, create a plugin, otherwise skip this step
-            * wrap core API for scala users ([example]  (https://github.com/playframework/Play20/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala#L69))
-            * wrap scala API for java users ([example](https://github.com/playframework/Play20/blob/master/framework/src/play/src/main/java/play/cache/Cache.java))
+            * wrap core API for scala users ([example]  (https://github.com/playframework/Play20/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala#L69))
+            * wrap scala API for java users ([example](https://github.com/playframework/Play20/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java))
         * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
 3. Submit a pull request.  If an issue already exists for the pull request, then follow [these](http://opensoul.org/blog/archives/2012/11/09/convert-a-github-issue-into-a-pull-request/) instructions for converting an issue into a pull request.
 
