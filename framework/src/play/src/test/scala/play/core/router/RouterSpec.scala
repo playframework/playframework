@@ -27,14 +27,22 @@ object RouterSpec extends Specification {
   "PathPattern" should {
     val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
     val pathString = "/path/to/some%20file"
+    val pathNonEncodedString1 = "/path/to/bar:baz"
+    val pathNonEncodedString2 = "/path/to/bar:%20baz"
     val pathStringInvalid = "/path/to/invalide%2"
 
     "Bind Path string as string" in {
       pathPattern(pathString).get("foo") must beEqualTo(Right("some file"))
     }
+    "Bind Path with incorrectly encoded string as string" in {
+      pathPattern(pathNonEncodedString1).get("foo") must beEqualTo(Right("bar:baz"))
+    }
+    "Bind Path with incorrectly encoded string as string" in {
+      pathPattern(pathNonEncodedString2).get("foo") must beEqualTo(Right("bar: baz"))
+    }
     "Fail on unparseable Path string" in {
       val Left(e) = pathPattern(pathStringInvalid).get("foo")
-      e.getMessage must beEqualTo("Malformed escape pair at index 8: invalide%2")
+      e.getMessage must beEqualTo("Malformed escape pair at index 9: /invalide%2")
     }
 
     "multipart path is not decoded" in {
