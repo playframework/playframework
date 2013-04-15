@@ -92,6 +92,28 @@ object ScalaForms {
       )
     )
 
+    val keyedForm = Form(
+      tuple(
+        "name" -> nonEmptyText,
+        "emails" -> keyed(nonEmptyText)
+      )
+    )
+
+    val keyedForm2 = Form(
+      "settings" -> keyed(list(nonEmptyText))
+    )
+
+    val keyedForm3 = Form(
+      "settings" -> keyed(seq(tuple(
+        "value" -> nonEmptyText,
+        "text" -> nonEmptyText
+      )))
+    )
+
+    val keyedForm4 = Form(
+      "settings" -> keyed(keyed(nonEmptyText))
+    )
+
     val form = Form(
           "foo" -> Forms.text.verifying("first.digit", s => (s.headOption map {_ == '3'}) getOrElse false)
                      .transform[Int](Integer.parseInt _, _.toString).verifying("number.42", _ < 42)
@@ -237,6 +259,17 @@ object FormSpec extends Specification {
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")) ).hasErrors must equalTo(true)
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com")))
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
+  }
+
+  "support keyed values" in {
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki")) ).get must equalTo("Kiki", Map[String,String]())
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[personal]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Map("personal" -> "kiki@gmail.com")))
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[personal]" -> Seq("kiki@gmail.com"), "emails[work]" -> Seq("kiki@acme.corp")) ).get must equalTo(("Kiki", Map("work" -> "kiki@acme.corp", "personal" -> "kiki@gmail.com")))
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[personal]" -> Seq("kiki@gmail.com"), "emails[work]" -> Seq("kiki@acme.corp"), "emails[]" -> Seq("kiki@zen.com"), "emails" -> Seq("kiki@x.com")) ).get must equalTo(("Kiki", Map("0" -> "kiki@zen.com", "work" -> "kiki@acme.corp", "personal" -> "kiki@gmail.com")))
+    ScalaForms.keyedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@acme.corp"), "emails" -> Seq("kiki@zen.com")) ).get must equalTo(("Kiki", Map("0" -> "kiki@gmail.com", "1" -> "kiki@acme.corp")))
+    ScalaForms.keyedForm2.bindFromRequest( Map("settings[A][0]" -> Seq("A0"), "settings[A][1]" -> Seq("A1"), "settings[B][0]" -> Seq("B0")) ).get must equalTo( Map("A" -> Seq("A0", "A1"), "B" -> Seq("B0")) )
+    ScalaForms.keyedForm3.bindFromRequest( Map("settings[A][0].value" -> Seq("A0.value"), "settings[A][0].text" -> Seq("A0.text"), "settings[A][1].value" -> Seq("A1.value"), "settings[A][1].text" -> Seq("A1.text")) ).get must equalTo( Map("A" -> Seq(("A0.value", "A0.text"), ("A1.value", "A1.text"))) )
+    ScalaForms.keyedForm4.bindFromRequest( Map("settings[A][A]" -> Seq("AA"), "settings[A][B]" -> Seq("AB"), "settings[B][A]" -> Seq("BA")) ).get must equalTo( Map("A" -> Map("A" -> "AA", "B" -> "AB"), "B" -> Map("A" -> "BA")) )
   }
 
   "support repeated values for Java binding" in {
