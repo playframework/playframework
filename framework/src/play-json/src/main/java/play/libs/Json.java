@@ -8,7 +8,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Helper functions to handle JsonNode values.
  */
 public class Json {
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper defaultObjectMapper = new ObjectMapper();
+    private static volatile ObjectMapper objectMapper = null;
+
+    // Ensures that there always is *a* object mapper
+    private static ObjectMapper mapper() {
+        if (objectMapper == null) {
+            return defaultObjectMapper;
+        } else {
+            return objectMapper;
+        }
+    }
 
     /**
      * Convert an object to JsonNode.
@@ -17,7 +27,7 @@ public class Json {
      */
     public static JsonNode toJson(final Object data) {
         try {
-            return mapper.valueToTree(data);
+            return mapper().valueToTree(data);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
@@ -31,7 +41,7 @@ public class Json {
      */
     public static <A> A fromJson(JsonNode json, Class<A> clazz) {
         try {
-            return mapper.treeToValue(json, clazz);
+            return mapper().treeToValue(json, clazz);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
@@ -41,7 +51,7 @@ public class Json {
      * Creates a new empty ObjectNode.
      */ 
     public static ObjectNode newObject() {
-        return mapper.createObjectNode();
+        return mapper().createObjectNode();
     }
 
     /**
@@ -56,7 +66,7 @@ public class Json {
      */
     public static JsonNode parse(String src) {
         try {
-            return mapper.readValue(src, JsonNode.class);
+            return mapper().readValue(src, JsonNode.class);
         } catch(Throwable t) {
             throw new RuntimeException(t);
         }
@@ -67,10 +77,20 @@ public class Json {
      */
     public static JsonNode parse(java.io.InputStream src) {
         try {
-            return mapper.readValue(src, JsonNode.class);
+            return mapper().readValue(src, JsonNode.class);
         } catch(Throwable t) {
             throw new RuntimeException(t);
         }
+    }
+
+    /**
+     * Inject the object mapper to use.
+     *
+     * This is intended to be used when Play starts up.  By default, Play will inject its own object mapper here,
+     * but this mapper can be overridden either by a custom plugin or from Global.onStart.
+     */
+    public static void setObjectMapper(ObjectMapper mapper) {
+        objectMapper = mapper;
     }
 
 }
