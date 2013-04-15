@@ -34,9 +34,11 @@ case class PathPattern(parts: Seq[PathPart]) {
 
   private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] = matcher =>
     Exception.allCatch[String].either {
-      if(decode)
-         new URI(matcher.group(groupCount)).getPath
-      else
+      if(decode) {
+        val group = matcher.group(groupCount)
+        // If param is not correctly encoded, get path will return null, so we prepend a / to it
+        new URI("/"+group).getPath.drop(1)
+      } else
         matcher.group(groupCount)
     }
 
