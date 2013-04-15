@@ -27,7 +27,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def async(p: scala.concurrent.Future[Result]) = AsyncResult(p)
   def chunked[A](onDisconnected: () => Unit): play.libs.F.Tuple[Enumerator[A], Channel[A]] = {
     val (enumerator, channel) = Concurrent.broadcast[A]
-    play.libs.F.Tuple(enumerator.onDoneEnumerating(onDisconnected()), channel)
+    play.libs.F.Tuple(enumerator.onDoneEnumerating(onDisconnected())(play.core.Execution.internalContext), channel)
   }
   //play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] = Enumerator.fromStream(stream, chunkSize)

@@ -24,7 +24,7 @@ private[netty] trait Helpers {
         case Empty => Cont(step(future))
       }
 
-    Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
+    Enumeratee.breakE[A](_ => !channel.isConnected())(play.core.Execution.internalContext).transform(Cont(step(None)))
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {

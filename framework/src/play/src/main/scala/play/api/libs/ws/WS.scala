@@ -269,7 +269,7 @@ object WS {
                 iterateeP.success(it)
                 it
               }
-            }
+            }(play.core.Execution.internalContext)
             STATE.CONTINUE
           } else {
             iteratee = null

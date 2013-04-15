@@ -34,7 +34,7 @@ trait Filter extends EssentialFilter {
       def apply(rh:RequestHeader):Iteratee[Array[Byte],Result] = {
         val it = scala.concurrent.Promise[Iteratee[Array[Byte],Result]]()
         val result = self.apply({(rh:RequestHeader) => it.success(next(rh)) ; AsyncResult(p.future)})(rh)
-        val i = it.future.map(_.map({r => p.success(r); result}))
+        val i = it.future.map(_.map({r => p.success(r); result})(defaultContext))
         result match {
           case r:AsyncResult => Iteratee.flatten( r.unflatten.map(Done(_,Input.Empty: Input[Array[Byte]])).or(i).map(_.fold(identity, identity)))
           case r:PlainResult => Done(r)

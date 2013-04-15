@@ -201,7 +201,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   // No Content-Length header specified, buffer in-memory
                   val channelBuffer = ChannelBuffers.dynamicBuffer(512)
                   val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
-                  val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
+                  val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })(internalExecutionContext)
                   val p = (body |>>> Enumeratee.grouped(stringIteratee) &>> Cont { 
                     case Input.El(buffer) =>
                       nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
@@ -266,11 +266,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1))
                 }
 
-                chunks apply bodyIteratee.map { _ =>
+                chunks apply bodyIteratee.map[Unit] { _ =>
                   cleanup()
                   ctx.setAttachment(null)
                   if (!keepAlive) Channels.close(e.getChannel)
-                }
+                }(internalExecutionContext)
               }
 
               case _ =>
@@ -306,11 +306,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             val a = EssentialAction{ rh =>
               Iteratee.flatten(action(rh).map {
                 case r: PlainResult => cleanFlashCookie(r)
-                case a:AsyncResult => a.transform(cleanFlashCookie)
-              }.unflatten.extend1{
+                case a:AsyncResult => a.transform(cleanFlashCookie)(internalExecutionContext)
+              }(internalExecutionContext).unflatten.extend1{
                 case Redeemed(it) => it.it
-                case Thrown(e) => Done(app.handleError(requestHeader, e),Input.Empty)
-              })
+                case Thrown(e) => Done(app.handleError(requestHeader, e),Input.Empty): Iteratee[Array[Byte],Result]
+              }(internalExecutionContext))
             }
             handleAction(a,Some(app))
 
@@ -345,11 +345,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
 
           requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
-            eventuallyBodyParser.flatMap(_.unflatten).map {
+            eventuallyBodyParser.flatMap(_.unflatten)(internalExecutionContext).map {
               case Step.Cont(k) =>
                 sendDownstream(0, true, new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
               case _ =>
-            }
+            }(internalExecutionContext)
           }
 
           val eventuallyResultIteratee = if (nettyHttpRequest.isChunked) {
@@ -373,12 +373,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               Enumerator(body).andThen(Enumerator.enumInput(EOF))
             }
 
-            eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): scala.concurrent.Future[Iteratee[Array[Byte], Result]]
+            eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it)(internalExecutionContext): scala.concurrent.Future[Iteratee[Array[Byte], Result]]
 
           }
 
 
-          val eventuallyResult = eventuallyResultIteratee.flatMap(it => it.run)
+          val eventuallyResult = eventuallyResultIteratee.flatMap(it => it.run)(internalExecutionContext)
           eventuallyResult.extend1 {
             case Redeemed(r) => response.handle(r)
 
@@ -386,7 +386,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               Logger("play").error("Cannot invoke the action, eventually got an error: " + error)
               response.handle( app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)))
               e.getChannel.setReadable(true)
-          }
+          }(internalExecutionContext)
         }
 
       case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
@@ -406,7 +406,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       : Iteratee[E, Unit] = {
     Iteratee.flatten(
       NettyPromise(future)
-        .map(_ => if (ctx.getChannel.isConnected()) Cont(step) else Done((), Input.Empty)))
+        .map[Iteratee[E,Unit]](_ => if (ctx.getChannel.isConnected()) Cont(step) else Done((), Input.Empty))(internalExecutionContext))
   }
 
 }

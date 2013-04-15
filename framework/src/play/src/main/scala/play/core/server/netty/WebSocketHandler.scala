@@ -60,9 +60,9 @@ private[server] trait WebSocketHandler {
 
                 case Step.Cont(_) => Promise.pure(next)
                 case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
-              }
+              }(play.core.Execution.internalContext)
             },
-            (err, e) => /* handle error, maybe close the socket */ Promise.pure(current))
+            (err, e) => /* handle error, maybe close the socket */ Promise.pure(current))(play.core.Execution.internalContext)
         eventuallyNext.success(next)
       }
     }

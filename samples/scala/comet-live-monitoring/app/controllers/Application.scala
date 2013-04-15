@@ -41,13 +41,13 @@ object Streams {
       val currentMillis = java.lang.System.currentTimeMillis()
       Some(SpeedOMeter.getSpeed +":rps") },
       100, TimeUnit.MILLISECONDS )
-    }
+    }(defaultContext)
 
   val getHeap = Enumerator.fromCallback{ () =>
     Promise.timeout(
       Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024*1024) + ":memory"),
       100, TimeUnit.MILLISECONDS)
-  }
+  }(defaultContext)
 
   val cpu = new models.CPU()
 
@@ -55,7 +55,7 @@ object Streams {
     Promise.timeout(
       Some((cpu.getCpuUsage()*1000).round / 10.0 + ":cpu"),
       100, TimeUnit.MILLISECONDS)
-  }
+  }(defaultContext)
 
 }
 

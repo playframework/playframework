@@ -4,6 +4,7 @@ import play.api.mvc._
 import java.io.File
 import play.core._
 import play.api._
+import play.api.libs.concurrent.Execution
 import libs.iteratee.Iteratee
 import com.typesafe.config.ConfigFactory
 import server.NettyServer
@@ -56,7 +57,7 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, "api/" + page)).filter(f => f.exists && f.isFile)
           }.map { file =>
-            Ok.sendFile(file, inline = true)
+            Ok.sendFile(file, inline = true)(Execution.defaultContext)
           }.getOrElse {
             NotFound(views.html.play20.manual(page, None, None))
           }
@@ -70,7 +71,7 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, path)).filter(_.exists)
           }.map { file =>
-            Ok.sendFile(file, inline = true)
+            Ok.sendFile(file, inline = true)(Execution.defaultContext)
           }.getOrElse(NotFound("Resource not found [" + path + "]"))
         }
 
