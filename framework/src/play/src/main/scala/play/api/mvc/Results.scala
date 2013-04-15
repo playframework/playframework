@@ -607,7 +607,7 @@ trait Results {
      *
      * @tparam C the content type
      * @param content content to send
-     * @param a `SimpleResult`
+     * @return a `SimpleResult`
      */
     def apply[C](content: C)(implicit writeable: Writeable[C]): SimpleResult[C] = {
       SimpleResult(
@@ -637,7 +637,7 @@ trait Results {
      *
      * @tparam C the chunk type
      * @param content Enumerator providing the chunked content.
-     * @param a `ChunkedResult`
+     * @return a `ChunkedResult`
      */
     def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
@@ -656,7 +656,7 @@ trait Results {
      *
      * @tparam C the chunk type
      * @param content A function that will give you the Iteratee to write in once ready.
-     * @param a `ChunkedResult`
+     * @return a `ChunkedResult`
      */
     def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
