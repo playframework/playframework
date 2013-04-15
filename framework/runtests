@@ -9,13 +9,7 @@ export SCRIPT=`dirname $0`
 cd $SCRIPT
 export PLAY=`pwd`/../play
 
-./build "$@" publish-local
-
-echo "[info]"
-echo "[info] ---- RUNNING FRAMEWORK SPECS"
-echo "[info]"
-
-./build "$@" test
+./build "$@" publish-local test
 
 rm -rf ./logs
 
