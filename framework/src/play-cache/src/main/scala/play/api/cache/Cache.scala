@@ -129,7 +129,15 @@ import net.sf.ehcache._
  */
 class EhCachePlugin(app: Application) extends CachePlugin {
 
-  lazy val manager = CacheManager.create()
+  @volatile var loaded = false
+
+  lazy val manager = {
+    loaded = true
+    // See if there's an ehcache.xml, or fall back to the built in ehcache-default.xml
+    val ehcacheXml = Option(app.classloader.getResource("ehcache.xml"))
+      .getOrElse(app.classloader.getResource("ehcache-default.xml"))
+    CacheManager.create(ehcacheXml)
+  }
 
   lazy val cache: Ehcache = {
     manager.addCache("play")
@@ -152,7 +160,9 @@ class EhCachePlugin(app: Application) extends CachePlugin {
   }
 
   override def onStop() {
-    manager.shutdown()
+    if (loaded) {
+      manager.shutdown()
+    }
   }
 
   lazy val api = new EhCacheImpl(cache)

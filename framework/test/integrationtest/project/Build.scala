@@ -10,7 +10,8 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     javaJdbc,
     javaCore,
-    anorm)
+    anorm,
+    cache)
 
   val distTestSettings = DistTest.makeSettings(appName, appVersion)
 
