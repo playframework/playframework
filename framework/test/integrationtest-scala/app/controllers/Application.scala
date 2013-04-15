@@ -35,7 +35,7 @@ object Application extends Controller {
   def bodyParserThread = Action(new BodyParser[String] {
     def apply(request: RequestHeader) = {
       val threadName = Thread.currentThread.getName
-      Iteratee.ignore[Array[Byte]].map(_ => Right(threadName))
+      Iteratee.ignore[Array[Byte]].map(_ => Right(threadName))(play.api.libs.concurrent.Execution.defaultContext)
     }
   }) { request =>
     Ok(request.body)

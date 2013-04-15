@@ -19,7 +19,7 @@ object Robot {
   def apply(chatRoom: ActorRef) {
     
     // Create an Iteratee that logs all messages to the console.
-    val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))
+    val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))(defaultContext)
     
     implicit val timeout = Timeout(1 second)
     // Make the robot join the room
@@ -62,9 +62,9 @@ object ChatRoom {
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
           default ! Talk(username, (event \ "text").as[String])
-        }.mapDone { _ =>
+        }(defaultContext).mapDone { _ =>
           default ! Quit(username)
-        }
+        }(defaultContext)
 
         (iteratee,enumerator)
         

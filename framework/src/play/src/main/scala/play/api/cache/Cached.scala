@@ -46,7 +46,7 @@ case class Cached(key: RequestHeader => String, duration: Int)(action: Essential
         iterateeResult.map { result =>
           Cache.set(etagKey, etag, duration) // Cache the new ETAG of the resource
           result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
-        }
+        }(play.core.Execution.internalContext)
       }
     }
   }
