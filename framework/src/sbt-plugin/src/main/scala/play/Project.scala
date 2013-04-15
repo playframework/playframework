@@ -31,7 +31,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
 
   // ----- Create a Play project with default settings
  
-  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Defaults.defaultSettings): sbt.Project = {
+  def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Seq()): sbt.Project = {
     val mainLang = if (dependencies.contains(javaCore)) JAVA else SCALA
 
     lazy val playSettings =
@@ -42,9 +42,9 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
         libraryDependencies ++= dependencies
       )
 
-    lazy val allSettings = settings ++ playSettings
-
-    sbt.Project(name, path, settings = allSettings)
+    sbt.Project(name, path)
+      .settings(playSettings: _*)
+      .settings(settings: _*)
 
   }
 }
