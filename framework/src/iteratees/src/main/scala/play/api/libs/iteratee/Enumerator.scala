@@ -1,9 +1,10 @@
 package play.api.libs.iteratee
 
-import scala.concurrent.{ Future, Promise }
+import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec, eagerFuture }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Try, Success, Failure }
-import play.api.libs.iteratee.internal.defaultExecutionContext
 import scala.language.reflectiveCalls
+
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
@@ -45,7 +46,7 @@ trait Enumerator[E] {
     * Unlike `apply` or `|>>`, this method does not allow you to access the
     * unconsumed input.
     */
-  def |>>>[A](i: Iteratee[E, A]): Future[A] = apply(i).flatMap(_.run)
+  def |>>>[A](i: Iteratee[E, A]): Future[A] = apply(i).flatMap(_.run)(dec)
 
   /**
    * Alias for `|>>>`; drives the iteratee to consume the enumerator's
@@ -58,7 +59,7 @@ trait Enumerator[E] {
   * A variation on `apply` or `|>>` which returns the state of the iteratee rather
   * than the iteratee itself. This can make your code a little shorter.
   */
-  def |>>|[A](i: Iteratee[E, A]): Future[Step[E,A]] = apply(i).flatMap(_.unflatten)
+  def |>>|[A](i: Iteratee[E, A]): Future[Step[E,A]] = apply(i).flatMap(_.unflatten)(dec)
   
   /**
    * Sequentially combine this Enumerator with another Enumerator. The resulting enumerator
@@ -67,7 +68,7 @@ trait Enumerator[E] {
    * produces an Input.EOF.
    */
   def andThen(e: Enumerator[E]): Enumerator[E] = new Enumerator[E] {
-    def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply) //bad implementation, should remove Input.EOF in the end of first
+    def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(i).flatMap(e.apply)(dec) //bad implementation, should remove Input.EOF in the end of first
   }
 
   def interleave[B >: E](other: Enumerator[B]): Enumerator[B] = Enumerator.interleave(this, other)
@@ -85,14 +86,14 @@ trait Enumerator[E] {
     def apply[A](i: Iteratee[To, A]): Future[Iteratee[To, A]] = {
       val transformed = enumeratee.applyOn(i)
       val xx = parent |>> transformed
-      xx.flatMap(_.run)
+      xx.flatMap(_.run)(dec)
 
     }
   }
 
-  def onDoneEnumerating(callback: => Unit) = new Enumerator[E]{
+  def onDoneEnumerating(callback: => Unit)(ec: ExecutionContext) = new Enumerator[E]{
 
-    def apply[A](it:Iteratee[E,A]):Future[Iteratee[E,A]] = parent.apply(it).map{ a => callback; a}
+    def apply[A](it:Iteratee[E,A]):Future[Iteratee[E,A]] = parent.apply(it).map{ a => callback; a}(ec)
 
   }
 
@@ -120,11 +121,15 @@ trait Enumerator[E] {
    * @param f function to map
    * @return enumerator
    */
-  def flatMap[U](f: E => Enumerator[U]): Enumerator[U] = {
+  def flatMap[U](f: E => Enumerator[U])(ec: ExecutionContext): Enumerator[U] = {
     new Enumerator[U] {
       def apply[A](iteratee: Iteratee[U, A]): Future[Iteratee[U, A]] = {
-
-        val folder = Iteratee.fold2[E, Iteratee[U, A]](iteratee)((it, e) => f(e)(it).flatMap(newIt => Iteratee.isDoneOrError(newIt).map((newIt, _))))
+        import ExecutionContext.Implicits.global
+        val folder = Iteratee.fold2[E, Iteratee[U, A]](iteratee) { (it, e) => for {
+          en <- Future(f(e))(ec)
+          newIt <- en(it)
+          done <- Iteratee.isDoneOrError(newIt)
+        } yield ((newIt, done)) }(dec)
         parent(folder).flatMap(_.run)
       }
     }
@@ -139,7 +144,7 @@ object Enumerator {
 
   def flatten[E](eventuallyEnum: Future[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
 
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = eventuallyEnum.flatMap(_.apply(it))
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = eventuallyEnum.flatMap(_.apply(it))(dec)
 
   }
 
@@ -150,9 +155,9 @@ object Enumerator {
   def enumInput[E](e: Input[E]) = new Enumerator[E] {
     def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] =
       i.fold{ 
-        case Step.Cont(k) => Future(k(e))
-        case _ =>  Future.successful(i)
-      }
+        case Step.Cont(k) => eagerFuture(k(e))
+        case _ => Future.successful(i)
+      }(dec)
   }
 
   /**
@@ -172,6 +177,7 @@ object Enumerator {
   def interleave[E](es: Seq[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
 
     import scala.concurrent.stm._
+    import ExecutionContext.Implicits.global
 
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
@@ -203,12 +209,12 @@ object Enumerator {
                     case _ => 
                       p.success(n)
                       Future.successful(Done((), Input.Empty: Input[EE]))
-                  }
+                  }(dec)
                 case _ =>
                   p.success(i)
                   Future.successful(Done((),Input.Empty: Input[EE]))
 
-              }
+              }(dec)
               Iteratee.flatten(nextI)
             case Input.EOF => {
               if(attending.single.transformAndGet { _.map(f) }.forall(_ ==  false)){
@@ -223,7 +229,7 @@ object Enumerator {
         Cont(step)
       }
       val ps = es.zipWithIndex.map{ case (e,index) => e |>> iteratee[E](_.patch(index,Seq(true),1))}
-                     .map(_.flatMap(_.pureFold(any => ())))
+                     .map(_.flatMap(_.pureFold(any => ())(dec)))
 
       Future.sequence(ps).onComplete {
         case Success(_) => 
@@ -246,6 +252,7 @@ object Enumerator {
   def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2] {
 
     import scala.concurrent.stm._
+    import ExecutionContext.Implicits.global
 
     def apply[A](it: Iteratee[E2, A]): Future[Iteratee[E2, A]] = {
 
@@ -277,12 +284,12 @@ object Enumerator {
                     case _ => 
                       p.success(n)
                       Future.successful(Done((), Input.Empty: Input[EE]))
-                  }
+                  }(dec)
                 case _ =>
                   p.success(i)
                   Future.successful(Done((),Input.Empty: Input[EE]))
 
-              }
+              }(dec)
               Iteratee.flatten(nextI)
             case Input.EOF => {
               if(attending.single.transformAndGet { _.map(f) } == Some((false, false))){
@@ -324,14 +331,14 @@ object Enumerator {
   def imperative[E](
     onStart: () => Unit = () => (),
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)(ec)
 
 
   @scala.deprecated("use Concurrent.unicast instead", "2.1.0")
   def pushee[E](
     onStart: Pushee[E] => Unit,
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
 
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
       var iteratee: Iteratee[E, A] = it
@@ -340,36 +347,33 @@ object Enumerator {
       val pushee = new Pushee[E] {
         def close() {
           if (iteratee != null) {
-            iteratee.feed(Input.EOF).map(result => promise.success(result))
+            iteratee.feed(Input.EOF).map(result => promise.success(result))(dec)
             iteratee = null
             promise = null
           }
         }
         def push(item: E): Boolean = {
           if (iteratee != null) {
-            iteratee = iteratee.pureFlatFold[E, A] {
+            iteratee = iteratee.flatFold0[E, A] {
 
               case Step.Done(a, in) => {
-                onComplete()
-                Done(a, in)
+                Future(onComplete())(ec).map(_ => Done(a, in))(dec)
               }
 
               case Step.Cont(k) => {
                 val next = k(Input.El(item))
-                next.pureFlatFold {
+                next.fold {
                   case Step.Done(a, in) => {
-                    onComplete()
-                    next
+                    Future(onComplete())(ec).map(_ => next)(dec)
                   }
-                  case _ => next
-                }
+                  case _ => Future.successful(next)
+                }(dec)
               }
 
               case Step.Error(e, in) => {
-                onError(e, in)
-                Error(e, in)
+                Future(onError(e, in))(ec).map(_ => Error(e, in))(dec)
               }
-            }
+            }(dec)
             true
           } else {
             false
@@ -381,7 +385,6 @@ object Enumerator {
     }
 
   }
-
 
   /**
    * Like [[play.api.libs.iteratee.Enumerator.unfold]], but allows the unfolding to be done asynchronously.
@@ -395,7 +398,7 @@ object Enumerator {
     def apply[A](loop: (Iteratee[E,A],S) => Future[Iteratee[E,A]], s:S, k: Input[E] => Iteratee[E,A]):Future[Iteratee[E,A]] = f(s).flatMap {
       case Some((newS,e)) => loop(k(Input.El(e)),newS)
       case None => Future.successful(Cont(k))
-    }
+    }(dec)
   })
 
   /**
@@ -440,7 +443,7 @@ object Enumerator {
    */
   def repeatM[E](e: => Future[E]): Enumerator[E] = checkContinue0( new TreatCont0[E]{
 
-    def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap(ee => loop(k(Input.El(ee))))
+    def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap(ee => loop(k(Input.El(ee))))(dec)
 
   })
 
@@ -456,7 +459,7 @@ object Enumerator {
     def apply[A](loop: Iteratee[E,A] => Future[Iteratee[E,A]], k: Input[E] => Iteratee[E,A]) = e.flatMap {
       case Some(e) => loop(k(Input.El(e)))
       case None => Future.successful(Cont(k))
-    }
+    }(dec)
   })
 
   trait TreatCont0[E]{
@@ -473,7 +476,7 @@ object Enumerator {
           case Step.Done(a, e) => Future.successful(Done(a,e))
           case Step.Cont(k) => inner[A](step,k)
           case Step.Error(msg, e) => Future.successful(Error(msg,e))
-      }
+      }(dec)
 
       step(it)
     }
@@ -493,7 +496,7 @@ object Enumerator {
           case Step.Done(a, e) => Future.successful(Done(a,e))
           case Step.Cont(k) => inner[A](step,state,k)
           case Step.Error(msg, e) => Future.successful(Error(msg,e))
-      }
+      }(dec)
       step(it,s)
     }
 
@@ -501,7 +504,7 @@ object Enumerator {
 
   def fromCallback1[E](retriever: Boolean => Future[Option[E]],
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
@@ -510,7 +513,7 @@ object Enumerator {
 
         val next = it.fold {
           case Step.Cont(k) => {
-            retriever(initial).map {
+            Future(retriever(initial))(ec).flatMap(x => x)(dec).map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
                 iterateeP.success(remainingIteratee)
@@ -520,18 +523,18 @@ object Enumerator {
                 val nextIteratee = k(Input.El(read))
                 Some(nextIteratee)
               }
-            }
+            }(dec)
           }
           case _ => { iterateeP.success(it); Future.successful(None) }
-        }
+        }(dec)
 
         next.onComplete {
           case Success(Some(i)) => step(i)
 
-          case Success(None) => onComplete()
+          case Success(None) => Future(onComplete())(ec)
           case Failure(e) =>
             iterateeP.failure(e)
-        }
+        }(dec)
       }
       step(it, true)
       iterateeP.future
@@ -541,7 +544,7 @@ object Enumerator {
   @scala.deprecated("use Enumerator.generateM instead", "2.1.0")
   def fromCallback[E](retriever: () => Future[Option[E]],
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
@@ -550,7 +553,7 @@ object Enumerator {
 
         val next = it.fold{
           case Step.Cont(k) => {
-            retriever().map {
+            Future(retriever())(ec).flatMap(x => x)(dec).map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
                 iterateeP.success(remainingIteratee)
@@ -560,17 +563,17 @@ object Enumerator {
                 val nextIteratee = k(Input.El(read))
                 Some(nextIteratee)
               }
-            }
+            }(dec)
           }
           case _ => { iterateeP.success(it); Future.successful(None) }
-        }
+        }(dec)
 
         next.onComplete {
           case Success(Some(i)) => step(i)
           case Failure(e) =>
             iterateeP.failure(e)
-          case _ => onComplete()
-        }
+          case _ => Future(onComplete())(ec)
+        }(dec)
 
       }
 
@@ -599,7 +602,7 @@ object Enumerator {
           System.arraycopy(buffer, 0, input, 0, read)
           Some(input)
       }
-      Future.successful(chunk)}).onDoneEnumerating(input.close)
+      Future.successful(chunk)}).onDoneEnumerating(input.close)(dec)
   }
 
   /**
@@ -641,7 +644,7 @@ object Enumerator {
         }
       }
       a(outputStream)
-    }
+    }(dec)
   }
 
   /**
@@ -691,7 +694,7 @@ object Enumerator {
       i.flatMap(it => it.pureFold{ 
         case Step.Cont(k) => k(Input.El(e))
         case _ => it
-      }))
+      }(dec))(dec))
   }
 
   private[iteratee] def enumerateSeq1[E](s:Seq[E]):Enumerator[E] = checkContinue1(s)(new TreatCont1[E,Seq[E]]{
@@ -714,7 +717,7 @@ object Enumerator {
 class PushEnumerator[E] private[iteratee] (
     onStart: () => Unit = () => (),
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()) extends Enumerator[E] with Enumerator.Pushee[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) extends Enumerator[E] with Enumerator.Pushee[E] {
 
   var iteratee: Iteratee[E, _] = _
   var promise: Promise[Iteratee[E, _]]= _
@@ -729,7 +732,7 @@ class PushEnumerator[E] private[iteratee] (
 
   def close() {
     if (iteratee != null) {
-      iteratee.feed(Input.EOF).map(result => promise.success(result))
+      iteratee.feed(Input.EOF).map(result => promise.success(result))(dec)
       iteratee = null
       promise = null
     }
@@ -737,29 +740,24 @@ class PushEnumerator[E] private[iteratee] (
 
   def push(item: E): Boolean = {
     if (iteratee != null) {
-      iteratee = iteratee.pureFlatFold[E, Any] {
+      iteratee = iteratee.flatFold0[E, Any] {
 
         case Step.Done(a, in) => {
-          onComplete()
-          Done(a, in)
+          Future(onComplete())(ec).map(_ => Done(a, in))(dec)
         }
 
         case Step.Cont(k) => {
           val next = k(Input.El(item))
-          next.pureFlatFold {
-            case Step.Done(a, in) => {
-              onComplete()
-              next
-            }
-            case _ => next
-          }
+          next.fold {
+            case Step.Done(a, in) => Future(onComplete())(ec).map(_ => next)(dec)
+            case _ => Future.successful(next)
+          }(dec)
         }
 
         case Step.Error(e, in) => {
-          onError(e, in)
-          Error(e, in)
+          Future(onError(e, in))(ec).map(_ => Error(e, in))(dec)
         }
-      }
+      }(dec)
       true
     } else {
       false

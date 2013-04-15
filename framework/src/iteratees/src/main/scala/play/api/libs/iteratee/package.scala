@@ -14,26 +14,27 @@ package play.api.libs {
 package play.api.libs.iteratee {
 
   private[iteratee] object internal {
-    import scala.concurrent.ExecutionContext
-    import java.util.concurrent.Executors
-    import java.util.concurrent.ThreadFactory
+    import java.util.concurrent.{ Executors, ThreadFactory }
     import java.util.concurrent.atomic.AtomicInteger
+    import play.api.libs.iteratee.Iteratee
+    import scala.concurrent.{ ExecutionContext, Future }
+    import scala.util.control.NonFatal
 
-    implicit lazy val defaultExecutionContext: scala.concurrent.ExecutionContext = {
-      val numberOfThreads = try {
-        com.typesafe.config.ConfigFactory.load().getInt("iteratee-threadpool-size")
-      } catch { case e: com.typesafe.config.ConfigException.Missing => Runtime.getRuntime.availableProcessors }
-      val threadFactory = new ThreadFactory {
-        val threadNo = new AtomicInteger()
-        val backingThreadFactory = Executors.defaultThreadFactory()
-        def newThread(r: Runnable) = {
-          val thread = backingThreadFactory.newThread(r)
-          thread.setName("iteratee-execution-context-" + threadNo.incrementAndGet())
-          thread
-        }
-      }
-
-      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numberOfThreads, threadFactory))
+    def defaultExecutionContext: ExecutionContext = ExecutionContext.global
+    
+    object Implicits {
+      def defaultExecutionContext: ExecutionContext = ExecutionContext.global
     }
+    
+    def sameThreadExecutionContext: ExecutionContext = new ExecutionContext {
+      def execute(runnable: Runnable): Unit = runnable.run()
+      def reportFailure(t: Throwable): Unit = t.printStackTrace()
+    }
+    
+    def eagerFuture[A](body: => A): Future[A] = try Future.successful(body) catch { case NonFatal(e) => Future.failed(e) }
+    
+    def executeFuture[A](body: => Future[A])(ec: ExecutionContext): Future[A] = Future(body)(ec).flatMap(x => x)(sameThreadExecutionContext)
+    
+    def executeIteratee[A,E](body: => Iteratee[A,E])(ec: ExecutionContext): Iteratee[A,E] = Iteratee.flatten(Future(body)(ec))
   }
 }

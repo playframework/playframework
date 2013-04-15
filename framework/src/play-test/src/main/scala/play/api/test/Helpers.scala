@@ -210,7 +210,7 @@ object Helpers extends Status with HeaderNames {
         val parsedBody: Option[Either[play.api.mvc.Result, T]] = action.parser(request).fold1(
           (a, in) => Promise.pure(Some(a)),
           k => Promise.pure(None),
-          (msg, in) => Promise.pure(None)).await.get
+          (msg, in) => Promise.pure(None))(global).await.get
         parsedBody.map { resultOrT =>
           resultOrT.right.toOption.map { innerBody =>
             action(FakeRequest(request.method, request.uri, request.headers, innerBody))

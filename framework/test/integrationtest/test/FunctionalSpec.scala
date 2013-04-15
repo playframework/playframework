@@ -45,7 +45,7 @@ class FunctionalSpec extends Specification {
         hdrs.get("CONTENT-TYpe").isDefined must equalTo(true)
         hdrs.keys.find(header => header == "Content-Type" ).isDefined must equalTo(true)
         hdrs.keys.find(header => header == "CONTENT-TYpe" ).isDefined must equalTo(false)
-        Iteratee.fold[Array[Byte],StringBuffer](new StringBuffer){ (buf,array) => { buf.append(array); buf }}
+        Iteratee.fold[Array[Byte],StringBuffer](new StringBuffer){ (buf,array) => { buf.append(array); buf }}(global)
       }
 
       await(hp.map(_.run)).map(buf => buf.toString must contain("""{"Accept":"application/json"}""") )

@@ -95,23 +95,21 @@ trait Action[A] extends EssentialAction {
    */
   def apply(request: Request[A]): Result
 
-  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).mapM { parseResult =>
-    Future(parseResult match {
-      case Left(r) =>
-        Logger("play").trace("Got direct result from the BodyParser: " + r)
-        r
-      case Right(a) =>
-        val request = Request(rh, a)
-        Logger("play").trace("Invoking action with request: " + request)
-        Play.maybeApplication.map { app =>
-          // try {
-          play.utils.Threads.withContextClassLoader(app.classloader) {
-            apply(request)
-          }
-          // } catch { case e => app.handleError(rh, e) }
-        }.getOrElse(Results.InternalServerError)
-    })(play.api.libs.concurrent.Execution.defaultContext)
-  }
+  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).map { 
+    case Left(r) =>
+      Logger("play").trace("Got direct result from the BodyParser: " + r)
+      r
+    case Right(a) =>
+      val request = Request(rh, a)
+      Logger("play").trace("Invoking action with request: " + request)
+      Play.maybeApplication.map { app =>
+        // try {
+        play.utils.Threads.withContextClassLoader(app.classloader) {
+          apply(request)
+        }
+        // } catch { case e => app.handleError(rh, e) }
+      }.getOrElse(Results.InternalServerError)
+  }(play.api.libs.concurrent.Execution.defaultContext)
 
   /**
    * Returns itself, for better support in the routes file.
@@ -138,7 +136,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * Transform this BodyParser[A] to a BodyParser[B]
    */
   def map[B](f: A => B): BodyParser[B] = new BodyParser[B] {
-    def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))
+    def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))(play.core.Execution.internalContext)
     override def toString = self.toString
   }
 
@@ -149,7 +147,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     def apply(request: RequestHeader) = self(request).flatMap {
       case Left(e) => Done(Left(e), Input.Empty)
       case Right(a) => f(a)(request)
-    }
+    }(play.core.Execution.internalContext)
     override def toString = self.toString
   }
 

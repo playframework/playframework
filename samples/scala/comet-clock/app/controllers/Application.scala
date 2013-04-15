@@ -25,7 +25,7 @@ object Application extends Controller {
     
     Enumerator.fromCallback { () =>
       Promise.timeout(Some(dateFormat.format(new Date)), 100 milliseconds)
-    }
+    }(defaultContext)
   }
   
   def index = Action {

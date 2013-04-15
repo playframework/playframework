@@ -51,7 +51,7 @@ public class JavaCometTest {
         });
         comet.close();
         try {
-          latch.await(5, java.util.concurrent.TimeUnit.MILLISECONDS);
+          latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
         } catch(Throwable t) {}
         assertEquals(1, callbackCalled.get());
       }

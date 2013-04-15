@@ -2,7 +2,6 @@ package play.api.libs.iteratee
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.reflectiveCalls
 
 import org.specs2.mutable._
@@ -25,9 +24,11 @@ object EnumerateesSpec extends Specification {
 
     "ignore chunkes while predicate is valid" in {
       
-      val drop3AndConsume = Enumeratee.dropWhile[String](_ != "4") &>>  Iteratee.consume[String]()
+      val dropWhileEC = TestExecutionContext()
+      val drop3AndConsume = Enumeratee.dropWhile[String](_ != "4")(dropWhileEC) &>>  Iteratee.consume[String]()
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> drop3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
+      dropWhileEC.executionCount must equalTo(4)
 
     }
 
@@ -35,7 +36,7 @@ object EnumerateesSpec extends Specification {
 
   "Enumeratee.take" should {
 
-    "pass only first 3 chunkes to Iteratee when applied with 3" in {
+    "pass only first 3 chunks to Iteratee when applied with 3" in {
       
       val take3AndConsume = Enumeratee.take[String](3) &>>  Iteratee.consume()
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
@@ -44,22 +45,26 @@ object EnumerateesSpec extends Specification {
     }
 
     "passes along what's left of chunks after taking 3" in {
-      
-      val take3AndConsume = (Enumeratee.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
+      val tec = TestExecutionContext()
+      val take3AndConsume = (Enumeratee.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())(tec)
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
+      tec.executionCount must equalTo(1)
 
     }
 
-    "not trigger callback on take 0" in {
+    "not execute callback on take 0" in {
+      val generateEC = TestExecutionContext()
+      val foldEC = TestExecutionContext()
       var triggered = false
-      val enumerator = Enumerator.fromCallback {
-        () =>
+      val enumerator = Enumerator.generateM {
           triggered = true
-          Future(Some(1))
+          Future(Some(1))(generateEC)
       }
-      Await.result(enumerator &> Enumeratee.take(0) |>>> Iteratee.fold(0)(_ + _), Duration.Inf) must equalTo(0)
+      Await.result(enumerator &> Enumeratee.take(0) |>>> Iteratee.fold(0)((_: Int) + (_: Int))(foldEC), Duration.Inf) must equalTo(0)
       triggered must beFalse
+      generateEC.executionCount must equalTo(0)
+      foldEC.executionCount must equalTo(0)
     }
 
   }
@@ -67,16 +72,22 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.takeWhile" should {
 
     "pass chunks until condition is not met" in {
-      val take3AndConsume = Enumeratee.takeWhile[String](_ != "4" ) &>>  Iteratee.consume()
+      val takeWhileEC = TestExecutionContext()
+      val take3AndConsume = Enumeratee.takeWhile[String](_ != "4" )(takeWhileEC) &>>  Iteratee.consume()
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(List(1,2,3).map(_.toString).mkString)
+      takeWhileEC.executionCount must equalTo(4)
     }
 
     "passes along what's left of chunks after taking" in {
-      
-      val take3AndConsume = (Enumeratee.takeWhile[String](_ != "4") &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
+      val takeWhileEC = TestExecutionContext()
+      val consumeFlatMapEC = TestExecutionContext()
+      val generateEC = TestExecutionContext()
+      val take3AndConsume = (Enumeratee.takeWhile[String](_ != "4")(takeWhileEC) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())(consumeFlatMapEC)
       val enumerator = Enumerator(Range(1,20).map(_.toString) :_*)  
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo(Range(4,20).map(_.toString).mkString)
+      takeWhileEC.executionCount must equalTo(4)
+      consumeFlatMapEC.executionCount must equalTo(1)
 
     }
 
@@ -93,11 +104,13 @@ object EnumerateesSpec extends Specification {
 
     }
 
-    "pass alnog what's left after taking 3 elements" in {
-      
-      val take3AndConsume = (Traversable.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())
+    "pass along what's left after taking 3 elements" in {
+
+      val consumeFlatMapEC = TestExecutionContext()
+      val take3AndConsume = (Traversable.take[String](3) &>>  Iteratee.consume()).flatMap(_ => Iteratee.consume())(consumeFlatMapEC)
       val enumerator = Enumerator("he","ybbb","bbb")  
       Await.result(enumerator |>>> take3AndConsume, Duration.Inf) must equalTo("bbbbbb")
+      consumeFlatMapEC.executionCount must equalTo(1)
 
     }
 
@@ -137,11 +150,13 @@ object EnumerateesSpec extends Specification {
       val passAlongFuture = Enumeratee.flatten {
         concurrent.future { 
           Enumeratee.passAlong[Int]
-        }
+        } (ExecutionContext.global)
       }
-      val sum = Iteratee.fold[Int, Int](0)(_+_)
+      val sumEC = TestExecutionContext()
+      val sum = Iteratee.fold[Int, Int](0)(_+_)(sumEC)
       val enumerator = Enumerator(1,2,3,4,5,6,7,8,9)
       Await.result(enumerator |>>> passAlongFuture &>> sum, Duration.Inf) must equalTo(45)
+      sumEC.executionCount must equalTo(9)
     }
 
   }
@@ -173,11 +188,12 @@ object EnumerateesSpec extends Specification {
   "Enumeratee.grouped" should {
 
     "group input elements according to a folder iteratee" in {
+      val foldEC = TestExecutionContext()
       val folderIteratee = 
         Enumeratee.mapInput[String]{ 
           case Input.El("Concat") => Input.EOF;
           case other => other } &>>
-        Iteratee.fold("")((s,e) => s + e)
+        Iteratee.fold[String, String]("")((s,e) => s + e)(foldEC)
 
       val result = 
         Enumerator("He","ll","o","Concat", "Wo", "r", "ld", "Concat","!") &>
@@ -185,7 +201,7 @@ object EnumerateesSpec extends Specification {
         Enumeratee.map(List(_)) |>>>
         Iteratee.consume()
       Await.result(result, Duration.Inf) must equalTo(List("Hello","World","!"))
-
+      foldEC.executionCount must equalTo(7)
     }
 
   }
@@ -219,10 +235,10 @@ object EnumerateesSpec extends Specification {
 
     "perform computations and log errors" in {
       val eventuallyInput = Promise[Input[Int]]()
-
-      val result = Enumerator(0, 2, 4) &> Enumeratee.recover { (_, input) =>
+      val recoverEC = TestExecutionContext()
+      val result = Enumerator(0, 2, 4) &> Enumeratee.recover[Int] { (_, input) =>
         eventuallyInput.success(input)
-      } &> Enumeratee.map { i =>
+      }(recoverEC) &> Enumeratee.map { i =>
           8 / i
       } |>>> Iteratee.getChunks // => List(4, 2)
 
