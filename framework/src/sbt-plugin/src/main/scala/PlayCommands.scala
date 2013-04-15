@@ -100,7 +100,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     IO.delete(dist)
     IO.createDirectory(dist)
 
-    val libs = {
+    val libs = packaged.map(jar => jar -> ("lib/" + jar.getName)) ++ {
       dependencies.filter(_.data.ext == "jar").map { dependency =>
         val filename = for {
           module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
@@ -110,7 +110,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
         }
         val path = ("lib/" + filename.getOrElse(dependency.data.getName))
         dependency.data -> path
-      } ++ packaged.map(jar => jar -> ("lib/" + jar.getName))
+      }
     }
 
     val start = target / "start"
@@ -175,10 +175,10 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
     val start = target / "start"
     IO.write(start,
-      """|#!/usr/bin/env sh
+      ("""#!/usr/bin/env sh
          |
-         |exec java $@ -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
-         |""".stripMargin)
+         |exec java $@ -cp """" + packaged.map(jar => "`dirname $0`/staged/" + jar.getName).mkString(":") + """:`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
+         |""").stripMargin)
 
     "chmod a+x %s".format(start.getAbsolutePath) !
 
