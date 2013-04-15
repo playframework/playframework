@@ -106,7 +106,7 @@ trait Appendable[T] {
 
     // --- DEFAULT
 
-    case class Default(default: Any) {
+    implicit class Default(val default: Any) extends AnyVal{
       def ?:(x: Any) = x match {
         case "" => default
         case Nil => default
@@ -117,11 +117,9 @@ trait Appendable[T] {
       }
     }
 
-    implicit def anyToDefault(x: Any) = Default(x)
-
     // --- DATE
 
-    class RichDate(date: java.util.Date) {
+    implicit class RichDate(val date: java.util.Date) extends AnyVal{
 
       def format(pattern: String) = {
         new java.text.SimpleDateFormat(pattern).format(date)
@@ -129,11 +127,9 @@ trait Appendable[T] {
 
     }
 
-    implicit def richDate(date: java.util.Date) = new RichDate(date)
-
     // --- STRING
 
-    class RichString(string: String) {
+    implicit class RichString(val string: String) extends AnyVal{
 
       def when(predicate: => Boolean) = {
         predicate match {
@@ -143,8 +139,6 @@ trait Appendable[T] {
       }
 
     }
-
-    implicit def richString(string: String) = new RichString(string)
 
   }
 
