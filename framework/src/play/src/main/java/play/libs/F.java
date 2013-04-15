@@ -1,6 +1,7 @@
 package play.libs;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
@@ -446,7 +447,7 @@ public class F {
     /**
      * Represents optional values. Instances of <code>Option</code> are either an instance of <code>Some</code> or the object <code>None</code>.
      */
-    public static abstract class Option<T> implements Iterable<T> {
+    public static abstract class Option<T> implements Collection<T> {
 
         /**
          * Is the value of this option defined?
@@ -454,6 +455,11 @@ public class F {
          * @return <code>true</code> if the value is defined, otherwise <code>false</code>.
          */
         public abstract boolean isDefined();
+
+        @Override
+        public boolean isEmpty() {
+            return !isDefined();
+        }
 
         /**
          * Returns the value if defined.
@@ -518,6 +524,36 @@ public class F {
             }
         }
 
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean add(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends T> c) {
+            throw new UnsupportedOperationException();
+        }
+
     }
 
     /**
@@ -550,6 +586,11 @@ public class F {
         }
 
         @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
         public T get() {
             throw new IllegalStateException("No value");
         }
@@ -559,9 +600,30 @@ public class F {
         }
 
         @Override
+        public boolean contains(Object o) {
+            return false;
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return c.size() == 0;
+        }
+
+        @Override
+        public T[] toArray() {
+            return (T[])(new Object[0]);
+        }
+
+        @Override
+        public <R> R[] toArray(R[] r) {
+            return (R[])(new Object[0]);
+        }
+
+        @Override
         public String toString() {
             return "None";
         }
+
     }
 
     /**
@@ -581,12 +643,41 @@ public class F {
         }
 
         @Override
+        public int size() {
+            return 1;
+        }
+
+        @Override
         public T get() {
             return value;
         }
 
         public Iterator<T> iterator() {
             return Collections.singletonList(value).iterator();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return o != null && o.equals(value);
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return (c.size() == 1) && (c.toArray()[0].equals(value));
+        }
+
+        @Override
+        public T[] toArray() {
+            T[] result = (T[])new Object[1];
+            result[0] = value;
+            return result;
+        }
+
+        @Override
+        public <R> R[] toArray(R[] r) {
+            Object[] result = new Object[1];
+            result[0] = value;
+            return (R[])result;
         }
 
         @Override

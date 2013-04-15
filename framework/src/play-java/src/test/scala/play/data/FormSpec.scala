@@ -245,7 +245,7 @@ object FormSpec extends Specification {
     user1.getName must beEqualTo("Kiki")
     user1.getEmails.size must beEqualTo(0)
 
-    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")) )).get
+    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")))).get
     user2.getName must beEqualTo("Kiki")
     user2.getEmails.size must beEqualTo(1)
 
@@ -261,6 +261,14 @@ object FormSpec extends Specification {
     user5.getName must beEqualTo("Kiki")
     user5.getEmails.size must beEqualTo(2)
 
+  }
+
+  "support option deserialization" in {
+    val user1 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki")))).get
+    user1.getCompany.isDefined must beEqualTo(false)
+
+    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "company" -> Array("Acme")))).get
+    user2.getCompany.get must beEqualTo("Acme")
   }
 
   "render a form with max 18 fields" in {
@@ -296,7 +304,7 @@ object FormSpec extends Specification {
     val data = Map("date" -> "30/1/2012")
     dateForm.bind(data).get mustEqual(new DateTime(2012,1,30,0,0))
   }
-  
+
   "render form using jodaLocalDate with format(30/1/2012)" in {
     import play.api.data._
     import play.api.data.Forms._
