@@ -13,7 +13,7 @@ package scalaguide.http.scalaresults {
   @RunWith(classOf[JUnitRunner])
   class ScalaResultsSpec extends Specification with Controller {
 
-    "A scala scala" should {
+    "A scala result" should {
       "default result Content-Type" in {
         //#content-type_text
         val textResult = Ok("Hello World!")
@@ -25,7 +25,7 @@ package scalaguide.http.scalaresults {
         //#content-type_xml
         val xmlResult = Ok(<message>Hello World!</message>)
         //#content-type_xml
-        testContentType(xmlResult, "text/xml")
+        testContentType(xmlResult, "application/xml")
       }
 
       "set result Content-Type as html" in {
