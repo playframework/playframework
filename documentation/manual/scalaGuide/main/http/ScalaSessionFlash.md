@@ -16,61 +16,35 @@ The Play Session is not intended to be used as a cache. If you need to cache som
 
 You can retrieve the incoming Session from the HTTP request:
 
-```scala
-def index = Action { request =>
-  request.session.get("connected").map { user =>
-    Ok("Hello " + user)
-  }.getOrElse {
-    Unauthorized("Oops, you are not connected")
-  }
-}
-```
+@[index-retrieve-incoming-session](code/ScalaSessionFlash.scala)
+
 
 Alternatively you can retrieve the Session implicitly from a request:
 
-```scala
-def index = Action { implicit request =>
-  session.get("connected").map { user =>
-    Ok("Hello " + user)
-  }.getOrElse {
-    Unauthorized("Oops, you are not connected")
-  }
-}
-```
+@[index-retrieve-incoming-session-implicitly](code/ScalaSessionFlash.scala)
+
 
 ## Storing data in the Session
 
 As the Session is just a Cookie, it is also just an HTTP header. You can manipulate the session data the same way you manipulate other results properties:
 
-```scala
-Ok("Welcome!").withSession(
-  "connected" -> "user@gmail.com"
-)
-```
+@[store-session](code/ScalaSessionFlash.scala)
+
 
 Note that this will replace the whole session. If you need to add an element to an existing Session, just add an element to the incoming session, and specify that as new session:
 
-```scala
-Ok("Hello World!").withSession(
-  session + ("saidHello" -> "yes")
-)
-```
+@[add-session](code/ScalaSessionFlash.scala)
+
 
 You can remove any value from the incoming session the same way:
 
-```scala
-Ok("Theme reset!").withSession(
-  session - "theme"
-)
-```
+@[remove-session](code/ScalaSessionFlash.scala)
 
 ## Discarding the whole session
 
 There is special operation that discards the whole session:
 
-```scala
-Ok("Bye").withNewSession
-```
+@[discarding-session](code/ScalaSessionFlash.scala)
 
 ## Flash scope
 
@@ -83,19 +57,8 @@ The Flash scope works exactly like the Session, but with two differences:
 
 Here are a few examples using the Flash scope:
 
-```scala
-def index = Action { implicit request =>
-  Ok {
-    flash.get("success").getOrElse("Welcome!")
-  }
-}
+@[using-flash](code/ScalaSessionFlash.scala)
 
-def save = Action {
-  Redirect("/home").flashing(
-    "success" -> "The item has been created"
-  )
-}
-```
 
 
 To retrieve the Flash scope value in your view, just add an implicit with Flash:
@@ -108,11 +71,6 @@ To retrieve the Flash scope value in your view, just add an implicit with Flash:
 
 If the error '_could not find implicit value for parameter flash: play.api.mvc.Flash_' is raised then this is because your Action didn't import a request object. Add an "implicit request=>" as show below:
 
-```scala
-def index() = Action {   
-  implicit request =>
-    Ok(views.html.Application.index())
-}
-```
+@[find-noflash](code/ScalaSessionFlash.scala)
 
 > **Next:** [[Body parsers | ScalaBodyParsers]]
