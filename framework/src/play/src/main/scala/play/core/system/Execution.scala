@@ -10,5 +10,5 @@ private[play] object Execution {
 
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numberOfThreads, NamedThreadFactory("play-internal-execution-context")))
   }
-  
+
 }

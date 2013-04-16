@@ -11,7 +11,8 @@ This is the process for committing code into master. There are of course excepti
     3. The ticket is estimated by the team.
     4. The ticket have been discussed and prioritized by the team.
 3. You should always perform your work in a Git feature branch. The branch should be given a descriptive name that explains its intent.
-4. When the feature or fix is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on GitHub.
+4. We use [scalariform](https://github.com/mdr/scalariform) to ensure that code is formatted consistently. Please ensure that your code complies by running the build scalariform-format task.
+4. When the feature or fix is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on GitHub. Pull Requests that do not pass their tests or have scalariform compliant formatting will be automatically failed by our CI.
 5. The Pull Request should be reviewed by other maintainers (as many as feasible/practical). Note that the maintainers can consist of outside contributors, both within and outside the Play team. Outside contributors are encouraged to participate in the review process, it is not a closed process.
 6. After the review you should fix the issues as needed (pushing a new commit for new review etc.), iterating until the reviewers give their thumbs up.
 7. Once the code has passed review the Pull Request can be merged into the master branch. 

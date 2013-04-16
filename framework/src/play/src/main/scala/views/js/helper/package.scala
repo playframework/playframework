@@ -1,7 +1,7 @@
 package views.js
 
 import play.api.templates.JavaScript
-import play.api.libs.json.{Writes, Json}
+import play.api.libs.json.{ Writes, Json }
 
 /**
  * Contains helpers intended to be used in JavaScript templates
@@ -19,6 +19,6 @@ package object helper {
    * @param a The value to convert to JavaScript
    * @return A JavaScript value
    */
-  def json[A : Writes](a: A): JavaScript = JavaScript(Json.toJson(a).toString)
+  def json[A: Writes](a: A): JavaScript = JavaScript(Json.toJson(a).toString)
 
 }

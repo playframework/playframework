@@ -4,7 +4,6 @@ import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec, execute
 import scala.language.reflectiveCalls
 import scala.concurrent.{ ExecutionContext, Future }
 
-
 /**
  * Combines the roles of an Iteratee[From] and a Enumerator[To].  This allows adapting of streams to that modify input
  * produced by an Enumerator, or to be consumed by a Iteratee.
@@ -88,14 +87,14 @@ object Enumeratee {
         case _ => Done(it, Input.Empty)
       }(dec)
   }
-  
+
   /**
    * flatten a [[scala.concurrent.Future]] of [[play.api.libs.iteratee.Enumeratee]]] into an Enumeratee
    *
    * @param futureOfEnumeratee a future of enumeratee
    */
   def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]) = new Enumeratee[From, To] {
-    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To,A]] = 
+    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
       Iteratee.flatten(futureOfEnumeratee.map(_.applyOn[A](it))(dec))
   }
 
@@ -116,7 +115,7 @@ object Enumeratee {
    * of the two.
    */
   def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C)(ec: ExecutionContext): Iteratee[E, C] = {
-    
+
     def getNext(it1: Iteratee[E, A], it2: Iteratee[E, B]): Iteratee[E, C] = {
       import ExecutionContext.Implicits.global
       val eventuallyIter =
@@ -438,7 +437,7 @@ object Enumeratee {
   }
 
   def dropWhile[E](p: E => Boolean)(ec: ExecutionContext): Enumeratee[E, E] = new CheckDone[E, E] {
-    
+
     def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
 
       case in @ Input.El(e) => Iteratee.flatten(Future(p(e))(ec).map {
@@ -505,19 +504,19 @@ object Enumeratee {
     def continue[A](k: K[M, A]) = Cont(step(k))
   }
 
-  def heading[E](es: Enumerator[E]) = new Enumeratee[E,E] {
+  def heading[E](es: Enumerator[E]) = new Enumeratee[E, E] {
 
-    def applyOn[A](it:Iteratee[E,A]): Iteratee[E, Iteratee[E,A]] = passAlong[E] &> Iteratee.flatten(es(it))
+    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E] &> Iteratee.flatten(es(it))
 
   }
 
-  def trailing[M](es: Enumerator[M]) =  new Enumeratee.CheckDone[M, M] {
+  def trailing[M](es: Enumerator[M]) = new Enumeratee.CheckDone[M, M] {
 
     def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
 
       case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
 
-      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map[Iteratee[M, Iteratee[M, A]]](it  => Done(it, Input.EOF))(dec))
+      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map[Iteratee[M, Iteratee[M, A]]](it => Done(it, Input.EOF))(dec))
     }
     def continue[A](k: K[M, A]) = Cont(step(k))
   }
@@ -547,7 +546,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that recovers an iteratee in Error state.
    *
-   * This will ignore the input that caused the iteratee's error state 
+   * This will ignore the input that caused the iteratee's error state
    * and use the previous state of the iteratee to handle the next input.
    *
    * {{{
@@ -559,13 +558,13 @@ object Enumeratee {
    * }}}
    *
    */
-  def recover[E](f: (Throwable, Input[E]) => Unit = (_:Throwable, _:Input[E]) => ())(implicit executionContext: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
+  def recover[E](f: (Throwable, Input[E]) => Unit = (_: Throwable, _: Input[E]) => ())(implicit executionContext: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
     def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
 
       def step(it: Iteratee[E, A])(input: Input[E]): Iteratee[E, Iteratee[E, A]] = input match {
         case in @ (Input.El(_) | Input.Empty) =>
           val next: Future[Iteratee[E, Iteratee[E, A]]] = it.pureFlatFold[E, Iteratee[E, A]] {
-            case Step.Cont(k) => 
+            case Step.Cont(k) =>
               val n = k(in)
               n.pureFlatFold[E, Iteratee[E, A]] {
                 case Step.Cont(k) => Cont(step(n))
@@ -574,11 +573,12 @@ object Enumeratee {
             case other => Done(other.it, in)
           }(dec).unflatten.map({ s =>
             s.it
-          })(dec).recover({ case e: Throwable =>
-            f(e, in)
-            Cont(step(it))
+          })(dec).recover({
+            case e: Throwable =>
+              f(e, in)
+              Cont(step(it))
           })(executionContext)
-            Iteratee.flatten(next)
+          Iteratee.flatten(next)
         case Input.EOF =>
           Done(it, Input.Empty)
       }

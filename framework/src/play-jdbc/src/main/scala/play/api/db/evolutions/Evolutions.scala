@@ -525,7 +525,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
-        
+
     request.path match {
 
       case applyEvolutions(db) => {

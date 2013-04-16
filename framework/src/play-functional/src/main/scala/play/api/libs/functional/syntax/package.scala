@@ -6,36 +6,36 @@ import scala.language.implicitConversions
 import play.api.libs.functional._
 
 /**
-  * Don't forget to {{{import play.api.libs.functional.syntax._}}} to enable functional combinators 
-  * when using Json API.
-  */
+ * Don't forget to {{{import play.api.libs.functional.syntax._}}} to enable functional combinators
+ * when using Json API.
+ */
 object `package` {
 
-  implicit def toAlternativeOps[M[_],A](a: M[A])(implicit app: Alternative[M]): AlternativeOps[M,A] = new AlternativeOps(a)
+  implicit def toAlternativeOps[M[_], A](a: M[A])(implicit app: Alternative[M]): AlternativeOps[M, A] = new AlternativeOps(a)
 
-  implicit def toApplicativeOps[M[_],A](a: M[A])(implicit app: Applicative[M]): ApplicativeOps[M,A] = new ApplicativeOps(a)
+  implicit def toApplicativeOps[M[_], A](a: M[A])(implicit app: Applicative[M]): ApplicativeOps[M, A] = new ApplicativeOps(a)
 
-  implicit def toFunctionalBuilderOps[M[_],A](a: M[A])(implicit fcb: FunctionalCanBuild[M]) = new FunctionalBuilderOps[M,A](a)(fcb)
+  implicit def toFunctionalBuilderOps[M[_], A](a: M[A])(implicit fcb: FunctionalCanBuild[M]) = new FunctionalBuilderOps[M, A](a)(fcb)
 
   implicit def functionalCanBuildApplicative[M[_]](implicit app: Applicative[M]): FunctionalCanBuild[M] = new FunctionalCanBuild[M] {
 
-    def apply[A,B](a: M[A], b: M[B]): M[A~B] = app.apply(app.map[A, B => A ~ B](a, a => ((b: B) => new ~(a,b))),b)
+    def apply[A, B](a: M[A], b: M[B]): M[A ~ B] = app.apply(app.map[A, B => A ~ B](a, a => ((b: B) => new ~(a, b))), b)
 
   }
 
   implicit def functorOption: Functor[Option] = new Functor[Option] {
 
-    def fmap[A,B](a:Option[A], f: A => B):Option[B] = a.map(f)
+    def fmap[A, B](a: Option[A], f: A => B): Option[B] = a.map(f)
 
   }
 
-  implicit def applicativeOption: Applicative[Option] = new Applicative[Option]{
+  implicit def applicativeOption: Applicative[Option] = new Applicative[Option] {
 
-    def pure[A](a: A):Option[A] = Some(a)
+    def pure[A](a: A): Option[A] = Some(a)
 
-    def map[A,B](m:Option[A], f: A => B):Option[B] = m.map(f)
+    def map[A, B](m: Option[A], f: A => B): Option[B] = m.map(f)
 
-    def apply[A,B](mf:Option[A => B], ma: Option[A]):Option[B] = mf.flatMap(f => ma.map(f))
+    def apply[A, B](mf: Option[A => B], ma: Option[A]): Option[B] = mf.flatMap(f => ma.map(f))
 
   }
 

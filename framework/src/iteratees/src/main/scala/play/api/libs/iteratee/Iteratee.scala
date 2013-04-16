@@ -1,8 +1,7 @@
 package play.api.libs.iteratee
 
 import scala.concurrent.{ ExecutionContext, Future }
-import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec, eagerFuture, executeFuture, executeIteratee, sameThreadExecutionContext => stec}
-
+import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec, eagerFuture, executeFuture, executeIteratee, sameThreadExecutionContext => stec }
 
 /**
  * Various helper methods to construct, compose and traverse Iteratees.
@@ -20,7 +19,7 @@ object Iteratee {
 
   }
 
-  def isDoneOrError[E, A](it: Iteratee[E, A]): Future[Boolean] = it.pureFold { case Step.Cont(_) => false; case _ => true } (dec)
+  def isDoneOrError[E, A](it: Iteratee[E, A]): Future[Boolean] = it.pureFold { case Step.Cont(_) => false; case _ => true }(dec)
 
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
@@ -39,7 +38,7 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * M stands for Monadic which in this case means returning a [[scala.concurrent.Future]] for the function argument f, 
+   * M stands for Monadic which in this case means returning a [[scala.concurrent.Future]] for the function argument f,
    * so that promises are combined in a complete reactive flow of logic.
    *
    *
@@ -61,7 +60,7 @@ object Iteratee {
 
       case Input.EOF => Done(s, Input.EOF)
       case Input.Empty => Cont[E, A](step(s))
-      case Input.El(e) => { val newS = executeFuture(f(s, e))(ec); flatten(newS.map[Iteratee[E, A]] { case (s1, done) => if (!done) Cont[E, A](step(s1)) else Done(s1, Input.Empty) } (dec)) }
+      case Input.El(e) => { val newS = executeFuture(f(s, e))(ec); flatten(newS.map[Iteratee[E, A]] { case (s1, done) => if (!done) Cont[E, A](step(s1)) else Done(s1, Input.Empty) }(dec)) }
     }
     (Cont[E, A](step(state)))
   }
@@ -407,7 +406,7 @@ trait Iteratee[E, +A] {
    * execute in the right execution context, rather than the iteratee execution context, which would potentially block
    * all other iteratee operations.
    */
-  def mapM[B](f: A => Future[B])(ec: ExecutionContext): Iteratee[E, B] = self.flatMapM(a => f(a).map[Iteratee[E,B]](b => Done(b))(dec))(ec)
+  def mapM[B](f: A => Future[B])(ec: ExecutionContext): Iteratee[E, B] = self.flatMapM(a => f(a).map[Iteratee[E, B]](b => Done(b))(dec))(ec)
 
   /**
    * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input

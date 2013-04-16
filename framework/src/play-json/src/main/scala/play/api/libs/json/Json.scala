@@ -6,7 +6,7 @@ import scala.language.reflectiveCalls
  * Helper functions to handle JsValues.
  */
 object Json {
-  
+
   /**
    * Parse a String representing a json, and return it as a JsValue.
    *
@@ -32,16 +32,16 @@ object Json {
    * {{{
    * scala> Json.stringify(Json.obj(
    *   "field1" -> Json.obj(
-   *     "field11" -> "value11", 
+   *     "field11" -> "value11",
    *     "field12" -> Json.arr("alpha", 123L)
    *   )
    * ))
    * res0: String = {"field1":{"field11":"value11","field12":["alpha",123]}}
-   * 
+   *
    * scala> Json.stringify(res0)
    * res1: String = {"field1":{"field11":"value11","field12":["alpha",123]}}
    * }}}
-   *   
+   *
    * @param json the JsValue to convert
    * @return a String with the json representation
    */
@@ -54,14 +54,14 @@ object Json {
    * {{{
    * scala> Json.stringify(Json.obj(
    *   "field1" -> Json.obj(
-   *     "field11" -> "value11", 
+   *     "field11" -> "value11",
    *     "field12" -> Json.arr("alpha", 123L)
    *   )
    * ))
    * res0: String = {"field1":{"field11":"value11","field12":["alpha",123]}}
-   * 
+   *
    * scala> Json.prettyPrint(res0)
-   * res1: String = 
+   * res1: String =
    * {
    *   "field1" : {
    *     "field11" : "value11",
@@ -103,10 +103,10 @@ object Json {
    * JsArray(JsString("value"), JsNumber(123), JsBoolean(true)) == Json.arr( "value", 123, true )
    * }}}
    *
-   * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper 
+   * There is an implicit conversion from any Type with a Json Writes to JsValueWrapper
    * which is an empty trait that shouldn't end into unexpected implicit conversions.
    *
-   * Something to note due to `JsValueWrapper` extending `NotNull` : 
+   * Something to note due to `JsValueWrapper` extending `NotNull` :
    * `null` or `None` will end into compiling error : use JsNull instead.
    */
   sealed trait JsValueWrapper extends NotNull
@@ -121,7 +121,7 @@ object Json {
   def arr(fields: JsValueWrapper*): JsArray = JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
 
   import play.api.libs.iteratee.Enumeratee
-  
+
   /**
    * Transform a stream of A to a stream of JsValue
    * {{{
@@ -129,7 +129,7 @@ object Json {
    *   val jsonStream: Enumerator[JsValue] = fooStream &> Json.toJson
    * }}}
    */
-  def toJson[A : Writes]: Enumeratee[A, JsValue] = Enumeratee.map(Json.toJson(_))
+  def toJson[A: Writes]: Enumeratee[A, JsValue] = Enumeratee.map(Json.toJson(_))
   /**
    * Transform a stream of JsValue to a stream of A, keeping only successful results
    * {{{
@@ -137,12 +137,12 @@ object Json {
    *   val fooStream: Enumerator[Foo] = jsonStream &> Json.fromJson
    * }}}
    */
-  def fromJson[A : Reads]: Enumeratee[JsValue, A] =
+  def fromJson[A: Reads]: Enumeratee[JsValue, A] =
     Enumeratee.map((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect { case JsSuccess(value, _) => value }
 
   /**
    * Experimental JSON extensions to replace asProductXXX by generating
-   * Reads[T]/Writes[T]/Format[T] from case class at COMPILE time using 
+   * Reads[T]/Writes[T]/Format[T] from case class at COMPILE time using
    * new Scala 2.10 macro & reflection features.
    */
   import scala.reflect.macros.Context
@@ -158,7 +158,7 @@ object Json {
    *   case class User(name: String, age: Int)
    *
    *   implicit val userReads = Json.reads[User]
-   *   // macro-compiler replaces Json.reads[User] by injecting into compile chain 
+   *   // macro-compiler replaces Json.reads[User] by injecting into compile chain
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userReads = (
    *      (__ \ 'name).read[String] and
@@ -174,11 +174,11 @@ object Json {
    * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{
    *   import play.api.libs.json.Json
-   * 
+   *
    *   case class User(name: String, age: Int)
    *
    *   implicit val userWrites = Json.writes[User]
-   *   // macro-compiler replaces Json.writes[User] by injecting into compile chain 
+   *   // macro-compiler replaces Json.writes[User] by injecting into compile chain
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userWrites = (
    *      (__ \ 'name).write[String] and
@@ -186,7 +186,7 @@ object Json {
    *   )(unlift(User.unapply))
    * }}}
    */
-  def writes[A] = macro JsMacroImpl.writesImpl[A]  
+  def writes[A] = macro JsMacroImpl.writesImpl[A]
 
   /**
    * Creates a Format[T] by resolving case class fields & required implicits at COMPILE-time
@@ -198,7 +198,7 @@ object Json {
    *   case class User(name: String, age: Int)
    *
    *   implicit val userWrites = Json.format[User]
-   *   // macro-compiler replaces Json.format[User] by injecting into compile chain 
+   *   // macro-compiler replaces Json.format[User] by injecting into compile chain
    *   // the exact code you would write yourself. This is strictly equivalent to:
    *   implicit val userWrites = (
    *      (__ \ 'name).format[String] and

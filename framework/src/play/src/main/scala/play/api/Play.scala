@@ -77,7 +77,7 @@ object Play {
     Option(_currentApp).map { app =>
       Threads.withContextClassLoader(classloader(app)) {
         app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case NonFatal(e) => Logger("play").warn("Error stopping plugin", e)}
+          try { p.onStop() } catch { case NonFatal(e) => Logger("play").warn("Error stopping plugin", e) }
         }
       }
     }

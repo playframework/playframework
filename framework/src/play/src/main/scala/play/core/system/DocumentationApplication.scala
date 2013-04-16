@@ -86,7 +86,7 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
           val pageWithSidebar = documentationHome.flatMap { home =>
             Path(home).descendants().find(_.name == page + ".md").map { pageSource =>
 
-            // Recursively search for Sidebar
+              // Recursively search for Sidebar
               lazy val findSideBar: (Option[Path] => Option[Path]) = _ match {
                 case None => None
                 case Some(parent) => {

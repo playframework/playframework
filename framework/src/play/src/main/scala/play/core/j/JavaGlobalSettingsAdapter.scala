@@ -53,7 +53,7 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
 
   override def doFilter(a: EssentialAction): EssentialAction = {
     try {
-      Filters(super.doFilter(a), underlying.filters.map(_.newInstance:play.api.mvc.EssentialFilter):_*)
+      Filters(super.doFilter(a), underlying.filters.map(_.newInstance: play.api.mvc.EssentialFilter): _*)
     } catch {
       case e: Throwable => EssentialAction(req => play.api.libs.iteratee.Done(onError(req, e)))
     }

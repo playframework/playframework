@@ -1,6 +1,6 @@
 package play
 
-import sbt.{Project=>_,_}
+import sbt.{ Project => _, _ }
 import play.console.Colors
 import sbt.Keys._
 
@@ -8,7 +8,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
     with PlayRun with PlaySettings with PlayPositionMapper with PlaySourceGenerators {
 
   // ~~ Alerts  
-  if(Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
+  if (Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
     println()
     this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
       println(Colors.green(el.toString))
@@ -28,9 +28,8 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
     case _ =>
   }
 
-
   // ----- Create a Play project with default settings
- 
+
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Seq()): sbt.Project = {
     val mainLang = if (dependencies.contains(javaCore)) JAVA else SCALA
 

@@ -20,7 +20,7 @@ object Console {
            ||_|            |__/
            |
            |""".stripMargin) +
-    ("play! " + play.core.PlayVersion.current  +
+    ("play! " + play.core.PlayVersion.current +
       " built with Scala " + play.core.PlayVersion.scalaVersion +
       " (running Java " + System.getProperty("java.version") + ")," +
       " http://www.playframework.com")
@@ -147,7 +147,7 @@ object Console {
 
   def helpCommand(args: Array[String]): (String, Int) = {
     (
-     "Welcome to Play " + play.core.PlayVersion.current + """!
+      "Welcome to Play " + play.core.PlayVersion.current + """!
             |
             |These commands are available:
             |-----------------------------

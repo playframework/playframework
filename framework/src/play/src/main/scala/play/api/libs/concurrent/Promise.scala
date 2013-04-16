@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 
 import java.util.concurrent.{ TimeUnit }
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ Future, ExecutionContext }
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
@@ -70,7 +70,7 @@ case object Waiting extends PromiseValue[Nothing]
 
 class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
 
-  def redeem(a: => A)(implicit ec:ExecutionContext): Unit = p.completeWith(Future(a)(ec))
+  def redeem(a: => A)(implicit ec: ExecutionContext): Unit = p.completeWith(Future(a)(ec))
 
   def throwing(t: Throwable): Unit = p.failure(t)
 
@@ -230,7 +230,7 @@ trait Redeemable[-A] {
    * May only be called one time, and may not be called if throwing() was also called.
    * If evaluating the value throws an exception, equivalent to calling throwing() on that exception.
    */
-  def redeem(a: => A)(implicit ec:ExecutionContext): Unit
+  def redeem(a: => A)(implicit ec: ExecutionContext): Unit
 
   /**
    * Complete the redeemable with an exception.
@@ -265,8 +265,6 @@ object Promise {
     //TODO get it from conf
     Duration(10000, TimeUnit.MILLISECONDS).toMillis
 
-
-
   /**
    * Synonym for PurePromise.apply
    */
@@ -300,11 +298,11 @@ object Promise {
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[A] = {
     val p = Promise[A]()
-    timer.schedule( new java.util.TimerTask{
-      def run(){
+    timer.schedule(new java.util.TimerTask {
+      def run() {
         p.completeWith(Future(message)(ec))
       }
-    },unit.toMillis(duration) )
+    }, unit.toMillis(duration))
     p.future
   }
 

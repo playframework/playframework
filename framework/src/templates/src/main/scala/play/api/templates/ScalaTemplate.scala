@@ -29,21 +29,21 @@ package play.api.templates {
 
 package play.templates {
 
-import reflect.ClassTag
+  import reflect.ClassTag
 
-/**
- * A type that has a binary `+=` operation.
- */
-trait Appendable[T] {
+  /**
+   * A type that has a binary `+=` operation.
+   */
+  trait Appendable[T] {
     def +=(other: T): T
     override def equals(x: Any): Boolean = super.equals(x) // FIXME Why do we need these overrides?
     override def hashCode() = super.hashCode()
   }
 
-/**
- * A template format defines how to properly integrate content for a type `T` (e.g. to prevent cross-site scripting attacks)
- * @tparam T The underlying type that this format applies to.
- */
+  /**
+   * A template format defines how to properly integrate content for a type `T` (e.g. to prevent cross-site scripting attacks)
+   * @tparam T The underlying type that this format applies to.
+   */
   trait Format[T <: Appendable[T]] {
     type Appendable = T
 
@@ -108,7 +108,7 @@ trait Appendable[T] {
 
     // --- DEFAULT
 
-    implicit class Default(val default: Any) extends AnyVal{
+    implicit class Default(val default: Any) extends AnyVal {
       def ?:(x: Any) = x match {
         case "" => default
         case Nil => default
@@ -121,7 +121,7 @@ trait Appendable[T] {
 
     // --- DATE
 
-    implicit class RichDate(val date: java.util.Date) extends AnyVal{
+    implicit class RichDate(val date: java.util.Date) extends AnyVal {
 
       def format(pattern: String) = {
         new java.text.SimpleDateFormat(pattern).format(date)
@@ -131,7 +131,7 @@ trait Appendable[T] {
 
     // --- STRING
 
-    implicit class RichString(val string: String) extends AnyVal{
+    implicit class RichString(val string: String) extends AnyVal {
 
       def when(predicate: => Boolean) = {
         predicate match {

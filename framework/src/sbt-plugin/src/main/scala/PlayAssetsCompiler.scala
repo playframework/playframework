@@ -112,5 +112,4 @@ trait PlayAssetsCompiler {
     coffeescriptOptions
   )
 
-
 }

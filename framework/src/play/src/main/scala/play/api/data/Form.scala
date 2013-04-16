@@ -85,8 +85,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
     bind {
-      data.foldLeft(Map.empty[String,String]) { 
-        case (s, (key, values)) if key.endsWith("[]")=> s ++ values.zipWithIndex.map { case (v,i) => (key.dropRight(2) + "[" + i + "]") -> v }
+      data.foldLeft(Map.empty[String, String]) {
+        case (s, (key, values)) if key.endsWith("[]") => s ++ values.zipWithIndex.map { case (v, i) => (key.dropRight(2) + "[" + i + "]") -> v }
         case (s, (key, values)) => s + (key -> values.headOption.getOrElse(""))
       }
     }

@@ -21,20 +21,20 @@ package play.api.libs.iteratee {
     import scala.util.control.NonFatal
 
     def defaultExecutionContext: ExecutionContext = ExecutionContext.global
-    
+
     object Implicits {
       def defaultExecutionContext: ExecutionContext = ExecutionContext.global
     }
-    
+
     def sameThreadExecutionContext: ExecutionContext = new ExecutionContext {
       def execute(runnable: Runnable): Unit = runnable.run()
       def reportFailure(t: Throwable): Unit = t.printStackTrace()
     }
-    
+
     def eagerFuture[A](body: => A): Future[A] = try Future.successful(body) catch { case NonFatal(e) => Future.failed(e) }
-    
+
     def executeFuture[A](body: => Future[A])(ec: ExecutionContext): Future[A] = Future(body)(ec).flatMap(x => x)(sameThreadExecutionContext)
-    
-    def executeIteratee[A,E](body: => Iteratee[A,E])(ec: ExecutionContext): Iteratee[A,E] = Iteratee.flatten(Future(body)(ec))
+
+    def executeIteratee[A, E](body: => Iteratee[A, E])(ec: ExecutionContext): Iteratee[A, E] = Iteratee.flatten(Future(body)(ec))
   }
 }

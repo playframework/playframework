@@ -95,7 +95,7 @@ trait Action[A] extends EssentialAction {
    */
   def apply(request: Request[A]): Result
 
-  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).map { 
+  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).map {
     case Left(r) =>
       Logger("play").trace("Got direct result from the BodyParser: " + r)
       r

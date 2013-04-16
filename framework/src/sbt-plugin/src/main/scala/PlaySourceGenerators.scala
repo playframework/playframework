@@ -1,6 +1,6 @@
 package sbt
 
-import sbt.PlayExceptions.{TemplateCompilationException, RoutesCompilationException}
+import sbt.PlayExceptions.{ TemplateCompilationException, RoutesCompilationException }
 import play.api.PlayException
 
 trait PlaySourceGenerators {
@@ -61,10 +61,10 @@ trait PlaySourceGenerators {
     // log the source file and line number with the error message
     log.error(Option(error.sourceName).getOrElse("") + Option(error.line).map(":" + _).getOrElse("") + ": " + error.getMessage)
     Option(error.interestingLines(0)).map(_.focus).flatMap(_.headOption) map { line =>
-    // log the line
+      // log the line
       log.error(line)
       Option(error.position).map { pos =>
-      // print a carat under the offending character
+        // print a carat under the offending character
         val spaces = (line: Seq[Char]).take(pos).map {
           case '\t' => '\t'
           case x => ' '

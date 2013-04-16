@@ -12,7 +12,7 @@ import javax.sql._
 
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
-import scala.util.control.{NonFatal, ControlThrowable}
+import scala.util.control.{ NonFatal, ControlThrowable }
 
 /**
  * The Play Database API manages several connection pools.

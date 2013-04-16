@@ -13,8 +13,8 @@ case class MediaRange(mediaType: String, mediaSubType: String, parameters: Optio
    */
   def accepts(mimeType: String): Boolean =
     mediaType + "/" + mediaSubType == mimeType ||
-    (mediaSubType == "*" && mediaType == mimeType.takeWhile(_ != '/')) ||
-    (mediaType == "*" && mediaSubType == "*")
+      (mediaSubType == "*" && mediaType == mimeType.takeWhile(_ != '/')) ||
+      (mediaType == "*" && mediaSubType == "*")
 
 }
 

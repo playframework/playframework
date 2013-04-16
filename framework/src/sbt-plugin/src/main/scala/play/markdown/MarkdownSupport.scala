@@ -1,6 +1,6 @@
 package play.markdown
 
-import java.io.{IOException, File}
+import java.io.{ IOException, File }
 import org.pegdown.plugins._
 import org.pegdown.ast._
 import org.pegdown._
@@ -10,7 +10,7 @@ import java.util
 trait MarkdownSupport {
   def markdownToHtml(markdown: String, pagePath: String, root: File): String = {
 
-    val link:(String => (String, String)) = _ match {
+    val link: (String => (String, String)) = _ match {
       case link if link.contains("|") => {
         val parts = link.split('|')
         (parts.tail.head, parts.head)
@@ -71,7 +71,7 @@ trait MarkdownSupport {
         // Find the code segment
         val sourceCode = Path(sourceFile).lines()
         val notLabel = (s: String) => !s.contains("#" + label)
-        val segment = sourceCode dropWhile(notLabel) drop(1) takeWhile(notLabel)
+        val segment = sourceCode dropWhile (notLabel) drop (1) takeWhile (notLabel)
         if (segment.isEmpty) {
           throw new IllegalArgumentException("Could not find segment " + label + " in source file " + sourceFile)
         }
@@ -85,7 +85,7 @@ trait MarkdownSupport {
           case (i, None) => i
           case (None, i) => i
           case (Some(i1), Some(i2)) => Some(math.min(i1, i2))
-        }) getOrElse(0)
+        }) getOrElse (0)
 
         // Process directives in segment
         case class State(buffer: StringBuilder = new StringBuilder, skip: Option[Int] = None) {
@@ -110,7 +110,7 @@ trait MarkdownSupport {
               case _ => state.dropIndentAndAppendLine(line)
             }
           }
-        }).buffer/* Drop last newline */.dropRight(1).toString()
+        }).buffer /* Drop last newline */ .dropRight(1).toString()
 
         // Guess the type of the file
         val fileType = source.split("\\.") match {

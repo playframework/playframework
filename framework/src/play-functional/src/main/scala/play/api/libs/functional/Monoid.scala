@@ -17,7 +17,7 @@ trait Reducer[A, B] {
   def unit(a: A): B
   def prepend(a: A, b: B): B
   def append(b: B, a: A): B
-  
+
 }
 
 object Reducer {

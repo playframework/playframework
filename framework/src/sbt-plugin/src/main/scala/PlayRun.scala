@@ -71,7 +71,7 @@ trait PlayRun extends PlayInternalKeys {
       }
       val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
 
-      // All jar dependencies. They will not been reloaded and must be part of this top classloader
+        // All jar dependencies. They will not been reloaded and must be part of this top classloader
         val classpath = dependencies.map(_.data.toURI.toURL).filter(_.toString.endsWith(".jar")).toArray
 
         /**
@@ -257,7 +257,7 @@ trait PlayRun extends PlayInternalKeys {
       case Right(_) => {
 
         Project.runTask(dependencyClasspath in Runtime, state).get._2.toEither.right.map { dependencies =>
-        //trigger a require build if needed
+          //trigger a require build if needed
           Project.runTask(buildRequire, state).get._2
 
           val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
@@ -294,6 +294,5 @@ trait PlayRun extends PlayInternalKeys {
     }
 
   }
-
 
 }

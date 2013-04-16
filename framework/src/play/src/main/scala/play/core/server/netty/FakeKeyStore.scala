@@ -1,12 +1,12 @@
 package play.core.server.netty
 
-import play.api.{Logger, Application}
-import java.security.{KeyStore, SecureRandom, KeyPairGenerator, KeyPair}
+import play.api.{ Logger, Application }
+import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
 import java.math.BigInteger
 import java.security.cert.X509Certificate
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.{ File, FileInputStream, FileOutputStream }
 import javax.net.ssl.KeyManagerFactory
 import scala.util.control.NonFatal
 
@@ -36,9 +36,9 @@ object FakeKeyStore {
         // Create the key store, first set the store pass
         keyStore.load(null, "".toCharArray)
         keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
-        for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray)}
+        for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
       } else {
-        for (in <- resource.managed(new FileInputStream(keyStoreFile))) {keyStore.load(in, "".toCharArray)}
+        for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
       }
 
       // Load the key and certificate into a key manager factory

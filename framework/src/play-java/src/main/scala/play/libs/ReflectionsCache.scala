@@ -12,7 +12,7 @@ import org.reflections.util.FilterBuilder
  */
 object ReflectionsCache {
   import ref.SoftReference
-  import org.reflections.{scanners, util, Reflections}
+  import org.reflections.{ scanners, util, Reflections }
   import scala.collection.concurrent._
 
   // A soft reference is used so that we don't force the classloader or reflections to be live after a test run,

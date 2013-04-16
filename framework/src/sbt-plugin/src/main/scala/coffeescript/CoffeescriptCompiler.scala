@@ -8,40 +8,39 @@ object CoffeescriptCompiler {
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
 
-
   import scalax.file._
 
   private lazy val compiler = {
 
-    (source: File, bare: Boolean) => {
+    (source: File, bare: Boolean) =>
+      {
 
-      withJsContext{ (ctx: Context, scope:Scriptable) =>
-        val wrappedCoffeescriptCompiler = Context.javaToJS(this, scope)
-        ScriptableObject.putProperty(scope, "CoffeescriptCompiler", wrappedCoffeescriptCompiler)
+        withJsContext { (ctx: Context, scope: Scriptable) =>
+          val wrappedCoffeescriptCompiler = Context.javaToJS(this, scope)
+          ScriptableObject.putProperty(scope, "CoffeescriptCompiler", wrappedCoffeescriptCompiler)
 
-        ctx.evaluateReader(scope, new InputStreamReader(
-          this.getClass.getClassLoader.getResource("coffee-script.js").openConnection().getInputStream()),
-          "coffee-script.js",
-          1, null)
+          ctx.evaluateReader(scope, new InputStreamReader(
+            this.getClass.getClassLoader.getResource("coffee-script.js").openConnection().getInputStream()),
+            "coffee-script.js",
+            1, null)
 
-        val coffee = scope.get("CoffeeScript", scope).asInstanceOf[NativeObject]
-        val compilerFunction = coffee.get("compile", scope).asInstanceOf[Function]
-        val coffeeCode = Path(source).string.replace("\r", "")
-        val options = ctx.newObject(scope)
-        options.put("bare", options, bare)
-        compilerFunction.call(ctx, scope, scope, Array(coffeeCode, options))
-      }.asInstanceOf[String]
-    }
+          val coffee = scope.get("CoffeeScript", scope).asInstanceOf[NativeObject]
+          val compilerFunction = coffee.get("compile", scope).asInstanceOf[Function]
+          val coffeeCode = Path(source).string.replace("\r", "")
+          val options = ctx.newObject(scope)
+          options.put("bare", options, bare)
+          compilerFunction.call(ctx, scope, scope, Array(coffeeCode, options))
+        }.asInstanceOf[String]
+      }
 
   }
 
-
   /**
-    * wrap function call into rhino context attached to current thread
-    * and ensure that it exits right after
-    * @param f their name
-    */
-  def withJsContext(f: (Context, Scriptable) => Any):Any = {
+   * wrap function call into rhino context attached to current thread
+   * and ensure that it exits right after
+   * @param f their name
+   */
+  def withJsContext(f: (Context, Scriptable) => Any): Any = {
     val ctx = Context.enter
     ctx.setOptimizationLevel(-1)
     val global = new Global
@@ -51,7 +50,7 @@ object CoffeescriptCompiler {
     try {
       f(ctx, scope)
     } catch {
-      case e:Exception => throw e;
+      case e: Exception => throw e;
     } finally {
       Context.exit
     }
