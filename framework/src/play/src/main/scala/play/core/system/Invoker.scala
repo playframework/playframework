@@ -3,7 +3,7 @@ package play.core
 import akka.actor._
 
 import com.typesafe.config._
-import play.api.{Logger, Play}
+import play.api.{ Logger, Play }
 
 /**
  * provides Play's internal actor system and the corresponding actor instances
@@ -17,8 +17,8 @@ private[play] object Invoker {
   val system: ActorSystem = Play.maybeApplication.map { app =>
     ActorSystem("play", loadActorConfig(app.configuration.underlying), app.classloader)
   } getOrElse {
-     Logger("play").warn("No application found at invoker init")
-     ActorSystem("play", loadActorConfig(ConfigFactory.load()))
+    Logger("play").warn("No application found at invoker init")
+    ActorSystem("play", loadActorConfig(ConfigFactory.load()))
   }
 
   val executionContext: scala.concurrent.ExecutionContext = system.dispatcher

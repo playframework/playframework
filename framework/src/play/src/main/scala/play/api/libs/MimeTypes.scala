@@ -45,9 +45,9 @@ object MimeTypes {
    */
   def isText(mimeType: String): Boolean = {
     mimeType.trim match {
-        case text if text.startsWith("text/") => true
-        case text if additionalText.contains(text) => true
-        case _ => false
+      case text if text.startsWith("text/") => true
+      case text if additionalText.contains(text) => true
+      case _ => false
     }
   }
 
@@ -608,7 +608,7 @@ object MimeTypes {
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
       parts(0) -> parts.drop(1).mkString).toMap
 
-    lazy val additionalText =
+  lazy val additionalText =
     """
         application/json
         application/javascript

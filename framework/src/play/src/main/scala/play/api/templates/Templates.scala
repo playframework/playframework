@@ -5,7 +5,6 @@ import play.templates._
 import play.api.http.MimeTypes
 import org.apache.commons.lang3.StringEscapeUtils
 
-
 /**
  * Appendable content using a StringBuilder.
  * @param buffer StringBuilder to use
@@ -103,7 +102,6 @@ object Txt {
   def apply(text: String): Txt = {
     new Txt(new StringBuilder(text))
   }
-
 
   /**
    * Creates an empty text fragment.

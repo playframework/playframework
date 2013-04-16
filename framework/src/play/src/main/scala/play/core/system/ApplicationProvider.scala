@@ -25,7 +25,7 @@ trait SourceMapper {
 }
 
 trait DevSettings {
-  def devSettings: Map[String,String]
+  def devSettings: Map[String, String]
 }
 
 /**
@@ -74,9 +74,9 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   // Use plain Java call here in case of scala classloader mess
   {
-    if(System.getProperty("play.debug.classpath") == "true") {
+    if (System.getProperty("play.debug.classpath") == "true") {
       System.out.println("\n---- Current ClassLoader ----\n")
-      System.out.println(this.getClass.getClassLoader) 
+      System.out.println(this.getClass.getClassLoader)
       System.out.println("\n---- The where is Scala? test ----\n")
       System.out.println(this.getClass.getClassLoader.getResource("scala/Predef$.class"))
     }
@@ -134,7 +134,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
                 }
               }), Mode.Dev) with DevSettings {
                 import scala.collection.JavaConverters._
-                lazy val devSettings: Map[String,String] = sbtLink.settings.asScala.toMap
+                lazy val devSettings: Map[String, String] = sbtLink.settings.asScala.toMap
               }
 
               Play.start(newApplication)

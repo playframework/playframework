@@ -59,7 +59,7 @@ object BuildSettings {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
       .settings(mimaDefaultSettings: _*)
-      .settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+      .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
       .settings(playRuntimeSettings(name): _*)
   }
 
@@ -72,7 +72,7 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
-      .settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+      .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
       .settings(
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),

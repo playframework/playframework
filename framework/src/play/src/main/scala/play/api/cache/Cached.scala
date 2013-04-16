@@ -2,8 +2,8 @@ package play.api.cache
 
 import play.api._
 import play.api.mvc._
-import play.api.libs.iteratee.{Iteratee, Done}
-import play.api.http.HeaderNames.{IF_NONE_MATCH, ETAG, EXPIRES}
+import play.api.libs.iteratee.{ Iteratee, Done }
+import play.api.http.HeaderNames.{ IF_NONE_MATCH, ETAG, EXPIRES }
 import play.api.mvc.Results.NotModified
 
 /**

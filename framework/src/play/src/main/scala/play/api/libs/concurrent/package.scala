@@ -12,7 +12,7 @@ import scala.concurrent.{ Future }
  */
 package object concurrent {
 
-  import scala.language.implicitConversions	
+  import scala.language.implicitConversions
 
   implicit def futureToPlayPromise[A](fu: scala.concurrent.Future[A]): PlayPromise[A] = new PlayPromise[A](fu)
 
@@ -23,7 +23,7 @@ package object concurrent {
 package concurrent {
   package object backwardCompatible {
 
-  type RedeemablePromise[A] = Future[A] with Redeemable[A]
+    type RedeemablePromise[A] = Future[A] with Redeemable[A]
 
   }
 }
