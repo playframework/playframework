@@ -252,16 +252,18 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
                 nettyResponse.setChunked(true)
                 val bodyIteratee = {
-                  def step(subsequence: Int)(in:Input[r.BODY_CONTENT]): Iteratee[r.BODY_CONTENT, Unit] = in match {
-                    case Input.El(x) =>
-                      val b = new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))
-                      nextWhenComplete(sendDownstream(subsequence, false, b), step(subsequence + 1))
-                    case Input.Empty =>
-                      Cont(step(subsequence))
-                    case Input.EOF =>
+                  def step(subsequence: Int)(in:Input[r.BODY_CONTENT]):Iteratee[r.BODY_CONTENT,Unit] = (e.getChannel.isConnected(),in) match {
+                    case (true,Input.El(x)) =>
+                       val b = new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(r.writeable.transform(x)))
+                       nextWhenComplete(sendDownstream(subsequence, false, b), step(subsequence + 1))
+                    case (true,Input.Empty) => Cont(step(subsequence))
+                    case (_, Input.EOF) =>
                       val f = sendDownstream(subsequence, true, HttpChunk.LAST_CHUNK)
                       val p = NettyPromise(f)
                       Iteratee.flatten(p.map(_ => Done(())))
+                    case (_,in) =>
+                      //we can have input from upstream and the channel is not open yet
+                      Done((),in)
                   }
                   nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1))
                 }
