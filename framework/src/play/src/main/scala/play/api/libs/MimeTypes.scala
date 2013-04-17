@@ -540,6 +540,7 @@ object MimeTypes {
         xbm=image/x-xbitmap
         xdr=video/x-amt-demorun
         xgz=xgl/drawing
+        xhtml=application/xhtml+xml
         xif=image/vndxiff
         xl=application/excel
         xla=application/excel
