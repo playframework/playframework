@@ -19,4 +19,15 @@ object SpecsSpec extends Specification {
       Play.maybeApplication must beSome(app)
     }
   }
+
+  "WithBrowser context" should {
+
+    def doBrowserStuff()(implicit browser: TestBrowser) = {
+      browser.goTo("/")
+    }
+
+    "make the browser available implicitly" in new WithBrowser {
+      doBrowserStuff()
+    }
+  }
 }
