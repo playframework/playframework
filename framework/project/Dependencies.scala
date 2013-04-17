@@ -105,7 +105,7 @@ object Dependencies {
     "com.novocode" % "junit-interface" % "0.10-M2" % "test",
 
    ("org.fluentlenium" % "fluentlenium-festassert" % "0.7.8" % "test").exclude("org.jboss.netty", "netty").exclude("comm.google.guava","guava"),
-    "org.scala-lang" % "scala-reflect" % "2.10.0")
+    "org.scala-lang" % "scala-reflect" % "2.10.1")
 
   val link = Seq(
     "org.javassist" % "javassist" % "3.16.1-GA")
@@ -167,7 +167,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.1.1",
     "com.fasterxml.jackson.core" % "jackson-core" % "2.1.1",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.1.1",
-    "org.scala-lang" % "scala-reflect" % "2.10.0",
+    "org.scala-lang" % "scala-reflect" % "2.10.1",
     specsBuild % "test")
 
   val testDependencies = Seq(
