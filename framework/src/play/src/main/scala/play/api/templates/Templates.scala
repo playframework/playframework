@@ -82,6 +82,50 @@ object HtmlFormat extends Format[Html] {
 }
 
 /**
+ * Content type used in XHTML templates.
+ */
+class XHtml(buffer: StringBuilder) extends BufferedContent[XHtml](buffer) {
+  /**
+   * Content type of XHTML.
+   */
+  val contentType = MimeTypes.XHTML
+}
+
+/**
+ * Helper for XHTML utility methods.
+ */
+object XHtml {
+
+  /**
+   * Creates an XHTML fragment with initial content specified.
+   */
+  def apply(text: String): XHtml = {
+    new XHtml(new StringBuilder(text))
+  }
+
+  /**
+   * Creates an empty HTML fragment.
+   */
+  def empty: XHtml = new XHtml(new StringBuilder)
+}
+
+/**
+ * Formatter for XHTML content.
+ */
+object XHtmlFormat extends Format[XHtml] {
+
+  /**
+   * Creates a raw (unescaped) XHTML fragment.
+   */
+  def raw(text: String): XHtml = XHtml(text)
+
+  /**
+   * Creates a safe (escaped) XHTML fragment.
+   */
+  def escape(text: String) = XHtml(org.apache.commons.lang3.StringEscapeUtils.escapeXml(text))
+}
+
+/**
  * Content type used in default text templates.
  */
 class Txt(buffer: StringBuilder) extends BufferedContent[Txt](buffer) {
