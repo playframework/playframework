@@ -640,7 +640,7 @@ package play.api.mvc {
    * @param secure whether this cookie is secured
    */
   case class DiscardingCookie(name: String, path: String = "/", domain: Option[String] = None, secure: Boolean = false) {
-    def toCookie = Cookie(name, "", Some(-1), path, domain, secure)
+    def toCookie = Cookie(name, "", Some(-86400), path, domain, secure)
   }
 
   /**

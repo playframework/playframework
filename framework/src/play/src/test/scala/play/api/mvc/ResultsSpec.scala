@@ -62,7 +62,7 @@ object ResultsSpec extends Specification {
       setCookies("preferences").value must be_==("blue")
       setCookies("lang").value must be_==("fr")
       setCookies("logged").maxAge must beSome
-      setCookies("logged").maxAge.get must be_<=(1)
+      setCookies("logged").maxAge.get must be_<=(-86000)
     }
 
 
@@ -100,7 +100,7 @@ object ResultsSpec extends Specification {
       setCookies("preferences").value must be_==("blue")
       setCookies("lang").value must be_==("fr")
       setCookies("logged").maxAge must beSome
-      setCookies("logged").maxAge.get must be_<=(1)
+      setCookies("logged").maxAge.get must be_<=(-86000)
       val playSession = Session.decodeFromCookie(setCookies.get(Session.COOKIE_NAME))
       playSession.data.size must be_==(2)
       playSession.data must havePair("user" -> "kiki")
