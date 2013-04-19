@@ -12,51 +12,101 @@ package scalaguide.http.scalasessionflash {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaSessionFlashSpec extends Specification with Controller {
-    import scalaguide.http.scalasessionflash.full._
     "A scala SessionFlash" should {
 
       "Reading a Session value" in {
-        val index = Application.index
+        //#index-retrieve-incoming-session
+        def index = Action { request =>
+          request.session.get("connected").map { user =>
+            Ok("Hello " + user)
+          }.getOrElse {
+            Unauthorized("Oops, you are not connected")
+          }
+        }
+        //#index-retrieve-incoming-session
+
         assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(res => contentAsString(res) must contain("player"))
       }
 
       "Reading a Session value implicitly" in {
-        val index = Application2.index
+        //#index-retrieve-incoming-session-implicitly
+        def index = Action { implicit request =>
+          session.get("connected").map { user =>
+            Ok("Hello " + user)
+          }.getOrElse {
+            Unauthorized("Oops, you are not connected")
+          }
+        }
+        //#index-retrieve-incoming-session-implicitly
         assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(res => contentAsString(res) must contain("player"))
       }
 
       "Storing data in the Session" in {
-        val storeSession = StoringSessionApplication.storeSession
+        def storeSession = Action { implicit request =>
+          //#store-session
+          Ok("Welcome!").withSession(
+            "connected" -> "user@gmail.com")
+          //#store-session
+        }
+
         assertAction(storeSession, OK, FakeRequest())(res => testSession(res.asInstanceOf[PlainResult], "connected", Some("user@gmail.com")))
       }
 
       "add data in the Session" in {
-        val addSession = StoringSessionApplication.addSession
+        def addSession = Action { implicit request =>
+          //#add-session
+          Ok("Hello World!").withSession(
+            session + ("saidHello" -> "yes"))
+          //#add-session
+        }
+
         assertAction(addSession, OK, FakeRequest())(res => testSession(res.asInstanceOf[PlainResult], "saidHello", Some("yes")))
       }
 
       "remove data in the Session" in {
-        val removeSession = StoringSessionApplication.removeSession
+        def removeSession = Action { implicit request =>
+          //#remove-session
+          Ok("Theme reset!").withSession(
+            session - "theme")
+          //#remove-session
+        }
+
         assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(res => testSession(res.asInstanceOf[PlainResult], "theme", None))
       }
 
       "Discarding the whole session" in {
-        val discardingSession = StoringSessionApplication.discardingSession
+        def discardingSession = Action { implicit request =>
+          //#discarding-session
+          Ok("Bye").withNewSession
+          //#discarding-session
+        }
         assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(res => testSession(res.asInstanceOf[PlainResult], "theme", None))
       }
 
       "get from flash" in {
-        val index = FlashApplication.index
-        assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res => contentAsString(res) must contain("success!"))
-      }
+        //#using-flash
+        def index = Action { implicit request =>
+          Ok {
+            flash.get("success").getOrElse("Welcome!")
+          }
+        }
 
-      "add message to flash" in {
-        val save = FlashApplication.save
+        def save = Action {
+          Redirect("/home").flashing(
+            "success" -> "The item has been created")
+        }
+        //#using-flash
+        assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res => contentAsString(res) must contain("success!"))
         assertAction(save, SEE_OTHER, FakeRequest())(res => testFlash(res.asInstanceOf[PlainResult], "success", Some("The item has been created")))
       }
 
       "fix could not find implicit value for parameter flash" in {
-        val index = FixFlashApplication.index
+        //#find-noflash
+        def index() = Action {
+          implicit request =>
+            Ok(views.html.Application.index())
+        }
+        //#find-noflash
         assertAction(index, OK, FakeRequest())(res => contentAsString(res) must contain("Good"))
       }
 
@@ -82,87 +132,6 @@ package scalaguide.http.scalasessionflash {
     }
   }
 
-  package scalaguide.http.scalasessionflash.full {
-
-    object Application extends Controller {
-      //#index-retrieve-incoming-session
-      def index = Action { request =>
-        request.session.get("connected").map { user =>
-          Ok("Hello " + user)
-        }.getOrElse {
-          Unauthorized("Oops, you are not connected")
-        }
-      }
-      //#index-retrieve-incoming-session
-    }
-
-    object Application2 extends Controller {
-      //#index-retrieve-incoming-session-implicitly
-      def index = Action { implicit request =>
-        session.get("connected").map { user =>
-          Ok("Hello " + user)
-        }.getOrElse {
-          Unauthorized("Oops, you are not connected")
-        }
-      }
-      //#index-retrieve-incoming-session-implicitly
-    }
-
-    object StoringSessionApplication extends Controller {
-
-      def storeSession = Action { implicit request =>
-        //#store-session
-        Ok("Welcome!").withSession(
-          "connected" -> "user@gmail.com")
-        //#store-session
-      }
-
-      def addSession = Action { implicit request =>
-        //#add-session
-        Ok("Hello World!").withSession(
-          session + ("saidHello" -> "yes"))
-        //#add-session
-      }
-
-      def removeSession = Action { implicit request =>
-        //#remove-session
-        Ok("Theme reset!").withSession(
-          session - "theme")
-        //#remove-session
-      }
-
-      def discardingSession = Action { implicit request =>
-        //#discarding-session
-        Ok("Bye").withNewSession
-        //#discarding-session
-      }
-    }
-
-    object FlashApplication extends Controller {
-      //#using-flash
-      def index = Action { implicit request =>
-        Ok {
-          flash.get("success").getOrElse("Welcome!")
-        }
-      }
-
-      def save = Action {
-        Redirect("/home").flashing(
-          "success" -> "The item has been created")
-      }
-      //#using-flash
-    }
-
-    object FixFlashApplication extends Controller {
-      //#find-noflash
-      def index() = Action {
-        implicit request =>
-          Ok(views.html.Application.index())
-      }
-      //#find-noflash
-    }
-
-  }
 }
 
 // Faking a form view
