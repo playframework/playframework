@@ -277,6 +277,33 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * Extracts head of the chunks as byte[].
+     */
+    public static byte[] headOfChunks(Result result) {
+        try {
+            return Scala.orNull(play.core.j.JavaResultExtractor.headChunks(result));
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     * Extracts all of the chunks as List&lt;byte[]&gt;.
+     * CAUTION: If your chunks is generating something indefinitely, allOfChunks() would lead resource exhaustion.
+     */
+    public static List<byte[]> allOfChunks(Result result) {
+        try {
+            return Scala.asJava(play.core.j.JavaResultExtractor.getChunks(result));
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
      * Use the Router to determine the Action to call for this request and executes it.
      * @deprecated
      * @see #route instead
