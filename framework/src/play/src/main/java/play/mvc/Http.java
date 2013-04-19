@@ -654,7 +654,7 @@ public class Http {
          * @param secure Whether the cookie to discard is secure
          */
         public void discardCookie(String name, String path, String domain, boolean secure) {
-            cookies.add(new Cookie(name, "", -1, path, domain, secure, false));
+            cookies.add(new Cookie(name, "", -86400, path, domain, secure, false));
         }
 
         // FIXME return a more convenient type? e.g. Map<String, Cookie>
