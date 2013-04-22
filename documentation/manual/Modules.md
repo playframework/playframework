@@ -85,6 +85,12 @@
 * **Repository:** <http://cleverage.github.com/play2-elasticsearch/releases/>
 * **Short description** Indexing/Requesting Object in Embedded ElasticSearch Server or remote(s) Node(s). 
 
+## Ember.js
+
+* **Website:** <https://github.com/krumpi/play-emberjs>
+* **Documentation:** <https://github.com/krumpi/play-emberjs/blob/master/README.md>
+* **Short description** Supports precompilation of ember.js/handlebars templates.
+
 ## funcy - Page Driven Functional Tests (Java)
 
 * **Website:** <https://github.com/joergviola/funcy>
