@@ -42,7 +42,7 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
 
 }
 
-trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) with Handler {
+trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], SimpleResult]) with Handler {
 
   /**
    * Returns itself, for better support in the routes file.
@@ -55,7 +55,7 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) w
 
 object EssentialAction {
 
-  def apply(f: RequestHeader => Iteratee[Array[Byte], Result]): EssentialAction = new EssentialAction {
+  def apply(f: RequestHeader => Iteratee[Array[Byte], SimpleResult]): EssentialAction = new EssentialAction {
     def apply(rh: RequestHeader) = f(rh)
   }
 }
@@ -93,22 +93,20 @@ trait Action[A] extends EssentialAction {
    * @param request the incoming HTTP request
    * @return the result to be sent to the client
    */
-  def apply(request: Request[A]): Result
+  def apply(request: Request[A]): Future[SimpleResult]
 
-  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).map {
+  def apply(rh: RequestHeader): Iteratee[Array[Byte], SimpleResult] = parser(rh).mapM {
     case Left(r) =>
       Play.logger.trace("Got direct result from the BodyParser: " + r)
-      r
+      Future.successful(r)
     case Right(a) =>
       val request = Request(rh, a)
       Play.logger.trace("Invoking action with request: " + request)
       Play.maybeApplication.map { app =>
-        // try {
         play.utils.Threads.withContextClassLoader(app.classloader) {
           apply(request)
         }
-        // } catch { case e => app.handleError(rh, e) }
-      }.getOrElse(Results.InternalServerError)
+      }.getOrElse(Future.successful(Results.InternalServerError))
   }(play.api.libs.concurrent.Execution.defaultContext)
 
   /**
@@ -129,7 +127,7 @@ trait Action[A] extends EssentialAction {
  *
  * @tparam T the body content type
  */
-trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, A]]] {
+trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[SimpleResult, A]]] {
   self =>
 
   /**
@@ -168,7 +166,7 @@ object BodyParser {
    * }
    * }}}
    */
-  def apply[T](f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]): BodyParser[T] = {
+  def apply[T](f: Function1[RequestHeader, Iteratee[Array[Byte], Either[SimpleResult, T]]]): BodyParser[T] = {
     apply("(no name)")(f)
   }
 
@@ -182,7 +180,7 @@ object BodyParser {
    * }
    * }}}
    */
-  def apply[T](debugName: String)(f: Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, T]]]): BodyParser[T] = new BodyParser[T] {
+  def apply[T](debugName: String)(f: Function1[RequestHeader, Iteratee[Array[Byte], Either[SimpleResult, T]]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
     override def toString = "BodyParser(" + debugName + ")"
   }
@@ -209,15 +207,10 @@ trait ActionBuilder {
    * @param block the action code
    * @return an action
    */
-  def apply[A](bodyParser: BodyParser[A])(block: Request[A] => Result): Action[A] = new Action[A] {
-    def parser = bodyParser
-    def apply(ctx: Request[A]) = try {
-      block(ctx)
-    } catch {
-      // NotImplementedError is not caught by NonFatal, wrap it
-      case e: NotImplementedError => throw new RuntimeException(e)
-      // LinkageError is similarly harmless in Play Framework, since automatic reloading could easily trigger it
-      case e: LinkageError => throw new RuntimeException(e)
+  def apply[A](bodyParser: BodyParser[A])(block: Request[A] => Result): Action[A] = async(bodyParser) { req: Request[A] =>
+    block(req) match {
+      case simple: SimpleResult => Future.successful(simple)
+      case async: AsyncResult => async.unflatten
     }
   }
 
@@ -250,6 +243,67 @@ trait ActionBuilder {
    * @return an action
    */
   def apply(block: => Result): Action[AnyContent] = apply(_ => block)
+
+  /**
+   * Constructs an `Action` that returns a future of a result, with default content, and no request parameter.
+   *
+   * For example:
+   * {{{
+   * val hello = Action.future {
+   *   WS.url("http://www.playframework.com").get().map { r =>
+   *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
+   *   }
+   * }
+   * }}}
+   *
+   * @param block the action code
+   * @return an action
+   */
+  def async(block: => Future[SimpleResult]): Action[AnyContent] = async(_ => block)
+
+  /**
+   * Constructs an `Action` that returns a future of a result, with default content.
+   *
+   * For example:
+   * {{{
+   * val hello = Action.future { request =>
+   *   WS.url(request.getQueryString("url").get).get().map { r =>
+   *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
+   *   }
+   * }
+   * }}}
+   *
+   * @param block the action code
+   * @return an action
+   */
+  def async(block: Request[AnyContent] => Future[SimpleResult]): Action[AnyContent] = async(BodyParsers.parse.anyContent)(block)
+
+  /**
+   * Constructs an `Action` that returns a future of a result, with default content.
+   *
+   * For example:
+   * {{{
+   * val hello = Action.future { request =>
+   *   WS.url(request.getQueryString("url").get).get().map { r =>
+   *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
+   *   }
+   * }
+   * }}}
+   *
+   * @param block the action code
+   * @return an action
+   */
+  def async[A](bodyParser: BodyParser[A])(block: Request[A] => Future[SimpleResult]): Action[A] = new Action[A] {
+    def parser = bodyParser
+    def apply(ctx: Request[A]) = try {
+      block(ctx)
+    } catch {
+      // NotImplementedError is not caught by NonFatal, wrap it
+      case e: NotImplementedError => throw new RuntimeException(e)
+      // LinkageError is similarly harmless in Play Framework, since automatic reloading could easily trigger it
+      case e: LinkageError => throw new RuntimeException(e)
+    }
+  }
 
 }
 

@@ -34,7 +34,7 @@ trait DevSettings {
 trait ApplicationProvider {
   def path: File
   def get: Either[Throwable, Application]
-  def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
+  def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[SimpleResult] = None
 }
 
 trait HandleWebCommandSupport {
