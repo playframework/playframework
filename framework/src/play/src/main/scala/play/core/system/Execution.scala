@@ -5,10 +5,10 @@ import java.util.concurrent.Executors
 
 private[play] object Execution {
 
-  lazy val internalContext: scala.concurrent.ExecutionContext = {
+  lazy val internalContext: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.fromExecutor(null) /*{
     val numberOfThreads = play.api.Play.maybeApplication.map(_.configuration.getInt("internal-threadpool-size")).flatten.getOrElse(Runtime.getRuntime.availableProcessors)
 
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numberOfThreads, NamedThreadFactory("play-internal-execution-context")))
-  }
 
+  }*/
 }
