@@ -1,6 +1,5 @@
 package play.libs;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -8,11 +7,8 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.sun.net.httpserver.HttpContext;
-
 import play.api.libs.concurrent.PlayPromise;
 import play.core.j.FPromiseHelper;
-import play.libs.HttpExecution;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
@@ -471,6 +467,27 @@ public class F {
          */
         public Promise<A> recover(final Function<Throwable,A> function, ExecutionContext ec) {
             return FPromiseHelper.recover(this, function, ec);
+        }
+
+        /**
+         * Perform the given <code>action</code> callback if the promise encounters an exception.
+         *
+         * This action will be run in the default exceution context.
+         *
+         * @param action The action to perform.
+         */
+        public void onFailure(final Callback<Throwable> action) {
+            FPromiseHelper.onFailure(this, action, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Perform the given <code>action</code> callback if the promise encounters an exception.
+         *
+         * @param action The action to perform.
+         * @param ec The ExecutionContext to execution the callback in
+         */
+        public void onFailure(final Callback<Throwable> action, ExecutionContext ec) {
+            FPromiseHelper.onFailure(this, action, ec);
         }
 
         /**

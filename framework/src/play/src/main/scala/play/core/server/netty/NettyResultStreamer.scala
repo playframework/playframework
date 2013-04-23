@@ -83,7 +83,7 @@ object NettyResultStreamer {
     val channelBuffer = ChannelBuffers.dynamicBuffer(512)
 
     // Left is the next chunk that didn't fit in our max length, right means we did buffer it successfully
-    val takeUpToMaxLength: Iteratee[Array[Byte], Either[Array[Byte], Unit]] = Cont {
+    def takeUpToMaxLength: Iteratee[Array[Byte], Either[Array[Byte], Unit]] = Cont {
       case Input.El(data) =>
         if (data.length + channelBuffer.readableBytes() > maxLength) {
           Done(Left(data))
@@ -104,9 +104,11 @@ object NettyResultStreamer {
         Iteratee.flatten(promise.map(_ => Done[Array[Byte], Boolean](closeConnection))(internalExecutionContext))
       }
       case Left(nextChunk) => {
-        // Perhaps if we moved to ByteString we could convert a single buffer into many strings... but not today.
-        // Use the magic chunking number of 8192, because everyone likes 8k
-        val bufferedAsEnumerator = Enumerator.enumerate(channelBuffer.array().grouped(8192)) >>> Enumerator(nextChunk)
+        val bufferedAsEnumerator = if (channelBuffer.readableBytes() > 0) {
+          Enumerator(channelBuffer.array().take(channelBuffer.readableBytes()), nextChunk)
+        } else {
+          Enumerator(nextChunk)
+        }
 
         // Get the iteratee, maybe chunked or mabye not according HTTP version
         val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
@@ -152,7 +154,7 @@ object NettyResultStreamer {
         case Input.Empty =>
           Cont(step(subsequence))
         case Input.EOF =>
-          Done(subsequence + 1)
+          Done(subsequence)
       }
       nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1), 0)
     }
@@ -189,9 +191,7 @@ object NettyResultStreamer {
       // Multiple cookies could be merged in a single header
       // but it's not properly supported by some browsers
       case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-        nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cook
-
-        ies.encode(Seq(c)) }.asJava)
+        nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
       }
 
       case (name, value) => nettyResponse.setHeader(name, value)

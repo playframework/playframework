@@ -6,14 +6,14 @@ import play.api.Routes
 import play.api.test._
 import play.api.test.Helpers._
 import scala.concurrent.duration.Duration
-import scala.concurrent.Await
+import scala.concurrent._
 
 object FiltersSpec extends Specification {
   "filters should" should {
     "be able to access request tags" in {
 
       object MockGlobal extends WithFilters(Filter { (f, rh) =>
-        rh.tags.get(Routes.ROUTE_VERB).map(verb => Results.Ok(verb)).getOrElse(Results.NotFound)
+        Future.successful(rh.tags.get(Routes.ROUTE_VERB).map(verb => Results.Ok(verb)).getOrElse(Results.NotFound))
       })
 
       "helpers routing" in new WithApplication(FakeApplication(withGlobal = Some(MockGlobal))) {

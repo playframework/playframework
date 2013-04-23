@@ -33,7 +33,7 @@ class HelpersSpec extends Specification {
   "contentAsString" should {
 
     "extract the content from Result as String" in {
-      contentAsString(Ok("abc")) must_== "abc"
+      contentAsString(Future.successful(Ok("abc"))) must_== "abc"
     }
 
     "extract the content from Content as String" in {
@@ -49,11 +49,7 @@ class HelpersSpec extends Specification {
   "contentAsBytes" should {
 
     "extract the content from Result as Bytes" in {
-      contentAsBytes(Ok("abc")) must_== Array(97, 98, 99)
-    }
-
-    "extract the content from AsyncResult as Bytes" in {
-      contentAsBytes(AsyncResult { Future(Ok("abc")) }) must_== Array(97, 98, 99)
+      contentAsBytes(Future.successful(Ok("abc"))) must_== Array(97, 98, 99)
     }
 
     "extract the content from Content as Bytes" in {
@@ -70,7 +66,7 @@ class HelpersSpec extends Specification {
 
     "extract the content from Result as Json" in {
       val jsonResult = Ok("""{"play":["java","scala"]}""").as("application/json")
-      (contentAsJson(jsonResult) \ "play").as[List[String]] must_== List("java", "scala")
+      (contentAsJson(Future.successful(jsonResult)) \ "play").as[List[String]] must_== List("java", "scala")
     }
 
     "extract the content from Content as Json" in {

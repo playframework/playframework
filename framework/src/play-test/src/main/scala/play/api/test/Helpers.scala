@@ -18,6 +18,7 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.{ Duration, SECONDS }
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
  * Helper functions to run tests.
@@ -110,12 +111,12 @@ object Helpers extends Status with HeaderNames {
   /**
    * Extracts the Content-Type of this Result value.
    */
-  def contentType(of: Result): Option[String] = header(CONTENT_TYPE, of).map(_.split(";").take(1).mkString.trim)
+  def contentType(of: Future[SimpleResult]): Option[String] = header(CONTENT_TYPE, of).map(_.split(";").take(1).mkString.trim)
 
   /**
    * Extracts the Charset of this Result value.
    */
-  def charset(of: Result): Option[String] = header(CONTENT_TYPE, of) match {
+  def charset(of: Future[SimpleResult]): Option[String] = header(CONTENT_TYPE, of) match {
     case Some(s) if s.contains("charset=") => Some(s.split("; charset=").drop(1).mkString.trim)
     case _ => None
   }
@@ -123,79 +124,66 @@ object Helpers extends Status with HeaderNames {
   /**
    * Extracts the content as String.
    */
-  def contentAsString(of: Result): String = new String(contentAsBytes(of), charset(of).getOrElse("utf-8"))
+  def contentAsString(of: Future[SimpleResult]): String = new String(contentAsBytes(of), charset(of).getOrElse("utf-8"))
 
   /**
    * Extracts the content as bytes.
    */
-  def contentAsBytes(of: Result): Array[Byte] = of match {
-    case r @ SimpleResult(_, bodyEnumerator) => {
-      var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
-      await(bodyEnumerator(readAsBytes).flatMap(_.run))
-    }
-    case AsyncResult(p) => contentAsBytes(await(p))
-  }
+  def contentAsBytes(of: Future[SimpleResult]): Array[Byte] =
+    await(await(of).body |>>> Iteratee.consume[Array[Byte]]())
 
   /**
    * Extracts the content as Json.
    */
-  def contentAsJson(of: Result): JsValue = Json.parse(contentAsString(of))
+  def contentAsJson(of: Future[SimpleResult]): JsValue = Json.parse(contentAsString(of))
 
   /**
    * Extracts the Status code of this Result value.
    */
-  def status(of: Result): Int = of match {
-    case PlainResult(status, _) => status
-    case AsyncResult(p) => status(await(p))
-  }
+  def status(of: Future[SimpleResult]): Int = await(of).header.status
 
   /**
    * Extracts the Cookies of this Result value.
    */
-  def cookies(of: Result): Cookies = Cookies(header(SET_COOKIE, of))
+  def cookies(of: Future[SimpleResult]): Cookies = Cookies(header(SET_COOKIE, of))
 
   /**
    * Extracts the Flash values of this Result value.
    */
-  def flash(of: Result): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
+  def flash(of: Future[SimpleResult]): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
 
   /**
    * Extracts the Session of this Result value.
    * Extracts the Session from this Result value.
    */
-  def session(of: Result): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
+  def session(of: Future[SimpleResult]): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
 
   /**
    * Extracts the Location header of this Result value if this Result is a Redirect.
    */
-  def redirectLocation(of: Result): Option[String] = of match {
-    case PlainResult(FOUND, headers) => headers.get(LOCATION)
-    case PlainResult(SEE_OTHER, headers) => headers.get(LOCATION)
-    case PlainResult(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
-    case PlainResult(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
-    case PlainResult(_, _) => None
-    case AsyncResult(p) => redirectLocation(await(p))
-    case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
+  def redirectLocation(of: Future[SimpleResult]): Option[String] = await(of).header match {
+    case ResponseHeader(FOUND, headers) => headers.get(LOCATION)
+    case ResponseHeader(SEE_OTHER, headers) => headers.get(LOCATION)
+    case ResponseHeader(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
+    case ResponseHeader(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
+    case ResponseHeader(_, _) => None
   }
 
   /**
    * Extracts an Header value of this Result value.
    */
-  def header(header: String, of: Result): Option[String] = headers(of).get(header)
+  def header(header: String, of: Future[SimpleResult]): Option[String] = headers(of).get(header)
 
   /**
    * Extracts all Headers of this Result value.
    */
-  def headers(of: Result): Map[String, String] = of match {
-    case PlainResult(_, headers) => headers
-    case AsyncResult(p) => headers(await(p))
-  }
+  def headers(of: Future[SimpleResult]): Map[String, String] = await(of).header.headers
 
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
   @deprecated("Use `route` instead.", "2.1.0")
-  def routeAndCall[T](request: FakeRequest[T]): Option[Result] = {
+  def routeAndCall[T](request: FakeRequest[T]): Option[Future[SimpleResult]] = {
     routeAndCall(this.getClass.getClassLoader.loadClass("Routes").asInstanceOf[Class[play.core.Router.Routes]], request)
   }
 
@@ -203,29 +191,32 @@ object Helpers extends Status with HeaderNames {
    * Use the Router to determine the Action to call for this request and executes it.
    */
   @deprecated("Use `route` instead.", "2.1.0")
-  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Result] = {
+  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Future[SimpleResult]] = {
     val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
     routes.routes.lift(request).map {
       case a: Action[_] =>
         val action = a.asInstanceOf[Action[T]]
-        val parsedBody: Option[Either[play.api.mvc.Result, T]] = await(action.parser(request).fold1(
-          (a, in) => Future.successful(Some(a)),
-          k => Future.successful(None),
-          (msg, in) => Future.successful(None))(global))
+        val parsedBody: Option[Either[SimpleResult, T]] = {
+            await(action.parser(request).fold(step => Future.successful(step match {
+              case Step.Done(a, in) => Some(a)
+              case Step.Cont(k) => None:Option[Either[SimpleResult, T]]
+              case Step.Error(msg, in) => None:Option[Either[SimpleResult, T]]
+            }))(global))
+        }
         parsedBody.map { resultOrT =>
           resultOrT.right.toOption.map { innerBody =>
             action(FakeRequest(request.method, request.uri, request.headers, innerBody))
-          }.getOrElse(resultOrT.left.get)
+          }.getOrElse(Future.successful(resultOrT.left.get))
         }.getOrElse(action(request))
 
     }
   }
 
   // Java compatibility
-  def jRoute(app: Application, rh: RequestHeader): Option[Result] = route(app, rh, AnyContentAsEmpty)
-  def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Result] = route(app, rh, body)(Writeable.wBytes)
-  def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Result] = jRoute(Play.current, rh, body)
-  def jRoute[T](app: Application, r: FakeRequest[T]): Option[Result] = {
+  def jRoute(app: Application, rh: RequestHeader): Option[Future[SimpleResult]] = route(app, rh, AnyContentAsEmpty)
+  def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Future[SimpleResult]] = route(app, rh, body)(Writeable.wBytes)
+  def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Future[SimpleResult]] = jRoute(Play.current, rh, body)
+  def jRoute[T](app: Application, r: FakeRequest[T]): Option[Future[SimpleResult]] = {
     (r.body: @unchecked) match {
       case body: AnyContentAsFormUrlEncoded => route(app, r, body)
       case body: AnyContentAsJson => route(app, r, body)
@@ -242,7 +233,7 @@ object Helpers extends Status with HeaderNames {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = {
+  def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[SimpleResult]] = {
     val rhWithCt = w.contentType.map(ct => rh.copy(
       headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
     )).getOrElse(rh)
@@ -252,9 +243,12 @@ object Helpers extends Status with HeaderNames {
       case _ => rh
     }).getOrElse(rhWithCt)
     handler.flatMap {
-      case a: EssentialAction => {
-        Some(AsyncResult(app.global.doFilter(a)(taggedRh).feed(Input.El(w.transform(body))).flatMap(_.run)))
-      }
+      case a: EssentialAction => Some(
+          app.global.doFilter(a)(taggedRh)
+            .feed(Input.El(w.transform(body)))
+            .flatMap(_.run)
+        )
+
       case _ => None
     }
   }
@@ -264,21 +258,21 @@ object Helpers extends Status with HeaderNames {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Result] = route(Play.current, rh, body)
+  def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[SimpleResult]] = route(Play.current, rh, body)
 
   /**
    * Use the Router to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Result] = route(app, req, req.body)
+  def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[SimpleResult]] = route(app, req, req.body)
 
   /**
    * Use the Router to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Result] = route(Play.current, req)
+  def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Future[SimpleResult]] = route(Play.current, req)
 
   /**
    * Block until a Promise is redeemed.

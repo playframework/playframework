@@ -1,5 +1,6 @@
 package play.mvc;
 
+import play.libs.F;
 import play.mvc.Http.*;
 
 import java.lang.annotation.*;
@@ -27,12 +28,17 @@ public class Security {
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
         
-        public Result call(Context ctx) {
+        public F.Promise<SimpleResult> call(Context ctx) {
             try {
                 Authenticator authenticator = configuration.value().newInstance();
                 String username = authenticator.getUsername(ctx);
                 if(username == null) {
-                    return authenticator.onUnauthorized(ctx);
+                    Result unauthorized = authenticator.onUnauthorized(ctx);
+                    if (unauthorized instanceof AsyncResult) {
+                        return ((AsyncResult) unauthorized).getPromise();
+                    } else {
+                        return F.Promise.pure((SimpleResult) unauthorized);
+                    }
                 } else {
                     try {
                         ctx.request().setUsername(username);

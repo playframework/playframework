@@ -28,7 +28,7 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
-@deprecated("Result will become SimpleResult in Play 2.3")
+@deprecated("Result will become SimpleResult in Play 2.3", "2.2.0")
 sealed trait Result extends NotNull with WithHeaders[Result]
 
 sealed trait WithHeaders[+A <: Result] {
@@ -180,7 +180,7 @@ sealed trait WithHeaders[+A <: Result] {
 /**
  * Helper utilities for Result values.
  */
-@deprecated("In Play 2.3, SimpleResult will be the only type of result")
+@deprecated("In Play 2.3, SimpleResult will be the only type of result", "2.2.0")
 object PlainResult {
 
   /**
@@ -200,7 +200,7 @@ object PlainResult {
 /**
  * A plain HTTP result.
  */
-@deprecated("In Play 2.3, SimpleResult will be the only type of result")
+@deprecated("In Play 2.3, SimpleResult will be the only type of result", "2.2.0")
 sealed trait PlainResult extends Result with WithHeaders[PlainResult] {
 
   /**
@@ -208,116 +208,6 @@ sealed trait PlainResult extends Result with WithHeaders[PlainResult] {
    */
   val header: ResponseHeader
 
-  /**
-   * Adds cookies to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
-   * }}}
-   *
-   * @param cookies the cookies to add to this result
-   * @return the new result
-   */
-  def withCookies(cookies: Cookie*): PlainResult = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
-  }
-
-  /**
-   * Discards cookies along this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").discardingCookies("theme")
-   * }}}
-   *
-   * @param cookies the cookies to discard along to this result
-   * @return the new result
-   */
-  def discardingCookies(cookies: DiscardingCookie*): PlainResult = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
-  }
-
-  /**
-   * Sets a new session for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
-   * }}}
-   *
-   * @param session the session to set with this result
-   * @return the new result
-   */
-  def withSession(session: Session): PlainResult = {
-    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
-  }
-
-  /**
-   * Sets a new session for this result, discarding the existing session.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withSession("saidHello" -> "yes")
-   * }}}
-   *
-   * @param session the session to set with this result
-   * @return the new result
-   */
-  def withSession(session: (String, String)*): PlainResult = withSession(Session(session.toMap))
-
-  /**
-   * Discards the existing session for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withNewSession
-   * }}}
-   *
-   * @return the new result
-   */
-  def withNewSession: PlainResult = withSession(Session())
-
-  /**
-   * Adds values to the flash scope for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
-   * }}}
-   *
-   * @param flash the flash scope to set with this result
-   * @return the new result
-   */
-  def flashing(flash: Flash): PlainResult = {
-    withCookies(Flash.encodeAsCookie(flash))
-  }
-
-  /**
-   * Adds values to the flash scope for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").flashing("success" -> "Done!")
-   * }}}
-   *
-   * @param values the flash values to set with this result
-   * @return the new result
-   */
-  def flashing(values: (String, String)*): PlainResult = flashing(Flash(values.toMap))
-
-  /**
-   * Changes the result content type.
-   *
-   * For example:
-   * {{{
-   * Ok("<text>Hello world</text>").as("application/xml")
-   * }}}
-   *
-   * @param contentType the new content type.
-   * @return the new result
-   */
-  def as(contentType: String): PlainResult = withHeaders(CONTENT_TYPE -> contentType)
 }
 
 /**
@@ -396,6 +286,117 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
     copy(header = header.copy(headers = header.headers ++ headers))
   }
 
+  /**
+   * Adds cookies to this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
+   * }}}
+   *
+   * @param cookies the cookies to add to this result
+   * @return the new result
+   */
+  def withCookies(cookies: Cookie*): SimpleResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+  }
+
+  /**
+   * Discards cookies along this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").discardingCookies("theme")
+   * }}}
+   *
+   * @param cookies the cookies to discard along to this result
+   * @return the new result
+   */
+  def discardingCookies(cookies: DiscardingCookie*): SimpleResult = {
+    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+  }
+
+  /**
+   * Sets a new session for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
+   * }}}
+   *
+   * @param session the session to set with this result
+   * @return the new result
+   */
+  def withSession(session: Session): SimpleResult = {
+    if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
+  }
+
+  /**
+   * Sets a new session for this result, discarding the existing session.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withSession("saidHello" -> "yes")
+   * }}}
+   *
+   * @param session the session to set with this result
+   * @return the new result
+   */
+  def withSession(session: (String, String)*): SimpleResult = withSession(Session(session.toMap))
+
+  /**
+   * Discards the existing session for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").withNewSession
+   * }}}
+   *
+   * @return the new result
+   */
+  def withNewSession: SimpleResult = withSession(Session())
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
+   * }}}
+   *
+   * @param flash the flash scope to set with this result
+   * @return the new result
+   */
+  def flashing(flash: Flash): SimpleResult = {
+    withCookies(Flash.encodeAsCookie(flash))
+  }
+
+  /**
+   * Adds values to the flash scope for this result.
+   *
+   * For example:
+   * {{{
+   * Ok("Hello world").flashing("success" -> "Done!")
+   * }}}
+   *
+   * @param values the flash values to set with this result
+   * @return the new result
+   */
+  def flashing(values: (String, String)*): SimpleResult = flashing(Flash(values.toMap))
+
+  /**
+   * Changes the result content type.
+   *
+   * For example:
+   * {{{
+   * Ok("<text>Hello world</text>").as("application/xml")
+   * }}}
+   *
+   * @param contentType the new content type.
+   * @return the new result
+   */
+  def as(contentType: String): SimpleResult = withHeaders(CONTENT_TYPE -> contentType)
+
   override def toString = {
     "SimpleResult(" + header + ")"
   }
@@ -409,7 +410,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
  * @param header the response header, which contains status code and HTTP headers
  * @param chunks the chunks enumerator
  */
-@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.")
+@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.", "2.2.0")
 class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends SimpleResult(
   header = header,
   body = new Enumerator[A] {
@@ -429,9 +430,9 @@ class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee
   type BODY_CONTENT = A
 }
 
-@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.")
+@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.", "2.2.0")
 object ChunkedResult {
-  @deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.")
+  @deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.", "2.2.0")
   def apply[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit writeable: Writeable[A]) =
     new ChunkedResult(header, chunks)
 }
@@ -441,7 +442,7 @@ object ChunkedResult {
  *
  * @param result the promise of result, which can be any other result type
  */
-@deprecated("Use Future[SimpleResult] with Action.async action builder instead. Will be removed in Play 2.3.")
+@deprecated("Use Future[SimpleResult] with Action.async action builder instead. Will be removed in Play 2.3.", "2.2.0")
 case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[AsyncResult] {
 
   /**
@@ -697,7 +698,7 @@ trait Results {
         streamingStrategy = streamingStrategy)
     }
 
-    @deprecated("Use stream(content, StreamingStartegy.Simple) instead")
+    @deprecated("Use stream(content, StreamingStartegy.Simple) instead", "2.2.0")
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
         header = ResponseHeader(status),
@@ -713,7 +714,7 @@ trait Results {
      * @param content A function that will give you the Iteratee to write in once ready.
      * @return a `ChunkedResult`
      */
-    @deprecated("Use stream(Enumerator, StreamingStrategy.Chunked) instead.  Will be removed in Play 2.3.")
+    @deprecated("Use stream(Enumerator, StreamingStrategy.Chunked) instead.  Will be removed in Play 2.3.", "2.2.0")
     def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
@@ -722,7 +723,7 @@ trait Results {
 
   }
 
-  @deprecated("Use Action.async to build async actions instead")
+  @deprecated("Use Action.async to build async actions instead", "2.2.0")
   def Async(promise: Future[Result]) = AsyncResult(promise)
 
   /** Generates a ‘200 OK’ result. */

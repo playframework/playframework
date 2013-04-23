@@ -17,7 +17,7 @@ import play.api.libs.concurrent.Execution
 )
 case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[String]) {
   def map[B](f: B => A): Writeable[B] = Writeable(b => transform(f(b)), contentType)
-  def toEnumeratee: Enumeratee[A, Array[Byte]] = Enumeratee.map(transform)(Execution.defaultContext)
+  def toEnumeratee[E <: A]: Enumeratee[E, Array[Byte]] = Enumeratee.map[E](transform)(Execution.defaultContext)
 }
 
 /**

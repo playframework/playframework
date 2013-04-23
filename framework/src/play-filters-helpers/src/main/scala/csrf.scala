@@ -44,7 +44,7 @@ package play.filters.csrf {
     val encoder = new Hex
     val random = new SecureRandom
 
-    val INVALID_TOKEN: PlainResult = BadRequest("Invalid CSRF Token")
+    val INVALID_TOKEN: SimpleResult = BadRequest("Invalid CSRF Token")
 
     def generate: Token = {
       val bytes = new Array[Byte](10)
@@ -55,7 +55,7 @@ package play.filters.csrf {
     def checkTokens(paramToken: Token, sessionToken: Token) = paramToken == sessionToken
 
     // -
-    def checkRequest(request: RequestHeader, body: Option[Map[String, Seq[String]]] = None): Either[PlainResult, RequestHeader] = {
+    def checkRequest(request: RequestHeader, body: Option[Map[String, Seq[String]]] = None): Either[SimpleResult, RequestHeader] = {
       val maybeToken: Option[Token] = (
         if (POST_LOOKUP)
           body.flatMap(_.get(TOKEN_NAME)).orElse(request.queryString.get(TOKEN_NAME))
@@ -74,58 +74,52 @@ package play.filters.csrf {
       }
     }
 
-    /**
-     * Add the token to the Response (session|cookie) if it's not already in the request
-     */
-    def addResponseToken(req: RequestHeader, res: Result, token: Token): Result = res match {
-      case r: PlainResult => addResponseToken(req, r, token)
-      case r: AsyncResult => r.transform(addResponseToken(req, _, token))
-    }
-    def addResponseToken(req: RequestHeader, r: PlainResult, token: Token): PlainResult = {
+    def addResponseToken(req: RequestHeader, r: SimpleResult, token: Token): SimpleResult = {
 
       filterLogger.trace("[CSRF] Adding token to result: " + r)
 
       /**
        * Add Token to the Response session if necessary
        */
-      def addSessionToken: PlainResult = {
-        val session = Cookies(r.header.headers.get("Set-Cookie"))
-          .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
-          .getOrElse(req.session.data)
-        if (session.get(TOKEN_NAME).isDefined) {
-          filterLogger.trace("[CSRF] session already contains token")
-          r
-        } else {
-          val newSession = if (session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
-          filterLogger.trace("[CSRF] Adding session token to response")
-          filterLogger.trace("[CSRF] response was: " + r)
-          val resp = r.withSession(Session.deserialize(newSession))
-          filterLogger.trace("[CSRF] response is now: " + resp)
-          resp
-        }
-      }
+       def addSessionToken: SimpleResult = {
+         val session = Cookies(r.header.headers.get("Set-Cookie"))
+           .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+           .getOrElse(req.session.data)
+         if (session.get(TOKEN_NAME).isDefined) {
+           filterLogger.trace("[CSRF] session already contains token")
+           r
+         }
+         else {
+           val newSession = if (session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
+           filterLogger.trace("[CSRF] Adding session token to response")
+           filterLogger.trace("[CSRF] response was: " + r)
+           val resp = r.withSession(Session.deserialize(newSession))
+           filterLogger.trace("[CSRF] response is now: " + resp)
+           resp
+         }
+       }
 
-      /**
+       /**
        * Add Token to the Response cookies if necessary
        */
-      def addCookieToken(c: String): PlainResult = {
-        if (req.cookies.get(c).isDefined) {
-          filterLogger.trace("[CSRF] cookie already contains token")
-          r
-        } else {
-          val cookies = Cookies(r.header.headers.get("Set-Cookie"))
-          filterLogger.trace("[CSRF] Adding cookie token to response")
-          filterLogger.trace("[CSRF] response was: " + r)
-          val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
-          filterLogger.trace("[CSRF] response is now: " + resp)
-          resp
-        }
-      }
+       def addCookieToken(c: String): SimpleResult = {
+         if (req.cookies.get(c).isDefined) {
+           filterLogger.trace("[CSRF] cookie already contains token")
+           r
+         } else {
+           val cookies = Cookies(r.header.headers.get("Set-Cookie"))
+           filterLogger.trace("[CSRF] Adding cookie token to response")
+           filterLogger.trace("[CSRF] response was: " + r)
+           val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
+           filterLogger.trace("[CSRF] response is now: " + resp)
+           resp
+         }
+       }
 
-      if (CREATE_IF_NOT_FOUND)
-        COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
-      else
-        r
+       if (CREATE_IF_NOT_FOUND)
+         COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
+       else
+         r
     }
 
     /**
@@ -251,12 +245,12 @@ package play.filters.csrf {
      *
      * So check that too, however, only check the query string, as it doesn't really make sense to check the body.
      */
-    def checkTextBody(request: RequestHeader, token: Token, next: EssentialAction): Iteratee[Array[Byte], Result] = {
+    def checkTextBody(request: RequestHeader, token: Token, next: EssentialAction): Iteratee[Array[Byte], SimpleResult] = {
       checkRequest(request, None).fold(result => Done(result), rh => next(addRequestToken(rh, token)))
     }
 
     def apply(next: EssentialAction): EssentialAction = new EssentialAction {
-      def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
+      def apply(request: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
         import play.api.http.HeaderNames._
 
         filterLogger.trace("[CSRF] original request: " + request)

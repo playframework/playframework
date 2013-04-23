@@ -1,8 +1,10 @@
 package play.it.http
 
 import play.api.mvc.EssentialAction
-import play.core.j.JavaAction
+import play.core.j.{JavaActionAnnotations, JavaAction}
 import play.mvc.{Results, Http, Controller, Result}
+import play.libs.F.Promise
+import org.apache.commons.lang3.reflect.MethodUtils
 
 /**
  * Use this to mock Java actions, eg:
@@ -21,9 +23,13 @@ import play.mvc.{Results, Http, Controller, Result}
 object JAction {
   def apply(c: MockController): EssentialAction = {
     new JavaAction {
-      def method = c.getClass.getMethod("action")
-      def controller: Class[_] = c.getClass
-      def invocation = c.action
+      lazy val annotations = {
+        val controller = c.getClass
+        val method = c.getClass.getMethod("action")
+        new JavaActionAnnotations(controller, method)
+      }
+      def invocation = Promise.pure(c.action)
+      def parser = annotations.parser
     }
   }
 }

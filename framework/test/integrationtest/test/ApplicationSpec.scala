@@ -8,6 +8,8 @@ import models._
 import play.api.mvc.AnyContentAsEmpty
 import module.Routes
 
+import scala.concurrent.Future
+
 class ApplicationSpec extends Specification {
 
   "an Application" should {
@@ -54,7 +56,7 @@ class ApplicationSpec extends Specification {
       contentAsString(result) must contain("{\"id\":1,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
     }
 
-    def javaResult(result: play.api.mvc.Result) =
+    def javaResult(result: Future[play.api.mvc.SimpleResult]) =
       new play.mvc.Result {
         def getWrappedResult = result
       }
