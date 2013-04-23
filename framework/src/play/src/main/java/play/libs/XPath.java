@@ -52,7 +52,7 @@ public class XPath {
             
             if (namespaces != null) {
                 SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
-                nsContext.setBindings(namespaces);
+                bindUnboundedNamespaces(nsContext, namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
 
@@ -77,10 +77,10 @@ public class XPath {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             javax.xml.xpath.XPath xpath = factory.newXPath();
-            
+
             if (namespaces != null) {
                 SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
-                nsContext.setBindings(namespaces);
+                bindUnboundedNamespaces(nsContext, namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
 
@@ -92,6 +92,15 @@ public class XPath {
 
     public static Node selectNode(String path, Object node) {
         return selectNode(path, node, null);
+    }
+
+    private static void bindUnboundedNamespaces(SimpleNamespaceContext nsContext, Map<String, String> namespaces) {
+        for (Map.Entry<String, String> entry : namespaces.entrySet()) {
+            //making sure that namespace is not already bound. Otherwise UnsupportedException happens
+            if(nsContext.getPrefix(entry.getValue()) == null) {
+                nsContext.bindNamespaceUri(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     /**
@@ -106,7 +115,7 @@ public class XPath {
 
             if (namespaces != null) {
                 SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
-                nsContext.setBindings(namespaces);
+                bindUnboundedNamespaces(nsContext, namespaces);
                 xpath.setNamespaceContext(nsContext);
             }
 
