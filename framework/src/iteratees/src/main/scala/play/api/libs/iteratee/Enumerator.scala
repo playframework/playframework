@@ -636,7 +636,7 @@ object Enumerator {
    * @param input The input stream
    * @param chunkSize The size of chunks to read from the stream.
    */
-  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8) = {
+  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = {
     generateM({
       val buffer = new Array[Byte](chunkSize)
       val chunk = input.read(buffer) match {

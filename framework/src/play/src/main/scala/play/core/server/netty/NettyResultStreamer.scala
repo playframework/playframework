@@ -189,7 +189,9 @@ object NettyResultStreamer {
       // Multiple cookies could be merged in a single header
       // but it's not properly supported by some browsers
       case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-        nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cookies.encode(Seq(c)) }.asJava)
+        nettyResponse.setHeader(name, Cookies.decode(value).map { c => Cook
+
+        ies.encode(Seq(c)) }.asJava)
       }
 
       case (name, value) => nettyResponse.setHeader(name, value)

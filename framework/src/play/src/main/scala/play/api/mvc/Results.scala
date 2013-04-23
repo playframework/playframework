@@ -9,6 +9,7 @@ import play.api.i18n.Lang
 import scala.concurrent.{ Future, ExecutionContext, Promise }
 
 import play.core.Execution.internalContext
+import scala.deprecated
 
 /**
  * A simple HTTP response header, used for standard responses.
@@ -27,6 +28,7 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
+@deprecated("Result will become SimpleResult in Play 2.3")
 sealed trait Result extends NotNull with WithHeaders[Result]
 
 sealed trait WithHeaders[+A <: Result] {
@@ -348,7 +350,7 @@ object StreamingStrategy {
      * The default max buffer length is 100kb, and is configurable using play.result.defaultMaxBufferLength in
      * application.conf.
      */
-    def apply = new Buffer(DefaultMaxBufferLength)
+    def apply() = new Buffer(DefaultMaxBufferLength)
   }
 
   /**
@@ -367,10 +369,6 @@ object StreamingStrategy {
    * @param trailers The trailers iteratee, if sending trailers.
    */
   case class Chunked(trailers: Option[Iteratee[Array[Byte], Map[String, String]]] = None) extends StreamingStrategy
-
-  object Chunked {
-    def apply = new Chunked()
-  }
 }
 
 /**
@@ -381,7 +379,7 @@ object StreamingStrategy {
  * @param streamingStrategy the streaming strategy to use if no content length is sent.
  */
 case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
-                        streamingStrategy: StreamingStrategy = StreamingStrategy.Buffer) extends PlainResult {
+                        streamingStrategy: StreamingStrategy = StreamingStrategy.Buffer()) extends PlainResult {
 
   /**
    * Adds headers to this result.
@@ -412,7 +410,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
  * @param chunks the chunks enumerator
  */
 @deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.")
-case class ChunkedResult[A](override val header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends SimpleResult(
+class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends SimpleResult(
   header = header,
   body = new Enumerator[A] {
     // Since chunked result bodies are functions of iteratee to unit, not a future, we need to do this in
@@ -429,6 +427,13 @@ case class ChunkedResult[A](override val header: ResponseHeader, chunks: Iterate
 
   /** The body content type. */
   type BODY_CONTENT = A
+}
+
+@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.")
+object ChunkedResult {
+  @deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.")
+  def apply[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit writeable: Writeable[A]) =
+    new ChunkedResult(header, chunks)
 }
 
 /**
@@ -657,7 +662,7 @@ trait Results {
      */
     def apply[C](content: C)(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
-        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         Enumerator(content) &> writeable.toEnumeratee)
     }
 
@@ -670,7 +675,7 @@ trait Results {
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(ec: ExecutionContext): SimpleResult = {
       SimpleResult(
-        header = ResponseHeader(OK, Map(
+        ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
         ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName(content)))))),
@@ -685,7 +690,7 @@ trait Results {
      * @param content Enumerator providing the chunked content.
      * @return a `ChunkedResult`
      */
-    def stream[C](content: Enumerator[C], streamingStrategy: StreamingStrategy = StreamingStrategy.Chunked)(implicit writeable: Writeable[C]): SimpleResult = {
+    def stream[C](content: Enumerator[C], streamingStrategy: StreamingStrategy = StreamingStrategy.Chunked())(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         body = content &> writeable.toEnumeratee,

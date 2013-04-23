@@ -135,7 +135,7 @@ class AssetsBuilder extends Controller {
             maybeNotModified(url).getOrElse {
               // Prepare a streamed response
               val response = SimpleResult(
-                header = ResponseHeader(OK, Map(
+                ResponseHeader(OK, Map(
                   CONTENT_LENGTH -> length.toString,
                   CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
                   DATE -> df.print({ new java.util.Date }.getTime))),
