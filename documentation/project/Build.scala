@@ -17,8 +17,8 @@ object ApplicationBuild extends Build {
       component("play-test") % "test"
     ),
 
-    javaManualSourceDirectories := (file("manual") / "javaGuide" ** "code").get,
-    scalaManualSourceDirectories := (file("manual") / "scalaGuide" ** "code").get,
+    javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),
+    scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "scalaGuide" ** "code").get),
 
     unmanagedSourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedSourceDirectories in Test <++= scalaManualSourceDirectories,

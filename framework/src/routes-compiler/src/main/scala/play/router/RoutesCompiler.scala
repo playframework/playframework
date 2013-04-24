@@ -288,7 +288,7 @@ object RoutesCompiler {
   def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false) {
 
     val namespace = Option(Path(file).name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
-    val packageDir = namespace.map(pkg => new File(generatedDir, pkg)).getOrElse(generatedDir)
+    val packageDir = namespace.map(pkg => new File(generatedDir, pkg.replace('.', '/'))).getOrElse(generatedDir)
     val generated = GeneratedSource(new File(packageDir, "routes_routing.scala"))
 
     if (generated.needsRecompilation(additionalImports)) {
