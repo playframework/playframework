@@ -22,7 +22,7 @@ object ApplicationBuild extends Build {
     //if it's a java project add javaCore, javaJdbc, jdbc etc.
   )
   
-  val mySubProject = Project("my-library", file("myLibrary"))
+  val mySubProject = play.Project("my-library", file("myLibrary"))
 
   val main = play.Project(
     appName, appVersion, appDependencies, path = file("myProject")
