@@ -14,7 +14,17 @@ import scala.util._
  */
 object NettyPromise {
 
-  def apply(channelPromise: ChannelFuture) = new scala.concurrent.Future[Unit] {
+  def apply(channelPromise: ChannelFuture) = {
+
+    val p = scala.concurrent.Promise[Unit]()
+    channelPromise.addListener(new ChannelFutureListener {
+      def operationComplete(future: ChannelFuture) {
+        if (future.isSuccess()) p.success(()) else p.failure(future.getCause())
+      }
+    })
+    p.future
+    /*
+    new scala.concurrent.Future[Unit] {
     parent =>
 
     def isCompleted: Boolean = channelPromise.isDone
@@ -47,5 +57,6 @@ object NettyPromise {
       case (true, false) => Some(Failure(channelPromise.getCause))
       case _ => None
     }
+ }*/
   }
 }
