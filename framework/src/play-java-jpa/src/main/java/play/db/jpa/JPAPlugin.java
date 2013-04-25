@@ -32,7 +32,20 @@ public class JPAPlugin extends Plugin {
         if(jpaConf != null) {
             for(String key: jpaConf.keys()) {
                 String persistenceUnit = jpaConf.getString(key);
-                emfs.put(key, Persistence.createEntityManagerFactory(persistenceUnit));
+
+                // Check if there are properties for PU
+                Configuration puConf = application.configuration().getConfig(persistenceUnit);
+                if (puConf != null) {
+                    Map<String, String> puProperties = new HashMap<String, String>();
+                    for (String keyPu : puConf.keys()) {
+                        puProperties.put(keyPu, puConf.getString(keyPu));
+                    }
+
+                    // EMF created with external properties
+                    emfs.put(key, Persistence.createEntityManagerFactory(persistenceUnit, puProperties));
+                } else {
+                    emfs.put(key, Persistence.createEntityManagerFactory(persistenceUnit));
+                }
             }
         }
         
