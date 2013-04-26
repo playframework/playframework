@@ -311,9 +311,7 @@ object Evolutions {
         val (nonConflictingDowns, dRest) = database.span(e => !application.headOption.exists(e.revision <= _.revision))
         val (nonConflictingUps, uRest) = application.span(e => !database.headOption.exists(_.revision >= e.revision))
 
-        val (conflictingDowns, conflictingUps) = dRest.zip(uRest).takeWhile {
-          case (down, up) => down.hash != up.hash
-        }.unzip
+        val (conflictingDowns, conflictingUps) = conflictings(dRest, uRest)
 
         val ups = (nonConflictingUps ++ conflictingUps).reverse.map(e => UpScript(e, e.sql_up))
         val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e, e.sql_down))
@@ -321,6 +319,18 @@ object Evolutions {
         downs ++ ups
     }.getOrElse(Nil)
   }
+
+  /**
+   *
+   * Compares the two evolution sequences.
+   *
+   * @param downRest the seq of downs
+   * @param upRest the seq of ups
+   * @return the downs and ups to run to have the db synced to the current stage
+   */
+  def conflictings(downRest: Seq[Evolution], upRest: Seq[Evolution]) = downRest.zip(upRest).reverse.dropWhile {
+    case (down, up) => down.hash == up.hash
+  }.reverse.unzip
 
   /**
    * Reads evolutions from the database.
