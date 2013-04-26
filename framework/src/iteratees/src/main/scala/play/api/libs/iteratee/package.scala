@@ -20,10 +20,10 @@ package play.api.libs.iteratee {
     import scala.concurrent.{ ExecutionContext, Future }
     import scala.util.control.NonFatal
 
-    def defaultExecutionContext: ExecutionContext = ExecutionContext.global
+    val defaultExecutionContext: ExecutionContext = ExecutionContext.global
 
     object Implicits {
-      def defaultExecutionContext: ExecutionContext = ExecutionContext.global
+      def defaultExecutionContext: ExecutionContext = internal.defaultExecutionContext
     }
 
     def sameThreadExecutionContext: ExecutionContext = new ExecutionContext {
@@ -36,5 +36,6 @@ package play.api.libs.iteratee {
     def executeFuture[A](body: => Future[A])(ec: ExecutionContext): Future[A] = Future(body)(ec).flatMap(x => x)(sameThreadExecutionContext)
 
     def executeIteratee[A, E](body: => Iteratee[A, E])(ec: ExecutionContext): Iteratee[A, E] = Iteratee.flatten(Future(body)(ec))
+
   }
 }
