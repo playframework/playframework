@@ -38,7 +38,7 @@ object Twitter extends Controller {
     "https://api.twitter.com/oauth/request_token",
     "https://api.twitter.com/oauth/access_token",
     "https://api.twitter.com/oauth/authorize", KEY),
-    false)
+    true)
 
   def authenticate = Action { request =>
     request.getQueryString("oauth_verifier").map { verifier =>
