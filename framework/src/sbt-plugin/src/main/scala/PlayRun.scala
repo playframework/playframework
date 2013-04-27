@@ -204,7 +204,7 @@ trait PlayRun extends PlayInternalKeys {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
             consoleReader.getTerminal.disableEcho()
-            executeContinuously(w, state, reloader)
+            executeContinuously(w, state, reloader, Some(WatchState.empty))
             consoleReader.getTerminal.enableEcho()
 
             // Remove state two first commands added by sbt ~
