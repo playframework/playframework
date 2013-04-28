@@ -16,10 +16,42 @@ case class User1(name: String, friend: Option[User1] = None)
 case class UserMap(name: String, friends: Map[String, UserMap] = Map())
 
 case class Toto(name: String)
+case class Toto2(name: Option[String])
+case class Toto3(name: List[Double])
+case class Toto4(name: Set[Long])
+case class Toto5(name: Map[String, Int])
+case class Toto6(name: Seq[Dog])
 case class UserFail(name: String, bd: Toto)
 
 case class Id[A](id: A)
 case class C1[A](id: Id[A], name: String)
+
+case class X(
+  _1: String, _2: String, _3: String, _4: String, _5: String,
+  _6: String, _7: String, _8: String, _9: String, _10: String,
+  _11: String, _12: String, _13: String, _14: String, _15: String,
+  _16: String, _17: String, _18: String, _19: String, _20: String,
+  _21: String
+)
+
+case class Program(id: Long, name: String, logoPath: Option[String], logoThumb: Option[String])
+object Program {
+  def programs = List.empty[Program]
+}
+
+case class Person(name: String, age: Int)
+object Person {
+  implicit val personReads = Json.reads[Person]
+  implicit val personWrites = Json.writes[Person]
+}
+
+import play.api.libs.json._
+
+case class Person2(names: List[String])
+
+object Person2{
+  implicit val person2Fmt = Json.format[Person2]
+}
 
 
 object JsonExtensionSpec extends Specification {
@@ -307,7 +339,80 @@ object JsonExtensionSpec extends Specification {
 
       success
     }*/
+    "test 21 fields" in {      
+      implicit val XReads = Json.reads[X]
+      implicit val XWrites = Json.writes[X]
+      implicit val XFormat = Json.format[X]
+    }
 
-  }
+    "test inception with overriden object" in {      
+      implicit val programFormat = Json.reads[Program]
+    }
+
+    "test case class 1 field" in {
+      implicit val totoReads = Json.reads[Toto]
+      implicit val totoWrites = Json.writes[Toto]
+      implicit val totoFormat = Json.format[Toto]
+    }
+
+    "test case class 1 field option" in {
+      implicit val toto2Reads = Json.reads[Toto2]
+      implicit val toto2Writes = Json.writes[Toto2]
+      implicit val toto2Format = Json.format[Toto2]
+    }
+
+    "test case class 1 field list" in {
+      implicit val toto3Reads = Json.reads[Toto3]
+      implicit val toto3Writes = Json.writes[Toto3]
+      implicit val toto3Format = Json.format[Toto3]
+    }
+
+    "test case class 1 field set" in {
+      implicit val toto4Reads = Json.reads[Toto4]
+      implicit val toto4Writes = Json.writes[Toto4]
+      implicit val toto4Format = Json.format[Toto4]
+    }
+
+    "test case class 1 field map" in {
+      implicit val toto5Reads = Json.reads[Toto5]
+      implicit val toto5Writes = Json.writes[Toto5]
+      implicit val toto5Format = Json.format[Toto5]
+    }
+
+    "test case class 1 field seq[Dog]" in {
+      implicit val userFormat = Json.format[User]
+      implicit val dogFormat = Json.format[Dog]
+      implicit val toto6Reads = Json.reads[Toto6]
+      implicit val toto6Writes = Json.writes[Toto6]
+      implicit val toto6Format = Json.format[Toto6]
+
+      val js = Json.obj("name" -> Json.arr(
+        Json.obj(
+          "name" -> "medor", 
+          "master" -> Json.obj("name" -> "toto", "age" -> 45)
+        ),
+        Json.obj(
+          "name" -> "brutus", 
+          "master" -> Json.obj("name" -> "tata", "age" -> 23)
+        )
+      ))
+
+      Json.fromJson[Toto6](js).get must beEqualTo(
+        Toto6(Seq(
+          Dog("medor", User(45, "toto")),
+          Dog("brutus", User(23, "tata"))
+        ))
+      )
+    }
+
+    "test case reads in companion object" in {
+      Json.fromJson[Person](Json.toJson(Person("bob", 15))).get must beEqualTo(Person("bob", 15))
+    }
+
+    "test case single-field in companion object" in {
+      Json.fromJson[Person2](Json.toJson(Person2(List("bob", "bobby")))).get must beEqualTo(Person2(List("bob", "bobby")))
+    }
+
+  }    
 
 }

@@ -132,7 +132,7 @@ As this example [[demonstrates it|https://github.com/guillaumebort/play20-spring
 
 ## New Scala JSON API
 
-The new Scala JSON API provide great features such as transformation and validation of JSON tree.
+The new Scala JSON API provide great features such as transformation and validation of JSON tree. Check the new documentation at the [[Scala Json combinators document|ScalaJsonCombinators]].
 
 ## New Filter API and CSRF protection
 

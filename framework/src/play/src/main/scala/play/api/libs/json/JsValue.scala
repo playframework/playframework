@@ -299,7 +299,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
       case JsArray(elements) => {
         json.writeStartArray()
         elements.foreach { t =>
-          json.writeObject(t)
+          serialize(t, json, provider)
         }
         json.writeEndArray()
       }
@@ -307,7 +307,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeStartObject()
         values.foreach { t =>
           json.writeFieldName(t._1)
-          json.writeObject(t._2)
+          serialize(t._2, json, provider)
         }
         json.writeEndObject()
       }
@@ -485,6 +485,14 @@ private[json] object JacksonJson{
     sw.getBuffer.toString
   }
 
- 
+  def prettyPrint(jsValue: JsValue): String = {
+    val sw = new java.io.StringWriter
+    val gen = stringJsonGenerator(sw).setPrettyPrinter(
+      new org.codehaus.jackson.util.DefaultPrettyPrinter()
+    )
+    mapper.writerWithDefaultPrettyPrinter().writeValue(gen, jsValue)
+    sw.flush
+    sw.getBuffer.toString
+  }
 
 }

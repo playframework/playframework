@@ -27,33 +27,6 @@ akka.actor.debug.receive = on
 
 > **Note:** You can also configure any other actor system from the same file; just provide a top configuration key.
 
-## Converting Akka `Future` to Play `Promise`
-
-When you interact asynchronously with an Akka actor we will get `Future` object. You can easily convert it to a Play `Promise` using the implicit conversion provided in `play.api.libs.concurrent._`:
-
-```scala
-def index = Action {
-  Async {
-    (myActor ? "hello").mapTo[String].asPromise.map { response =>
-      Ok(response)      
-    }    
-  }
-}
-```
-
-## Executing a block of code asynchronously
-
-A common use case within Akka is to have some computation performed concurrently, without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
-
-```scala
-def index = Action {
-  Async {
-    Akka.future { longComputation() }.map { result =>
-      Ok("Got " + result)    
-    }    
-  }
-}
-```
 
 ## Scheduling asynchronous tasks
 
@@ -62,7 +35,8 @@ You can schedule sending messages to actors and executing tasks (functions or `R
 For example, to send a message to the `testActor` every 30 minutes:
 
 ```scala
-Akka.system.scheduler.schedule(0 seconds, 30 minutes, testActor, "tick")
+import play.api.libs.concurrent.Execution.Implicits._
+Akka.system.scheduler.schedule(0.seconds, 30.minutes, testActor, "tick")
 ```
 
 > **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
@@ -70,7 +44,8 @@ Akka.system.scheduler.schedule(0 seconds, 30 minutes, testActor, "tick")
 Similarly, to run a block of code ten seconds from now:
 
 ```scala
-Akka.system.scheduler.scheduleOnce(10 seconds) {
+import play.api.libs.concurrent.Execution.Implicits._
+Akka.system.scheduler.scheduleOnce(10.seconds) {
   file.delete()
 }
 ```

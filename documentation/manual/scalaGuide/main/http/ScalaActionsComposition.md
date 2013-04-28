@@ -1,6 +1,6 @@
 # Action composition
 
-This chapter introduce several ways of defining generic action functionality.
+This chapter introduces several ways of defining generic action functionality.
 
 ## Basic action composition
 
@@ -88,8 +88,17 @@ def index = Logging {
 >     Logger.info("Calling action")
 >     action(request)
 >   }
-> }
+> } 
 > ```
+
+The following example is wrapping an existing action to add session variable:
+
+```scala
+def addSessionVar[A](action: Action[A]) = Action(action.parser) { request =>
+  action(request).withSession("foo" -> "bar")
+}
+``` 
+
 
 ## A more complicated example
 
@@ -98,7 +107,7 @@ Let’s look at the more complicated but common example of an authenticated acti
 ```scala
 def Authenticated(action: User => EssentialAction): EssentialAction = {
   
-  // Let's define an helper function to retrieve a User
+  // Let's define a helper function to retrieve a User
   def getUser(request: RequestHeader): Option[User] = {
     request.session.get("user").flatMap(u => User.find(u))
   }
@@ -193,7 +202,7 @@ Another (probably simpler) way is to define our own subclass of `Request` as `Au
 
 ```scala
 case class AuthenticatedRequest(
-  val user: User, request: Request[AnyContent]
+  user: User, private val request: Request[AnyContent]
 ) extends WrappedRequest(request)
 
 def Authenticated(f: AuthenticatedRequest => Result) = {
@@ -219,7 +228,7 @@ We can of course extend this last example and make it more generic by making it 
 
 ```scala
 case class AuthenticatedRequest[A](
-  val user: User, request: Request[A]
+  user: User, private val request: Request[A]
 ) extends WrappedRequest(request)
 
 def Authenticated[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result) = {
@@ -238,5 +247,7 @@ def Authenticated(f: AuthenticatedRequest[AnyContent] => Result): Action[AnyCont
   Authenticated(parse.anyContent)(f)
 }
 ```
+
+> Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
 
 > **Next:** [[Content negotiation | ScalaContentNegotiation]]

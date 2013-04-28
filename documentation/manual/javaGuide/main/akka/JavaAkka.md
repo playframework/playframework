@@ -84,11 +84,12 @@ For example, to send a message to the `testActor` every 30 minutes:
 
 ```
 Akka.system().scheduler().schedule(
-  Duration.create(0, TimeUnit.MILLISECONDS),
-  Duration.create(30, TimeUnit.MINUTES)
+  Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
+  Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
   testActor, 
-  "tick"
-)
+  "tick",
+  Akka.system().dispatcher()
+);
 ```
 
 Alternatively, to run a block of code ten seconds from now:
@@ -100,7 +101,8 @@ Akka.system().scheduler().scheduleOnce(
     public void run() {
       file.delete()
     }
-  }
+  },
+  Akka.system().dispatcher()
 ); 
 ```
 

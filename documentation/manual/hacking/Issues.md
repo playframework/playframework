@@ -1,8 +1,8 @@
 # Issues tracker
 
-We use Lighthouse as our issue tracker, at:
+We use GitHub as our issue tracker, at:
 
-[[https://play.lighthouseapp.com/projects/82401-play-20/overview]].
+<https://github.com/playframework/Play20/issues>.
 
 ## Reporting bugs
 

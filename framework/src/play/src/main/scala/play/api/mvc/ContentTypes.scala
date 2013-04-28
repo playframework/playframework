@@ -109,7 +109,13 @@ case class AnyContentAsMultipartFormData(mdf: MultipartFormData[TemporaryFile]) 
 /**
  * Multipart form data body.
  */
-case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) {
+case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart], missingFileParts: Seq[MissingFilePart]) {
+
+  // For binary compatibility with 2.1.0
+  def this(dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) = this(dataParts, files, badParts, Nil)
+  def copy(dataParts: Map[String, Seq[String]] = this.dataParts,
+           files: Seq[FilePart[A]] = this.files,
+           badParts: Seq[BadPart] = this.badParts) = new MultipartFormData(dataParts, files, badParts)
 
   /**
    * Extract the data parts as Form url encoded.
@@ -127,6 +133,10 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[
  */
 object MultipartFormData {
 
+  // For binary compatibility with 2.1.0
+  def apply[A](dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) =
+    new MultipartFormData[A](dataParts, files, badParts)
+
   /**
    * A part.
    */
@@ -141,6 +151,11 @@ object MultipartFormData {
    * A file part.
    */
   case class FilePart[A](key: String, filename: String, contentType: Option[String], ref: A) extends Part
+
+  /**
+   * A file part with no content provided.
+   */
+  case class MissingFilePart(key: String) extends Part
 
   /**
    * A part that has not been properly parsed.
@@ -548,6 +563,11 @@ trait BodyParsers {
     def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]]): BodyParser[MultipartFormData[A]] = BodyParser("multipartFormData") { request =>
       val handler: Multipart.PartHandler[Either[Part, FilePart[A]]] =
         Multipart.handleDataPart.andThen(_.map(Left(_)))
+          .orElse({
+            case Multipart.FileInfoMatcher(partName, fileName, _) if fileName.trim.isEmpty =>
+              // No file name is what the browser sends if you didn't select a file
+              Done(Left(MissingFilePart(partName)), Input.Empty)
+          }: Multipart.PartHandler[Either[Part, FilePart[A]]])
           .orElse(filePartHandler.andThen(_.map(Right(_))))
           .orElse { case headers => Done(Left(BadPart(headers)), Input.Empty) }
 
@@ -556,7 +576,8 @@ trait BodyParsers {
           val data = parts.collect { case Left(DataPart(key, value)) => (key, value) }.groupBy(_._1).mapValues(_.map(_._2))
           val az = parts.collect { case Right(a) => a }
           val bad = parts.collect { case Left(b @ BadPart(_)) => b }
-          MultipartFormData(data, az, bad)
+          val missing = parts.collect { case Left(missing @ MissingFilePart(_)) => missing }
+          MultipartFormData(data, az, bad, missing)
 
         }
       }
@@ -702,6 +723,7 @@ trait BodyParsers {
 
       def handlePart(fileHandler: PartHandler[FilePart[File]]): PartHandler[Part] = {
         handleDataPart
+          .orElse({ case FileInfoMatcher(partName, fileName, _) if fileName.trim.isEmpty => Done(MissingFilePart(partName), Input.Empty) }: PartHandler[Part])
           .orElse(fileHandler)
           .orElse({ case headers => Done(BadPart(headers), Input.Empty) })
       }

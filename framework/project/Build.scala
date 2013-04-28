@@ -1,7 +1,8 @@
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifact
+import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
+import com.typesafe.tools.mima.core._
 
 object PlayBuild extends Build {
 
@@ -15,16 +16,14 @@ object PlayBuild extends Build {
     lazy val SbtLinkProject = Project(
         "SBT-link",
         file("src/sbt-link"),
-        settings = buildSettingsWithMIMA ++ Seq(
+        settings = buildSettings ++ Seq(
             autoScalaLibrary := false,
-            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
             libraryDependencies := link,
             publishTo := Some(playRepository),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe,
             crossPaths := false
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -38,41 +37,36 @@ object PlayBuild extends Build {
             libraryDependencies := templatesDependencies,
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            resolvers += typesafe
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
     lazy val RoutesCompilerProject = Project(
         "Routes-Compiler",
         file("src/routes-compiler"),
-        settings = buildSettingsWithMIMA ++ Seq(
+        settings = buildSettings ++ Seq(
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            previousArtifact := Some("play" % {"routes-compiler_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := routersCompilerDependencies,
             publishArtifact in packageDoc := false,
             publishArtifact in (Compile, packageSrc) := false,
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            resolvers += typesafe
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
     lazy val TemplatesCompilerProject = Project(
         "Templates-Compiler",
         file("src/templates-compiler"),
-        settings = buildSettingsWithMIMA ++ Seq(
+        settings = buildSettings ++ Seq(
             scalaVersion := buildScalaVersionForSbt,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-            previousArtifact := Some("play" % {"templates-compiler_"+previousScalaVersion} % previousVersion),
             publishTo := Some(playRepository),
             libraryDependencies := templatesCompilerDependencies,
             publishArtifact in packageDoc := false,
             publishArtifact in (Compile, packageSrc) := false,
             unmanagedJars in Compile <+= (baseDirectory) map { b => compilerJar(b / "../..") },
-            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
-            resolvers += typesafe
+            scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -106,7 +100,7 @@ object PlayBuild extends Build {
         file("src/play-exceptions"),
         settings = buildSettingsWithMIMA ++ Seq(
             autoScalaLibrary := false,
-            previousArtifact := Some("play" % {"play-exceptions"+previousScalaVersion} % previousVersion),
+            previousArtifact := Some("play" % "play-exceptions" % previousVersion),
             publishTo := Some(playRepository),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
@@ -130,8 +124,14 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
             mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
-            resolvers += typesafe,
             parallelExecution in Test := false,
+            binaryIssueFilters ++= Seq(
+              ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.utils.ProxyDriver.getParentLogger"),
+              ProblemFilters.exclude[MissingTypesProblem]("play.core.DynamicPart$"),
+              ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.DynamicPart.apply"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.toString"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.copy")
+            ),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
@@ -148,8 +148,7 @@ object PlayBuild extends Build {
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(PlayJavaProject)
@@ -164,8 +163,7 @@ object PlayBuild extends Build {
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(PlayJdbcProject)
@@ -182,7 +180,6 @@ object PlayBuild extends Build {
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe,
             compile in (Compile) <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map { (deps,analysis,classes) =>
 
                 // Ebean (really hacky sorry)
@@ -207,15 +204,14 @@ object PlayBuild extends Build {
         "Play-Java-JPA",
         file("src/play-java-jpa"),
         settings = buildSettingsWithMIMA ++ Seq(
-            previousArtifact := Some("play" % {"play-java-jpa"+previousScalaVersion} % previousVersion),
+            previousArtifact := Some("play" % {"play-java-jpa_"+previousScalaVersion} % previousVersion),
             libraryDependencies := jpaDeps,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(PlayJavaJdbcProject)
@@ -231,8 +227,7 @@ object PlayBuild extends Build {
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(PlayProject)
@@ -249,7 +244,6 @@ object PlayBuild extends Build {
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe,
             parallelExecution in Test := false
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
@@ -269,8 +263,7 @@ object PlayBuild extends Build {
             publishTo := Some(playIvyRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
@@ -288,8 +281,7 @@ object PlayBuild extends Build {
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 
@@ -297,15 +289,14 @@ object PlayBuild extends Build {
         "Filters-Helpers",
         file("src/play-filters-helpers"),
         settings = buildSettingsWithMIMA ++ Seq(
-            previousArtifact := Some("play" % {"play_"+previousScalaVersion} % previousVersion),
+            previousArtifact := Some("play" % {"filters-helpers_"+previousScalaVersion} % previousVersion),
             libraryDependencies := runtime,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
             javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
             javacOptions in doc := Seq("-source", "1.6"),
             publishArtifact in packageDoc := buildWithDoc,
-            publishArtifact in (Compile, packageSrc) := true,
-            resolvers += typesafe
+            publishArtifact in (Compile, packageSrc) := true
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
     .dependsOn(PlayProject)
@@ -351,8 +342,8 @@ object PlayBuild extends Build {
         val buildOrganization = "play"
         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
         val buildWithDoc      = Option(System.getProperty("generate.doc")).isDefined
-        val previousVersion   = "2.0.3"
-        val previousScalaVersion = "2.9.1"
+        val previousVersion   = "2.1.0"
+        val previousScalaVersion = "2.10"
         val buildScalaVersion = "2.10.0"
         val buildScalaVersionForSbt = "2.9.2"
         val buildSbtVersion   = "0.12.2"
@@ -360,11 +351,11 @@ object PlayBuild extends Build {
         val buildSbtVersionBinaryCompatible = "0.12"
 
         val buildSettings = Defaults.defaultSettings ++ Seq (
+            resolvers           += typesafe,
             organization        := buildOrganization,
             version             := buildVersion,
             scalaVersion        := buildScalaVersion,
             scalaBinaryVersion  := CrossVersion.binaryScalaVersion(buildScalaVersion),
-            logManager          <<= extraLoggers(PlayLogManager.default),
             ivyLoggingLevel     := UpdateLogging.DownloadOnly
         )
         val buildSettingsWithMIMA = buildSettings ++ mimaDefaultSettings
@@ -470,7 +461,7 @@ object PlayBuild extends Build {
         )
 
         val runtime = Seq(
-            "io.netty"                          %    "netty"                    %   "3.5.9.Final",
+            "io.netty"                          %    "netty"                    %   "3.6.3.Final",
 
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.6",
             "org.slf4j"                         %    "jul-to-slf4j"             %   "1.6.6",
@@ -508,7 +499,7 @@ object PlayBuild extends Build {
             specsBuild % "test",
 
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
-            "com.novocode"                      %    "junit-interface"          %   "0.10-M2"  %  "test",
+            "com.novocode"                      %    "junit-interface"          %   "0.9"      %  "test",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3"    %  "test" exclude("org.jboss.netty", "netty"),
             "org.scala-lang"                    %    "scala-reflect"            %   "2.10.0"
@@ -581,7 +572,7 @@ object PlayBuild extends Build {
         val testDependencies = Seq(
             "junit"                             %    "junit-dep"                %   "4.10",
             specsBuild,
-            "com.novocode"                      %    "junit-interface"          %   "0.10-M2",
+            "com.novocode"                      %    "junit-interface"          %   "0.9",
 
             "org.fluentlenium"                  %    "fluentlenium-festassert"  %   "0.7.3" exclude("org.jboss.netty", "netty")
         )

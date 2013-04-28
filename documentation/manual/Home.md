@@ -37,7 +37,7 @@
 1. [[Managing database evolutions | Evolutions]]
 1. [[Configuration file syntax and features | Configuration]]
     1. [[Configuring the JDBC connection pool | SettingsJDBC]]
-    1. [[Configuring the internal Akka system | AkkaCore]]
+    1. [[Configuring Play's thread pools | ThreadPools]]
     1. [[Configuring logging | SettingsLogger]]
 1. [[Deploying your application | Production]]
     1. [[Creating a standalone package | ProductionDist]]
@@ -58,7 +58,7 @@
 ## Hacking Play
 
 1. [[Building Play from source | BuildingFromSource]]
-1. [[CI server at Cloudbees | CIServer]]
+1. [[3rd Party Tooling | ThirdPartyTools]]
 1. [[Repositories | Repositories]]
 1. [[Issue tracker | Issues]]
 1. [[Contributor guidelines | Guidelines]]

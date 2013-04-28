@@ -1,11 +1,18 @@
 package play.test;
 
 import org.codehaus.jackson.JsonNode;
+import play.api.libs.json.JsValue;
+import play.api.mvc.AnyContent;
 import play.api.mvc.AnyContentAsJson;
+import play.api.mvc.AnyContentAsRaw;
+import play.api.mvc.AnyContentAsText;
+import play.api.mvc.AnyContentAsXml;
+import play.api.mvc.RawBuffer;
 import play.libs.*;
 import play.mvc.*;
 
 import java.util.*;
+import org.xml.sax.InputSource;
 import scala.collection.Seq;
 
 /**
@@ -40,6 +47,20 @@ public class FakeRequest {
     }
 
     /**
+     * Set a AnyContent to this request.
+     * @param content the AnyContent
+     * @param contentType Content-Type header value
+     * @param method The method to be set
+     * @return the Fake Request
+     */
+    public FakeRequest withAnyContent(AnyContent content, String contentType, String method) {
+        Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
+        map.put("Content-Type", Scala.toSeq(new String[] {contentType}));
+        fake = new play.api.test.FakeRequest(method, fake.uri(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
+        return this;
+    }
+
+    /**
      * Set a Json Body to this request.
      * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
      * The method is set to <tt>POST</tt>.
@@ -48,11 +69,18 @@ public class FakeRequest {
      */
     @SuppressWarnings(value = "unchecked")
     public FakeRequest withJsonBody(JsonNode node) {
-        Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
-        map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
-        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
-        fake = new play.api.test.FakeRequest(Helpers.POST, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
-        return this;
+        return withJsonBody(play.api.libs.json.Json.parse(node.toString()));
+    }
+
+    /**
+     * Set a Json Body to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+     * The method is set to <tt>POST</tt>.
+     * @param json the JsValue
+     * @return the Fake Request
+     */
+    public FakeRequest withJsonBody(JsValue json) {
+        return withAnyContent(new AnyContentAsJson(json), "application/json", Helpers.POST);
     }
 
     /**
@@ -70,8 +98,19 @@ public class FakeRequest {
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
         AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
-        fake = new play.api.test.FakeRequest(method, fake.path(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
+        fake = new play.api.test.FakeRequest(method, fake.uri(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags());
         return this;
+    }
+
+    /**
+     * Set a Json Body to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+     * @param node the JsValue
+     * @param method the HTTP method. <tt>POST</tt> if set to <code>null</code>
+     * @return the Fake Request
+     */
+    public FakeRequest withJsonBody(JsValue json, String method) {
+        return withAnyContent(new AnyContentAsJson(json), "application/json", method);
     }
 
     /**
@@ -136,4 +175,46 @@ public class FakeRequest {
         });
     }
 
+    /**
+     * Set a Binary Data to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+     * The method is set to <tt>POST</tt>.
+     * @param data the Binary Data
+     * @return the Fake Request
+     */
+    public FakeRequest withRawBody(byte[] data) {
+        return withAnyContent(new AnyContentAsRaw(new RawBuffer(data.length, data)), "application/octet-stream", Helpers.POST);
+    }
+
+    /**
+     * Set a XML to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>application/xml</tt>.
+     * The method is set to <tt>POST</tt>.
+     * @param xml the XML
+     * @return the Fake Request
+     */
+    public FakeRequest withXmlBody(InputSource xml) {
+        return withAnyContent(new AnyContentAsXml(scala.xml.XML.load(xml)), "application/xml", Helpers.POST);
+    }
+
+    /**
+     * Set a Text to this request.
+     * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain</tt>.
+     * The method is set to <tt>POST</tt>.
+     * @param xml the XML
+     * @return the Fake Request
+     */
+    public FakeRequest withTextBody(String text) {
+        return withAnyContent(new AnyContentAsText(text), "text/plain", Helpers.POST);
+    }
+
+    /**
+     * Set a any body to this request.
+     * @param body the Body
+     * @return the Fake Request
+     */
+    public <T> FakeRequest withBody(T body) {
+        this.fake = this.fake.withBody(body);
+        return this;
+    }
 }

@@ -2,31 +2,31 @@
 
 ## Why asynchronous results?
 
-Until now, we were able to generate the result to send to the web client directly. However, this is not always the case: the result might depend on an expensive computation or of a long web service call.
+Until now, we were able to generate the result to send to the web client directly. However, this is not always the case: the result might depend on an expensive computation or on a long web service call.
 
-Because of the way Play 2.0 works, the action code must be as fast as possible (ie. non blocking). So what should we return as result if we are not yet able to generate it? The response is a promise of result! 
+Because of the way Play works, the action code must be as fast as possible (ie. non blocking). So what should we return as result if we are not yet able to generate it? The response is a future result! 
 
-A `Promise[Result]` will eventually be redeemed with a value of type `Result`. By giving a `Promise[Result]` instead if a normal `Result`, we are able to quickly generate the result without blocking. Then, Play will serve this result as soon as the promise is redeemed. 
+A `Future[Result]` will eventually be redeemed with a value of type `Result`. By giving a `Future[Result]` instead of a normal `Result`, we are able to quickly generate the result without blocking. Then, Play will serve this result as soon as the promise is redeemed. 
 
 The web client will be blocked while waiting for the response, but nothing will be blocked on the server, and server resources can be used to serve other clients.
 
-## How to create a `Promise[Result]`
+## How to create a `Future[Result]`
 
-To create a `Promise[Result]` we need another promise first: the promise that will give us the actual value we need to compute the result:
+To create a `Future[Result]` we need another future first: the future that will give us the actual value we need to compute the result:
 
 ```scala
-val promiseOfPIValue: Promise[Double] = computePIAsynchronously()
-val promiseOfResult: Promise[Result] = promiseOfPIValue.map { pi =>
+val futurePIValue: Future[Double] = computePIAsynchronously()
+val futureResult: Future[Result] = futurePIValue.map { pi =>
   Ok("PI value computed: " + pi)    
 }
 ```
 
-All of Play 2.0’s asynchronous API calls give you a `Promise`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Akka to schedule asynchonous tasks or to communicate with actors using `play.api.libs.Akka`.
+All of Play’s asynchronous API calls give you a `Future`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Akka to schedule asynchronous tasks or to communicate with actors using `play.api.libs.Akka`.
 
-A simple way to execute a block of code asynchronously and to get a `Promise` is to use the `play.api.libs.concurrent.Akka` helpers:
+Here is a simple way to execute a block of code asynchronously and to get a `Future`:
 
 ```scala
-val promiseOfInt: Promise[Int] = Akka.future {
+val futureInt: Future[Int] = scala.concurrent.Future {
   intensiveComputation()
 }
 ```
@@ -39,28 +39,28 @@ While we were using `SimpleResult` until now, to send an asynchronous result, we
 
 ```scala
 def index = Action {
-  val promiseOfInt = Akka.future { intensiveComputation() }
+  val futureInt = scala.concurrent.Future { intensiveComputation() }
   Async {
-    promiseOfInt.map(i => Ok("Got result: " + i))
+    futureInt.map(i => Ok("Got result: " + i))
   }
 }
 ```
 
-> **Note:** `Async { }` is an helper method that builds an `AsyncResult` from a `Promise[Result]`.
+> **Note:** `Async { }` is an helper method that builds an `AsyncResult` from a `Future[Result]`.
 
 ## Handling time-outs
 
 It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can easily compose a promise with a promise timeout to handle these cases:
 
 ```scala
+
 def index = Action {
-  val promiseOfInt = Akka.future { intensiveComputation() }
+  val futureInt = scala.concurrent.Future { intensiveComputation() }
+  val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 2.seconds)
   Async {
-    promiseOfInt.orTimeout("Oops", 1000).map { eitherIntorTimeout =>
-      eitherIorTimeout.fold(
-        i => Ok("Got result: " + i),
-        timeout => InternalServerError(timeout)
-      )    
+    Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map { 
+      case i: Int => Ok("Got result: " + i)
+      case t: String => InternalServerError(t)
     }  
   }
 }

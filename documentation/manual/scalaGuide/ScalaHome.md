@@ -1,6 +1,6 @@
-# Play 2.0 for Scala developers
+# Play for Scala developers
 
-The Scala API for Play 2.0 application developers is available in the `play.api` package. 
+The Scala API for Play application developers is available in the `play.api` package. 
 
 > The API available directly inside the `play` package (such as `play.mvc`) is reserved for Java developers. As a Scala developer, look at `play.api.mvc`.
 
@@ -63,6 +63,11 @@ The Scala API for Play 2.0 application developers is available in the `play.api`
     1. [[Iteratees | Iteratees]]
     1. [[Enumerators | Enumerators]]
     1. [[Enumeratees | Enumeratees]]
+1. [[HTTP Architecture | HttpApi]]
+    1. [[HTTP API | HttpApi]]
+    1. [[HTTP Filters | ScalaHttpFilters]]
+1. [[Reverse routing | ScalaJavascriptRouting]]
+    1. [[Javascript Routing | ScalaJavascriptRouting]]
 
 ## Tutorials
 

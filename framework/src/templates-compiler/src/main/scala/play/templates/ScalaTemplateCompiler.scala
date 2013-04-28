@@ -645,8 +645,10 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
           // is null in Eclipse/OSGI but luckily we don't need it there
           if (scalaObjectSource != null) {
-            val compilerPath = Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource.getLocation.getFile
-            val libPath = scalaObjectSource.getLocation.getFile
+            import java.security.CodeSource
+            def toAbsolutePath(cs: CodeSource) = new File(cs.getLocation.toURI).getAbsolutePath
+            val compilerPath = toAbsolutePath(Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource)
+            val libPath = toAbsolutePath(scalaObjectSource)
             val pathList = List(compilerPath, libPath)
             val origBootclasspath = settings.bootclasspath.value
             settings.bootclasspath.value = ((origBootclasspath :: pathList) ::: additionalClassPathEntry.toList) mkString File.pathSeparator

@@ -41,10 +41,11 @@ public class VerboseAction extends Action.Simple {
 
 At one point you need to delegate to the wrapped action using `delegate.call(...)`.
 
-You also mix with several actions:
+You also mix several actions by using custom action annotations:
 
 ```java
-@With({Authenticated.class, Cached.class})
+@Authenticated
+@Cached(key="index.result")
 public static Result index() {
   return ok("It works!");
 }

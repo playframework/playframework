@@ -2,7 +2,7 @@
 
 - [[Configuration file syntax and features | Configuration]]
 - [[Configuring the JDBC connection pool | SettingsJDBC]]
-- [[Configuring the internal Akka system | AkkaCore]]
+- [[Configuring Play's thread pools | ThreadPools]]
 - [[Configuring logging | SettingsLogger]]
 
 ### Getting started

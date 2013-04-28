@@ -108,7 +108,7 @@ class FunctionalSpec extends Specification {
       browser.goTo("/conf")
       browser.pageSource must contain("This value comes from complex-app's complex1.conf")
       browser.pageSource must contain("override akka:2 second")
-      browser.pageSource must contain("akka-loglevel:DEBUG")
+      browser.pageSource must contain("akka-loglevel:WARNING")
       browser.pageSource must contain("promise-timeout:7000")
       browser.pageSource must contain("None")
       browser.title must beNull
@@ -173,6 +173,12 @@ class FunctionalSpec extends Specification {
       "Asynchronous results" in new WithBrowser() {
         browser.goTo("/async-error")
         browser.pageSource must equalTo ("Something went wrong.")
+      }
+    }
+
+    "% character in the query string" in new WithServer() {
+      scala.io.Source.fromURL("http://localhost:" + port + "/?%") must throwAn[java.io.IOException].like {
+        case e => e.getMessage must contain("Server returned HTTP response code: 400 for URL")
       }
     }
 

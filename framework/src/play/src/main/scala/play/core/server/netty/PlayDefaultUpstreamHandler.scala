@@ -11,6 +11,7 @@ import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 import org.jboss.netty.handler.ssl._
 
 import org.jboss.netty.channel.group._
+
 import play.core._
 import server.Server
 import play.api._
@@ -20,13 +21,14 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
-import util.control.NonFatal
 import scala.collection.immutable
 import java.security.cert.Certificate
 import collection.immutable.Nil
 import javax.net.ssl.{SSLHandshakeException, SSLException}
 import scala.concurrent.Future
 import java.nio.channels.ClosedChannelException
+import scala.util.control.NonFatal
+import scala.util.control.Exception
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
@@ -59,13 +61,14 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
   override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     val cleanup = ctx.getAttachment
-    if(cleanup!=null) cleanup.asInstanceOf[() => Unit]()
+    if(cleanup != null) cleanup.asInstanceOf[() => Unit]()
     ctx.setAttachment(null)
   }
 
   override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     allChannels.add(e.getChannel)
   }
+
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
 
@@ -114,8 +117,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-        val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
-
         val rHeaders = getHeaders(nettyHttpRequest)
         val rCookies = getCookies(nettyHttpRequest)
 
@@ -131,25 +132,38 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
         }
 
-        import org.jboss.netty.util.CharsetUtil;
-
-        //mapping netty request to Play's
-
-        val untaggedRequestHeader = new RequestHeader with Certs {
-          val id = requestIDs.incrementAndGet
-          val tags = Map.empty[String,String]
-          def uri = nettyHttpRequest.getUri
-          def path = nettyUri.getPath
-          def method = nettyHttpRequest.getMethod.getName
-          def version = nettyVersion.getText
-          def queryString = parameters
-          def headers = rHeaders
-          lazy val remoteAddress = rRemoteAddress
-          def username = None
+        def tryToCreateRequest = {
+          val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
+          createRequestHeader(parameters)
         }
 
-        // get handler for request
-        val handler = server.getHandlerFor(untaggedRequestHeader)
+        def createRequestHeader(parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
+          //mapping netty request to Play's
+
+        val untaggedRequestHeader = new RequestHeader with Certs {
+            val id = requestIDs.incrementAndGet
+            val tags = Map.empty[String,String]
+            def uri = nettyHttpRequest.getUri
+            def path = nettyUri.getPath
+            def method = nettyHttpRequest.getMethod.getName
+            def version = nettyVersion.getText
+            def queryString = parameters
+            def headers = rHeaders
+            lazy val remoteAddress = rRemoteAddress
+            def username = None
+          }
+          untaggedRequestHeader
+        }
+
+        val (untaggedRequestHeader, handler) = Exception
+            .allCatch[RequestHeader].either(tryToCreateRequest)
+            .fold(
+               e => {
+                 val rh = createRequestHeader()
+                 val r = server.applicationProvider.get.fold(e => DefaultGlobal, a => a.global).onBadRequest(rh, e.getMessage)
+                 (rh, Left(r))
+               },
+               rh => (rh, server.getHandlerFor(rh)))
 
         // tag request if necessary
         val requestHeader = handler.right.toOption.map({
@@ -166,7 +180,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         }
         
         // attach the cleanup function to the channel context for after cleaning
-        ctx.setAttachment(cleanup)
+        ctx.setAttachment(cleanup _)
 
         // converting netty response to play's
         val response = new Response {

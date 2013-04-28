@@ -260,12 +260,7 @@ val jsonObject = Json.obj(
 )
 ```
 
-More information about these features can be found here:
-
-http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/
-
-_(TODO: Integrate this to the documentation)_
-
+More information about these features can be found [[at the Json documentation|ScalaJson]].
 
 ## Changes to Cookie handling
 

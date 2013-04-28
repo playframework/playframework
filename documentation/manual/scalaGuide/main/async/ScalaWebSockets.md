@@ -57,7 +57,7 @@ def index = WebSocket.using[String] { request =>
   val in = Iteratee.consume[String]()
   
   // Send a single 'Hello!' message and close
-  val out = Enumerator("Hello!") >>> Enumerator.eof
+  val out = Enumerator("Hello!").andThen(Enumerator.eof)
   
   (in, out)
 }

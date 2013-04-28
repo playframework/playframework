@@ -121,6 +121,9 @@ As you probably know, this for-comprehension is just syntactic sugar for a class
 </ul>
 ```
 
+> **Note:** Make sure that `{` is on the same line with `for` to indicate that the expression continues to next line.  
+
+
 ## If-blocks
 
 If-blocks are nothing special. Simply use Scala’s standard `if` statement:

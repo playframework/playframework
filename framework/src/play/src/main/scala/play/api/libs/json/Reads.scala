@@ -100,9 +100,8 @@ object Reads extends ConstraintReads with PathReads with DefaultReads {
     def fmap[A, B](reads: Reads[A], f: A => B): Reads[B] = a.map(reads, f)
   }
 
-
   implicit object JsObjectMonoid extends Monoid[JsObject] {
-    def append(o1: JsObject, o2: JsObject) = o1 ++ o2
+    def append(o1: JsObject, o2: JsObject) = o1 deepMerge o2
     def identity = JsObject(Seq())
   }
 
