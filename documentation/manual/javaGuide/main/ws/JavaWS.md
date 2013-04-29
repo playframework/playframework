@@ -54,7 +54,7 @@ If you want to make multiple calls in sequence, this can be achieved using `flat
       WS.url(feedUrl).get().flatMap(
         new Function<WS.Response, Promise<Result>>() {
           public Promise<Result> apply(WS.Response response) {
-            return WS.url(response.asJson().findPath("commentsUrl").get().map(
+            return WS.url(response.asJson().findPath("commentsUrl").asText()).get().map(
               new Function<WS.Response, Result>() {
                 public Result apply(WS.Response response) {
                   return ok("Number of comments: " + response.asJson().findPath("count"));
