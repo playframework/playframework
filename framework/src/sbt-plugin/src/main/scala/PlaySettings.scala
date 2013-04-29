@@ -201,7 +201,8 @@ trait PlaySettings {
       "html" -> "play.api.templates.HtmlFormat",
       "txt" -> "play.api.templates.TxtFormat",
       "xml" -> "play.api.templates.XmlFormat",
-      "js" -> "play.api.templates.JavaScriptFormat"
+      "js" -> "play.api.templates.JavaScriptFormat",
+      "xhtml" -> "play.api.templates.XHtmlFormat"
     )
 
   )

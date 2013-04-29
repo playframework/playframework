@@ -38,6 +38,13 @@ trait DefaultContentTypeOfs {
   }
 
   /**
+   * Default content type for `XHtml` values (`application/xhtml+xml`).
+   */
+  implicit def contentTypeOf_XHtml(implicit codec: Codec): ContentTypeOf[XHtml] = {
+    ContentTypeOf[XHtml](Some(ContentTypes.XHTML))
+  }
+
+  /**
    * Default content type for `Xml` values (`application/xml`).
    */
   implicit def contentTypeOf_Xml(implicit codec: Codec): ContentTypeOf[Xml] = {

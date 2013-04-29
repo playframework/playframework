@@ -21,6 +21,11 @@ trait ContentTypes {
   def HTML(implicit codec: Codec) = withCharset(MimeTypes.HTML)
 
   /**
+   * Content-Type of xhtml.
+   */
+  def XHTML(implicit codec: Codec) = withCharset(MimeTypes.XHTML)
+
+  /**
    * Content-Type of json.
    */
   def JSON(implicit codec: Codec) = withCharset(MimeTypes.JSON)
@@ -77,6 +82,11 @@ trait MimeTypes {
    * Content-Type of html.
    */
   val HTML = "text/html"
+
+  /**
+   * Content-Type of xhtml.
+   */
+  val XHTML = "application/xhtml+xml"
 
   /**
    * Content-Type of json.
