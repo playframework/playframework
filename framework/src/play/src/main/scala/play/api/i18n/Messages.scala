@@ -160,7 +160,7 @@ object Messages {
 
     def comment = """#.*""".r ^^ { case s => Comment(s) }
 
-    def messageKey = namedError("""[a-zA-Z0-9_.]+""".r, "Message key expected")
+    def messageKey = namedError("""[a-zA-Z0-9_.-]+""".r, "Message key expected")
 
     def messagePattern = namedError(
       rep(
