@@ -16,7 +16,7 @@ object Dependencies {
     // declare a dependency on the newer version so that ivy can know which one to include
     guava,
 
-    "com.h2database" % "h2" % "1.3.168",
+    "com.h2database" % "h2" % "1.3.171",
 
     "tyrex" % "tyrex" % "1.0.1",
 
