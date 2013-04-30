@@ -31,8 +31,12 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
     val (enumerator, channel) = Concurrent.broadcast[A]
     new Enumerator[A] {
       def apply[C](i: Iteratee[A, C]) = {
-          onConnected.invoke(channel)
-          enumerator.onDoneEnumerating(onDisconnected.invoke())(play.core.Execution.internalContext).apply(i)
+        val result = enumerator.onDoneEnumerating(onDisconnected.invoke())(play.core.Execution.internalContext)(i)
+        // The channel must not be passed to the callback until after the enumerator has been applied, otherwise
+        // we have a race condition between when the iteratee is listening to the enumerator and when the client
+        // first sends a message
+        onConnected.invoke(channel)
+        result
       }
     }
   }

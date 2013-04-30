@@ -39,7 +39,9 @@ object BuildSettings {
     publishTo := Some(publishingMavenRepository),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
-    resolvers ++= typesafeResolvers)
+    resolvers ++= typesafeResolvers,
+    fork in Test := true
+  )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
