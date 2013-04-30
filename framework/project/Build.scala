@@ -217,6 +217,9 @@ object PlayBuild extends Build {
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .dependsOn(PlayProject)
 
+  // This project is just for testing Play, not really a public artifact
+  lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
+    .dependsOn(PlayProject, PlayTestProject)
 
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
@@ -253,7 +256,8 @@ object PlayBuild extends Build {
     ConsoleProject,
     PlayTestProject,
     PlayExceptionsProject,
-    PlayFiltersHelpersProject
+    PlayFiltersHelpersProject,
+    PlayIntegrationTestProject
   )
     
   lazy val Root = Project(

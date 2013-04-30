@@ -3,7 +3,11 @@ package play.test;
 import java.io.*;
 import java.util.*;
 
+import play.api.mvc.Handler;
 import play.libs.*;
+import scala.PartialFunction;
+import scala.PartialFunction$;
+import scala.Tuple2;
 
 /**
  * A Fake application.
@@ -31,7 +35,8 @@ public class FakeApplication {
                 Scala.toSeq(additionalPlugins),
                 Scala.<String>emptySeq(),
                 Scala.asScala((Map<String, Object>)additionalConfiguration),
-                scala.Option.apply(g)
+                scala.Option.apply(g),
+                PartialFunction$.MODULE$.<Tuple2<String, String>, Handler>empty()
                 );
     }
 
