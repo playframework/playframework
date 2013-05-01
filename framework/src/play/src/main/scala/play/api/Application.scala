@@ -316,9 +316,12 @@ trait Application {
   /**
    * Retrieves a file relative to the application root path.
    *
-   * For example, to retrieve a configuration file:
+   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
+   * be nothing available in the application root path.
+   *
+   * For example, to retrieve some deployment specific data file:
    * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
+   * val myDataFile = application.getFile("data/data.xml")
    * }}}
    *
    * @param relativePath relative path of the file to fetch
@@ -330,9 +333,12 @@ trait Application {
    * Retrieves a file relative to the application root path.
    * This method returns an Option[File], using None if the file was not found.
    *
-   * For example, to retrieve a configuration file:
+   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
+   * be nothing available in the application root path.
+   *
+   * For example, to retrieve some deployment specific data file:
    * {{{
-   * val myConf = application.getExistingFile("conf/myConf.yml")
+   * val myDataFile = application.getExistingFile("data/data.xml")
    * }}}
    *
    * @param relativePath the relative path of the file to fetch
@@ -343,9 +349,12 @@ trait Application {
   /**
    * Scans the application classloader to retrieve a resource.
    *
-   * For example, to retrieve a configuration file:
+   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
+   * directory.
+   *
+   * For example, to retrieve the conf/logger.xml configuration file:
    * {{{
-   * val maybeConf = application.resource("conf/logger.xml")
+   * val maybeConf = application.resource("logger.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
@@ -361,9 +370,12 @@ trait Application {
   /**
    * Scans the application classloader to retrieve a resource’s contents as a stream.
    *
-   * For example, to retrieve a configuration file:
+   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
+   * directory.
+   *
+   * For example, to retrieve the conf/logger.xml configuration file:
    * {{{
-   * val maybeConf = application.resourceAsStream("conf/logger.xml")
+   * val maybeConf = application.resourceAsStream("logger.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
