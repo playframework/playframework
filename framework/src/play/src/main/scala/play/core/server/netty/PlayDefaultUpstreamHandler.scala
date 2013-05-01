@@ -317,13 +317,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) =>
             Logger("play").trace("Serving this request with: " + ws)
-
-            try {
-              val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
-              f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
-            } catch {
-              case NonFatal(e) => e.printStackTrace()
-            }
+            val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
+            f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
 
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
