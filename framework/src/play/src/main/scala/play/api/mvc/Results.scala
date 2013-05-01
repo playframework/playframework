@@ -651,8 +651,8 @@ trait Results {
    *
    * @param status the HTTP response status, e.g ‘200 OK’
    */
-  class Status(status: Int) extends SimpleResult(header = ResponseHeader(status), body = Enumerator(),
-    streamingStrategy = StreamingStrategy.Simple) {
+  class Status(status: Int) extends SimpleResult(header = ResponseHeader(status), body = Enumerator.empty,
+    streamingStrategy = StreamingStrategy.Buffer()) {
 
     /**
      * Set the result's content.
@@ -739,12 +739,12 @@ trait Results {
   val NonAuthoritativeInformation = new Status(NON_AUTHORITATIVE_INFORMATION)
 
   /** Generates a ‘204 NO_CONTENT’ result. */
-  val NoContent = SimpleResult(header = ResponseHeader(NO_CONTENT), body = Enumerator(),
-    streamingStrategy = StreamingStrategy.Simple)
+  val NoContent = SimpleResult(header = ResponseHeader(NO_CONTENT), body = Enumerator.empty,
+    streamingStrategy = StreamingStrategy.Buffer())
 
   /** Generates a ‘205 RESET_CONTENT’ result. */
-  val ResetContent = SimpleResult(header = ResponseHeader(RESET_CONTENT), body = Enumerator(),
-    streamingStrategy = StreamingStrategy.Simple)
+  val ResetContent = SimpleResult(header = ResponseHeader(RESET_CONTENT), body = Enumerator.empty,
+    streamingStrategy = StreamingStrategy.Buffer())
 
   /** Generates a ‘206 PARTIAL_CONTENT’ result. */
   val PartialContent = new Status(PARTIAL_CONTENT)
@@ -774,8 +774,8 @@ trait Results {
   def SeeOther(url: String): SimpleResult = Redirect(url, SEE_OTHER)
 
   /** Generates a ‘304 NOT_MODIFIED’ result. */
-  val NotModified = SimpleResult(header = ResponseHeader(NOT_MODIFIED), body = Enumerator(),
-    streamingStrategy = StreamingStrategy.Simple)
+  val NotModified = SimpleResult(header = ResponseHeader(NOT_MODIFIED), body = Enumerator.empty,
+    streamingStrategy = StreamingStrategy.Buffer())
 
   /**
    * Generates a ‘307 TEMPORARY_REDIRECT’ simple result.

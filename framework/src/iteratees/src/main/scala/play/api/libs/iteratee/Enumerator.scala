@@ -735,6 +735,13 @@ object Enumerator {
     })(dec)
   }
 
+  /**
+   * An empty enumerator
+   */
+  def empty[E]: Enumerator[E] = new Enumerator[E] {
+    def apply[A](i: Iteratee[E, A]) = Future.successful(i)
+  }
+
   private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Future[Iteratee[E, A]] = { (l, i) =>
     l.foldLeft(Future.successful(i))((i, e) =>
       i.flatMap(it => it.pureFold {
