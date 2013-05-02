@@ -8,7 +8,7 @@ import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
 import scala.concurrent.duration._
-import play.api.libs.concurrent.Execution.Implicits._ 
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object Application extends Controller {
   
@@ -25,7 +25,7 @@ object Application extends Controller {
     
     Enumerator.fromCallback { () =>
       Promise.timeout(Some(dateFormat.format(new Date)), 100 milliseconds)
-    }(defaultContext)
+    }
   }
   
   def index = Action {
