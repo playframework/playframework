@@ -1,4 +1,4 @@
-package javaguide.http
+package javaguide.testhelpers
 
 import play.core.j.JavaAction
 import play.mvc.{Controller, Result}

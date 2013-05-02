@@ -12,18 +12,13 @@ A Play application defines a special actor system to be used by the application.
 
 You can access the default application actor system using the `play.libs.Akka` helper:
 
-```
-ActorRef myActor = Akka.system().actorOf(new Props(MyActor.class));
-```
+@[actor-for](code/javaguide/akka/JavaAkka.java)
 
 ## Configuration
 
 The default actor system configuration is read from the Play application configuration file. For example to configure the default dispatcher of the application actor system, add these lines to the `conf/application.conf` file:
 
-```
-akka.default-dispatcher.fork-join-executor.pool-size-max =64
-akka.actor.debug.receive = on
-```
+@[conf](code/javaguide/akka/akka.conf)
 
 > **Note:** You can also configure any other actor system from the same file, just provide a top configuration key.
 
@@ -31,50 +26,13 @@ akka.actor.debug.receive = on
 
 When you interact asynchronously with an Akka actor we will get `Future` object. You can easily convert them to play `Promise` using the conversion method provided in `play.libs.Akka.asPromise()`:
 
-```java
-import static akka.pattern.Patterns.ask;
-import play.libs.Akka;
-import play.mvc.Result;
-import static play.mvc.Results.async;
-import play.libs.F.Function;
-
-public static Result index() {
-  return async(
-    Akka.asPromise(ask(myActor,"hello", 1000)).map(
-      new Function<Object,Result>() {
-        public Result apply(Object response) {
-          return ok(response.toString());
-        }
-      }
-    )
-  );
-}
-```
+@[ask](code/javaguide/akka/ask/Application.java)
 
 ## Executing a block of code asynchronously
 
 A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
 
-```java
-
-import static play.libs.Akka.future;
-import play.libs.F.*;
-import java.util.concurrent.Callable;
-
-public static Result index() {
-  return async(
-    future(new Callable<Integer>() {
-      public Integer call() {
-        return longComputation();
-      }   
-    }).map(new Function<Integer,Result>() {
-      public Result apply(Integer i) {
-        return ok("Got " + i);
-      }   
-    })
-  );
-}
-```
+@[async](code/javaguide/akka/async/Application.java)
 
 ## Scheduling asynchronous tasks
 
@@ -82,28 +40,10 @@ You can schedule sending messages to actors and executing tasks (functions or `R
 
 For example, to send a message to the `testActor` every 30 minutes:
 
-```
-Akka.system().scheduler().schedule(
-  Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
-  Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
-  testActor, 
-  "tick",
-  Akka.system().dispatcher()
-);
-```
+@[schedule-actor](code/javaguide/akka/JavaAkka.java)
 
-Alternatively, to run a block of code ten seconds from now:
+Alternatively, to run a block of code ten milliseconds from now:
 
-```
-Akka.system().scheduler().scheduleOnce(
-  Duration.create(10, TimeUnit.SECONDS),
-  new Runnable() {
-    public void run() {
-      file.delete()
-    }
-  },
-  Akka.system().dispatcher()
-); 
-```
+@[schedule-code](code/javaguide/akka/JavaAkka.java)
 
 > **Next:** [[Internationalization | JavaI18N]]

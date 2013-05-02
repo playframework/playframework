@@ -23,6 +23,13 @@ object ApplicationBuild extends Build {
     unmanagedSourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedSourceDirectories in Test <++= scalaManualSourceDirectories,
 
+    unmanagedResourceDirectories in Test <++= javaManualSourceDirectories,
+    unmanagedResourceDirectories in Test <++= scalaManualSourceDirectories,
+
+    parallelExecution in Test := false,
+
+    javacOptions += "-g",
+
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test, templatesTypes) map { (s, ds, g, t) =>
       ds.flatMap(d => ScalaTemplates(s, d, g, t, defaultTemplatesImport ++ defaultJavaTemplatesImport))
