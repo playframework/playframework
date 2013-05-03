@@ -14,7 +14,8 @@ object ApplicationBuild extends Build {
     scalaVersion := PlayVersion.scalaVersion,
     libraryDependencies ++= Seq(
       component("play") % "test",
-      component("play-test") % "test"
+      component("play-test") % "test",
+      component("play-java") % "test"
     ),
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),

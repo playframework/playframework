@@ -15,30 +15,19 @@ The cache API is provided by the `play.cache.Cache` object. This requires a cach
 
 Using this simple API you can store data in the cache:
 
-```
-Cache.set("item.key", frontPageNews);
-```
+@[simple-set](code/javaguide/cache/JavaCache.java)
 
 Optionally you can specify a expiration (in seconds) for the cache:
 
-```
-// Cache for 15 minutes
-Cache.set("item.key", frontPageNews, 60 * 15);
-```
+@[time-set](code/javaguide/cache/JavaCache.java)
 
 You can retrieve the data later:
 
-```
-News news = Cache.get("item.key");
-```
-
+@[get](code/javaguide/cache/JavaCache.java)
 
 To remove an item from the cache use the `remove` method:
 
-```
-Cache.remove("item.key")
-```
-
+@[remove](code/javaguide/cache/JavaCache.java)
 
 ## Caching HTTP responses
 
@@ -48,43 +37,6 @@ You can easily create a smart cached action using standard `Action` composition.
 
 Play provides a default built-in helper for the standard case:
 
-```
-@Cached("homePage")
-public static Result index() {
-  return ok("Hello world");
-}
-```
-
-## Caching in templates
-
-You may also access the cache from a view template.
-
-```
-@cache.Cache.getOrElse("cached-content", 3600) {
-     <div>I’m cached for an hour</div>
-}
-```
-
-## Session cache
-
-Play provides a global cache, whose data are visible to anybody. How would one restrict visibility to a given user? For instance you may want to cache metrics that only apply to a given user.
-
-
-```
-// Generate a unique ID
-String uuid=session("uuid");
-if(uuid==null) {
-	uuid=java.util.UUID.randomUUID().toString();
-	session("uuid", uuid);
-}
-
-// Access the cache
-News userNews = Cache.get(uuid+"item.key");
-if(userNews==null) {
-	userNews = generateNews(uuid);
-	Cache.set(uuid+"item.key", userNews );
-}
-```
-
+@[http](code/javaguide/cache/JavaCache.java)
 
 > **Next:** [[Calling web services | JavaWS]]
