@@ -2,6 +2,7 @@ package play.router
 
 import org.specs2.mutable.Specification
 import play.router.RoutesCompiler._
+import java.io.File
 
 object RoutesCompilerSpec extends Specification {
 
@@ -118,6 +119,17 @@ object RoutesCompilerSpec extends Specification {
       result must beAnInstanceOf[parser.NoSuccess]
     }
 
+  }
+
+  "route file compiler" should {
+    "check if there are no routes using overloaded handler methods" in {
+
+      val generated = new File("/tmp/duplicateHandlers/routes_routing.scala")
+      if (generated.exists()) generated.delete()
+
+      val f = new File("src/routes-compiler/src/test/resources/duplicateHandlers.routes")
+      RoutesCompiler.compile(f, new File("/tmp"), Seq.empty) must throwA [RoutesCompilationError]
+    }
   }
 
 }

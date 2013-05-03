@@ -365,6 +365,23 @@ object RoutesCompiler {
       }
 
     }
+
+    // make sure there are no routes using overloaded handler methods, or handler methods with default parameters without declaring them all
+    val grouped = routes.groupBy { r =>
+      r.call.packageName + r.call.controller + r.call.method + r.call.parameters.map(p => p.length).getOrElse(0)
+    }
+
+    if(grouped.size > 1) {
+      val firstOverloadedRoute = grouped.head._2.head
+      throw RoutesCompilationError(
+        file,
+        "Using different overloaded methods is not allowed. If you are using a single method in combination with default parameters, make sure you declare them all explicitly.",
+        Some(firstOverloadedRoute.call.pos.line),
+        Some(firstOverloadedRoute.call.pos.column)
+      )
+    }
+
+
   }
 
   private def markLines(routes: Rule*): String = {

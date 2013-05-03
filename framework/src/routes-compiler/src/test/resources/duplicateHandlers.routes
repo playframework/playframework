@@ -1,0 +1,2 @@
+GET    /foo     controllers.FooController.foo(bar: Boolean = false)
+GET    /foo2    controllers.FooController.foo(bar: Boolean = false, baz: Boolean = true)
