@@ -22,7 +22,7 @@ trait WithDefaultGlobal {
   // -- Global stuff
 
   private lazy val globalClass = initialConfiguration.getString("application.global").getOrElse(initialConfiguration.getString("global").map { g =>
-    Logger("play").warn("`global` key is deprecated, please change `global` key to `application.global`")
+    Play.logger.warn("`global` key is deprecated, please change `global` key to `application.global`")
     g
   }.getOrElse("Global"))
 
@@ -130,12 +130,12 @@ trait WithDefaultPlugins {
     pluginClasses.map { className =>
       try {
         val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
-        if (plugin.enabled) Some(plugin) else { Logger("play").debug("Plugin [" + className + "] is disabled"); None }
+        if (plugin.enabled) Some(plugin) else { Play.logger.debug("Plugin [" + className + "] is disabled"); None }
       } catch {
         case e: java.lang.NoSuchMethodException => {
           try {
             val plugin = classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
-            if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
+            if (plugin.enabled) Some(plugin) else { Play.logger.warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: PlayException => throw e
             case e: VirtualMachineError => throw e

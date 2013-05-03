@@ -60,13 +60,13 @@ class AkkaPlugin(app: Application) extends Plugin {
   lazy val applicationSystem: ActorSystem = {
     applicationSystemEnabled = true
     val system = ActorSystem("application", app.configuration.underlying.getConfig("play"), app.classloader)
-    Logger("play").info("Starting application default Akka system.")
+    Play.logger.info("Starting application default Akka system.")
     system
   }
 
   override def onStop() {
     if (applicationSystemEnabled) {
-      Logger("play").info("Shutdown application default Akka system.")
+      Play.logger.info("Shutdown application default Akka system.")
       applicationSystem.shutdown()
       applicationSystem.awaitTermination()
     }

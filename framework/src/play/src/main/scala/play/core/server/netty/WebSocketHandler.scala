@@ -39,7 +39,7 @@ private[server] trait WebSocketHandler {
       private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
       def apply[R](i: Iteratee[A, R]) = {
-        eventuallyIteratee.success(i/* TODO: use a buffer enumeratee to fail when too many messages */ )
+        eventuallyIteratee.success(i /* TODO: use a buffer enumeratee to fail when too many messages */ )
         promise.asInstanceOf[scala.concurrent.Promise[Iteratee[A, R]]].future
       }
 
@@ -48,15 +48,15 @@ private[server] trait WebSocketHandler {
         val eventuallyNext = Promise[Iteratee[A, Any]]()
         val current = iterateeRef.single.swap(Iteratee.flatten(eventuallyNext.future))
         val next = current.flatFold(
-            (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
-            k => {
-              val next = k(input)
-              next.fold {
-                case Step.Done(a, e) =>
-                  ctx.getChannel().disconnect();
-                  promise.success(next);
-                  Logger("play").trace("cleaning for channel " + ctx.getChannel());
-                  Promise.pure(next)
+          (a, e) => { sys.error("Getting messages on a supposedly closed socket? frame: " + input) },
+          k => {
+            val next = k(input)
+            next.fold {
+              case Step.Done(a, e) =>
+                ctx.getChannel().disconnect();
+                promise.success(next);
+                Play.logger.trace("cleaning for channel " + ctx.getChannel());
+                Promise.pure(next)
 
                 case Step.Cont(_) => Promise.pure(next)
                 case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
@@ -88,7 +88,7 @@ private[server] trait WebSocketHandler {
 
         override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
           enumerator.frameReceived(ctx, EOF)
-          Logger("play").trace("disconnected socket")
+          Play.logger.trace("disconnected socket")
         }
 
       })

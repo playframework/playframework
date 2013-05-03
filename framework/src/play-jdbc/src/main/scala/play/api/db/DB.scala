@@ -244,7 +244,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
         ds._1.getConnection.close()
         app.mode match {
           case Mode.Test =>
-          case mode => Logger("play").info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
+          case mode => Play.logger.info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
         }
       } catch {
         case NonFatal(e) => {
@@ -392,7 +392,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     // Bind in JNDI
     conf.getString("jndiName").map { name =>
       JNDI.initialContext.rebind(name, datasource)
-      Logger("play").info("datasource [" + conf.getString("url").get + "] bound to JNDI as " + name)
+      Play.logger.info("datasource [" + conf.getString("url").get + "] bound to JNDI as " + name)
     }
 
     datasource
