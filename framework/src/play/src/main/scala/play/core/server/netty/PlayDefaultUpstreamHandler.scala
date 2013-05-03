@@ -364,7 +364,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           } else {
 
-            lazy val bodyEnumerator = {
+            val bodyEnumerator = {
               val body = {
                 val cBuffer = nettyHttpRequest.getContent()
                 val bytes = new Array[Byte](cBuffer.readableBytes())
