@@ -122,13 +122,30 @@ object RoutesCompilerSpec extends Specification {
   }
 
   "route file compiler" should {
-    "check if there are no routes using overloaded handler methods" in {
 
-      val generated = new File("/tmp/duplicateHandlers/routes_routing.scala")
+    val tmp = new File("src/routes-compiler/target")
+
+    def removeGenerated(routesName: String) {
+      val generated = new File(tmp, "/%s/routes_routing.scala".format(routesName))
       if (generated.exists()) generated.delete()
+    }
 
+    "generate routes classes for route definitions that pass the checks" in {
+      removeGenerated("generating")
+      val f = new File("src/routes-compiler/src/test/resources/generating.routes")
+      RoutesCompiler.compile(f, tmp, Seq.empty)
+
+      val generatedRoutes = new File(tmp, "generating/routes_routing.scala")
+      generatedRoutes.exists() must beTrue
+
+      val generatedReverseRoutes = new File(tmp, "generating/routes_reverseRouting.scala")
+      generatedReverseRoutes.exists() must beTrue
+    }
+
+    "check if there are no routes using overloaded handler methods" in {
+      removeGenerated("duplicateHandlers")
       val f = new File("src/routes-compiler/src/test/resources/duplicateHandlers.routes")
-      RoutesCompiler.compile(f, new File("/tmp"), Seq.empty) must throwA [RoutesCompilationError]
+      RoutesCompiler.compile(f, tmp, Seq.empty) must throwA [RoutesCompilationError]
     }
   }
 
