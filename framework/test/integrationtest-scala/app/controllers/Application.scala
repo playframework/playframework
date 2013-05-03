@@ -3,6 +3,7 @@ package controllers
 import play.api._
 import libs.iteratee.Iteratee
 import libs.json.Json
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
 
 import play.api.Play.current
@@ -35,7 +36,7 @@ object Application extends Controller {
   def bodyParserThread = Action(new BodyParser[String] {
     def apply(request: RequestHeader) = {
       val threadName = Thread.currentThread.getName
-      Iteratee.ignore[Array[Byte]].map(_ => Right(threadName))(play.api.libs.concurrent.Execution.defaultContext)
+      Iteratee.ignore[Array[Byte]].map(_ => Right(threadName))
     }
   }) { request =>
     Ok(request.body)

@@ -36,6 +36,6 @@ object EventSource {
     eventNameExtractor.eventName(chunk).map("event: " + _ + "\r\n").getOrElse("") +
       eventIdExtractor.eventId(chunk).map("id: " + _ + "\r\n").getOrElse("") +
       "data: " + encoder.toJavascriptMessage(chunk) + "\r\n\r\n"
-  }
+  }(play.core.Execution.internalContext)
 
 }

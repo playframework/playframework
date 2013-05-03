@@ -1,10 +1,15 @@
 package play.api.libs.iteratee
 
 import scala.concurrent.{ ExecutionContext, Future }
-import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec, eagerFuture, executeFuture, executeIteratee, sameThreadExecutionContext => stec }
+import play.api.libs.iteratee.Execution.{ sameThreadExecutionContext => stec }
+import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
+import play.api.libs.iteratee.internal.{ eagerFuture, executeFuture, executeIteratee, prepared }
 
 /**
  * Various helper methods to construct, compose and traverse Iteratees.
+ *
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
  */
 object Iteratee {
 
@@ -15,7 +20,7 @@ object Iteratee {
    */
   def flatten[E, A](i: Future[Iteratee[E, A]]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Future[B])(ec: ExecutionContext): Future[B] = i.flatMap(_.fold(folder)(ec))(stec)
+    def fold[B](folder: Step[E, A] => Future[B])(implicit ec: ExecutionContext): Future[B] = prepared(ec)(pec => i.flatMap(_.fold(folder)(pec))(stec))
 
   }
 
@@ -32,8 +37,9 @@ object Iteratee {
    *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new state
+   * $paramEcSingle
    */
-  def fold[E, A](state: A)(f: (A, E) => A)(ec: ExecutionContext): Iteratee[E, A] = foldM(state)((a, e: E) => eagerFuture(f(a, e)))(ec)
+  def fold[E, A](state: A)(f: (A, E) => A)(implicit ec: ExecutionContext): Iteratee[E, A] = foldM(state)((a, e: E) => eagerFuture(f(a, e)))(ec)
 
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
@@ -44,23 +50,34 @@ object Iteratee {
    *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new promise of state
+   * $paramEcSingle
    */
-  def foldM[E, A](state: A)(f: (A, E) => Future[A])(ec: ExecutionContext): Iteratee[E, A] = {
+  def foldM[E, A](state: A)(f: (A, E) => Future[A])(implicit ec: ExecutionContext): Iteratee[E, A] = {
+    val pec = ec.prepare()
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
       case Input.EOF => Done(s, Input.EOF)
       case Input.Empty => Cont[E, A](step(s))
-      case Input.El(e) => { val newS = executeFuture(f(s, e))(ec); flatten(newS.map(s1 => Cont[E, A](step(s1)))(dec)) }
+      case Input.El(e) => { val newS = executeFuture(f(s, e))(pec); flatten(newS.map(s1 => Cont[E, A](step(s1)))(dec)) }
     }
     (Cont[E, A](step(state)))
   }
 
-  def fold2[E, A](state: A)(f: (A, E) => Future[(A, Boolean)])(ec: ExecutionContext): Iteratee[E, A] = {
+  /**
+   * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state.
+   * Like `foldM`, but the fold can be completed earlier by returning a value of `true` in the future result.
+   *
+   * @param state initial state
+   * @param f a function folding the previous state and an input to a promise of state and a boolean indicating whether the fold is done
+   * $paramEcSingle
+   */
+  def fold2[E, A](state: A)(f: (A, E) => Future[(A, Boolean)])(implicit ec: ExecutionContext): Iteratee[E, A] = {
+    val pec = ec.prepare()
     def step(s: A)(i: Input[E]): Iteratee[E, A] = i match {
 
       case Input.EOF => Done(s, Input.EOF)
       case Input.Empty => Cont[E, A](step(s))
-      case Input.El(e) => { val newS = executeFuture(f(s, e))(ec); flatten(newS.map[Iteratee[E, A]] { case (s1, done) => if (!done) Cont[E, A](step(s1)) else Done(s1, Input.Empty) }(dec)) }
+      case Input.El(e) => { val newS = executeFuture(f(s, e))(pec); flatten(newS.map[Iteratee[E, A]] { case (s1, done) => if (!done) Cont[E, A](step(s1)) else Done(s1, Input.Empty) }(dec)) }
     }
     (Cont[E, A](step(state)))
   }
@@ -73,9 +90,10 @@ object Iteratee {
    *
    * @param state initial state
    * @param f a function folding the previous state and an input to a new promise of state
+   * $paramEcSingle
    */
-  def fold1[E, A](state: Future[A])(f: (A, E) => Future[A])(ec: ExecutionContext): Iteratee[E, A] = {
-    flatten(state.map(s => foldM(s)(f)(ec))(dec))
+  def fold1[E, A](state: Future[A])(f: (A, E) => Future[A])(implicit ec: ExecutionContext): Iteratee[E, A] = {
+    prepared(ec)(pec => flatten(state.map(s => foldM(s)(f)(pec))(dec)))
   }
 
   /**
@@ -94,7 +112,7 @@ object Iteratee {
     def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
       fold[E, Seq[E]](Seq.empty) { (els, chunk) =>
         chunk +: els
-      }(dec).mapDone { elts =>
+      }(dec).map { elts =>
         val builder = bf()
         elts.reverse.foreach(builder ++= _)
         builder.result()
@@ -168,7 +186,7 @@ object Iteratee {
    *
    * @param f the function that should be executed for every chunk
    */
-  def foreach[E](f: E => Unit)(ec: ExecutionContext): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))(ec)
+  def foreach[E](f: E => Unit)(implicit ec: ExecutionContext): Iteratee[E, Unit] = fold[E, Unit](())((_, e) => f(e))(ec)
 
   /**
    *
@@ -296,6 +314,9 @@ object Step {
  * between Iteratee and Step.
  * @tparam E Input type
  * @tparam A Result type of this Iteratee
+ *
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread.
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread.
  */
 trait Iteratee[E, +A] {
   self =>
@@ -342,11 +363,12 @@ trait Iteratee[E, +A] {
    * @param done a function that will be called if the Iteratee is a Done
    * @param cont a function that will be called if the Iteratee is a Cont
    * @param error a function that will be called if the Iteratee is an Error
+   * $paramEcMultiple
    * @return a [[scala.concurrent.Future]] of a value extracted by calling the appropriate provided function
    */
   def fold1[B](done: (A, Input[E]) => Future[B],
     cont: (Input[E] => Iteratee[E, A]) => Future[B],
-    error: (String, Input[E]) => Future[B])(ec: ExecutionContext): Future[B] = fold({
+    error: (String, Input[E]) => Future[B])(implicit ec: ExecutionContext): Future[B] = fold({
     case Step.Done(a, e) => done(a, e)
     case Step.Cont(k) => cont(k)
     case Step.Error(msg, e) => error(msg, e)
@@ -354,50 +376,61 @@ trait Iteratee[E, +A] {
 
   /**
    * Computes a promised value B from the state of the Iteratee.
-   * Note that the state of the Iteratee may be computed asynchronously,
-   * so the folder function may run asynchronously in another thread,
-   * but is not guaranteed to do so. Exceptions thrown by the folder function
-   * may be stored in the returned Promise or may be thrown from `fold()`.
+   *
+   * The folder function will be run in the supplied ExecutionContext.
+   * Exceptions thrown by the folder function will be stored in the
+   * returned Promise.
    *
    * If the folder function itself is synchronous, it's better to
    * use `pureFold()` instead of `fold()`.
+   *
+   * @param folder a function that will be called on the current state of the iteratee
+   * @param ec the ExecutionContext to run folder within
+   * @return the result returned when folder is called
    */
-  def fold[B](folder: Step[E, A] => Future[B])(ec: ExecutionContext): Future[B]
+  def fold[B](folder: Step[E, A] => Future[B])(implicit ec: ExecutionContext): Future[B]
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
    *
    * @return a [[scala.concurrent.Future]] of a value extracted by calling the appropriate provided function
    */
-  def pureFold[B](folder: Step[E, A] => B)(ec: ExecutionContext): Future[B] = fold(s => eagerFuture(folder(s)))(ec)
+  def pureFold[B](folder: Step[E, A] => B)(implicit ec: ExecutionContext): Future[B] = fold(s => eagerFuture(folder(s)))(ec) // Use eagerFuture because fold will ensure folder is run in ec
 
   /**
    * Like pureFold, except taking functions that return an Iteratee
    *
    * @return an Iteratee extracted by calling the appropriate provided function
    */
-  def pureFlatFold[B, C](folder: Step[E, A] => Iteratee[B, C])(ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(pureFold(folder)(ec))
+  def pureFlatFold[B, C](folder: Step[E, A] => Iteratee[B, C])(implicit ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(pureFold(folder)(ec))
 
-  def flatFold0[B, C](folder: Step[E, A] => Future[Iteratee[B, C]])(ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(fold(folder)(ec))
+  /**
+   * Like fold, except flattens the result with Iteratee.flatten.
+   *
+   * $paramEcSingle
+   */
+  def flatFold0[B, C](folder: Step[E, A] => Future[Iteratee[B, C]])(implicit ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(fold(folder)(ec))
 
+  /**
+   * Like fold1, except flattens the result with Iteratee.flatten.
+   *
+   * $paramEcSingle
+   */
   def flatFold[B, C](done: (A, Input[E]) => Future[Iteratee[B, C]],
     cont: (Input[E] => Iteratee[E, A]) => Future[Iteratee[B, C]],
-    error: (String, Input[E]) => Future[Iteratee[B, C]])(ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error)(ec))
+    error: (String, Input[E]) => Future[Iteratee[B, C]])(implicit ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error)(ec))
 
-  def mapDone[B](f: A => B)(ec: ExecutionContext): Iteratee[E, B] =
-    this.pureFlatFold {
-      case Step.Done(a, e) => executeIteratee(Done(f(a), e))(ec)
-      case Step.Cont(k) => Cont((in: Input[E]) => k(in).mapDone(f)(ec))
-      case Step.Error(err, e) => Error(err, e)
-    }(dec)
+  @scala.deprecated("use Iteratee.map instead", "2.2.0")
+  def mapDone[B](f: A => B)(implicit ec: ExecutionContext): Iteratee[E, B] = prepared(ec)(pec => map(f)(pec))
 
   /**
    *
    * Uses the provided function to transform the Iteratee's computed result when the Iteratee is done.
    *
-   * @param f a function for tranforming the computed result
+   * @param f a function for transforming the computed result
+   * $paramEcSingle
    */
-  def map[B](f: A => B)(ec: ExecutionContext): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))(ec)
+  def map[B](f: A => B)(implicit ec: ExecutionContext): Iteratee[E, B] = this.flatMap(a => Done(f(a), Input.Empty))(ec)
 
   /**
    * Like map but allows the map function to execute asynchronously.
@@ -405,24 +438,33 @@ trait Iteratee[E, +A] {
    * This is particularly useful if you want to do blocking operations, so that you can ensure that those operations
    * execute in the right execution context, rather than the iteratee execution context, which would potentially block
    * all other iteratee operations.
+   *
+   * @param f a function for transforming the computed result
+   * $paramEcSingle
    */
-  def mapM[B](f: A => Future[B])(ec: ExecutionContext): Iteratee[E, B] = self.flatMapM(a => f(a).map[Iteratee[E, B]](b => Done(b))(dec))(ec)
+  def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): Iteratee[E, B] = self.flatMapM(a => f(a).map[Iteratee[E, B]](b => Done(b))(dec))(ec)
 
   /**
    * On Done of this Iteratee, the result is passed to the provided function, and the resulting Iteratee is used to continue consuming input
    *
    * If the resulting Iteratee of evaluating the f function is a Done then its left Input is ignored and its computed result is wrapped in a Done and returned
+   *
+   * @param f a function for transforming the computed result into an Iteratee
+   * $paramEcSingle
    */
-  def flatMap[B](f: A => Iteratee[E, B])(ec: ExecutionContext): Iteratee[E, B] = self.pureFlatFold {
-    case Step.Done(a, Input.Empty) => executeIteratee(f(a))(ec)
-    case Step.Done(a, e) => executeIteratee(f(a))(ec).pureFlatFold {
-      case Step.Done(a, _) => Done(a, e)
-      case Step.Cont(k) => k(e)
+  def flatMap[B](f: A => Iteratee[E, B])(implicit ec: ExecutionContext): Iteratee[E, B] = {
+    val pec = ec.prepare()
+    self.pureFlatFold {
+      case Step.Done(a, Input.Empty) => executeIteratee(f(a))(pec)
+      case Step.Done(a, e) => executeIteratee(f(a))(pec).pureFlatFold {
+        case Step.Done(a, _) => Done(a, e)
+        case Step.Cont(k) => k(e)
+        case Step.Error(msg, e) => Error(msg, e)
+      }(dec)
+      case Step.Cont(k) => Cont((in: Input[E]) => k(in).flatMap(f)(pec))
       case Step.Error(msg, e) => Error(msg, e)
     }(dec)
-    case Step.Cont(k) => Cont((in: Input[E]) => k(in).flatMap(f)(ec))
-    case Step.Error(msg, e) => Error(msg, e)
-  }(dec)
+  }
 
   /**
    * Like flatMap but allows the flatMap function to execute asynchronously.
@@ -430,34 +472,43 @@ trait Iteratee[E, +A] {
    * This is particularly useful if you want to do blocking operations, so that you can ensure that those operations
    * execute in the right execution context, rather than the iteratee execution context, which would potentially block
    * all other iteratee operations.
+   *
+   * @param f a function for transforming the computed result into an Iteratee
+   * $paramEcSingle
    */
-  def flatMapM[B](f: A => Future[Iteratee[E, B]])(ec: ExecutionContext): Iteratee[E, B] = self.flatMap(a => Iteratee.flatten(f(a)))(ec)
+  def flatMapM[B](f: A => Future[Iteratee[E, B]])(implicit ec: ExecutionContext): Iteratee[E, B] = self.flatMap(a => Iteratee.flatten(f(a)))(ec)
 
-  def flatMapInput[B](f: Step[E, A] => Iteratee[E, B])(ec: ExecutionContext): Iteratee[E, B] = self.pureFlatFold(f)(ec)
+  def flatMapInput[B](f: Step[E, A] => Iteratee[E, B])(implicit ec: ExecutionContext): Iteratee[E, B] = self.pureFlatFold(f)(ec)
 
   /**
    * Like flatMap except that it concatenates left over inputs if the Iteratee returned by evaluating f is a Done.
+   *
+   * @param f a function for transforming the computed result into an Iteratee
+   * $paramEcSingle Note: input concatenation is performed in the iteratee default execution context, not in the user-supplied context.
    */
-  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(ec: ExecutionContext)(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E]): Iteratee[E, B] = self.pureFlatFold {
-    case Step.Done(a, Input.Empty) => f(a)
-    case Step.Done(a, e) => executeIteratee(f(a))(ec).pureFlatFold {
-      case Step.Done(a, eIn) => {
-        val fullIn = (e, eIn) match {
-          case (Input.Empty, in) => in
-          case (in, Input.Empty) => in
-          case (Input.EOF, _) => Input.EOF
-          case (in, Input.EOF) => in
-          case (Input.El(e1), Input.El(e2)) => Input.El[E](p(e1) ++ p(e2))
-        }
+  def flatMapTraversable[B, X](f: A => Iteratee[E, B])(implicit p: E => scala.collection.TraversableLike[X, E], bf: scala.collection.generic.CanBuildFrom[E, X, E], ec: ExecutionContext): Iteratee[E, B] = {
+    val pec = ec.prepare()
+    self.pureFlatFold {
+      case Step.Done(a, Input.Empty) => f(a)
+      case Step.Done(a, e) => executeIteratee(f(a))(pec).pureFlatFold {
+        case Step.Done(a, eIn) => {
+          val fullIn = (e, eIn) match {
+            case (Input.Empty, in) => in
+            case (in, Input.Empty) => in
+            case (Input.EOF, _) => Input.EOF
+            case (in, Input.EOF) => in
+            case (Input.El(e1), Input.El(e2)) => Input.El[E](p(e1) ++ p(e2))
+          }
 
-        Done(a, fullIn)
-      }
-      case Step.Cont(k) => k(e)
+          Done(a, fullIn)
+        }
+        case Step.Cont(k) => k(e)
+        case Step.Error(msg, e) => Error(msg, e)
+      }(dec)
+      case Step.Cont(k) => Cont((in: Input[E]) => k(in).flatMap(f)(pec))
       case Step.Error(msg, e) => Error(msg, e)
     }(dec)
-    case Step.Cont(k) => Cont((in: Input[E]) => k(in).flatMap(f)(ec))
-    case Step.Error(msg, e) => Error(msg, e)
-  }(dec)
+  }
 
   def joinI[AIn](implicit in: A <:< Iteratee[_, AIn]): Iteratee[E, AIn] = {
     this.flatMap { a =>
@@ -486,7 +537,7 @@ trait Iteratee[E, +A] {
         }(dec)
         case Step.Error(msg, e) => Error(msg, Input.Empty)
       }(dec)
-    }(dec)
+    }
   }
 }
 
@@ -498,7 +549,7 @@ object Done {
    */
   def apply[E, A](a: A, e: Input[E] = Input.Empty): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Future[B])(ec: ExecutionContext): Future[B] = executeFuture(folder(Step.Done(a, e)))(ec)
+    def fold[B](folder: Step[E, A] => Future[B])(implicit ec: ExecutionContext): Future[B] = prepared(ec)(pec => executeFuture(folder(Step.Done(a, e)))(pec))
 
   }
 
@@ -507,11 +558,14 @@ object Done {
 object Cont {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] in the “cont” state.
-   * @param k Continuation which will compute the next Iteratee state according to an input
+   * @param k Continuation which will compute the next Iteratee state according to an input. The continuation is not
+   * guaranteed to run in any particular execution context. If a particular execution context is needed then the
+   * continuation should be wrapped before being added, e.g. by running the operation in a Future and flattening the
+   * result.
    */
   def apply[E, A](k: Input[E] => Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
 
-    def fold[B](folder: Step[E, A] => Future[B])(ec: ExecutionContext): Future[B] = executeFuture(folder(Step.Cont(k)))(ec)
+    def fold[B](folder: Step[E, A] => Future[B])(implicit ec: ExecutionContext): Future[B] = prepared(ec)(pec => executeFuture(folder(Step.Cont(k)))(pec))
 
   }
 }
@@ -523,7 +577,7 @@ object Error {
    */
   def apply[E](msg: String, e: Input[E]): Iteratee[E, Nothing] = new Iteratee[E, Nothing] {
 
-    def fold[B](folder: Step[E, Nothing] => Future[B])(ec: ExecutionContext): Future[B] = executeFuture(folder(Step.Error(msg, e)))(ec)
+    def fold[B](folder: Step[E, Nothing] => Future[B])(implicit ec: ExecutionContext): Future[B] = prepared(ec)(pec => executeFuture(folder(Step.Error(msg, e)))(pec))
 
   }
 }

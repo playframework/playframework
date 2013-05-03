@@ -1,12 +1,16 @@
 package play.api.libs.iteratee
 
-import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec, eagerFuture }
+import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
+import play.api.libs.iteratee.internal.{ eagerFuture, executeFuture }
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Try, Success, Failure }
 import scala.language.reflectiveCalls
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
+ *
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
  */
 trait Enumerator[E] {
   parent =>
@@ -90,9 +94,16 @@ trait Enumerator[E] {
     }
   }
 
-  def onDoneEnumerating(callback: => Unit)(ec: ExecutionContext) = new Enumerator[E] {
+  /**
+   * Creates an Enumerator which calls the given callback when its final input has been consumed.
+   *
+   * @param callback The callback to call
+   * $paramEcSingle
+   */
+  def onDoneEnumerating(callback: => Unit)(implicit ec: ExecutionContext) = new Enumerator[E] {
+    val pec = ec.prepare()
 
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(it).map { a => callback; a }(ec)
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(it).map { a => callback; a }(pec)
 
   }
 
@@ -109,24 +120,33 @@ trait Enumerator[E] {
   /**
    * maps the given function f onto parent Enumerator
    * @param f function to map
+   * $paramEcSingle
    * @return enumerator
    */
-  def map[U](f: E => U): Enumerator[U] = parent &> Enumeratee.map[E](f)
+  def map[U](f: E => U)(implicit ec: ExecutionContext): Enumerator[U] = parent &> Enumeratee.map[E](f)(ec)
 
-  def mapInput[U](f: Input[E] => Input[U]) = parent &> Enumeratee.mapInput[E](f)
+  /**
+   * Creates an Enumerator, based on this one, with each input transformed by the given function.
+   *
+   * @param f Used to transform the input.
+   * $paramEcSingle
+   */
+  def mapInput[U](f: Input[E] => Input[U])(implicit ec: ExecutionContext): Enumerator[U] = parent &> Enumeratee.mapInput[E](f)(ec)
 
   /**
    * flatmaps the given function f onto parent Enumerator
    * @param f function to map
+   * $paramEcSingle
    * @return enumerator
    */
-  def flatMap[U](f: E => Enumerator[U])(ec: ExecutionContext): Enumerator[U] = {
+  def flatMap[U](f: E => Enumerator[U])(implicit ec: ExecutionContext): Enumerator[U] = {
+    val pec = ec.prepare()
     new Enumerator[U] {
       def apply[A](iteratee: Iteratee[U, A]): Future[Iteratee[U, A]] = {
         import ExecutionContext.Implicits.global
         val folder = Iteratee.fold2[E, Iteratee[U, A]](iteratee) { (it, e) =>
           for {
-            en <- Future(f(e))(ec)
+            en <- Future(f(e))(pec)
             newIt <- en(it)
             done <- Iteratee.isDoneOrError(newIt)
           } yield ((newIt, done))
@@ -140,6 +160,9 @@ trait Enumerator[E] {
 /**
  * Enumerator is the source that pushes input into a given iteratee.
  * It enumerates some input into the iteratee and eventually returns the new state of that iteratee.
+ *
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
  */
 object Enumerator {
 
@@ -333,13 +356,14 @@ object Enumerator {
   def imperative[E](
     onStart: () => Unit = () => (),
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)(ec)
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)(ec)
 
   @scala.deprecated("use Concurrent.unicast instead", "2.1.0")
   def pushee[E](
     onStart: Pushee[E] => Unit,
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
+    val pec = ec.prepare()
 
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
       var iteratee: Iteratee[E, A] = it
@@ -358,21 +382,21 @@ object Enumerator {
             iteratee = iteratee.flatFold0[E, A] {
 
               case Step.Done(a, in) => {
-                Future(onComplete())(ec).map(_ => Done(a, in))(dec)
+                Future(onComplete())(pec).map(_ => Done(a, in))(dec)
               }
 
               case Step.Cont(k) => {
                 val next = k(Input.El(item))
                 next.fold {
                   case Step.Done(a, in) => {
-                    Future(onComplete())(ec).map(_ => next)(dec)
+                    Future(onComplete())(pec).map(_ => next)(dec)
                   }
                   case _ => Future.successful(next)
                 }(dec)
               }
 
               case Step.Error(e, in) => {
-                Future(onError(e, in))(ec).map(_ => Error(e, in))(dec)
+                Future(onError(e, in))(pec).map(_ => Error(e, in))(dec)
               }
             }(dec)
             true
@@ -381,8 +405,7 @@ object Enumerator {
           }
         }
       }
-      onStart(pushee)
-      promise.future
+      Future(onStart(pushee))(pec).flatMap(_ => promise.future)(dec)
     }
 
   }
@@ -393,13 +416,17 @@ object Enumerator {
    * @param s The value to unfold
    * @param f The unfolding function. This will take the value, and return a future for some tuple of the next value
    *          to unfold and the next input, or none if the value is completely unfolded.
+   * $paramEcSingle
    */
-  def unfoldM[S, E](s: S)(f: S => Future[Option[(S, E)]]): Enumerator[E] = checkContinue1(s)(new TreatCont1[E, S] {
+  def unfoldM[S, E](s: S)(f: S => Future[Option[(S, E)]])(implicit ec: ExecutionContext): Enumerator[E] = checkContinue1(s)(new TreatCont1[E, S] {
+    val pec = ec.prepare()
 
-    def apply[A](loop: (Iteratee[E, A], S) => Future[Iteratee[E, A]], s: S, k: Input[E] => Iteratee[E, A]): Future[Iteratee[E, A]] = f(s).flatMap {
-      case Some((newS, e)) => loop(k(Input.El(e)), newS)
-      case None => Future.successful(Cont(k))
-    }(dec)
+    def apply[A](loop: (Iteratee[E, A], S) => Future[Iteratee[E, A]], s: S, k: Input[E] => Iteratee[E, A]): Future[Iteratee[E, A]] = {
+      executeFuture(f(s))(pec).flatMap {
+        case Some((newS, e)) => loop(k(Input.El(e)), newS)
+        case None => Future.successful(Cont(k))
+      }(dec)
+    }
   })
 
   /**
@@ -430,10 +457,12 @@ object Enumerator {
    * Repeat the given input function indefinitely.
    *
    * @param e The input function.
+   * $paramEcSingle
    */
-  def repeat[E](e: => E): Enumerator[E] = checkContinue0(new TreatCont0[E] {
+  def repeat[E](e: => E)(implicit ec: ExecutionContext): Enumerator[E] = checkContinue0(new TreatCont0[E] {
+    val pec = ec.prepare()
 
-    def apply[A](loop: Iteratee[E, A] => Future[Iteratee[E, A]], k: Input[E] => Iteratee[E, A]) = loop(k(Input.El(e)))
+    def apply[A](loop: Iteratee[E, A] => Future[Iteratee[E, A]], k: Input[E] => Iteratee[E, A]) = Future(e)(pec).flatMap(ee => loop(k(Input.El(ee))))(dec)
 
   })
 
@@ -441,10 +470,12 @@ object Enumerator {
    * Like [[play.api.libs.iteratee.Enumerator.repeat]], but allows repeated values to be asynchronously fetched.
    *
    * @param e The input function
+   * $paramEcSingle
    */
-  def repeatM[E](e: => Future[E]): Enumerator[E] = checkContinue0(new TreatCont0[E] {
+  def repeatM[E](e: => Future[E])(implicit ec: ExecutionContext): Enumerator[E] = checkContinue0(new TreatCont0[E] {
+    val pec = ec.prepare()
 
-    def apply[A](loop: Iteratee[E, A] => Future[Iteratee[E, A]], k: Input[E] => Iteratee[E, A]) = e.flatMap(ee => loop(k(Input.El(ee))))(dec)
+    def apply[A](loop: Iteratee[E, A] => Future[Iteratee[E, A]], k: Input[E] => Iteratee[E, A]) = executeFuture(e)(pec).flatMap(ee => loop(k(Input.El(ee))))(dec)
 
   })
 
@@ -455,9 +486,10 @@ object Enumerator {
    * @param e The input function.  Returns a future eventually redeemed with Some value if there is input to pass, or a
    *          future eventually redeemed with None if the end of the stream has been reached.
    */
-  def generateM[E](e: => Future[Option[E]]): Enumerator[E] = checkContinue0(new TreatCont0[E] {
+  def generateM[E](e: => Future[Option[E]])(implicit ec: ExecutionContext): Enumerator[E] = checkContinue0(new TreatCont0[E] {
+    val pec = ec.prepare()
 
-    def apply[A](loop: Iteratee[E, A] => Future[Iteratee[E, A]], k: Input[E] => Iteratee[E, A]) = e.flatMap {
+    def apply[A](loop: Iteratee[E, A] => Future[Iteratee[E, A]], k: Input[E] => Iteratee[E, A]) = executeFuture(e)(pec).flatMap {
       case Some(e) => loop(k(Input.El(e)))
       case None => Future.successful(Cont(k))
     }(dec)
@@ -503,9 +535,20 @@ object Enumerator {
 
   }
 
+  /**
+   * Like [[play.api.libs.iteratee.Enumerator.generateM]], but `retriever` accepts a boolean
+   * value that is `true` on its first call only.
+   *
+   * @param e The input function.  Returns a future eventually redeemed with Some value if there is input to pass, or a
+   *          future eventually redeemed with None if the end of the stream has been reached.
+   * @param onComplete Called when the end of the stream is reached.
+   * @param onError FIXME: Never called.
+   * $paramEcMultiple
+   */
   def fromCallback1[E](retriever: Boolean => Future[Option[E]],
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
+    val pec = ec.prepare()
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
@@ -514,7 +557,7 @@ object Enumerator {
 
         val next = it.fold {
           case Step.Cont(k) => {
-            Future(retriever(initial))(ec).flatMap(x => x)(dec).map {
+            executeFuture(retriever(initial))(pec).map {
               case None => {
                 val remainingIteratee = k(Input.EOF)
                 iterateeP.success(remainingIteratee)
@@ -532,7 +575,7 @@ object Enumerator {
         next.onComplete {
           case Success(Some(i)) => step(i)
 
-          case Success(None) => Future(onComplete())(ec)
+          case Success(None) => Future(onComplete())(pec)
           case Failure(e) =>
             iterateeP.failure(e)
         }(dec)
@@ -545,7 +588,7 @@ object Enumerator {
   @scala.deprecated("use Enumerator.generateM instead", "2.1.0")
   def fromCallback[E](retriever: () => Future[Option[E]],
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
       var iterateeP = Promise[Iteratee[E, A]]()
@@ -604,7 +647,7 @@ object Enumerator {
           Some(input)
       }
       Future.successful(chunk)
-    }).onDoneEnumerating(input.close)(dec)
+    })(dec).onDoneEnumerating(input.close)(dec)
   }
 
   /**
@@ -627,8 +670,9 @@ object Enumerator {
    * running out of memory.
    *
    * @param a A callback that provides the output stream when this enumerator is written to an iteratee.
+   * $paramEcSingle
    */
-  def outputStream(a: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
+  def outputStream(a: java.io.OutputStream => Unit)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
     Concurrent.unicast[Array[Byte]] { channel =>
       val outputStream = new java.io.OutputStream() {
         override def close() {
@@ -646,7 +690,7 @@ object Enumerator {
         }
       }
       a(outputStream)
-    }(dec)
+    }(ec)
   }
 
   /**
@@ -688,7 +732,7 @@ object Enumerator {
         Future.successful[Option[(scala.collection.Iterator[E], E)]]({
           None
         })
-    })
+    })(dec)
   }
 
   private def enumerateSeq[E, A]: (Seq[E], Iteratee[E, A]) => Future[Iteratee[E, A]] = { (l, i) =>
@@ -719,17 +763,19 @@ object Enumerator {
 class PushEnumerator[E] private[iteratee] (
     onStart: () => Unit = () => (),
     onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) extends Enumerator[E] with Enumerator.Pushee[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) extends Enumerator[E] with Enumerator.Pushee[E] {
 
+  val pec = ec.prepare()
   var iteratee: Iteratee[E, _] = _
   var promise: Promise[Iteratee[E, _]] = _
 
   def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
-    onStart()
-    iteratee = it.asInstanceOf[Iteratee[E, _]]
-    val newPromise = Promise[Iteratee[E, A]]()
-    promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]]]
-    newPromise.future
+    Future(onStart())(pec).flatMap { _ =>
+      iteratee = it.asInstanceOf[Iteratee[E, _]]
+      val newPromise = Promise[Iteratee[E, A]]()
+      promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]]]
+      newPromise.future
+    }(dec)
   }
 
   def close() {
@@ -745,19 +791,19 @@ class PushEnumerator[E] private[iteratee] (
       iteratee = iteratee.flatFold0[E, Any] {
 
         case Step.Done(a, in) => {
-          Future(onComplete())(ec).map(_ => Done(a, in))(dec)
+          Future(onComplete())(pec).map(_ => Done(a, in))(dec)
         }
 
         case Step.Cont(k) => {
           val next = k(Input.El(item))
           next.fold {
-            case Step.Done(a, in) => Future(onComplete())(ec).map(_ => next)(dec)
+            case Step.Done(a, in) => Future(onComplete())(pec).map(_ => next)(dec)
             case _ => Future.successful(next)
           }(dec)
         }
 
         case Step.Error(e, in) => {
-          Future(onError(e, in))(ec).map(_ => Error(e, in))(dec)
+          Future(onError(e, in))(pec).map(_ => Error(e, in))(dec)
         }
       }(dec)
       true

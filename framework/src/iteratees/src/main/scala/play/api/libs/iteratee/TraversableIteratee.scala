@@ -1,7 +1,11 @@
 package play.api.libs.iteratee
 
-import scala.concurrent.ExecutionContext
+import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
+import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
+ */
 object Traversable {
 
   @scala.deprecated("use Enumeratee.passAlong instead", "2.1.x")
@@ -76,15 +80,23 @@ object Traversable {
 
   import Enumeratee.CheckDone
 
-  def splitOnceAt[M, E](p: E => Boolean)(implicit traversableLike: M => scala.collection.TraversableLike[E, M]): Enumeratee[M, M] = new CheckDone[M, M] {
+  /**
+   * Splits a stream of traversable input elements on a predicate. Yields all input up until
+   * the predicate matches within an input element. The input following a match is unprocessed.
+   *
+   * @param p The predicate to split input on.
+   * $paramEcSingle
+   */
+  def splitOnceAt[M, E](p: E => Boolean)(implicit traversableLike: M => scala.collection.TraversableLike[E, M], ec: ExecutionContext): Enumeratee[M, M] = new CheckDone[M, M] {
+    val pec = ec.prepare()
 
     def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
 
       case in @ Input.El(e) =>
-        e.span(p) match {
+        Iteratee.flatten(Future(e.span(p))(pec).map {
           case (prefix, suffix) if suffix.isEmpty => new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(Input.El(prefix))
           case (prefix, suffix) => Done(if (prefix.isEmpty) Cont(k) else k(Input.El(prefix)), Input.El(suffix.drop(1)))
-        }
+        }(dec))
 
       case in @ Input.Empty =>
         new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)

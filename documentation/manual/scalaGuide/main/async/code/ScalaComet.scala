@@ -2,6 +2,7 @@ package scalaguide.async.scalacomet
 
 import org.specs2.mutable.Specification
 import play.api.mvc._
+import play.api.libs.concurrent.Execution.Implicits.{ defaultContext => dec }
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import play.api.test._
 import play.api.test.Helpers._

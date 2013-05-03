@@ -2,6 +2,8 @@ package play.api.libs.json
 
 import scala.language.reflectiveCalls
 
+import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
+
 /**
  * Helper functions to handle JsValues.
  */
@@ -129,7 +131,7 @@ object Json {
    *   val jsonStream: Enumerator[JsValue] = fooStream &> Json.toJson
    * }}}
    */
-  def toJson[A: Writes]: Enumeratee[A, JsValue] = Enumeratee.map(Json.toJson(_))
+  def toJson[A: Writes]: Enumeratee[A, JsValue] = Enumeratee.map[A](Json.toJson(_))
   /**
    * Transform a stream of JsValue to a stream of A, keeping only successful results
    * {{{
@@ -138,7 +140,7 @@ object Json {
    * }}}
    */
   def fromJson[A: Reads]: Enumeratee[JsValue, A] =
-    Enumeratee.map((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect { case JsSuccess(value, _) => value }
+    Enumeratee.map[JsValue]((json: JsValue) => Json.fromJson(json)) ><> Enumeratee.collect[JsResult[A]] { case JsSuccess(value, _) => value }(defaultExecutionContext)
 
   /**
    * Experimental JSON extensions to replace asProductXXX by generating
