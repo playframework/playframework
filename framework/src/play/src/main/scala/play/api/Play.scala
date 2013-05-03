@@ -28,6 +28,11 @@ object Mode extends Enumeration {
 object Play {
 
   /**
+   * A general purpose logger for Play. Intended for internal usage.
+   */
+  val logger = Logger("play")
+
+  /**
    * Returns the currently running application, or `null` if not defined.
    */
   def unsafeApplication: Application = _currentApp
@@ -65,7 +70,7 @@ object Play {
 
     app.mode match {
       case Mode.Test =>
-      case mode => Logger("play").info("Application started (" + mode + ")")
+      case mode => logger.info("Application started (" + mode + ")")
     }
 
   }
@@ -77,7 +82,7 @@ object Play {
     Option(_currentApp).map { app =>
       Threads.withContextClassLoader(classloader(app)) {
         app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case NonFatal(e) => Logger("play").warn("Error stopping plugin", e) }
+          try { p.onStop() } catch { case NonFatal(e) => logger.warn("Error stopping plugin", e) }
         }
       }
     }

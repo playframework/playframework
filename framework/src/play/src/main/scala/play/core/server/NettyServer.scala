@@ -71,41 +71,41 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
           for (in <- resource.managed(new FileInputStream(file))) {
             keyStore.load(in, password)
           }
-          Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
+          Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
           try {
             val kmf = KeyManagerFactory.getInstance(algorithm)
             kmf.init(keyStore, password)
             Some(kmf)
           } catch {
             case NonFatal(e) => {
-              Logger("play").error("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
+              Play.logger.error("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
               None
             }
           }
         } else {
-          Logger("play").error("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\"")
+          Play.logger.error("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\"")
           None
         }
       } orElse {
 
         // Load a generated key store
-        Logger("play").warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
+        Play.logger.warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
         Some(FakeKeyStore.keyManagerFactory(applicationProvider.path))
 
       } flatMap { a => a } map { kmf =>
         // Load the configured trust manager
         val tm = Option(System.getProperty("https.trustStore")).map {
           case "noCA" => {
-            Logger("play").warn("HTTPS configured with no client " +
+            Play.logger.warn("HTTPS configured with no client " +
               "side CA verification. Requires http://webid.info/ for client certifiate verification.")
             Array[TrustManager](noCATrustManager)
           }
           case _ => {
-            Logger("play").debug("Using default trust store for client side CA verification")
+            Play.logger.debug("Using default trust store for client side CA verification")
             null
           }
         }.getOrElse {
-          Logger("play").debug("Using default trust store for client side CA verification")
+          Play.logger.debug("Using default trust store for client side CA verification")
           null
         }
 
@@ -143,9 +143,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   mode match {
     case Mode.Test =>
     case _ => {
-      Logger("play").info("Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
+      Play.logger.info("Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
       HTTPS.foreach { https =>
-        Logger("play").info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
+        Play.logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
     }
   }
@@ -155,18 +155,18 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     try {
       Play.stop()
     } catch {
-      case NonFatal(e) => Logger("play").error("Error while stopping the application", e)
+      case NonFatal(e) => Play.logger.error("Error while stopping the application", e)
     }
 
     try {
       super.stop()
     } catch {
-      case NonFatal(e) => Logger("play").error("Error while stopping akka", e)
+      case NonFatal(e) => Play.logger.error("Error while stopping akka", e)
     }
 
     mode match {
       case Mode.Test =>
-      case _ => Logger("play").info("Stopping server...")
+      case _ => Play.logger.info("Stopping server...")
     }
 
     // First, close all opened sockets

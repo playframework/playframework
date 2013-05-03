@@ -55,7 +55,7 @@ private[server] trait WebSocketHandler {
               case Step.Done(a, e) =>
                 ctx.getChannel().disconnect();
                 promise.success(next);
-                Logger("play").trace("cleaning for channel " + ctx.getChannel());
+                Play.logger.trace("cleaning for channel " + ctx.getChannel());
                 Promise.pure(next)
 
               case Step.Cont(_) => Promise.pure(next)
@@ -88,7 +88,7 @@ private[server] trait WebSocketHandler {
 
         override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
           enumerator.frameReceived(ctx, EOF)
-          Logger("play").trace("disconnected socket")
+          Play.logger.trace("disconnected socket")
         }
 
       })

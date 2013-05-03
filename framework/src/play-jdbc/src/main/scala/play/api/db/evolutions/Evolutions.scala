@@ -170,7 +170,7 @@ object Evolutions {
         }
         val error = problem.getString("last_problem")
 
-        Logger("play").error(error)
+        Play.logger.error(error)
 
         val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script;
 
@@ -448,14 +448,14 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
                 app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined &&
                 app.configuration.getBoolean("applyDownEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
               case Mode.Prod if hasDown => {
-                Logger("play").warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
-                Logger("play").warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+                Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
+                Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
 
                 throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
               }
               case Mode.Prod => {
-                Logger("play").warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
-                Logger("play").warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
+                Play.logger.warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
+                Play.logger.warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
 
                 throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
               }
@@ -507,7 +507,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       case e: SQLException =>
         if (attempts == 0) throw e
         else {
-          Logger("play").warn("Exception while attempting to lock evolutions (other node probably has lock), sleeping for 1 sec")
+          Play.logger.warn("Exception while attempting to lock evolutions (other node probably has lock), sleeping for 1 sec")
           c.rollback()
           Thread.sleep(1000)
           lock(c, s, attempts - 1)
@@ -575,7 +575,7 @@ object OfflineEvolutions {
     val script = Evolutions.evolutionScript(dbApi, appPath, classloader, dbName)
 
     if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
-      Logger("play").warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
+      Play.logger.warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
     Evolutions.applyScript(dbApi, dbName, script)
 
@@ -596,7 +596,7 @@ object OfflineEvolutions {
     val dbApi = new BoneCPApi(c, classloader)
 
     if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
-      Logger("play").warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
+      Play.logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     }
     Evolutions.resolve(dbApi, dbName, revision)
 

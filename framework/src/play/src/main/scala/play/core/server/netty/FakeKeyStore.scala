@@ -1,6 +1,6 @@
 package play.core.server.netty
 
-import play.api.{ Logger, Application }
+import play.api.{ Play, Logger, Application }
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
@@ -23,7 +23,7 @@ object FakeKeyStore {
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
       if (!keyStoreFile.exists()) {
 
-        Logger("play").info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+        Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
         // Generate the key pair
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
@@ -47,7 +47,7 @@ object FakeKeyStore {
       Some(kmf)
     } catch {
       case NonFatal(e) => {
-        Logger("play").error("Error loading fake key store", e)
+        Play.logger.error("Error loading fake key store", e)
         None
       }
     }
