@@ -4,10 +4,13 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Try, Failure, Success }
 import Enumerator.Pushee
 import java.util.concurrent.{ TimeUnit }
-import play.api.libs.iteratee.internal.{ defaultExecutionContext => dec }
+import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 
 /**
  * Utilities for concurrent usage of iteratees, enumerators and enumeratees.
+ *
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
  */
 object Concurrent {
 
@@ -119,7 +122,7 @@ object Concurrent {
           }(dec)
       }
 
-      Iteratee.flatten({ implicit val ec = dec; Future.sequence(ready) }.map[Iteratee[E, Unit]] { commitReady =>
+      Iteratee.flatten(Future.sequence(ready).map[Iteratee[E, Unit]] { commitReady =>
 
         val downToZero = atomic { implicit txn =>
           iteratees.transform(commitReady.collect { case Some(s) => s } ++ _)
@@ -251,7 +254,7 @@ object Concurrent {
    *
    * @param maxBuffer The maximum number of items to buffer
    */
-  def buffer[E](maxBuffer: Int): Enumeratee[E, E] = buffer[E](maxBuffer, length = (_: Input[E]) => 1)
+  def buffer[E](maxBuffer: Int): Enumeratee[E, E] = buffer[E](maxBuffer, length = (_: Input[E]) => 1)(dec)
 
   /**
    * A buffering enumeratee.
@@ -265,8 +268,10 @@ object Concurrent {
    *
    * @param maxBuffer The maximum size to buffer.  The size is computed using the given `length` function.
    * @param length A function that computes the length of an input item
+   * $paramEcSingle
    */
-  def buffer[E](maxBuffer: Int, length: Input[E] => Int): Enumeratee[E, E] = new Enumeratee[E, E] {
+  def buffer[E](maxBuffer: Int, length: Input[E] => Int)(implicit ec: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
+    val pec = ec.prepare()
 
     import scala.collection.immutable.Queue
     import scala.concurrent.stm._
@@ -301,26 +306,27 @@ object Concurrent {
           Iteratee.flatten(last.future)
 
         case other =>
-          val chunkLength = length(other)
-          val s = state.single.getAndTransform {
-            case Queueing(q, l) if maxBuffer > 0 && l <= maxBuffer => Queueing(q.enqueue(other), l + chunkLength)
+          Iteratee.flatten(Future(length(other))(pec).map { chunkLength =>
+            val s = state.single.getAndTransform {
+              case Queueing(q, l) if maxBuffer > 0 && l <= maxBuffer => Queueing(q.enqueue(other), l + chunkLength)
 
-            case Queueing(q, l) => Queueing(Queue(Input.EOF), l)
+              case Queueing(q, l) => Queueing(Queue(Input.EOF), l)
 
-            case Waiting(p) => Queueing(Queue(), 0)
+              case Waiting(p) => Queueing(Queue(), 0)
 
-            case d @ DoneIt(it) => d
+              case d @ DoneIt(it) => d
 
-          }
-          s match {
-            case Waiting(p) =>
-              p.success(other)
-              Cont(step)
-            case DoneIt(it) => it
-            case Queueing(q, l) if maxBuffer > 0 && l <= maxBuffer => Cont(step)
-            case Queueing(_, _) => Error("buffer overflow", other)
+            }
+            s match {
+              case Waiting(p) =>
+                p.success(other)
+                Cont(step)
+              case DoneIt(it) => it
+              case Queueing(q, l) if maxBuffer > 0 && l <= maxBuffer => Cont(step)
+              case Queueing(_, _) => Error("buffer overflow", other)
 
-          }
+            }
+          }(dec))
       }
 
       def moreInput[A](k: K[E, A]): Iteratee[E, Iteratee[E, A]] = {
@@ -417,12 +423,13 @@ object Concurrent {
    *                iteratee.
    * @param onComplete Called when an iteratee is done.
    * @param onError Called when an iteratee encounters an error, supplying the error and the input that caused the error.
-   * @return
+   * $paramEcMultiple
    */
   def unicast[E](
     onStart: Channel[E] => Unit,
     onComplete: => Unit = (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(ec: ExecutionContext) = new Enumerator[E] {
+    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
+    val pec = ec.prepare()
 
     import scala.concurrent.stm.Ref
 
@@ -463,13 +470,13 @@ object Concurrent {
                 val next = k(item)
                 next.fold {
                   case Step.Done(a, in) => {
-                    Future(onComplete)(ec).map { _ =>
+                    Future(onComplete)(pec).map { _ =>
                       promise.success(next)
                       None
                     }(dec)
                   }
                   case Step.Error(msg, e) =>
-                    Future(onError(msg, e))(ec).map { _ =>
+                    Future(onError(msg, e))(pec).map { _ =>
                       promise.success(next)
                       None
                     }(dec)
@@ -484,7 +491,7 @@ object Concurrent {
           }(dec)
         }
       }
-      Future(onStart(pushee))(ec).flatMap(_ => promise.future)(dec)
+      Future(onStart(pushee))(pec).flatMap(_ => promise.future)(dec)
     }
 
   }
@@ -496,11 +503,13 @@ object Concurrent {
    *
    * @param e The enumerator to broadcast
    * @param interestIsDownToZero Function that is invoked when all iteratees are done.  May be invoked multiple times.
+   * $paramEcSingle
    * @return A tuple of the broadcasting enumerator, that can be applied to each iteratee that wants to receive the
    *         input, and the broadcaster.
    */
-  def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ())(ec: ExecutionContext): (Enumerator[E], Broadcaster) = {
-    lazy val h: Hub[E] = hub(e, () => interestIsDownToZero(h))(ec)
+  def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ())(implicit ec: ExecutionContext): (Enumerator[E], Broadcaster) = {
+    val pec = ec.prepare()
+    lazy val h: Hub[E] = hub(e, () => interestIsDownToZero(h))(pec)
     (h.getPatchCord(), h)
   }
 
@@ -533,7 +542,8 @@ object Concurrent {
   }
 
   @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
-  def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ())(ec: ExecutionContext): Hub[E] = {
+  def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ())(implicit ec: ExecutionContext): Hub[E] = {
+    val pec = ec.prepare()
 
     import scala.concurrent.stm._
 
@@ -592,7 +602,7 @@ object Concurrent {
 
         }
         def result(): Iteratee[E, Unit] = if (in == Input.EOF || closeFlag) Done((), Input.Empty) else Cont(step)
-        if (downToZero) Future(interestIsDownToZero())(ec).map(_ => result())(dec) else Future.successful(result())
+        if (downToZero) Future(interestIsDownToZero())(pec).map(_ => result())(dec) else Future.successful(result())
 
       }(dec))
     }
@@ -675,8 +685,10 @@ object Concurrent {
    * An enumerator that allows patching in enumerators to supply it with input.
    *
    * @param patcher A function that passes a patch panel whenever the enumerator is applied to an iteratee.
+   * $paramEcSingle
    */
-  def patchPanel[E](patcher: PatchPanel[E] => Unit)(ec: ExecutionContext): Enumerator[E] = new Enumerator[E] {
+  def patchPanel[E](patcher: PatchPanel[E] => Unit)(implicit ec: ExecutionContext): Enumerator[E] = new Enumerator[E] {
+    val pec = ec.prepare()
 
     import scala.concurrent.stm._
 
@@ -757,7 +769,7 @@ object Concurrent {
             false
           })
         }
-      }))(ec).flatMap(_ => result.future)(dec)
+      }))(pec).flatMap(_ => result.future)(dec)
 
     }
   }

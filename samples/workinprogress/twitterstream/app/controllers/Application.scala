@@ -9,6 +9,7 @@ import play.api.libs.oauth._
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.concurrent._
+import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee._
 import com.ning.http.client.Realm.AuthScheme
 

@@ -38,7 +38,7 @@ object JavaWebSocket extends JavaHelpers {
       val socketIn = new play.mvc.WebSocket.In[A]
 
       in |>> {
-        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg)))(play.core.Execution.internalContext).mapDone { _ =>
+        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg)))(play.core.Execution.internalContext).map { _ =>
           socketIn.closeCallbacks.asScala.foreach(_.invoke())
         }(play.core.Execution.internalContext)
       }

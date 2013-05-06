@@ -7,6 +7,7 @@ import akka.actor.Actor._
 
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class ChatRoomActor extends Actor {
   
@@ -19,7 +20,7 @@ class ChatRoomActor extends Actor {
     case Join() => {
       lazy val channel: PushEnumerator[String] =  Enumerator.imperative[String](
         onComplete = ()=> self ! Quit(channel) 
-      )(Execution.defaultContext)
+      )
       members = members :+ channel
       Logger.info("New member joined")
       sender ! channel
