@@ -11,7 +11,7 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
  */
 trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
-  val invocation: JResult
+  def invocation: JResult
   val controller: Class[_]
   val method: java.lang.reflect.Method
 
@@ -19,8 +19,8 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
       .filterNot(_ == null)
       .headOption.map { bodyParserOf =>
-      bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
-    }.getOrElse(JavaParsers.anyContent(java.lang.Integer.MAX_VALUE))
+        bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
+      }.getOrElse(JavaParsers.anyContent(java.lang.Integer.MAX_VALUE))
 
   val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
     clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))

@@ -364,18 +364,14 @@ public class F {
 
         static Integer nb = 64;
 
-        static List<akka.actor.ActorRef> actors = null;
-        static List<akka.actor.ActorRef> actors() {
-            synchronized(Promise.class) {
-                if(actors == null) {
-                    synchronized(Promise.class) {
-                        actors = new ArrayList<akka.actor.ActorRef>(nb);
-                        for(int i=0; i<nb; i++) {
-                            actors.add(play.core.Invoker$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
-                        }
-                    }
-                }
+        static List<akka.actor.ActorRef> actors;
+        static {
+            actors = new ArrayList<akka.actor.ActorRef>(nb);
+            for(int i=0; i<nb; i++) {
+                actors.add(play.core.Invoker$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
             }
+        }
+        static List<akka.actor.ActorRef> actors() {
             return actors;
         }
 
