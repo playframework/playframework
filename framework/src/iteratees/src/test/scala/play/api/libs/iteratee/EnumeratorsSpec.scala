@@ -187,7 +187,7 @@ object EnumeratorsSpec extends Specification with IterateeSpecification {
             },
             (_: String, _: Input[(Boolean, Int)]) => errorCount.incrementAndGet())(callbackEC)
         mustEnumerateTo((true, 1), (false, 2), (false, 3))(enumerator)
-        completeDone.await(5, TimeUnit.SECONDS)
+        completeDone.await(30, TimeUnit.SECONDS) must beTrue
         completeCount.get() must equalTo(1)
         errorCount.get() must equalTo(0)
       }
@@ -252,7 +252,7 @@ object EnumeratorsSpec extends Specification with IterateeSpecification {
         e.push(2) must equalTo(true)
         e.push(3) must equalTo(true)
         e.close()
-        allPushesReceived.await()
+        allPushesReceived.await(30, TimeUnit.SECONDS) must beTrue
         pushed must equalTo(List(1, 2, 3))
         startCount.get() must equalTo(1)
         completeCount.get() must equalTo(0) // Only called if Iteratee is done
@@ -290,16 +290,16 @@ object EnumeratorsSpec extends Specification with IterateeSpecification {
           allPushesReceived.countDown()
         }(dec)
 
-        startDone.await(5, TimeUnit.SECONDS)
         val waitTime = scala.concurrent.duration.Duration(5, scala.concurrent.duration.SECONDS)
         Await.result(Future(e(i))(dec), waitTime)
 
+        startDone.await(30, TimeUnit.SECONDS) must beTrue
         pushee.push(1)
         pushee.push(2)
         pushee.push(3)
         pushee.close()
 
-        allPushesReceived.await(5, TimeUnit.SECONDS)
+        allPushesReceived.await(30, TimeUnit.SECONDS) must beTrue
         pushed must equalTo(List(1, 2, 3))
         startCount.get() must equalTo(1)
         completeCount.get() must equalTo(0) // Only called if Iteratee is done
@@ -330,7 +330,7 @@ object EnumeratorsSpec extends Specification with IterateeSpecification {
         val enumerator = Enumerator.outputStream { o => os = o; osReady.countDown() }(outputEC)
         val promiseIteratee = Promise[Iteratee[Array[Byte], Array[Byte]]]
         val future = enumerator |>>> Iteratee.flatten(promiseIteratee.future)
-        osReady.await(5, TimeUnit.SECONDS)
+        osReady.await(30, TimeUnit.SECONDS) must beTrue
         // os should now be set
         os.write("hello".getBytes)
         os.write(" ".getBytes)

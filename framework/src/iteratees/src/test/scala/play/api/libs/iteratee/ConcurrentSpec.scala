@@ -186,7 +186,7 @@ object ConcurrentSpec extends Specification with IterateeSpecification {
         c.push(3)
         c.eofAndEnd()
         Await.result(i, Duration.Inf) must equalTo(List(1, 2, 3))
-        interestDone.await(5, SECONDS)
+        interestDone.await(30, SECONDS) must beTrue
         interestCount.get() must equalTo(1)
       }
     }
