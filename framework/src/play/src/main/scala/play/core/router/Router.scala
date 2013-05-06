@@ -151,10 +151,11 @@ object Router {
     implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
       def call(call: => play.mvc.Result, handlerDef: HandlerDef) = handlers.getOrElseUpdate(handlerDef, {
         new {
-          val invocation = call
           val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
           val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
-        } with play.core.j.JavaAction
+        } with play.core.j.JavaAction {
+          def invocation = call
+        }
       })
     }
 
@@ -333,10 +334,10 @@ object Router {
       d.call(call, handlerDef) match {
         case javaAction: play.core.j.JavaAction => handlers.getOrElseUpdate(handlerDef, {
           new {
-            val invocation = javaAction.invocation
             val controller = javaAction.controller
             val method = javaAction.method
           } with play.core.j.JavaAction with RequestTaggingHandler {
+            def invocation = javaAction.invocation
             def tagRequest(rh: RequestHeader) = doTagRequest(rh, handlerDef)
           }
         })
@@ -348,7 +349,7 @@ object Router {
           }
         })
 
-        case ws@WebSocket(f) => handlers.getOrElseUpdate(handlerDef, {
+        case ws @ WebSocket(f) => handlers.getOrElseUpdate(handlerDef, {
           WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handlerDef)))(ws.frameFormatter)
         })
 
