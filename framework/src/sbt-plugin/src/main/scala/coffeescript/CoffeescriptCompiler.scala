@@ -8,13 +8,14 @@ object CoffeescriptCompiler {
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
 
+  import scala.collection.JavaConverters._
+
   import scalax.file._
 
-  private lazy val compiler = {
+  private lazy val compiler: (File, Boolean, Boolean) => (String, Option[String]) = {
 
-    (source: File, bare: Boolean) =>
+    (source: File, bare: Boolean, map: Boolean) =>
       {
-
         withJsContext { (ctx: Context, scope: Scriptable) =>
           val wrappedCoffeescriptCompiler = Context.javaToJS(this, scope)
           ScriptableObject.putProperty(scope, "CoffeescriptCompiler", wrappedCoffeescriptCompiler)
@@ -28,9 +29,23 @@ object CoffeescriptCompiler {
           val compilerFunction = coffee.get("compile", scope).asInstanceOf[Function]
           val coffeeCode = Path(source).string.replace("\r", "")
           val options = ctx.newObject(scope)
+          def compile() = compilerFunction.call(ctx, scope, scope, Array(coffeeCode, options))
+          options.put("filename", options, source.getName)
           options.put("bare", options, bare)
-          compilerFunction.call(ctx, scope, scope, Array(coffeeCode, options))
-        }.asInstanceOf[String]
+          options.put("sourceMap", options, map)
+
+          if (map) {
+            options.put("sourceFiles", options, ctx.newArray(scope, List(source.getName).asJava.toArray))
+
+            val nativeObject = compile().asInstanceOf[NativeObject]
+            val props = nativeObject.entrySet.asScala.foldLeft(Map[String, String]()) { (map, entry) =>
+              map + (entry.getKey.toString -> entry.getValue.toString)
+            }
+
+            (props("js"), Some(props("v3SourceMap")))
+          } else
+            (compile().asInstanceOf[String], None)
+        }
       }
 
   }
@@ -40,7 +55,7 @@ object CoffeescriptCompiler {
    * and ensure that it exits right after
    * @param f their name
    */
-  def withJsContext(f: (Context, Scriptable) => Any): Any = {
+  def withJsContext(f: (Context, Scriptable) => (String, Option[String])): (String, Option[String]) = {
     val ctx = Context.enter
     ctx.setOptimizationLevel(-1)
     val global = new Global
@@ -71,23 +86,42 @@ object CoffeescriptCompiler {
     out.reverse.mkString("\n")
   }
 
-  def compile(source: File, options: Seq[String]): String = {
-    try {
-      if (options.size == 2 && options.headOption.filter(_ == "native").isDefined)
-        play.core.jscompile.JavascriptCompiler.executeNativeCompiler(options.last + " " + source.getAbsolutePath, source)
+  def compile(source: File, options: Seq[String]): (String, Option[String]) = {
+    val nativeCompiler = {
+      val index = options.indexOf("native")
+      // if "native" is defined, it must be followed by the command
+      if (index > 0 && index < options.size)
+        Some(options(index + 1))
       else
-        compiler(source, options.contains("bare"))
+        None
+    }
+    try {
+      nativeCompiler.map { command =>
+        (play.core.jscompile.JavascriptCompiler.executeNativeCompiler(command + " " + source.getAbsolutePath, source), None)
+      } getOrElse {
+        compiler(source, options.contains("bare"), options.contains("map"))
+      }
     } catch {
       case e: JavaScriptException => {
+        val log = new sbt.JvmLogger()
 
-        val line = """.*on line ([0-9]+).*""".r
+        // Starting from CoffeeScript 1.6.2, exceptions' locations are passed within the exception.location property
         val error = e.getValue.asInstanceOf[Scriptable]
+        val message = ScriptableObject.getProperty(error, "message").asInstanceOf[String]
+        val location = ScriptableObject.getProperty(error, "location").asInstanceOf[NativeObject]
+        val locationProps = "first_line" :: "last_line" :: "first_column" :: "last_column" :: Nil
 
-        throw ScriptableObject.getProperty(error, "message").asInstanceOf[String] match {
-          case msg @ line(l) => AssetCompilationException(Some(source), msg, Some(Integer.parseInt(l)), None)
-          case msg => AssetCompilationException(Some(source), msg, None, None)
+        val List(firstLine, lastLine, firstCol, lastCol) = locationProps.map { prop =>
+          ScriptableObject.getProperty(location, prop).asInstanceOf[Any] match {
+            case i: Int => i
+            case d: Double => d.toInt
+            case v =>
+              log.error("CoffeeScript compilation error: unmatched type (" + v.getClass + ") for location." + prop + " (" + v + ")")
+              0
+          }
         }
 
+        throw AssetCompilationException(Some(source), message, Some(firstLine + 1), None)
       }
     }
   }

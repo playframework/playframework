@@ -35,18 +35,40 @@ Two JavaScript files will be compiled: `public/javascripts/main.js` and `public/
 
 ## Options
 
-CoffeeScript compilation can be configured in your project’s `Build.scala` file (in the settings part of the `PlayProject`). The only option currently supported is *bare* mode.
+CoffeeScript compilation can be configured in your project’s `Build.scala` file (in the settings part of the `PlayProject`). There are 3 options currently supported.
+
+### "bare"
+
+Compile the JavaScript without the top-level function safety wrapper.
+By default, the JavaScript code is generated inside a top-level function safety wrapper, preventing it from polluting the global scope. The `bare` option removes this function wrapper.
 
 ```
 coffeescriptOptions := Seq("bare")
 ```
-> Note there is a new experimental option which lets you use the native coffee script compiler. The benefit is that it's way faster, the disadvantage is that it's an external dependency. If you want to try this, add this to your settings:
+
+### "map"
+
+Generate source maps alongside the compiled JavaScript files. Adds sourceMappingURL directives to the JavaScript as well.
+
+This option will output 3 files:
+
+* generated JavaScript file (source.js),
+* a copy of the original source file (source.coffee),
+* a map file to link source and generated JavaScript (source.map).
+
+```
+coffeescriptOptions := Seq("map")
+```
+
+### "native"
+
+There is a new experimental option which lets you use the native coffee script compiler. The benefit is that it's way faster, the disadvantage is that it's an external dependency.
+
+> Note the "native" option must be followed by the path to the CoffeeScript compiler, and results should be printed to stdout (with option '-p').
+> Moreover, options (such as "bare" or "map") are ignored while using a native compiler.
 
 ```
 coffeescriptOptions := Seq("native", "/usr/local/bin/coffee -p")
 ```
-
-
-By default, the JavaScript code is generated inside a top-level function safety wrapper, preventing it from polluting the global scope. The `bare` option removes this function wrapper.
 
 > **Next:** [[Using LESS CSS | AssetsLess]]
