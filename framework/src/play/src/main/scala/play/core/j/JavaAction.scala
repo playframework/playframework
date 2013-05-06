@@ -11,17 +11,29 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
  */
 trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
-  def parser: BodyParser[play.mvc.Http.RequestBody] = {
+  val invocation: JResult
+  val controller: Class[_]
+  val method: java.lang.reflect.Method
+
+  val parser: BodyParser[play.mvc.Http.RequestBody] =
     Seq(method.getAnnotation(classOf[play.mvc.BodyParser.Of]), controller.getAnnotation(classOf[play.mvc.BodyParser.Of]))
       .filterNot(_ == null)
       .headOption.map { bodyParserOf =>
-        bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
-      }.getOrElse(JavaParsers.anyContent(java.lang.Integer.MAX_VALUE))
-  }
+      bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
+    }.getOrElse(JavaParsers.anyContent(java.lang.Integer.MAX_VALUE))
 
-  def invocation: JResult
-  def controller: Class[_]
-  def method: java.lang.reflect.Method
+  val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
+    clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
+  }.flatten
+
+  val actionMixins = {
+    (method.getDeclaredAnnotations ++ controllerAnnotations).collect {
+      case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
+      case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) => {
+        a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
+      }
+    }.flatten.reverse
+  }
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Result = {
 
@@ -42,19 +54,6 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
         case _ => rootAction
       }
     }.getOrElse(rootAction)
-
-    val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
-      clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))
-    }.flatten
-
-    val actionMixins = {
-      (method.getDeclaredAnnotations ++ controllerAnnotations).collect {
-        case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
-        case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) => {
-          a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
-        }
-      }.flatten.reverse
-    }
 
     val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
       case (delegate, (annotation, actionClass)) => {
