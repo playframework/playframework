@@ -10,6 +10,7 @@ import scala.util.matching._
 import java.net.URI
 import scala.util.control.Exception
 import scala.collection.concurrent.TrieMap
+import play.core.j.JavaActionAnnotations
 
 trait PathPart
 
@@ -89,8 +90,8 @@ case class PathPattern(parts: Seq[PathPart]) {
  */
 object Router {
 
-   // Cache of handlers for improving performance, particularly in the case of Java where reflection is used.
-   private val javaActions = new TrieMap[HandlerDef, Handler]
+   // Cache of annotation information for improving Java performance.
+   private val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
 
    object Route {
 
@@ -165,14 +166,18 @@ object Router {
     }
 
     implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
-      def call(call: => play.mvc.Result, handlerDef: HandlerDef) = javaActions.getOrElseUpdate(handlerDef, {
+      def call(call: => play.mvc.Result, handlerDef: HandlerDef) = {
         new {
-          val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
-          val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+          val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
+            val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
+            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+            new JavaActionAnnotations(controller, method)
+          })
         } with play.core.j.JavaAction {
+          val parser = annotations.parser
           def invocation = call
         }
-      })
+      }
 
     }
 
@@ -347,25 +352,24 @@ object Router {
       play.api.Routes.ROUTE_COMMENTS -> handler.comments
     ))
 
-    def invokeHandler[T](call: => T, handlerDef: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {
-      d.call(call, handlerDef) match {
-        case javaAction: play.core.j.JavaAction => javaActions.getOrElseUpdate(handlerDef, {
-          new {
-            val controller = javaAction.controller
-            val method = javaAction.method
-          } with play.core.j.JavaAction with RequestTaggingHandler {
-            def invocation = javaAction.invocation
-            def tagRequest(rh: RequestHeader) = doTagRequest(rh, handlerDef)
-          }
-        })
+    def invokeHandler[T](call: => T, handler: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {
+      d.call(call, handler) match {
+        case javaAction: play.core.j.JavaAction => new play.core.j.JavaAction with RequestTaggingHandler {
+          def invocation = javaAction.invocation
+
+          val annotations = javaAction.annotations
+          val parser = javaAction.annotations.parser
+
+          def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
+        }
 
         case action: EssentialAction => new EssentialAction with RequestTaggingHandler {
           def apply(rh: RequestHeader) = action(rh)
-          def tagRequest(rh: RequestHeader) = doTagRequest(rh, handlerDef)
+          def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
         }
 
         case ws@WebSocket(f) => {
-          WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handlerDef)))(ws.frameFormatter)
+          WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handler)))(ws.frameFormatter)
         }
 
         case handler => handler
