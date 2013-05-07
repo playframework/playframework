@@ -109,7 +109,7 @@ public class JavaForms extends WithApplication {
 
         //#list-validate
         public List<ValidationError> validate() {
-            List<ValidationError> errors = new ArrayList<>();
+            List<ValidationError> errors = new ArrayList<ValidationError>();
             if (User.byEmail(email) != null) {
                 errors.add(new ValidationError("email", "This e-mail is already registered."));
             }
