@@ -74,7 +74,7 @@ case class PathPattern(parts: Seq[PathPart]) {
 object Router {
 
   // Cache of handlers for improving performance, particularly in the case of Java where reflection is used.
-  private val handlers = new TrieMap[HandlerDef, Handler]
+  private val javaActions = new TrieMap[HandlerDef, Handler]
 
   object Route {
 
@@ -149,7 +149,7 @@ object Router {
     }
 
     implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
-      def call(call: => play.mvc.Result, handlerDef: HandlerDef) = handlers.getOrElseUpdate(handlerDef, {
+      def call(call: => play.mvc.Result, handlerDef: HandlerDef) = javaActions.getOrElseUpdate(handlerDef, {
         new {
           val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
           val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
@@ -332,7 +332,7 @@ object Router {
 
     def invokeHandler[T](call: => T, handlerDef: HandlerDef)(implicit d: HandlerInvoker[T]): Handler = {
       d.call(call, handlerDef) match {
-        case javaAction: play.core.j.JavaAction => handlers.getOrElseUpdate(handlerDef, {
+        case javaAction: play.core.j.JavaAction => javaActions.getOrElseUpdate(handlerDef, {
           new {
             val controller = javaAction.controller
             val method = javaAction.method
@@ -342,16 +342,14 @@ object Router {
           }
         })
 
-        case action: EssentialAction => handlers.getOrElseUpdate(handlerDef, {
-          new EssentialAction with RequestTaggingHandler {
-            def apply(rh: RequestHeader) = action(rh)
-            def tagRequest(rh: RequestHeader) = doTagRequest(rh, handlerDef)
-          }
-        })
+        case action: EssentialAction => new EssentialAction with RequestTaggingHandler {
+          def apply(rh: RequestHeader) = action(rh)
+          def tagRequest(rh: RequestHeader) = doTagRequest(rh, handlerDef)
+        }
 
-        case ws @ WebSocket(f) => handlers.getOrElseUpdate(handlerDef, {
+        case ws @ WebSocket(f) => {
           WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handlerDef)))(ws.frameFormatter)
-        })
+        }
 
         case handler => handler
       }
