@@ -1,0 +1,9 @@
+@(myForm: Form[User])
+
+@import helper._
+
+@* #field *@
+@implicitField = @{ FieldConstructor(myFieldConstructorTemplate.f) }
+
+@inputText(myForm("email"))
+@* #field *@

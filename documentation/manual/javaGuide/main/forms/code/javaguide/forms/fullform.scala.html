@@ -1,0 +1,11 @@
+@* #full-form *@
+@(myForm: Form[User])
+
+@helper.form(action = routes.Application.submit()) {
+
+    @helper.inputText(myForm("email"))
+
+    @helper.inputPassword(myForm("password"))
+
+}
+@* #full-form *@

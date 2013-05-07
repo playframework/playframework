@@ -29,6 +29,8 @@ object ApplicationBuild extends Build {
 
     parallelExecution in Test := false,
 
+    (compile in Test) <<= Enhancement.enhanceJavaClasses,
+
     javacOptions += "-g",
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports

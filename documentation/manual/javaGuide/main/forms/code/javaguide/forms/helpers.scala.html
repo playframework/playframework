@@ -1,0 +1,43 @@
+@(myForm: Form[User], userForm: Form[UserForm])
+
+<span class="form">
+@* #form *@
+@helper.form(action = routes.Application.submit()) {
+
+}
+@* #form *@
+</span>
+
+<span class="form-with-id">
+@* #form-with-id *@
+@helper.form(action = routes.Application.submit(), 'id -> "myForm") {
+
+}
+@* #form-with-id *@
+</span>
+
+<span class="extra-params">
+@* #extra-params *@
+@helper.inputText(myForm("email"), 'id -> "email", 'size -> 30)
+@* #extra-params *@
+</span>
+
+<span class="generic-input">
+@* #generic-input *@
+@helper.input(myForm("email")) { (id, name, value, args) =>
+    <input type="date" name="@name" id="@id" @toHtmlArgs(args)>
+}
+@* #generic-input *@
+</span>
+
+<span class="repeat">
+@* #repeat *@
+@helper.inputText(userForm("name"))
+
+@helper.repeat(userForm("emails"), min = 1) { emailField =>
+
+    @helper.inputText(emailField)
+
+}
+@* #repeat *@
+</span>
