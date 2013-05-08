@@ -97,11 +97,11 @@ trait Action[A] extends EssentialAction {
 
   def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).map {
     case Left(r) =>
-      Logger("play").trace("Got direct result from the BodyParser: " + r)
+      Play.logger.trace("Got direct result from the BodyParser: " + r)
       r
     case Right(a) =>
       val request = Request(rh, a)
-      Logger("play").trace("Invoking action with request: " + request)
+      Play.logger.trace("Invoking action with request: " + request)
       Play.maybeApplication.map { app =>
         // try {
         play.utils.Threads.withContextClassLoader(app.classloader) {

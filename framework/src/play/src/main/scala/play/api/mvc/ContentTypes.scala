@@ -512,31 +512,31 @@ trait BodyParsers {
     def anyContent: BodyParser[AnyContent] = BodyParser("anyContent") { request =>
       request.contentType match {
         case _ if request.method == "GET" || request.method == "HEAD" => {
-          Logger("play").trace("Parsing AnyContent as empty")
+          Play.logger.trace("Parsing AnyContent as empty")
           empty(request).map(_.right.map(_ => AnyContentAsEmpty))(play.core.Execution.internalContext)
         }
         case Some("text/plain") => {
-          Logger("play").trace("Parsing AnyContent as text")
+          Play.logger.trace("Parsing AnyContent as text")
           text(request).map(_.right.map(s => AnyContentAsText(s)))(play.core.Execution.internalContext)
         }
         case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
-          Logger("play").trace("Parsing AnyContent as xml")
+          Play.logger.trace("Parsing AnyContent as xml")
           xml(request).map(_.right.map(x => AnyContentAsXml(x)))(play.core.Execution.internalContext)
         }
         case Some("text/json") | Some("application/json") => {
-          Logger("play").trace("Parsing AnyContent as json")
+          Play.logger.trace("Parsing AnyContent as json")
           json(request).map(_.right.map(j => AnyContentAsJson(j)))(play.core.Execution.internalContext)
         }
         case Some("application/x-www-form-urlencoded") => {
-          Logger("play").trace("Parsing AnyContent as urlFormEncoded")
+          Play.logger.trace("Parsing AnyContent as urlFormEncoded")
           urlFormEncoded(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))(play.core.Execution.internalContext)
         }
         case Some("multipart/form-data") => {
-          Logger("play").trace("Parsing AnyContent as multipartFormData")
+          Play.logger.trace("Parsing AnyContent as multipartFormData")
           multipartFormData(request).map(_.right.map(m => AnyContentAsMultipartFormData(m)))(play.core.Execution.internalContext)
         }
         case _ => {
-          Logger("play").trace("Parsing AnyContent as raw")
+          Play.logger.trace("Parsing AnyContent as raw")
           raw(request).map(_.right.map(r => AnyContentAsRaw(r)))(play.core.Execution.internalContext)
         }
       }

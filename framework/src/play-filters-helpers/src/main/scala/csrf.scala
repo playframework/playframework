@@ -14,7 +14,7 @@ package play.filters.csrf {
 
   object CSRF {
 
-    lazy val logger = play.api.Logger("play.filters")
+    val filterLogger = play.api.Logger("play.filters")
 
     case class Token(value: String)
 
@@ -83,7 +83,7 @@ package play.filters.csrf {
     }
     def addResponseToken(req: RequestHeader, r: PlainResult, token: Token): PlainResult = {
 
-      logger.trace("[CSRF] Adding token to result: " + r)
+      filterLogger.trace("[CSRF] Adding token to result: " + r)
 
       /**
        * Add Token to the Response session if necessary
@@ -93,14 +93,14 @@ package play.filters.csrf {
           .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
           .getOrElse(req.session.data)
         if (session.get(TOKEN_NAME).isDefined) {
-          logger.trace("[CSRF] session already contains token")
+          filterLogger.trace("[CSRF] session already contains token")
           r
         } else {
           val newSession = if (session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
-          logger.trace("[CSRF] Adding session token to response")
-          logger.trace("[CSRF] response was: " + r)
+          filterLogger.trace("[CSRF] Adding session token to response")
+          filterLogger.trace("[CSRF] response was: " + r)
           val resp = r.withSession(Session.deserialize(newSession))
-          logger.trace("[CSRF] response is now: " + resp)
+          filterLogger.trace("[CSRF] response is now: " + resp)
           resp
         }
       }
@@ -110,14 +110,14 @@ package play.filters.csrf {
        */
       def addCookieToken(c: String): PlainResult = {
         if (req.cookies.get(c).isDefined) {
-          logger.trace("[CSRF] cookie already contains token")
+          filterLogger.trace("[CSRF] cookie already contains token")
           r
         } else {
           val cookies = Cookies(r.header.headers.get("Set-Cookie"))
-          logger.trace("[CSRF] Adding cookie token to response")
-          logger.trace("[CSRF] response was: " + r)
+          filterLogger.trace("[CSRF] Adding cookie token to response")
+          filterLogger.trace("[CSRF] response was: " + r)
           val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
-          logger.trace("[CSRF] response is now: " + resp)
+          filterLogger.trace("[CSRF] response is now: " + resp)
           resp
         }
       }
@@ -140,7 +140,7 @@ package play.filters.csrf {
      */
     def addRequestToken(request: RequestHeader, token: Token): RequestHeader = {
 
-      logger.trace("[CSRF] Adding request token to request: " + request)
+      filterLogger.trace("[CSRF] Adding request token to request: " + request)
 
       def addSessionToken = request.session.get(TOKEN_NAME)
         .map(_ => request)
@@ -170,13 +170,13 @@ package play.filters.csrf {
           lazy val newSession = request.session + (TOKEN_NAME -> token.value)
           lazy val sc = Cookies.encode(Seq(Cookie(Session.COOKIE_NAME, Session.encode(newSession.data))))
 
-          logger.trace("[CSRF] adding session token to request: " + newSession)
+          filterLogger.trace("[CSRF] adding session token to request: " + newSession)
 
           lazy val cookiesHeader = request.headers.get(HeaderNames.COOKIE).map { cookies =>
             Cookies.merge(cookies, Seq(Cookie(Session.COOKIE_NAME, Session.encode(newSession.data))))
           }.getOrElse(sc)
 
-          logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
+          filterLogger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
       def addCookieToken(c: String) = request.cookies.get(c)
@@ -200,14 +200,14 @@ package play.filters.csrf {
             def data = toMap.toSeq
           }
 
-          logger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
+          filterLogger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
 
           lazy val sc = Cookies.encode(Seq(Cookie(c, token.value)))
           lazy val cookiesHeader = request.headers.get(HeaderNames.COOKIE).map { cookies =>
             Cookies.merge(cookies, Seq(Cookie(c, token.value)))
           }.getOrElse(sc)
 
-          logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
+          filterLogger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
       if (CREATE_IF_NOT_FOUND)
@@ -259,26 +259,26 @@ package play.filters.csrf {
       def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
         import play.api.http.HeaderNames._
 
-        logger.trace("[CSRF] original request: " + request)
-        logger.trace("[CSRF] original cookies: " + request.cookies)
-        logger.trace("[CSRF] original session: " + request.session)
+        filterLogger.trace("[CSRF] original request: " + request)
+        filterLogger.trace("[CSRF] original cookies: " + request.cookies)
+        filterLogger.trace("[CSRF] original session: " + request.session)
 
         val token = generator()
         request.headers.get(CONTENT_TYPE) match {
           case Some(ct) if ct.trim.startsWith("multipart/form-data") =>
-            logger.trace("[CSRF] request is multipart/form-data")
+            filterLogger.trace("[CSRF] request is multipart/form-data")
             checkMultipart(request, token, next)
           case Some(ct) if ct.trim.startsWith("application/x-www-form-urlencoded") =>
-            logger.trace("[CSRF] request is application/x-www-form-urlencoded")
+            filterLogger.trace("[CSRF] request is application/x-www-form-urlencoded")
             checkFormUrlEncodedBody(request, token, next)
           case Some(ct) if ct.trim.startsWith("text/plain") =>
-            logger.trace("[CSRF] request is text/playn")
+            filterLogger.trace("[CSRF] request is text/playn")
             checkTextBody(request, token, next)
           case None if request.method == "GET" =>
-            logger.trace("[CSRF] GET request, adding the token")
+            filterLogger.trace("[CSRF] GET request, adding the token")
             next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))(defaultContext)
           case ct =>
-            logger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
+            filterLogger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
             next(request)
         }
       }

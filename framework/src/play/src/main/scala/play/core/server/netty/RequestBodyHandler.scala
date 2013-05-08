@@ -93,7 +93,7 @@ private[server] trait RequestBodyHandler {
             ctx.getChannel.getPipeline.replace("handler", "handler", new PlayDefaultUpstreamHandler(server, allChannels))
           }
 
-          case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer/ChunkHandler (please report this problem): " + unexpected)
+          case unexpected => Play.logger.error("Oops, unexpected message received in NettyServer/ChunkHandler (please report this problem): " + unexpected)
 
         }
       }
