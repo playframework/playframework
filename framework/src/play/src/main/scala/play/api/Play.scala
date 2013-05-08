@@ -27,10 +27,10 @@ object Mode extends Enumeration {
  */
 object Play {
 
-  /**
+  /*
    * A general purpose logger for Play. Intended for internal usage.
    */
-  val logger = Logger("play")
+  private[play] val logger = Logger("play")
 
   /**
    * Returns the currently running application, or `null` if not defined.
