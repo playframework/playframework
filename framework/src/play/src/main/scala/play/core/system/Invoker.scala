@@ -17,7 +17,7 @@ private[play] object Invoker {
   val system: ActorSystem = Play.maybeApplication.map { app =>
     ActorSystem("play", loadActorConfig(app.configuration.underlying), app.classloader)
   } getOrElse {
-    Logger("play").warn("No application found at invoker init")
+    Play.logger.warn("No application found at invoker init")
     ActorSystem("play", loadActorConfig(ConfigFactory.load()))
   }
 
