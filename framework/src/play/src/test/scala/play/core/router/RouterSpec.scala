@@ -25,23 +25,26 @@ object RouterSpec extends Specification {
 
 
   "PathPattern" should {
-    val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
-    val pathString = "/path/to/some%20file"
+    val pathPatternWithDynamicLastPart = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
+    val pathPatternWithDynamicMiddlePart = PathPattern(Seq(StaticPart("/path/"), DynamicPart("foo", "[^/]+", true), StaticPart("to/")))
+    val pathStringWithEncodedLastPart = "/path/to/some%20file"
+    val pathStringWithEncodedMiddlePart = "/path/some%20file/to"
     val pathNonEncodedString1 = "/path/to/bar:baz"
     val pathNonEncodedString2 = "/path/to/bar:%20baz"
     val pathStringInvalid = "/path/to/invalide%2"
 
     "Bind Path string as string" in {
-      pathPattern(pathString).get("foo") must beEqualTo(Right("some file"))
+      pathPatternWithDynamicLastPart(pathStringWithEncodedLastPart).get("foo") must beEqualTo(Right("some file"))
+      pathPatternWithDynamicMiddlePart(pathStringWithEncodedMiddlePart).get("foo") must beEqualTo(Right("some file"))
     }
     "Bind Path with incorrectly encoded string as string" in {
-      pathPattern(pathNonEncodedString1).get("foo") must beEqualTo(Right("bar:baz"))
+      pathPatternWithDynamicLastPart(pathNonEncodedString1).get("foo") must beEqualTo(Right("bar:baz"))
     }
     "Bind Path with incorrectly encoded string as string" in {
-      pathPattern(pathNonEncodedString2).get("foo") must beEqualTo(Right("bar: baz"))
+      pathPatternWithDynamicLastPart(pathNonEncodedString2).get("foo") must beEqualTo(Right("bar: baz"))
     }
     "Fail on unparseable Path string" in {
-      val Left(e) = pathPattern(pathStringInvalid).get("foo")
+      val Left(e) = pathPatternWithDynamicLastPart(pathStringInvalid).get("foo")
       e.getMessage must beEqualTo("Malformed escape pair at index 9: /invalide%2")
     }
 
