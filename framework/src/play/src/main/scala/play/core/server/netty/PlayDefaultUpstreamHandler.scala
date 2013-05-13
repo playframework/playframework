@@ -343,10 +343,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(a)
 
-          val eventuallyBodyParser = scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
+          val eventuallyBodyParser = filteredAction(requestHeader)
 
           requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
-            eventuallyBodyParser.flatMap(_.unflatten).map {
+            eventuallyBodyParser.unflatten.map {
               case Step.Cont(k) =>
                 sendDownstream(0, true, new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
               case _ =>
@@ -355,10 +355,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val eventuallyResultIteratee = if (nettyHttpRequest.isChunked) {
 
-            val (result, handler) = newRequestBodyHandler(eventuallyBodyParser, allChannels, server)
-
             val p: ChannelPipeline = ctx.getChannel().getPipeline()
-            p.replace("handler", "handler", handler)
+            val result = newRequestBodyUpstreamHandler(eventuallyBodyParser, {
+              handler =>
+                p.replace("handler", "handler", handler)
+            }, {
+              p.replace("handler", "handler", this)
+            })
 
             result
 
@@ -374,7 +377,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               Enumerator(body).andThen(Enumerator.enumInput(EOF))
             }
 
-            eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): scala.concurrent.Future[Iteratee[Array[Byte], Result]]
+            bodyEnumerator |>> eventuallyBodyParser
 
           }
 
