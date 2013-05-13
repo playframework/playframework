@@ -25,8 +25,10 @@ object RouterSpec extends Specification {
 
 
   "PathPattern" should {
+    // /path/to/:foo
     val pathPatternWithDynamicLastPart = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
-    val pathPatternWithDynamicMiddlePart = PathPattern(Seq(StaticPart("/path/"), DynamicPart("foo", "[^/]+", true), StaticPart("to/")))
+    // /path/:foo/to
+    val pathPatternWithDynamicMiddlePart = PathPattern(Seq(StaticPart("/path/"), DynamicPart("foo", "[^/]+", true), StaticPart("/to")))
     val pathStringWithEncodedLastPart = "/path/to/some%20file"
     val pathStringWithEncodedMiddlePart = "/path/some%20file/to"
     val pathNonEncodedString1 = "/path/to/bar:baz"
