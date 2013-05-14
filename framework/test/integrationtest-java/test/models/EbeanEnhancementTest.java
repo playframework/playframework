@@ -39,7 +39,7 @@ public class EbeanEnhancementTest {
                 hw.setField2("Hi, I'm field2!");
                 hw.save();
 
-                HelloWorld result = HelloWorld.find.byId(hw.id);
+                HelloWorld result = Hell    oWorld.find.byId(hw.id);
                 assertEquals(result.field1, "Hi, I'm field1!");
                 assertEquals(result.field2, "Hi, I'm field2!");
             }
@@ -60,6 +60,9 @@ public class EbeanEnhancementTest {
                 HelloWorld result = HelloWorld.find.byId(hw.id);
                 assertEquals(result.field1, "Hi, I'm field1!");
                 assertEquals(result.field2, "Hi, I'm field2!");
+
+                result.field1 = "newName1";
+                assertEquals(result._ebean_getIntercept().isDirty(), true);
             }
         });
     }
