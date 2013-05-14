@@ -7,18 +7,26 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.api.libs.concurrent._
 
-import scala.concurrent.Future
+import scala.concurrent.{ Future, Promise }
+import scala.util.{ Failure, Success }
 
 private[server] trait RequestBodyHandler {
 
-  def newRequestBodyUpstreamHandler[R](firstIteratee: Iteratee[Array[Byte], Result],
+  /**
+   * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
+   * optimization.
+   * @param firstIteratee the iteratee to be used to process the first chunk
+   * @param start a function to handle the registration of the handler. A handler is passed as a param.
+   * @param finish a function to handle the de-registration of the handler i.e. when the chunked request is complete.
+   * @return a future of an iteratee that will return the result.
+   */
+  def newRequestBodyUpstreamHandler(firstIteratee: Iteratee[Array[Byte], Result],
     start: SimpleChannelUpstreamHandler => Unit,
     finish: => Unit): Future[Iteratee[Array[Byte], Result]] = {
+
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
-    val redeemed = Ref(false)
     var p = Promise[Iteratee[Array[Byte], Result]]()
     val MaxMessages = 10
     val MinMessages = 10
@@ -27,45 +35,43 @@ private[server] trait RequestBodyHandler {
     var iteratee: Ref[Iteratee[Array[Byte], Result]] = Ref(firstIteratee)
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
-      if (counter.single.transformAndGet { _ + 1 } > MaxMessages && ctx.getChannel.isOpen() && !redeemed.single())
+      if (counter.single.transformAndGet { _ + 1 } > MaxMessages && ctx.getChannel.isOpen() && !p.isCompleted)
         ctx.getChannel.setReadable(false)
 
       val itPromise = Promise[Iteratee[Array[Byte], Result]]()
       val current = atomic { implicit txn =>
-        if (!redeemed())
+        if (!p.isCompleted)
           Some(iteratee.single.swap(Iteratee.flatten(itPromise.future)))
         else None
       }
 
       current.foreach { i =>
-        i.feed(chunk).flatMap(_.unflatten).extend1 {
-          case Redeemed(c @ Step.Cont(k)) =>
+        i.feed(chunk).flatMap(_.unflatten).onComplete {
+          case Success(c @ Step.Cont(k)) =>
             continue(c.it)
-          case Redeemed(finished) =>
+          case Success(finished) =>
             finish(finished.it)
-          case Thrown(e) =>
-            if (!redeemed.single.swap(true)) {
-              p.throwing(e)
+          case Failure(e) =>
+            if (!p.tryFailure(e)) {
               iteratee = null; p = null;
               if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
             }
-            itPromise.throwing(e)
+            itPromise.failure(e)
         }
       }
 
       def continue(it: Iteratee[Array[Byte], Result]) {
         if (counter.single.transformAndGet { _ - 1 } <= MinMessages && ctx.getChannel.isOpen())
           ctx.getChannel.setReadable(true)
-        itPromise.redeem(it)
+        itPromise.success(it)
       }
 
       def finish(it: Iteratee[Array[Byte], Result]) {
-        if (!redeemed.single.swap(true)) {
-          p.redeem(it)
+        if (!p.trySuccess(it)) {
           iteratee = null; p = null;
           if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
         }
-        itPromise.redeem(it)
+        itPromise.success(it)
       }
     }
 
