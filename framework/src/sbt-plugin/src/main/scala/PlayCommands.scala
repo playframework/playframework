@@ -1,13 +1,15 @@
 package sbt
 
 import Keys._
-import complete.Parser
 
 import play.console.Colors
 
-import PlayExceptions._
 import PlayKeys._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
+import sbt.complete.Parsers._
+import scala.Some
+import scala.Left
+import scala.Right
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
@@ -147,14 +149,32 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     zip
   }
 
-  def intellijCommandSettings(mainLang: String) = {
-    import com.typesafe.sbtidea.SbtIdeaPlugin
-    SbtIdeaPlugin.ideaSettings ++
-      Seq(
-        SbtIdeaPlugin.commandName := "idea",
-        SbtIdeaPlugin.includeScalaFacet := { mainLang == SCALA },
-        SbtIdeaPlugin.defaultClassifierPolicy := false
-      )
+  def intellijCommandSettings = {
+    import org.sbtidea.SbtIdeaPlugin
+
+    // This stuff is all private in the IDEA plugin, so let's copy it here
+    val WithSources = "with-sources=yes"
+    val NoSources = "no-sources"
+    val NoClassifiers = "no-classifiers"
+    val SbtClassifiers = "sbt-classifiers"
+    val NoFsc = "no-fsc"
+    val NoTypeHighlighting = "no-type-highlighting"
+    val NoSbtBuildModule = "no-sbt-build-module"
+
+    val args = (Space ~> NoClassifiers | Space ~> SbtClassifiers | Space ~> NoFsc | Space ~> NoTypeHighlighting | Space ~> NoSbtBuildModule | Space ~> WithSources | Space ~> NoSources).*
+
+    SbtIdeaPlugin.settings ++ Seq(
+      commands += Command("idea")(_ => args) { (state, args) =>
+        // Firstly, attempt to compile the project, but ignore the result
+        Project.runTask(compile in Compile, state)
+
+        SbtIdeaPlugin.doCommand(state, if (!args.contains(WithSources) && !(args.contains(NoSources) || args.contains(NoClassifiers))) {
+          args :+ NoClassifiers
+        } else {
+          args
+        })
+      }
+    )
   }
 
   val playStage = TaskKey[Unit]("stage")

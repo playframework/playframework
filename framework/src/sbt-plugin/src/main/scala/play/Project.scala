@@ -34,7 +34,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
     val mainLang = if (dependencies.contains(javaCore)) JAVA else SCALA
 
     lazy val playSettings =
-      Project.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings(mainLang) ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
+      Project.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
         javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
         version := applicationVersion,
