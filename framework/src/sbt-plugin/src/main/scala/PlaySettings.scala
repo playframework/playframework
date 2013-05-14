@@ -121,6 +121,8 @@ trait PlaySettings {
 
     compile in (Compile) <<= PostCompile(scope = Compile),
 
+    compile in Test <<= PostCompile(Test),
+
     dist <<= distTask,
 
     computeDependencies <<= computeDependenciesTask,
