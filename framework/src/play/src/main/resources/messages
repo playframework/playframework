@@ -15,6 +15,7 @@ format.real=Real
 
 # --- Errors
 error.invalid=Invalid value
+error.invalid.java.util.Date=Invalid date value
 error.required=This field is required
 error.number=Numeric value expected
 error.real=Real number value expected

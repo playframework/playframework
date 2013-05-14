@@ -185,15 +185,16 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := jpaDeps)
     .dependsOn(PlayJavaJdbcProject)
 
-  lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
-    .settings(libraryDependencies := javaDeps)
-    .dependsOn(PlayProject)
-
   lazy val PlayTestProject = PlayRuntimeProject("Play-Test", "play-test")
     .settings(
       libraryDependencies := testDependencies,
       parallelExecution in Test := false
     ).dependsOn(PlayProject)
+
+  lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
+    .settings(libraryDependencies := javaDeps)
+    .dependsOn(PlayProject)
+    .dependsOn(PlayTestProject % "test")
 
   lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
     .settings(

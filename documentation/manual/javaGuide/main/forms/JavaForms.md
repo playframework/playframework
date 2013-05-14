@@ -78,4 +78,10 @@ For an object like JodaTime's `LocalTime` it could look like this:
 
 @[register-formatter](code/javaguide/forms/JavaForms.java)
 
+When the binding fail an array of errors keys is created, the first one defined in the messages file will be used. This array will generally contain :
+
+    ["error.invalid.<fieldName>", "error.invalid.<type>", "error.invalid"]
+
+The errors keys are created by [Spring DefaultMessageCodesResolver](http://static.springsource.org/spring/docs/3.0.7.RELEASE/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html), the root "typeMismatch" is replaced by "error.invalid".
+
 > **Next:** [[Using the form template helpers | JavaFormHelpers]]
