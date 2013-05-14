@@ -120,6 +120,8 @@ trait Settings {
 
     compile in (Compile) <<= PostCompile(scope = Compile),
 
+    compile in Test <<= PostCompile(Test),
+
     computeDependencies <<= computeDependenciesTask,
 
     playVersion := play.core.PlayVersion.current,
