@@ -104,7 +104,7 @@ object Dependencies {
     "org.mockito" % "mockito-all" % "1.9.0" % "test",
     "com.novocode" % "junit-interface" % "0.10-M4" % "test",
 
-   ("org.fluentlenium" % "fluentlenium-festassert" % "0.7.8" % "test").exclude("org.jboss.netty", "netty").exclude("comm.google.guava","guava"),
+   ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0" % "test").exclude("org.jboss.netty", "netty").exclude("comm.google.guava","guava"),
     "org.scala-lang" % "scala-reflect" % "2.10.0")
 
   val link = Seq(
@@ -175,6 +175,6 @@ object Dependencies {
     specsBuild,
     "com.novocode" % "junit-interface" % "0.10-M4",
    ("com.google.guava" % "guava" % "10.0.1" notTransitive()),
-    ("org.fluentlenium" % "fluentlenium-festassert" % "0.7.8").exclude("org.jboss.netty", "netty").exclude("com.google.guava","guava"))
+    ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0").exclude("org.jboss.netty", "netty").exclude("com.google.guava","guava"))
 
 }
