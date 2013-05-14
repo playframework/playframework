@@ -190,7 +190,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                     case Redeemed(_) =>
                       cleanup()
                       ctx.setAttachment(null)
-                      if (!keepAlive) Channels.close(e.getChannel)
+                      if (!keepAlive || contentLength == "-1") Channels.close(e.getChannel)
                     case Thrown(ex) =>
                       Play.logger.debug(ex.toString)
                       Channels.close(e.getChannel)
