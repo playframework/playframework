@@ -108,7 +108,7 @@ class SimpleSpec extends Specification {
 
     "execute in the user execution context" in new WithServer() {
       val response = Await.result(wsCall(controllers.routes.Application.thread()).get(), Duration.Inf)
-      response.body must startWith("play-akka.actor.default-dispatcher-")
+      response.body must startWith("iteratee-execution-context-")
     }
 
     "execute body parser in the Netty IO context" in new WithServer() {
