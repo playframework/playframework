@@ -22,12 +22,7 @@ For example, if a client makes a request with the following value for the `Accep
 
 See the API documentation of the `play.api.mvc.AcceptExtractors.Accepts` object for the list of the MIME types supported by Play out of the box in the `render` method. You can easily create your own extractor for a given MIME type using the `play.api.mvc.Accepting` case class, for example the following code creates an extractor checking that a media range matches the `audio/mp3` MIME type:
 
-```
-val AcceptsMp3 = Accepting("audio/mp3")
-...
-render {
-  case AcceptsMp3() => ...
-}
-```
+@[extract_custom_accept_type](code/ScalaContentNegotiation.scala)
+
 
 > **Next:** [[Asynchronous HTTP programming | ScalaAsync]]
