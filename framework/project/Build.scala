@@ -130,7 +130,15 @@ object PlayBuild extends Build {
               ProblemFilters.exclude[MissingTypesProblem]("play.core.DynamicPart$"),
               ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.DynamicPart.apply"),
               ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.toString"),
-              ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.copy")
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.DynamicPart.copy"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.j.JavaAction.method"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.j.JavaAction.parser"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.j.JavaAction.controller"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.j.JavaAction.annotations"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.RequestBodyHandler.newRequestBodyHandler"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.RequestBodyHandler.newRequestBodyUpstreamHandler"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$bodyEnumerator$1"),
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.newRequestBodyHandler")
             ),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
