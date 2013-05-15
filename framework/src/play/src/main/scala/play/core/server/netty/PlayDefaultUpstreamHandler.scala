@@ -199,21 +199,22 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 }.getOrElse {
 
                   // No Content-Length header specified, buffer in-memory
-                  val channelBuffer = ChannelBuffers.dynamicBuffer(512)
-                  val writer: Function2[ChannelBuffer, r.BODY_CONTENT, Unit] = (c, x) => c.writeBytes(r.writeable.transform(x))
-                  val stringIteratee = Iteratee.fold(channelBuffer)((c, e: r.BODY_CONTENT) => { writer(c, e); c })
-                  val p = (body |>>> Enumeratee.grouped(stringIteratee) &>> Cont { 
-                    case Input.El(buffer) =>
-                      nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
+                  val stringIteratee =
+                    Iteratee
+                      .fold(List[Array[Byte]]())((c, e:r.BODY_CONTENT) => r.writeable.transform(e)  :: c)
+                      .map(bs => ChannelBuffers.wrappedBuffer(bs.reverse:_*))
+
+                  val p = (body |>>> stringIteratee.map { 
+                    case bs =>
+                      val buffer = bs
+                      nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
                       nettyResponse.setContent(buffer)
                       val f = sendDownstream(0, true, nettyResponse)
                       if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
                       val p = NettyPromise(f)
-                      Iteratee.flatten(p.map(_ => Done(1, Input.Empty:Input[ChannelBuffer])))
-
-                    case other => Error("unexpected input",other)
+                      p
                   })
-                  p.extend1 {
+                  p.flatMap(identity).extend1 {
                     case Redeemed(_) =>
                       cleanup()
                       ctx.setAttachment(null)
