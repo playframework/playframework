@@ -12,15 +12,7 @@ Similarly, the `play.api.mvc.RequestHeader#acceptedTypes` method gives the list 
 
 Actually, the `Accept` header does not really contain MIME types but media ranges (*e.g.* a request accepting all text results may set the `text/*` range, and the `*/*` range means that all result types are acceptable). Controllers provide a higher-level `render` method to help you to handle media ranges. Consider for example the following action definition:
 
-```
-val list = Action { implicit request =>
-  val items = Item.findAll
-  render {
-    case Accepts.Html() => Ok(views.html.list(items))
-    case Accepts.Json() => Ok(Json.toJson(items))
-  }
-}
-```
+@[negotiate_accept_type](code/ScalaContentNegotiation.scala)
 
 `Accepts.Html()` and `Accepts.Json()` are extractors testing if a given media range matches `text/html` and `application/json`, respectively. The `render` method takes a partial function from `play.api.http.MediaRange` to `play.api.mvc.Result` and tries to apply it to each media range found in the request `Accept` header, in order of preference. If none of the acceptable media ranges is supported by your function, the `NotAcceptable` result is returned.
 
