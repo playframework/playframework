@@ -11,7 +11,7 @@ package scalaguide.http.scalacontentnegotiation {
   import play.api.http.HeaderNames
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaContentNegotiationSpec extends Specification with Controller {
+  class ScalaContentNegotiation extends Specification with Controller {
 
     "A Scala Content Negotiation" should {
       "negotiate accept type" in {
