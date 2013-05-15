@@ -46,6 +46,7 @@ object PlayBuild extends Build {
         settings = buildSettingsWithMIMA ++ Seq(
             previousArtifact := Some("play" % "play_2.9.1" % previousVersion),
             libraryDependencies := runtime,
+            ivyXML := ivyXMLFluentLeniumExcludingNettyAndGuava,
             sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
             publishTo := Some(playRepository),
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
@@ -64,6 +65,7 @@ object PlayBuild extends Build {
       settings = buildSettingsWithMIMA ++ Seq(
         previousArtifact := Some("play" % "play-test_2.9.1" % previousVersion),
         libraryDependencies := testDependencies,
+        ivyXML := ivyXMLFluentLeniumExcludingNettyAndGuava,
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked"),
         javacOptions  ++= Seq("-encoding", "UTF-8","-Xlint:unchecked", "-Xlint:deprecation"),
@@ -116,6 +118,7 @@ object PlayBuild extends Build {
         file("."),
         settings = buildSettings ++ Seq(
             libraryDependencies := runtime,
+            ivyXML := ivyXMLFluentLeniumExcludingNettyAndGuava,
             cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
             resetRepositoryTask,
             buildRepositoryTask,
@@ -182,6 +185,22 @@ object PlayBuild extends Build {
 
     object Dependencies {
 
+        // NOTE (2013-05-15, Marc/Ash):
+        //   In back-porting the bumped dependency on newer versions of FluentLenium,
+        //   we have issues because Selenium Webdriver pulls in a newer version of Netty (3.5.2)
+        //   than Play can handle without pulling in additional changes from 2.1.
+        //
+        //   In order to exclude the transitive dependency, it is not as simple as using the SBT
+        //   exclude option (https://github.com/sbt/sbt/issues/436). The workaround is to specify
+        //   the dependency directly in terms of Ivy XML as follows:
+        //
+        val ivyXMLFluentLeniumExcludingNettyAndGuava =
+            <dependency org="org.fluentlenium" name="fluentlenium-festassert" rev="0.8.0" conf="test">
+                <exclude org="org.jboss.netty" module="netty"/>
+                <exclude org="io.netty" module="netty"/>
+                <exclude org="com.google.guava" module="guava"/>
+            </dependency>
+
         val runtime = Seq(
             "io.netty"                          %    "netty"                    %   "3.5.0.Final",
             "org.slf4j"                         %    "slf4j-api"                %   "1.6.4",
@@ -192,7 +211,12 @@ object PlayBuild extends Build {
             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.4.0",
             "com.typesafe.akka"                 %    "akka-actor"               %   "2.0.2",
             "com.typesafe.akka"                 %    "akka-slf4j"               %   "2.0.2",
-            "com.google.guava"                  %    "guava"                    %   "10.0.1",
+            ("com.google.guava"                 %    "guava"                    %   "10.0.1" notTransitive())
+              .exclude("com.google.code.findbugs", "jsr305")
+            ,
+
+            "com.google.code.findbugs"          %    "jsr305"                   %   "2.0.0",
+
             ("org.avaje"                        %    "ebean"                    %   "2.7.3" notTransitive())
               .exclude("javax.persistence", "persistence-api")
             ,
@@ -262,7 +286,9 @@ object PlayBuild extends Build {
             "org.mockito"                       %    "mockito-all"              %   "1.9.0"    %  "test",
             "com.novocode"                      %    "junit-interface"          %   "0.8"        %  "test",
             
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"      %  "test"
+            ("org.fluentlenium"                 %    "fluentlenium-festassert"  %   "0.8.0"      %  "test")
+              .exclude("org.jboss.netty", "netty")
+              .exclude("com.google.guava","guava")
         )
 
         val sbtDependencies = Seq(
@@ -307,7 +333,9 @@ object PlayBuild extends Build {
             "org.specs2"                        %%   "specs2"                   %   "1.9",
             "com.novocode"                      %    "junit-interface"          %   "0.8",
             
-            "org.fluentlenium"     %    "fluentlenium-festassert"             %   "0.6.0"
+            ("org.fluentlenium"                 %    "fluentlenium-festassert"  %   "0.8.0")
+              .exclude("org.jboss.netty", "netty")
+              .exclude("com.google.guava","guava")
         )
 
     }
