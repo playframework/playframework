@@ -12,7 +12,7 @@ import xml.NodeSeq
  *
  * @param data Headers data.
  */
-case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
 
 /**
  * Fake HTTP request implementation.

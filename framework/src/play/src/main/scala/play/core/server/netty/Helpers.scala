@@ -29,13 +29,9 @@ private[netty] trait Helpers {
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {
 
-    //todo: wrap the underlying map in a structure more efficient than TreeMap
-    val pairs = nettyRequest.getHeaderNames.asScala.map { key =>
-      key -> nettyRequest.getHeaders(key).asScala
-    }
-
+    val pairs = nettyRequest.getHeaders.asScala.groupBy(_.getKey).mapValues(_.map(_.getValue))
     new Headers { val data = pairs.toSeq }
-
+    
   }
 
   def getCookies(nettyRequest: HttpRequest): Cookies = {
@@ -49,9 +45,9 @@ private[netty] trait Helpers {
     }.getOrElse(Map.empty)
 
     new Cookies {
+
       def get(name: String) = cookies.get(name)
       override def toString = cookies.toString
     }
-
   }
 }
