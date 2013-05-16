@@ -15,6 +15,7 @@ public class Application extends Controller {
 
     	myModel.gender = "female";
     	myModel.age = 35;
+    	myModel.lifeStory = "Well when I was a kid, I always wanted to be a model, so I went to the gym every day yada yada yada";
 
         return ok(index.render(myModel));
     }
