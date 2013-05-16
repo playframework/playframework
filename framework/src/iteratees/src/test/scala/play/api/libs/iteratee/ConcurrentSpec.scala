@@ -31,7 +31,7 @@ object ConcurrentSpec extends Specification
         pushHere.push("beep")
         pushHere.push("beep")
         pushHere.eofAndEnd()
-        Await.result(results, Duration.Inf) must equalTo(Range(1, 20).map(_ => "beepbeep"))
+        await(results) must equalTo(Range(1, 20).map(_ => "beepbeep"))
       }
     }
   }
@@ -51,7 +51,7 @@ object ConcurrentSpec extends Specification
             Concurrent.buffer(20, (_: Input[Long]) => 1)(bufferEC) |>>>
             slowIteratee
 
-        Await.result(result, Duration.Inf).max must beLessThan(1000L)
+        await(result).max must beLessThan(1000L)
       }
     }
 
@@ -66,7 +66,7 @@ object ConcurrentSpec extends Specification
             Concurrent.buffer(7) |>>>
             stuckIteratee
 
-        Await.result(result, Duration.Inf) must throwAn[Exception]("buffer overflow")
+        await(result) must throwAn[Exception]("buffer overflow")
         foldEC.executionCount must equalTo(foldCount.get())
       }
     }
@@ -82,7 +82,7 @@ object ConcurrentSpec extends Specification
             (Concurrent.buffer(20) &>>
               slowIteratee).flatMap { l => println(l); Iteratee.getChunks.map(l ++ (_: List[Long]))(preparedMapEC) }(flatMapEC)
 
-        Await.result(result, Duration.Inf) must not equalTo (List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+        await(result) must not equalTo (List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
         flatMapEC.executionCount must beGreaterThan(0)
         mapEC.executionCount must equalTo(flatMapEC.executionCount)
       }
@@ -98,7 +98,7 @@ object ConcurrentSpec extends Specification
       val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
       val result = (fastEnumerator &> Concurrent.lazyAndErrIfNotReady(50) |>>> slowIteratee)
 
-      Await.result(result, Duration.Inf) must throwA[Exception]("iteratee is taking too long")
+      await(result) must throwA[Exception]("iteratee is taking too long")
     }
 
   }
@@ -122,7 +122,7 @@ object ConcurrentSpec extends Specification
           (_: String, _: Input[String]) => errorCount.incrementAndGet())(unicastEC)
         val promise = (enumerator |>> Iteratee.fold[String, String]("")(_ ++ _)(foldEC)).flatMap(_.run)
 
-        Await.result(promise, Duration.Inf) must equalTo(a + b)
+        await(promise) must equalTo(a + b)
         startCount.get() must equalTo(1)
         completeCount.get() must equalTo(0)
         errorCount.get() must equalTo(0)
@@ -145,8 +145,8 @@ object ConcurrentSpec extends Specification
           case _ => Done("didn't get data")
         }
 
-        Await.result(future, Duration.Inf) must_== "foo"
-        Await.result(completed.future, Duration.Inf) must_== "called"
+        await(future) must_== "foo"
+        await(completed.future) must_== "called"
       }
     }
 
@@ -166,7 +166,7 @@ object ConcurrentSpec extends Specification
           case in => Error("didn't get data", in)
         }
 
-        Await.result(error.future, Duration.Inf) must_== "foo"
+        await(error.future) must_== "foo"
       }
     }
   }
@@ -186,7 +186,7 @@ object ConcurrentSpec extends Specification
         c.push(2)
         c.push(3)
         c.eofAndEnd()
-        Await.result(i, Duration.Inf) must equalTo(List(1, 2, 3))
+        await(i) must equalTo(List(1, 2, 3))
         interestDone.await(30, SECONDS) must beTrue
         interestCount.get() must equalTo(1)
       }
@@ -200,7 +200,7 @@ object ConcurrentSpec extends Specification
         val e = Concurrent.patchPanel[Int] { pp =>
           pp.patchIn(Enumerator.eof)
         }(ppEC)
-        Await.result(e |>>> Iteratee.getChunks[Int], Duration.Inf) must equalTo(Nil)
+        await(e |>>> Iteratee.getChunks[Int]) must equalTo(Nil)
       }
     }
   }
