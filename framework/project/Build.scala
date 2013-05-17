@@ -30,6 +30,8 @@ object BuildSettings {
   val buildSbtMajorVersion = "0.12"
   val buildSbtVersionBinaryCompatible = "0.12"
 
+  lazy val PerformanceTest = config("pt") extend(Test)
+
   val playCommonSettings = Seq(
     organization := buildOrganization,
     version := buildVersion,
@@ -39,7 +41,11 @@ object BuildSettings {
     publishTo := Some(publishingMavenRepository),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
-    resolvers ++= typesafeResolvers)
+    resolvers ++= typesafeResolvers,
+    testOptions in Test := Seq(Tests.Filter(!_.endsWith("Benchmark"))),
+    testOptions in PerformanceTest := Seq(Tests.Filter(_.endsWith("Benchmark"))),
+    parallelExecution in PerformanceTest := false
+  )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
@@ -259,6 +265,8 @@ object PlayBuild extends Build {
   lazy val Root = Project(
     "Root",
     file("."))
+    .configs(PerformanceTest)
+    .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
     .settings(playCommonSettings: _*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
@@ -266,6 +274,6 @@ object PlayBuild extends Build {
       generateAPIDocsTask,
       publish := {},
       generateDistTask
-    ).aggregate(publishedProjects: _*)
-
+    )
+    .aggregate(publishedProjects: _*)
 }
