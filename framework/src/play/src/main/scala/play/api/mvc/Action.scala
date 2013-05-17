@@ -4,6 +4,8 @@ import play.api.libs.iteratee._
 import play.api._
 import scala.concurrent._
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * An Handler handles a request.
  */
@@ -140,7 +142,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * Transform this BodyParser[A] to a BodyParser[B]
    */
   def map[B](f: A => B): BodyParser[B] = new BodyParser[B] {
-    def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))(play.core.Execution.internalContext)
+    def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))
     override def toString = self.toString
   }
 
@@ -151,7 +153,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     def apply(request: RequestHeader) = self(request).flatMap {
       case Left(e) => Done(Left(e), Input.Empty)
       case Right(a) => f(a)(request)
-    }(play.core.Execution.internalContext)
+    }
     override def toString = self.toString
   }
 

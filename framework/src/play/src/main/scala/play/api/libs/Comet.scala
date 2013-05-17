@@ -5,6 +5,8 @@ import scala.language.reflectiveCalls
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.templates._
+import play.api.libs.iteratee.internal.prepared
+import scala.concurrent.ExecutionContext
 
 import org.apache.commons.lang3.{ StringEscapeUtils }
 
@@ -50,10 +52,10 @@ object Comet {
    */
   def apply[E](callback: String, initialChunk: Html = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>"))(implicit encoder: CometMessage[E]) = new Enumeratee[E, Html] {
 
-    def applyOn[A](inner: Iteratee[Html, A]): Iteratee[E, Iteratee[Html, A]] = {
+    def applyOn[A](inner: Iteratee[Html, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[Html, A]] = prepared(ec) { implicit ec =>
 
       val fedWithInitialChunk = Iteratee.flatten(Enumerator(initialChunk) |>> inner)
-      val eToScript = Enumeratee.map[E](data => Html("""<script type="text/javascript">""" + callback + """(""" + encoder.toJavascriptMessage(data) + """);</script>"""))(play.core.Execution.internalContext)
+      val eToScript = Enumeratee.map[E](data => Html("""<script type="text/javascript">""" + callback + """(""" + encoder.toJavascriptMessage(data) + """);</script>"""))
       eToScript.applyOn(fedWithInitialChunk)
     }
   }

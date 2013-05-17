@@ -268,6 +268,7 @@ package scalaguide.http.scalaactionscomposition {
     }
 
     def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
+      import scala.concurrent.ExecutionContext.Implicits.global
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
         val result = action(request).run
         status(result) must_== expectedResponse

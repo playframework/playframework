@@ -15,6 +15,8 @@ import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 import scala.util.control.NonFatal
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * Controller that serves static resources.
  *

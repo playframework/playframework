@@ -55,7 +55,7 @@ object Streams {
     Promise.timeout(
       Some((cpu.getCpuUsage()*1000).round / 10.0 + ":cpu"),
       100, TimeUnit.MILLISECONDS)
-  }(defaultContext)
+  }
 
 }
 
