@@ -5,6 +5,8 @@ import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 import scala.collection.JavaConverters._
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * handles a scala websocket in a Java Context
  */
@@ -38,9 +40,9 @@ object JavaWebSocket extends JavaHelpers {
       val socketIn = new play.mvc.WebSocket.In[A]
 
       in |>> {
-        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg)))(play.core.Execution.internalContext).map { _ =>
+        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).map { _ =>
           socketIn.closeCallbacks.asScala.foreach(_.invoke())
-        }(play.core.Execution.internalContext)
+        }
       }
 
       enumerator |>> out

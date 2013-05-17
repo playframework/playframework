@@ -36,4 +36,10 @@ private[play] object Execution {
       true))
 
   }
+
+  object Implicits {
+
+    implicit def internalContext = Execution.internalContext
+
+  }
 }

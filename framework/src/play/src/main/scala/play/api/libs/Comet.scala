@@ -2,11 +2,12 @@ package play.api.libs
 
 import scala.language.reflectiveCalls
 
+import org.apache.commons.lang3.StringEscapeUtils
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.templates._
 
-import org.apache.commons.lang3.{ StringEscapeUtils }
+import play.core.Execution.Implicits.internalContext
 
 /**
  * Helper function to produce a Comet Enumeratee.
@@ -53,7 +54,7 @@ object Comet {
     def applyOn[A](inner: Iteratee[Html, A]): Iteratee[E, Iteratee[Html, A]] = {
 
       val fedWithInitialChunk = Iteratee.flatten(Enumerator(initialChunk) |>> inner)
-      val eToScript = Enumeratee.map[E](data => Html("""<script type="text/javascript">""" + callback + """(""" + encoder.toJavascriptMessage(data) + """);</script>"""))(play.core.Execution.internalContext)
+      val eToScript = Enumeratee.map[E](data => Html("""<script type="text/javascript">""" + callback + """(""" + encoder.toJavascriptMessage(data) + """);</script>"""))
       eToScript.applyOn(fedWithInitialChunk)
     }
   }

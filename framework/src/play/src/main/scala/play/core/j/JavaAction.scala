@@ -9,6 +9,8 @@ import play.libs.F.{ Promise => JPromise }
 import scala.concurrent.Future
 import play.libs.F
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.
  * @param controller The controller to be evaluated
@@ -87,7 +89,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
       play.libs.F.Promise.pure("").flatMap(new play.libs.F.Function[String, play.libs.F.Promise[JSimpleResult]] {
         def apply(nothing: String) = finalAction.call(javaContext)
-      }).wrapped.map(result => createResult(javaContext, result))(play.core.Execution.internalContext)
+      }).wrapped.map(result => createResult(javaContext, result))
 
     } finally {
       JContext.current.remove()
