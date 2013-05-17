@@ -13,7 +13,7 @@ object ParsingSpec extends Specification
   "Parsing" should {
 
     "split case 1" in {
-      mustExecute(10) { foldEC =>
+      mustExecute(20) { foldEC =>
         val data = Enumerator(List("xx", "kxckikixckikio", "cockik", "isdodskikisd", "ksdloii").map(_.getBytes): _*)
         val parsed = data |>>> Parsing.search("kiki".getBytes).transform(Iteratee.fold(List.empty[MatchInfo[Array[Byte]]]) { (s, c: MatchInfo[Array[Byte]]) => s :+ c }(foldEC))
 
@@ -28,7 +28,7 @@ object ParsingSpec extends Specification
     }
 
     "split case 1" in {
-      mustExecute(11) { foldEC =>
+      mustExecute(22) { foldEC =>
         val data = Enumerator(List("xx", "kxckikixcki", "k", "kicockik", "isdkikodskikisd", "ksdlokiikik", "i").map(_.getBytes): _*)
         val parsed = data |>>> Parsing.search("kiki".getBytes).transform(Iteratee.fold(List.empty[MatchInfo[Array[Byte]]]) { (s, c: MatchInfo[Array[Byte]]) => s :+ c }(foldEC))
 

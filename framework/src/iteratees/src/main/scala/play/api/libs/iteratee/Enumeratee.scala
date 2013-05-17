@@ -1,7 +1,6 @@
 package play.api.libs.iteratee
 
-import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
-import play.api.libs.iteratee.internal.{ executeIteratee, executeFuture }
+import play.api.libs.iteratee.internal.{ executeIteratee, executeFuture, prepared }
 import scala.language.reflectiveCalls
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -16,34 +15,34 @@ trait Enumeratee[From, To] {
    * Create a new Iteratee that feeds its input, potentially modifying it along the way, into the inner Iteratee, and
    * produces that Iteratee as its result.
    */
-  def applyOn[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
+  def applyOn[A](inner: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]]
 
   /**
    * Alias for `applyOn`
    */
-  def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = applyOn[A](inner)
+  def apply[A](inner: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]] = applyOn[A](inner)
 
   /**
    * Transform the given iteratee into an iteratee that accepts the input type that this enumeratee maps.
    */
-  def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner).joinI
+  def transform[A](inner: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, A] = apply(inner).joinI
 
   /**
    * Alias for `transform`
    */
-  def &>>[A](inner: Iteratee[To, A]): Iteratee[From, A] = transform(inner)
+  def &>>[A](inner: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, A] = transform(inner)
 
   /**
    * Alias for `apply`
    */
-  def &>[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = apply(inner)
+  def &>[A](inner: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]] = apply(inner)
 
   /**
    * Compose this Enumeratee with another Enumeratee
    */
   def compose[To2](other: Enumeratee[To, To2]): Enumeratee[From, To2] = {
     new Enumeratee[From, To2] {
-      def applyOn[A](iteratee: Iteratee[To2, A]): Iteratee[From, Iteratee[To2, A]] = {
+      def applyOn[A](iteratee: Iteratee[To2, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To2, A]] = prepared(ec) { implicit ec =>
         parent.applyOn(other.applyOn(iteratee)).joinI
       }
     }
@@ -60,7 +59,7 @@ trait Enumeratee[From, To] {
    */
   def composeConcat[X](other: Enumeratee[To, To])(implicit p: To => scala.collection.TraversableLike[X, To], bf: scala.collection.generic.CanBuildFrom[To, X, To]): Enumeratee[From, To] = {
     new Enumeratee[From, To] {
-      def applyOn[A](iteratee: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = {
+      def applyOn[A](iteratee: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]] = prepared(ec) { implicit ec =>
         parent.applyOn(other.applyOn(iteratee).joinConcatI)
       }
     }
@@ -84,13 +83,14 @@ object Enumeratee {
    */
   trait CheckDone[From, To] extends Enumeratee[From, To] {
 
-    def continue[A](k: Input[To] => Iteratee[To, A]): Iteratee[From, Iteratee[To, A]]
+    def continue[A](k: Input[To] => Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]]
 
-    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
+    def applyOn[A](it: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]] = prepared(ec) { implicit ec =>
       it.pureFlatFold[From, Iteratee[To, A]] {
         case Step.Cont(k) => continue(k)
         case _ => Done(it, Input.Empty)
-      }(dec)
+      }
+    }
   }
 
   /**
@@ -99,8 +99,9 @@ object Enumeratee {
    * @param futureOfEnumeratee a future of enumeratee
    */
   def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]) = new Enumeratee[From, To] {
-    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
-      Iteratee.flatten(futureOfEnumeratee.map(_.applyOn[A](it))(dec))
+    def applyOn[A](it: Iteratee[To, A])(implicit ec: ExecutionContext): Iteratee[From, Iteratee[To, A]] = prepared(ec) { implicit ec =>
+      Iteratee.flatten(futureOfEnumeratee.map(_.applyOn[A](it)))
+    }
   }
 
   /**
@@ -113,7 +114,8 @@ object Enumeratee {
    * The Enumeratee will continue consuming input until both inner Iteratees are done.  If one inner Iteratee finishes
    * before the other, the result of that Iteratee is held, and the one continues by itself, until it too is finished.
    */
-  def zip[E, A, B](inner1: Iteratee[E, A], inner2: Iteratee[E, B]): Iteratee[E, (A, B)] = zipWith(inner1, inner2)((_, _))(dec)
+  def zip[E, A, B](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(implicit ec: ExecutionContext): Iteratee[E, (A, B)] =
+    zipWith(inner1, inner2)((_, _))(ec)
 
   /**
    * Create an Enumeratee that zips two Iteratees together, using the passed in zipper function to combine the results
@@ -124,11 +126,9 @@ object Enumeratee {
    * @param zipper Used to combine the results of each Iteratee.
    * $paramEcSingle
    */
-  def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C)(implicit ec: ExecutionContext): Iteratee[E, C] = {
-    val pec = ec.prepare()
+  def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C)(implicit ec: ExecutionContext): Iteratee[E, C] = prepared(ec) { implicit ec =>
 
     def getNext(it1: Iteratee[E, A], it2: Iteratee[E, B]): Iteratee[E, C] = {
-      import ExecutionContext.Implicits.global
       val eventuallyIter =
         for (
           (a1, it1_) <- getInside(it1);
@@ -136,16 +136,15 @@ object Enumeratee {
         ) yield checkDone(a1, a2) match {
           case Left((msg, in)) => Error(msg, in)
           case Right(None) => Cont(step(it1_, it2_))
-          case Right(Some(Left(Left(a)))) => it2_.map(b => zipper(a, b))(pec)
-          case Right(Some(Left(Right(b)))) => it1_.map(a => zipper(a, b))(pec)
-          case Right(Some(Right(((a, b), e)))) => executeIteratee(Done(zipper(a, b), e))(pec)
+          case Right(Some(Left(Left(a)))) => it2_.map(b => zipper(a, b))
+          case Right(Some(Left(Right(b)))) => it1_.map(a => zipper(a, b))
+          case Right(Some(Right(((a, b), e)))) => executeIteratee(Done(zipper(a, b), e))
         }
 
       Iteratee.flatten(eventuallyIter)
     }
 
     def step(it1: Iteratee[E, A], it2: Iteratee[E, B])(in: Input[E]) = {
-      import ExecutionContext.Implicits.global
       Iteratee.flatten(
         for (
           it1_ <- it1.feed(in);
@@ -159,7 +158,7 @@ object Enumeratee {
         case Step.Done(a, e) => Some(Right((a, e)))
         case Step.Cont(k) => None
         case Step.Error(msg, e) => Some(Left((msg, e)))
-      }(dec).map(r => (r, it))(dec)
+      }.map(r => (r, it))
 
     }
 
@@ -189,17 +188,17 @@ object Enumeratee {
      * $paramEcSingle
      */
     def apply[To](f: Input[From] => Input[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
-      val pec = ec.prepare()
+      val functionContext = ec.prepare()
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
         case in @ (Input.El(_) | Input.Empty) => new CheckDone[From, To] {
-          def continue[A](k: K[To, A]) = Cont(step(k))
-        } &> Iteratee.flatten(Future(f(in))(pec).map(in => k(in))(dec))
+          def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+        } &> Iteratee.flatten(Future(f(in))(functionContext).map(in => k(in)))
 
         case Input.EOF => Done(Cont(k), Input.EOF)
-      }
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
     }
   }
 
@@ -234,19 +233,23 @@ object Enumeratee {
      * $paramEcSingle
      */
     def apply[To](f: From => Enumerator[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
-      val pec = ec.prepare()
+      val functionContext = ec.prepare()
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
         case Input.El(e) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(e))(pec).flatMap(_(Cont(k)))(dec))
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+          } &> Iteratee.flatten(Future(f(e))(functionContext).flatMap(_(Cont(k))))
 
         case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+          } &> k(in)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
-      }
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
     }
   }
 
@@ -258,14 +261,17 @@ object Enumeratee {
      * @param f Used to transform each input into an Enumerator.
      * $paramEcSingle
      */
-    def apply[To](f: Input[From] => Enumerator[To]) = new CheckDone[From, To] {
+    def apply[To](f: Input[From] => Enumerator[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
+      val functionContext = ec.prepare()
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
         case in =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in)(Cont(k)))
-      }
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+          } &> Iteratee.flatten(f(in)(Cont(k)))
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
     }
   }
 
@@ -278,16 +284,18 @@ object Enumeratee {
      * $paramEcSingle
      */
     def apply[To](f: Input[From] => Future[Input[To]])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
-      val pec = ec.prepare()
+      val functionContext = ec.prepare()
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
         case in @ (Input.El(_) | Input.Empty) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(executeFuture(f(in))(pec).map(k(_))(dec))
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+          } &> Iteratee.flatten(executeFuture(f(in))(functionContext).map(k(_)))
 
         case Input.EOF => Done(Cont(k), Input.EOF)
-      }
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
     }
   }
 
@@ -299,11 +307,11 @@ object Enumeratee {
      * @param f Used to transform each input element.
      * $paramEcSingle
      */
-    def apply[NE](f: E => Future[NE])(implicit ec: ExecutionContext): Enumeratee[E, NE] = mapInputM[E] {
+    def apply[NE](f: E => Future[NE])(implicit ec: ExecutionContext): Enumeratee[E, NE] = prepared(ec)(implicit ec => mapInputM[E] {
       case Input.Empty => Future.successful(Input.Empty)
       case Input.EOF => Future.successful(Input.EOF)
-      case Input.El(e) => f(e).map(Input.El(_))(dec)
-    }(ec)
+      case Input.El(e) => f(e).map(Input.El(_))
+    })
   }
 
   /**
@@ -324,43 +332,53 @@ object Enumeratee {
    */
   def take[E](count: Int): Enumeratee[E, E] = new CheckDone[E, E] {
 
-    def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
+    def step[A](remaining: Int)(k: K[E, A])(implicit ec: ExecutionContext): K[E, Iteratee[E, A]] = prepared(ec)(implicit ec => {
 
       case in @ Input.El(_) if remaining == 1 => Done(k(in), Input.Empty)
 
       case in @ Input.El(_) if remaining > 1 =>
-        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining - 1)(k)) } &> k(in)
+        new CheckDone[E, E] {
+          def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(remaining - 1)(k))
+        } &> k(in)
 
       case in @ Input.Empty if remaining > 0 =>
-        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining)(k)) } &> k(in)
+        new CheckDone[E, E] {
+          def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(remaining)(k))
+        } &> k(in)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 
       case in => Done(Cont(k), in)
-    }
+    })
 
-    def continue[A](k: K[E, A]) = if (count <= 0) Done(Cont(k), Input.EOF) else Cont(step(count)(k))
+    def continue[A](k: K[E, A])(implicit ec: ExecutionContext) =
+      prepared(ec)(implicit ec => if (count <= 0) Done(Cont(k), Input.EOF) else Cont(step(count)(k)))
 
   }
 
   def scanLeft[From] = new {
 
-    def apply[To](seed: To)(f: (To, From) => To): Enumeratee[From, To] = new CheckDone[From, To] {
+    def apply[To](seed: To)(f: (To, From) => To)(implicit ec: ExecutionContext): Enumeratee[From, To] = new CheckDone[From, To] {
+      val functionContext = ec.prepare()
 
-      def step[A](lastTo: To)(k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](lastTo: To)(k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
 
         case in @ Input.El(e) =>
-          val next = f(lastTo, e)
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(next)(k)) } &> k(Input.El(next))
-
+          Iteratee.flatten(Future(f(lastTo, e))(functionContext).map { next =>
+            new CheckDone[From, To] {
+              def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(next)(k))
+            } &> k(Input.El(next))
+          })
         case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(lastTo)(k))
+          } &> k(in)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
-      }
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(seed)(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(seed)(k))
     }
   }
 
@@ -388,27 +406,28 @@ object Enumeratee {
 
     def apply[To](folder: Iteratee[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
 
-      def step[A](f: Iteratee[From, To])(k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](f: Iteratee[From, To])(k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
 
         case in @ (Input.El(_) | Input.Empty) =>
 
           Iteratee.flatten(f.feed(in)).pureFlatFold {
             case Step.Done(a, left) => new CheckDone[From, To] {
-              def continue[A](k: K[To, A]) =
+              def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
                 (left match {
-                  case Input.El(_) => step(folder)(k)(left)
+                  case Input.El(_) => step(folder)(k).apply(left)
                   case _ => Cont(step(folder)(k))
                 })
+              }
             } &> k(Input.El(a))
             case Step.Cont(kF) => Cont(step(Cont(kF))(k))
             case Step.Error(msg, e) => Error(msg, in)
-          }(dec)
+          }
 
-        case Input.EOF => Iteratee.flatten(f.run.map[Iteratee[From, Iteratee[To, A]]]((c: To) => Done(k(Input.El(c)), Input.EOF))(dec))
+        case Input.EOF => Iteratee.flatten(f.run.map[Iteratee[From, Iteratee[To, A]]]((c: To) => Done(k(Input.El(c)), Input.EOF)))
 
-      }
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(folder)(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(folder)(k))
     }
   }
 
@@ -419,22 +438,27 @@ object Enumeratee {
    * $paramEcSingle
    */
   def filter[E](predicate: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = new CheckDone[E, E] {
-    val pec = ec.prepare()
+    val predicateContext = ec.prepare()
 
-    def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
+    def step[A](k: K[E, A])(implicit ec: ExecutionContext): K[E, Iteratee[E, A]] = prepared(ec)(implicit ec => {
 
-      case in @ Input.El(e) => Iteratee.flatten(Future(predicate(e))(pec).map { b =>
-        if (b) (new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)) else Cont(step(k))
-      }(dec))
+      case in @ Input.El(e) => Iteratee.flatten(Future(predicate(e))(predicateContext).map { b =>
+        if (b) (new CheckDone[E, E] {
+          def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
+        } &> k(in))
+        else Cont(step(k))
+      })
 
       case in @ Input.Empty =>
-        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
+        new CheckDone[E, E] {
+          def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
+        } &> k(in)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 
-    }
+    })
 
-    def continue[A](k: K[E, A]) = Cont(step(k))
+    def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
 
   }
 
@@ -444,7 +468,7 @@ object Enumeratee {
    * @param predicate A function to filter the input elements.
    * $paramEcSingle
    */
-  def filterNot[E](predicate: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = filter[E](e => !predicate(e))(ec)
+  def filterNot[E](predicate: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = filter[E](e => !predicate(e))
 
   /**
    * Create an Enumeratee that both filters and transforms its input. The input is transformed by the given
@@ -457,35 +481,39 @@ object Enumeratee {
      * $paramSingleEc
      */
     def apply[To](transformer: PartialFunction[From, To])(implicit ec: ExecutionContext): Enumeratee[From, To] = new CheckDone[From, To] {
-      val pec = ec.prepare()
+      val transformerContext = ec.prepare()
 
-      def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
+      def step[A](k: K[To, A])(implicit ec: ExecutionContext): K[From, Iteratee[To, A]] = prepared(ec)(implicit ec => {
 
         case in @ Input.El(e) => Iteratee.flatten(Future {
           if (transformer.isDefinedAt(e)) {
-            new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(Input.El(transformer(e)))
+            new CheckDone[From, To] {
+              def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+            } &> k(Input.El(transformer(e)))
           } else {
             Cont(step(k))
           }
-        }(pec))
+        }(transformerContext))
 
         case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+          new CheckDone[From, To] {
+            def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
+          } &> k(in)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
-      }
+      })
 
-      def continue[A](k: K[To, A]) = Cont(step(k))
+      def continue[A](k: K[To, A])(implicit ec: ExecutionContext) = Cont(step(k))
 
     }
   }
 
   def drop[E](count: Int): Enumeratee[E, E] = new CheckDone[E, E] {
 
-    def step[A](remaining: Int)(k: K[E, A]): K[E, Iteratee[E, A]] = {
+    def step[A](remaining: Int)(k: K[E, A])(implicit ec: ExecutionContext): K[E, Iteratee[E, A]] = prepared(ec)(implicit ec => {
 
-      case in @ Input.El(_) if remaining == 1 => passAlong[E](Cont(k))
+      case in @ Input.El(_) if remaining == 1 => passAlong[E] &> Cont(k)
 
       case in @ Input.El(_) if remaining > 1 => Cont(step(remaining - 1)(k))
 
@@ -495,9 +523,9 @@ object Enumeratee {
 
       case in => passAlong[E] &> k(in)
 
-    }
+    })
 
-    def continue[A](k: K[E, A]) = Cont(step(count)(k))
+    def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(count)(k))
 
   }
 
@@ -507,26 +535,25 @@ object Enumeratee {
    * @param f A predicate to test the input with.
    * $paramEcSingle
    */
-  def dropWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
-    val pec = ec.prepare()
+  def dropWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] =
     new CheckDone[E, E] {
+      val predicateContext = ec.prepare()
 
-      def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
+      def step[A](k: K[E, A])(implicit ec: ExecutionContext): K[E, Iteratee[E, A]] = prepared(ec)(implicit ec => {
 
-        case in @ Input.El(e) => Iteratee.flatten(Future(p(e))(pec).map {
+        case in @ Input.El(e) => Iteratee.flatten(Future(p(e))(predicateContext).map {
           b => if (b) Cont(step(k)) else (passAlong[E] &> k(in))
-        }(dec))
+        })
 
         case in @ Input.Empty => Cont(step(k))
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
-      }
+      })
 
-      def continue[A](k: K[E, A]) = Cont(step(k))
+      def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
 
     }
-  }
 
   /**
    * Create an Enumeratee that passes input through while a predicate is satisfied. Once the predicate
@@ -535,26 +562,31 @@ object Enumeratee {
    * @param f A predicate to test the input with.
    * $paramEcSingle
    */
-  def takeWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
-    val pec = ec.prepare()
+  def takeWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] =
     new CheckDone[E, E] {
+      val predicateContext = ec.prepare()
 
-      def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
+      def step[A](k: K[E, A])(implicit ec: ExecutionContext): K[E, Iteratee[E, A]] = prepared(ec)(implicit ec => {
 
-        case in @ Input.El(e) => Iteratee.flatten(Future(p(e))(pec).map {
-          b => if (b) (new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)) else Done(Cont(k), in)
-        }(dec))
+        case in @ Input.El(e) => Iteratee.flatten(Future(p(e))(predicateContext).map {
+          b =>
+            if (b) (new CheckDone[E, E] {
+              def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
+            } &> k(in))
+            else Done(Cont(k), in)
+        })
 
         case in @ Input.Empty =>
-          new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
+          new CheckDone[E, E] {
+            def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
+          } &> k(in)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
-      }
+      })
 
-      def continue[A](k: K[E, A]) = Cont(step(k))
+      def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
 
     }
-  }
 
   /**
    * Create an Enumeratee that passes input through until a predicate is satisfied. Once the predicate
@@ -564,10 +596,10 @@ object Enumeratee {
    * $paramEcSingle
    */
   def breakE[E](p: E => Boolean)(implicit ec: ExecutionContext) = new Enumeratee[E, E] {
-    val pec = ec.prepare()
-    def applyOn[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    val predicateContext = ec.prepare()
+    def applyOn[A](inner: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] = prepared(ec) { implicit ec =>
       def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = in match {
-        case Input.El(e) => Iteratee.flatten(Future(p(e))(pec).map(b => if (b) Done(inner, in) else stepNoBreak(inner)(in))(dec))
+        case Input.El(e) => Iteratee.flatten(Future(p(e))(predicateContext).map(b => if (b) Done(inner, in) else stepNoBreak(inner)(in)))
         case _ => stepNoBreak(inner)(in)
       }
       def stepNoBreak(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] =
@@ -577,40 +609,45 @@ object Enumeratee {
             next.pureFlatFold {
               case Step.Cont(k) => Cont(step(next))
               case _ => Done(inner, in)
-            }(dec)
+            }
           }
           case _ => Done(inner, in)
-        }(dec)
+        }
       Cont(step(inner))
     }
   }
 
   def passAlong[M] = new Enumeratee.CheckDone[M, M] {
 
-    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+    def step[A](k: K[M, A])(implicit ec: ExecutionContext): K[M, Iteratee[M, A]] = prepared(ec)(implicit ec => {
 
-      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] {
+        def continue[A](k: K[M, A])(implicit ec: ExecutionContext) = Cont(step(k))
+      } &> k(in)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
-    }
-    def continue[A](k: K[M, A]) = Cont(step(k))
+    })
+    def continue[A](k: K[M, A])(implicit ec: ExecutionContext) = Cont(step(k))
   }
 
   def heading[E](es: Enumerator[E]) = new Enumeratee[E, E] {
 
-    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E] &> Iteratee.flatten(es(it))
+    def applyOn[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] =
+      prepared(ec)(implicit ec => passAlong[E] &> Iteratee.flatten(es(it)))
 
   }
 
   def trailing[M](es: Enumerator[M]) = new Enumeratee.CheckDone[M, M] {
 
-    def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
+    def step[A](k: K[M, A])(implicit ec: ExecutionContext): K[M, Iteratee[M, A]] = prepared(ec)(implicit ec => {
 
-      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+      case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] {
+        def continue[A](k: K[M, A])(implicit ec: ExecutionContext) = Cont(step(k))
+      } &> k(in)
 
-      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map[Iteratee[M, Iteratee[M, A]]](it => Done(it, Input.EOF))(dec))
-    }
-    def continue[A](k: K[M, A]) = Cont(step(k))
+      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map[Iteratee[M, Iteratee[M, A]]](it => Done(it, Input.EOF)))
+    })
+    def continue[A](k: K[M, A])(implicit ec: ExecutionContext) = Cont(step(k))
   }
 
   /**
@@ -620,9 +657,11 @@ object Enumeratee {
    * $paramEcSingle
    */
   def onIterateeDone[E](action: () => Unit)(implicit ec: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
-    val pec = ec.prepare()
+    val actionContext = ec.prepare()
 
-    def applyOn[A](iteratee: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E](iteratee).map(_.map { a => action(); a }(pec))(dec)
+    def applyOn[A](iteratee: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] = prepared(ec) { implicit ec =>
+      (passAlong[E] &> iteratee).map(_.map { a => action(); a }(actionContext))
+    }
 
   }
 
@@ -633,18 +672,20 @@ object Enumeratee {
    * $paramEcSingle
    */
   def onEOF[E](action: () => Unit)(implicit ec: ExecutionContext): Enumeratee[E, E] = new CheckDone[E, E] {
-    val pec = ec.prepare()
+    val actionContext = ec.prepare()
 
-    def step[A](k: K[E, A]): K[E, Iteratee[E, A]] = {
+    def step[A](k: K[E, A])(implicit ec: ExecutionContext): K[E, Iteratee[E, A]] = prepared(ec)(implicit ec => {
 
       case Input.EOF =>
-        Iteratee.flatten(Future(action())(pec).map(_ => Done[E, Iteratee[E, A]](Cont(k), Input.EOF))(dec))
+        Iteratee.flatten(Future(action())(actionContext).map(_ => Done[E, Iteratee[E, A]](Cont(k), Input.EOF)))
 
       case in =>
-        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
-    }
+        new CheckDone[E, E] {
+          def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
+        } &> k(in)
+    })
 
-    def continue[A](k: K[E, A]) = Cont(step(k))
+    def continue[A](k: K[E, A])(implicit ec: ExecutionContext) = Cont(step(k))
 
   }
 
@@ -666,10 +707,10 @@ object Enumeratee {
    * $paramEcSingle
    */
   def recover[E](f: (Throwable, Input[E]) => Unit = (_: Throwable, _: Input[E]) => ())(implicit ec: ExecutionContext): Enumeratee[E, E] = {
-    val pec = ec.prepare()
+    val functionContext = ec.prepare()
     new Enumeratee[E, E] {
 
-      def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+      def applyOn[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] = prepared(ec) { implicit ec =>
 
         def step(it: Iteratee[E, A])(input: Input[E]): Iteratee[E, Iteratee[E, A]] = input match {
           case in @ (Input.El(_) | Input.Empty) =>
@@ -679,15 +720,15 @@ object Enumeratee {
                 n.pureFlatFold[E, Iteratee[E, A]] {
                   case Step.Cont(k) => Cont(step(n))
                   case _ => Done(n, Input.Empty)
-                }(dec)
+                }
               case other => Done(other.it, in)
-            }(dec).unflatten.map({ s =>
+            }.unflatten.map({ s =>
               s.it
-            })(dec).recover({
+            }).recover({
               case e: Throwable =>
                 f(e, in)
                 Cont(step(it))
-            })(pec)
+            })(functionContext)
             Iteratee.flatten(next)
           case Input.EOF =>
             Done(it, Input.Empty)

@@ -13,7 +13,7 @@ package play.api.libs {
 
 package play.api.libs.iteratee {
 
-  private[iteratee] object internal {
+  private[play] object internal {
     import play.api.libs.iteratee.Iteratee
     import scala.concurrent.{ ExecutionContext, Future }
     import scala.util.control.NonFatal
@@ -43,9 +43,7 @@ package play.api.libs.iteratee {
      * def myFunc(implicit ec: ExecutionContext) = prepared(ec)(pec => ...)
      * }}}
      */
-    def prepared[A](ec: ExecutionContext)(f: ExecutionContext => A): A = {
-      val pec = ec.prepare()
-      f(pec)
-    }
+    @inline
+    def prepared[A](ec: ExecutionContext)(f: ExecutionContext => A): A = f(ec.prepare())
   }
 }
