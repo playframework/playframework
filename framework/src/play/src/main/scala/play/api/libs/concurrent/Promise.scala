@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 
 import java.util.concurrent.{ TimeUnit }
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ Future, ExecutionContext, Promise => SPromise }
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
@@ -20,6 +20,7 @@ import scala.util.control.NonFatal
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 sealed trait PromiseValue[+A] {
 
   /**
@@ -31,6 +32,7 @@ sealed trait PromiseValue[+A] {
 /**
  * A promise state that contains either a value or an exception.
  */
+@scala.deprecated("Use scala.util.Try instead.", "2.2")
 trait NotWaiting[+A] extends PromiseValue[A] {
 
   /**
@@ -56,11 +58,13 @@ trait NotWaiting[+A] extends PromiseValue[A] {
 /**
  * A promise state containing an exception.
  */
+@scala.deprecated("Use scala.util.Failure instead.", "2.2")
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 
 /**
  * A promise state containing a non-exception value.
  */
+@scala.deprecated("Use scala.util.Success instead.", "2.2")
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 
 /**
@@ -82,6 +86,7 @@ class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
  * The promise will be completed either with the expected value type or with
  * an exception.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
 
   /**
@@ -223,6 +228,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
 /**
  * A redeemable can be completed exactly once with either a value of type A or an exception.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 trait Redeemable[-A] {
 
   /**
@@ -245,11 +251,13 @@ trait Redeemable[-A] {
  * completes the promise with that exception. The promise is "pure" because it could
  * be just a pure value, the Promise wrapper is superflous.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 object PurePromise {
 
   /**
    * factory method for a pure promise
    */
+  @scala.deprecated("Use scala.concurrent.Promise.complete(Try(...)) instead.", "2.2")
   def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try (scala.concurrent.Promise.successful(lazyA)) catch {
     case NonFatal(t) => scala.concurrent.Promise.failed(t)
   }).future
@@ -261,18 +269,20 @@ object PurePromise {
  */
 object Promise {
 
-  private[concurrent] lazy val defaultTimeout =
+  private[play] lazy val defaultTimeout =
     //TODO get it from conf
     Duration(10000, TimeUnit.MILLISECONDS).toMillis
 
   /**
    * Synonym for PurePromise.apply
    */
+  @scala.deprecated("Use scala.concurrent.Future.successful() or scala.concurrent.Promise.complete(Try(...)) instead.", "2.2")
   def pure[A](a: => A): Future[A] = PurePromise(a)
 
   /**
    * Constructs a new redeemable Promise which has not been redeemed yet.
    */
+  @scala.deprecated("Use scala.concurrent.Promise() instead.", "2.2")
   def apply[A](): scala.concurrent.Promise[A] = scala.concurrent.Promise[A]()
 
   /**
@@ -282,7 +292,6 @@ object Promise {
    * @param duration duration for the timer promise
    * @return a timer promise
    */
-
   def timeout[A](message: => A, duration: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext): Future[A] = {
     timeout(message, duration.toMillis)
   }
@@ -297,7 +306,7 @@ object Promise {
    * @return a timer promise
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[A] = {
-    val p = Promise[A]()
+    val p = SPromise[A]()
     timer.schedule(new java.util.TimerTask {
       def run() {
         p.completeWith(Future(message)(ec))
@@ -311,6 +320,7 @@ object Promise {
    * This is useful only when used in conjunction with other Promises.
    * @return a timer promise
    */
+  @scala.deprecated("Use Promise.timeout(A, Duration) instead.", "2.2")
   def timeout: Future[Nothing] = {
     timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)(internalContext)
   }
@@ -336,6 +346,7 @@ object Promise {
    * @param in the traversable that's being converted into a promise
    * @return a Promise that's the result of the transformation
    */
+  @scala.deprecated("Use scala.concurrent.Future.sequence() instead.", "2.2")
   def sequence[B, M[_]](in: M[Future[B]])(implicit toTraversableLike: M[Future[B]] => TraversableLike[Future[B], M[Future[B]]], cbf: CanBuildFrom[M[Future[B]], B, M[B]]): Future[M[B]] = {
     toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => fr.flatMap(r => fa.map(a => r += a)(internalContext))(internalContext)).map(_.result)(internalContext)
   }
@@ -354,7 +365,6 @@ object Promise {
    */
   def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_))(internalContext), _.map(Right(_))(internalContext))
 
-  @deprecated("use sequence instead", "2.1")
   def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(internalContext)).getOrElse(Promise.pure(None))
 
 }

@@ -24,7 +24,7 @@ The default actor system configuration is read from the Play application configu
 
 ## Converting Akka `Future` to Play `Promise`
 
-When you interact asynchronously with an Akka actor we will get `Future` object. You can easily convert them to play `Promise` using the conversion method provided in `play.libs.Akka.asPromise()`:
+When you interact asynchronously with an Akka actor you will get a `Future` object. You can easily convert a `Future` to a Play `Promise` by calling the `play.libs.F.Promise.wrap()` method:
 
 @[ask](code/javaguide/akka/ask/Application.java)
 

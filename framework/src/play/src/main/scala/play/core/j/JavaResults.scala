@@ -8,6 +8,8 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Concurrent._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration.{ Duration, SECONDS }
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
 
 /**
@@ -33,16 +35,19 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def chunked(stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
 }
-import play.api.libs.concurrent._
 object JavaResultExtractor {
 
+  private val defaultWaitTime = Duration(5, SECONDS)
+
+  private def wrapped(r: AsyncResult) = new ResultWrapper(Await.result(r.result, defaultWaitTime))
+
   def getStatus(result: play.mvc.Result): Int = result.getWrappedResult match {
-    case r: AsyncResult => getStatus(new ResultWrapper(r.result.await.get))
+    case r: AsyncResult => getStatus(wrapped(r))
     case PlainResult(status, _) => status
   }
 
   def getCookies(result: play.mvc.Result): JCookies = result.getWrappedResult match {
-    case r: AsyncResult => getCookies(new ResultWrapper(r.result.await.get))
+    case r: AsyncResult => getCookies(wrapped(r))
     case PlainResult(_, headers) => new JCookies {
       def get(name: String) = {
         Cookies(headers.get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
@@ -53,29 +58,29 @@ object JavaResultExtractor {
   }
 
   def getSession(result: play.mvc.Result): JSession = result.getWrappedResult match {
-    case r: AsyncResult => getSession(new ResultWrapper(r.result.await.get))
+    case r: AsyncResult => getSession(wrapped(r))
     case PlainResult(_, headers) => new JSession(Session.decodeFromCookie(
       Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
     ).data.asJava)
   }
 
   def getFlash(result: play.mvc.Result): JFlash = result.getWrappedResult match {
-    case r: AsyncResult => getFlash(new ResultWrapper(r.result.await.get))
+    case r: AsyncResult => getFlash(wrapped(r))
     case PlainResult(_, headers) => new JFlash(Flash.decodeFromCookie(
       Cookies(headers.get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
     ).data.asJava)
   }
 
   def getHeaders(result: play.mvc.Result): java.util.Map[String, String] = result.getWrappedResult match {
-    case r: AsyncResult => getHeaders(new ResultWrapper(r.result.await.get))
+    case r: AsyncResult => getHeaders(wrapped(r))
     case PlainResult(_, headers) => headers.asJava
   }
 
   def getBody(result: play.mvc.Result): Array[Byte] = result.getWrappedResult match {
-    case r: AsyncResult => getBody(new ResultWrapper(r.result.await.get))
+    case r: AsyncResult => getBody(wrapped(r))
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_))(play.core.Execution.internalContext).transform(Iteratee.consume[Array[Byte]]())
-      bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.internalContext).value1.get
+      Await.result(bodyEnumerator(readAsBytes).flatMap(_.run)(play.core.Execution.internalContext), defaultWaitTime)
     }
     case r: PlainResult => Array.empty[Byte]
   }

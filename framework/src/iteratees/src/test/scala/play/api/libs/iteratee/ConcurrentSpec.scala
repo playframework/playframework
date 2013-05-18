@@ -9,7 +9,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.reflectiveCalls
 
-object ConcurrentSpec extends Specification with IterateeSpecification {
+object ConcurrentSpec extends Specification
+  with IterateeSpecification with ExecutionSpecification {
 
   val timer = new java.util.Timer
   def timeout[A](a: => A, d: Duration)(implicit e: ExecutionContext): Future[A] = {

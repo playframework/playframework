@@ -2,7 +2,6 @@ package play.api.mvc
 
 import play.core._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent._
 import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
@@ -404,7 +403,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
   })
 
   def unflatten: Future[PlainResult] = result.flatMap {
-    case r: PlainResult => Promise.pure(r)
+    case r: PlainResult => Future.successful(r)
     case r @ AsyncResult(_) => r.unflatten
   }(internalContext)
 
