@@ -7,7 +7,8 @@ import scala.language.reflectiveCalls
 
 import org.specs2.mutable._
 
-object EnumerateesSpec extends Specification with IterateeSpecification {
+object EnumerateesSpec extends Specification
+  with IterateeSpecification with ExecutionSpecification {
 
   "Enumeratee.zip" should {
     

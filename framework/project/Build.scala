@@ -151,7 +151,7 @@ object PlayBuild extends Build {
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
-    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, JsonProject)
+    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies := jdbcDeps)

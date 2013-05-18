@@ -8,7 +8,8 @@ import java.util.concurrent.{ CountDownLatch, TimeUnit }
 import scala.concurrent.{ ExecutionContext, Promise, Future, Await }
 import scala.util.{ Failure, Success, Try }
 
-object IterateesSpec extends Specification with IterateeSpecification {
+object IterateesSpec extends Specification
+  with IterateeSpecification with ExecutionSpecification {
 
   def checkFoldResult[A, E](i: Iteratee[A, E], expected: Step[A, E]) = {
     mustExecute(1) { foldEC =>
