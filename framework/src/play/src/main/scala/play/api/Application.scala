@@ -236,7 +236,9 @@ trait Application {
   /**
    * The router used by this application (if defined).
    */
-  lazy val routes: Option[Router.Routes] = try {
+  lazy val routes: Option[Router.Routes] = loadRoutes
+
+  protected def loadRoutes: Option[Router.Routes] = try {
     Some(classloader.loadClass(configuration.getString("application.router").map(_ + "$").getOrElse("Routes$")).getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
       router.setPrefix(configuration.getString("application.context").map { prefix =>
         if (!prefix.startsWith("/")) {
