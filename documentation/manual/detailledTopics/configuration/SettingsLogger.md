@@ -29,7 +29,7 @@ logger.org.springframework=TRACE
 
 The default is to define two appenders, one dispatched to the standard out stream, and the other to the `logs/application.log` file.
 
-If you want to fully customize logback, just define a `conf/application-logger.xml` configuration file. Here is the default configuration file used by Play:
+If you want to fully customize logback, just define a `conf/application-logger.xml` or `conf/logger.xml` configuration file. Here is the default configuration file used by Play:
 
 ```xml
 <configuration>
