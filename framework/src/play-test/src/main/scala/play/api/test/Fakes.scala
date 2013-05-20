@@ -6,6 +6,8 @@ import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
 import scala.concurrent.Future
 import xml.NodeSeq
+import play.core.Router
+import scala.runtime.AbstractPartialFunction
 
 /**
  * Fake HTTP headers implementation.
@@ -183,6 +185,7 @@ object FakeRequest {
  * @param additionalPlugins Additional plugins class names loaded by this application
  * @param withoutPlugins Plugins class names to disable
  * @param additionalConfiguration Additional configuration
+ * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
 
 import play.api.{ Application, WithDefaultConfiguration, WithDefaultGlobal, WithDefaultPlugins }
@@ -192,7 +195,8 @@ case class FakeApplication(
   val additionalPlugins: Seq[String] = Nil,
   val withoutPlugins: Seq[String] = Nil,
   val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-  val withGlobal: Option[play.api.GlobalSettings] = None) extends {
+  val withGlobal: Option[play.api.GlobalSettings] = None,
+  val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
   override val sources = None
   override val mode = play.api.Mode.Test
 } with Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
@@ -205,4 +209,25 @@ case class FakeApplication(
   }
 
   override lazy val global = withGlobal.getOrElse(super.global)
+
+  override lazy val routes: Option[Router.Routes] = {
+    val parentRoutes = loadRoutes
+    Some(new Router.Routes() {
+      def documentation = parentRoutes.map(_.documentation).getOrElse(Nil)
+      // Use withRoutes first, then delegate to the parentRoutes if no route is defined
+      val routes = new AbstractPartialFunction[RequestHeader, Handler] {
+        override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+          withRoutes.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
+        def isDefinedAt(rh: RequestHeader) = withRoutes.isDefinedAt((rh.method, rh.path))
+      } orElse new AbstractPartialFunction[RequestHeader, Handler] {
+        override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+          parentRoutes.map(_.routes.applyOrElse(rh, default)).getOrElse(default(rh))
+        def isDefinedAt(x: RequestHeader) = parentRoutes.map(_.routes.isDefinedAt(x)).getOrElse(false)
+      }
+      def setPrefix(prefix: String) {
+        parentRoutes.foreach(_.setPrefix(prefix))
+      }
+      def prefix = parentRoutes.map(_.prefix).getOrElse("")
+    })
+  }
 }
