@@ -154,6 +154,6 @@ case class DocumentationApplication(sbtLink: SBTLink) extends ApplicationProvide
     )
 }
 
-class DocumentationServer(sbtLink: SBTLink, port: java.lang.Integer) extends NettyServer(DocumentationApplication(sbtLink), port,
+class DocumentationServer(sbtLink: SBTLink, port: java.lang.Integer) extends NettyServer(DocumentationApplication(sbtLink), Some(port),
   mode = Mode.Dev
 )
