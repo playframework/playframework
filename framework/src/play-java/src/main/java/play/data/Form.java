@@ -361,9 +361,23 @@ public class Form<T> {
                     }                    
                 }
                 if(!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<ValidationError>()); 
+                   errors.put(key, new ArrayList<ValidationError>());
                 }
-                errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
+
+                String message = "error.invalid";
+                if( error.isBindingFailure() ){
+                    for(String code : error.getCodes() ){
+                        code = code.replace("typeMismatch", "error.invalid");
+                        if( play.i18n.Messages.isDefined(code) ){
+                            message = code;
+                            break;
+                        }
+                    }
+                }else{
+                    message = error.getDefaultMessage();
+                }
+
+                errors.get(key).add(new ValidationError(key, message, arguments));
             }
             return new Form(rootName, backedType, data, errors, None(), groups);
         } else {

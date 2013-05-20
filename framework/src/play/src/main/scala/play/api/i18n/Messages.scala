@@ -126,6 +126,17 @@ object Messages {
   }
 
   /**
+   * Check if a message key is defined.
+   * @param key the message key
+   * @return a boolean
+   */
+  def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
+    Play.maybeApplication.map { app =>
+      app.plugin[MessagesPlugin].map(_.api.isDefinedAt(key)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
+    }.getOrElse(false)
+  }
+
+  /**
    * Retrieves all messages defined in this application.
    */
   def messages(implicit app: Application): Map[String, Map[String, String]] = {
@@ -226,6 +237,19 @@ case class MessagesApi(messages: Map[String, Map[String, String]]) {
         res.orElse(messages.get(lang.code).flatMap(_.get(key))))
     pattern.map(pattern =>
       new MessageFormat(pattern, lang.toLocale).format(args.map(_.asInstanceOf[java.lang.Object]).toArray))
+  }
+
+  /**
+   * Check if a message key is defined.
+   * @param key the message key
+   * @return a boolean
+   */
+  def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
+    val langsToTry: List[Lang] = List(lang, Lang(lang.language, ""), Lang("default", ""))
+
+    langsToTry.foldLeft[Boolean](false)({ (acc, lang) =>
+      acc || messages.get(lang.code).map(_.isDefinedAt(key)).getOrElse(false)
+    })
   }
 
 }
