@@ -11,7 +11,7 @@ object ScalaAsyncSpec extends Specification with Controller {
 
   "scala async" should {
     "allow returning a future" in new WithApplication() {
-      contentAsString(Async(ScalaAsyncSamples.futureResult)) must startWith("PI value computed: 3.14")
+      contentAsString(ScalaAsyncSamples.futureResult) must startWith("PI value computed: 3.14")
     }
 
     "allow dispatching an intensive computation" in new WithApplication() {
@@ -39,7 +39,7 @@ object ScalaAsyncSamples extends Controller {
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
     val futurePIValue: Future[Double] = computePIAsynchronously()
-    val futureResult: Future[Result] = futurePIValue.map { pi =>
+    val futureResult: Future[SimpleResult] = futurePIValue.map { pi =>
       Ok("PI value computed: " + pi)
     }
     //#future-result

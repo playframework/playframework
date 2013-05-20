@@ -13,17 +13,20 @@ public class CachedAction extends Action<Cached> {
         try {
             final String key = configuration.key();
             final Integer duration = configuration.duration();
-            F.Promise<SimpleResult> result = F.Promise.pure((SimpleResult) Cache.get(key));
+            SimpleResult result = (SimpleResult) Cache.get(key);
+            F.Promise<SimpleResult> promise;
             if(result == null) {
-                result = delegate.call(ctx);
-                result.onRedeem(new F.Callback<SimpleResult>() {
+                promise = delegate.call(ctx);
+                promise.onRedeem(new F.Callback<SimpleResult>() {
                     @Override
                     public void invoke(SimpleResult simpleResult) throws Throwable {
                         Cache.set(key, simpleResult, duration);
                     }
                 });
+            } else {
+                promise = F.Promise.pure(result);
             }
-            return result;
+            return promise;
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
