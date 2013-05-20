@@ -42,8 +42,8 @@ object BuildSettings {
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers,
-    testOptions in Test := Seq(Tests.Filter(!_.endsWith("Benchmark"))),
-    testOptions in PerformanceTest := Seq(Tests.Filter(_.endsWith("Benchmark"))),
+    testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
+    testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
     parallelExecution in PerformanceTest := false
   )
 
@@ -52,6 +52,8 @@ object BuildSettings {
       mimaDefaultSettings ++ Seq(previousArtifact := Some("play" % name % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
+      .configs(PerformanceTest)
+      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(bcSettings: _*)
       .settings(
@@ -63,6 +65,8 @@ object BuildSettings {
 
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .configs(PerformanceTest)
+      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
@@ -265,8 +269,6 @@ object PlayBuild extends Build {
   lazy val Root = Project(
     "Root",
     file("."))
-    .configs(PerformanceTest)
-    .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
     .settings(playCommonSettings: _*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
