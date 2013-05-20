@@ -81,45 +81,44 @@ package play.filters.csrf {
       /**
        * Add Token to the Response session if necessary
        */
-       def addSessionToken: SimpleResult = {
-         val session = Cookies(r.header.headers.get("Set-Cookie"))
-           .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
-           .getOrElse(req.session.data)
-         if (session.get(TOKEN_NAME).isDefined) {
-           filterLogger.trace("[CSRF] session already contains token")
-           r
-         }
-         else {
-           val newSession = if (session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
-           filterLogger.trace("[CSRF] Adding session token to response")
-           filterLogger.trace("[CSRF] response was: " + r)
-           val resp = r.withSession(Session.deserialize(newSession))
-           filterLogger.trace("[CSRF] response is now: " + resp)
-           resp
-         }
-       }
+      def addSessionToken: SimpleResult = {
+        val session = Cookies(r.header.headers.get("Set-Cookie"))
+          .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+          .getOrElse(req.session.data)
+        if (session.get(TOKEN_NAME).isDefined) {
+          filterLogger.trace("[CSRF] session already contains token")
+          r
+        } else {
+          val newSession = if (session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
+          filterLogger.trace("[CSRF] Adding session token to response")
+          filterLogger.trace("[CSRF] response was: " + r)
+          val resp = r.withSession(Session.deserialize(newSession))
+          filterLogger.trace("[CSRF] response is now: " + resp)
+          resp
+        }
+      }
 
-       /**
+      /**
        * Add Token to the Response cookies if necessary
        */
-       def addCookieToken(c: String): SimpleResult = {
-         if (req.cookies.get(c).isDefined) {
-           filterLogger.trace("[CSRF] cookie already contains token")
-           r
-         } else {
-           val cookies = Cookies(r.header.headers.get("Set-Cookie"))
-           filterLogger.trace("[CSRF] Adding cookie token to response")
-           filterLogger.trace("[CSRF] response was: " + r)
-           val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
-           filterLogger.trace("[CSRF] response is now: " + resp)
-           resp
-         }
-       }
+      def addCookieToken(c: String): SimpleResult = {
+        if (req.cookies.get(c).isDefined) {
+          filterLogger.trace("[CSRF] cookie already contains token")
+          r
+        } else {
+          val cookies = Cookies(r.header.headers.get("Set-Cookie"))
+          filterLogger.trace("[CSRF] Adding cookie token to response")
+          filterLogger.trace("[CSRF] response was: " + r)
+          val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
+          filterLogger.trace("[CSRF] response is now: " + resp)
+          resp
+        }
+      }
 
-       if (CREATE_IF_NOT_FOUND)
-         COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
-       else
-         r
+      if (CREATE_IF_NOT_FOUND)
+        COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
+      else
+        r
     }
 
     /**

@@ -65,13 +65,13 @@ object JavaResultExtractor {
     ).data.asJava)
 
   def getFlash(result: play.mvc.SimpleResult): JFlash = new JFlash(Flash.decodeFromCookie(
-      Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
-    ).data.asJava)
+    Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
+  ).data.asJava)
 
   def getHeaders(result: play.mvc.SimpleResult): java.util.Map[String, String] = headers(result).asJava
 
   def getBody(result: play.mvc.SimpleResult): Array[Byte] =
-      Await.result(result.getWrappedSimpleResult.body |>>> Iteratee.consume[Array[Byte]](), Duration.Inf)
+    Await.result(result.getWrappedSimpleResult.body |>>> Iteratee.consume[Array[Byte]](), Duration.Inf)
 
   private def headers(result: play.mvc.SimpleResult) = result.getWrappedSimpleResult.header.headers
 

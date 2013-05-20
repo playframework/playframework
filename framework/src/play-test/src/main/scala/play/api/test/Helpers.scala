@@ -197,11 +197,11 @@ object Helpers extends Status with HeaderNames {
       case a: Action[_] =>
         val action = a.asInstanceOf[Action[T]]
         val parsedBody: Option[Either[SimpleResult, T]] = {
-            await(action.parser(request).fold(step => Future.successful(step match {
-              case Step.Done(a, in) => Some(a)
-              case Step.Cont(k) => None:Option[Either[SimpleResult, T]]
-              case Step.Error(msg, in) => None:Option[Either[SimpleResult, T]]
-            }))(global))
+          await(action.parser(request).fold(step => Future.successful(step match {
+            case Step.Done(a, in) => Some(a)
+            case Step.Cont(k) => None: Option[Either[SimpleResult, T]]
+            case Step.Error(msg, in) => None: Option[Either[SimpleResult, T]]
+          }))(global))
         }
         parsedBody.map { resultOrT =>
           resultOrT.right.toOption.map { innerBody =>
@@ -244,10 +244,10 @@ object Helpers extends Status with HeaderNames {
     }).getOrElse(rhWithCt)
     handler.flatMap {
       case a: EssentialAction => Some(
-          app.global.doFilter(a)(taggedRh)
-            .feed(Input.El(w.transform(body)))
-            .flatMap(_.run)
-        )
+        app.global.doFilter(a)(taggedRh)
+          .feed(Input.El(w.transform(body)))
+          .flatMap(_.run)
+      )
 
       case _ => None
     }

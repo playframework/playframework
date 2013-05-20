@@ -10,25 +10,24 @@ import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 
-import com.typesafe.netty.http.pipelining.{OrderedDownstreamMessageEvent, OrderedUpstreamMessageEvent}
+import com.typesafe.netty.http.pipelining.{ OrderedDownstreamMessageEvent, OrderedUpstreamMessageEvent }
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 /**
  * Streams Play results to Netty
  */
 object NettyResultStreamer {
 
-  implicit val internalExecutionContext =  play.core.Execution.internalContext
+  implicit val internalExecutionContext = play.core.Execution.internalContext
 
   /**
    * Send the result to netty
    *
    * @return A Future that will be redeemed when the result is completely sent
    */
-  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion)
-                (implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Future[_] = {
+  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Future[_] = {
     val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
 
     // Result of this iteratee is whether the connection must be closed
@@ -78,8 +77,7 @@ object NettyResultStreamer {
    * depending on whether the protocol is HTTP 1.0 or HTTP 1.1.
    */
   def bufferingIteratee(nettyResponse: HttpResponse, maxLength: Long, closeConnection: Boolean,
-                        httpVersion: HttpVersion)
-                       (implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Boolean] = {
+    httpVersion: HttpVersion)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Boolean] = {
 
     // Left is the next chunk that didn't fit in our max length, right means we did buffer it successfully
     def takeUpToMaxLength(chunks: List[Array[Byte]], read: Long): Iteratee[Array[Byte], Either[List[Array[Byte]], List[Array[Byte]]]] = Cont {
@@ -95,7 +93,7 @@ object NettyResultStreamer {
 
     takeUpToMaxLength(Nil, 0).flatMap {
       case Right(chunks) => {
-        val buffer = ChannelBuffers.wrappedBuffer(chunks.reverse:_*)
+        val buffer = ChannelBuffers.wrappedBuffer(chunks.reverse: _*)
         // We successfully buffered it, so set the content length and send the whole thing as one buffer
         nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
         nettyResponse.setContent(buffer)
@@ -134,15 +132,14 @@ object NettyResultStreamer {
     nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1), ())
   }
 
-  def chunkedIteratee(nettyResponse: HttpResponse, trailers: Option[Iteratee[Array[Byte], Map[String, String]]])
-                       (implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], _] = {
+  def chunkedIteratee(nettyResponse: HttpResponse, trailers: Option[Iteratee[Array[Byte], Map[String, String]]])(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], _] = {
 
     nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
     nettyResponse.setChunked(true)
 
     // The iteratee that sends the body to Netty
     val bodyIteratee = {
-      def step(subsequence: Int)(in:Input[Array[Byte]]): Iteratee[Array[Byte], Int] = in match {
+      def step(subsequence: Int)(in: Input[Array[Byte]]): Iteratee[Array[Byte], Int] = in match {
         case Input.El(x) =>
           val b = new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(x))
           nextWhenComplete(sendDownstream(subsequence, false, b), step(subsequence + 1), subsequence)
@@ -200,15 +197,13 @@ object NettyResultStreamer {
     nettyResponse
   }
 
-  def sendDownstream(subSequence: Int, last: Boolean, message: Object)
-                    (implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
+  def sendDownstream(subSequence: Int, last: Boolean, message: Object)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
     val ode = new OrderedDownstreamMessageEvent(oue, subSequence, last, message)
     ctx.sendDownstream(ode)
     ode.getFuture
   }
 
-  def nextWhenComplete[E, A](future: ChannelFuture, step: (Input[E]) => Iteratee[E, A], done: A)
-                         (implicit ctx: ChannelHandlerContext) : Iteratee[E, A] = {
+  def nextWhenComplete[E, A](future: ChannelFuture, step: (Input[E]) => Iteratee[E, A], done: A)(implicit ctx: ChannelHandlerContext): Iteratee[E, A] = {
     // If the channel isn't currently connected, then this future will never be redeemed.  This is racey, and impossible
     // to 100% detect, but it's better to fail fast if possible than to sit there waiting forever
     if (!ctx.getChannel.isConnected) {

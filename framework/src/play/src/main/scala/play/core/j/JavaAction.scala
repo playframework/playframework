@@ -5,7 +5,7 @@ import scala.language.existentials
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult, SimpleResult => JSimpleResult }
 import play.mvc.Http.{ Context => JContext }
-import play.libs.F.{Promise => JPromise}
+import play.libs.F.{ Promise => JPromise }
 import scala.concurrent.Future
 import play.libs.F
 

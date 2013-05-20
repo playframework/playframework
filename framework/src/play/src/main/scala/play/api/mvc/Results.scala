@@ -269,7 +269,7 @@ object StreamingStrategy {
  * @param streamingStrategy the streaming strategy to use if no content length is sent.
  */
 case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
-                        streamingStrategy: StreamingStrategy = StreamingStrategy.Buffer()) extends PlainResult {
+    streamingStrategy: StreamingStrategy = StreamingStrategy.Buffer()) extends PlainResult {
 
   /**
    * Adds headers to this result.

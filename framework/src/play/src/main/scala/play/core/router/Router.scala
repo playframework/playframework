@@ -145,8 +145,8 @@ object Router {
 
   object HandlerInvoker {
 
-    import play.libs.F.{Promise => JPromise}
-    import play.mvc.{Result => JResult}
+    import play.libs.F.{ Promise => JPromise }
+    import play.mvc.{ Result => JResult }
 
     implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
       def call(call: => A, handler: HandlerDef): Handler = call

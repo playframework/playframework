@@ -30,8 +30,10 @@ trait JavaHelpers {
    */
   def createResult(javaContext: JContext, javaResult: JSimpleResult): SimpleResult = {
     val wResult = javaResult.getWrappedSimpleResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-      .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value,
-        if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
+      .withCookies((javaContext.response.cookies.asScala.toSeq map { c =>
+        Cookie(c.name, c.value,
+          if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
+      }): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
       wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
