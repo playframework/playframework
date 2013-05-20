@@ -2,9 +2,9 @@ package play.api.test
 
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import play.api.libs.concurrent.Promise
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import scala.concurrent.Future
 import xml.NodeSeq
 
 /**
@@ -98,7 +98,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     _copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 
-  def certs = Promise.pure(IndexedSeq.empty)
+  def certs = Future.successful(IndexedSeq.empty)
 
   /**
    * Sets a JSON body to this request.

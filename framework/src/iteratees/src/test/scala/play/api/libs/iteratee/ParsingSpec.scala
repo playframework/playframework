@@ -7,7 +7,8 @@ import org.specs2.mutable._
 import concurrent.duration.Duration
 import concurrent.Await
 
-object ParsingSpec extends Specification with IterateeSpecification {
+object ParsingSpec extends Specification
+  with IterateeSpecification with ExecutionSpecification {
 
   "Parsing" should {
 

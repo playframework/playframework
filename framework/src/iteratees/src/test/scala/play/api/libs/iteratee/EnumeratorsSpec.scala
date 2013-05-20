@@ -10,7 +10,8 @@ import scala.concurrent.{Promise, Future, Await}
 import scala.concurrent.duration.Duration
 import scala.language.reflectiveCalls
 
-object EnumeratorsSpec extends Specification with IterateeSpecification {
+object EnumeratorsSpec extends Specification
+  with IterateeSpecification with ExecutionSpecification {
 
   "Enumerator's interleave" should {
 

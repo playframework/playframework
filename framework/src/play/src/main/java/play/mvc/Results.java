@@ -1027,7 +1027,7 @@ public class Results {
                         public play.api.mvc.Result apply(Result r) {
                             return play.core.j.JavaHelpers$.MODULE$.createResult(context, r);
                         }
-                    }).getWrappedPromise()
+                    }).wrapped()
             );
         }
 
