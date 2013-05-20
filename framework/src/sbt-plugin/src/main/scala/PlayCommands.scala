@@ -584,7 +584,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
           def bar(length: Int) = (1 to length).map(_ => "-").mkString
 
-          val indent = if(Colors.isANSISupported) 9 else 0
+          val indent = if (Colors.isANSISupported) 9 else 0
           val lineFormat = "| %-" + (c1Size + indent) + "s | %-" + (c2Size + indent) + "s | %-" + (c3Size + indent) + "s |"
           val separator = "+-%s-+-%s-+-%s-+".format(
             bar(c1Size), bar(c2Size), bar(c3Size))

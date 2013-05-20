@@ -185,7 +185,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
   }
 
   override lazy val mainAddress = {
-    if(HTTP.isDefined) {
+    if (HTTP.isDefined) {
       HTTP.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
     } else {
       HTTPS.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
@@ -238,7 +238,7 @@ object NettyServer {
     try {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
-        Option(System.getProperty("http.port")).fold(Option(9000))(p => if(p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
+        Option(System.getProperty("http.port")).fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
@@ -273,7 +273,6 @@ object NettyServer {
         println("Not a valid Play application")
       }
   }
-
 
   def mainDevOnlyHttpsMode(sbtLink: SBTLink, httpsPort: Int): NettyServer = {
     mainDev(sbtLink, None, Some(httpsPort))
