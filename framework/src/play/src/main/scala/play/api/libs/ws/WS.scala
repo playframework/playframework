@@ -274,7 +274,7 @@ object WS {
           } else {
             iteratee = null
             // Must close underlying connection, otherwise async http client will drain the stream
-            bodyPart.closeUnderlyingConnection()
+            bodyPart.markUnderlyingConnectionAsClosed()
             STATE.ABORT
           }
         }
