@@ -80,37 +80,32 @@ object NettyResultStreamer {
   def bufferingIteratee(nettyResponse: HttpResponse, maxLength: Long, closeConnection: Boolean,
                         httpVersion: HttpVersion)
                        (implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Boolean] = {
-    val channelBuffer = ChannelBuffers.dynamicBuffer(512)
 
     // Left is the next chunk that didn't fit in our max length, right means we did buffer it successfully
-    def takeUpToMaxLength: Iteratee[Array[Byte], Either[Array[Byte], Unit]] = Cont {
+    def takeUpToMaxLength(chunks: List[Array[Byte]], read: Long): Iteratee[Array[Byte], Either[List[Array[Byte]], List[Array[Byte]]]] = Cont {
       case Input.El(data) =>
-        if (data.length + channelBuffer.readableBytes() > maxLength) {
-          Done(Left(data))
+        if (data.length + read > maxLength) {
+          Done(Left(data :: chunks))
         } else {
-          channelBuffer.writeBytes(data)
-          takeUpToMaxLength
+          takeUpToMaxLength(data :: chunks, read + data.length)
         }
-      case Input.Empty => takeUpToMaxLength
-      case Input.EOF => Done(Right(()))
+      case Input.Empty => takeUpToMaxLength(chunks, read)
+      case Input.EOF => Done(Right((chunks)))
     }
 
-    takeUpToMaxLength.flatMap {
-      case Right(_) => {
+    takeUpToMaxLength(Nil, 0).flatMap {
+      case Right(chunks) => {
+        val buffer = ChannelBuffers.wrappedBuffer(chunks.reverse:_*)
         // We successfully buffered it, so set the content length and send the whole thing as one buffer
-        nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
-        nettyResponse.setContent(channelBuffer)
+        nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
+        nettyResponse.setContent(buffer)
         val promise = NettyPromise(sendDownstream(0, true, nettyResponse))
         Iteratee.flatten(promise.map(_ => Done[Array[Byte], Boolean](closeConnection))(internalExecutionContext))
       }
-      case Left(nextChunk) => {
-        val bufferedAsEnumerator = if (channelBuffer.readableBytes() > 0) {
-          Enumerator(channelBuffer.array().take(channelBuffer.readableBytes()), nextChunk)
-        } else {
-          Enumerator(nextChunk)
-        }
+      case Left(chunks) => {
+        val bufferedAsEnumerator = Enumerator.enumerate(chunks.reverse)
 
-        // Get the iteratee, maybe chunked or mabye not according HTTP version
+        // Get the iteratee, maybe chunked or maybe not according HTTP version
         val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
           simpleResultIteratee(nettyResponse).map(_ => true)(internalExecutionContext)
         } else {
