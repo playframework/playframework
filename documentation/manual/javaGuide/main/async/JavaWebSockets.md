@@ -18,40 +18,7 @@ Until now we were using a simple action method to handle standard HTTP requests 
 
 To handle a WebSocket your method must return a `WebSocket` instead of a `Result`:
 
-```
-public static WebSocket<String> index() {
-  return new WebSocket<String>() {
-      
-    // Called when the Websocket Handshake is done.
-    public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
-      
-      // For each event received on the socket,
-      in.onMessage(new Callback<String>() {
-         public void invoke(String event) {
-             
-           // Log events to the console
-           println(event);  
-             
-         } 
-      });
-      
-      // When the socket is closed.
-      in.onClose(new Callback0() {
-         public void invoke() {
-             
-           println("Disconnected");
-             
-         }
-      });
-      
-      // Send a single 'Hello!' message
-      out.write("Hello!");
-      
-    }
-    
-  }
-}
-```
+@[websocket](code/javaguide/async/JavaWebSockets.java)
 
 A WebSocket has access to the request headers (from the HTTP request that initiates the WebSocket connection) allowing you to retrieve standard headers and session data. But it doesn't have access to any request body, nor to the HTTP response.
 
@@ -63,17 +30,6 @@ It this example, we print each message to console and we send a single **Hello!*
 
 Let’s write another example that totally discards the input data and closes the socket just after sending the **Hello!** message:
 
-```
-public static WebSocket<String> index() {
-  return new WebSocket<String>() {
-      
-    public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
-      out.write("Hello!");
-      out.close();
-    }
-    
-  };
-}
-```
+@[discard-input](code/javaguide/async/JavaWebSockets.java)
 
 > **Next:** [[The template engine | JavaTemplates]]
