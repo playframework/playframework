@@ -87,7 +87,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
       play.libs.F.Promise.pure("").flatMap(new play.libs.F.Function[String, play.libs.F.Promise[JSimpleResult]] {
         def apply(nothing: String) = finalAction.call(javaContext)
-      }).getWrappedPromise.map(result => createResult(javaContext, result))(play.core.Execution.internalContext)
+      }).wrapped.map(result => createResult(javaContext, result))(play.core.Execution.internalContext)
 
     } finally {
       JContext.current.remove()

@@ -484,7 +484,7 @@ public class F {
          * Perform the given <code>action</code> callback if the promise encounters an exception.
          *
          * @param action The action to perform.
-         * @param ec The ExecutionContext to execution the callback in
+         * @param ec The ExecutionContext to execute the callback in.
          */
         public void onFailure(final Callback<Throwable> action, ExecutionContext ec) {
             FPromiseHelper.onFailure(this, action, ec);
