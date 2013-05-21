@@ -2,12 +2,8 @@ package play.it.http
 
 import play.api.mvc.EssentialAction
 import play.core.j.{JavaActionAnnotations, JavaAction}
-<<<<<<< HEAD
-import play.mvc.{ Http, Result}
+import play.mvc.{ Http, Result }
 import play.libs.F.Promise
-=======
-import play.mvc.{Results, Http, Controller, Result}
->>>>>>> master
 
 /**
  * Use this to mock Java actions, eg:
