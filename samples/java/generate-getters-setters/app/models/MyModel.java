@@ -10,30 +10,24 @@ import play.data.validation.*;
 
 import com.avaje.ebean.*;
 
-
 public class MyModel extends Model {
 
-	public String gender;
+	public String firstName;
+	public String lastName;
 	public Integer age;
-	public String lifeStory;
 
-	public Integer getAge() {
+	public String getFirstName() {
 
-		// A lady never ages past 29
-		return 29;
+		System.out.println("inside getFirstName()");
+
+		return "getFirstName()" + firstName;
 	}
 
-	public void setLifeStory(String lifeStory) {
+	public void setLastName(String lastName) {
 
-		if(lifeStory == null) {
-			this.lifeStory = null;
-			return;
-		}
+		System.out.println("inside setLastName()");
 
-		// Don't have all day, give us the short version
-		if(lifeStory.length() > 15)
-			this.lifeStory = lifeStory.substring(0, 15) + "...";
-
+		this.lastName = "setLastName()" + lastName;
 	}
 
 }
