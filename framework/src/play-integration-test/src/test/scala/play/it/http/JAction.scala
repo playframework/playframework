@@ -1,7 +1,7 @@
 package play.it.http
 
 import play.api.mvc.EssentialAction
-import play.core.j.JavaAction
+import play.core.j.{JavaActionAnnotations, JavaAction}
 import play.mvc.{Results, Http, Controller, Result}
 
 /**
@@ -21,8 +21,8 @@ import play.mvc.{Results, Http, Controller, Result}
 object JAction {
   def apply(c: MockController): EssentialAction = {
     new JavaAction {
-      def method = c.getClass.getMethod("action")
-      def controller: Class[_] = c.getClass
+      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
+      val parser = annotations.parser
       def invocation = c.action
     }
   }
