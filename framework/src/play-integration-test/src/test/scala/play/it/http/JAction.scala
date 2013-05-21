@@ -2,8 +2,12 @@ package play.it.http
 
 import play.api.mvc.EssentialAction
 import play.core.j.{JavaActionAnnotations, JavaAction}
+<<<<<<< HEAD
 import play.mvc.{ Http, Result}
 import play.libs.F.Promise
+=======
+import play.mvc.{Results, Http, Controller, Result}
+>>>>>>> master
 
 /**
  * Use this to mock Java actions, eg:
@@ -22,13 +26,9 @@ import play.libs.F.Promise
 object JAction {
   def apply(c: AbstractMockController): EssentialAction = {
     new JavaAction {
-      lazy val annotations = {
-        val controller = c.getClass
-        val method = c.getClass.getMethod("action")
-        new JavaActionAnnotations(controller, method)
-      }
+      val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
+      val parser = annotations.parser
       def invocation = c.invocation
-      def parser = annotations.parser
     }
   }
 }

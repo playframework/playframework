@@ -30,6 +30,8 @@ object BuildSettings {
   val buildSbtMajorVersion = "0.12"
   val buildSbtVersionBinaryCompatible = "0.12"
 
+  lazy val PerformanceTest = config("pt") extend(Test)
+
   val playCommonSettings = Seq(
     organization := buildOrganization,
     version := buildVersion,
@@ -40,7 +42,10 @@ object BuildSettings {
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers,
-    fork in Test := true
+    fork in Test := true,
+    testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
+    testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
+    parallelExecution in PerformanceTest := false
   )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
@@ -48,6 +53,8 @@ object BuildSettings {
       mimaDefaultSettings ++ Seq(previousArtifact := Some("play" % name % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
+      .configs(PerformanceTest)
+      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(bcSettings: _*)
       .settings(
@@ -59,6 +66,8 @@ object BuildSettings {
 
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .configs(PerformanceTest)
+      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
@@ -273,6 +282,6 @@ object PlayBuild extends Build {
       generateAPIDocsTask,
       publish := {},
       generateDistTask
-    ).aggregate(publishedProjects: _*)
-
+    )
+    .aggregate(publishedProjects: _*)
 }

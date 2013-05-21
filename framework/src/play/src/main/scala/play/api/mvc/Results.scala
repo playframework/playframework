@@ -675,11 +675,12 @@ trait Results {
      * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(ec: ExecutionContext): SimpleResult = {
+      val name = fileName(content)
       SimpleResult(
         ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
-          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
-        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName(content)))))),
+          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
         Enumerator.fromFile(content) &> Writeable.wBytes.toEnumeratee &> Enumeratee.onIterateeDone(onClose)(ec)
       )
     }

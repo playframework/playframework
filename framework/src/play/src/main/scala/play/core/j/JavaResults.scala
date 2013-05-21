@@ -45,7 +45,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
   def chunkedStrategy = StreamingStrategy.Chunked()
   def simpleStrategy = StreamingStrategy.Simple
-
+  def sendFile(status: play.api.mvc.Results.Status, file: java.io.File, inline: Boolean, filename: String) = status.sendFile(file, inline, _ => filename)(play.core.Execution.internalContext)
 }
 
 object JavaResultExtractor {
