@@ -29,10 +29,12 @@ class ServerBenchmark {
   // Tests
 
   @Test
-  @PerfTest(threads = 1, invocations = 100000, rampUp = 10000)
-  def makeRequestThatWillFail() {
-    val f = withDefaultUpstreamHandler(SimpleRequest)
-    Await.ready(f, 1 second)
+  @PerfTest(threads = 1, invocations = 500, rampUp = 100)
+  def makeManyRequestsThatWillFail() {
+    for (i <- 1 until 100) {
+      val f = withDefaultUpstreamHandler(SimpleRequest)
+      Await.ready(f, 1 second)
+    }
   }
 
 
