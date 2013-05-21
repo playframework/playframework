@@ -14,15 +14,14 @@ import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
 import org.jboss.netty.handler.codec.http.websocketx._
 import org.jboss.netty.channel.group._
-import java.util.concurrent._
 import play.core._
 import play.core.server.websocket.WebSocketHandshake
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
+import scala.concurrent.{ Future, Promise }
 import scala.concurrent.stm._
 
 private[server] trait WebSocketHandler {
@@ -56,13 +55,13 @@ private[server] trait WebSocketHandler {
                 ctx.getChannel().disconnect();
                 promise.success(next);
                 Play.logger.trace("cleaning for channel " + ctx.getChannel());
-                Promise.pure(next)
+                Future.successful(next)
 
-              case Step.Cont(_) => Promise.pure(next)
-              case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
+              case Step.Cont(_) => Future.successful(next)
+              case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Future.successful(next) }
             }(play.core.Execution.internalContext)
           },
-          (err, e) => /* handle error, maybe close the socket */ Promise.pure(current))(play.core.Execution.internalContext)
+          (err, e) => /* handle error, maybe close the socket */ Future.successful(current))(play.core.Execution.internalContext)
         eventuallyNext.success(next)
       }
     }

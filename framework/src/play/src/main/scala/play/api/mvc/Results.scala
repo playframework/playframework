@@ -2,7 +2,6 @@ package play.api.mvc
 
 import play.core._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent._
 import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
@@ -404,7 +403,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
   })
 
   def unflatten: Future[PlainResult] = result.flatMap {
-    case r: PlainResult => Promise.pure(r)
+    case r: PlainResult => Future.successful(r)
     case r @ AsyncResult(_) => r.unflatten
   }(internalContext)
 
@@ -622,11 +621,12 @@ trait Results {
      * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(ec: ExecutionContext): SimpleResult[Array[Byte]] = {
+      val name = fileName(content)
       SimpleResult(
         header = ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
-          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(content.getName).getOrElse(play.api.http.ContentTypes.BINARY)
-        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName(content)))))),
+          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
         Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(ec)
       )
     }

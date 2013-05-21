@@ -66,6 +66,12 @@
 * **Documentation:** <https://github.com/mchv/play2-cloudfront/blob/master/README.md>
 * **Short description** This module helps to integrate a play application with Cloudfront CDN. 
 
+## Currency Converter (Java)
+
+* **Website:** <https://github.com/blabluble/play-currency-converter-module>
+* **Documentation:** <https://github.com/blabluble/play-currency-converter-module/blob/master/README.md>
+* **Short description:** Currency converter for Play 2.1. It uses web services to get the current exchange rate.
+
 ## Deadbolt 2 Plugin
 * **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
 * **Short description:** Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax

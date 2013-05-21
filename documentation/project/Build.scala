@@ -31,7 +31,7 @@ object ApplicationBuild extends Build {
 
     (compile in Test) <<= Enhancement.enhanceJavaClasses,
 
-    javacOptions += "-g",
+    javacOptions ++= Seq("-g", "-Xlint:deprecation"),
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test, templatesTypes) map { (s, ds, g, t) =>

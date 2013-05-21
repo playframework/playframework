@@ -10,10 +10,10 @@ import java.io._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-/** Application mode, either `DEV` or `PROD`. */
+/** Application mode, either `DEV`, `TEST`, or `PROD`. */
 object Mode extends Enumeration {
   type Mode = Value
-  val Dev, Prod, Test = Value
+  val Dev, Test, Prod = Value
 }
 
 /**

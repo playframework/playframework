@@ -16,7 +16,7 @@ object Dependencies {
     // declare a dependency on the newer version so that ivy can know which one to include
     guava,
 
-    "com.h2database" % "h2" % "1.3.168",
+    "com.h2database" % "h2" % "1.3.171",
 
     "tyrex" % "tyrex" % "1.0.1",
 
@@ -105,7 +105,10 @@ object Dependencies {
     "com.novocode" % "junit-interface" % "0.10-M4" % "test",
 
    ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0" % "test").exclude("org.jboss.netty", "netty").exclude("comm.google.guava","guava"),
-    "org.scala-lang" % "scala-reflect" % "2.10.0")
+    "org.scala-lang" % "scala-reflect" % "2.10.0",
+
+    "org.databene" % "contiperf" % "2.2.0" % "test",
+    "junit" % "junit" % "4.11" % "test")
 
   val link = Seq(
     "org.javassist" % "javassist" % "3.16.1-GA")

@@ -30,6 +30,8 @@ object BuildSettings {
   val buildSbtMajorVersion = "0.12"
   val buildSbtVersionBinaryCompatible = "0.12"
 
+  lazy val PerformanceTest = config("pt") extend(Test)
+
   val playCommonSettings = Seq(
     organization := buildOrganization,
     version := buildVersion,
@@ -39,13 +41,19 @@ object BuildSettings {
     publishTo := Some(publishingMavenRepository),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
-    resolvers ++= typesafeResolvers)
+    resolvers ++= typesafeResolvers,
+    testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
+    testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
+    parallelExecution in PerformanceTest := false
+  )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
       mimaDefaultSettings ++ Seq(previousArtifact := Some("play" % name % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
+      .configs(PerformanceTest)
+      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(bcSettings: _*)
       .settings(
@@ -57,6 +65,8 @@ object BuildSettings {
 
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .configs(PerformanceTest)
+      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
@@ -151,7 +161,7 @@ object PlayBuild extends Build {
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
-    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject, JsonProject)
+    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies := jdbcDeps)
@@ -185,15 +195,16 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := jpaDeps)
     .dependsOn(PlayJavaJdbcProject)
 
-  lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
-    .settings(libraryDependencies := javaDeps)
-    .dependsOn(PlayProject)
-
   lazy val PlayTestProject = PlayRuntimeProject("Play-Test", "play-test")
     .settings(
       libraryDependencies := testDependencies,
       parallelExecution in Test := false
     ).dependsOn(PlayProject)
+
+  lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
+    .settings(libraryDependencies := javaDeps)
+    .dependsOn(PlayProject)
+    .dependsOn(PlayTestProject % "test")
 
   lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
     .settings(
@@ -217,6 +228,9 @@ object PlayBuild extends Build {
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .dependsOn(PlayProject)
 
+  // This project is just for testing Play, not really a public artifact
+  lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
+    .dependsOn(PlayProject, PlayTestProject)
 
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
@@ -253,7 +267,8 @@ object PlayBuild extends Build {
     ConsoleProject,
     PlayTestProject,
     PlayExceptionsProject,
-    PlayFiltersHelpersProject
+    PlayFiltersHelpersProject,
+    PlayIntegrationTestProject
   )
     
   lazy val Root = Project(
@@ -266,6 +281,6 @@ object PlayBuild extends Build {
       generateAPIDocsTask,
       publish := {},
       generateDistTask
-    ).aggregate(publishedProjects: _*)
-
+    )
+    .aggregate(publishedProjects: _*)
 }

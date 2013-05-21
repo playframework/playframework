@@ -1,7 +1,6 @@
 package play.api.test
 
 import scala.language.reflectiveCalls
-import scala.xml.NodeSeq
 
 import play.api._
 import libs.ws.WS
@@ -9,12 +8,14 @@ import play.api.mvc._
 import play.api.http._
 
 import play.api.libs.iteratee._
-import play.api.libs.concurrent._
 import play.api.libs.json.{ Json, JsValue }
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
+
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration.{ Duration, SECONDS }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -130,9 +131,9 @@ object Helpers extends Status with HeaderNames {
   def contentAsBytes(of: Result): Array[Byte] = of match {
     case r @ SimpleResult(_, bodyEnumerator) => {
       var readAsBytes = Enumeratee.map[r.BODY_CONTENT](r.writeable.transform(_)).transform(Iteratee.consume[Array[Byte]]())
-      bodyEnumerator(readAsBytes).flatMap(_.run).value1.get
+      await(bodyEnumerator(readAsBytes).flatMap(_.run))
     }
-    case AsyncResult(p) => contentAsBytes(p.await.get)
+    case AsyncResult(p) => contentAsBytes(await(p))
   }
 
   /**
@@ -145,7 +146,7 @@ object Helpers extends Status with HeaderNames {
    */
   def status(of: Result): Int = of match {
     case PlainResult(status, _) => status
-    case AsyncResult(p) => status(p.await.get)
+    case AsyncResult(p) => status(await(p))
   }
 
   /**
@@ -173,7 +174,7 @@ object Helpers extends Status with HeaderNames {
     case PlainResult(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
     case PlainResult(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
     case PlainResult(_, _) => None
-    case AsyncResult(p) => redirectLocation(p.await.get)
+    case AsyncResult(p) => redirectLocation(await(p))
     case r => sys.error("Cannot extract the headers from a result of type " + r.getClass.getName)
   }
 
@@ -187,7 +188,7 @@ object Helpers extends Status with HeaderNames {
    */
   def headers(of: Result): Map[String, String] = of match {
     case PlainResult(_, headers) => headers
-    case AsyncResult(p) => headers(p.await.get)
+    case AsyncResult(p) => headers(await(p))
   }
 
   /**
@@ -207,10 +208,10 @@ object Helpers extends Status with HeaderNames {
     routes.routes.lift(request).map {
       case a: Action[_] =>
         val action = a.asInstanceOf[Action[T]]
-        val parsedBody: Option[Either[play.api.mvc.Result, T]] = action.parser(request).fold1(
-          (a, in) => Promise.pure(Some(a)),
-          k => Promise.pure(None),
-          (msg, in) => Promise.pure(None))(global).await.get
+        val parsedBody: Option[Either[play.api.mvc.Result, T]] = await(action.parser(request).fold1(
+          (a, in) => Future.successful(Some(a)),
+          k => Future.successful(None),
+          (msg, in) => Future.successful(None))(global))
         parsedBody.map { resultOrT =>
           resultOrT.right.toOption.map { innerBody =>
             action(FakeRequest(request.method, request.uri, request.headers, innerBody))
@@ -287,7 +288,7 @@ object Helpers extends Status with HeaderNames {
   /**
    * Block until a Promise is redeemed with the specified timeout.
    */
-  def await[T](p: scala.concurrent.Future[T], timeout: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): T = p.await(timeout, unit).get
+  def await[T](p: scala.concurrent.Future[T], timeout: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): T = Await.result(p, Duration(timeout, unit))
 
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.

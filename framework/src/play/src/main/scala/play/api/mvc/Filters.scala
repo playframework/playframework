@@ -2,7 +2,7 @@ package play.api.mvc
 
 import play.api._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent._
+import scala.concurrent.Future
 
 /**
  * Implement this interface if you want to add a Filter to your application
@@ -36,7 +36,7 @@ trait Filter extends EssentialFilter {
         val result = self.apply({ (rh: RequestHeader) => it.success(next(rh)); AsyncResult(p.future) })(rh)
         val i = it.future.map(_.map({ r => p.success(r); result })(defaultContext))
         result match {
-          case r: AsyncResult => Iteratee.flatten(r.unflatten.map(Done(_, Input.Empty: Input[Array[Byte]])).or(i).map(_.fold(identity, identity)))
+          case r: AsyncResult => Iteratee.flatten(Future.firstCompletedOf(List(r.unflatten.map(Done(_, Input.Empty: Input[Array[Byte]])), i)))
           case r: PlainResult => Done(r)
         }
       }

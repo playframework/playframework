@@ -7,9 +7,6 @@ import play.console.Colors
 import PlayKeys._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 import sbt.complete.Parsers._
-import scala.Some
-import scala.Left
-import scala.Right
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
@@ -554,8 +551,6 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         println("Here are the resolved dependencies of your application:")
         println()
 
-        import scala.Console._
-
         def asTableRow(module: Map[Symbol, Any]): Seq[(String, String, String, Boolean)] = {
           val formatted = (Seq(module.get('module).map {
             case (org, name, rev) => org + ":" + name + ":" + rev
@@ -589,21 +584,22 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
           def bar(length: Int) = (1 to length).map(_ => "-").mkString
 
-          val lineFormat = "| %-" + (c1Size + 9) + "s | %-" + (c2Size + 9) + "s | %-" + (c3Size + 9) + "s |"
+          val indent = if (Colors.isANSISupported) 9 else 0
+          val lineFormat = "| %-" + (c1Size + indent) + "s | %-" + (c2Size + indent) + "s | %-" + (c3Size + indent) + "s |"
           val separator = "+-%s-+-%s-+-%s-+".format(
             bar(c1Size), bar(c2Size), bar(c3Size))
 
           println(separator)
-          println(lineFormat.format(CYAN + "Module" + RESET, CYAN + "Required by" + RESET, CYAN + "Note" + RESET))
+          println(lineFormat.format(Colors.cyan("Module"), Colors.cyan("Required by"), Colors.cyan("Note")))
           println(separator)
 
           modules.foreach { lines =>
             lines.foreach {
               case (module, caller, note, evicted) => {
                 println(lineFormat.format(
-                  if (evicted) (RED + module + RESET) else (GREEN + module + RESET),
-                  (WHITE + caller + RESET),
-                  if (evicted) (RED + note + RESET) else (WHITE + note + RESET)))
+                  if (evicted) Colors.red(module) else Colors.green(module),
+                  Colors.white(caller),
+                  if (evicted) Colors.red(note) else Colors.white(note)))
               }
             }
             println(separator)

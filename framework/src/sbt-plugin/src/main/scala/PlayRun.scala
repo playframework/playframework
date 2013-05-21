@@ -38,23 +38,29 @@ trait PlayRun extends PlayInternalKeys {
     }
   }
 
-  private def filterArgs(args: Seq[String], defaultPort: Int): (Seq[(String, String)], Int) = {
+  private def filterArgs(args: Seq[String], defaultHttpPort: Int): (Seq[(String, String)], Option[Int], Option[Int]) = {
     val (properties, others) = args.span(_.startsWith("-D"))
+
+    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
+
     // collect arguments plus config file property if present
     val httpPort = Option(System.getProperty("http.port"))
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
-    //port can be defined as a numeric argument, -Dhttp.port argument or a generic sys property
-    val port = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort).map(parsePort).getOrElse(defaultPort)
+    val httpsPort = Option(System.getProperty("https.port"))
 
-    (javaProperties, port)
+    //port can be defined as a numeric argument or as disabled, -Dhttp.port argument or a generic sys property
+    val maybePort = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort)
+    val maybeHttpsPort = javaProperties.toMap.get("https.port").orElse(httpsPort).map(parsePort)
+    if (maybePort.exists(_ == "disabled")) (javaProperties, Option.empty[Int], maybeHttpsPort)
+    else (javaProperties, (maybePort.map(parsePort)).orElse(Some(defaultHttpPort)), maybeHttpsPort)
   }
 
   val playRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
     (argsTask, state) map { (args, state) =>
       val extracted = Project.extract(state)
 
-      // Parse HTTP port argument
-      val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
+      val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
+
+      require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
       // Set Java properties
       properties.foreach {
@@ -134,10 +140,14 @@ trait PlayRun extends PlayInternalKeys {
         lazy val reloader = newReloader(state, playReload, applicationLoader)
 
         val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
-        val mainDev = mainClass.getMethod("mainDev", classOf[SBTLink], classOf[Int])
+        val server = if (httpPort.isDefined) {
+          val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[play.core.SBTLink], classOf[Int])
+          mainDev.invoke(null, reloader, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+        } else {
+          val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[play.core.SBTLink], classOf[Int])
+          mainDev.invoke(null, reloader, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
 
-        // Run in DEV
-        val server = mainDev.invoke(null, reloader, port: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+        }
 
         // Notify hooks
         extracted.get(playOnStarted).foreach(_(server.mainAddress))
@@ -204,7 +214,7 @@ trait PlayRun extends PlayInternalKeys {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
             consoleReader.getTerminal.disableEcho()
-            executeContinuously(w, state, reloader)
+            executeContinuously(w, state, reloader, Some(WatchState.empty))
             consoleReader.getTerminal.enableEcho()
 
             // Remove state two first commands added by sbt ~
@@ -245,7 +255,8 @@ trait PlayRun extends PlayInternalKeys {
     val extracted = Project.extract(state)
 
     // Parse HTTP port argument
-    val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
+    val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
+    require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
     Project.runTask(compile in Compile, state).get._2.toEither match {
       case Left(_) => {
@@ -264,7 +275,7 @@ trait PlayRun extends PlayInternalKeys {
 
           import java.lang.{ ProcessBuilder => JProcessBuilder }
           val builder = new JProcessBuilder(Seq(
-            "java") ++ (properties ++ System.getProperties.asScala).map { case (key, value) => "-D" + key + "=" + value } ++ Seq("-Dhttp.port=" + port, "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
+            "java") ++ (properties ++ System.getProperties.asScala).map { case (key, value) => "-D" + key + "=" + value } ++ Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"), "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
 
           new Thread {
             override def run {
