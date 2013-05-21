@@ -21,7 +21,7 @@ import play.api.mvc.Results.NotModified
  */
 case class Cached(key: RequestHeader => String, duration: Int)(action: EssentialAction)(implicit app: Application) extends EssentialAction {
 
-  def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
+  def apply(request: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
 
     val resultKey = key(request)
     val etagKey = s"$resultKey-etag"
@@ -31,7 +31,7 @@ case class Cached(key: RequestHeader => String, duration: Int)(action: Essential
       requestEtag <- request.headers.get(IF_NONE_MATCH)
       etag <- Cache.getAs[String](etagKey)
       if etag == requestEtag
-    } yield Done[Array[Byte], Result](NotModified)
+    } yield Done[Array[Byte], SimpleResult](NotModified)
 
     notModified.getOrElse {
       // Otherwise try to serve the resource from the cache, if it has not yet expired

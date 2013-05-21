@@ -1,60 +1,58 @@
 package test;
 
 import play.mvc.*;
-import play.*;
 import play.libs.*;
 import play.libs.F.*;
-import play.api.mvc.ChunkedResult;
 import play.api.libs.iteratee.*;
 import org.junit.*;
+
 import static org.junit.Assert.*;
-import java.util.*;
 import static play.test.Helpers.*;
-import java.util.concurrent.atomic.*; 
+
 import java.util.concurrent.*;
 
 class TestController extends Controller {
-  private Comet c;
-  public TestController(Comet c) {
-    this.c = c;
-  }
+    private Comet c;
 
-  public Result liveClock() { 
-    return Results.ok(c);
-  }
+    public TestController(Comet c) {
+        this.c = c;
+    }
+
+    public Result liveClock() {
+        return Results.ok(c);
+    }
 }
 
 public class JavaCometTest {
-  Integer callbackCalled = 0;
 
-  private TestController testController(final Comet c) {
-    return new TestController(c);
-  }
+    private TestController testController(final Comet c) {
+        return new TestController(c);
+    }
 
-  @Test
-  public void onDisconnectedInvoked() {
-    final AtomicInteger callbackCalled = new AtomicInteger(0);
-    final CountDownLatch latch = new CountDownLatch(1);
-    running(fakeApplication(), new Runnable() {
-      public void run() {
-        Comet comet = new Comet("parent.clockChanged") {  
-          public void onConnected() {}
-        };
-        TestController controller = testController(comet);
-        ChunkedResult<Object> result = (ChunkedResult<Object>)controller.liveClock().getWrappedResult();
-        result.chunks().apply(Iteratee$.MODULE$.ignore());
-        comet.onDisconnected(new Callback0() {
-          public void invoke() {
-            callbackCalled.set(1);
-            latch.countDown();
-          }
+    @Test
+    public void onDisconnectedInvoked() throws Exception {
+        final CountDownLatch connected = new CountDownLatch(1);
+        final CountDownLatch disconnected = new CountDownLatch(1);
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                Comet comet = new Comet("parent.clockChanged") {
+                    public void onConnected() {
+                        connected.countDown();
+                        onDisconnected(new Callback0() {
+                            public void invoke() {
+                                disconnected.countDown();
+                            }
+                        });
+                        close();
+                    }
+                };
+                TestController controller = testController(comet);
+                // Consume body
+                ((SimpleResult)controller.liveClock()).getWrappedSimpleResult().body().apply(Iteratee$.MODULE$.<byte[]>ignore());
+            }
         });
-        comet.close();
-        try {
-          latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
-        } catch(Throwable t) {}
-        assertEquals(1, callbackCalled.get());
-      }
-    });
-  } 
+        assertTrue("Connected not invoked", connected.await(5, TimeUnit.SECONDS));
+        assertTrue("Disconnected not invoked", disconnected.await(5, TimeUnit.SECONDS));
+
+    }
 }

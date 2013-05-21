@@ -739,7 +739,7 @@ trait BodyParsers {
     /**
      * A body parser that always returns an error.
      */
-    def error[A](result: Result): BodyParser[A] = BodyParser("error, result=" + result) { request =>
+    def error[A](result: SimpleResult): BodyParser[A] = BodyParser("error, result=" + result) { request =>
       Done(Left(result), Empty)
     }
 
@@ -753,7 +753,7 @@ trait BodyParsers {
     /**
      * Create a conditional BodyParser.
      */
-    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Result): BodyParser[A] = {
+    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => SimpleResult): BodyParser[A] = {
       BodyParser("conditional, wrapping=" + parser.toString) { request =>
         if (predicate(request)) {
           parser(request)

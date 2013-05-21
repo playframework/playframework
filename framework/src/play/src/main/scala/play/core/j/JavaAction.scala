@@ -3,8 +3,11 @@ package play.core.j
 import scala.language.existentials
 
 import play.api.mvc._
-import play.mvc.{ Action => JAction, Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.{ Action => JAction, Result => JResult, SimpleResult => JSimpleResult }
+import play.mvc.Http.{ Context => JContext }
+import play.libs.F.{ Promise => JPromise }
+import scala.concurrent.Future
+import play.libs.F
 
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.
@@ -39,15 +42,22 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
  */
 trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
-  def invocation: JResult
+  def invocation: JPromise[JResult]
   val annotations: JavaActionAnnotations
 
-  def apply(req: Request[play.mvc.Http.RequestBody]): Result = {
+  def apply(req: Request[play.mvc.Http.RequestBody]): Future[SimpleResult] = {
 
     val javaContext = createJavaContext(req)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): JResult = invocation
+      def call(ctx: JContext): JPromise[JSimpleResult] = {
+        invocation.flatMap(new F.Function[JResult, JPromise[JSimpleResult]] {
+          def apply(result: JResult) = result match {
+            case simple: JSimpleResult => JPromise.pure(simple)
+            case async: play.mvc.Results.AsyncResult => async.getPromise
+          }
+        })
+      }
     }
 
     // Wrap into user defined Global action
@@ -72,19 +82,16 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       }
     }
 
-    createResult(javaContext, try {
+    try {
       JContext.current.set(javaContext)
-      play.mvc.Results.async {
-        play.libs.F.Promise.pure("").map(
-          new play.libs.F.Function[String, JResult] {
-            def apply(nothing: String) = finalAction.call(javaContext)
-          }
-        )
-      }
+
+      play.libs.F.Promise.pure("").flatMap(new play.libs.F.Function[String, play.libs.F.Promise[JSimpleResult]] {
+        def apply(nothing: String) = finalAction.call(javaContext)
+      }).wrapped.map(result => createResult(javaContext, result))(play.core.Execution.internalContext)
+
     } finally {
       JContext.current.remove()
-    })
-
+    }
   }
 
 }

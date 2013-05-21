@@ -279,7 +279,7 @@ trait Application {
   /**
    * Handle a runtime error during the execution of an action
    */
-  private[play] def handleError(request: RequestHeader, e: Throwable): Result = try {
+  private[play] def handleError(request: RequestHeader, e: Throwable): SimpleResult = try {
     e match {
       case e: UsefulException => throw e
       case e: Throwable => {

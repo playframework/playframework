@@ -1,6 +1,7 @@
 package play.mvc;
 
 import play.mvc.Http.*;
+import static play.libs.F.Promise;
 
 /**
  * An action acts as decorator for the action method call.
@@ -20,7 +21,7 @@ public abstract class Action<T> extends Results {
     /**
      * Executes this action with the give HTTP context and returns the result.
      */
-    public abstract Result call(Context ctx) throws Throwable;
+    public abstract Promise<SimpleResult> call(Context ctx) throws Throwable;
     
     /**
      * A simple action with no configuration.
