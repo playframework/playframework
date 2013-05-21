@@ -136,8 +136,6 @@ object ScalaRoutingSpec extends Specification {
   }
 
   def contentOf(rh: RequestHeader, router: Router.Routes = Routes) = running(FakeApplication())(contentAsString(router.routes(rh) match {
-    case e: EssentialAction => {
-      AsyncResult(e(rh).run)
-    }
+    case e: EssentialAction => e(rh).run
   }))
 }

@@ -187,34 +187,11 @@ public class SimpleTest {
     @Test
     public void asyncResult() {
 
-        class AsyncTestResult implements Result {
-            private play.api.mvc.Result wrappedResult = null;
-
-            @Override
-            public play.api.mvc.Result getWrappedResult() {
-                return wrappedResult;
-            }
-
-            public AsyncTestResult(Result result) {
-                play.api.mvc.Result wrappedResult = result.getWrappedResult();
-                if (wrappedResult instanceof AsyncResult)
-                    try {
-                    this.wrappedResult = scala.concurrent.Await.result(((AsyncResult) wrappedResult).result(),scala.concurrent.duration.Duration.Inf());
-                    } catch (Exception e){}
-                else
-                    this.wrappedResult = wrappedResult;
-            }
-
-        }
-
         running(fakeApplication(), new Runnable() {
             @Override
             public void run() {
-                Result result = routeAndCall(fakeRequest(
+                Result result = route(fakeRequest(
                         GET, "/async"));
-                assertThat(result.getWrappedResult() instanceof AsyncResult)
-                        .isEqualTo(true);
-                result = new AsyncTestResult(result);
                 assertThat(status(result)).isEqualTo(OK);
                 assertThat(charset(result)).isEqualTo("utf-8");
                 assertThat(contentAsString(result)).isEqualTo("success");

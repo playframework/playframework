@@ -1,5 +1,7 @@
 package play.mvc;
 
+import play.api.libs.iteratee.Concurrent;
+import play.api.libs.iteratee.Enumerator;
 import play.api.mvc.*;
 
 import play.core.j.JavaResults;
@@ -29,9 +31,22 @@ public class Results {
 
     /**
      * Handles an Asynchronous result.
+     *
+     * @deprecated Return Promise&lt;Result&gt; from your action instead
      */
-    public static AsyncResult async(play.libs.F.Promise<Result> p) {
-        return new AsyncResult(p);
+    @Deprecated
+    public static <R extends Result> AsyncResult async(play.libs.F.Promise<R> p) {
+        return new AsyncResult(p.flatMap(new Function<R, play.libs.F.Promise<SimpleResult>>() {
+            @Override
+            public play.libs.F.Promise<SimpleResult> apply(R result) throws Throwable {
+                if (result instanceof AsyncResult) {
+                    return ((AsyncResult)result).promise;
+                } else {
+                    // Must be a simple result
+                    return play.libs.F.Promise.pure((SimpleResult) result);
+                }
+            }
+        }));
     }
 
     // -- Status
@@ -1069,35 +1084,31 @@ public class Results {
      */
     public abstract static class Chunks<A> {
 
-        final scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit> f;
-        final play.api.http.Writeable<A> w;
+        final Enumerator<A> enumerator;
+        final play.api.http.Writeable<A> writable;
 
-        public Chunks(play.api.http.Writeable<A> w) {
+        public Chunks(play.api.http.Writeable<A> writable) {
             final Chunks<A> self = this;
-            this.w = w;
-            f = new scala.runtime.AbstractFunction1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
-                public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
-                    final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
-                    Tuple<play.api.libs.iteratee.Enumerator<A>, play.api.libs.iteratee.Concurrent.Channel<A>> t = play.core.j.JavaResults.chunked(
-                            new scala.runtime.AbstractFunction0<scala.runtime.BoxedUnit>() {
-                                public scala.runtime.BoxedUnit apply() {
-                                    for(Callback0 callback: disconnectedCallbacks) {
-                                        try {
-                                            callback.invoke();
-                                        } catch(Throwable e) {
-                                            play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
-                                        }
-                                    }
-                                    return null;
-                                }
-                            }
-                            );
-                    t._1.apply(iteratee);
-                    Chunks.Out<A> chunked = new Chunks.Out<A>(t._2, disconnectedCallbacks);
+            this.writable = writable;
+            final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
+            this.enumerator = play.core.j.JavaResults.chunked(new Callback<Concurrent.Channel<A>>() {
+                @Override
+                public void invoke(Concurrent.Channel<A> channel) {
+                    Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnectedCallbacks);
                     self.onReady(chunked);
-                    return null;
                 }
-            };
+            }, new Callback0() {
+                @Override
+                public void invoke() throws Throwable {
+                    for(Callback0 callback: disconnectedCallbacks) {
+                        try {
+                            callback.invoke();
+                        } catch(Throwable e) {
+                            play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
+                        }
+                    }
+                }
+            });
         }
 
         /**
@@ -1177,13 +1188,16 @@ public class Results {
 
     /**
      * An asynchronous result.
+     *
+     * @deprecated return Promise&lt;Result&gt; from your actions instead.
      */
+    @Deprecated
     public static class AsyncResult implements Result {
 
-        private final F.Promise<Result> promise;
+        private final F.Promise<SimpleResult> promise;
         private final Http.Context context = Http.Context.current();
 
-        public AsyncResult(F.Promise<Result> promise) {
+        public AsyncResult(F.Promise<SimpleResult> promise) {
             this.promise = promise;
         }
 
@@ -1193,28 +1207,30 @@ public class Results {
          * @param f The transformation function
          * @return The transformed AsyncResult
          */
-        public AsyncResult transform(F.Function<Result, Result> f) {
+        public AsyncResult transform(F.Function<SimpleResult, SimpleResult> f) {
             return new AsyncResult(promise.map(f));
         }
 
-        public play.api.mvc.Result getWrappedResult() {
-            return play.core.j.JavaResults.async(
-                    promise.map(new F.Function<Result,play.api.mvc.Result>() {
-                        public play.api.mvc.Result apply(Result r) {
-                            return play.core.j.JavaHelpers$.MODULE$.createResult(context, r);
-                        }
-                    }).wrapped()
-            );
+        public scala.concurrent.Future<play.api.mvc.SimpleResult> getWrappedResult() {
+            return promise.map(new Function<SimpleResult, play.api.mvc.SimpleResult>() {
+                @Override
+                public play.api.mvc.SimpleResult apply(SimpleResult result) throws Throwable {
+                    return play.core.j.JavaHelpers$.MODULE$.createResult(context, result);
+                }
+            }).wrapped();
         }
 
+        public Promise<SimpleResult> getPromise() {
+            return promise;
+        }
     }
 
     /**
      * A 501 NOT_IMPLEMENTED simple result.
      */
-    public static class Todo implements Result {
+    public static class Todo extends SimpleResult {
 
-        final private play.api.mvc.Result wrappedResult;
+        final private play.api.mvc.SimpleResult wrappedResult;
 
         public Todo() {
             wrappedResult = play.core.j.JavaResults.NotImplemented().apply(
@@ -1223,18 +1239,18 @@ public class Results {
                     );
         }
 
-        public play.api.mvc.Result getWrappedResult() {
+        @Override
+        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
             return this.wrappedResult;
         }
-
     }
 
     /**
      * A simple result.
      */
-    public static class Status implements Result {
+    public static class Status extends SimpleResult {
 
-        private play.api.mvc.PlainResult wrappedResult;
+        private play.api.mvc.SimpleResult wrappedResult;
 
         public Status(play.api.mvc.Results.Status status) {
             wrappedResult = status.apply(
@@ -1277,7 +1293,7 @@ public class Results {
             if(chunks == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(chunks.f, chunks.w);
+            wrappedResult = status.stream(chunks.enumerator, play.core.j.JavaResults.chunkedStrategy(), chunks.writable);
         }
 
         public Status(play.api.mvc.Results.Status status, byte[] content) {
@@ -1310,7 +1326,8 @@ public class Results {
                 throw new NullPointerException("null content");
             }
             wrappedResult = status.stream(
-                    play.core.j.JavaResults.chunked(content, chunkSize), 
+                    play.core.j.JavaResults.chunked(content, chunkSize),
+                    play.core.j.JavaResults.chunkedStrategy(),
                     play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
                     );
         }
@@ -1320,12 +1337,13 @@ public class Results {
                 throw new NullPointerException("null content");
             }
             wrappedResult = status.stream(
-                    play.core.j.JavaResults.chunked(content, chunkSize), 
+                    play.core.j.JavaResults.chunked(content, chunkSize),
+                    play.core.j.JavaResults.chunkedStrategy(),
                     play.core.j.JavaResults.writeBytes()
                     );
         }
 
-        public play.api.mvc.Result getWrappedResult() {
+        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
             return wrappedResult;
         }
 
@@ -1346,18 +1364,17 @@ public class Results {
     /**
      * A redirect result.
      */
-    public static class Redirect implements Result {
+    public static class Redirect extends SimpleResult {
 
-        final private play.api.mvc.Result wrappedResult;
+        final private play.api.mvc.SimpleResult wrappedResult;
 
         public Redirect(int status, String url) {
             wrappedResult = play.core.j.JavaResults.Redirect(url, status);
         }
 
-        public play.api.mvc.Result getWrappedResult() {
+        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
             return this.wrappedResult;
         }
 
     }
-
 }

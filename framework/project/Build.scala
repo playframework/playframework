@@ -42,6 +42,7 @@ object BuildSettings {
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers,
+    fork in Test := true,
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
     parallelExecution in PerformanceTest := false

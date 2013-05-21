@@ -145,12 +145,30 @@ object Router {
 
   object HandlerInvoker {
 
+    import play.libs.F.{ Promise => JPromise }
+    import play.mvc.{ Result => JResult }
+
     implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
       def call(call: => A, handler: HandlerDef): Handler = call
     }
 
-    implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
-      def call(call: => play.mvc.Result, handlerDef: HandlerDef) = {
+    implicit def wrapJava: HandlerInvoker[JResult] = new HandlerInvoker[JResult] {
+      def call(call: => JResult, handlerDef: HandlerDef) = {
+        new {
+          val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
+            val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
+            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+            new JavaActionAnnotations(controller, method)
+          })
+        } with play.core.j.JavaAction {
+          val parser = annotations.parser
+          def invocation = JPromise.pure(call)
+        }
+      }
+    }
+
+    implicit def wrapJavaPromise: HandlerInvoker[JPromise[JResult]] = new HandlerInvoker[JPromise[JResult]] {
+      def call(call: => JPromise[JResult], handlerDef: HandlerDef) = {
         new {
           val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
             val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)

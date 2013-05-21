@@ -6,14 +6,11 @@ package scalaguide.http.scalaactionscomposition {
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
-  import play.api.libs.json._
-  import play.api.libs.iteratee.Enumerator
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import play.api.http.HeaderNames
   import play.api.Logger
-  import play.api.mvc.Controller
   import play.api.mvc._
+  import scala.concurrent.Future
 
   case class User(name: String)
   object User {
@@ -100,7 +97,7 @@ package scalaguide.http.scalaactionscomposition {
 
         //#actions-def-wrapping
         def Logging[A](action: Action[A]): Action[A] = {
-          Action(action.parser) { request =>
+          Action.async(action.parser) { request =>
             Logger.info("Calling action")
             action(request)
           }
@@ -118,13 +115,7 @@ package scalaguide.http.scalaactionscomposition {
 
       "Wrapping existing actions addSessionVar" in {
 
-        //#actions-def-addSessionVar
-        def addSessionVar[A](action: Action[A]) = Action(action.parser) { request =>
-          action(request).withSession("foo" -> "bar")
-        }
-        //#actions-def-addSessionVar
-
-        def index = addSessionVar {
+        val index = full.outsideOfSpecs.addSessionVar {
           Action {
             Ok("Hello World")
           }
@@ -276,9 +267,9 @@ package scalaguide.http.scalaactionscomposition {
       assertAction(action, request, expectedResponse) { result => }
     }
 
-    def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Result => Unit) {
+    def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
-        val result = AsyncResult(action(request).run)
+        val result = action(request).run
         status(result) must_== expectedResponse
         assertions(result)
       }
@@ -291,11 +282,12 @@ package scalaguide.http.scalaactionscomposition.full {
 
   import play.api.Logger
   import play.api.mvc._
+  import scala.concurrent.Future
 
-  //#actions-class-wrapping
+//#actions-class-wrapping
   case class Logging[A](action: Action[A]) extends Action[A] {
 
-    def apply(request: Request[A]): Result = {
+    def apply(request: Request[A]): Future[SimpleResult] = {
       Logger.info("Calling action")
       action(request)
     }
@@ -308,15 +300,25 @@ package scalaguide.http.scalaactionscomposition.full {
     val ??? = null
 
     //#Source-Code-Action
-    trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result])
+    trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], SimpleResult])
 
     trait Action[A] extends EssentialAction {
       def parser: BodyParser[A]
-      def apply(request: Request[A]): Result
-      def apply(headers: RequestHeader): Iteratee[Array[Byte], Result] = ???
+      def apply(request: Request[A]): Future[SimpleResult]
+      def apply(request: RequestHeader): Iteratee[Array[Byte], SimpleResult] = ???
     }
     //#Source-Code-Request
 
+  }
+
+  object outsideOfSpecs {
+    //#actions-def-addSessionVar
+    import play.api.libs.concurrent.Execution.Implicits._
+
+    def addSessionVar[A](action: Action[A]) = Action.async(action.parser) { request =>
+      action(request).map(_.withSession("foo" -> "bar"))
+    }
+    //#actions-def-addSessionVar
   }
 }
  

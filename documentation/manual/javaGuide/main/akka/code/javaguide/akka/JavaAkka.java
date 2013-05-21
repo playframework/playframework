@@ -55,8 +55,7 @@ public class JavaAkka extends WithApplication {
     public void ask() throws Exception {
         Akka.system().actorOf(new Props(EchoActor.class), "my-actor");
         Result result = MockJavaAction.call(new MockJavaAction() {
-            @Override
-            public Result invocation() {
+            public Result index() {
                 return javaguide.akka.ask.Application.index();
             }
         }, Helpers.fakeRequest());
@@ -73,8 +72,7 @@ public class JavaAkka extends WithApplication {
     @Test
     public void async() throws Exception {
         Result result = MockJavaAction.call(new MockJavaAction() {
-            @Override
-            public Result invocation() {
+            public Result index() {
                 return javaguide.akka.async.Application.index();
             }
         }, Helpers.fakeRequest());
