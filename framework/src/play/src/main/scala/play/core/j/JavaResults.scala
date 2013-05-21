@@ -34,6 +34,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   //play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] = Enumerator.fromStream(stream, chunkSize)
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
+  def sendFile(status: play.api.mvc.Results.Status, file: java.io.File, inline: Boolean, filename: String) = status.sendFile(file, inline, _ => filename)(play.core.Execution.internalContext)
 }
 object JavaResultExtractor {
 

@@ -2,6 +2,7 @@ package play.mvc;
 
 import play.api.mvc.*;
 
+import play.core.j.JavaResults;
 import play.libs.*;
 import play.libs.F.*;
 
@@ -109,7 +110,7 @@ public class Results {
      * Generates a chunked result.
      */
     public static Status status(int status, File content) {
-        return status(status, content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Status(status), content);
     }
 
     /**
@@ -199,15 +200,40 @@ public class Results {
     }
 
     /**
-     * Generates a 200 OK chunked result.
+     * Generates a 200 OK file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status ok(File content) {
-        return ok(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Ok(), content);
     }
 
     /**
-     * Generates a 200 OK simple result.
+     * Generates a 200 OK file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status ok(File content, boolean inline) {
+        return new Status(JavaResults.Ok(), content, inline);
+    }
+
+    /**
+     * Generates a 200 OK file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status ok(File content, String filename) {
+        return new Status(JavaResults.Ok(), content, true, filename);
+    }
+
+    /**
+     * Generates a 200 OK file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status ok(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Ok(), content, chunkSize);
     }
@@ -292,15 +318,40 @@ public class Results {
     }
 
     /**
-     * Generates a 201 CREATED chunked result.
+     * Generates a 201 CREATED file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status created(File content) {
-        return created(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Created(), content);
     }
 
     /**
-     * Generates a 201 CREATED simple result.
+     * Generates a 201 CREATED file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status created(File content, boolean inline) {
+        return new Status(JavaResults.Created(), content, inline);
+    }
+
+    /**
+     * Generates a 201 CREATED file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status created(File content, String filename) {
+        return new Status(JavaResults.Created(), content, true, filename);
+    }
+
+    /**
+     * Generates a 201 CREATED file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status created(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Created(), content, chunkSize);
     }
@@ -394,15 +445,40 @@ public class Results {
     }
 
     /**
-     * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
+     * Generates a 500 INTERNAL_SERVER_ERROR file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status internalServerError(File content) {
-        return internalServerError(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.InternalServerError(), content);
     }
 
     /**
-     * Generates a 500 INTERNAL_SERVER_ERROR simple result.
+     * Generates a 500 INTERNAL_SERVER_ERROR file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status internalServerError(File content, boolean inline) {
+        return new Status(JavaResults.InternalServerError(), content, inline);
+    }
+
+    /**
+     * Generates a 500 INTERNAL_SERVER_ERROR file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status internalServerError(File content, String filename) {
+        return new Status(JavaResults.InternalServerError(), content, true, filename);
+    }
+
+    /**
+     * Generates a 500 INTERNAL_SERVER_ERROR file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status internalServerError(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, chunkSize);
     }
@@ -487,15 +563,40 @@ public class Results {
     }
 
     /**
-     * Generates a 404 NOT_FOUND chunked result.
+     * Generates a 404 NOT_FOUND file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status notFound(File content) {
-        return notFound(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.NotFound(), content);
     }
 
     /**
-     * Generates a 404 NOT_FOUND simple result.
+     * Generates a 404 NOT_FOUND file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status notFound(File content, boolean inline) {
+        return new Status(JavaResults.NotFound(), content, inline);
+    }
+
+    /**
+     * Generates a 404 NOT_FOUND file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status notFound(File content, String filename) {
+        return new Status(JavaResults.NotFound(), content, true, filename);
+    }
+
+    /**
+     * Generates a 404 NOT_FOUND file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status notFound(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.NotFound(), content, chunkSize);
     }
@@ -580,15 +681,40 @@ public class Results {
     }
 
     /**
-     * Generates a 403 FORBIDDEN chunked result.
+     * Generates a 403 FORBIDDEN file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status forbidden(File content) {
-        return forbidden(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Forbidden(), content);
     }
 
     /**
-     * Generates a 403 FORBIDDEN simple result.
+     * Generates a 403 FORBIDDEN file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status forbidden(File content, boolean inline) {
+        return new Status(JavaResults.Forbidden(), content, inline);
+    }
+
+    /**
+     * Generates a 403 FORBIDDEN file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status forbidden(File content, String filename) {
+        return new Status(JavaResults.Forbidden(), content, true, filename);
+    }
+
+    /**
+     * Generates a 403 FORBIDDEN file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status forbidden(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, chunkSize);
     }
@@ -673,15 +799,40 @@ public class Results {
     }
 
     /**
-     * Generates a 401 UNAUTHORIZED chunked result.
+     * Generates a 401 UNAUTHORIZED file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status unauthorized(File content) {
-        return unauthorized(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Unauthorized(), content);
     }
 
     /**
-     * Generates a 401 UNAUTHORIZED simple result.
+     * Generates a 401 UNAUTHORIZED file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status unauthorized(File content, boolean inline) {
+        return new Status(JavaResults.Unauthorized(), content, inline);
+    }
+
+    /**
+     * Generates a 401 UNAUTHORIZED file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status unauthorized(File content, String filename) {
+        return new Status(JavaResults.Unauthorized(), content, true, filename);
+    }
+
+    /**
+     * Generates a 401 UNAUTHORIZED file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status unauthorized(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, chunkSize);
     }
@@ -766,15 +917,40 @@ public class Results {
     }
 
     /**
-     * Generates a 400 BAD_REQUEST chunked result.
+     * Generates a 400 BAD_REQUEST file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status badRequest(File content) {
-        return badRequest(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.BadRequest(), content);
     }
 
     /**
-     * Generates a 400 BAD_REQUEST simple result.
+     * Generates a 400 BAD_REQUEST file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status badRequest(File content, boolean inline) {
+        return new Status(JavaResults.BadRequest(), content, inline);
+    }
+
+    /**
+     * Generates a 400 BAD_REQUEST file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status badRequest(File content, String filename) {
+        return new Status(JavaResults.BadRequest(), content, true, filename);
+    }
+
+    /**
+     * Generates a 400 BAD_REQUEST file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status badRequest(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, chunkSize);
     }
@@ -1112,6 +1288,21 @@ public class Results {
                     content,
                     play.core.j.JavaResults.writeBytes()
                     );
+        }
+
+        public Status(play.api.mvc.Results.Status status, File content) {
+            this(status, content, false);
+        }
+
+        public Status(play.api.mvc.Results.Status status, File content, boolean inline) {
+            this(status, content, inline, content.getName());
+        }
+
+        public Status(play.api.mvc.Results.Status status, File content, boolean inline, String filename) {
+            if(content == null) {
+                throw new NullPointerException("null content");
+            }
+            wrappedResult = play.core.j.JavaResults.sendFile(status, content, inline, filename);
         }
 
         public Status(play.api.mvc.Results.Status status, File content, int chunkSize) {
