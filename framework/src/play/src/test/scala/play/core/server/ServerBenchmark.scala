@@ -29,7 +29,7 @@ class ServerBenchmark {
   // Tests
 
   @Test
-  @PerfTest(threads = 1, duration = 5000, warmUp = 4000)
+  @PerfTest(threads = 1, duration = 35000, warmUp = 30000)
   def makeManyRequestsThatWillFail() {
     for (i <- 1 until 100) {
       val f = withDefaultUpstreamHandler(SimpleRequest)
