@@ -37,9 +37,18 @@ public class ApplicationTest {
     
     @Test
     public void renderTemplate() {
-        Content html = views.html.index.render(new MyModel());
+
+        MyModel model = new MyModel();
+        model.firstName = "Guillaume";
+        model.lastName = "Bort";
+        model.age = 30;
+
+        Content html = views.html.index.render(model);
         assertThat(contentType(html)).isEqualTo("text/html");
-        assertThat(contentAsString(html)).contains("Your new application is ready.");
+
+        // Verify that the model getters and setters are being called
+        assertThat(contentAsString(html)).contains("inside MyModel.getFirstName()");
+        assertThat(contentAsString(html)).contains("inside MyModel.setLastName()");
     }
   
    

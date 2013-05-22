@@ -18,16 +18,16 @@ public class MyModel extends Model {
 
 	public String getFirstName() {
 
-		System.out.println("inside getFirstName()");
+		System.out.println("inside MyModel.getFirstName()");
 
-		return "getFirstName()" + firstName;
+		return "inside MyModel.getFirstName()" + firstName;
 	}
 
 	public void setLastName(String lastName) {
 
-		System.out.println("inside setLastName()");
+		System.out.println("inside MyModel.setLastName()");
 
-		this.lastName = "setLastName()" + lastName;
+		this.lastName = "inside MyModel.setLastName()" + lastName;
 	}
 
 }
