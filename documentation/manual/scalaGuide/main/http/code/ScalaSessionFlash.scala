@@ -4,11 +4,9 @@ package scalaguide.http.scalasessionflash {
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
-  import play.api.libs.json._
-  import play.api.libs.iteratee.Enumerator
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import play.api.http.HeaderNames
+  import scala.concurrent.Future
 
   @RunWith(classOf[JUnitRunner])
   class ScalaSessionFlashSpec extends Specification with Controller {
@@ -49,7 +47,7 @@ package scalaguide.http.scalasessionflash {
           //#store-session
         }
 
-        assertAction(storeSession, OK, FakeRequest())(res => testSession(res.asInstanceOf[PlainResult], "connected", Some("user@gmail.com")))
+        assertAction(storeSession, OK, FakeRequest())(res => testSession(res, "connected", Some("user@gmail.com")))
       }
 
       "add data in the Session" in {
@@ -60,7 +58,7 @@ package scalaguide.http.scalasessionflash {
           //#add-session
         }
 
-        assertAction(addSession, OK, FakeRequest())(res => testSession(res.asInstanceOf[PlainResult], "saidHello", Some("yes")))
+        assertAction(addSession, OK, FakeRequest())(res => testSession(res, "saidHello", Some("yes")))
       }
 
       "remove data in the Session" in {
@@ -71,7 +69,7 @@ package scalaguide.http.scalasessionflash {
           //#remove-session
         }
 
-        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(res => testSession(res.asInstanceOf[PlainResult], "theme", None))
+        assertAction(removeSession, OK, FakeRequest().withSession("theme" -> "blue"))(res => testSession(res, "theme", None))
       }
 
       "Discarding the whole session" in {
@@ -80,7 +78,7 @@ package scalaguide.http.scalasessionflash {
           Ok("Bye").withNewSession
           //#discarding-session
         }
-        assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(res => testSession(res.asInstanceOf[PlainResult], "theme", None))
+        assertAction(discardingSession, OK, FakeRequest().withSession("theme" -> "blue"))(res => testSession(res, "theme", None))
       }
 
       "get from flash" in {
@@ -97,7 +95,7 @@ package scalaguide.http.scalasessionflash {
         }
         //#using-flash
         assertAction(index, OK, FakeRequest().withFlash("success" -> "success!"))(res => contentAsString(res) must contain("success!"))
-        assertAction(save, SEE_OTHER, FakeRequest())(res => testFlash(res.asInstanceOf[PlainResult], "success", Some("The item has been created")))
+        assertAction(save, SEE_OTHER, FakeRequest())(res => testFlash(res, "success", Some("The item has been created")))
       }
 
       "fix could not find implicit value for parameter flash" in {
@@ -112,17 +110,17 @@ package scalaguide.http.scalasessionflash {
 
     }
 
-    def testFlash(results: PlainResult, key: String, value: Option[String]) = {
+    def testFlash(results: Future[SimpleResult], key: String, value: Option[String]) = {
       val flash = Helpers.flash(results)
       flash.get(key) === value
     }
 
-    def testSession(results: PlainResult, key: String, value: Option[String]) = {
+    def testSession(results: Future[SimpleResult], key: String, value: Option[String]) = {
       val session = Helpers.session(results)
       session.get(key) === value
     }
 
-    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: => Request[A] = FakeRequest())(assertions: Result => Unit) {
+    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: => Request[A] = FakeRequest())(assertions: Future[SimpleResult] => Unit) {
       val fakeApp = FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))
       running(fakeApp) {
         val result = action(request)

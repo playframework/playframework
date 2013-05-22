@@ -94,7 +94,7 @@ trait GlobalSettings {
    * @param ex The exception
    * @return The result to send to the client
    */
-  def onError(request: RequestHeader, ex: Throwable): Result = {
+  def onError(request: RequestHeader, ex: Throwable): SimpleResult = {
     try {
       InternalServerError(Play.maybeApplication.map {
         case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
@@ -121,7 +121,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onHandlerNotFound(request: RequestHeader): Result = {
+  def onHandlerNotFound(request: RequestHeader): SimpleResult = {
     NotFound(Play.maybeApplication.map {
       case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
@@ -136,7 +136,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onBadRequest(request: RequestHeader, error: String): Result = {
+  def onBadRequest(request: RequestHeader, error: String): SimpleResult = {
     BadRequest(views.html.defaultpages.badRequest(request, error))
   }
 

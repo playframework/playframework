@@ -8,6 +8,6 @@ public interface Result {
     /**
      * Retrieves the real (Scala-based) result.
      */
-    play.api.mvc.Result getWrappedResult();
+    scala.concurrent.Future<play.api.mvc.SimpleResult> getWrappedResult();
     
 }

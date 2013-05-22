@@ -47,7 +47,7 @@ trait Server {
 
   def mode: Mode.Mode
 
-  def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
+  def getHandlerFor(request: RequestHeader): Either[SimpleResult, (Handler, Application)] = {
 
     import scala.util.control.Exception
 
@@ -81,7 +81,7 @@ trait Server {
     }
 
     Exception
-      .allCatch[Option[Result]]
+      .allCatch[Option[SimpleResult]]
       .either(applicationProvider.handleWebCommand(request))
       .left.map(logExceptionAndGetResult)
       .right.flatMap(maybeResult => maybeResult.toLeft(())).right.flatMap { _ =>

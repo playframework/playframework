@@ -7,7 +7,7 @@ import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import play.api.test._
 import play.api.test.Helpers._
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 import play.api.libs.Comet
 
 object ScalaCometSpec extends Specification with Controller {
@@ -79,19 +79,7 @@ object ScalaCometSpec extends Specification with Controller {
 
   }
 
-  def cometMessages(result: Result):Seq[String] = {
-    result match {
-      case AsyncResult(future) => cometMessages(await(future))
-      case ChunkedResult(h, chunks) => {
-        val msgs = ListBuffer[String]()
-        val done = Promise[Unit]
-        val collect = Iteratee.foreach[Any] { chunk =>
-          msgs.append(chunk.toString)
-        }(scala.concurrent.ExecutionContext.Implicits.global).map{_ => done.success(()); ()}(scala.concurrent.ExecutionContext.Implicits.global)
-        chunks(collect)
-        await(done.future)
-        msgs
-      }
-    }
+  def cometMessages(result: Future[SimpleResult]):Seq[String] = {
+    await(await(result).body |>>> Iteratee.getChunks).map(bytes => new String(bytes))
   }
 }

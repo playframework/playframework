@@ -5,10 +5,9 @@ package scalaguide.http.scalacontentnegotiation {
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
   import play.api.libs.json._
-  import play.api.libs.iteratee.Enumerator
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import play.api.http.HeaderNames
+  import scala.concurrent.Future
 
   @RunWith(classOf[JUnitRunner])
   class ScalaContentNegotiation extends Specification with Controller {
@@ -52,7 +51,7 @@ package scalaguide.http.scalacontentnegotiation {
 
     }
 
-    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Result => Unit) {
+    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[SimpleResult] => Unit) {
       running(FakeApplication()) {
         val result = action(request)
         status(result) must_== expectedResponse

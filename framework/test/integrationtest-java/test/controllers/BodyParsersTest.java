@@ -16,7 +16,6 @@ public class BodyParsersTest {
     public void testJson() {
         JsonNode json = createJson(100);
         WS.Response response = runJsonTest(json, "/parsers/json");
-        System.out.println(response.getBodyAsStream());
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat((Object) response.asJson()).isEqualTo(json);
     }

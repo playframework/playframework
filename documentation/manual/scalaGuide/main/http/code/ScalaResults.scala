@@ -4,11 +4,10 @@ package scalaguide.http.scalaresults {
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
-  import play.api.libs.json._
-  import play.api.libs.iteratee.Enumerator
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
   import play.api.http.HeaderNames
+  import scala.concurrent.Future
 
   @RunWith(classOf[JUnitRunner])
   class ScalaResultsSpec extends Specification with Controller {
@@ -65,7 +64,7 @@ package scalaguide.http.scalaresults {
 
       "Changing the charset for text based HTTP responses" in {
         val index = scalaguide.http.scalaresults.full.Application.index
-        assertAction(index)(res => testContentType(res.asInstanceOf[PlainResult], "charset=iso-8859-1"))
+        assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
       }
 
        "HTML method works" in {
@@ -74,11 +73,11 @@ package scalaguide.http.scalaresults {
       }
     }
 
-    def testContentType(results: PlainResult, contentType: String) = {
+    def testContentType(results: SimpleResult, contentType: String) = {
       testHeader(results, HeaderNames.CONTENT_TYPE, contentType)
     }
 
-    def testHeader(results: PlainResult, key: String, value: String) = {
+    def testHeader(results: SimpleResult, key: String, value: String) = {
       results.header.headers.get(key).get must contain(value)
     }
 
@@ -86,7 +85,7 @@ package scalaguide.http.scalaresults {
       assertAction(action, expectedResponse, request) { result => }
     }
 
-    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Result => Unit) {
+    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[SimpleResult] => Unit) {
       running(FakeApplication()) {
         val result = action(request)
         status(result) must_== expectedResponse

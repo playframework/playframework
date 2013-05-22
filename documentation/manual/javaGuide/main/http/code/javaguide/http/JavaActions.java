@@ -1,6 +1,7 @@
 package javaguide.http;
 
 import org.junit.Test;
+import play.libs.F;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -52,8 +53,8 @@ public class JavaActions extends WithApplication {
         }
         //#params-action
 
-        public Result invocation() {
-            return index("world");
+        public F.Promise<Result> invocation() {
+            return F.Promise.pure(index("world"));
         }
     }
 

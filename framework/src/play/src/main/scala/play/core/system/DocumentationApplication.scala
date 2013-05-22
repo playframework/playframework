@@ -14,7 +14,7 @@ import server.NettyServer
  */
 class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
 
-  def maybeHandleDocumentationRequest(request: RequestHeader): Option[Result] = {
+  def maybeHandleDocumentationRequest(request: RequestHeader): Option[SimpleResult] = {
 
     import play.api.mvc.Results._
 

@@ -4,11 +4,9 @@ package scalaguide.http.scalabodyparsers {
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
-  import play.api.libs.json._
-  import play.api.libs.iteratee.Enumerator
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import play.api.http.HeaderNames
+  import scala.concurrent.Future
   import java.io.File
 
   @RunWith(classOf[JUnitRunner])
@@ -106,9 +104,9 @@ package scalaguide.http.scalabodyparsers {
       assertAction(action, request, expectedResponse) { result => }
     }
 
-    def assertAction[A](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Result => Unit) {
+    def assertAction[A](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {        
-        val result = AsyncResult(action(request).run)
+        val result = action(request).run
         status(result) must_== expectedResponse
         assertions(result)
       }

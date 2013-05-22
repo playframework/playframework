@@ -1,5 +1,6 @@
 package play.db.ebean;
 
+import play.libs.F;
 import play.mvc.*;
 import play.mvc.Http.*;
 
@@ -10,9 +11,9 @@ import com.avaje.ebean.*;
  */
 public class TransactionalAction extends Action<Transactional> {
     
-    public Result call(final Context ctx) throws Throwable {
-        return Ebean.execute(new TxCallable<Result>() {  
-            public Result call() {
+    public F.Promise<SimpleResult> call(final Context ctx) throws Throwable {
+        return Ebean.execute(new TxCallable<F.Promise<SimpleResult>>() {
+            public F.Promise<SimpleResult> call() {
                 try {
                     return delegate.call(ctx);
                 } catch(RuntimeException e) {

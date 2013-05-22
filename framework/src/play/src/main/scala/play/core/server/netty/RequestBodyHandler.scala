@@ -21,24 +21,24 @@ private[server] trait RequestBodyHandler {
    * @param finish a function to handle the de-registration of the handler i.e. when the chunked request is complete.
    * @return a future of an iteratee that will return the result.
    */
-  def newRequestBodyUpstreamHandler(firstIteratee: Iteratee[Array[Byte], Result],
+  def newRequestBodyUpstreamHandler(firstIteratee: Iteratee[Array[Byte], SimpleResult],
     start: SimpleChannelUpstreamHandler => Unit,
-    finish: => Unit): Future[Iteratee[Array[Byte], Result]] = {
+    finish: => Unit): Future[Iteratee[Array[Byte], SimpleResult]] = {
 
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
-    var p = Promise[Iteratee[Array[Byte], Result]]()
+    var p = Promise[Iteratee[Array[Byte], SimpleResult]]()
     val MaxMessages = 10
     val MinMessages = 10
     val counter = Ref(0)
 
-    var iteratee: Ref[Iteratee[Array[Byte], Result]] = Ref(firstIteratee)
+    var iteratee: Ref[Iteratee[Array[Byte], SimpleResult]] = Ref(firstIteratee)
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
       if (counter.single.transformAndGet { _ + 1 } > MaxMessages && ctx.getChannel.isOpen() && !p.isCompleted)
         ctx.getChannel.setReadable(false)
 
-      val itPromise = Promise[Iteratee[Array[Byte], Result]]()
+      val itPromise = Promise[Iteratee[Array[Byte], SimpleResult]]()
       val current = atomic { implicit txn =>
         if (!p.isCompleted)
           Some(iteratee.single.swap(Iteratee.flatten(itPromise.future)))
@@ -60,13 +60,13 @@ private[server] trait RequestBodyHandler {
         }
       }
 
-      def continue(it: Iteratee[Array[Byte], Result]) {
+      def continue(it: Iteratee[Array[Byte], SimpleResult]) {
         if (counter.single.transformAndGet { _ - 1 } <= MinMessages && ctx.getChannel.isOpen())
           ctx.getChannel.setReadable(true)
         itPromise.success(it)
       }
 
-      def finish(it: Iteratee[Array[Byte], Result]) {
+      def finish(it: Iteratee[Array[Byte], SimpleResult]) {
         if (!p.trySuccess(it)) {
           iteratee = null; p = null;
           if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
