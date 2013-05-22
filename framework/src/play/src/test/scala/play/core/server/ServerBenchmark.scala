@@ -14,12 +14,15 @@ import scala.language.postfixOps
 import play.core.server.netty.PlayDefaultUpstreamHandler
 import com.typesafe.netty.http.pipelining.OrderedUpstreamMessageEvent
 import org.jboss.netty.channel._
-import play.core.ApplicationProvider
-import play.api.{DefaultApplication, Application, Mode}
+import play.core._
+import play.api.{Play, DefaultApplication, Application, Mode}
 import java.io.File
-import java.net.SocketAddress
-import org.jboss.netty.channel.local.LocalAddress
+import java.net.{InetSocketAddress, SocketAddress}
 import org.databene.contiperf.report.CSVSummaryReportModule
+import play.core.Router.{HandlerDef, Route, Routes}
+import play.core.PathPattern
+import play.core.StaticPart
+import play.api.mvc.{Action, Controller, Handler, RequestHeader}
 
 /**
  * Exercises the performance of Play given the exclusion of Netty. Results from these tests can be captured and tracked.
@@ -30,7 +33,7 @@ class ServerBenchmark {
 
   @Test
   @PerfTest(threads = 1, duration = 35000, warmUp = 30000)
-  def makeManyRequestsThatWillFail() {
+  def makeHelloWordRequest() {
     for (i <- 1 until 100) {
       val f = withDefaultUpstreamHandler(SimpleRequest)
       Await.ready(f, 2 seconds)
@@ -70,7 +73,54 @@ class ServerBenchmark {
   SimpleRequest.addHeader("Accept-Language", "en-US,en;q=0.5")
   SimpleRequest.addHeader("Connection", "keep-alive")
 
-  val application = new DefaultApplication(new File("."), this.getClass.getClassLoader, None, Mode.Test)
+  object HelloWorldApp extends Controller {
+    def helloWorld = Action {
+      Ok("Hello World!")
+    }
+  }
+
+  object Routes extends Router.Routes {
+
+    private var _prefix = "/"
+
+    def setPrefix(prefix: String) {
+      _prefix = prefix
+      List[(String, Routes)]().foreach {
+        case (p, router) => router.setPrefix(prefix + (if (prefix.endsWith("/")) "" else "/") + p)
+      }
+    }
+
+    def prefix = _prefix
+
+    lazy val defaultPrefix = {
+      if (Routes.prefix.endsWith("/")) "" else "/"
+    }
+
+    private[this] lazy val hello_world = Route("GET", PathPattern(List(StaticPart(Routes.prefix))))
+
+    def documentation = List(( """GET""", prefix, """hello_world""")).foldLeft(List.empty[(String, String, String)]) {
+      (s, e) => e.asInstanceOf[Any] match {
+        case r@(_, _, _) => s :+ r.asInstanceOf[(String, String, String)]
+        case l => s ++ l.asInstanceOf[List[(String, String, String)]]
+      }
+    }
+
+    def routes: PartialFunction[RequestHeader, Handler] = {
+      case hello_world(params) => {
+        call {
+          invokeHandler(HelloWorldApp.helloWorld, HandlerDef(this, "hello_world", "index", Nil, "GET", """ Home page""", Routes.prefix + """"""))
+        }
+      }
+
+    }
+
+  }
+
+  val application = new DefaultApplication(new File("."), this.getClass.getClassLoader, None, Mode.Test) {
+    override protected def loadRoutes: Option[Router.Routes] = Some(Routes)
+  }
+
+  Play.start(application)
 
   val ap = new ApplicationProvider {
     def get: Either[Throwable, Application] = Right(application)
@@ -112,7 +162,7 @@ class ServerBenchmark {
   }
 
   val channel = new Channel {
-    val remoteAddress = new LocalAddress(0)
+    val remoteAddress = new InetSocketAddress(8080)
 
     def getId: Integer = ???
 
