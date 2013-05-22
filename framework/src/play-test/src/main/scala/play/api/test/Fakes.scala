@@ -54,12 +54,15 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   lazy val queryString: Map[String, Seq[String]] = play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
 
   /**
-   * Constructs a new request with additional headers.
+   * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = FakeHeaders(
-      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2)).toSeq
-    ))
+    _copy(headers = FakeHeaders({
+      val newData = newHeaders.map {
+        case (k, v) => (k, Seq(v))
+      }
+      (Map() ++ (headers.data ++ newData)).toSeq
+    }))
   }
 
   /**
