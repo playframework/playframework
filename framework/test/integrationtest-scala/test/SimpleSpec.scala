@@ -111,9 +111,9 @@ class SimpleSpec extends Specification {
       response.body must startWith("play-akka.actor.default-dispatcher-")
     }
 
-    "execute body parser in the Netty IO context" in new WithServer() {
+    "execute body parser in the user execution context" in new WithServer() {
       val response = Await.result(wsCall(controllers.routes.Application.bodyParserThread()).get(), Duration.Inf)
-      response.body must startWith("New I/O worker")
+      response.body must startWith("play-akka.actor.default-dispatcher-")
     }
 
   }
