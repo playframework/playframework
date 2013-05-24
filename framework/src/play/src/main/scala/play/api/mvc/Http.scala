@@ -312,12 +312,16 @@ package play.api.mvc {
     /**
      * Retrieve all header values associated with the given key.
      */
-    def getAll(key: String): Seq[String] = (toMap.get(key): Option[Seq[String]]).toSeq.flatten
+    def getAll(key: String): Seq[String] = {
+      data.find({ case (k, v) => k.equalsIgnoreCase(key) }).map(_._2).getOrElse(Nil)
+    }
 
     /**
      * Retrieve all header keys
      */
-    def keys: Set[String] = toMap.keySet
+    def keys: Set[String] = {
+      Set.empty ++ data.map(_._1)
+    }
 
     /**
      * Transform the Headers to a Map
@@ -328,16 +332,22 @@ package play.api.mvc {
       TreeMap(data: _*)(CaseInsensitiveOrdered)
     }
 
-    protected def data: Seq[(String, Seq[String])]
+    /**
+     * The internal data structure here is a sequence of header to sequence of value pairs. Multiple
+     * headers with the same name are not expected in the sequence. Instead the same header with multiple values
+     * in the order that they appear in the http header is expected.
+     */
+    protected val data: Seq[(String, Seq[String])]
 
     /**
      * Transform the Headers to a Map by ignoring multiple values.
      */
-    def toSimpleMap: Map[String, String] = keys.map { headerKey =>
-      (headerKey, apply(headerKey))
-    }.toMap
+    def toSimpleMap: Map[String, String] = {
+      val simpleSeq = data.map({ case (k, v) => (k, v.headOption.getOrElse("")) })
+      Map.empty ++ simpleSeq
+    }
 
-    override def toString = toMap.toString
+    override def toString = data.toString
 
   }
 

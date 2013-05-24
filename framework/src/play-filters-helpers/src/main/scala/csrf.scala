@@ -157,7 +157,7 @@ package play.filters.csrf {
             override def getAll(key: String): Seq[String] = toMap.get(key).toSeq.flatten
             override def keys: Set[String] = toMap.keys.toSet
             override lazy val toMap: Map[String, Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
-            def data = toMap.toSeq
+            val data = toMap.toSeq
           }
 
           lazy val newSession = request.session + (TOKEN_NAME -> token.value)
@@ -190,7 +190,7 @@ package play.filters.csrf {
             override def getAll(key: String): Seq[String] = toMap.get(key).toSeq.flatten
             override def keys: Set[String] = toMap.keys.toSet
             override lazy val toMap: Map[String, Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
-            def data = toMap.toSeq
+            val data = toMap.toSeq
           }
 
           filterLogger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
