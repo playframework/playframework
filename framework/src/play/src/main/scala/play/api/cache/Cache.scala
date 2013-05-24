@@ -4,6 +4,8 @@ import play.api._
 
 import reflect.{ ClassTag, ClassManifest }
 import org.apache.commons.lang3.reflect.TypeUtils
+
+import scala.concurrent.duration.Duration
 /**
  * API for a Cache plugin.
  */
@@ -46,16 +48,26 @@ object Cache {
   }
 
   /**
-   * Sets a value without expiration
+   * Set a value into the cache.
    *
    * @param key Item key.
    * @param value Item value.
-   * @param expiration expiration period in seconds.
+   * @param expiration Expiration time in seconds (0 second means eternity).
    */
-  def set(key: String, value: Any, expiration: Int = 0)(implicit app: Application) = {
+  def set(key: String, value: Any, expiration: Int = 0)(implicit app: Application): Unit = {
     cacheAPI.set(key, value, expiration)
   }
 
+  /**
+   * Set a value into the cache.
+   *
+   * @param key Item key.
+   * @param value Item value.
+   * @param expiration Expiration time as a [[scala.concurrent.duration.Duration]].
+   */
+  def set(key: String, value: Any, expiration: Duration)(implicit app: Application): Unit = {
+    set(key, value, expiration.toSeconds.toInt)
+  }
   /**
    * Retrieve a value from the cache.
    *
