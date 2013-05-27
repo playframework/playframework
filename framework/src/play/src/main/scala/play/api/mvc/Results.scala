@@ -8,8 +8,8 @@ import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext, Promise }
 
-import play.core.Execution.Implicits.internalContext
-import scala.deprecated
+import play.core.Execution.internalContext
+import play.api.libs.concurrent.Execution.defaultContext
 
 /**
  * A simple HTTP response header, used for standard responses.
@@ -211,54 +211,37 @@ sealed trait PlainResult extends Result with WithHeaders[PlainResult] {
 }
 
 /**
- * The streaming strategy for the result.
- *
- * The streaming strategy will only be used if no Content-Length is specified.
+ * The connection semantics for the result.
  */
-sealed trait StreamingStrategy
-
-object StreamingStrategy {
-
-  /**
-   * Buffer the body, up to a maximum of maxLength bytes.
-   *
-   * If the body exceeds maxLength, the body will be sent chunked if the protocol is HTTP 1.1, or with no transfer
-   * encoding if the protocol is HTTP 1.0, in that case the connection will be closed once the body is finished.
-   *
-   * @param maxLength The maximum length to buffer the result for.
-   */
-  case class Buffer(maxLength: Long) extends StreamingStrategy
-
-  object Buffer {
-    lazy val DefaultMaxBufferLength = Play.maybeApplication.flatMap(
-      _.configuration.getLong("play.result.defaultMaxBufferLength")
-    ).getOrElse(102400l)
-
-    /**
-     * Create a buffer strategy with the default max buffer length.
-     *
-     * The default max buffer length is 100kb, and is configurable using play.result.defaultMaxBufferLength in
-     * application.conf.
-     */
-    def apply() = new Buffer(DefaultMaxBufferLength)
-  }
+object HttpConnection extends Enumeration {
+  type Connection = Value
 
   /**
-   * Stream the body as is, using no transfer encoding.
+   * Prefer to keep the connection alive.
    *
-   * Using this strategy means the connection will be closed once the result is finished.
+   * If no `Content-Length` header is present, and no `Transfer-Encoding` header is present, then the body will be
+   * buffered for a maximum of one chunk from the enumerator, in an attempt to calculate the content length.  If the
+   * enumerator contains more than one chunk, then the body will be sent chunked if the client using using HTTP 1.1,
+   * or the the body will be sent as is, but the connection will be closed after the body is sent.
+   *
+   * There are cases where the connection won't be kept alive.  These are as follows:
+   *
+   * - The protocol the client is using is HTTP 1.0 and the client hasn't sent a `Connection: keep-alive` header.
+   * - The client has sent a `Connection: close` header.
+   * - There is no `Content-Length` or `Transfer-Encoding` header present, the enumerator contains more than one chunk,
+   *   and the protocol the client is using is HTTP 1.0, hence chunked encoding can't be used as a fallback.
    */
-  case object Simple extends StreamingStrategy
+  val KeepAlive = Value
 
   /**
-   * Stream the body using chunked transfer encoding.
+   * Close the connection once the response body has been sent.
    *
-   * An optional trailers iteratee may be supplied.  This is applied to the body as it is streamed out, and may result in
-   * a trailer map, which will be sent as trailers in the last chunk.
+   * This will take precedence to any `Connection` header specified in the request.
    *
-   * @param trailers The trailers iteratee, if sending trailers.
+   * No buffering of the response will be attempted.  This means if the result contains no `Content-Length` header,
+   * none will be calculated.
    */
-  case class Chunked(trailers: Option[Iteratee[Array[Byte], Map[String, String]]] = None) extends StreamingStrategy
+  val Close = Value
 }
 
 /**
@@ -266,10 +249,10 @@ object StreamingStrategy {
  *
  * @param header the response header, which contains status code and HTTP headers
  * @param body the response body
- * @param streamingStrategy the streaming strategy to use if no content length is sent.
+ * @param connection the connection semantics to use
  */
 case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
-    streamingStrategy: StreamingStrategy = StreamingStrategy.Buffer()) extends PlainResult {
+    connection: HttpConnection.Connection = HttpConnection.KeepAlive) extends PlainResult {
 
   /**
    * Adds headers to this result.
@@ -410,9 +393,15 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
  * @param header the response header, which contains status code and HTTP headers
  * @param chunks the chunks enumerator
  */
-@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.", "2.2.0")
+@deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
 class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends SimpleResult(
-  header = header,
+  header = header.copy(headers = header.headers ++ writeable.contentType.map(ct => Map(
+      CONTENT_TYPE -> ct,
+      TRANSFER_ENCODING -> CHUNKED
+    )).getOrElse(Map(
+      TRANSFER_ENCODING -> CHUNKED
+    ))
+  ),
   body = new Enumerator[A] {
     // Since chunked result bodies are functions of iteratee to unit, not a future, we need to do this in
     // a somewhat messy way
@@ -423,16 +412,16 @@ class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee
       }(internalContext))
       doneIteratee.future
     }
-  } &> writeable.toEnumeratee,
-  streamingStrategy = StreamingStrategy.Chunked()) {
+  } &> writeable.toEnumeratee &> Results.chunk,
+  connection = HttpConnection.KeepAlive) {
 
   /** The body content type. */
   type BODY_CONTENT = A
 }
 
-@deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.", "2.2.0")
+@deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
 object ChunkedResult {
-  @deprecated("Use SimpleResult with Chunked streaming strategy instead. Will be removed in Play 2.3.", "2.2.0")
+  @deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
   def apply[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit writeable: Writeable[A]) =
     new ChunkedResult(header, chunks)
 }
@@ -655,7 +644,7 @@ trait Results {
    * @param status the HTTP response status, e.g ‘200 OK’
    */
   class Status(status: Int) extends SimpleResult(header = ResponseHeader(status), body = Enumerator.empty,
-    streamingStrategy = StreamingStrategy.Buffer()) {
+    connection = HttpConnection.KeepAlive) {
 
     /**
      * Set the result's content.
@@ -667,7 +656,8 @@ trait Results {
     def apply[C](content: C)(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
         ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        Enumerator(content) &> writeable.toEnumeratee)
+        Enumerator(writeable.transform(content))
+      )
     }
 
     /**
@@ -684,22 +674,39 @@ trait Results {
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
         ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
-        Enumerator.fromFile(content) &> Writeable.wBytes.toEnumeratee &> Enumeratee.onIterateeDone(onClose)
+        Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
       )
     }
 
     /**
-     * Set the result's content as chunked.
+     * Stream the results content.
      *
-     * @tparam C the chunk type
-     * @param content Enumerator providing the chunked content.
-     * @return a `ChunkedResult`
+     * If the connection is specified to be KeepAlive, then the body will be streamed chunked, otherwise it will be
+     * streamed as is, closing the connection when the stream is finished.
+     *
+     * @param content Enumerator providing the content to stream.
+     * @return the results
      */
-    def stream[C](content: Enumerator[C], streamingStrategy: StreamingStrategy = StreamingStrategy.Chunked())(implicit writeable: Writeable[C]): SimpleResult = {
-      SimpleResult(
-        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        body = content &> writeable.toEnumeratee,
-        streamingStrategy = streamingStrategy)
+    def stream[C](content: Enumerator[C], connection: HttpConnection.Value = HttpConnection.KeepAlive)(implicit writeable: Writeable[C]): SimpleResult = {
+      connection match {
+        case HttpConnection.KeepAlive => SimpleResult(
+          header = ResponseHeader(status,
+            writeable.contentType.map(ct => Map(
+              CONTENT_TYPE -> ct,
+              TRANSFER_ENCODING -> CHUNKED
+            )).getOrElse(Map(
+              TRANSFER_ENCODING -> CHUNKED
+            ))
+          ),
+          body = content &> writeable.toEnumeratee &> chunk,
+          connection = HttpConnection.KeepAlive
+        )
+        case HttpConnection.Close => SimpleResult(
+          header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+          body = content &> writeable.toEnumeratee,
+          connection = HttpConnection.Close
+        )
+      }
     }
 
     @deprecated("Use stream(content, StreamingStrategy.Simple) instead", "2.2.0")
@@ -707,7 +714,7 @@ trait Results {
       SimpleResult(
         header = ResponseHeader(status),
         body = content &> writeable.toEnumeratee,
-        StreamingStrategy.Simple
+        connection = HttpConnection.Close
       )
     }
 
@@ -727,6 +734,143 @@ trait Results {
 
   }
 
+  /**
+   * Implements HTTP chunked transfer encoding.
+   */
+  def chunk: Enumeratee[Array[Byte], Array[Byte]] = chunk(None)
+
+  /**
+   * Implements HTTP chunked transfer encoding.
+   *
+   * @param trailers An optional trailers iteratee.  If supplied, this will be zipped with the output iteratee, so that
+   *                 it can calculate some trailing headers, which will be included with the last chunk.
+   */
+  def chunk(trailers: Option[Iteratee[Array[Byte], Seq[(String, String)]]] = None): Enumeratee[Array[Byte], Array[Byte]] = {
+
+    implicit val ctx = internalContext
+
+    // Enumeratee that actually maps the chunks
+    val mapChunks = Enumeratee.map[Array[Byte]] { data =>
+      val chunkSize = Integer.toHexString(data.length).getBytes("UTF-8")
+      // Length of chunk is the digits in chunk size, plus the data length, plus 2 CRLF pairs
+      val chunk = new Array[Byte](chunkSize.length + data.length + 4)
+      System.arraycopy(chunkSize, 0, chunk, 0, chunkSize.length)
+      chunk(chunkSize.length) = '\r'
+      chunk(chunkSize.length + 1) = '\n'
+      System.arraycopy(data, 0, chunk, chunkSize.length + 2, data.length)
+      chunk(chunk.length - 2) = '\r'
+      chunk(chunk.length - 1) = '\n'
+      chunk
+    }
+
+    // The actual enumeratee
+    new Enumeratee[Array[Byte], Array[Byte]] {
+      def applyOn[A](inner: Iteratee[Array[Byte], A]) = {
+        // Our inner iteratee will be passed through the chunking enumeratee, and also we don't want to feed EOF to
+        // it yet, instead we want to get it as the result, so that we can then feed the last chunk into it.  We use
+        // the passAlong enumeratee to achieve this.
+        val chunkedInner: Iteratee[Array[Byte], Iteratee[Array[Byte], A]] = mapChunks ><> Enumeratee.passAlong &> inner
+
+        trailers match {
+          case Some(trailersIteratee) => {
+            // Zip the trailers iteratee with the inner iteratee
+            Enumeratee.zipWith(chunkedInner, trailersIteratee) { (it, trailers) =>
+              // Create last chunk
+              val lastChunk = trailers.map(t => t._1 + ": " + t._2 + "\r\n").mkString("0\r\n", "", "\r\n").getBytes("UTF-8")
+              Iteratee.flatten(Enumerator(lastChunk) >>> Enumerator.eof |>> it)
+            }
+          }
+          case None => {
+            chunkedInner.map { it =>
+              // Feed last chunk with no trailers
+              Iteratee.flatten(Enumerator("0\r\n\r\n".getBytes("UTF-8")) >>> Enumerator.eof |>> it)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Dechunks a chunked transfer encoding stream.
+   *
+   * Chunks may span multiple elements in the stream.
+   */
+  def dechunk: Enumeratee[Array[Byte], Array[Byte]] = {
+
+    implicit val ctx = internalContext
+
+    // convenience method
+    def elOrEmpty(data: Array[Byte]) = {
+      if (data.length == 0) Input.Empty else Input.El(data)
+    }
+
+    // Read a line. Is quite permissive, a line is anything terminated by LF, and trims the result.
+    def readLine(line: List[Array[Byte]] = Nil): Iteratee[Array[Byte], String] = Cont {
+      case Input.El(data) => {
+        val s = data.takeWhile(_ != '\n')
+        if (s.length == data.length) {
+          readLine(s :: line)
+        } else {
+          Done(new String(Array.concat((s :: line).reverse: _*), "UTF-8").trim(), elOrEmpty(data.drop(s.length + 1)))
+        }
+      }
+      case Input.EOF => {
+        Error("EOF found while reading line", Input.Empty)
+      }
+      case Input.Empty => readLine(line)
+    }
+
+    // Read the data part of a chunk of the given size
+    def readChunkData(size: Int, chunk: List[Array[Byte]] = Nil): Iteratee[Array[Byte], Array[Byte]] = Cont {
+      case Input.El(data) => {
+        if (data.length >= size) {
+          Done(Array.concat((data.take(size) :: chunk).reverse: _*), elOrEmpty(data.drop(size)))
+        } else {
+          readChunkData(size - data.length, data :: chunk)
+        }
+      }
+      case Input.EOF => {
+        Error("EOF found while reading chunk", Input.Empty)
+      }
+      case Input.Empty => readChunkData(size, chunk)
+    }
+
+    // Read a chunk of the given size
+    def readChunk(size: Int) = for {
+      chunk <- readChunkData(size)
+      // Following every chunk data is a newline - read it
+      _ <- readLine()
+    } yield chunk
+
+    // Read the last chunk. Produces the trailers.
+    def readLastChunk: Iteratee[Array[Byte], List[(String, String)]] = for {
+      trailer <- readLine(Nil)
+      trailers <- if (trailer.length > 0) readLastChunk else Done[Array[Byte], List[(String, String)]](List.empty[(String, String)])
+    } yield {
+      trailer.split("""\s*:\s*""", 2) match {
+        case Array(key, value) => (key -> value) :: trailers
+        case Array(key) => (key -> "") :: trailers
+      }
+    }
+
+    // A chunk parser, produces elements that are either chunks or the last chunk trailers
+    val chunkParser: Iteratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = for {
+      size <- readLine().map { line =>
+        def isHexDigit(c: Char) = Character.isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+        // Parse the size. Ignore any extensions.
+        Integer.parseInt(line.takeWhile(isHexDigit), 16)
+      }
+      chunk <- if (size > 0) readChunk(size).map(Left.apply) else readLastChunk.map(Right.apply)
+    } yield chunk
+
+    Enumeratee.grouped(chunkParser) ><>
+      Enumeratee.takeWhile[Either[Array[Byte], Seq[(String, String)]]](_.isLeft) ><>
+      Enumeratee.map {
+        case Left(data) => data
+      }
+  }
+
   @deprecated("Use Action.async to build async actions instead", "2.2.0")
   def Async(promise: Future[Result]) = AsyncResult(promise)
 
@@ -744,11 +888,11 @@ trait Results {
 
   /** Generates a ‘204 NO_CONTENT’ result. */
   val NoContent = SimpleResult(header = ResponseHeader(NO_CONTENT), body = Enumerator.empty,
-    streamingStrategy = StreamingStrategy.Buffer())
+    connection = HttpConnection.KeepAlive)
 
   /** Generates a ‘205 RESET_CONTENT’ result. */
   val ResetContent = SimpleResult(header = ResponseHeader(RESET_CONTENT), body = Enumerator.empty,
-    streamingStrategy = StreamingStrategy.Buffer())
+    connection = HttpConnection.KeepAlive)
 
   /** Generates a ‘206 PARTIAL_CONTENT’ result. */
   val PartialContent = new Status(PARTIAL_CONTENT)
@@ -779,7 +923,7 @@ trait Results {
 
   /** Generates a ‘304 NOT_MODIFIED’ result. */
   val NotModified = SimpleResult(header = ResponseHeader(NOT_MODIFIED), body = Enumerator.empty,
-    streamingStrategy = StreamingStrategy.Buffer())
+    connection = HttpConnection.KeepAlive)
 
   /**
    * Generates a ‘307 TEMPORARY_REDIRECT’ simple result.

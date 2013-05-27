@@ -242,6 +242,7 @@ trait HeaderNames {
   val TE = "Te"
   val TRAILER = "Trailer"
   val TRANSFER_ENCODING = "Transfer-Encoding"
+  val CHUNKED = "chunked"
 
   val UPGRADE = "Upgrade"
   val USER_AGENT = "User-Agent"
