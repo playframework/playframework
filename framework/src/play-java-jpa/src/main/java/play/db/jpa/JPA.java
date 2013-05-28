@@ -3,6 +3,7 @@ package play.db.jpa;
 import play.*;
 import play.libs.F;
 import play.mvc.Http;
+import scala.concurrent.ExecutionContext;
 
 import javax.persistence.*;
 
@@ -178,18 +179,9 @@ public class JPA {
             final EntityManager fem = em;
             final EntityTransaction ftx = tx;
 
-            result.onFailure(new F.Callback<Throwable>() {
+            F.Promise<T> committedResult = result.map(new F.Function<T, T>() {
                 @Override
-                public void invoke(Throwable t) {
-                    if (ftx != null) {
-                        try { ftx.rollback(); } catch(Throwable e) {}
-                    }
-                    fem.close();
-                }
-            });
-            result.onRedeem(new F.Callback<T>() {
-                @Override
-                public void invoke(T t) throws Throwable {
+                public T apply(T t) throws Throwable {
                     try {
                         if(ftx != null) {
                             if(ftx.getRollbackOnly()) {
@@ -201,9 +193,21 @@ public class JPA {
                     } finally {
                         fem.close();
                     }
+                    return t;
                 }
             });
-            return result;
+
+            committedResult.onFailure(new F.Callback<Throwable>() {
+                @Override
+                public void invoke(Throwable t) {
+                    if (ftx != null) {
+                        try { if (ftx.isActive()) ftx.rollback(); } catch(Throwable e) {}
+                    }
+                    fem.close();
+                }
+            });
+
+            return committedResult;
 
         } catch(Throwable t) {
             if(tx != null) {
@@ -217,5 +221,4 @@ public class JPA {
             JPA.bindForCurrentThread(null);
         }
     }
-
 }
