@@ -22,11 +22,39 @@ object FiltersSpec extends Specification {
         contentAsString(result) must_== "GET"
       }
 
-      "running server" in new WithServer(FakeApplication(withGlobal = Some(MockGlobal))) {
+      "a filter can access request tags" in new WithServer(FakeApplication(withGlobal = Some(MockGlobal))) {
         val response = Await.result(wsCall(controllers.routes.Application.index()).get(), Duration.Inf)
         response.status must_== 200
         response.body must_== "GET"
       }
+
+      object MockGlobal2 extends play.api.GlobalSettings {
+
+        override def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
+          rh => {
+            rh.tags.get("ROUTE_CONTROLLER").collect {
+              case "controllers.Application" => next(rh)
+            }.getOrElse {
+              Action {
+                Results.BadRequest("Unexpected path!")
+              }
+            }
+          }
+        }
+
+      }
+
+      "running server" in new WithServer(FakeApplication(withGlobal = Some(MockGlobal2))) {
+        val response = Await.result(wsCall(controllers.routes.Application.plainHelloWorld()).get(), Duration.Inf)
+        response.status must_== 200
+        response.body must_== ("Hello World")
+
+        val response2 = Await.result(wsCall(controllers.routes.JavaApi.index()).get(), Duration.Inf)
+        response2.status must_== 400
+        response2.body must_== ("Unexpected path!")
+      }
+
+
     }
   }
 }

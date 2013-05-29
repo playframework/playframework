@@ -96,21 +96,19 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           untaggedRequestHeader
         }
 
-        val (untaggedRequestHeader, handler) = Exception
+        val (requestHeader, handler: Either[SimpleResult,(Handler,Application)]) = Exception
             .allCatch[RequestHeader].either(tryToCreateRequest)
             .fold(
-               e => {
-                 val rh = createRequestHeader()
-                 val r = server.applicationProvider.get.fold(e => DefaultGlobal, a => a.global).onBadRequest(rh, e.getMessage)
-                 (rh, Left(r))
-               },
-               rh => (rh, server.getHandlerFor(rh)))
-
-        // tag request if necessary
-        val requestHeader = handler.right.toOption.map({
-          case (h: RequestTaggingHandler, _) => h.tagRequest(untaggedRequestHeader)
-          case _ => untaggedRequestHeader
-        }).getOrElse(untaggedRequestHeader)
+              e => {
+                val rh = createRequestHeader()
+                val r = server.applicationProvider.get.fold(e => DefaultGlobal, a => a.global).onBadRequest(rh, e.getMessage)
+                (rh, Left(r))
+              },
+              rh => server.getHandlerFor(rh) match {
+                case directResult @ Left(_) => (rh, directResult)
+                case Right((taggedRequestHeader, handler, application)) => (taggedRequestHeader, Right((handler, application)))
+              }
+            )
 
         // Call onRequestCompletion after all request processing is done. Protected with an AtomicBoolean to ensure can't be executed more than once.
         val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -122,7 +120,6 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         
         // attach the cleanup function to the channel context for after cleaning
         ctx.setAttachment(cleanup _)
-
 
         // It is a pre-requesite that we're using the http pipelining capabilities provided and that we have a
         // handler downstream from this one that produces these events.
@@ -178,10 +175,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         def handleAction(action: EssentialAction, app: Option[Application]){
           Play.logger.trace("Serving this request with: " + action)
 
-          val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(action)
-
           val eventuallyBodyParser = Iteratee.flatten(
-            scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext))
+            scala.concurrent.Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext))
 
           requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
             eventuallyBodyParser.unflatten.map {
