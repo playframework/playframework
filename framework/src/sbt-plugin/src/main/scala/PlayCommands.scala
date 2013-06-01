@@ -199,6 +199,11 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
     "chmod a+x %s".format(start.getAbsolutePath) !
 
+val startBat = target / "start.bat"
+    IO.write(startBat,
+      """|java %1 -cp "%~dp0staged\*;" play.core.server.NettyServer %~dp0..
+         |""".stripMargin)
+
     s.log.info("")
     s.log.info("Your application is ready to be run in place: target/start")
     s.log.info("")
