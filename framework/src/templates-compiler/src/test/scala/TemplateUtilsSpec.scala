@@ -9,7 +9,7 @@ object TemplateUtilsSpec extends Specification {
   "Templates" should {
 
     "provide a HASH util" in {
-      Hash("itShouldWork".getBytes) must be_==("31c0c4e0e142fe9b605fff44528fedb3dd8ae254")
+      Hash("itShouldWork".getBytes, "") must be_==("31c0c4e0e142fe9b605fff44528fedb3dd8ae254")
     }
 
     "provide a Format API" in {
