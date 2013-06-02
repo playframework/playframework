@@ -24,11 +24,12 @@ object BuildSettings {
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
   val buildScalaVersion = propOr("scala.version", "2.10.0")
-  // TODO - Try to compute this from SBT...
-  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.9.2")
-  val buildSbtVersion = propOr("play.sbt.version", "0.12.3")
-  val buildSbtMajorVersion = "0.12"
-  val buildSbtVersionBinaryCompatible = "0.12"
+  // TODO - Try to compute this from SBT... or not.
+  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.1")
+  val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
+  val buildSbtVersion = propOr("play.sbt.version", "0.13.0-M2")
+  val buildSbtMajorVersion = "0.13"
+  val buildSbtVersionBinaryCompatible = "0.13.0-M2" // Maybe later, doesn't work on milestoens: CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
   val sourceCodeBranch = propOr("git.branch", "master")
 
@@ -106,15 +107,19 @@ object Resolvers {
 
   val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
   val typesafeSnapshots = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
-  val typesafeMavenReleases = "Typesafe Maven Releases Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
-  val typesafeMavenSnapshots = "Typesafe Maven Snapshots Repository" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
-  val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+  val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("http://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
+  val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("http://repo.typesafe.com/typesafe/ivy-snapshots"))(Resolver.ivyStylePatterns)
+  val publishTypesafeMavenReleases = "Typesafe Maven Releases Repository for publishing" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
+  val publishTypesafeMavenSnapshots = "Typesafe Maven Snapshots Repository for publishing" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
+  val publishTypesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository for publishing", url("https://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
+  val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+
+  val sonatypeSnapshots = "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 
   val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
   val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeSnapshots) else Seq(typesafeReleases)
-  val publishingMavenRepository = if (isSnapshotBuild) typesafeMavenSnapshots else typesafeMavenReleases
-  val publishingIvyRepository = if (isSnapshotBuild) typesafeIvySnapshots else typesafeIvyReleases
+  val publishingMavenRepository = if (isSnapshotBuild) publishTypesafeMavenSnapshots else publishTypesafeMavenReleases
+  val publishingIvyRepository = if (isSnapshotBuild) publishTypesafeIvySnapshots else publishTypesafeIvyReleases
 }
 
 
@@ -219,10 +224,18 @@ object PlayBuild extends Build {
       sbtPlugin := true,
       publishMavenStyle := false,
       libraryDependencies := sbtDependencies,
-      libraryDependencies += "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.1" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
-      libraryDependencies += "com.github.mpeltonen" % "sbt-idea" % "1.4.0" extra("sbtVersion" -> buildSbtVersionBinaryCompatible, "scalaVersion" -> buildScalaVersionForSbt),
-      libraryDependencies += "org.specs2" %% "specs2" % "1.12.3" % "test" exclude("javax.transaction", "jta"),
-      libraryDependencies += "org.scala-sbt" % "sbt" % buildSbtVersion % "provided",
+      // Remove once there are releases for IDE plugins against 0.13
+      resolvers ++= Seq(sonatypeSnapshots, typesafeIvySnapshots),
+      sbtVersion in GlobalScope := buildSbtVersion,
+      sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
+      sbtDependency <<= sbtDependency { dep =>
+        dep.copy(revision = buildSbtVersion)
+      },
+      TaskKey[Unit]("sbtdep") <<= allDependencies map { deps: Seq[ModuleID] =>
+        deps.map { d =>
+          d.organization + ":" + d.name + ":" + d.revision
+        }.sorted.foreach(println)
+      },
       publishTo := Some(publishingIvyRepository)
     ).settings(scriptedSettings: _*)
     .settings(
@@ -237,9 +250,9 @@ object PlayBuild extends Build {
       }
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
 
-  // todo this can be 2.10 and not cross-versioned or anything.  GO HOG WILD JAMES!
   lazy val ConsoleProject = PlaySbtProject("Console", "console")
     .settings(
+      resolvers += typesafeIvyReleases,
       libraryDependencies := consoleDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion
     )

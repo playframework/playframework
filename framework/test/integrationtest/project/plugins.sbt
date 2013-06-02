@@ -2,7 +2,7 @@
 logLevel := Level.Warn
 
 // The Typesafe repository contains all required dependencies
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+// resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % Option(System.getProperty("play.version")).getOrElse("2.0"))

@@ -10,7 +10,7 @@ import java.io.{ StringWriter, PrintWriter, File }
 import java.net.InetAddress
 import scala.collection.mutable.ListBuffer
 import scala.xml.{ Elem, Node, XML }
-import org.scalatools.testing.{ Event => TEvent, Result => TResult, Logger => TLogger }
+import sbt.testing.{ Event => TEvent, Status => TStatus, Logger => TLogger }
 
 import play.console.Colors
 
@@ -61,11 +61,11 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
     }
 
     def logEvent(e: TEvent) = {
-      e.result match {
-        case TResult.Error => logger.info(Colors.red("!") + " " + e.testName)
-        case TResult.Failure => logger.info(Colors.yellow("x") + " " + e.testName)
-        case TResult.Skipped => logger.info(Colors.yellow("o") + " " + e.testName)
-        case TResult.Success => logger.info(Colors.green("+") + " " + e.testName)
+      e.status match {
+        case TStatus.Error => logger.info(Colors.red("!") + " " + e.fullyQualifiedName)
+        case TStatus.Failure => logger.info(Colors.yellow("x") + " " + e.fullyQualifiedName)
+        case TStatus.Skipped => logger.info(Colors.yellow("o") + " " + e.fullyQualifiedName)
+        case TStatus.Success => logger.info(Colors.green("+") + " " + e.fullyQualifiedName)
       }
     }
 
@@ -76,9 +76,9 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
     def count(): (Int, Int, Int) = {
       var errors, failures = 0
       for (e <- events) {
-        e.result match {
-          case TResult.Error => errors += 1
-          case TResult.Failure => failures += 1
+        e.status match {
+          case TStatus.Error => errors += 1
+          case TStatus.Failure => failures += 1
           case _ =>
         }
       }
@@ -98,23 +98,23 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
       val result = <testsuite hostname={ hostname } name={ name } tests={ tests + "" } errors={ errors + "" } failures={ failures + "" } time={ (duration / 1000.0).toString }>
                      { properties }
                      {
-                       for (e <- events) yield <testcase classname={ name } name={ e.testName } time={ "0.0" }>
+                       for (e <- events) yield <testcase classname={ name } name={ e.fullyQualifiedName() } time={ "0.0" }>
                                                  {
-                                                   var trace: String = if (e.error != null) {
+                                                   var trace: String = if (e.throwable != null) {
                                                      val stringWriter = new StringWriter()
                                                      val writer = new PrintWriter(stringWriter)
-                                                     e.error.printStackTrace(writer)
+                                                     e.throwable.printStackTrace(writer)
                                                      writer.flush()
                                                      stringWriter.toString
                                                    } else {
                                                      ""
                                                    }
-                                                   e.result match {
-                                                     case TResult.Error if (e.error != null) => <error message={ e.error.getMessage } type={ e.error.getClass.getName }>{ trace }</error>
-                                                     case TResult.Error => <error message={ "No Exception or message provided" }/>
-                                                     case TResult.Failure if (e.error != null) => <failure message={ e.error.getMessage } type={ e.error.getClass.getName }>{ trace }</failure>
-                                                     case TResult.Failure => <failure message={ "No Exception or message provided" }/>
-                                                     case TResult.Skipped => <skipped/>
+                                                   e.status match {
+                                                     case TStatus.Error if (e.throwable != null) => <error message={ e.throwable.getMessage } type={ e.throwable.getClass.getName }>{ trace }</error>
+                                                     case TStatus.Error => <error message={ "No Exception or message provided" }/>
+                                                     case TStatus.Failure if (e.throwable != null) => <failure message={ e.throwable.getMessage } type={ e.throwable.getClass.getName }>{ trace }</failure>
+                                                     case TStatus.Failure => <failure message={ "No Exception or message provided" }/>
+                                                     case TStatus.Skipped => <skipped/>
                                                      case _ => {}
                                                    }
                                                  }
