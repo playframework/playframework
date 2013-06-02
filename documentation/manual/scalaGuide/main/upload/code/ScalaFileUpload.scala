@@ -19,13 +19,14 @@ package scalaguide.upload.fileupload {
     "A scala file upload" should {
 
       "upload file" in {
+        new File("/tmp/picture").mkdirs
         //#upload-file-action
         def upload = Action(parse.multipartFormData) { request =>
           request.body.file("picture").map { picture =>
             import java.io.File
             val filename = picture.filename
             val contentType = picture.contentType
-            picture.ref.moveTo(new File("/tmp/picture"))
+            picture.ref.moveTo(new File(s"/tmp/picture/$filename"))
             Ok("File uploaded")
           }.getOrElse {
             Redirect(routes.Application.index).flashing(
@@ -40,6 +41,8 @@ package scalaguide.upload.fileupload {
 
       "upload file directly" in {
         
+        new File("/tmp/picture").mkdirs
+        new File("/tmp/picture/uploaded").delete
         def upload = controllers.Application.upload
         
         val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
@@ -51,7 +54,7 @@ package scalaguide.upload.fileupload {
         assertAction(action, request, expectedResponse) { result => }
       }
 
-      def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Result => Unit) {
+      def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
         running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
           val result = action(request).run
           status(result) must_== expectedResponse
@@ -65,7 +68,7 @@ package scalaguide.upload.fileupload {
 
       //#upload-file-directly-action
         def upload = Action(parse.temporaryFile) { request =>
-          request.body.moveTo(new File("/tmp/picture"))
+          request.body.moveTo(new File("/tmp/picture/uploaded"))
           Ok("File uploaded")
         }
         //#upload-file-directly-action
