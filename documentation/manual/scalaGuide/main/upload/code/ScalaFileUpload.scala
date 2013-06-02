@@ -1,0 +1,80 @@
+package scalaguide.upload.fileupload {
+
+  import play.api.mvc._
+  import play.api.test._
+  import play.api.test.Helpers._
+  import org.specs2.mutable.Specification
+  import play.api.libs.json._
+  import play.api.libs.iteratee.Enumerator
+  import org.junit.runner.RunWith
+  import org.specs2.runner.JUnitRunner
+  import play.api.http.HeaderNames
+  import java.io.File
+
+  import controllers._
+
+  @RunWith(classOf[JUnitRunner])
+  class ScalaFileUploadSpec extends Specification with Controller {
+
+    "A scala file upload" should {
+
+      "upload file" in {
+        //#upload-file-action
+        def upload = Action(parse.multipartFormData) { request =>
+          request.body.file("picture").map { picture =>
+            import java.io.File
+            val filename = picture.filename
+            val contentType = picture.contentType
+            picture.ref.moveTo(new File("/tmp/picture"))
+            Ok("File uploaded")
+          }.getOrElse {
+            Redirect(routes.Application.index).flashing(
+              "error" -> "Missing file")
+          }
+        }
+        //#upload-file-action
+
+        val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
+        testAction(upload, request, BAD_REQUEST)
+      }
+
+      "upload file directly" in {
+        
+        def upload = controllers.Application.upload
+        
+        val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
+        testAction(upload, request)
+
+      }
+
+      def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) {
+        assertAction(action, request, expectedResponse) { result => }
+      }
+
+      def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Result => Unit) {
+        running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
+          val result = AsyncResult(action(request).run)
+          status(result) must_== expectedResponse
+          assertions(result)
+        }
+      }
+    }
+  }
+  package controllers {
+    object Application extends Controller {
+
+      //#upload-file-directly-action
+        def upload = Action(parse.temporaryFile) { request =>
+          request.body.moveTo(new File("/tmp/picture"))
+          Ok("File uploaded")
+        }
+        //#upload-file-directly-action
+
+      def index = Action { request =>
+        Ok("Upload failed")
+      }
+
+    }
+  }
+}
+  
