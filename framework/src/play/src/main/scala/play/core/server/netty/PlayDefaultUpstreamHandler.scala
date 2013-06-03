@@ -20,6 +20,7 @@ import scala.collection.JavaConverters._
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
+import java.net.URI
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
@@ -85,7 +86,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             val id = requestIDs.incrementAndGet
             val tags = Map.empty[String,String]
             def uri = nettyHttpRequest.getUri
-            def path = nettyUri.getPath
+            def path = new URI(nettyUri.getPath).getRawPath //wrapping into URI to handle absoluteURI
             def method = nettyHttpRequest.getMethod.getName
             def version = nettyVersion.getText
             def queryString = parameters
