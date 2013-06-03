@@ -52,9 +52,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      val maxInitialLineLength = Option(System.getProperty("http.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
-      val maxHeaderSize = Option(System.getProperty("http.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
-      val maxChunkSize = Option(System.getProperty("http.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
+      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
