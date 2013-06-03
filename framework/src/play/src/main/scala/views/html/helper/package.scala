@@ -6,7 +6,7 @@ package views.html
 package object helper {
 
   /**
-   * Default inpout structure.
+   * Default input structure.
    *
    * {{{
    * <dl>
