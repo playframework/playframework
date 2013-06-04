@@ -104,6 +104,12 @@
 * **Repository:** <http://joergviola.github.com/releases/>
 * **Short description** Simplifies writing functional test using Page Driver classes.
 
+## Geolocation (Java)
+
+* **Website:** <https://github.com/blabluble/play-geolocation-module>
+* **Documentation:** <https://github.com/blabluble/play-geolocation-module/blob/master/README.md>
+* **Short description:** Module for retrieve Geolocation data based on IP.
+
 ## Groovy Templates plugin
 
 * **Website:** <https://github.com/manuelbernhardt/play2-groovy-templates>
