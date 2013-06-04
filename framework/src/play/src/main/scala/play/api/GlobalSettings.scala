@@ -67,10 +67,40 @@ trait GlobalSettings {
     config ++ configuration
 
   /**
-   * Called Just before the action is used.
-   *
+   * Retrieve the (RequestHeader,Handler) to use to serve this request.
+   * Default is: route, tag request, then apply filters
    */
-  def doFilter(a: EssentialAction): EssentialAction = a
+  def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
+    onRouteRequest(request)
+      .map {
+        case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
+        case handler => (request, handler)
+      }
+      .map {
+        case (taggedRequest, handler) => (taggedRequest, doFilter(rh => handler)(taggedRequest))
+      }
+      .getOrElse {
+        (request, Action(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request)))
+      }
+  }
+
+  /**
+   * Filters.
+   */
+  def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
+    (request: RequestHeader) =>
+      {
+        next(request) match {
+          case action: EssentialAction => doFilter(action)
+          case handler => handler
+        }
+      }
+  }
+
+  /**
+   * Filters for EssentialAction.
+   */
+  def doFilter(next: EssentialAction): EssentialAction = next
 
   /**
    * Called when an HTTP request has been received.

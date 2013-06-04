@@ -13,6 +13,8 @@ GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
 
+GET     /helloWorld 			controllers.Application.plainHelloWorld()
+
 GET     /json_java_instance     @controllers.JavaControllerInstance.index()
 GET     /json_scala_instance    @controllers.ScalaControllerInstance.index()
 
