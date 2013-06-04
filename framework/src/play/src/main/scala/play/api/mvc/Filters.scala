@@ -31,6 +31,7 @@ trait Filter extends EssentialFilter {
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
       def apply(rh: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
+
         // Promised result, that is returned to the filter when it invokes the wrapped function
         val promisedResult = Promise[SimpleResult]
         // Promised iteratee, that we return to the framework

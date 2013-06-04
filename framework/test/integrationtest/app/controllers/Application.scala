@@ -18,6 +18,10 @@ import play.api.i18n._
 
 object Application extends Controller {
 
+  def plainHelloWorld = Action {
+    Ok("Hello World")
+  }
+
   def index = Action {
     if (Messages("home.title")(Lang("fr")) != "ffff" ) throw new RuntimeException("i18n does not work")
     if (Messages("constraint.required") != "Hijacked" ) throw new RuntimeException("can not override default message")
