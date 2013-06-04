@@ -6,7 +6,7 @@ object Dependencies {
   val specsBuild = "org.specs2" %% "specs2" % "1.14"
   val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
   val scalaIoFileSbt = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude ("javax.transaction", "jta")
-  val guava = "com.google.guava" % "guava" % "13.0.1"
+  val guava = "com.google.guava" % "guava" % "14.0.1"
 
 
   val jdbcDeps = Seq(
