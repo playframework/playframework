@@ -76,8 +76,7 @@ object NettyResultStreamer {
    * If there is more than one element from the enumerator, it sends the response either as chunked or as a stream that
    * gets closed, depending on whether the protocol is HTTP 1.0 or HTTP 1.1.
    */
-  def bufferingIteratee(nettyResponse: HttpResponse, startSequence: Int, closeConnection: Boolean, httpVersion: HttpVersion)
-                       (implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Boolean] = {
+  def bufferingIteratee(nettyResponse: HttpResponse, startSequence: Int, closeConnection: Boolean, httpVersion: HttpVersion)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Boolean] = {
 
     // Left is the first chunk if there was more than one chunk, right is the zero or one and only chunk
     def takeUpToOneChunk(chunk: Option[Array[Byte]]): Iteratee[Array[Byte], Either[Array[Byte], Option[Array[Byte]]]] = Cont {
@@ -119,8 +118,7 @@ object NettyResultStreamer {
 
   }
 
-  def nettyStreamIteratee(nettyResponse: HttpResponse, startSequence: Int)
-                         (implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Unit] = {
+  def nettyStreamIteratee(nettyResponse: HttpResponse, startSequence: Int)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Unit] = {
 
     def step(subsequence: Int)(in: Input[Array[Byte]]): Iteratee[Array[Byte], Unit] = in match {
       case Input.El(x) =>

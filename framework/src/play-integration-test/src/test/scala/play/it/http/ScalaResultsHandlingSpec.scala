@@ -78,7 +78,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "chunk results for chunked streaming strategy" in makeRequest(
-      Results.Ok.stream(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
@@ -87,14 +87,6 @@ object ScalaResultsHandlingSpec extends Specification {
 
     "close the connection for feed results" in makeRequest(
       Results.Ok.feed(Enumerator("a", "b", "c"))
-    ) { response =>
-      response.header(TRANSFER_ENCODING) must beNone
-      response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "abc"
-    }
-
-    "close the connection for simple streaming strategy results" in makeRequest(
-      Results.Ok.stream(Enumerator("a", "b", "c"), HttpConnection.Close)
     ) { response =>
       response.header(TRANSFER_ENCODING) must beNone
       response.header(CONTENT_LENGTH) must beNone
@@ -157,7 +149,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "close chunked connections when requested" in withServer(
-      Results.Ok.stream(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
       // will timeout if not closed
       makeBasicRequest(port,
@@ -168,7 +160,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "keep chunked connections alive by default" in withServer(
-      Results.Ok.stream(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
       val lines = makeBasicRequest(port,
         "GET / HTTP/1.1",

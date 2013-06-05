@@ -8,7 +8,7 @@ import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext, Promise }
 
-import play.core.Execution.internalContext
+import play.core.Execution.Implicits._
 import play.api.libs.concurrent.Execution.defaultContext
 
 /**
@@ -221,8 +221,8 @@ object HttpConnection extends Enumeration {
    *
    * If no `Content-Length` header is present, and no `Transfer-Encoding` header is present, then the body will be
    * buffered for a maximum of one chunk from the enumerator, in an attempt to calculate the content length.  If the
-   * enumerator contains more than one chunk, then the body will be sent chunked if the client using using HTTP 1.1,
-   * or the the body will be sent as is, but the connection will be closed after the body is sent.
+   * enumerator contains more than one chunk, then the body will be sent chunked if the client is using HTTP 1.1,
+   * or the body will be sent as is, but the connection will be closed after the body is sent.
    *
    * There are cases where the connection won't be kept alive.  These are as follows:
    *
@@ -396,11 +396,11 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
 @deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
 class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends SimpleResult(
   header = header.copy(headers = header.headers ++ writeable.contentType.map(ct => Map(
-      CONTENT_TYPE -> ct,
-      TRANSFER_ENCODING -> CHUNKED
-    )).getOrElse(Map(
-      TRANSFER_ENCODING -> CHUNKED
-    ))
+    CONTENT_TYPE -> ct,
+    TRANSFER_ENCODING -> CHUNKED
+  )).getOrElse(Map(
+    TRANSFER_ENCODING -> CHUNKED
+  ))
   ),
   body = new Enumerator[A] {
     // Since chunked result bodies are functions of iteratee to unit, not a future, we need to do this in
@@ -409,7 +409,7 @@ class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee
       val doneIteratee = Promise[Iteratee[A, C]]
       chunks(i.map { done =>
         doneIteratee.success(Done[A, C](done)).asInstanceOf[Unit]
-      }(internalContext))
+      })
       doneIteratee.future
     }
   } &> writeable.toEnumeratee &> Results.chunk,
@@ -649,9 +649,7 @@ trait Results {
     /**
      * Set the result's content.
      *
-     * @tparam C the content type
-     * @param content content to send
-     * @return a `SimpleResult`
+     * @param content The content to send.
      */
     def apply[C](content: C)(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
@@ -663,9 +661,9 @@ trait Results {
     /**
      * Send a file.
      *
-     * @param content The file to send
+     * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
+     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment).
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): SimpleResult = {
       val name = fileName(content)
@@ -679,40 +677,48 @@ trait Results {
     }
 
     /**
-     * Stream the results content.
-     *
-     * If the connection is specified to be KeepAlive, then the body will be streamed chunked, otherwise it will be
-     * streamed as is, closing the connection when the stream is finished.
+     * Stream the results content as chunked.
      *
      * @param content Enumerator providing the content to stream.
-     * @return the results
      */
-    def stream[C](content: Enumerator[C], connection: HttpConnection.Value = HttpConnection.KeepAlive)(implicit writeable: Writeable[C]): SimpleResult = {
-      connection match {
-        case HttpConnection.KeepAlive => SimpleResult(
-          header = ResponseHeader(status,
-            writeable.contentType.map(ct => Map(
-              CONTENT_TYPE -> ct,
-              TRANSFER_ENCODING -> CHUNKED
-            )).getOrElse(Map(
-              TRANSFER_ENCODING -> CHUNKED
-            ))
-          ),
-          body = content &> writeable.toEnumeratee &> chunk,
-          connection = HttpConnection.KeepAlive
-        )
-        case HttpConnection.Close => SimpleResult(
-          header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-          body = content &> writeable.toEnumeratee,
-          connection = HttpConnection.Close
-        )
-      }
+    @deprecated("Use Status.chunked instead", "2.3.0")
+    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = chunked(content)
+
+    /**
+     * Feed the content as the response, using chunked transfer encoding.
+     *
+     * Chunked transfer encoding is only supported for HTTP 1.1 clients.  If the client is an HTTP 1.0 client, Play will
+     * instead return a 505 error code.
+     *
+     * Chunked encoding allows the server to send a response where the content length is not known, or for potentially
+     * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
+     *
+     * @param content Enumerator providing the content to stream.
+     */
+    def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = {
+      SimpleResult(header = ResponseHeader(status,
+        writeable.contentType.map(ct => Map(
+          CONTENT_TYPE -> ct,
+          TRANSFER_ENCODING -> CHUNKED
+        )).getOrElse(Map(
+          TRANSFER_ENCODING -> CHUNKED
+        ))
+      ),
+        body = content &> writeable.toEnumeratee &> chunk,
+        connection = HttpConnection.KeepAlive)
     }
 
-    @deprecated("Use stream(content, StreamingStrategy.Simple) instead", "2.2.0")
+    /**
+     * Feed the content as the response.
+     *
+     * The connection will be closed after the response is sent, regardless of whether there is a content length or
+     * transfer encoding defined.
+     *
+     * @param content Enumerator providing the content to stream.
+     */
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
-        header = ResponseHeader(status),
+        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         body = content &> writeable.toEnumeratee,
         connection = HttpConnection.Close
       )
@@ -721,11 +727,9 @@ trait Results {
     /**
      * Set the result's content as chunked.
      *
-     * @tparam C the chunk type
      * @param content A function that will give you the Iteratee to write in once ready.
-     * @return a `ChunkedResult`
      */
-    @deprecated("Use stream(Enumerator, StreamingStrategy.Chunked) instead.  Will be removed in Play 2.3.", "2.2.0")
+    @deprecated("Use stream(Enumerator) instead.  Will be removed in Play 2.3.", "2.2.0")
     def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
       ChunkedResult(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
@@ -747,10 +751,9 @@ trait Results {
    */
   def chunk(trailers: Option[Iteratee[Array[Byte], Seq[(String, String)]]] = None): Enumeratee[Array[Byte], Array[Byte]] = {
 
-    implicit val ctx = internalContext
-
-    // Enumeratee that actually maps the chunks
-    val mapChunks = Enumeratee.map[Array[Byte]] { data =>
+    // Enumeratee that formats each chunk.
+    val formatChunks = Enumeratee.map[Array[Byte]] { data =>
+      // This will be much nicer if we ever move to ByteString
       val chunkSize = Integer.toHexString(data.length).getBytes("UTF-8")
       // Length of chunk is the digits in chunk size, plus the data length, plus 2 CRLF pairs
       val chunk = new Array[Byte](chunkSize.length + data.length + 4)
@@ -763,13 +766,14 @@ trait Results {
       chunk
     }
 
-    // The actual enumeratee
+    // The actual enumeratee, which applies the formatting enumeratee maybe zipped with the trailers iteratee, and also
+    // adds the last chunk.
     new Enumeratee[Array[Byte], Array[Byte]] {
       def applyOn[A](inner: Iteratee[Array[Byte], A]) = {
         // Our inner iteratee will be passed through the chunking enumeratee, and also we don't want to feed EOF to
         // it yet, instead we want to get it as the result, so that we can then feed the last chunk into it.  We use
         // the passAlong enumeratee to achieve this.
-        val chunkedInner: Iteratee[Array[Byte], Iteratee[Array[Byte], A]] = mapChunks ><> Enumeratee.passAlong &> inner
+        val chunkedInner: Iteratee[Array[Byte], Iteratee[Array[Byte], A]] = formatChunks ><> Enumeratee.passAlong &> inner
 
         trailers match {
           case Some(trailersIteratee) => {
@@ -797,8 +801,6 @@ trait Results {
    * Chunks may span multiple elements in the stream.
    */
   def dechunk: Enumeratee[Array[Byte], Array[Byte]] = {
-
-    implicit val ctx = internalContext
 
     // convenience method
     def elOrEmpty(data: Array[Byte]) = {
