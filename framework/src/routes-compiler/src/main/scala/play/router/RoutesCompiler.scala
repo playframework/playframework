@@ -397,7 +397,6 @@ object RoutesCompiler {
    */
   private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
 
-
     check(new File(file.path), rules.collect { case r: Route => r })
 
     val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
