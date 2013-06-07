@@ -96,7 +96,7 @@ trait WithDefaultPlugins {
     val pluginFiles = self.classloader.getResources("play.plugins").asScala.toList ++ self.classloader.getResources("conf/play.plugins").asScala.toList
 
     pluginFiles.distinct.map { plugins =>
-      (plugins.asInput.string.split("\n").map(_.trim)).filterNot(_.isEmpty).map {
+      (plugins.asInput.string.split("\n").map(_.replaceAll("#.*$", "").trim)).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => (priority.toInt, className)
       }
     }.flatten.sortBy(_._1).map(_._2)
