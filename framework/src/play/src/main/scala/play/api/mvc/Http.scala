@@ -109,7 +109,7 @@ package play.api.mvc {
       def parseAcceptHeaders(headers: Seq[(Double, String)], acc: List[(Double, MediaRange)]): List[(Double, MediaRange)] = headers match {
         case Nil => acc
         case (d, s) :: tail => MediaRange(s) match {
-          case None    => parseAcceptHeaders(tail, acc)
+          case None => parseAcceptHeaders(tail, acc)
           case Some(m) => parseAcceptHeaders(tail, (d, m) :: acc)
         }
       }
