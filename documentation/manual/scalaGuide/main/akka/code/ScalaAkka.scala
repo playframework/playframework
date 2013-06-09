@@ -1,4 +1,4 @@
-package scalaguide.upload.fileupload {
+package scalaguide.akka {
 
 
 import org.specs2.mutable.Specification
