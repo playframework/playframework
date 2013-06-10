@@ -4,7 +4,7 @@ Here we will start to write the model for our task management system.
 
 ## Introduction to Ebean
 
-The model layer has a central position in a play application (and in fact in all well designed applications).  It is the demain-specific representation of the information on which the application operates.  As we want to create a task management system, the model layer will contain classes like `User`, `Project` and `Task`.
+The model layer has a central position in a play application (and in fact in all well designed applications).  It is the domain-specific representation of the information on which the application operates.  As we want to create a task management system, the model layer will contain classes like `User`, `Project` and `Task`.
 
 Because most model objects need to survive between application restarts, we have to save them in a persistent datastore. A common choice is to use a relational database.  But because Java is an object oriented language, we will use an **Object Relational Mapper** to help reduce the impedance mismatch.
 
