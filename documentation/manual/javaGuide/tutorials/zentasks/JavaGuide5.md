@@ -210,7 +210,7 @@ public void renameProject() {
 }
 ```
 
-And also importantly, let's check that our authorisation is working, making sure that someone who is not a member of a project can not change the name of that project:
+And also importantly, let's check that our authorization is working, making sure that someone who is not a member of a project can not change the name of that project:
 
 ```java
 @Test
