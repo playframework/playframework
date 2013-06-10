@@ -7,10 +7,12 @@ import play.api.test.Helpers._
 import play.api.libs.ws.Response
 import play.api.libs.iteratee.{Iteratee, Enumerator}
 import java.net.Socket
-import java.io.OutputStreamWriter
+import java.io.{InputStream, OutputStreamWriter}
 import org.apache.commons.io.IOUtils
 
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
+import scala.annotation.tailrec
+import scala.collection.mutable
 
 object ScalaResultsHandlingSpec extends Specification {
 
@@ -29,16 +31,33 @@ object ScalaResultsHandlingSpec extends Specification {
         s.setSoTimeout(5000)
         // Send request
         val out = new OutputStreamWriter(s.getOutputStream)
+        var expectedResponses = 1
         lines.foreach { line =>
           out.write(line)
           out.write("\r\n")
+          if (line.size == 0) expectedResponses += 1
         }
         out.write("\r\n")
         out.flush()
 
         // Read response
-        import scala.collection.JavaConversions._
-        IOUtils.readLines(s.getInputStream)
+        @tailrec
+        def readHttpResponse(ab: mutable.ArrayBuffer[String], is: InputStream, expectedResponses: Int):
+        mutable.ArrayBuffer[String] = {
+          if (expectedResponses == 0) {
+            ab
+          } else {
+            import scala.collection.JavaConverters._
+            ab ++= IOUtils.readLines(s.getInputStream).asScala
+            // Response counting could be made more sophisticated by checking content-length
+            // etc., but the following is sufficient for our tests thus far.
+            val actualResponses = ab.count(_.startsWith("HTTP/"))
+            readHttpResponse(ab, is, expectedResponses - actualResponses)
+          }
+        }
+
+        readHttpResponse(new mutable.ArrayBuffer[String], s.getInputStream, expectedResponses).toList
+
       } finally {
         s.close()
       }
@@ -83,7 +102,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "close the connection for feed results" in makeRequest(
-      Results.Ok.feed(Enumerator("a", "b", "c"))
+      Results.Ok.stream(Enumerator("a", "b", "c"), StreamingStrategy.Simple)
     ) { response =>
       response.header(TRANSFER_ENCODING) must beNone
       response.header(CONTENT_LENGTH) must beNone
