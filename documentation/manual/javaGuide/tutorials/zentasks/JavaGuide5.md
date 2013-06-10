@@ -50,7 +50,7 @@ public static Result add() {
 
 We've used our existing `create` method on our `Project` model to create the new project, owned by the currently logged in user, which is returned by `request().username()`.
 
-Also notice that we are reusing that `item` template that we created earlier to render the new project.  Now you'll be begin to see why we created our templates in the structure that we did earlier.  This method only renders a small part of the page, that's ok, we'll be using this fragment from an AJAX action.
+Also notice that we are reusing that `item` template that we created earlier to render the new project.  Now you'll begin to see why we created our templates in the structure that we did earlier.  This method only renders a small part of the page, that's ok, we'll be using this fragment from an AJAX action.
 
 Let's now add a method to rename a project, but before we do, let's consider the security requirements of this function. A user should only be allowed to rename a project if they are a member of that project.  Let's write a utility method in our `app/controllers/Secured.java` class that checks this:
 
