@@ -699,7 +699,7 @@ trait Results {
         streamingStrategy = streamingStrategy)
     }
 
-    @deprecated("Use stream(content, StreamingStartegy.Simple) instead", "2.2.0")
+    @deprecated("Use stream(content, StreamingStrategy.Simple) instead", "2.2.0")
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = {
       SimpleResult(
         header = ResponseHeader(status),
