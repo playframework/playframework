@@ -2,6 +2,7 @@
 
 - [[The Play WS API  | JavaWS]]
 - [[Connect to OpenID servers | JavaOpenID]]
+- [[Accessing resources protected by OAuth | JavaOAuth]]
 
 ### Main concepts
 
