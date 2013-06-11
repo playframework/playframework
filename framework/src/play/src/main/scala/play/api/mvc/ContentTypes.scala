@@ -654,7 +654,7 @@ trait BodyParsers {
           for {
             value <- headers.get("content-disposition")
 
-            values = value.split(";").map(_.trim).map {
+            values = value.split(";(?=([^\"]*\"[^\"]*\")*[^\"]*$)").map(_.trim).map {
               case keyValue(key, value) => (key.trim, value.trim)
               case key => (key.trim, "")
             }.toMap
