@@ -22,3 +22,4 @@ object ContentTypesSpec extends Specification {
 
   }
 }
+
