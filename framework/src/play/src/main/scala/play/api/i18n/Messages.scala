@@ -264,12 +264,25 @@ class MessagesPlugin(app: Application) extends Plugin {
   import scalax.file._
   import scalax.io.JavaConverters._
 
+  private lazy val resources: Seq[String] = {
+    app.configuration.getString("application.messages.path").map { paths =>
+      paths.split(":").map { path =>
+        app.resource(path) match {
+          case Some(_) => path
+          case _ => throw app.configuration.reportError("application.messages.path", "Invalid messages path [%s]".format(path))
+        }
+      }.toSeq.reverse
+    }.getOrElse(Seq("."))
+  }
+
   private def loadMessages(file: String): Map[String, String] = {
-    app.classloader.getResources(file).asScala.toList.reverse.map { messageFile =>
-      new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
-        message.key -> message.pattern
-      }.toMap
-    }.foldLeft(Map.empty[String, String]) { _ ++ _ }
+    resources.foldLeft(Map.empty[String, String]) { (acc, path) =>
+      acc ++ app.classloader.getResources("%s/%s".format(path, file)).asScala.toList.reverse.map { messageFile =>
+        new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
+          message.key -> message.pattern
+        }.toMap
+      }.foldLeft(Map.empty[String, String]) { _ ++ _ }
+    }
   }
 
   private lazy val messages = {
