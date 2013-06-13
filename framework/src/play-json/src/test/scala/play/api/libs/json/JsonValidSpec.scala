@@ -468,8 +468,8 @@ object JsonValidSpec extends Specification {
         (__ \ 'phone).readNullable(Reads.minLength[String](8))
       )(User)
 
-      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))
-      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("validate.error.minlength", 8)))
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("error.minLength", 8)))
     }
 
     "mix reads constraints" in {
@@ -482,8 +482,8 @@ object JsonValidSpec extends Specification {
       )(User)
 
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("validate.error.max", 55)) ++ JsError((__ \ 'age), ValidationError("validate.error.min", 65)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("validate.error.email")) ++ JsError((__ \ 'age), ValidationError("validate.error.max", 55)) ++ JsError((__ \ 'age), ValidationError("validate.error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("error.email")) ++ JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
     }
 
     "verifyingIf reads" in {
@@ -781,8 +781,8 @@ object JsonValidSpec extends Specification {
         (__ \ 'phone).formatNullable(Format(minLength[String](8), Writes.of[String]))
       )(User, unlift(User.unapply))
 
-      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("validate.error.email")))
-      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("validate.error.minlength", 8)))
+      Json.obj("email" -> "john").validate[User] must beEqualTo(JsError(__ \ "email", ValidationError("error.email")))
+      Json.obj("email" -> "john.doe@blibli.com", "phone" -> "4").validate[User] must beEqualTo(JsError(__ \ "phone", ValidationError("error.minLength", 8)))
       Json.obj("email" -> "john.doe@blibli.com", "phone" -> "12345678").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", Some("12345678"))))
       Json.obj("email" -> "john.doe@blibli.com").validate[User] must beEqualTo(JsSuccess(User("john.doe@blibli.com", None)))
 
