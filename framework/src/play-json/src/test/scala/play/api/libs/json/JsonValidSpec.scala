@@ -26,9 +26,9 @@ object JsonValidSpec extends Specification {
     }
 
     "invalidate wrong simple type conversion" in {
-      JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))))
-      JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring")))))
-      JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber")))))
+      JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
+      JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring")))))
+      JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
     }
 
     "validate simple numbered type conversion" in {
@@ -48,16 +48,16 @@ object JsonValidSpec extends Specification {
     "invalidate JsObject to Map with wrong type conversion" in {
       Json.obj("key1" -> "value1", "key2" -> "value2", "key3" -> "value3").validate[Map[String, Int]] must equalTo(
         JsError(Seq(
-          JsPath \ "key1" -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath \ "key2" -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath \ "key3" -> Seq(ValidationError("validate.error.expected.jsnumber"))
+          JsPath \ "key1" -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath \ "key2" -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath \ "key3" -> Seq(ValidationError("error.expected.jsnumber"))
         ))
       )
 
       Json.obj("key1" -> "value1", "key2" -> 5, "key3" -> true).validate[Map[String, Int]] must equalTo(
         JsError(Seq(
-          JsPath \ "key1" -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath \  "key3" -> Seq(ValidationError("validate.error.expected.jsnumber"))
+          JsPath \ "key1" -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath \  "key3" -> Seq(ValidationError("error.expected.jsnumber"))
         ))
       )
     }
@@ -72,16 +72,16 @@ object JsonValidSpec extends Specification {
     "invalidate JsArray to List with wrong type conversion" in {
       Json.arr("alpha", "beta", "delta").validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath(1) -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("validate.error.expected.jsnumber"))
+          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath(1) -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
         ))
       )
 
       Json.arr("alpha", 5, true).validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("validate.error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("validate.error.expected.jsnumber"))
+          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
         ))
       )
     }
@@ -387,8 +387,8 @@ object JsonValidSpec extends Specification {
       )
 
       js0.validate(jsonTransformer) must beEqualTo(
-        //JsError( (__ \ 'key3), "validate.error.expected.jsarray" ) ++
-        JsError( (__ \ 'key2 \ 'key22), "validate.error.missing-path" )
+        //JsError( (__ \ 'key3), "error.expected.jsarray" ) ++
+        JsError( (__ \ 'key2 \ 'key22), "error.missing-path" )
       )
 
       js.validate(jsonTransformer) must beEqualTo(JsSuccess(res))
@@ -454,8 +454,8 @@ object JsonValidSpec extends Specification {
         )
       ).validate[User] must beEqualTo(
         JsError(Seq(
-          __ \ 'coords \ 'phone -> Seq(ValidationError("validate.error.missing-path")),
-          __ \ 'coords \ 'email -> Seq(ValidationError("validate.error.missing-path"))
+          __ \ 'coords \ 'phone -> Seq(ValidationError("error.missing-path")),
+          __ \ 'coords \ 'email -> Seq(ValidationError("error.missing-path"))
         ))
       )
     }
@@ -500,7 +500,7 @@ object JsonValidSpec extends Specification {
       val d = (new java.util.Date()).getTime()
       Json.obj("type" -> "coucou", "data" -> Json.obj()).validate(TupleReads) must beEqualTo(JsSuccess("coucou" -> Json.obj()))
       Json.obj("type" -> "coucou", "data" -> Json.obj( "title" -> "blabla", "created" -> d)).validate(TupleReads) must beEqualTo(JsSuccess("coucou" -> Json.obj( "title" -> "blabla", "created" -> d)))
-      Json.obj("type" -> "coucou", "data" -> Json.obj( "title" -> "blabla")).validate(TupleReads) must beEqualTo(JsError( __ \ "data" \ "created", "validate.error.missing-path"))
+      Json.obj("type" -> "coucou", "data" -> Json.obj( "title" -> "blabla")).validate(TupleReads) must beEqualTo(JsError( __ \ "data" \ "created", "error.missing-path"))
     }
 
     "recursive reads" in {
@@ -613,7 +613,7 @@ object JsonValidSpec extends Specification {
       val myFormat = (__ \ 'field).format[String].inmap(Test, unlift(Test.unapply))
 
       myFormat.reads(Json.obj("field" -> "blabla")) must beEqualTo(JsSuccess(Test("blabla"), __ \ 'field))
-      myFormat.reads(Json.obj()) must beEqualTo(JsError( __ \ 'field, "validate.error.missing-path" ) )
+      myFormat.reads(Json.obj()) must beEqualTo(JsError( __ \ 'field, "error.missing-path" ) )
       myFormat.writes(Test("blabla")) must beEqualTo(Json.obj("field" -> "blabla"))
     }
 
@@ -626,11 +626,11 @@ object JsonValidSpec extends Specification {
       ).reduce
 
       val js0 = Json.obj("field1" -> "alpha")
-      val js = js0 ++ Json.obj("field2" -> Json.obj("field21" -> 123, "field22" -> true))    
-      val js2 = js ++ Json.obj("field3" -> "beta")  
+      val js = js0 ++ Json.obj("field2" -> Json.obj("field21" -> 123, "field22" -> true))
+      val js2 = js ++ Json.obj("field3" -> "beta")
       js.validate(myReads) must beEqualTo(JsSuccess(js))
       js2.validate(myReads) must beEqualTo(JsSuccess(js))
-      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path"))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "error.missing-path"))
     }
 
     "reduce Reads[JsArray]" in {
@@ -647,7 +647,7 @@ object JsonValidSpec extends Specification {
       val js2 = js ++ Json.obj("field4" -> false)  
       js.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
       js2.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
-      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path") ++ JsError(__ \ 'field3, "validate.error.missing-path"))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "error.missing-path") ++ JsError(__ \ 'field3, "error.missing-path"))
     }
 
     "reduce Reads[JsArray] no type" in {
@@ -664,7 +664,7 @@ object JsonValidSpec extends Specification {
       val js2 = js ++ Json.obj("field4" -> false)  
       js.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
       js2.validate(myReads) must beEqualTo(JsSuccess(Json.arr( "alpha", 123L, false)))
-      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "validate.error.missing-path") ++ JsError(__ \ 'field3, "validate.error.missing-path"))
+      js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "error.missing-path") ++ JsError(__ \ 'field3, "error.missing-path"))
     }
 
     "serialize JsError to flat json" in {

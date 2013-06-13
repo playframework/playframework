@@ -220,7 +220,7 @@ object JsPathSpec extends Specification {
       (__ \ 'level2).prune(obj).get must beEqualTo(res)
       (__ \ 'level1 \ 'key1).prune(obj).get must beEqualTo(res2)
       (__ \ 'level1 \ 'key2 \ 'key21).prune(obj).get must beEqualTo(res3)
-      (__ \\ 'key21).prune(obj) must beEqualTo(JsError( __ \\ "key21", ValidationError("validate.error.expected.keypathnode")))
+      (__ \\ 'key21).prune(obj) must beEqualTo(JsError( __ \\ "key21", ValidationError("error.expected.keypathnode")))
     }
 
     "get JsPath till last node" in {
@@ -242,11 +242,11 @@ object JsPathSpec extends Specification {
       )))
 
       (__ \ 'level1 \ 'key2 \ 'key23).applyTillLast(res) must beEqualTo(
-        Right(JsError( __ \ 'level1 \ 'key2 \ 'key23 , ValidationError("validate.error.missing-path") ))
+        Right(JsError( __ \ 'level1 \ 'key2 \ 'key23 , ValidationError("error.missing-path") ))
       )
 
       (__ \ 'level2 \ 'key3).applyTillLast(res) must beEqualTo(
-        Left(JsError( __ \ 'level2 \ 'key3 , ValidationError("validate.error.missing-path") ))
+        Left(JsError( __ \ 'level2 \ 'key3 , ValidationError("error.missing-path") ))
       )
     }
 
