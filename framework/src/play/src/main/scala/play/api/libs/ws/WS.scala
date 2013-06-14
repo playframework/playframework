@@ -270,6 +270,13 @@ object WS {
                 it
               }
             }(play.core.Execution.internalContext)
+
+            iteratee = iteratee.mapDone { a =>
+              bodyPart.markUnderlyingConnectionAsClosed()
+              Option(iteratee).map(iterateeP.success(_))
+              a
+            }(play.core.Execution.internalContext)
+
             STATE.CONTINUE
           } else {
             iteratee = null
