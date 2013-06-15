@@ -38,7 +38,7 @@ All input helpers take an implicit `FieldConstructor` that handles this part. Th
 
 ```
 <dl class="error" id="email_field">
-    <dt><label for="email"><label>Email:</label></dt>
+    <dt><label for="email">Email:</label></dt>
     <dd><input type="text" name="email" id="email" value=""></dd>
     <dd class="error">This field is required!</dd>
     <dd class="error">Another error</dd>

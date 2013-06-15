@@ -62,7 +62,7 @@ All input helpers take an implicit `FieldConstructor` that handles this part. Th
 
 ```
 <dl class="error" id="username_field">
-    <dt><label for="username"><label>Username:</label></dt>
+    <dt><label for="username">Username:</label></dt>
     <dd><input type="text" name="username" id="username" value=""></dd>
     <dd class="error">This field is required!</dd>
     <dd class="error">Another error</dd>
