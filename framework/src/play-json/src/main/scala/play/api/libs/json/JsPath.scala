@@ -176,29 +176,29 @@ case class JsPath(path: List[PathNode] = List()) {
   def apply(json: JsValue): List[JsValue] = path.foldLeft(List(json))((s, p) => s.flatMap(p.apply))
 
   def asSingleJsResult(json: JsValue): JsResult[JsValue] = this(json) match {
-    case Nil => JsError(Seq(this -> Seq(ValidationError("error.missing-path"))))
+    case Nil => JsError(Seq(this -> Seq(ValidationError("error.path.missing"))))
     case List(js) => JsSuccess(js)
-    case _ :: _ => JsError(Seq(this -> Seq(ValidationError("error.multiple-result-path"))))
+    case _ :: _ => JsError(Seq(this -> Seq(ValidationError("error.path.result.multiple"))))
   }
 
   def asSingleJson(json: JsValue): JsValue = this(json) match {
-    case Nil => JsUndefined("not.found")
+    case Nil => JsUndefined("error.path.missing")
     case List(js) => js
-    case _ :: _ => JsUndefined("multiple.result")
+    case _ :: _ => JsUndefined("error.path.result.multiple")
   }
 
   def applyTillLast(json: JsValue): Either[JsError, JsResult[JsValue]] = {
     def step(path: List[PathNode], json: JsValue): Either[JsError, JsResult[JsValue]] = path match {
-      case Nil => Left(JsError(Seq(this -> Seq(ValidationError("error.empty-path")))))
+      case Nil => Left(JsError(Seq(this -> Seq(ValidationError("error.path.empty")))))
       case List(node) => node(json) match {
-        case Nil => Right(JsError(Seq(this -> Seq(ValidationError("error.missing-path")))))
+        case Nil => Right(JsError(Seq(this -> Seq(ValidationError("error.path.missing")))))
         case List(js) => Right(JsSuccess(js))
-        case _ :: _ => Right(JsError(Seq(this -> Seq(ValidationError("error.multiple-result-path")))))
+        case _ :: _ => Right(JsError(Seq(this -> Seq(ValidationError("error.path.result.multiple")))))
       }
       case head :: tail => head(json) match {
-        case Nil => Left(JsError(Seq(this -> Seq(ValidationError("error.missing-path")))))
+        case Nil => Left(JsError(Seq(this -> Seq(ValidationError("error.path.missing")))))
         case List(js) => step(tail, js)
-        case _ :: _ => Left(JsError(Seq(this -> Seq(ValidationError("error.multiple-result-path")))))
+        case _ :: _ => Left(JsError(Seq(this -> Seq(ValidationError("error.path.result.multiple")))))
       }
     }
 
@@ -234,7 +234,7 @@ case class JsPath(path: List[PathNode] = List()) {
         case Nil => JsSuccess(json)
         case List(p) => stepNode(json, p).repath(lpath)
         case head :: tail => head(json) match {
-          case Nil => JsError(lpath, ValidationError("error.missing-path"))
+          case Nil => JsError(lpath, ValidationError("error.path.missing"))
           case List(js) =>
             js match {
               case o: JsObject =>
@@ -243,7 +243,7 @@ case class JsPath(path: List[PathNode] = List()) {
                 )
               case _ => JsError(lpath, ValidationError("error.expected.jsobject"))
             }
-          case h :: t => JsError(lpath, ValidationError("error.multiple-result-path"))
+          case h :: t => JsError(lpath, ValidationError("error.path.result.multiple"))
         }
       }
     }
