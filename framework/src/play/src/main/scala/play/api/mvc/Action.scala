@@ -3,6 +3,7 @@ package play.api.mvc
 import play.api.libs.iteratee._
 import play.api._
 import scala.concurrent._
+import scala.language.higherKinds
 
 /**
  * An Handler handles a request.
