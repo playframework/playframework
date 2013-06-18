@@ -61,7 +61,7 @@ dynamically reserved for each build.
 A custom `FakeApplication` can also be passed to the test server, for example:
 
 ```scala
-"run in a server" in new WithServer(port = 3333, app = FakeApplication(additionalConfiguration = inMemoryDatabase)) {
+"run in a server" in new WithServer(app = FakeApplication(additionalConfiguration = inMemoryDatabase), port = 3333) {
   await(WS.url("http://localhost:3333").get).status must equalTo(OK)
 }
 ```
