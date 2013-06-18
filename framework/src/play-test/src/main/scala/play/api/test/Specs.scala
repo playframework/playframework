@@ -26,6 +26,7 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  *
  * @param app The fake application
  * @param port The port to run the server on
+ * @note don't use named argument in a different order to defined. see [[https://issues.scala-lang.org/browse/SI-6481]]
  */
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
     val port: Int = Helpers.testServerPort) extends Around with Scope {
@@ -41,6 +42,7 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
  * @param webDriver The driver for the web browser to use
  * @param app The fake application
  * @param port The port to run the server on
+ * @note don't use named argument in a different order to defined. see [[https://issues.scala-lang.org/browse/SI-6481]]
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
