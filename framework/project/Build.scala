@@ -19,7 +19,7 @@ object BuildSettings {
 
   val experimental = Option(System.getProperty("experimental")).filter(_ == "true").map(_ => true).getOrElse(false)
 
-  val buildOrganization = "play"
+  val buildOrganization = "com.typesafe.play"
   val buildVersion = propOr("play.version", "2.2-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
@@ -50,7 +50,7 @@ object BuildSettings {
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
-      mimaDefaultSettings ++ Seq(previousArtifact := Some("play" % name % previousVersion))
+      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % name % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
@@ -75,7 +75,7 @@ object BuildSettings {
   }
 
   def playRuntimeSettings(name: String): Seq[Setting[_]] = Seq(
-    previousArtifact := Some("play" %% name % previousVersion),
+    previousArtifact := Some(buildOrganization %% name % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     publishArtifact in packageDoc := buildWithDoc,
     publishArtifact in (Compile, packageSrc) := true)

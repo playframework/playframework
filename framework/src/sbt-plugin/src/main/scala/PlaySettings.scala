@@ -72,14 +72,14 @@ trait PlaySettings {
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
     libraryDependencies <+= (playPlugin) { isPlugin =>
-      val d = "play" %% "play" % play.core.PlayVersion.current
+      val d = "com.typesafe.play" %% "play" % play.core.PlayVersion.current
       if (isPlugin)
         d % "provided"
       else
         d
     },
 
-    libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
+    libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     parallelExecution in Test := false,
 
