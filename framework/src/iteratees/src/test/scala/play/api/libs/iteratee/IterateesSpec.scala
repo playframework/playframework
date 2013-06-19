@@ -8,6 +8,8 @@ import java.util.concurrent.{ CountDownLatch, TimeUnit }
 import scala.concurrent.{ ExecutionContext, Promise, Future, Await }
 import scala.util.{ Failure, Success, Try }
 
+import ExecutionContext.Implicits.global
+
 object IterateesSpec extends Specification
   with IterateeSpecification with ExecutionSpecification {
 
@@ -109,31 +111,31 @@ object IterateesSpec extends Specification
     }
 
     "flatMap directly to result when no remaining input" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(2) { flatMapEC =>
         await(Done(3).flatMap((x: Int) => Done[Int, Int](x * 2))(flatMapEC).unflatten) must equalTo(Step.Done(6, Input.Empty))
       }
     }
 
     "flatMap result and process remaining input with Done" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(3) { flatMapEC =>
         await(Done(3, Input.El("remaining")).flatMap((x: Int) => Done[String, Int](x * 2))(flatMapEC).unflatten) must equalTo(Step.Done(6, Input.El("remaining")))
       }
     }
 
     "flatMap result and process remaining input with Cont" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(3) { flatMapEC =>
         await(Done(3, Input.El("remaining")).flatMap((x: Int) => Cont(in => Done[String, Int](x * 2, in)))(flatMapEC).unflatten) must equalTo(Step.Done(6, Input.El("remaining")))
       }
     }
 
     "flatMap result and process remaining input with Error" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(3) { flatMapEC =>
         await(Done(3, Input.El("remaining")).flatMap((x: Int) => Error("error", Input.El("bad")))(flatMapEC).unflatten) must equalTo(Step.Error("error", Input.El("bad")))
       }
     }
 
     "flatMap result with flatMapM" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(2) { flatMapEC =>
         mustTranslate3To(6)(_.flatMapM((x: Int) => Future.successful(Done[Int, Int](x * 2)))(flatMapEC))
       }
     }
@@ -145,7 +147,7 @@ object IterateesSpec extends Specification
     }
 
     "concatenate unused input with flatMapTraversable" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(3) { flatMapEC =>
         await(Done(3, Input.El(List(1, 2))).flatMapTraversable(_ => Done[List[Int], Int](4, Input.El(List(3, 4))))(
           implicitly[List[Int] => scala.collection.TraversableLike[Int, List[Int]]],
           implicitly[scala.collection.generic.CanBuildFrom[List[Int], Int, List[Int]]],
@@ -173,7 +175,7 @@ object IterateesSpec extends Specification
     }
 
     "flatMap recursively" in {
-      mustExecute(1) { flatMapEC =>
+      mustExecute(3) { flatMapEC =>
         await(Iteratee.flatten(Cont[Int, Int](_ => Done(3)).flatMap((x: Int) => Done[Int, Int](x * 2))(flatMapEC).feed(Input.El(11))).unflatten) must equalTo(Step.Done(6, Input.Empty))
       }
     }
@@ -197,7 +199,7 @@ object IterateesSpec extends Specification
     }
 
     "flatMap to an error" in {
-      mustExecute(0) { flatMapEC =>
+      mustExecute(1) { flatMapEC =>
         await(Error("msg", Input.El("bad")).flatMap((x: Int) => Done("done"))(flatMapEC).unflatten) must equalTo(Step.Error("msg", Input.El("bad")))
       }
     }
@@ -207,19 +209,19 @@ object IterateesSpec extends Specification
   "Iteratees fed multiple inputs" should {
 
     "map the final iteratee's result (with mapDone)" in {
-      mustExecute(4, 1) { (foldEC, mapEC) =>
+      mustExecute(8, 8) { (foldEC, mapEC) =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapDone(_ * 2)(mapEC)) must equalTo(20)
       }
     }
 
     "map the final iteratee's result (with map)" in {
-      mustExecute(4, 1) { (foldEC, mapEC) =>
+      mustExecute(8, 8) { (foldEC, mapEC) =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).map(_ * 2)(mapEC)) must equalTo(20)
       }
     }
 
     "map the final iteratee's result (with mapM)" in {
-      mustExecute(4, 1) { (foldEC, mapEC) =>
+      mustExecute(8, 9) { (foldEC, mapEC) =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapM(x => Future.successful(x * 2))(mapEC)) must equalTo(20)
       }
     }
@@ -229,7 +231,7 @@ object IterateesSpec extends Specification
   "Iteratee.fold" should {
 
     "fold input" in {
-      mustExecute(4) { foldEC =>
+      mustExecute(8) { foldEC =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC)) must equalTo(10)
       }
     }
@@ -239,7 +241,7 @@ object IterateesSpec extends Specification
   "Iteratee.foldM" should {
 
     "fold input" in {
-      mustExecute(4) { foldEC =>
+      mustExecute(8) { foldEC =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.foldM[Int, Int](0)((x, y) => Future.successful(x + y))(foldEC)) must equalTo(10)
       }
     }
@@ -249,14 +251,14 @@ object IterateesSpec extends Specification
   "Iteratee.fold2" should {
 
     "fold input" in {
-      mustExecute(4) { foldEC =>
+      mustExecute(8) { foldEC =>
         val folder = (x: Int, y: Int) => Future.successful((x + y, false))
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold2[Int, Int](0)(folder)(foldEC)) must equalTo(10)
       }
     }
 
     "fold input, stopping early" in {
-      mustExecute(3) { foldEC =>
+      mustExecute(6) { foldEC =>
         val folder = (x: Int, y: Int) => Future.successful((x + y, (y > 2)))
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold2[Int, Int](0)(folder)(foldEC)) must equalTo(6)
       }
@@ -264,10 +266,10 @@ object IterateesSpec extends Specification
 
   }
 
-  "Iteratee.foldM" should {
+  "Iteratee.fold1" should {
 
     "fold input" in {
-      mustExecute(4) { foldEC =>
+      mustExecute(9) { foldEC =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold1[Int, Int](Future.successful(0))((x, y) => Future.successful(x + y))(foldEC)) must equalTo(10)
       }
     }

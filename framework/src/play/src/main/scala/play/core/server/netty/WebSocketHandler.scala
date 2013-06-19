@@ -19,10 +19,13 @@ import play.core.server.websocket.WebSocketHandshake
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
+import play.api.libs.iteratee.internal.prepared
 import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.concurrent.stm._
+
+import play.core.Execution.Implicits.internalContext
 
 private[server] trait WebSocketHandler {
   def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = {
@@ -37,7 +40,7 @@ private[server] trait WebSocketHandler {
 
       private val promise: scala.concurrent.Promise[Iteratee[A, Any]] = Promise[Iteratee[A, Any]]()
 
-      def apply[R](i: Iteratee[A, R]) = {
+      def apply[R](i: Iteratee[A, R])(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
         eventuallyIteratee.success(i /* TODO: use a buffer enumeratee to fail when too many messages */ )
         promise.asInstanceOf[scala.concurrent.Promise[Iteratee[A, R]]].future
       }
@@ -59,9 +62,9 @@ private[server] trait WebSocketHandler {
 
               case Step.Cont(_) => Future.successful(next)
               case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Future.successful(next) }
-            }(play.core.Execution.internalContext)
+            }
           },
-          (err, e) => /* handle error, maybe close the socket */ Future.successful(current))(play.core.Execution.internalContext)
+          (err, e) => /* handle error, maybe close the socket */ Future.successful(current))
         eventuallyNext.success(next)
       }
     }

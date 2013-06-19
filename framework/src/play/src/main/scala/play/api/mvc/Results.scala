@@ -1,6 +1,7 @@
 package play.api.mvc
 
 import play.api.libs.iteratee._
+import play.api.libs.iteratee.internal.prepared
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.{ Application, Play }
@@ -8,7 +9,7 @@ import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext, Promise }
 
-import play.core.Execution.internalContext
+import play.core.Execution.Implicits.internalContext
 import scala.deprecated
 
 /**
@@ -416,7 +417,7 @@ class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee
   body = new Enumerator[A] {
     // Since chunked result bodies are functions of iteratee to unit, not a future, we need to do this in
     // a somewhat messy way
-    def apply[C](i: Iteratee[A, C]): Future[Iteratee[A, C]] = {
+    def apply[C](i: Iteratee[A, C])(implicit ec: ExecutionContext): Future[Iteratee[A, C]] = prepared(ec) { implicit ec =>
       val doneIteratee = Promise[Iteratee[A, C]]
       chunks(i.map { done =>
         doneIteratee.success(Done[A, C](done)).asInstanceOf[Unit]
@@ -451,20 +452,23 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @param f The transformation function
    * @return The transformed `AsyncResult`
    */
-  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map {
-    case AsyncResult(r) => AsyncResult(r.map {
+  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = {
+    val functionContext = ec.prepare()
+    AsyncResult(result.map {
+      case AsyncResult(r) => AsyncResult(r.map {
+        case r: PlainResult => f(r)
+        case r: AsyncResult => r.transform(f)(functionContext)
+      }(internalContext))
       case r: PlainResult => f(r)
-      case r: AsyncResult => r.transform(f)
-    })
-    case r: PlainResult => f(r)
-  })
+    }(internalContext))
+  }
 
   def unflatten: Future[SimpleResult] = result.flatMap {
     case r: SimpleResult => Future.successful(r)
     case r @ AsyncResult(_) => r.unflatten
-  }(internalContext)
+  }
 
-  def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f))
+  def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f)(ec))
 
   /**
    * Adds headers to this result.
@@ -478,7 +482,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withHeaders(headers: (String, String)*): AsyncResult = {
-    map(_.withHeaders(headers: _*))(internalContext)
+    map(_.withHeaders(headers: _*))
   }
 
   /**
@@ -493,7 +497,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withCookies(cookies: Cookie*): AsyncResult = {
-    map(_.withCookies(cookies: _*))(internalContext)
+    map(_.withCookies(cookies: _*))
   }
 
   /**
@@ -508,7 +512,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): AsyncResult = {
-    map(_.discardingCookies(cookies: _*))(internalContext)
+    map(_.discardingCookies(cookies: _*))
   }
 
   /**
@@ -523,7 +527,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withSession(session: Session): AsyncResult = {
-    map(_.withSession(session))(internalContext)
+    map(_.withSession(session))
   }
 
   /**
@@ -538,7 +542,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withSession(session: (String, String)*): AsyncResult = {
-    map(_.withSession(session: _*))(internalContext)
+    map(_.withSession(session: _*))
   }
 
   /**
@@ -552,7 +556,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withNewSession: AsyncResult = {
-    map(_.withNewSession)(internalContext)
+    map(_.withNewSession)
   }
 
   /**
@@ -567,7 +571,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def flashing(flash: Flash): AsyncResult = {
-    map(_.flashing(flash))(internalContext)
+    map(_.flashing(flash))
   }
 
   /**
@@ -582,7 +586,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def flashing(values: (String, String)*): AsyncResult = {
-    map(_.flashing(values: _*))(internalContext)
+    map(_.flashing(values: _*))
   }
 
   /**
@@ -597,7 +601,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def as(contentType: String): AsyncResult = {
-    map(_.as(contentType))(internalContext)
+    map(_.as(contentType))
   }
 
 }
@@ -674,14 +678,14 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(ec: ExecutionContext): SimpleResult = {
+    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): SimpleResult = {
       val name = fileName(content)
       SimpleResult(
         ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
         ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
-        Enumerator.fromFile(content) &> Writeable.wBytes.toEnumeratee &> Enumeratee.onIterateeDone(onClose)(ec)
+        Enumerator.fromFile(content) &> Writeable.wBytes.toEnumeratee &> Enumeratee.onIterateeDone(onClose)
       )
     }
 

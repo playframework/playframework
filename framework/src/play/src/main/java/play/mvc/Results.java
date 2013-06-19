@@ -1135,7 +1135,7 @@ public class Results {
              * Write a Chunk.
              */
             public void write(A chunk) {
-                channel.push(chunk);
+                channel.push(chunk, play.core.Execution.internalContext());
             }
 
             /**
@@ -1149,7 +1149,7 @@ public class Results {
              * Closes the stream.
              */
             public void close() {
-                channel.eofAndEnd();
+                channel.eofAndEnd(play.core.Execution.internalContext());
             }
 
         }

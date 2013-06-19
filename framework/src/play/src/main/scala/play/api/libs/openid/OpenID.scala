@@ -11,7 +11,7 @@ import play.api.libs.ws._
 import xml.Node
 
 //TODO do not use Play's internal execution context in libs
-import play.core.Execution.internalContext
+import play.core.Execution.Implicits.internalContext
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
@@ -83,7 +83,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
       ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
       val separator = if (server.url.contains("?")) "&" else "?"
       server.url + separator + parameters.map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8")).mkString("&")
-    })(internalContext)
+    })
   }
 
   /**
@@ -105,7 +105,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
         case (Some("id_res"), Some(id)) => {
           // MUST perform discovery on the claimedId to resolve the op_endpoint.
           val server: Future[OpenIDServer] = discovery.discoverServer(id)
-          server.flatMap(directVerification(queryString))(internalContext)
+          server.flatMap(directVerification(queryString))
         }
         case (Some("cancel"), _) => Future.failed(Errors.AUTH_CANCEL)
         case _ => Future.failed(Errors.BAD_RESPONSE)
@@ -121,7 +121,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
       if (response.status == 200 && response.body.contains("is_valid:true")) {
         UserInfo(queryString)
       } else throw Errors.AUTH_ERROR
-    })(internalContext)
+    })
   }
 
   private def axParameters(axRequired: Seq[(String, String)],
@@ -183,7 +183,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
     ws(discoveryUrl).get().map(response => {
       val maybeOpenIdServer = new XrdsResolver().resolve(response) orElse new HtmlResolver().resolve(response)
       maybeOpenIdServer.getOrElse(throw Errors.NETWORK_ERROR)
-    })(internalContext)
+    })
   }
 }
 

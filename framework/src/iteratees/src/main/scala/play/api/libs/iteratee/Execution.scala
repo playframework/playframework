@@ -7,12 +7,10 @@ import scala.concurrent.ExecutionContext
  */
 private[play] object Execution {
 
-  def defaultExecutionContext: ExecutionContext = Implicits.defaultExecutionContext
-
-  object Implicits {
-    implicit lazy val defaultExecutionContext: ExecutionContext = scala.concurrent.ExecutionContext.fromExecutor(null)
-  }
-
+  /**
+   * Executes tests on the same thread. This can be good for performance, but care needs
+   * to be taken to avoid overflowing the stack.
+   */
   val sameThreadExecutionContext: ExecutionContext = new ExecutionContext {
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(t: Throwable): Unit = t.printStackTrace()

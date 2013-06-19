@@ -20,6 +20,8 @@ import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
 import com.ning.http.util.AsyncHttpProviderUtils
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * Asynchronous API to to query web services, as an http client.
  *
@@ -269,7 +271,7 @@ object WS {
                 iterateeP.success(it)
                 it
               }
-            }(play.core.Execution.internalContext)
+            }
             STATE.CONTINUE
           } else {
             iteratee = null

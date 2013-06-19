@@ -4,7 +4,7 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Try, Failure, Success }
 import Enumerator.Pushee
 import java.util.concurrent.{ TimeUnit }
-import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
+import play.api.libs.iteratee.internal.{ executeFuture, prepared }
 
 /**
  * Utilities for concurrent usage of iteratees, enumerators and enumeratees.
@@ -37,14 +37,14 @@ object Concurrent {
      *
      * @param chunk The chunk to push
      */
-    def push(chunk: Input[E])
+    def push(chunk: Input[E])(implicit ec: ExecutionContext)
 
     /**
      * Push an item into this channel
      *
      * @param item The item to push
      */
-    def push(item: E) { push(Input.El(item)) }
+    def push(item: E)(implicit ec: ExecutionContext) { push(Input.El(item)) }
 
     /**
      * Send a failure to this channel.  This results in any promises that the enumerator associated with this channel
@@ -52,7 +52,7 @@ object Concurrent {
      *
      * @param e The failure.
      */
-    def end(e: Throwable)
+    def end(e: Throwable)(implicit ec: ExecutionContext)
 
     /**
      * End the input for this channel.  This results in any promises that the enumerator associated with this channel
@@ -61,12 +61,12 @@ object Concurrent {
      * Note that an EOF won't be sent, so any iteratees consuming this channel will still be able to consume input
      * (if they are in the cont state).
      */
-    def end()
+    def end()(implicit ec: ExecutionContext)
 
     /**
      * Send an EOF to the channel, and then end the input for the channel.
      */
-    def eofAndEnd() {
+    def eofAndEnd()(implicit ec: ExecutionContext) {
       push(Input.EOF)
       end()
     }
@@ -87,7 +87,7 @@ object Concurrent {
    * chatChannel.push(Message("Hello world!"))
    * }}}
    */
-  def broadcast[E]: (Enumerator[E], Channel[E]) = {
+  def broadcast[E](implicit ec: ExecutionContext): (Enumerator[E], Channel[E]) = prepared(ec) { implicit ec =>
 
     import scala.concurrent.stm._
 
@@ -106,20 +106,20 @@ object Concurrent {
                 case Step.Done(a, e) => Left(Done(a, e))
                 case Step.Cont(k) => Right((Cont(k), p))
                 case Step.Error(msg, e) => Left(Error(msg, e))
-              }(dec)
+              }
             }
             case Step.Error(msg, e) => Future.successful(Left(Error(msg, e)))
-          }(dec).map {
+          }.map {
             case Left(s) =>
               p.success(s)
               None
             case Right(s) =>
               Some(s)
-          }(dec).recover {
+          }.recover {
             case e: Throwable =>
               p.failure(e)
               None
-          }(dec)
+          }
       }
 
       Iteratee.flatten(Future.sequence(ready).map[Iteratee[E, Unit]] { commitReady =>
@@ -131,14 +131,14 @@ object Concurrent {
 
         if (in == Input.EOF) Done((), Input.Empty) else Cont(step)
 
-      }(dec))
+      })
     }
 
     val redeemed = Ref(None: Option[Try[Unit]])
 
     val enumerator = new Enumerator[E] {
 
-      def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
+      def apply[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Future[Iteratee[E, A]] = prepared(ec) { implicit ec =>
         val result = Promise[Iteratee[E, A]]()
 
         val finished = atomic { implicit txn =>
@@ -162,7 +162,7 @@ object Concurrent {
 
     val toPush = new Channel[E] {
 
-      def push(chunk: Input[E]) {
+      def push(chunk: Input[E])(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
 
         val itPromise = Promise[Iteratee[E, Unit]]()
 
@@ -172,7 +172,7 @@ object Concurrent {
           case Step.Done(a, e) => Done(a, e)
           case Step.Cont(k) => k(chunk)
           case Step.Error(msg, e) => Error(msg, e)
-        }(dec)
+        }
 
         next.onComplete {
           case Success(it) => itPromise.success(it)
@@ -184,10 +184,10 @@ object Concurrent {
             itPromise.failure(e)
             its.foreach { case (it, p) => p.success(it) }
           }
-        }(dec)
+        }
       }
 
-      def end(e: Throwable) {
+      def end(e: Throwable)(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
         val current: Iteratee[E, Unit] = mainIteratee.single.swap(Done((), Input.Empty))
         def endEveryone() = Future {
           val its = atomic { implicit txn =>
@@ -195,12 +195,12 @@ object Concurrent {
             iteratees.swap(List())
           }
           its.foreach { case (it, p) => p.failure(e) }
-        }(dec)
+        }
 
-        current.fold { case _ => endEveryone() }(dec)
+        current.fold { case _ => endEveryone() }
       }
 
-      def end() {
+      def end()(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
         val current: Iteratee[E, Unit] = mainIteratee.single.swap(Done((), Input.Empty))
         def endEveryone() = Future {
           val its = atomic { implicit txn =>
@@ -208,8 +208,8 @@ object Concurrent {
             iteratees.swap(List())
           }
           its.foreach { case (it, p) => p.success(it) }
-        }(dec)
-        current.fold { case _ => endEveryone() }(dec)
+        }
+        current.fold { case _ => endEveryone() }
       }
 
     }
@@ -224,18 +224,18 @@ object Concurrent {
    */
   def lazyAndErrIfNotReady[E](timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
-    def applyOn[A](inner: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A](inner: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] = prepared(ec) { implicit ec =>
       def step(it: Iteratee[E, A]): K[E, Iteratee[E, A]] = {
         case Input.EOF => Done(it, Input.EOF)
 
         case other => Iteratee.flatten(
           Future.firstCompletedOf(
-            it.unflatten.map(Left(_))(dec) :: timeoutFuture(Right(()), timeout, unit) :: Nil
-          )(dec).map {
+            it.unflatten.map(Left(_)) :: timeoutFuture(Right(()), timeout, unit) :: Nil
+          ).map {
               case Left(Step.Cont(k)) => Cont(step(k(other)))
               case Left(done) => Done(done.it, other)
               case Right(_) => Error("iteratee is taking too long", other)
-            }(dec)
+            }
         )
       }
       Cont(step(inner))
@@ -254,7 +254,8 @@ object Concurrent {
    *
    * @param maxBuffer The maximum number of items to buffer
    */
-  def buffer[E](maxBuffer: Int): Enumeratee[E, E] = buffer[E](maxBuffer, length = (_: Input[E]) => 1)(dec)
+  def buffer[E](maxBuffer: Int)(implicit ec: ExecutionContext): Enumeratee[E, E] =
+    prepared(ec)(implicit ec => buffer[E](maxBuffer, length = (_: Input[E]) => 1))
 
   /**
    * A buffering enumeratee.
@@ -271,13 +272,13 @@ object Concurrent {
    * $paramEcSingle
    */
   def buffer[E](maxBuffer: Int, length: Input[E] => Int)(implicit ec: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
-    val pec = ec.prepare()
+    val functionContext = ec.prepare()
 
     import scala.collection.immutable.Queue
     import scala.concurrent.stm._
     import play.api.libs.iteratee.Enumeratee.CheckDone
 
-    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] = prepared(ec) { implicit ec =>
 
       val last = Promise[Iteratee[E, Iteratee[E, A]]]()
 
@@ -306,7 +307,7 @@ object Concurrent {
           Iteratee.flatten(last.future)
 
         case other =>
-          Iteratee.flatten(Future(length(other))(pec).map { chunkLength =>
+          Iteratee.flatten(Future(length(other))(functionContext).map { chunkLength =>
             val s = state.single.getAndTransform {
               case Queueing(q, l) if maxBuffer > 0 && l <= maxBuffer => Queueing(q.enqueue(other), l + chunkLength)
 
@@ -326,11 +327,11 @@ object Concurrent {
               case Queueing(_, _) => Error("buffer overflow", other)
 
             }
-          }(dec))
+          })
       }
 
       def moreInput[A](k: K[E, A]): Iteratee[E, Iteratee[E, A]] = {
-        val in: Future[Input[E]] = atomic { implicit txn =>
+        val in: Future[Input[E]] = executeFuture(atomic { implicit txn =>
           state() match {
             case Queueing(q, l) =>
               if (!q.isEmpty) {
@@ -344,11 +345,17 @@ object Concurrent {
               }
             case _ => throw new Exception("can't get here")
           }
-        }
-        Iteratee.flatten(in.map { in => (new CheckDone[E, E] { def continue[A](cont: K[E, A]) = moreInput(cont) } &> k(in)) }(dec))
+        })(functionContext)
+        Iteratee.flatten(in.map { in =>
+          (new CheckDone[E, E] {
+            def continue[A](cont: K[E, A])(implicit ec: ExecutionContext) = moreInput(cont)
+          } &> k(in))
+        })
 
       }
-      (new CheckDone[E, E] { def continue[A](cont: K[E, A]) = moreInput(cont) } &> it).unflatten.onComplete {
+      (new CheckDone[E, E] {
+        def continue[A](cont: K[E, A])(implicit ec: ExecutionContext) = moreInput(cont)
+      } &> it).unflatten.onComplete {
         case Success(it) =>
           state.single() = DoneIt(it.it)
           last.success(it.it)
@@ -356,7 +363,7 @@ object Concurrent {
           state.single() = DoneIt(Iteratee.flatten(Future.failed[Iteratee[E, Iteratee[E, A]]](e)))
           last.failure(e)
 
-      }(dec)
+      }
       Cont(step)
 
     }
@@ -372,7 +379,7 @@ object Concurrent {
   def dropInputIfNotReady[E](duration: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): Enumeratee[E, E] = new Enumeratee[E, E] {
 
     val busy = scala.concurrent.stm.Ref(false)
-    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = {
+    def applyOn[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Iteratee[E, Iteratee[E, A]] = prepared(ec) { implicit ec =>
 
       def step(inner: Iteratee[E, A])(in: Input[E]): Iteratee[E, Iteratee[E, A]] = {
 
@@ -391,10 +398,10 @@ object Concurrent {
                       Cont(step(next))
                     }
                     case Step.Error(msg, e) => Done(Error(msg, e), Input.Empty)
-                  }(dec).map(i => { busy.single() = false; Left(i) })(dec),
+                  }.map(i => { busy.single() = false; Left(i) }),
                   timeoutFuture(Right(()), duration, unit)
                 )
-              )(dec)
+              )
 
               Iteratee.flatten(readyOrNot.map {
                 case Left(ready) =>
@@ -402,7 +409,7 @@ object Concurrent {
                 case Right(_) =>
                   busy.single() = true
                   Cont(step(inner))
-              }(dec))
+              })
             } else Cont(step(inner))
         }
       }
@@ -429,39 +436,39 @@ object Concurrent {
     onStart: Channel[E] => Unit,
     onComplete: => Unit = (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
-    val pec = ec.prepare()
+    val handlerContext = ec.prepare()
 
     import scala.concurrent.stm.Ref
 
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Future[Iteratee[E, A]] = prepared(ec) { implicit ec =>
       val promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
-      val iteratee: Ref[Future[Option[Input[E] => Iteratee[E, A]]]] = Ref(it.pureFold { case Step.Cont(k) => Some(k); case other => promise.success(other.it); None }(dec))
+      val iteratee: Ref[Future[Option[Input[E] => Iteratee[E, A]]]] = Ref(it.pureFold { case Step.Cont(k) => Some(k); case other => promise.success(other.it); None })
 
       val pushee = new Channel[E] {
-        def close() {
+        def close()(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
           iteratee.single.swap(Future.successful(None)).onComplete {
             case Success(maybeK) => maybeK.foreach { k =>
               promise.success(k(Input.EOF))
             }
             case Failure(e) => promise.failure(e)
-          }(dec)
+          }
         }
 
-        def end(e: Throwable) {
+        def end(e: Throwable)(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
           iteratee.single.swap(Future.successful(None)).onComplete {
             case Success(maybeK) =>
               maybeK.foreach(_ => promise.failure(e))
             case Failure(e) => promise.failure(e)
-          }(dec)
+          }
         }
 
-        def end() {
+        def end()(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
           iteratee.single.swap(Future.successful(None)).onComplete { maybeK =>
             maybeK.get.foreach(k => promise.success(Cont(k)))
-          }(dec)
+          }
         }
 
-        def push(item: Input[E]) {
+        def push(item: Input[E])(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
           val eventuallyNext = Promise[Option[Input[E] => Iteratee[E, A]]]()
           iteratee.single.swap(eventuallyNext.future).onComplete {
             case Success(None) => eventuallyNext.success(None)
@@ -470,28 +477,28 @@ object Concurrent {
                 val next = k(item)
                 next.fold {
                   case Step.Done(a, in) => {
-                    Future(onComplete)(pec).map { _ =>
+                    Future(onComplete)(handlerContext).map { _ =>
                       promise.success(next)
                       None
-                    }(dec)
+                    }
                   }
                   case Step.Error(msg, e) =>
-                    Future(onError(msg, e))(pec).map { _ =>
+                    Future(onError(msg, e))(handlerContext).map { _ =>
                       promise.success(next)
                       None
-                    }(dec)
+                    }
                   case Step.Cont(k) =>
                     Future.successful(Some(k))
-                }(dec)
+                }
               }
               eventuallyNext.completeWith(n)
             case Failure(e) =>
               promise.failure(e)
               eventuallyNext.success(None)
-          }(dec)
+          }
         }
       }
-      Future(onStart(pushee))(pec).flatMap(_ => promise.future)(dec)
+      Future(onStart(pushee))(handlerContext).flatMap(_ => promise.future)
     }
 
   }
@@ -507,11 +514,11 @@ object Concurrent {
    * @return A tuple of the broadcasting enumerator, that can be applied to each iteratee that wants to receive the
    *         input, and the broadcaster.
    */
-  def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ())(implicit ec: ExecutionContext): (Enumerator[E], Broadcaster) = {
-    val pec = ec.prepare()
-    lazy val h: Hub[E] = hub(e, () => interestIsDownToZero(h))(pec)
-    (h.getPatchCord(), h)
-  }
+  def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ())(implicit ec: ExecutionContext): (Enumerator[E], Broadcaster) =
+    prepared(ec) { implicit ec =>
+      lazy val h: Hub[E] = hub(e, () => interestIsDownToZero(h))
+      (h.getPatchCord(), h)
+    }
 
   /**
    * A broadcaster.  Used to control a broadcasting enumerator.
@@ -525,25 +532,25 @@ object Concurrent {
     /**
      * Close the broadcasting enumerator.
      */
-    def close()
+    def close()(implicit ec: ExecutionContext)
 
     /**
      * Whether this broadcaster is closed.
      */
-    def closed(): Boolean
+    def closed()(implicit ec: ExecutionContext): Boolean
 
   }
 
   @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
   trait Hub[E] extends Broadcaster {
 
-    def getPatchCord(): Enumerator[E]
+    def getPatchCord()(implicit ec: ExecutionContext): Enumerator[E]
 
   }
 
   @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
   def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ())(implicit ec: ExecutionContext): Hub[E] = {
-    val pec = ec.prepare()
+    val interestContext = ec.prepare()
 
     import scala.concurrent.stm._
 
@@ -553,7 +560,7 @@ object Concurrent {
 
     var closeFlag = false
 
-    def step(in: Input[E]): Iteratee[E, Unit] = {
+    def step(in: Input[E])(implicit ec: ExecutionContext): Iteratee[E, Unit] = prepared(ec) { implicit ec =>
       val interested: List[(Iteratee[E, _], Promise[Iteratee[E, _]])] = iteratees.single.swap(List())
 
       val commitReady: Ref[List[(Int, (Iteratee[E, _], Promise[Iteratee[E, _]]))]] = Ref(List())
@@ -581,17 +588,17 @@ object Concurrent {
                   p.success(Error(msg, e))
                   commitDone.single.transform(_ :+ index)
                 }
-              }(dec)
+              }
 
             case Step.Error(msg, e) =>
               p.success(Error(msg, e))
               commitDone.single.transform(_ :+ index)
               Future.successful(())
-          }(dec).andThen {
+          }.andThen {
             case Success(a) => a
             case Failure(e) => p.failure(e)
-          }(dec)
-      }.fold(Future.successful(())) { (s, p) => s.flatMap(_ => p)(dec) }
+          }
+      }.fold(Future.successful(())) { (s, p) => s.flatMap(_ => p) }
 
       Iteratee.flatten(ready.flatMap { _ =>
 
@@ -602,25 +609,25 @@ object Concurrent {
 
         }
         def result(): Iteratee[E, Unit] = if (in == Input.EOF || closeFlag) Done((), Input.Empty) else Cont(step)
-        if (downToZero) Future(interestIsDownToZero())(pec).map(_ => result())(dec) else Future.successful(result())
+        if (downToZero) Future(interestIsDownToZero())(interestContext).map(_ => result()) else Future.successful(result())
 
-      }(dec))
+      })
     }
 
     new Hub[E] {
 
       def noCords() = iteratees.single().isEmpty
 
-      def close() {
+      def close()(implicit ec: ExecutionContext) {
         closeFlag = true
       }
 
-      def closed() = closeFlag
+      def closed()(implicit ec: ExecutionContext) = closeFlag
 
       val redeemed = Ref(None: Option[Try[Iteratee[E, Unit]]])
-      def getPatchCord() = new Enumerator[E] {
+      def getPatchCord()(implicit ec: ExecutionContext) = new Enumerator[E] {
 
-        def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
+        def apply[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Future[Iteratee[E, A]] = prepared(ec) { implicit ec =>
           val result = Promise[Iteratee[E, A]]()
           val alreadyStarted = !started.single.compareAndSet(false, true)
           if (!alreadyStarted) {
@@ -637,7 +644,7 @@ object Concurrent {
                 case Success(_) =>
                   its.foreach { case (it, p) => p.success(it) }
               }
-            }(dec)
+            }
           }
           val finished = atomic { implicit txn =>
             redeemed() match {
@@ -670,7 +677,7 @@ object Concurrent {
      *
      * @return Whether the enumerator was successfully patched in.  Will return false if the patch panel is closed.
      */
-    def patchIn(e: Enumerator[E]): Boolean
+    def patchIn(e: Enumerator[E])(implicit ec: ExecutionContext): Boolean
 
     /**
      * Whether the patch panel is closed.
@@ -688,15 +695,15 @@ object Concurrent {
    * $paramEcSingle
    */
   def patchPanel[E](patcher: PatchPanel[E] => Unit)(implicit ec: ExecutionContext): Enumerator[E] = new Enumerator[E] {
-    val pec = ec.prepare()
+    val patcherContext = ec.prepare()
 
     import scala.concurrent.stm._
 
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
+    def apply[A](it: Iteratee[E, A])(implicit ec: ExecutionContext): Future[Iteratee[E, A]] = prepared(ec) { implicit ec =>
       val result = Promise[Iteratee[E, A]]()
       var isClosed: Boolean = false
 
-      result.future.onComplete(_ => isClosed = true)(dec)
+      result.future.onComplete(_ => isClosed = true)
 
       def refIteratee(ref: Ref[Iteratee[E, Option[A]]]): Iteratee[E, Option[A]] = {
         val next = Promise[Iteratee[E, Option[A]]]()
@@ -717,7 +724,7 @@ object Concurrent {
             Error(msg, e)
 
           }
-        }(dec)
+        }
 
       }
 
@@ -742,21 +749,21 @@ object Concurrent {
                 result.success(Error(msg, e))
                 Error(msg, e)
               }
-            }(dec)
+            }
           }
           case Step.Error(msg, e) => {
             next.success(Error(msg, e))
             Error(msg, e)
           }
-        }(dec)
+        }
       }
 
       Future(patcher(new PatchPanel[E] {
-        val ref: Ref[Ref[Iteratee[E, Option[A]]]] = Ref(Ref(it.map(Some(_))(dec)))
+        val ref: Ref[Ref[Iteratee[E, Option[A]]]] = Ref(Ref(it.map(Some(_))))
 
         def closed() = isClosed
 
-        def patchIn(e: Enumerator[E]): Boolean = {
+        def patchIn(e: Enumerator[E])(implicit ec: ExecutionContext): Boolean = {
           !(closed() || {
             val newRef = atomic { implicit txn =>
               val enRef = ref()
@@ -769,7 +776,7 @@ object Concurrent {
             false
           })
         }
-      }))(pec).flatMap(_ => result.future)(dec)
+      }))(patcherContext).flatMap(_ => result.future)
 
     }
   }

@@ -5,11 +5,13 @@ import scala.language.reflectiveCalls
 import play.api.mvc._
 import play.api.http._
 import play.api.libs.iteratee._
+import play.api.libs.iteratee.internal.prepared
 import play.api.libs.iteratee.Concurrent._
 
 import scala.collection.JavaConverters._
+import play.core.Execution.Implicits.internalContext
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
-import scala.concurrent.Await
+import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration.Duration
 
 /**
@@ -30,8 +32,8 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def chunked[A](onConnected: play.libs.F.Callback[Channel[A]], onDisconnected: play.libs.F.Callback0): Enumerator[A] = {
     val (enumerator, channel) = Concurrent.broadcast[A]
     new Enumerator[A] {
-      def apply[C](i: Iteratee[A, C]) = {
-        val result = enumerator.onDoneEnumerating(onDisconnected.invoke())(play.core.Execution.internalContext)(i)
+      def apply[C](i: Iteratee[A, C])(implicit ec: ExecutionContext) = prepared(ec) { implicit ec =>
+        val result = enumerator.onDoneEnumerating(onDisconnected.invoke())(ec)(i)(ec)
         // The channel must not be passed to the callback until after the enumerator has been applied, otherwise
         // we have a race condition between when the iteratee is listening to the enumerator and when the client
         // first sends a message
@@ -45,7 +47,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def chunked(file: java.io.File, chunkSize: Int) = Enumerator.fromFile(file, chunkSize)
   def chunkedStrategy = StreamingStrategy.Chunked()
   def simpleStrategy = StreamingStrategy.Simple
-  def sendFile(status: play.api.mvc.Results.Status, file: java.io.File, inline: Boolean, filename: String) = status.sendFile(file, inline, _ => filename)(play.core.Execution.internalContext)
+  def sendFile(status: play.api.mvc.Results.Status, file: java.io.File, inline: Boolean, filename: String) = status.sendFile(file, inline, _ => filename)
 }
 
 object JavaResultExtractor {

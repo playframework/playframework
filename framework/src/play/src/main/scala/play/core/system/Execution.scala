@@ -6,7 +6,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.forkjoin.ForkJoinPool.ForkJoinWorkerThreadFactory
 
-private[play] object Execution {
+object Execution {
 
   lazy val internalContext: scala.concurrent.ExecutionContext = {
 
@@ -34,6 +34,12 @@ private[play] object Execution {
       NamedFjpThreadFactory("play-internal-execution-context"),
       null,
       true))
+
+  }
+
+  object Implicits {
+
+    implicit def internalContext = Execution.internalContext
 
   }
 }
