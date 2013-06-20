@@ -173,6 +173,10 @@ object Dependencies {
     "org.scala-lang" % "scala-reflect" % "2.10.0",
     specsBuild % "test")
 
+  val slickDependencies = Seq(
+    "com.typesafe.slick" %% "slick" % "1.0.1"
+  )
+
   val testDependencies = Seq(
     "junit" % "junit" % "4.11",
     specsBuild,

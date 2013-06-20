@@ -4,12 +4,12 @@ import play.Project._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "computer-database"
+    val appName         = "computer-database-slick"
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
     	jdbc,
-    	anorm
+    	playSlick
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(
