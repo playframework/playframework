@@ -5,8 +5,8 @@ object Countries {
   val list = List(
     "France",
     "Austria",
-    "Belgium",
     "Belarus",
+    "Belgium",
     "Bulgaria",
     "Cyprus",
     "Czech Republic",
