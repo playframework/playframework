@@ -27,8 +27,10 @@ trait Rendering {
     }
 
     // “If no Accept header field is present, then it is assumed that the client accepts all media types.”
-    if (request.acceptedTypes.isEmpty) _render(Seq(MediaRange("*", "*", None)))
-    else _render(request.acceptedTypes)
+    val result =
+      if (request.acceptedTypes.isEmpty) _render(Seq(MediaRange("*", "*", None)))
+      else _render(request.acceptedTypes)
+    result.withHeaders(VARY -> ACCEPT)
   }
 
 }
