@@ -6,6 +6,7 @@ object Countries {
     "France",
     "Austria",
     "Belgium",
+    "Belarus",
     "Bulgaria",
     "Cyprus",
     "Czech Republic",
@@ -35,6 +36,7 @@ object Countries {
     "Slovenia",
     "Spain",
     "Sweden",
+    "Ukraine",
     "United Kingdom"
   )
   
