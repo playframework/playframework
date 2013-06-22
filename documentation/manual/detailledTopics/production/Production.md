@@ -41,7 +41,7 @@ You can use the `stage` task to prepare your application to be run in place. The
 ```bash
 $ play clean compile stage
 ```
->Note play is not supporting windows in production mode, therefore `stage` and `start` won't work under windows 
+>Note that Play does not support Windows in production mode, therefore `stage` and `start` won't work under Windows.
 
 [[images/stage.png]]
 
@@ -53,7 +53,7 @@ You can start your application using:
 $ target/start
 ```
 
-You can also specify a different configuration file for production environment, from the command line:
+You can also specify a different configuration file for a production environment, from the command line:
 
 ```bash
 $ target/start -Dconfig.file=/full/path/to/conf/application-prod.conf

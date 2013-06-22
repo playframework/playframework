@@ -43,7 +43,7 @@ It is written this way to make it easy to define standard options like applicati
 
 ## Play plugin for sbt
 
-The Play console and all development features like live reloading are implemented via a sbt plugin. It is registred in the `plugins.sbt` file:
+The Play console and all development features like live reloading are implemented via an sbt plugin. It is registered in the `plugins.sbt` file:
 
 ```scala
 addSbtPlugin("play" % "sbt-plugin" % "2.1.0")

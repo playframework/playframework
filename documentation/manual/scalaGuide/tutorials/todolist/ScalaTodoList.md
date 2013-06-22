@@ -28,7 +28,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 
 - `app/` contains the application’s core, split between models, controllers and views directories. This is the directory where .scala source files live.
 - `conf/` contains all the application’s configuration files, especially the main `application.conf` file, the `routes` definition files and the `messages` files used for internationalization.
-- `project` contains the build scripts. The build system is based on sbt. But a new Play application comes with a default build script that will just work fine for our application.
+- `project/` contains the build scripts. The build system is based on sbt. But a new Play application comes with a default build script that will just work fine for our application.
 - `public/` contains all the publicly available resources, which includes JavaScript, stylesheets and images directories.
 - `test/` contains all the application tests. Tests are written as Specs2 specifications.
 
@@ -68,7 +68,7 @@ GET	/       controllers.Application.index
 
 That simply tells Play that when the web server receives a GET request for the / path, it must retrieve the `Action` to execute from the `controllers.Application.index` method. 
 
-Let’s see how the `controllers.Application.index` method looks like. Open the `todolist/app/controllers/Application.scala` source file:
+Let’s see what the `controllers.Application.index` method looks like. Open the `todolist/app/controllers/Application.scala` source file:
 
 ```
 package controllers
@@ -103,7 +103,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 }
 ```
 
-The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mix HTML (or any text based language) with Scala statements. The Scala statements starts with the special `@` character.
+The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text based language) with Scala statements. The Scala statements start with the special `@` character.
 
 ## Development workflow
 
