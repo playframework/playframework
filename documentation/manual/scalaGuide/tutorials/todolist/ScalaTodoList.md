@@ -96,7 +96,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
     
     @play20.welcome(message)
     

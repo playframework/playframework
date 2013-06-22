@@ -1,6 +1,6 @@
 # Your first Play application
 
-Let’s write a simple task list application with Play 2.0 and deploy it to the cloud. This is a very small example which can be managed in a few hours.
+Let’s write a simple task list application with Play 2.1 and deploy it to the cloud. This is a very small example which can be managed in a few hours.
 
 ## Prerequisites
 
@@ -98,9 +98,9 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
     
-    @play20.welcome(message)
+    @play20.welcome(message, style = "Java")
     
 }
 ```
