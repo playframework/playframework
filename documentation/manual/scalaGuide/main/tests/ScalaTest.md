@@ -98,7 +98,7 @@ abstract class WithDbData extends WithApplication {
 
 ## Unit Testing Controllers
 
-Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play 2.1 this can be alleviated by [dependency injection](https://github.com/playframework/Play20/wiki/ScalaDependencyInjection). Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
+Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play 2.1 this can be alleviated by [[dependency injection | ScalaDependencyInjection]]. Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
 ```scala
 trait ExampleController {
