@@ -83,7 +83,7 @@ trait PathReads {
           .map(jsv => JsPath.createObj(path -> jsv))
           .map(opath => o.deepMerge(opath))
       case _ =>
-        JsError(JsPath(), ValidationError("validate.error.expected.jsobject"))
+        JsError(JsPath(), ValidationError("error.expected.jsobject"))
     })
 
   def jsPrune(path: JsPath) = Reads[JsObject](js => path.prune(js))
@@ -113,10 +113,10 @@ trait ConstraintReads {
   def map[A](implicit reads: Reads[A]): Reads[collection.immutable.Map[String, A]] = Reads.mapReads[A]
 
   def min(m: Int)(implicit reads: Reads[Int]) =
-    filterNot[Int](ValidationError("validate.error.min", m))(_ < m)(reads)
+    filterNot[Int](ValidationError("error.min", m))(_ < m)(reads)
 
   def max(m: Int)(implicit reads: Reads[Int]) =
-    filterNot[Int](ValidationError("validate.error.max", m))(_ > m)(reads)
+    filterNot[Int](ValidationError("error.max", m))(_ > m)(reads)
 
   def filterNot[A](error: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
     Reads[A](js => reads.reads(js).filterNot(error)(p))
@@ -125,10 +125,10 @@ trait ConstraintReads {
     Reads[A](js => reads.reads(js).filter(otherwise)(p))
 
   def minLength[M](m: Int)(implicit reads: Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
-    filterNot[M](ValidationError("validate.error.minlength", m))(_.size < m)
+    filterNot[M](ValidationError("error.minLength", m))(_.size < m)
 
   def maxLength[M](m: Int)(implicit reads: Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
-    filterNot[M](ValidationError("validate.error.maxlength", m))(_.size > m)
+    filterNot[M](ValidationError("error.maxLength", m))(_.size > m)
 
   /**
    * Defines a regular expression constraint for `String` values, i.e. the string must match the regular expression pattern
@@ -139,10 +139,10 @@ trait ConstraintReads {
     })
 
   def email(implicit reads: Reads[String]): Reads[String] =
-    pattern("""\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r, "validate.error.email")
+    pattern("""\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b""".r, "error.email")
 
   def verifying[A](cond: A => Boolean)(implicit rds: Reads[A]) =
-    filter[A](ValidationError("validation.error.condition.not.verified"))(cond)(rds)
+    filter[A](ValidationError("error.invalid"))(cond)(rds)
 
   def verifyingIf[A](cond: A => Boolean)(subreads: Reads[_])(implicit rds: Reads[A]) =
     Reads[A] { js =>
