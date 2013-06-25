@@ -128,7 +128,7 @@ Templates are simple text files that live in the `/app/views` directory.  To see
 ```html
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
 
     @play20.welcome(message, style = "Java")
 
@@ -168,7 +168,7 @@ Open the `app/views/main.scala.html` template:
 Note the argument declaration, this time we are accepting a `title` parameter, and also a second argument called `content` of type `Html`.  The second argument is in its own set of braces, this allows the syntax we saw before in the `index.scala.html` template:
 
 ```html
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
    ...
 }
 ```
@@ -203,7 +203,7 @@ Now edit the `app/views/Application/index.scala.html` template to replace the we
 ```html
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
 
   <h1>@message</h1>
 

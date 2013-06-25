@@ -1,6 +1,6 @@
 # Your first Play application
 
-Let’s write a simple task list application with Play 2.0 and deploy it to the cloud. This is a very small example which can be managed in a few hours.
+Let’s write a simple task list application with Play 2.1 and deploy it to the cloud. This is a very small example which can be managed in a few hours.
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 
 * `app/` contains the application’s core, split between models, controllers and views directories. This is the directory where .java source files live.
 * `conf/` contains all the application’s configuration files, especially the main `application.conf` file, the `routes` definition files and the `messages` files used for internationalization.
-* `project` contains the build scripts. The build system is based on sbt. But a new play application comes with a default build script that will just works fine for our application.
+* `project/` contains the build scripts. The build system is based on sbt. But a new play application comes with a default build script that will just works fine for our application.
 * `public/` contains all the publicly available resources, which includes JavaScript, stylesheets and images directories.
 * `test/` contains all the application tests. Tests can be written as JUnit tests.
 
@@ -98,9 +98,9 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
     
-    @play20.welcome(message)
+    @play20.welcome(message, style = "Java")
     
 }
 ```

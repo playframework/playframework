@@ -13,7 +13,7 @@ If you wish to report an issue for Play Framework, please ensure you have done t
 
 This is the process for a contributor (that is, a non Play core developer) to contribute to Play Framework.
 
-1. Make sure you have signed the [Typesafe CLA](http://www.typesafe.com/contribute/cla), if not, sign it online.
+1. Make sure you have signed the [Typesafe CLA](http://www.typesafe.com/contribute/cla); if not, sign it online.
 2. Ensure that your contribution meets the following guidelines:
     1. Live up to the current code standard:
         - Not violate [DRY](http://programmer.97things.oreilly.com/wiki/index.php/Don%27t_Repeat_Yourself).
