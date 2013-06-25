@@ -366,9 +366,7 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
 
     val (maybeValue, nextContext) = (jp.getCurrentToken, parserContext) match {
 
-      case (JsonToken.VALUE_NUMBER_INT, c) => (Some(JsNumber(jp.getLongValue)), c)
-
-      case (JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDoubleValue)), c)
+      case (JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDecimalValue)), c)
 
       case (JsonToken.VALUE_STRING, c) => (Some(JsString(jp.getText)), c)
 

@@ -146,12 +146,27 @@ object JsonSpec extends Specification {
       (jsonM \ "timestamp").as[Long] must equalTo(t)
       (jsonM.toString must equalTo("{\"timestamp\":1330950829160}"))
     }
-    
+
     "Serialize and deserialize BigDecimals" in {
       val n = BigDecimal("12345678901234567890.42")
       val json = toJson(n)
       json must equalTo (JsNumber(n))
       fromJson[BigDecimal](json) must equalTo(JsSuccess(n))
+    }
+
+    "Not lose precision when parsing BigDecimals" in {
+      val n = BigDecimal("12345678901234567890.123456789")
+      val json = toJson(n)
+      parse(stringify(json)) must equalTo(json)
+
+    }
+
+    "Not lose precision when parsing big integers" in {
+      // By big integers, we just mean integers that overflow long, since Jackson has different code paths for them
+      // from decimals
+      val i = BigDecimal("123456789012345678901234567890")
+      val json = toJson(i)
+      parse(stringify(json)) must equalTo(json)
     }
 
     "Serialize and deserialize Lists" in {
