@@ -105,7 +105,15 @@ package play.api.mvc {
      * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
-      val mediaTypes = acceptHeader(HeaderNames.ACCEPT).map(item => (item._1, MediaRange(item._2)))
+      @tailrec
+      def parseAcceptHeaders(headers: Seq[(Double, String)], acc: List[(Double, MediaRange)]): List[(Double, MediaRange)] = headers match {
+        case Nil => acc
+        case (d, s) :: tail => MediaRange(s) match {
+          case None => parseAcceptHeaders(tail, acc)
+          case Some(m) => parseAcceptHeaders(tail, (d, m) :: acc)
+        }
+      }
+      val mediaTypes = parseAcceptHeaders(acceptHeader(HeaderNames.ACCEPT), Nil)
       mediaTypes.sorted.map(_._2).reverse
     }
 

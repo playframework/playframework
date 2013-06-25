@@ -27,15 +27,19 @@ object MediaRange {
    *   MediaRange("text/html;level=1")
    * }}}
    */
-  def apply(mediaRange: String) = {
+  def apply(mediaRange: String): Option[MediaRange] = {
     val parts = mediaRange.split('/')
-    val mediaType = parts(0)
-    val rhs = parts(1)
-    val i = rhs.indexOf(';')
-    val (mediaSubType, parameters) =
-      if (i > 0) (rhs.take(i), Some(rhs.drop(i + 1)))
-      else (rhs, None)
-    new MediaRange(mediaType, mediaSubType, parameters)
+    if (parts.size != 2) {
+      None
+    } else {
+      val mediaType = parts(0)
+      val rhs = parts(1)
+      val i = rhs.indexOf(';')
+      val (mediaSubType, parameters) =
+        if (i > 0) (rhs.take(i), Some(rhs.drop(i + 1)))
+        else (rhs, None)
+      Some(new MediaRange(mediaType, mediaSubType, parameters))
+    }
   }
 
   implicit val ordering = new Ordering[play.api.http.MediaRange] {
