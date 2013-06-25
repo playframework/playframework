@@ -256,7 +256,7 @@ trait ActionBuilder[R[_]] {
    *
    * For example:
    * {{{
-   * val hello = Action.future {
+   * val hello = Action.async {
    *   WS.url("http://www.playframework.com").get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
@@ -273,7 +273,7 @@ trait ActionBuilder[R[_]] {
    *
    * For example:
    * {{{
-   * val hello = Action.future { request =>
+   * val hello = Action.async { request =>
    *   WS.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
@@ -290,7 +290,7 @@ trait ActionBuilder[R[_]] {
    *
    * For example:
    * {{{
-   * val hello = Action.future { request =>
+   * val hello = Action.async { request =>
    *   WS.url(request.getQueryString("url").get).get().map { r =>
    *     if (r.status == 200) Ok("The website is up") else NotFound("The website is down")
    *   }
