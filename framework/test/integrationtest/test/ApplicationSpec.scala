@@ -217,6 +217,7 @@ class ApplicationSpec extends Specification {
 
         val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html"))
         contentType(result) must equalTo (Some("text/html"))
+        header(VARY, result) must equalTo (Some(ACCEPT))
 
         val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html;q=0.5,application/*"))
         contentType(result2) must equalTo (Some("application/json"))
