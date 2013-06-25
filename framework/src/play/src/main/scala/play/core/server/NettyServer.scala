@@ -73,11 +73,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
         val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
-          for (in <- resource.managed(new FileInputStream(file))) {
-            keyStore.load(in, password)
-          }
-          Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
           try {
+            for (in <- resource.managed(new FileInputStream(file))) {
+              keyStore.load(in, password)
+            }
+            Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
             val kmf = KeyManagerFactory.getInstance(algorithm)
             kmf.init(keyStore, password)
             Some(kmf)
