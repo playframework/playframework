@@ -144,7 +144,7 @@ trait DefaultReads {
   implicit object IntReads extends Reads[Int] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toInt)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
@@ -154,7 +154,7 @@ trait DefaultReads {
   implicit object ShortReads extends Reads[Short] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toShort)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
@@ -164,7 +164,7 @@ trait DefaultReads {
   implicit object LongReads extends Reads[Long] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toLong)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
@@ -174,7 +174,7 @@ trait DefaultReads {
   implicit object FloatReads extends Reads[Float] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toFloat)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
@@ -184,7 +184,7 @@ trait DefaultReads {
   implicit object DoubleReads extends Reads[Double] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toDouble)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
@@ -195,9 +195,9 @@ trait DefaultReads {
     case JsString(s) =>
       scala.util.control.Exception.catching(classOf[NumberFormatException])
         .opt(JsSuccess(BigDecimal(new java.math.BigDecimal(s))))
-        .getOrElse(JsError(ValidationError("validate.error.expected.numberformatexception")))
+        .getOrElse(JsError(ValidationError("error.expected.numberformatexception")))
     case JsNumber(d) => JsSuccess(d.underlying)
-    case _ => JsError(ValidationError("validate.error.expected.jsnumberorjsstring"))
+    case _ => JsError(ValidationError("error.expected.jsnumberorjsstring"))
   })
 
   /**
@@ -207,9 +207,9 @@ trait DefaultReads {
     case JsString(s) =>
       scala.util.control.Exception.catching(classOf[NumberFormatException])
         .opt(JsSuccess(new java.math.BigDecimal(s)))
-        .getOrElse(JsError(ValidationError("validate.error.expected.numberformatexception")))
+        .getOrElse(JsError(ValidationError("error.expected.numberformatexception")))
     case JsNumber(d) => JsSuccess(d.underlying)
-    case _ => JsError(ValidationError("validate.error.expected.jsnumberorjsstring"))
+    case _ => JsError(ValidationError("error.expected.jsnumberorjsstring"))
   })
 
   /**
@@ -224,9 +224,9 @@ trait DefaultReads {
       case JsNumber(d) => JsSuccess(new java.util.Date(d.toLong))
       case JsString(s) => parseDate(corrector(s)) match {
         case Some(d) => JsSuccess(d)
-        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date.isoformat", pattern))))
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", pattern))))
       }
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
     }
 
     private def parseDate(input: String): Option[java.util.Date] = {
@@ -279,9 +279,9 @@ trait DefaultReads {
       case JsNumber(d) => JsSuccess(new DateTime(d.toLong))
       case JsString(s) => parseDate(corrector(s)) match {
         case Some(d) => JsSuccess(d)
-        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jodadate.format", pattern))))
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jodadate.format", pattern))))
       }
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
     }
 
     private def parseDate(input: String): Option[DateTime] =
@@ -310,9 +310,9 @@ trait DefaultReads {
     def reads(json: JsValue): JsResult[LocalDate] = json match {
       case JsString(s) => parseDate(corrector(s)) match {
         case Some(d) => JsSuccess(d)
-        case None => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jodadate.format", pattern))))
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jodadate.format", pattern))))
       }
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.date"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
     }
 
     private def parseDate(input: String): Option[LocalDate] =
@@ -344,7 +344,7 @@ trait DefaultReads {
   implicit object BooleanReads extends Reads[Boolean] {
     def reads(json: JsValue) = json match {
       case JsBoolean(b) => JsSuccess(b)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsboolean"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
     }
   }
 
@@ -354,7 +354,7 @@ trait DefaultReads {
   implicit object StringReads extends Reads[String] {
     def reads(json: JsValue) = json match {
       case JsString(s) => JsSuccess(s)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring"))))
     }
   }
 
@@ -364,14 +364,14 @@ trait DefaultReads {
   implicit object JsObjectReads extends Reads[JsObject] {
     def reads(json: JsValue) = json match {
       case o: JsObject => JsSuccess(o)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsobject"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
     }
   }
 
   implicit object JsArrayReads extends Reads[JsArray] {
     def reads(json: JsValue) = json match {
       case o: JsArray => JsSuccess(o)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsarray"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
     }
   }
 
@@ -385,21 +385,21 @@ trait DefaultReads {
   implicit object JsStringReads extends Reads[JsString] {
     def reads(json: JsValue) = json match {
       case s: JsString => JsSuccess(s)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring"))))
     }
   }
 
   implicit object JsNumberReads extends Reads[JsNumber] {
     def reads(json: JsValue) = json match {
       case n: JsNumber => JsSuccess(n)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsnumber"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }
 
   implicit object JsBooleanReads extends Reads[JsBoolean] {
     def reads(json: JsValue) = json match {
       case b: JsBoolean => JsSuccess(b)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsboolean"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
     }
   }
 
@@ -436,7 +436,7 @@ trait DefaultReads {
         } // no error, rebuilds the map
         else JsSuccess(r.filter(_.isRight).map(_.right.get).map { v => v._1 -> v._2 }.toMap)
       }
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsobject"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
     }
   }
 
@@ -473,7 +473,7 @@ trait DefaultReads {
         }
 
       }
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsarray"))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
     }
   }
 
