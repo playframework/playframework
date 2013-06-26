@@ -44,7 +44,7 @@ package play.filters.csrf {
     val encoder = new Hex
     val random = new SecureRandom
 
-    val INVALID_TOKEN: PlainResult  = BadRequest("Invalid CSRF Token")
+    val INVALID_TOKEN: PlainResult = BadRequest("Invalid CSRF Token")
 
     def generate: Token = {
       val bytes = new Array[Byte](10)
@@ -57,7 +57,7 @@ package play.filters.csrf {
     // -
     def checkRequest(request: RequestHeader, body: Option[Map[String, Seq[String]]] = None): Either[PlainResult, RequestHeader] = {
       val maybeToken: Option[Token] = (
-        if(POST_LOOKUP)
+        if (POST_LOOKUP)
           body.flatMap(_.get(TOKEN_NAME)).orElse(request.queryString.get(TOKEN_NAME))
         else
           request.queryString.get(TOKEN_NAME)
@@ -65,9 +65,10 @@ package play.filters.csrf {
 
       request.method match {
         case UNSAFE_METHOD() => {
-          (for{ token <- maybeToken;
+          (for {
+            token <- maybeToken;
             cookieToken <- COOKIE_NAME.flatMap(request.cookies.get).map(_.value).orElse(request.session.get(TOKEN_NAME))
-          } yield if(checkTokens(token, Token(cookieToken))) Right(request) else Left(INVALID_TOKEN)) getOrElse Left(INVALID_TOKEN)
+          } yield if (checkTokens(token, Token(cookieToken))) Right(request) else Left(INVALID_TOKEN)) getOrElse Left(INVALID_TOKEN)
         }
         case _ => Right(request)
       }
@@ -104,7 +105,7 @@ package play.filters.csrf {
         }
       }
 
-       /**
+      /**
        * Add Token to the Response cookies if necessary
        */
       def addCookieToken(c: String): PlainResult = {
@@ -121,22 +122,22 @@ package play.filters.csrf {
         }
       }
 
-       if(CREATE_IF_NOT_FOUND)
-         COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
-       else
-         r
+      if (CREATE_IF_NOT_FOUND)
+        COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
+      else
+        r
     }
 
     /**
-    * Extract token fron current request
-    */
+     * Extract token fron current request
+     */
     def getToken(request: RequestHeader): Option[Token] = COOKIE_NAME
       .flatMap(n => request.cookies.get(n).map(_.value))
       .orElse(request.session.get(TOKEN_NAME)).map(Token.apply)
 
     /**
-    * Add token to the request if necessary (token not yet in session)
-    */
+     * Add token to the request if necessary (token not yet in session)
+     */
     def addRequestToken(request: RequestHeader, token: Token): RequestHeader = {
 
       logger.trace("[CSRF] Adding request token to request: " + request)
@@ -162,7 +163,7 @@ package play.filters.csrf {
           override def headers: Headers = new Headers {
             override def getAll(key: String): Seq[String] = toMap.get(key).toSeq.flatten
             override def keys: Set[String] = toMap.keys.toSet
-            override lazy val toMap: Map[String,Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
+            override lazy val toMap: Map[String, Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
             def data = toMap.toSeq
           }
 
@@ -195,7 +196,7 @@ package play.filters.csrf {
           override def headers: Headers = new Headers {
             override def getAll(key: String): Seq[String] = toMap.get(key).toSeq.flatten
             override def keys: Set[String] = toMap.keys.toSet
-            override lazy val toMap: Map[String,Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
+            override lazy val toMap: Map[String, Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
             def data = toMap.toSeq
           }
 
@@ -209,10 +210,10 @@ package play.filters.csrf {
           logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
-        if(CREATE_IF_NOT_FOUND)
-          COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
-        else
-          request
+      if (CREATE_IF_NOT_FOUND)
+        COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
+      else
+        request
     }
   }
 
@@ -224,17 +225,18 @@ package play.filters.csrf {
 
     def this() = this(CSRF.generate _) // Default constructor, useful from Java
 
-    private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, token: Token,  next: EssentialAction) = {
-      (Traversable.take[Array[Byte]](102400) &>> Iteratee.consume[Array[Byte]]()).flatMap{ b: Array[Byte] =>
-          val eventuallyEither = Enumerator(b).run(parser(request))
-          Iteratee.flatten(
-            eventuallyEither.map{
-              _.fold(_ => checkRequest(request), body => checkRequest(request, Some(extractor(body))))
-                .fold(
-                  result => Done(result, Input.Empty: Input[Array[Byte]]),
-                  r => Iteratee.flatten(Enumerator(b).apply(next(addRequestToken(r, token)))).map(result => addResponseToken(request, result, token))
-                )})
-        }
+    private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, token: Token, next: EssentialAction) = {
+      (Traversable.take[Array[Byte]](102400) &>> Iteratee.consume[Array[Byte]]()).flatMap { b: Array[Byte] =>
+        val eventuallyEither = Enumerator(b).run(parser(request))
+        Iteratee.flatten(
+          eventuallyEither.map {
+            _.fold(_ => checkRequest(request), body => checkRequest(request, Some(extractor(body))))
+              .fold(
+                result => Done(result, Input.Empty: Input[Array[Byte]]),
+                r => Iteratee.flatten(Enumerator(b).apply(next(addRequestToken(r, token)))).map(result => addResponseToken(request, result, token))
+              )
+          })
+      }
     }
 
     def checkFormUrlEncodedBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
@@ -288,14 +290,12 @@ package play.filters.csrf {
     def apply(generator: () => CSRF.Token) = new CSRFFilter(generator)
   }
 
-
   /**
-  * Default global, use this if CSRF is your only Filter
-  */
+   * Default global, use this if CSRF is your only Filter
+   */
   object Global extends WithFilters(CSRFFilter()) with GlobalSettings
 
 }
-
 
 package views.html.helper {
 
@@ -306,8 +306,8 @@ package views.html.helper {
     def apply(call: Call)(implicit token: play.filters.csrf.CSRF.Token): Call = {
       new Call(
         call.method,
-        call.url + { 
-          if(call.url.contains("?")) "&" else "?"
+        call.url + {
+          if (call.url.contains("?")) "&" else "?"
         } + play.filters.csrf.CSRF.Conf.TOKEN_NAME + "=" + token.value
       )
     }

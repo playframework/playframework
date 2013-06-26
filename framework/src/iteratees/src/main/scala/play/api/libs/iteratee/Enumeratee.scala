@@ -88,15 +88,15 @@ object Enumeratee {
         case _ => Done(it, Input.Empty)
       }
   }
-  
+
   /**
    * flatten a [[scala.concurrent.Future]] of [[play.api.libs.iteratee.Enumeratee]]] into an Enumeratee
    *
    * @param futureOfEnumeratee a future of enumeratee
    */
   def flatten[From, To](futureOfEnumeratee: Future[Enumeratee[From, To]]) = new Enumeratee[From, To] {
-    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To,A]] = 
-      Iteratee.flatten(futureOfEnumeratee map(_.applyOn[A](it)))
+    def applyOn[A](it: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] =
+      Iteratee.flatten(futureOfEnumeratee map (_.applyOn[A](it)))
   }
 
   /**
@@ -505,19 +505,19 @@ object Enumeratee {
     def continue[A](k: K[M, A]) = Cont(step(k))
   }
 
-  def heading[E](es: Enumerator[E]) = new Enumeratee[E,E] {
+  def heading[E](es: Enumerator[E]) = new Enumeratee[E, E] {
 
-    def applyOn[A](it:Iteratee[E,A]): Iteratee[E, Iteratee[E,A]] = passAlong[E] &> Iteratee.flatten(es(it))
+    def applyOn[A](it: Iteratee[E, A]): Iteratee[E, Iteratee[E, A]] = passAlong[E] &> Iteratee.flatten(es(it))
 
   }
 
-  def trailing[M](es: Enumerator[M]) =  new Enumeratee.CheckDone[M, M] {
+  def trailing[M](es: Enumerator[M]) = new Enumeratee.CheckDone[M, M] {
 
     def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
 
       case in @ (Input.El(_) | Input.Empty) => new Enumeratee.CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
 
-      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map(it  => Done(it, Input.EOF)))
+      case Input.EOF => Iteratee.flatten((es |>> Cont(k)).map(it => Done(it, Input.EOF)))
     }
     def continue[A](k: K[M, A]) = Cont(step(k))
   }

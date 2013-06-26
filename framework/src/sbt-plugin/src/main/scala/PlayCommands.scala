@@ -14,14 +14,14 @@ import play.console.Colors
 
 import PlayExceptions._
 import PlayKeys._
-import java.io.{File=>JFile}
+import java.io.{ File => JFile }
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   this: PlayReloader =>
-  
+
   //- mainly scala, mainly java or none
 
   val JAVA = "java"
@@ -72,7 +72,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
     }
 
     if (commonClassLoader == null) {
-      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */) {
+      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
         override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
       }
     }
@@ -86,9 +86,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   val buildRequire = TaskKey[Seq[(JFile, JFile)]]("play-build-require-assets")
-  val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath,  s) =>
+  val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, s) =>
     val buildDescName = "app.build.js"
-    val jsFolder = if(!requireJsFolder.isEmpty) {requireJsFolder} else "javascripts"
+    val jsFolder = if (!requireJsFolder.isEmpty) { requireJsFolder } else "javascripts"
     val rjoldDir = crossTarget / "classes" / "public" / jsFolder
     val buildDesc = crossTarget / "classes" / "public" / buildDescName
     if (requireJs.isEmpty == false) {
@@ -96,17 +96,17 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
       //cleanup previous version
       IO.delete(rjnewDir)
       val relativeModulePath = (str: String) => str.replace(".js", "")
-      val shim = if (!requireJsShim.isEmpty) {"""mainConfigFile: """" + jsFolder + """/""" + requireJsShim + """", """} else {""};
-      val content =  """({appDir: """" + jsFolder + """",
+      val shim = if (!requireJsShim.isEmpty) { """mainConfigFile: """" + jsFolder + """/""" + requireJsShim + """", """ } else { "" };
+      val content = """({appDir: """" + jsFolder + """",
           baseUrl: ".",
           dir:"""" + rjnewDir.getName + """", """ +
-          shim +
-          """modules: [""" + requireJs.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
+        shim +
+        """modules: [""" + requireJs.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
 
-      IO.write(buildDesc,content)
+      IO.write(buildDesc, content)
       //run requireJS
       s.log.info("RequireJS optimization has begun...")
-      s.log.info(buildDescName+":")
+      s.log.info(buildDescName + ":")
       s.log.info(content)
       try {
         requireNativePath.map(nativePath =>
@@ -115,49 +115,49 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
           play.core.jscompile.JavascriptCompiler.require(buildDesc)
         }
         s.log.info("RequireJS optimization finished.")
-      } catch {case ex: Exception => 
-        s.log.error("RequireJS optimization has failed...")
-        throw ex
-      }  
+      } catch {
+        case ex: Exception =>
+          s.log.error("RequireJS optimization has failed...")
+          throw ex
+      }
       //clean-up
       IO.delete(buildDesc)
     }
     cr
   }
 
-
   val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
 
   /**
-    * Executes the {{packaged-artifacts}} task in the current project (the project to which this setting is applied)
-    * and all of its dependencies, yielding a list of all resulting {{jar}} files *except*:
-    *
-    * * jar files from artifacts with names in [[sbt.PlayKeys.distExcludes]]
-    * * the jar file that is returned by {{packageSrc in Compile}}
-    * * the jar file that is returned by {{packageDoc in Compile}}
-    */
+   * Executes the {{packaged-artifacts}} task in the current project (the project to which this setting is applied)
+   * and all of its dependencies, yielding a list of all resulting {{jar}} files *except*:
+   *
+   * * jar files from artifacts with names in [[sbt.PlayKeys.distExcludes]]
+   * * the jar file that is returned by {{packageSrc in Compile}}
+   * * the jar file that is returned by {{packageDoc in Compile}}
+   */
   val playPackageEverythingTask = (state, thisProjectRef, distExcludes).flatMap { (state, project, excludes) =>
-      def taskInAllDependencies[T](taskKey: TaskKey[T]): Task[Seq[T]] =
-        inAllDependencies(project, taskKey.task, Project structure state).join
+    def taskInAllDependencies[T](taskKey: TaskKey[T]): Task[Seq[T]] =
+      inAllDependencies(project, taskKey.task, Project structure state).join
 
-      for {
-        packaged: Seq[Map[Artifact, File]] <- taskInAllDependencies(packagedArtifacts)
-        srcs: Seq[File] <- taskInAllDependencies(packageSrc in Compile)
-        docs: Seq[File] <- taskInAllDependencies(packageDoc in Compile)
+    for {
+      packaged: Seq[Map[Artifact, File]] <- taskInAllDependencies(packagedArtifacts)
+      srcs: Seq[File] <- taskInAllDependencies(packageSrc in Compile)
+      docs: Seq[File] <- taskInAllDependencies(packageDoc in Compile)
+    } yield {
+      val allJars: Seq[Iterable[File]] = for {
+        artifacts: Map[Artifact, File] <- packaged
       } yield {
-        val allJars: Seq[Iterable[File]] = for {
-          artifacts: Map[Artifact, File] <- packaged
-        } yield {
-          artifacts
-            .filter { case (artifact, _) => artifact.extension == "jar" && !excludes.contains(artifact.name) }
-            .map { case (_, path) => path }
-        }
-        allJars
-          .flatten
-          .diff(srcs ++ docs) //remove srcs & docs since we do not need them in the dist
-          .distinct
+        artifacts
+          .filter { case (artifact, _) => artifact.extension == "jar" && !excludes.contains(artifact.name) }
+          .map { case (_, path) => path }
       }
+      allJars
+        .flatten
+        .diff(srcs ++ docs) //remove srcs & docs since we do not need them in the dist
+        .distinct
     }
+  }
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>

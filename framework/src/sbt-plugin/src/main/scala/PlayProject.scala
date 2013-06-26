@@ -17,7 +17,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
   // ----- 
   @deprecated("use play.Project instead", "2.1")
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE, settings: => Seq[Setting[_]] = Defaults.defaultSettings): Project = {
-    
+
     println(Colors.red("""
       |
       |WARNING
@@ -28,9 +28,8 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
       |For any migration related issues, please consult the migration manual at http://www.playframework.org
       """).stripMargin)
 
-    val allDependencies = (dependencies ++ Seq(jdbc, anorm, javaCore, javaJdbc, javaEbean )).toSet.toSeq
+    val allDependencies = (dependencies ++ Seq(jdbc, anorm, javaCore, javaJdbc, javaEbean)).toSet.toSeq
 
-    
     lazy val playSettings =
       PlayProject.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings(mainLang) ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),

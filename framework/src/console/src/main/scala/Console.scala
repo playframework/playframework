@@ -176,16 +176,17 @@ object Console {
               Left(usage)
           }
 
-          val result = parsed.right.flatMap { case (repo, branch, _) =>
-            // this is necessary because g8 only provides an option to either
-            // pass params or use interactive session to populate fields
-            // but in our case we have the application_name (and path) already
-            Giter8.clone(repo, branch).right.map { f =>
-              val (parameters, templates, templatesRoot) = G8Helpers.fetchInfo(f.jfile, Some("src/main/g8"))
-              val ps = G8Helpers.interact(parameters - "application_name") + ("application_name" -> appName)
-              val base = new File(G8.normalize(appName))
-              G8Helpers.write(templatesRoot, templates, ps, base)
-            }
+          val result = parsed.right.flatMap {
+            case (repo, branch, _) =>
+              // this is necessary because g8 only provides an option to either
+              // pass params or use interactive session to populate fields
+              // but in our case we have the application_name (and path) already
+              Giter8.clone(repo, branch).right.map { f =>
+                val (parameters, templates, templatesRoot) = G8Helpers.fetchInfo(f.jfile, Some("src/main/g8"))
+                val ps = G8Helpers.interact(parameters - "application_name") + ("application_name" -> appName)
+                val base = new File(G8.normalize(appName))
+                G8Helpers.write(templatesRoot, templates, ps, base)
+              }
           }
 
           result.fold(
@@ -218,7 +219,7 @@ object Console {
 
   def helpCommand(args: Array[String]): (String, Int) = {
     (
-     "Welcome to Play " + play.core.PlayVersion.current + """!
+      "Welcome to Play " + play.core.PlayVersion.current + """!
             |
             |These commands are available:
             |-----------------------------

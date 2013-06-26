@@ -5,7 +5,7 @@ import PlayKeys._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper =>
-  
+
   protected def whichLang(name: String): Seq[Setting[_]] = {
     if (name == JAVA) {
       defaultJavaSettings
@@ -99,8 +99,8 @@ trait PlaySettings {
 
     libraryDependencies <+= (playPlugin) { isPlugin =>
       val d = "play" %% "play" % play.core.PlayVersion.current
-      if(isPlugin)
-         d % "provided"
+      if (isPlugin)
+        d % "provided"
       else
         d
     },

@@ -120,7 +120,7 @@ trait PlayAssetsCompiler {
       // log the line
       log.error(line)
       Option(error.position).map { pos =>
-      // print a carat under the offending character
+        // print a carat under the offending character
         val spaces = (line: Seq[Char]).take(pos).map {
           case '\t' => '\t'
           case x => ' '

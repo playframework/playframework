@@ -2,7 +2,7 @@ package play.api.libs.iteratee
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import scala.util.{Try, Failure, Success}
+import scala.util.{ Try, Failure, Success }
 import Enumerator.Pushee
 import java.util.concurrent.{ TimeUnit }
 
@@ -15,14 +15,14 @@ object Concurrent {
 
   private val timer = new java.util.Timer()
 
-  private def timeoutFuture[A](v:A, delay:Long, unit:TimeUnit):Future[A] = {
+  private def timeoutFuture[A](v: A, delay: Long, unit: TimeUnit): Future[A] = {
 
     val p = Promise[A]()
-    timer.schedule( new java.util.TimerTask{
-      def run(){
+    timer.schedule(new java.util.TimerTask {
+      def run() {
         p.success(v)
       }
-    },unit.toMillis(delay) )
+    }, unit.toMillis(delay))
     p.future
   }
 
@@ -115,7 +115,7 @@ object Concurrent {
             case Right(s) =>
               Some(s)
           }.recover {
-            case e:Throwable =>
+            case e: Throwable =>
               p.failure(e)
               None
           }
@@ -231,10 +231,10 @@ object Concurrent {
           Future.firstCompletedOf(
             it.unflatten.map(Left(_)) :: timeoutFuture(Right(()), timeout, unit) :: Nil
           ).map {
-            case Left(Step.Cont(k)) => Cont(step(k(other)))
-            case Left(done) => Done(done.it, other)
-            case Right(_) => Error("iteratee is taking too long", other)
-          }
+              case Left(Step.Cont(k)) => Cont(step(k(other)))
+              case Left(done) => Done(done.it, other)
+              case Right(_) => Error("iteratee is taking too long", other)
+            }
         )
       }
       Cont(step(inner))
@@ -430,12 +430,12 @@ object Concurrent {
 
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
       val promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
-      val iteratee: Ref[Future[Option[Input[E] => Iteratee[E, A]]]] = Ref(it.pureFold { case  Step.Cont(k) => Some(k); case other => promise.success(other.it); None})
+      val iteratee: Ref[Future[Option[Input[E] => Iteratee[E, A]]]] = Ref(it.pureFold { case Step.Cont(k) => Some(k); case other => promise.success(other.it); None })
 
       val pushee = new Channel[E] {
         def close() {
-          iteratee.single.swap(Future.successful(None)).onComplete{
-            case Success(maybeK) => maybeK.foreach { k => 
+          iteratee.single.swap(Future.successful(None)).onComplete {
+            case Success(maybeK) => maybeK.foreach { k =>
               promise.success(k(Input.EOF))
             }
             case Failure(e) => promise.failure(e)
@@ -443,7 +443,7 @@ object Concurrent {
         }
 
         def end(e: Throwable) {
-          iteratee.single.swap(Future.successful(None)).onComplete { 
+          iteratee.single.swap(Future.successful(None)).onComplete {
             case Success(maybeK) =>
               maybeK.foreach(_ => promise.failure(e))
             case Failure(e) => promise.failure(e)
@@ -457,30 +457,30 @@ object Concurrent {
         }
 
         def push(item: Input[E]) {
-          val eventuallyNext = Promise[Option[Input[E] => Iteratee[E,A]]]()
+          val eventuallyNext = Promise[Option[Input[E] => Iteratee[E, A]]]()
           iteratee.single.swap(eventuallyNext.future).onComplete {
             case Success(None) => eventuallyNext.success(None)
             case Success(Some(k)) =>
-               val n = {
-                  val next = k(item)
-                  next.pureFold {
-                    case Step.Done(a, in) => {
-                      onComplete
-                      promise.success(next)
-                      None
-                    }
-                    case Step.Error(msg, e) =>
-                      onError(msg, e)
-                      promise.success(next)
-                      None
-                    case Step.Cont(k) =>
-                      Some(k)
+              val n = {
+                val next = k(item)
+                next.pureFold {
+                  case Step.Done(a, in) => {
+                    onComplete
+                    promise.success(next)
+                    None
                   }
+                  case Step.Error(msg, e) =>
+                    onError(msg, e)
+                    promise.success(next)
+                    None
+                  case Step.Cont(k) =>
+                    Some(k)
                 }
+              }
               eventuallyNext.completeWith(n)
-          case Failure(e) => 
-            promise.failure(e)
-            eventuallyNext.success(None)
+            case Failure(e) =>
+              promise.failure(e)
+              eventuallyNext.success(None)
           }
         }
       }

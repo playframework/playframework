@@ -3,7 +3,7 @@ package play.api.test
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
 import org.openqa.selenium.WebDriver
-import org.specs2.execute.{AsResult,Result}
+import org.specs2.execute.{ AsResult, Result }
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
@@ -28,7 +28,7 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  * @param port The port to run the server on
  */
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
-                          val port: Int = Helpers.testServerPort) extends Around with Scope {
+    val port: Int = Helpers.testServerPort) extends Around with Scope {
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
@@ -43,9 +43,9 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
  * @param port The port to run the server on
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
-        val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
-        val app: FakeApplication = FakeApplication(),
-        val port: Int = Helpers.testServerPort) extends Around with Scope {
+    val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
+    val app: FakeApplication = FakeApplication(),
+    val port: Int = Helpers.testServerPort) extends Around with Scope {
 
   implicit def implicitApp = app
   implicit def implicitPort: Port = port

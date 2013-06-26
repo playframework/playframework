@@ -29,9 +29,9 @@ package play.api.templates {
 
 package play.templates {
 
-import reflect.ClassTag
+  import reflect.ClassTag
 
-trait Appendable[T] {
+  trait Appendable[T] {
     def +=(other: T): T
     override def equals(x: Any): Boolean = super.equals(x)
     override def hashCode() = super.hashCode()

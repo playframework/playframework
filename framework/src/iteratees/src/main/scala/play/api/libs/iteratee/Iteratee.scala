@@ -3,7 +3,6 @@ package play.api.libs.iteratee
 import scala.concurrent.Future
 import internal.defaultExecutionContext
 
-
 /**
  * Various helper methods to construct, compose and traverse Iteratees.
  */
@@ -47,7 +46,7 @@ object Iteratee {
   /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which folds the content of the Input using a given function and an initial state
    *
-   * M stands for Monadic which in this case means returning a [[scala.concurrent.Future]] for the function argument f, 
+   * M stands for Monadic which in this case means returning a [[scala.concurrent.Future]] for the function argument f,
    * so that promises are combined in a complete reactive flow of logic.
    *
    *

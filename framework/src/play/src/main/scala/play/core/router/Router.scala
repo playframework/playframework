@@ -25,7 +25,6 @@ object DynamicPart {
   def apply(name: String, constraint: String) = new DynamicPart(name, constraint)
 }
 
-
 case class StaticPart(value: String) extends PathPart {
   override def toString = """StaticPart("""" + value + """")"""
 }
@@ -36,14 +35,13 @@ case class PathPattern(parts: Seq[PathPart]) {
 
   private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] = matcher =>
     Exception.allCatch[String].either {
-      if(decode) {
+      if (decode) {
         val group = matcher.group(groupCount)
         // If param is not correctly encoded, get path will return null, so we prepend a / to it
-        new URI("/"+group).getPath.drop(1)
+        new URI("/" + group).getPath.drop(1)
       } else
         matcher.group(groupCount)
     }
-
 
   lazy val (regex, groups) = {
     Some(parts.foldLeft("", Map.empty[String, Matcher => Either[Throwable, String]], 0) { (s, e) =>
@@ -59,7 +57,6 @@ case class PathPattern(parts: Seq[PathPart]) {
       case (r, g, _) => Pattern.compile("^" + r + "$") -> g
     }.get
   }
-
 
   def apply(path: String): Option[Map[String, Either[Throwable, String]]] = {
     val matcher = regex.matcher(path)
@@ -90,10 +87,10 @@ case class PathPattern(parts: Seq[PathPart]) {
  */
 object Router {
 
-   // Cache of annotation information for improving Java performance.
-   private val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
+  // Cache of annotation information for improving Java performance.
+  private val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
 
-   object Route {
+  object Route {
 
     trait ParamsExtractor {
       def unapply(request: RequestHeader): Option[RouteParams]
@@ -368,7 +365,7 @@ object Router {
           def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
         }
 
-        case ws@WebSocket(f) => {
+        case ws @ WebSocket(f) => {
           WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handler)))(ws.frameFormatter)
         }
 

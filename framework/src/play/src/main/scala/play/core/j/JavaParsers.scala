@@ -85,13 +85,13 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       anyContent =>
-      DefaultRequestBody(
-        anyContent.asFormUrlEncoded,
-        anyContent.asRaw,
-        anyContent.asText,
-        anyContent.asJson,
-        anyContent.asXml,
-        anyContent.asMultipartFormData)
+        DefaultRequestBody(
+          anyContent.asFormUrlEncoded,
+          anyContent.asRaw,
+          anyContent.asText,
+          anyContent.asJson,
+          anyContent.asXml,
+          anyContent.asMultipartFormData)
     )
   }
 
@@ -99,7 +99,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       json =>
-      DefaultRequestBody(json = Some(json))
+        DefaultRequestBody(json = Some(json))
     )
   }
 
@@ -107,7 +107,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       json =>
-      DefaultRequestBody(json = Some(json))
+        DefaultRequestBody(json = Some(json))
     )
   }
 
@@ -115,7 +115,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       xml =>
-      DefaultRequestBody(xml = Some(xml))
+        DefaultRequestBody(xml = Some(xml))
     )
   }
 
@@ -123,7 +123,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       xml =>
-      DefaultRequestBody(xml = Some(xml))
+        DefaultRequestBody(xml = Some(xml))
     )
   }
 
@@ -131,7 +131,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       text =>
-      DefaultRequestBody(text = Some(text))
+        DefaultRequestBody(text = Some(text))
     )
   }
 
@@ -139,7 +139,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       text =>
-      DefaultRequestBody(text = Some(text))
+        DefaultRequestBody(text = Some(text))
     )
   }
 
@@ -147,7 +147,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       urlFormEncoded =>
-      DefaultRequestBody(urlFormEncoded = Some(urlFormEncoded))
+        DefaultRequestBody(urlFormEncoded = Some(urlFormEncoded))
     )
   }
 
@@ -155,7 +155,7 @@ object JavaParsers extends BodyParsers {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       multipart =>
-      DefaultRequestBody(multipart = Some(multipart))
+        DefaultRequestBody(multipart = Some(multipart))
     )
   }
 

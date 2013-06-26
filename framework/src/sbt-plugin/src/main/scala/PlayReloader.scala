@@ -27,7 +27,7 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
-      
+
       // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
 
       lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
@@ -91,7 +91,7 @@ trait PlayReloader {
             def hasChanged = _changed
           }
 
-          ( /* Try it */ nativeWatcher.removeWatch(0) )
+          ( /* Try it */ nativeWatcher.removeWatch(0))
 
           nativeWatcher
 
@@ -116,22 +116,21 @@ trait PlayReloader {
           }
         }
 
-        
       }
 
       val (monitoredFiles, monitoredDirs) = {
-        val all = extracted.runTask(playMonitoredFiles, state)._2.map( f => new File(f) )
+        val all = extracted.runTask(playMonitoredFiles, state)._2.map(f => new File(f))
         (all.filter(!_.isDirectory), all.filter(_.isDirectory))
       }
 
-      def calculateTimestamps = monitoredFiles.map( f => f.getAbsolutePath -> f.lastModified ).toMap
+      def calculateTimestamps = monitoredFiles.map(f => f.getAbsolutePath -> f.lastModified).toMap
 
       var fileTimestamps = calculateTimestamps
 
-      def hasChangedFiles: Boolean = monitoredFiles.exists{ f =>
+      def hasChangedFiles: Boolean = monitoredFiles.exists { f =>
         val fileChanged = fileTimestamps.get(f.getAbsolutePath).map { timestamp =>
           f.lastModified != timestamp
-        }.getOrElse{
+        }.getOrElse {
           state.log.debug("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
           true
         }
@@ -141,7 +140,7 @@ trait PlayReloader {
         fileChanged
       }
 
-      val watchChanges: Seq[Int] = monitoredDirs.map( f => jnotify.addWatch(f.getAbsolutePath) )
+      val watchChanges: Seq[Int] = monitoredDirs.map(f => jnotify.addWatch(f.getAbsolutePath))
 
       lazy val settings = {
         import scala.collection.JavaConverters._
@@ -154,7 +153,7 @@ trait PlayReloader {
         import org.pegdown._
         import org.pegdown.ast._
 
-        val link:(String => (String, String)) = _ match {
+        val link: (String => (String, String)) = _ match {
           case link if link.contains("|") => {
             val parts = link.split('|')
             (parts.tail.head, parts.head)
@@ -224,13 +223,13 @@ trait PlayReloader {
                 sourceFile: java.io.File
               } -> line)
             }
-          }.headOption.map { 
+          }.headOption.map {
             case (source, maybeLine) => {
               play.templates.MaybeGeneratedSource.unapply(source).map { generatedSource =>
-                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l):java.lang.Integer).orNull
+                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l): java.lang.Integer).orNull
               }.getOrElse(source -> maybeLine)
             }
-          }     
+          }
         }.map {
           case (file, line) => {
             Array[java.lang.Object](file, line)
@@ -240,7 +239,8 @@ trait PlayReloader {
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
         val mappedPosition = playPositionMapper(problem.position)
-        mappedPosition.map { pos => new xsbti.Problem {
+        mappedPosition.map { pos =>
+          new xsbti.Problem {
             def message = problem.message
             def category = ""
             def position = pos
@@ -252,11 +252,11 @@ trait PlayReloader {
       private def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
         allProblems(inc :: Nil)
       }
-        
+
       private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] = {
         problems(Incomplete.allExceptions(incs).toSeq)
       }
-        
+
       private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] = {
         es flatMap {
           case cf: xsbti.CompileFailed => cf.problems
