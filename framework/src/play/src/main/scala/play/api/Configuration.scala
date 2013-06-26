@@ -24,18 +24,19 @@ object Configuration {
 
   private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
   /**
-   * loads `Configuration` from 'conf/application.conf' in Dev mode
+   * loads `Configuration` from config.resource or config.file. If not found default to 'conf/application.conf' in Dev mode
    * @return  configuration to be used
    */
   private[play] def loadDev(appPath: File, devSettings: Map[String, String]): Config = {
     try {
-      val file = {
+      lazy val file = {
         devSettings.get("config.file").orElse(Option(System.getProperty("config.file")))
           .map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
       }
-      ConfigFactory.parseMap(devSettings.asJava).withFallback(
-        ConfigFactory.load(ConfigFactory.parseFileAnySyntax(file))
-      )
+      val config = Option(System.getProperty("config.resource"))
+        .map(ConfigFactory.parseResources(_)).getOrElse(ConfigFactory.parseFileAnySyntax(file))
+
+      ConfigFactory.parseMap(devSettings.asJava).withFallback(ConfigFactory.load(config))
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
