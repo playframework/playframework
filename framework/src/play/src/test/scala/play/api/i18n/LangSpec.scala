@@ -29,6 +29,10 @@ class LangSpec extends Specification {
         Lang.preferred(Seq(deDe)) must_== enUs
       }
 
+      "with case insensitive match" in {
+        Lang.preferred(Seq(Lang("ES", "es"))) must_== esEs
+      }
+
       "in order" in {
         Lang.preferred(Seq(esEs, enUs)) must_== esEs
       }
