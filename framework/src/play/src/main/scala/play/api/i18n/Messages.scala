@@ -33,14 +33,15 @@ case class Lang(language: String, country: String = "") {
    * If the other lang defines a country code, then this is equivalent to equals, if it doesn't, then the equals is
    * only done on language and the country of this lang is ignored.
    *
-   * This implements the language matching specified by RFC2616 Accept-Language header spec.
+   * This implements the language matching specified by RFC2616 Section 14.4.  Equality is case insensitive as per
+   * Section 3.10.
    *
    * @param accept The accepted language
    */
-  def satisfies(accept: Lang) = accept match {
-    case Lang(l, "") => language.equals(l)
-    case lang => this.equals(lang)
-  }
+  def satisfies(accept: Lang) = language.equalsIgnoreCase(accept.language) && (accept match {
+    case Lang(_, "") => true
+    case Lang(_, c) => country.equalsIgnoreCase(c)
+  })
 
   /**
    * The Lang code (such as fr or en-US).
@@ -110,7 +111,9 @@ object Lang {
    */
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     val all = availables
-    langs.collectFirst(Function.unlift(lang => all.find(_.satisfies(lang)))).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
+    langs.collectFirst(Function.unlift { lang =>
+      all.find(_.satisfies(lang))
+    }).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
   }
 }
 

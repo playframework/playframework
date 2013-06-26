@@ -86,7 +86,7 @@ import scala.util.control.NonFatal
      */
     lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
       val langs = acceptHeader(HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
-      langs.sortBy(_._1).map(_._2).flatten.reverse
+      langs.sortWith((a, b) => a._1 > b._1).map(_._2).flatten
     }
 
     /**
