@@ -66,4 +66,12 @@ public class Application extends Controller {
     public static Result thread() {
         return ok(Thread.currentThread().getName());
     }
+
+    public static Result classLoader(String resource) {
+        if (Thread.currentThread().getContextClassLoader().getResource(resource) == null) {
+            return notFound();
+        } else {
+            return ok();
+        }
+    }
 }
