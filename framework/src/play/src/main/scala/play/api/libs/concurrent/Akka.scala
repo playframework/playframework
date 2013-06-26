@@ -52,7 +52,7 @@ class AkkaPlugin(app: Application) extends Plugin {
 
   lazy val applicationSystem: ActorSystem = {
     applicationSystemEnabled = true
-    val system = ActorSystem("application", app.configuration.underlying.getConfig("play"), app.classloader)
+    val system = ActorSystem("application", app.configuration.underlying, app.classloader)
     Play.logger.info("Starting application default Akka system.")
     system
   }

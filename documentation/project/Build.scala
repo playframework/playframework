@@ -24,9 +24,11 @@ object ApplicationBuild extends Build {
 
     unmanagedSourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedSourceDirectories in Test <++= scalaManualSourceDirectories,
+    unmanagedSourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailledTopics" ** "code").get),
 
     unmanagedResourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedResourceDirectories in Test <++= scalaManualSourceDirectories,
+    unmanagedResourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailledTopics" ** "code").get),
 
     parallelExecution in Test := false,
 
