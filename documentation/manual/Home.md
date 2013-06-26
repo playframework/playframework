@@ -6,6 +6,7 @@
 
 - [[What's new in Play 2.1?| Highlights]]
 - [[Migration Guide| Migration]]
+- [[Play 2.1 Migration Guide| Migration21]]
 
 ## Getting started
 

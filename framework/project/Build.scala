@@ -233,6 +233,10 @@ object PlayBuild extends Build {
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
     .dependsOn(PlayProject, PlayTestProject)
 
+  lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
+    .settings(libraryDependencies := playCacheDeps)
+    .dependsOn(PlayProject)
+
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
@@ -258,7 +262,7 @@ object PlayBuild extends Build {
     DataCommonsProject,
     JsonProject,
     RoutesCompilerProject,
-    PlayProject,
+    PlayCacheProject,
     PlayJdbcProject,
     PlayJavaProject,
     PlayJavaJdbcProject,

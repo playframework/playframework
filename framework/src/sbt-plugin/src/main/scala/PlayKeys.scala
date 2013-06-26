@@ -18,6 +18,8 @@ trait PlayKeys {
 
   val filters = "com.typesafe.play" %% "filters-helpers" % play.core.PlayVersion.current
 
+  val cache = "com.typesafe.play" %% "play-cache" % play.core.PlayVersion.current
+
   val playVersion = SettingKey[String]("play-version")
 
   val playDefaultPort = SettingKey[Int]("play-default-port")

@@ -15,7 +15,8 @@ object ApplicationBuild extends Build {
     libraryDependencies ++= Seq(
       component("play") % "test",
       component("play-test") % "test",
-      component("play-java") % "test"
+      component("play-java") % "test",
+      component("play-cache") % "test"
     ),
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),
