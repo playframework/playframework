@@ -79,7 +79,7 @@ class FunctionalSpec extends Specification {
       browser.goTo("/conf")
       browser.pageSource must contain("This value comes from complex-app's complex1.conf")
       browser.pageSource must contain("override akka:2 second")
-      browser.pageSource must contain("akka-loglevel:WARNING")
+      browser.pageSource must contain("akka-loglevel:DEBUG")
       browser.pageSource must contain("promise-timeout:7000")
       browser.pageSource must contain("None")
       browser.title must beNull

@@ -90,21 +90,17 @@ In certain circumstances, you may wish to dispatch work to other thread pools.  
 
 ```scala
 object Contexts {
-  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.my-context")
+  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("my-context")
 }
 ```
 
 In this case, we are using Akka to create the execution context, but you could also easily create your own execution contexts using Java executors, or the Scala fork join thread pool, for example.  To configure this Akka execution context, you can add the following configuration to your `application.conf`:
 
 ```
-akka {
-  actor {
-    my-context {
-      fork-join-executor {
-        parallelism-factor = 20.0
-        parallelism-max = 200
-      }
-    }
+my-context {
+  fork-join-executor {
+    parallelism-factor = 20.0
+    parallelism-max = 200
   }
 }
 ```
@@ -170,41 +166,37 @@ In this case, you might create a number of different execution contexts for diff
 
 ```scala
 object Contexts {
-  implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.simple-db-lookups")
-  implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.expensive-db-lookups")
-  implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.db-write-operations")
-  implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.expensive-cpu-operations")
+  implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("contexts.simple-db-lookups")
+  implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("contexts.expensive-db-lookups")
+  implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("contexts.db-write-operations")
+  implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("contexts.expensive-cpu-operations")
 }
 ```
 
 These might then be configured like so:
 
 ```
-play {
-  akka {
-    actor {
-      simple-db-lookups {
-        fork-join-executor {
-          parallelism-factor = 10.0
-        }
-      }
-      expensive-db-lookups {
-        fork-join-executor {
-          parallelism-max = 4
-        }
-      }
-      db-write-operations {
-        fork-join-executor {
-          parallelism-factor = 2.0
-        }
-      }
-      expensive-cpu-operations {
-        fork-join-executor {
-          parallelism-max = 2
-        }
-      }
+contexts {
+  simple-db-lookups {
+    fork-join-executor {
+      parallelism-factor = 10.0
     }
-  }  
+  }
+  expensive-db-lookups {
+    fork-join-executor {
+      parallelism-max = 4
+    }
+  }
+  db-write-operations {
+    fork-join-executor {
+      parallelism-factor = 2.0
+    }
+  }
+  expensive-cpu-operations {
+    fork-join-executor {
+      parallelism-max = 2
+    }
+  }
 }
 ```
 
