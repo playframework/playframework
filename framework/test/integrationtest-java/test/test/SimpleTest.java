@@ -1,5 +1,7 @@
 package test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -328,6 +330,34 @@ public class SimpleTest {
             public void run() {
                 WS.Response response = WS.url("http://localhost:3333/thread").get().get();
                 assertThat(response.getBody()).startsWith("play-akka.actor.default-dispatcher-");
+            }
+        });
+    }
+
+    @Test
+    public void actionShouldBeExcecutedWithTheRightContextClassLoader() {
+        // Test classloader environment and dev classloader environment are very different.  Let's provide our own
+        // classloader
+        ClassLoader classLoader = new ClassLoader() {
+            @Override
+            public URL findResource(String name) {
+                if (name.equals("dummy-resource")) {
+                    try {
+                        return new URL("file:///dummy-resource");
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    return null;
+                }
+            }
+        };
+        FakeApplication app = new FakeApplication(new java.io.File("."), classLoader, new HashMap<String,Object>(), new ArrayList<String>(), null);
+        running(testServer(3333, app), new Runnable() {
+            @Override
+            public void run() {
+                WS.Response response = WS.url("http://localhost:3333/classLoader/dummy-resource").get().get();
+                assertThat(response.getStatus()).isEqualTo(200);
             }
         });
     }

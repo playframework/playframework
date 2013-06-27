@@ -240,6 +240,7 @@ public class F {
          */
         public void onRedeem(final Callback<A> action) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
+            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             new play.api.libs.concurrent.PlayPromise<A>(promise).onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
                 public scala.runtime.BoxedUnit apply(A a) {
                     try {
@@ -254,7 +255,7 @@ public class F {
                                     throw new RuntimeException(t);
                                 }
                             }
-                        }, a, context);
+                        }, a, context, classLoader);
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Throwable t) {
@@ -277,11 +278,12 @@ public class F {
          */
         public <B> Promise<B> map(final Function<A, B> function) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
+            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             return new Promise<B>(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<B>>() {
                     public scala.concurrent.Future<B> apply(A a) {
                         try {
-                            return run(function, a, context);
+                            return run(function, a, context, classLoader);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
@@ -305,11 +307,12 @@ public class F {
          */
         public Promise<A> recover(final Function<Throwable,A> function) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
+            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             return new Promise<A>(
                 play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, scala.concurrent.Future<A>>() {
                     public scala.concurrent.Future<A> apply(Throwable t) {
                         try {
-                            return run(function,t, context);
+                            return run(function,t, context, classLoader);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable e) {
@@ -332,11 +335,12 @@ public class F {
          */
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
             final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
+            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             return new Promise<B>(
                 promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<Promise<B>>>() {
                     public scala.concurrent.Future<Promise<B>> apply(A a) {
                         try {
-                            return run(function, a, context);
+                            return run(function, a, context, classLoader);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
@@ -375,7 +379,7 @@ public class F {
             return actors;
         }
 
-        static <A,B> scala.concurrent.Future<B> run(Function<A,B> f, A a, play.mvc.Http.Context context) {
+        static <A,B> scala.concurrent.Future<B> run(Function<A,B> f, A a, play.mvc.Http.Context context, ClassLoader classLoader) {
             Long id;
             if(context == null) {
                 id = 0l;
@@ -384,7 +388,7 @@ public class F {
             }
             return play.core.j.JavaPromise.akkaAsk(
                             actors().get((int)(id % actors().size())), 
-                            Tuple3(f, a, context), 
+                            Tuple4(f, a, context, classLoader),
                             akka.util.Timeout.apply(60000 * 60 * 1) // Let's wait 1h here. Unfortunately we can't avoid a timeout.
                    ).map(new scala.runtime.AbstractFunction1<Object,B> () {
                         public B apply(Object o) {
@@ -407,17 +411,24 @@ public class F {
         // This Actor is used as Agent to ensure function execution ordering for a given context.
         public static class PromiseActor extends akka.actor.UntypedActor {
 
-            public void onReceive(Object o) {
-                Function f = (Function)(((Tuple3)o)._1);
-                Object a = (Object)(((Tuple3)o)._2);
-                play.mvc.Http.Context context = (play.mvc.Http.Context)(((Tuple3)o)._3);
-                try {
-                    play.mvc.Http.Context.current.set(context);
-                    getSender().tell(Either.Right(f.apply(a)));
-                } catch(Throwable t) {
-                    getSender().tell(Either.Left(t));
-                } finally {
-                    play.mvc.Http.Context.current.remove();
+            public void onReceive(Object msg) {
+                if (msg instanceof Tuple4) {
+                    Tuple4 tuple = (Tuple4) msg;
+                    Function f = (Function) tuple._1;
+                    Object a = tuple._2;
+                    play.mvc.Http.Context context = (play.mvc.Http.Context) tuple._3;
+                    ClassLoader classLoader = (ClassLoader) tuple._4;
+                    ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
+                    try {
+                        Thread.currentThread().setContextClassLoader(classLoader);
+                        play.mvc.Http.Context.current.set(context);
+                        getSender().tell(Either.Right(f.apply(a)));
+                    } catch(Throwable t) {
+                        getSender().tell(Either.Left(t));
+                    } finally {
+                        play.mvc.Http.Context.current.remove();
+                        Thread.currentThread().setContextClassLoader(oldClassLoader);
+                    }
                 }
             }
 
