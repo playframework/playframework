@@ -256,6 +256,19 @@ object PlayBuild extends Build {
         )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
 
+    // This project is just for testing Play, not really a public artifact
+    lazy val PlayIntegrationTestProject = Project(
+      "Play-Integration-Test",
+      file("src/play-integration-test"),
+      settings = buildSettingsWithMIMA ++ Seq(
+        libraryDependencies := runtime,
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
+        javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
+        javacOptions in doc := Seq("-source", "1.6")
+      )
+    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+      .dependsOn(PlayProject, PlayTestProject)
+
     lazy val SbtPluginProject = Project(
         "SBT-Plugin",
         file("src/sbt-plugin"),
@@ -340,7 +353,8 @@ object PlayBuild extends Build {
         ConsoleProject,
         PlayTestProject,
         PlayExceptionsProject,
-        PlayFiltersHelpersProject
+        PlayFiltersHelpersProject,
+        PlayIntegrationTestProject
     )
 
     object BuildSettings {
