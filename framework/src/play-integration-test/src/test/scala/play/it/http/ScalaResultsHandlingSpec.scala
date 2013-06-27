@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.libs.ws.Response
-import play.api.libs.iteratee.{Iteratee, Enumerator}
+import play.api.libs.iteratee.{Done, Iteratee, Enumerator}
 import java.net.Socket
 import java.io.{InputStream, OutputStreamWriter}
 import org.apache.commons.io.IOUtils
@@ -35,39 +35,25 @@ object ScalaResultsHandlingSpec extends Specification {
         lines.foreach { line =>
           out.write(line)
           out.write("\r\n")
-          if (line.size == 0) expectedResponses += 1
         }
         out.write("\r\n")
         out.flush()
 
-        // Read response
-        @tailrec
-        def readHttpResponse(ab: mutable.ArrayBuffer[String], is: InputStream, expectedResponses: Int):
-        mutable.ArrayBuffer[String] = {
-          if (expectedResponses == 0) {
-            ab
-          } else {
-            import scala.collection.JavaConverters._
-            ab ++= IOUtils.readLines(s.getInputStream).asScala
-            // Response counting could be made more sophisticated by checking content-length
-            // etc., but the following is sufficient for our tests thus far.
-            val actualResponses = ab.count(_.startsWith("HTTP/"))
-            readHttpResponse(ab, is, expectedResponses - actualResponses)
-          }
-        }
-
-        readHttpResponse(new mutable.ArrayBuffer[String], s.getInputStream, expectedResponses).toList
+        import scala.collection.JavaConverters._
+        IOUtils.readLines(s.getInputStream).asScala
 
       } finally {
         s.close()
       }
     }
 
-    def withServer[T](result: SimpleResult)(block: Port => T) = {
+    def withServer[T](result: SimpleResult)(block: Port => T) = withServerAction(Action(result))(block)
+
+    def withServerAction[T](action: EssentialAction)(block: Port => T) = {
       val port = testServerPort
       running(TestServer(port, FakeApplication(
         withRoutes = {
-          case _ => Action(result)
+          case _ => action
         }
       ))) {
         block(port)
@@ -229,6 +215,33 @@ object ScalaResultsHandlingSpec extends Specification {
       lines.foreach { _ must not contain "Transfer-Encoding" }
       lines.last must_== "abcdefghi"
     }
+
+    "honour 100 continue" in withServer(
+      Results.Ok
+    ) { port =>
+      val lines = makeBasicRequest(port,
+        "POST / HTTP/1.1",
+        "Host: localhost",
+        "Expect: 100-continue",
+        "Connection: close"
+      )
+      lines(0) must_== "HTTP/1.1 100 Continue"
+      lines must containAllOf(Seq("HTTP/1.1 200 OK"))
+    }
+
+    "not read body when expecting 100 continue but action iteratee is done" in withServerAction(new EssentialAction {
+      def apply(v1: RequestHeader) = Done(Results.Ok)
+    }) { port =>
+      val lines = makeBasicRequest(port,
+        "POST / HTTP/1.1",
+        "Host: localhost",
+        "Expect: 100-continue",
+        "Connection: close",
+        "Content-Length: 10000000"
+      )
+      lines(0) must_== ("HTTP/1.1 200 OK")
+    }
+
   }
 
 }
