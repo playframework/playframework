@@ -64,7 +64,6 @@ class AssetsBuilder extends Controller {
    * @param file the file part extracted from the URL
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
-    // -- LastModified handling
 
     def parseDate(date: String): Option[java.util.Date] = try {
       //jodatime does not parse timezones, so we handle that manually
@@ -159,27 +158,33 @@ class AssetsBuilder extends Controller {
     }
   }
 
+  // -- LastModified handling
+
   private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
 
   private def lastModifiedFor(resource: java.net.URL): Option[String] = {
-    lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeLastModified = resource.getProtocol match {
-        case "file" => Some(df.print({ new java.util.Date(new java.io.File(resource.getPath).lastModified).getTime }))
+    def formatLastModified(lastModified: Long): String = df.print(lastModified)
+
+    def maybeLastModified(resource: java.net.URL): Option[Long] = {
+      resource.getProtocol match {
+        case "file" => Some(new File(resource.getPath).lastModified)
         case "jar" => {
-          resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
-            Option(resource.openConnection)
-              .collect { case c: JarURLConnection => c }
-              .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
-              .map(_.getTime)
-              .filterNot(_ == -1)
-              .map(lastModified => df.print({ new java.util.Date(lastModified) }.getTime))
-          }
+          Option(resource.openConnection)
+            .map(_.asInstanceOf[JarURLConnection].getJarEntry.getTime)
+            .filterNot(_ == -1)
         }
         case _ => None
       }
-      maybeLastModified.foreach(lastModifieds.put(resource.toExternalForm, _))
-      maybeLastModified
     }
+
+    def lastModifiedForProd(resource: java.net.URL): Option[String] =
+      lastModifieds.get(resource.toExternalForm).orElse {
+        val mlm = maybeLastModified(resource).map(formatLastModified)
+        mlm.foreach(lastModifieds.put(resource.toExternalForm, _))
+        mlm
+      }
+
+    if (Play.isProd) lastModifiedForProd(resource) else None
   }
 
   // -- ETags handling
