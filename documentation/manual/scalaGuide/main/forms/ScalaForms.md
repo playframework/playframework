@@ -4,51 +4,23 @@
 
 The `play.api.data` package contains several helpers to handle HTTP form data submission and validation. The easiest way to handle a form submission is to define a `play.api.data.Form` structure:
 
-```scala
-import play.api.data._
-import play.api.data.Forms._
+@[loginForm-define](code/ScalaForms.scala)
 
-val loginForm = Form(
-  tuple(
-    "email" -> text,
-    "password" -> text
-  )
-)
-```
 
 This form can generate a `(String, String)` result value from `Map[String, String]` data:
 
-```scala
-val anyData = Map("email" -> "bob@gmail.com", "password" -> "secret")
-val (user, password) = loginForm.bind(anyData).get
-```
+@[loginForm-generate-map](code/ScalaForms.scala)
+
 
 If you have a request available in the scope, you can bind directly to it from the request content:
 
-```scala
-val (user, password) = loginForm.bindFromRequest.get
-```
+@[loginForm-generate-request](code/ScalaForms.scala)
 
 ## Constructing complex objects
 
 A form can use functions to construct and deconstruct the value. So you can, for example, define a form that wraps an existing case class:
 
-```scala
-import play.api.data._
-import play.api.data.Forms._
-
-case class User(name: String, age: Int)
-
-val userForm = Form(
-  mapping(
-    "name" -> text,
-    "age" -> number
-  )(User.apply)(User.unapply)
-)
-
-val anyData = Map("name" -> "bob", "age" -> "18")
-val user: User = userForm.bind(anyData).get
-```
+@[userForm-get](code/ScalaForms.scala)
 
 > **Note:** The difference between using `tuple` and `mapping` is that when you are using `tuple` the construction and deconstruction functions don’t need to be specified (we know how to construct and deconstruct a tuple, right?). 
 >
@@ -58,16 +30,7 @@ Of course often the `Form` signature doesn’t match the case class exactly. Let
 
 As we can define our own construction and deconstruction functions, it is easy to handle it:
 
-```scala
-val userForm = Form(
-  mapping(
-    "name" -> text,
-    "age" -> number,
-    "accept" -> checked("Please accept the terms and conditions")
-  )((name, age, _) => User(name, age))
-   ((user: User) => Some(user.name, user.age, false))
-)
-```
+@[userForm-verify](code/ScalaForms.scala)
 
 > **Note:** The deconstruction function is used when we fill a form with an existing `User` value. This is useful if we want the load a user from the database and prepare a form to update it.
 
@@ -75,44 +38,19 @@ val userForm = Form(
 
 For each mapping, you can also define additional validation constraints that will be checked during the binding phase:
 
-```scala
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-
-case class User(name: String, age: Int)
-
-val userForm = Form(
-  mapping(
-    "name" -> text.verifying(nonEmpty),
-    "age" -> number.verifying(min(0), max(100))
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-constraints](code/ScalaForms.scala)
 
 > **Note:** That can be also written:
 >
-> ```scala
-> mapping(
->   "name" -> nonEmptyText,
->   "age" -> number(min=0, max=100)
-> )
-> ```
+> @[userForm-constraints-2](code/ScalaForms.scala)
+
 >
 > This constructs the same mappings, with additional constraints.
 
 You can also define ad-hoc constraints on the fields:
 
-```scala
-val loginForm = Form(
-  tuple(
-    "email" -> email,
-    "password" -> text
-  ) verifying("Invalid user name or password", fields => fields match { 
-      case (e, p) => User.authenticate(e,p).isDefined 
-  })
-)
-```
+@[userForm-constraints-ad-hoc](code/ScalaForms.scala)
+
 
 ## Handling binding failure
 
