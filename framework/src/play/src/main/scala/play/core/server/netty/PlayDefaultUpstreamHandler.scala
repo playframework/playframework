@@ -23,6 +23,7 @@ import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamMessageEvent, OrderedUpstreamMessageEvent}
+import scala.concurrent.Future
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
@@ -132,24 +133,21 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         implicit val msgCtx = ctx
         implicit val oue = e.asInstanceOf[OrderedUpstreamMessageEvent]
 
-        // converting netty response to play's
-        val response = new Response {
-
-          def handle(result: Result) {
+          def handle(result: Result, startSequence: Int) {
             result match {
 
               case AsyncResult(p) => p.extend1 {
-                case Redeemed(v) => handle(v)
+                case Redeemed(v) => handle(v, startSequence)
                 case Thrown(e) => {
                   server.applicationProvider.get match {
-                    case Right(app) => handle(app.handleError(requestHeader, e))
-                    case Left(_) => handle(Results.InternalServerError)
+                    case Right(app) => handle(app.handleError(requestHeader, e), startSequence)
+                    case Left(_) => handle(Results.InternalServerError, startSequence)
                   }
                 }
               }
 
               case r @ SimpleResult(ResponseHeader(status, headers), body) if (!websocketableRequest.check) => {
-                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(status))
+                val nettyResponse = new DefaultHttpResponse(nettyHttpRequest.getProtocolVersion, HttpResponseStatus.valueOf(status))
 
                 Play.logger.trace("Sending simple result: " + r)
 
@@ -184,7 +182,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                         sendDownstream(subsequence, true, ChannelBuffers.EMPTY_BUFFER)
                         Done(())
                     }
-                    nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1))
+                    nextWhenComplete(sendDownstream(startSequence, false, nettyResponse), step(startSequence + 1))
                   }
 
                   (body |>>> bodyIteratee).extend1 {
@@ -209,7 +207,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       val buffer = bs
                       nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
                       nettyResponse.setContent(buffer)
-                      val f = sendDownstream(0, true, nettyResponse)
+                      val f = sendDownstream(startSequence, true, nettyResponse)
                       if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
                       val p = NettyPromise(f)
                       p
@@ -264,7 +262,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       val p = NettyPromise(f)
                       Iteratee.flatten(p.map(_ => Done(())))
                   }
-                  nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1))
+                  nextWhenComplete(sendDownstream(startSequence, false, nettyResponse), step(startSequence + 1))
                 }
 
                 chunks apply bodyIteratee.map { _ =>
@@ -275,13 +273,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               }
 
               case _ =>
-                val nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(500))
+                val nettyResponse = new DefaultHttpResponse(nettyHttpRequest.getProtocolVersion, HttpResponseStatus.valueOf(500))
                 nettyResponse.setHeader(CONTENT_LENGTH, 0)
-                val f = sendDownstream(0, true, nettyResponse)
+                val f = sendDownstream(startSequence, true, nettyResponse)
                 if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
             }
           }
-        }
 
         def cleanFlashCookie(r:PlainResult):Result = {
           val header = r.header
@@ -343,22 +340,17 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val filteredAction = app.map(_.global).getOrElse(DefaultGlobal).doFilter(a)
 
-          val eventuallyBodyParser = Iteratee.flatten(scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext))
+          val bodyParser = Iteratee.flatten(
+            scala.concurrent.Future(filteredAction(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
+          )
 
-          requestHeader.headers.get("Expect").filter(_ == "100-continue").foreach { _ =>
-            eventuallyBodyParser.unflatten.map {
-              case Step.Cont(k) =>
-                sendDownstream(0, true, new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
-              case _ =>
-            }
-          }
+          val expectContinue: Option[_] = requestHeader.headers.get("Expect").filter(_.equalsIgnoreCase("100-continue"))
 
-          val eventuallyResultIteratee = if (nettyHttpRequest.isChunked) {
+          def feedBody[A](bodyParser: Iteratee[Array[Byte], A]) = if (nettyHttpRequest.isChunked) {
 
             val p: ChannelPipeline = ctx.getChannel().getPipeline()
-            val result = newRequestBodyUpstreamHandler(eventuallyBodyParser, {
-              handler =>
-                p.replace("handler", "handler", handler)
+            val result = newRequestBodyUpstreamHandler(bodyParser, { handler =>
+              p.replace("handler", "handler", handler)
             }, {
               p.replace("handler", "handler", this)
             })
@@ -377,18 +369,34 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               Enumerator(body).andThen(Enumerator.enumInput(EOF))
             }
 
-            bodyEnumerator |>> eventuallyBodyParser
+            bodyEnumerator |>> bodyParser
+          }
 
+          // This is an iteratee containing the result, and and the sequence number, which will be 1 if 100 continue
+          // was sent
+          val eventuallyResultIteratee = expectContinue match {
+            case Some(_) => {
+              bodyParser.unflatten.flatMap {
+                case c @ Step.Cont(k) =>
+                  sendDownstream(0, false, new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
+                  feedBody(bodyParser.map((_, 1)))
+                case _ => {
+                  // Ignore the body
+                  Future.successful(bodyParser.map((_, 0)))
+                }
+              }
+            }
+            case None => feedBody(bodyParser.map((_, 0)))
           }
 
 
           val eventuallyResult = eventuallyResultIteratee.flatMap(it => it.run)
           eventuallyResult.extend1 {
-            case Redeemed(r) => response.handle(r)
+            case Redeemed((r, sequence)) => handle(r, sequence)
 
             case Thrown(error) =>
               Play.logger.error("Cannot invoke the action, eventually got an error: " + error)
-              response.handle( app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)))
+              handle( app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)), 0)
               e.getChannel.setReadable(true)
           }
         }
