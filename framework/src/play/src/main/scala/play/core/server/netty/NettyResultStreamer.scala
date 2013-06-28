@@ -27,32 +27,32 @@ object NettyResultStreamer {
    *
    * @return A Future that will be redeemed when the result is completely sent
    */
-  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Future[_] = {
+  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Future[_] = {
     val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
 
     // Result of this iteratee is whether the connection must be closed
     val bodyIteratee: Iteratee[Array[Byte], Boolean] = result.header.headers.get(CONTENT_LENGTH).map { contentLength =>
 
       // Simple case, we have a content length, so we send with no transfer encoding
-      simpleResultIteratee(nettyResponse).map(_ => closeConnection)(internalExecutionContext)
+      simpleResultIteratee(nettyResponse, startSequence).map(_ => closeConnection)(internalExecutionContext)
 
     } getOrElse {
 
       // We don't have a content length, decide how to send it based on the streaming strategy
       result.streamingStrategy match {
-        case StreamingStrategy.Simple => simpleResultIteratee(nettyResponse).map(_ => true)(internalExecutionContext)
+        case StreamingStrategy.Simple => simpleResultIteratee(nettyResponse, startSequence).map(_ => true)(internalExecutionContext)
 
-        case StreamingStrategy.Buffer(maxLength) => bufferingIteratee(nettyResponse, maxLength, closeConnection, httpVersion)
+        case StreamingStrategy.Buffer(maxLength) => bufferingIteratee(nettyResponse, startSequence, maxLength, closeConnection, httpVersion)
 
         case StreamingStrategy.Chunked(trailers) if (httpVersion != HttpVersion.HTTP_1_0) =>
-          chunkedIteratee(nettyResponse, trailers).map(_ => true)(internalExecutionContext)
+          chunkedIteratee(nettyResponse, startSequence, trailers).map(_ => true)(internalExecutionContext)
 
         case StreamingStrategy.Chunked(_) => {
           // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
           result.body |>> Done(())
           // Can't send chunked result if version is HTTP 1.0
           val error = Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
-          simpleResultIteratee(createNettyResponse(error.header, closeConnection, httpVersion))
+          simpleResultIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence)
             .map(_ => closeConnection)(internalExecutionContext)
         }
       }
@@ -76,7 +76,7 @@ object NettyResultStreamer {
    * If the response is greater than maxLength, sends the response either as chunked or as a stream that gets closed,
    * depending on whether the protocol is HTTP 1.0 or HTTP 1.1.
    */
-  def bufferingIteratee(nettyResponse: HttpResponse, maxLength: Long, closeConnection: Boolean,
+  def bufferingIteratee(nettyResponse: HttpResponse, startSequence: Int, maxLength: Long, closeConnection: Boolean,
     httpVersion: HttpVersion)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Boolean] = {
 
     // Left is the next chunk that didn't fit in our max length, right means we did buffer it successfully
@@ -97,7 +97,7 @@ object NettyResultStreamer {
         // We successfully buffered it, so set the content length and send the whole thing as one buffer
         nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
         nettyResponse.setContent(buffer)
-        val promise = NettyPromise(sendDownstream(0, true, nettyResponse))
+        val promise = NettyPromise(sendDownstream(startSequence, true, nettyResponse))
         Iteratee.flatten(promise.map(_ => Done[Array[Byte], Boolean](closeConnection))(internalExecutionContext))
       }
       case Left(chunks) => {
@@ -105,9 +105,9 @@ object NettyResultStreamer {
 
         // Get the iteratee, maybe chunked or maybe not according HTTP version
         val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
-          simpleResultIteratee(nettyResponse).map(_ => true)(internalExecutionContext)
+          simpleResultIteratee(nettyResponse, startSequence).map(_ => true)(internalExecutionContext)
         } else {
-          chunkedIteratee(nettyResponse, None).map(_ => closeConnection)(internalExecutionContext)
+          chunkedIteratee(nettyResponse, startSequence, None).map(_ => closeConnection)(internalExecutionContext)
         }
 
         // Feed the buffered content into the iteratee, and return the iteratee so that future content can continue
@@ -118,7 +118,7 @@ object NettyResultStreamer {
 
   }
 
-  def simpleResultIteratee(nettyResponse: HttpResponse)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Unit] = {
+  def simpleResultIteratee(nettyResponse: HttpResponse, startSequence: Int)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], Unit] = {
     def step(subsequence: Int)(in: Input[Array[Byte]]): Iteratee[Array[Byte], Unit] = in match {
       case Input.El(x) =>
         val b = ChannelBuffers.wrappedBuffer(x)
@@ -129,10 +129,10 @@ object NettyResultStreamer {
         sendDownstream(subsequence, true, ChannelBuffers.EMPTY_BUFFER)
         Done(())
     }
-    nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1), ())
+    nextWhenComplete(sendDownstream(startSequence, false, nettyResponse), step(startSequence + 1), ())
   }
 
-  def chunkedIteratee(nettyResponse: HttpResponse, trailers: Option[Iteratee[Array[Byte], Map[String, String]]])(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], _] = {
+  def chunkedIteratee(nettyResponse: HttpResponse, startSequence: Int, trailers: Option[Iteratee[Array[Byte], Map[String, String]]])(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], _] = {
 
     nettyResponse.setHeader(TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
     nettyResponse.setChunked(true)
@@ -148,7 +148,7 @@ object NettyResultStreamer {
         case Input.EOF =>
           Done(subsequence)
       }
-      nextWhenComplete(sendDownstream(0, false, nettyResponse), step(1), 0)
+      nextWhenComplete(sendDownstream(startSequence, false, nettyResponse), step(startSequence + 1), startSequence)
     }
 
     // Zip the netty iteratee with the trailers iteratee
