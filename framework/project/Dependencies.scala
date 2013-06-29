@@ -62,7 +62,7 @@ object Dependencies {
     specsBuild % "test")
 
   val runtime = Seq(
-    "io.netty" % "netty" % "3.6.3.Final",
+    "io.netty" % "netty" % "3.6.6.Final",
 
     "com.typesafe.netty" % "netty-http-pipelining" % "1.0.0",
 
