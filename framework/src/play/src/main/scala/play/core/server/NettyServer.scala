@@ -168,7 +168,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
     try {
       super.stop()
     } catch {
-      case NonFatal(e) => Play.logger.error("Error while stopping akka", e)
+      case NonFatal(e) => Play.logger.error("Error while stopping logger", e)
     }
 
     mode match {
