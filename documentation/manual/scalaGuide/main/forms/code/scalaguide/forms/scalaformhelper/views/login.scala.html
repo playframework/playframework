@@ -1,0 +1,16 @@
+@(loginForm:Form[(String,String)])
+@import scalaguide.forms.scalaformhelper.controllers.routes
+
+@* #form-tag *@
+@helper.form(action = routes.Application.submit) {
+
+}
+@* #form-tag *@
+
+@* #form-pass-parameters *@
+@helper.form(action = routes.Application.submit, 'id -> "myForm") {
+
+}
+@* #form-pass-parameters *@
+
+

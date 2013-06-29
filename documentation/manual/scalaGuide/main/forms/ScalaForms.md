@@ -56,41 +56,20 @@ You can also define ad-hoc constraints on the fields:
 
 If you can define constraints, then you need to be able to handle the binding errors. You can use the `fold` operation for this:
 
-```scala
-loginForm.bindFromRequest.fold(
-  formWithErrors => // binding failure, you retrieve the form containing errors,
-    BadRequest(views.html.login(formWithErrors)),
-  value => // binding success, you get the actual value 
-    Redirect(routes.HomeController.home).flashing("message" -> "Welcome!" + value.firstName)
-)
-```
+@[loginForm-handling-failure](code/ScalaForms.scala)
 
 ## Fill a form with initial default values
 
 Sometimes you’ll want to populate a form with existing values, typically for editing data:
 
-```scala
-val filledForm = userForm.fill(User("Bob", 18))
-```
+@[userForm-filled](code/ScalaForms.scala)
+
 
 ## Nested values
 
 A form mapping can define nested values:
 
-```scala
-case class User(name: String, address: Address)
-case class Address(street: String, city: String)
-
-val userForm = Form(
-  mapping(
-    "name" -> text,
-    "address" -> mapping(
-        "street" -> text,
-        "city" -> text
-    )(Address.apply)(Address.unapply)
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-nested](code/ScalaForms.scala)
 
 When you are using nested data this way, the form values sent by the browser must be named like `address.street`, `address.city`, etc.
 
@@ -98,16 +77,7 @@ When you are using nested data this way, the form values sent by the browser mus
 
 A form mapping can also define repeated values:
 
-```scala
-case class User(name: String, emails: List[String])
-
-val userForm = Form(
-  mapping(
-    "name" -> text,
-    "emails" -> list(email)
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-repeated](code/ScalaForms.scala)
 
 When you are using repeated data like this, the form values sent by the browser must be named `emails[0]`, `emails[1]`, `emails[2]`, etc.
 
@@ -115,16 +85,8 @@ When you are using repeated data like this, the form values sent by the browser 
 
 A form mapping can also define optional values:
 
-```scala
-case class User(name: String, email: Option[String])
+@[userForm-optional](code/ScalaForms.scala)
 
-val userForm = Form(
-  mapping(
-    "name" -> text,
-    "email" -> optional(email)
-  )(User.apply)(User.unapply)
-)
-```
 
 > **Note:** The email field will be ignored and set to `None` if the field `email` is missing in the request payload or if it contains a blank value.
 
@@ -132,17 +94,7 @@ val userForm = Form(
 
 If you want a form to have a static value for a field:
 
-```scala
-case class User(id: Long, name: String, email: Option[String])
-
-val userForm = Form(
-  mapping(
-    "id" -> ignored(1234),
-    "name" -> text,
-    "email" -> optional(email)
-  )(User.apply)(User.unapply)
-)
-```
+@[userForm-static-value](code/ScalaForms.scala)
 
 Now you can mix optional, nested and repeated mappings any way you want to create complex forms.
 

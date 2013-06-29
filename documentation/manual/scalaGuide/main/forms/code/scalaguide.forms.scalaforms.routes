@@ -1,0 +1,1 @@
+GET   /login              controllers.Application.home

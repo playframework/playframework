@@ -1,0 +1,99 @@
+@* #form-define *@
+@(myForm: Form[User])
+@* #form-define *@
+
+@import scalaguide.forms.scalaformhelper.controllers.routes
+@import views.html.helper.FieldConstructor
+
+@* #import-twitterbootstrap *@
+@import helper.twitterBootstrap._
+@* #import-twitterbootstrap *@
+
+@* #import-myhelper *@
+@import MyHelpers._
+@* #import-myhelper *@
+
+@* #form-user *@
+@helper.form(action = routes.Application.submit) {
+
+@helper.inputText(myForm("username"))
+
+@helper.inputPassword(myForm("password"))
+
+}
+@* #form-user *@
+
+
+@helper.form(action = routes.Application.submit) {
+
+@* #form-user-parameters *@
+@helper.inputText(myForm("username"), 'id -> "username", 'size -> 30)
+@* #form-user-parameters *@
+
+@helper.inputPassword(myForm("password"))
+
+}
+
+@helper.form(action = routes.Application.submit) {
+
+@* #form-user-parameters-html *@
+@helper.input(myForm("username")) { (id, name, value, args) =>
+<input type="date" name="@name" id="@id" @toHtmlArgs(args)>
+}
+@* #form-user-parameters-html *@
+
+@helper.inputPassword(myForm("password"))
+
+}
+
+@* #import-myhelper-implicit*@
+@implicitField = @{ FieldConstructor(myFieldConstructorTemplate.f) }
+@* #import-myhelper-implicit*@
+
+@helper.form(action = routes.Application.submit) {
+
+@* #form-myfield-helper*@
+@helper.inputText(myForm("username"))
+@* #form-myfield-helper*@
+
+@helper.inputPassword(myForm("password"))
+
+}
+
+<div>
+    @* #form-user-generated *@
+    <dl class="error" id="username_field">
+        <dt><label for="username">Username:</label></dt>
+        <dd><input type="text" name="username" id="username" value=""></dd>
+        <dd class="error">This field is required!</dd>
+        <dd class="error">Another error</dd>
+        <dd class="info">Required</dd>
+        <dd class="info">Another constraint</dd>
+    </dl>
+    @* #form-user-generated *@
+</div>
+
+<div>
+    @* #form-field-options *@
+    '_label -> "Custom label"
+    '_id -> "idForTheTopDlElement"
+    '_help -> "Custom help"
+    '_showConstraints -> false
+    '_error -> "Force an error"
+    '_showErrors -> false
+    @* #form-field-options *@
+</div>
+
+<div>
+    @* #form-bootstrap-generated *@
+    <div class="clearfix error" id="username_field">
+        <label for="username">Username:</label>
+        <div class="input">
+            <input type="text" name="username" id="username" value="">
+            <span class="help-inline">This field is required!, Another error</span>
+            <span class="help-block">Required, Another constraint</span>
+        </div>
+    </div>
+    @* #form-bootstrap-generated *@
+</div>
+
