@@ -191,8 +191,6 @@ public class LoginTest extends WithApplication {
 }
 ```
 
-> Notice that this time we've passed a `fakeGlobal()` to the fake application when we set it up.  In fact, since creating our "real" `Global.java`, the `ModelsTest` we wrote earlier has been broken because it is loading the initial data when the test starts.  So it too should be updated to use `fakeGlobal()`.
-
 Now let's write a test that tests what happens when we authenticate successfully:
 
 ```java
