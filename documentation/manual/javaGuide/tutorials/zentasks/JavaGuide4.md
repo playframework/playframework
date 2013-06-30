@@ -128,7 +128,7 @@ We can now use this validation by using the `hasErrors()` method on our `Form` o
 
 ```java
 public static Result authenticate() {
-    Form<Login> loginForm = form(Login.class).bindFromRequest();
+    Form<Login> loginForm = Form.form(Login.class).bindFromRequest();
     if (loginForm.hasErrors()) {
         return badRequest(login.render(loginForm));
     } else {
