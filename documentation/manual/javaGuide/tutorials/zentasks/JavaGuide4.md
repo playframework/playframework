@@ -204,7 +204,7 @@ public void authenticateSuccess() {
             "email", "bob@example.com",
             "password", "secret"))
     );
-    assertEquals(303, status(result));
+    assertEquals(Http.Status.SEE_OTHER, status(result)); // = redirection
     assertEquals("bob@example.com", session(result).get("email"));
 }
 ```
@@ -226,7 +226,7 @@ public void authenticateFailure() {
             "email", "bob@example.com",
             "password", "badpassword"))
     );
-    assertEquals(400, status(result));
+    assertEquals(Http.Status.BAD_REQUEST, status(result));
     assertNull(session(result).get("email"));
 }
 ```
