@@ -30,6 +30,8 @@ class ScalaFormHelperSpec extends Specification with Controller {
 
       login must contain("""id="username"""")
 
+      login must contain("""password_field""")
+
     }
 
 
