@@ -18,14 +18,12 @@ To start, create a controller class called `app/controllers/Projects.java`:
 ```java
 package controllers;
 
-import play.*;
-import play.mvc.*;
-import play.data.*;
-import static play.data.Form.*;
 import java.util.*;
-import models.*;
-import views.html.*;
+
+import static play.data.Form.form;
+import play.mvc.*;
 import views.html.projects.*;
+import models.*;
 
 @Security.Authenticated(Secured.class)
 public class Projects extends Controller {
