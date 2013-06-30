@@ -283,7 +283,7 @@ public void authenticated() {
         controllers.routes.ref.Application.index(),
         fakeRequest().withSession("email", "bob@example.com")
     );
-    assertEquals(200, status(result));
+    assertEquals(Http.Status.OK, status(result));
 }    
 ```
 
@@ -296,7 +296,7 @@ public void notAuthenticated() {
         controllers.routes.ref.Application.index(),
         fakeRequest()
     );
-    assertEquals(303, status(result));
+    assertEquals(Http.Status.SEE_OTHER, status(result));
     assertEquals("/login", header("Location", result));
 }
 ```
