@@ -58,7 +58,7 @@ Now we need to pass this form into our template to render.  Modify the `login` m
 ```java
     public static Result login() {
         return ok(
-            login.render(form(Login.class))
+            login.render(Form.form(Login.class))
         );
     }
 ```
@@ -102,7 +102,7 @@ Now implement the method in `app/controllers/Application.java`:
 
 ```java
 public static Result authenticate() {
-    Form<Login> loginForm = form(Login.class).bindFromRequest();
+    Form<Login> loginForm = Form.form(Login.class).bindFromRequest();
     return ok();
 }
 ```
@@ -128,7 +128,7 @@ We can now use this validation by using the `hasErrors()` method on our `Form` o
 
 ```java
 public static Result authenticate() {
-    Form<Login> loginForm = form(Login.class).bindFromRequest();
+    Form<Login> loginForm = Form.form(Login.class).bindFromRequest();
     if (loginForm.hasErrors()) {
         return badRequest(login.render(loginForm));
     } else {
@@ -204,7 +204,7 @@ public void authenticateSuccess() {
             "email", "bob@example.com",
             "password", "secret"))
     );
-    assertEquals(303, status(result));
+    assertEquals(Http.Status.SEE_OTHER, status(result)); // = redirection
     assertEquals("bob@example.com", session(result).get("email"));
 }
 ```
@@ -226,7 +226,7 @@ public void authenticateFailure() {
             "email", "bob@example.com",
             "password", "badpassword"))
     );
-    assertEquals(400, status(result));
+    assertEquals(Http.Status.BAD_REQUEST, status(result));
     assertNull(session(result).get("email"));
 }
 ```
@@ -242,11 +242,8 @@ Play already comes with a built in authenticator action, which we will extend to
 ```java
 package controllers;
 
-import play.*;
 import play.mvc.*;
 import play.mvc.Http.*;
-
-import models.*;
 
 public class Secured extends Security.Authenticator {
 
@@ -283,7 +280,7 @@ public void authenticated() {
         controllers.routes.ref.Application.index(),
         fakeRequest().withSession("email", "bob@example.com")
     );
-    assertEquals(200, status(result));
+    assertEquals(Http.Status.OK, status(result));
 }    
 ```
 
@@ -296,7 +293,7 @@ public void notAuthenticated() {
         controllers.routes.ref.Application.index(),
         fakeRequest()
     );
-    assertEquals(303, status(result));
+    assertEquals(Http.Status.SEE_OTHER, status(result));
     assertEquals("/login", header("Location", result));
 }
 ```
