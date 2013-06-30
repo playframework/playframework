@@ -209,13 +209,13 @@ public void authenticateSuccess() {
 }
 ```
 
-There are a few new concepts introduced here.  The first is the user of Plays "ref" reverse router.  This allows us to get a reference to an action, which we then pass to `callAction` to invoke.  In our case, we've got a reference to the `Application.authenticate` action.
+There are a few new concepts introduced here.  The first is the usage of Plays "ref" reverse router.  This allows us to get a reference to an action, which we then pass to `callAction` to invoke.  In our case, we've got a reference to the `Application.authenticate` action.
 
 We are also creating a fake request.  We are giving this a form body with the email and password to authenticate with.
 
 Finally, we are using the `status` and `session` helper methods to get the status and the session of the result.  We ensure that the successful login occurred with Bob's email address being added to the session.  There are other helper methods available to get access to other parts of the result, such as the headers and the body.  You might wonder why we can't just directly get the result.  The reason for this is that the result may, for example, be asynchronous, and so Play needs to unwrap it if necessary in order to access it.
 
-Run the test to make sure it passes.  Now let's write another test, this time to ensure that if an invalid email and password are supplied, that we don't get logged in.
+Run the test to make sure it passes.  Now let's write another test, this time to ensure that we don't get logged in if an invalid combination of email and password is supplied.
 
 ```java
 @Test
