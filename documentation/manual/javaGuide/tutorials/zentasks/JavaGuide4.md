@@ -58,7 +58,7 @@ Now we need to pass this form into our template, to render.  Modify the `login` 
 ```java
     public static Result login() {
         return ok(
-            login.render(form(Login.class))
+            login.render(Form.form(Login.class))
         );
     }
 ```
@@ -102,12 +102,12 @@ Now implement the method in `app/controllers/Application.java`:
 
 ```java
 public static Result authenticate() {
-    Form<Login> loginForm = form(Login.class).bindFromRequest();
+    Form<Login> loginForm = Form.form(Login.class).bindFromRequest();
     return ok();
 }
 ```
 
-> Make sure you add an import statement for `play.data.*` to `Application.java`
+> Make sure you add an import statement for `play.data.*` to `Application.java`.
 
 ### Validating a form
 
