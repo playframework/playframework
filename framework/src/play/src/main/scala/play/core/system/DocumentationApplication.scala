@@ -1,18 +1,15 @@
 package play.core.system
 
 import play.api.mvc._
-import java.io.File
 import play.core._
 import play.api._
 import play.api.libs.concurrent.Execution
-import libs.iteratee.Iteratee
-import com.typesafe.config.ConfigFactory
 import server.NettyServer
 
 /**
  * An application that exists purely for documentation
  */
-class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
+class DocumentationHandler(markdownRenderer: (String) => Array[String]) {
 
   def maybeHandleDocumentationRequest(request: RequestHeader): Option[SimpleResult] = {
 
@@ -79,48 +76,18 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
 
       case wikiPage(page) => {
 
-        import scalax.file._
-
         Some {
-
-          val pageWithSidebar = documentationHome.flatMap { home =>
-            Path(home).descendants().find(_.name == page + ".md").map { pageSource =>
-
-              // Recursively search for Sidebar
-              lazy val findSideBar: (Option[Path] => Option[Path]) = _ match {
-                case None => None
-                case Some(parent) => {
-                  val maybeSideBar = parent \ "_Sidebar.md"
-                  if (maybeSideBar.exists) {
-                    Some(maybeSideBar)
-                  } else {
-                    findSideBar(parent.parent)
-                  }
-                }
-              }
-
-              pageSource -> findSideBar(pageSource.parent)
+          val results = markdownRenderer(page)
+          results match {
+            case Array() => NotFound(views.html.play20.manual(page, None, None))
+            case Array(mainPage) => Ok(views.html.play20.manual(page, Some(mainPage), None))
+            case Array(mainPage, sidebar) => Ok(views.html.play20.manual(page, Some(mainPage), Some(sidebar)))
+            case _ => {
+              Play.logger.warn("Unexpected result out of markdownRenderer: " + results)
+              InternalServerError("Unexpected result out of markdownRenderer")
             }
           }
-
-          pageWithSidebar.map {
-            case (pageSource, maybeSidebar) => {
-              val home = documentationHome.get
-              val relativePath = pageSource.parent.get.relativize(Path(home)).path
-              Ok(
-                views.html.play20.manual(
-                  page,
-                  Some(markdownRenderer(pageSource.string, relativePath, home)),
-                  maybeSidebar.map(s => markdownRenderer(s.string, relativePath, home))
-                )
-              )
-            }
-          }.getOrElse {
-            NotFound(views.html.play20.manual(page, None, None))
-          }
-
         }
-
       }
       case _ => None
     }

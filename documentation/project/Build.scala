@@ -1,6 +1,6 @@
 import play.console.Colors
 import play.core.server.ServerWithStop
-import play.markdown._
+import play.doc._
 import sbt._
 import Keys._
 import PlayKeys._
@@ -63,60 +63,74 @@ object ApplicationBuild extends Build {
 
   // Run a documentation server
   val docsRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
-    (argsTask, state) map { (args, state) =>
-      val extracted = Project.extract(state)
+    (argsTask, state) map runServer
+  }
 
-      val port = args.headOption.map(_.toInt).getOrElse(9000)
+  private def runServer(args: Seq[String], state: State) = {
+    val extracted = Project.extract(state)
 
-      // Get classloader
-      val sbtLoader = this.getClass.getClassLoader
-      Project.runTask(dependencyClasspath in Test, state).get._2.toEither.right.map { classpath: Seq[Attributed[File]] =>
-        val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
-          val sharedClasses = Seq(
-            classOf[play.core.SBTLink].getName,
-            classOf[play.core.server.ServerWithStop].getName,
-            classOf[play.api.UsefulException].getName,
-            classOf[play.api.PlayException].getName,
-            classOf[play.api.PlayException.InterestingLines].getName,
-            classOf[play.api.PlayException.RichDescription].getName,
-            classOf[play.api.PlayException.ExceptionSource].getName,
-            classOf[play.api.PlayException.ExceptionAttachment].getName)
+    val port = args.headOption.map(_.toInt).getOrElse(9000)
 
-          override def loadClass(name: String): Class[_] = {
-            if (sharedClasses.contains(name)) {
-              sbtLoader.loadClass(name)
-            } else {
-              super.loadClass(name)
-            }
+    // Get classloader
+    val sbtLoader = this.getClass.getClassLoader
+    Project.runTask(dependencyClasspath in Test, state).get._2.toEither.right.map { classpath: Seq[Attributed[File]] =>
+      val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
+        val sharedClasses = Seq(
+          classOf[play.core.SBTLink].getName,
+          classOf[play.core.server.ServerWithStop].getName,
+          classOf[play.api.UsefulException].getName,
+          classOf[play.api.PlayException].getName,
+          classOf[play.api.PlayException.InterestingLines].getName,
+          classOf[play.api.PlayException.RichDescription].getName,
+          classOf[play.api.PlayException.ExceptionSource].getName,
+          classOf[play.api.PlayException.ExceptionAttachment].getName)
+
+        override def loadClass(name: String): Class[_] = {
+          if (sharedClasses.contains(name)) {
+            sbtLoader.loadClass(name)
+          } else {
+            super.loadClass(name)
           }
         }
-
-        import scala.collection.JavaConverters._
-        // create sbt link
-        val sbtLink = new SBTLink with MarkdownSupport {
-          def runTask(name: String) = null
-          def reload() = null
-          def projectPath() = extracted.currentProject.base
-          def settings() = Map.empty[String, String].asJava
-          def forceReload() {}
-          def findSource(className: String, line: java.lang.Integer) = null
-        }
-
-        val clazz = classloader.loadClass("play.core.system.DocumentationServer")
-        val constructor = clazz.getConstructor(classOf[SBTLink], classOf[java.lang.Integer])
-        val server = constructor.newInstance(sbtLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
-
-        println()
-        println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
-        println()
-
-        waitForKey()
-
-        server.stop()
       }
 
-      state
+      import scala.collection.JavaConverters._
+      // create sbt link
+      val sbtLink = new SBTLink {
+        def runTask(name: String) = null
+        def reload() = null
+        def projectPath() = extracted.currentProject.base
+        def settings() = Map.empty[String, String].asJava
+        def forceReload() {}
+        def findSource(className: String, line: java.lang.Integer) = null
+        private val markdownRenderer = {
+          val repo = new FilesystemRepository(new java.io.File(extracted.get(baseDirectory), "manual"))
+          new PlayDoc(repo, repo, "resources/manual")
+        }
+
+        def markdownToHtml(page: String) = {
+          markdownRenderer.renderPage(page) match {
+            case Some((page, Some(sidebar))) => Array(page, sidebar)
+            case Some((page, None)) => Array(page)
+            case None => Array[String]()
+          }
+        }
+      }
+
+      val clazz = classloader.loadClass("play.core.system.DocumentationServer")
+      val constructor = clazz.getConstructor(classOf[SBTLink], classOf[java.lang.Integer])
+      val server = constructor.newInstance(sbtLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+
+      println()
+      println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
+      println()
+
+      waitForKey()
+
+      server.stop()
     }
+
+    state
   }
 
   private val consoleReader = new jline.ConsoleReader

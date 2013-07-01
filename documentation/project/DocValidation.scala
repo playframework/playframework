@@ -2,7 +2,7 @@ import org.pegdown.ast.{Visitor, Node, WikiLinkNode}
 import org.pegdown.plugins.{ToHtmlSerializerPlugin, PegDownPlugins}
 import org.pegdown._
 import play.console.Colors
-import play.markdown.{CodeReferenceNode, CodeReferenceParser}
+import play.doc.{CodeReferenceNode, CodeReferenceParser}
 import sbt._
 import sbt.Keys._
 import sbt.File

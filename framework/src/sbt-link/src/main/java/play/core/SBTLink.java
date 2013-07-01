@@ -29,7 +29,7 @@ public interface SBTLink {
 
 	public void forceReload();
 
-	public String markdownToHtml(String markdown, String pagePath, File root);
+	public String[] markdownToHtml(String page);
 
 	public Map<String,String> settings();
 

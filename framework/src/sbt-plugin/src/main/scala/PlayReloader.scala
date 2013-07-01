@@ -4,7 +4,7 @@ import play.api._
 import play.core._
 import Keys._
 import PlayExceptions._
-import play.markdown.MarkdownSupport
+import play.doc.{ PlayDoc, FilesystemRepository }
 
 trait PlayReloader {
   this: PlayCommands with PlayPositionMapper =>
@@ -15,7 +15,7 @@ trait PlayReloader {
 
     val extracted = Project.extract(state)
 
-    new SBTLink with MarkdownSupport {
+    new SBTLink {
 
       lazy val projectPath = extracted.currentProject.base
 
@@ -349,6 +349,18 @@ trait PlayReloader {
         result.flatMap(_.toEither.right.toOption).getOrElse(null).asInstanceOf[AnyRef]
       }
 
+      private val markdownRenderer = Option(System.getProperty("play.home")).map { playHome =>
+        val repo = new FilesystemRepository(new java.io.File(playHome, "../documentation/manual"))
+        new PlayDoc(repo, repo, "resources/manual")
+      }
+
+      def markdownToHtml(page: String) = {
+        markdownRenderer.map(_.renderPage(page) match {
+          case Some((page, Some(sidebar))) => Array(page, sidebar)
+          case Some((page, None)) => Array(page)
+          case None => Array[String]()
+        }).getOrElse(Array[String]())
+      }
     }
 
   }
