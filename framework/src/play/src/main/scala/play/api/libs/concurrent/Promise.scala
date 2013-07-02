@@ -334,6 +334,7 @@ object Promise {
    * (see below) can operate on multi-element collections such as
    * lists.
    */
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequence[A](in: Option[Future[A]]): Future[Option[A]] = {
     implicit val internalContext = play.core.Execution.internalContext
     in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
@@ -357,14 +358,17 @@ object Promise {
    * @param either A or Future[B]
    * @return a promise with Either[A,B]
    */
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_))(internalContext))
 
   /**
    * Converts an either containing a Promise on both Left and Right into a Promise
    * of an Either with plain (not-in-a-promise) values.
    */
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_))(internalContext), _.map(Right(_))(internalContext))
 
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(internalContext)).getOrElse(Promise.pure(None))
 
 }
