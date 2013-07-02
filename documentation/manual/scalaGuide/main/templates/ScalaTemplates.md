@@ -22,7 +22,7 @@ Play 2.0 comes with a new and really powerful Scala-based template engine, whose
 
 Templates are compiled, so you will see any errors in your browser:
 
-![tempaltesyntax](https://raw.github.com/wiki/playframework/Play20/javaGuide/main/templates/images/templatesError.png)
+[[images/templatesError.png]]
 
 ## Overview
 
