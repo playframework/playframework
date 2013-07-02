@@ -6,8 +6,8 @@ import play.libs.F;
 public class AnotherUser {
 
     private String name;
-    private List<String> emails = new ArrayList<String>();
-    private F.Option<String> company = new F.None();
+    private final List<String> emails = new ArrayList<String>();
+    private F.Option<String> company = new F.None<String>();
 
     public void setName(String name) {
         this.name = name;
@@ -22,7 +22,7 @@ public class AnotherUser {
     }
 
     public F.Option<String> getCompany() {
-        return this.company;
+        return company;
     }
 
     public List<String> getEmails() {
