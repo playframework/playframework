@@ -144,6 +144,7 @@ object Tasks {
           (file("src/play-test/src/main/scala") ** "*.scala").get ++
           (file("src/play/src/main/scala/views") ** "*.scala").get ++
           (file("src/anorm/src/main/scala") ** "*.scala").get ++
+          (file("src/play-slick/src/main/scala") ** "*.scala").get ++
           (file("src/play-filters-helpers/src/main/scala") ** "*.scala").get ++
           (file("src/play-jdbc/src/main/scala") ** "*.scala").get ++
           (file("src/play/target/scala-" + sbv + "/src_managed/main/views/html/helper") ** "*.scala").get ++

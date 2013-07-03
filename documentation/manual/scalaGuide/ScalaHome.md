@@ -38,6 +38,7 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[Accessing an SQL database | ScalaDatabase]]
     1. [[Configuring and using JDBC | ScalaDatabase]]
     1. [[Using Anorm to access your database | ScalaAnorm]]
+    1. [[Using Slick to access your database | ScalaSlick]]
     1. [[Integrating with other database access libraries | ScalaDatabaseOthers]]
 1. [[Using the Cache | ScalaCache]]
     1. [[The Play cache API | ScalaCache]]
