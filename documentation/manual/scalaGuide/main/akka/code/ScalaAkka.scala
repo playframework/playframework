@@ -4,7 +4,6 @@ package scalaguide.akka {
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor.{Actor, Props}
@@ -27,10 +26,10 @@ class ScalaAkkaSpec extends Specification {
         //#play-akka-myactor
         val myActor = Akka.system.actorOf(Props[MyActor], name = "myactor")
         //#play-akka-myactor
-        implicit val timeout = Timeout(300.microsecond)
+        implicit val timeout = Timeout(5, SECONDS)
 
         val future = myActor ? "Alan"
-        val result = Await.result(future, 300.microsecond).asInstanceOf[String]
+        val result = await(future).asInstanceOf[String]
         result must contain("Hello")
       }
     }
@@ -43,7 +42,7 @@ class ScalaAkkaSpec extends Specification {
         import play.api.libs.concurrent.Execution.Implicits._
         Akka.system.scheduler.schedule(0.microsecond, 300.microsecond, testActor, "tick")
         //#play-akka-actor-schedule-repeat
-        1 === 1
+        success
       }
     }
 
@@ -59,7 +58,7 @@ class ScalaAkkaSpec extends Specification {
           file.delete()
         }
         //#play-akka-actor-schedule-run-once
-        Thread.sleep(1005)
+        Thread.sleep(200)
         file.exists() must beFalse
       }
     }
