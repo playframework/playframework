@@ -5,7 +5,7 @@ import scala.language.higherKinds
 import play.core._
 import play.api._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{ FiniteDuration, Duration }
 
 import java.util.concurrent.{ TimeUnit }
 
@@ -193,31 +193,31 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
   }
 
   /**
-   * Creates a timer promise with the given message.  Message a is shown if the timer promise
+   * Creates a scheduled promise with the given message.  Message a is shown if the scheduled promise
    * redeems before the current promise
-   * @param message message to be displayed if the timer promise redeems first
+   * @param message message to be displayed if the scheduled promise redeems first
    * @param duration duration
    * @param unti time unit
-   * @return either the timer message or the current promise
+   * @return either the scheduled message or the current promise
    */
   def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[Either[A, B]] = {
     or(Promise.timeout(message, duration, unit)(ec))
   }
 
   /**
-   * Creates a timer promise with the given message (using the deafult Promise timeout).
-   * Message a is shown if the timer promise redeems before the current promise
-   * @param message message to be displayed if the timer promise redeems first
+   * Creates a scheduled promise with the given message (using the deafult Promise timeout).
+   * Message a is shown if the scheduled promise redeems before the current promise
+   * @param message message to be displayed if the scheduled promise redeems first
    * @param duration duration
    * @param unti time unit
-   * @return either the timer message or the current promise
+   * @return either the scheduled message or the current promise
    */
 
   def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)(internalContext)
 
   /**
-   * Creates a timer promise with  Throwable e (using the deafult Promise timeout).
-   * Exception e is shown if timer promise redeemds first
+   * Creates a scheduled promise with  Throwable e (using the deafult Promise timeout).
+   * Exception e is shown if scheduled promise redeemds first
    * @param e exception to be thrown
    * @return a Promise which may throw an exception
    */
@@ -289,29 +289,26 @@ object Promise {
    * Constructs a promise which will contain value "message" after the given duration elapses.
    * This is useful only when used in conjunction with other Promises
    * @param message message to be displayed
-   * @param duration duration for the timer promise
-   * @return a timer promise
+   * @param duration duration for the scheduled promise
+   * @return a scheduled promise
    */
   def timeout[A](message: => A, duration: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext): Future[A] = {
     timeout(message, duration.toMillis)
   }
 
-  private val timer = new java.util.Timer()
-
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses.
    * This is useful only when used in conjunction with other Promises
    * @param message message to be displayed
-   * @param duration duration for the timer promise
-   * @return a timer promise
+   * @param duration duration for the scheduled promise
+   * @return a scheduled promise
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[A] = {
     val p = SPromise[A]()
-    timer.schedule(new java.util.TimerTask {
-      def run() {
-        p.completeWith(Future(message)(ec))
-      }
-    }, unit.toMillis(duration))
+    import play.api.Play.current
+    Akka.system.scheduler.scheduleOnce(FiniteDuration(duration, unit)) {
+      p.success(message)
+    }
     p.future
   }
 
