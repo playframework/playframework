@@ -7,7 +7,8 @@
  * }}}
  *
  * @param field The form field.
- * @param args Set of extra attributes.
+ * @param options Sequence of options as pairs of value and HTML.
+ * @param args Set of extra attributes ('''_default''' is a special argument).
  * @param handler The field constructor.
  *@
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
