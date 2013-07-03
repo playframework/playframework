@@ -5,6 +5,7 @@ import org.specs2.mutable.Specification
 import play.api.test._
 import play.api.test.Helpers._
 import java.util.concurrent.TimeUnit
+import scala.concurrent.Promise
 
 object CachedSpec extends Specification {
 
@@ -39,7 +40,8 @@ object CachedSpec extends Specification {
       val result3 = cachedAction(request.withHeaders(IF_NONE_MATCH -> etag)).run
       status(result3) must equalTo (NOT_MODIFIED)
 
-      await(play.api.libs.concurrent.Promise.timeout((), 1, TimeUnit.SECONDS)) // Let the resource expire
+      // Let the resource expire
+      Thread.sleep(1000)
 
       // Now we get a new result
       val result4 = cachedAction(request).run
