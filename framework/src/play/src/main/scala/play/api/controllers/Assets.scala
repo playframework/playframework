@@ -177,14 +177,17 @@ class AssetsBuilder extends Controller {
       }
     }
 
-    def lastModifiedForProd(resource: java.net.URL): Option[String] =
-      lastModifieds.get(resource.toExternalForm).orElse {
-        val mlm = maybeLastModified(resource).map(formatLastModified)
-        mlm.foreach(lastModifieds.put(resource.toExternalForm, _))
-        mlm
-      }
+    def cachedLastModified(resource: java.net.URL)(orElseAction: => Option[String]): Option[String] =
+      lastModifieds.get(resource.toExternalForm).orElse(orElseAction)
 
-    if (Play.isProd) lastModifiedForProd(resource) else None
+    def setAndReturnLastModified(resource: java.net.URL): Option[String] = {
+      val mlm = maybeLastModified(resource).map(formatLastModified)
+      mlm.foreach(lastModifieds.put(resource.toExternalForm, _))
+      mlm
+    }
+
+    if (Play.isProd) cachedLastModified(resource) { setAndReturnLastModified(resource) }
+    else setAndReturnLastModified(resource)
   }
 
   // -- ETags handling
