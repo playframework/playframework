@@ -352,64 +352,6 @@ object Enumerator {
 
   }
 
-  @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
-  def imperative[E](
-    onStart: () => Unit = () => (),
-    onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext): PushEnumerator[E] = new PushEnumerator[E](onStart, onComplete, onError)(ec)
-
-  @scala.deprecated("use Concurrent.unicast instead", "2.1.0")
-  def pushee[E](
-    onStart: Pushee[E] => Unit,
-    onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
-    val pec = ec.prepare()
-
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
-      var iteratee: Iteratee[E, A] = it
-      var promise: scala.concurrent.Promise[Iteratee[E, A]] = Promise[Iteratee[E, A]]()
-
-      val pushee = new Pushee[E] {
-        def close() {
-          if (iteratee != null) {
-            iteratee.feed(Input.EOF).map(result => promise.success(result))(dec)
-            iteratee = null
-            promise = null
-          }
-        }
-        def push(item: E): Boolean = {
-          if (iteratee != null) {
-            iteratee = iteratee.flatFold0[E, A] {
-
-              case Step.Done(a, in) => {
-                Future(onComplete())(pec).map(_ => Done(a, in))(dec)
-              }
-
-              case Step.Cont(k) => {
-                val next = k(Input.El(item))
-                next.fold {
-                  case Step.Done(a, in) => {
-                    Future(onComplete())(pec).map(_ => next)(dec)
-                  }
-                  case _ => Future.successful(next)
-                }(dec)
-              }
-
-              case Step.Error(e, in) => {
-                Future(onError(e, in))(pec).map(_ => Error(e, in))(dec)
-              }
-            }(dec)
-            true
-          } else {
-            false
-          }
-        }
-      }
-      Future(onStart(pushee))(pec).flatMap(_ => promise.future)(dec)
-    }
-
-  }
-
   /**
    * Like [[play.api.libs.iteratee.Enumerator.unfold]], but allows the unfolding to be done asynchronously.
    *
@@ -585,47 +527,6 @@ object Enumerator {
     }
   }
 
-  @scala.deprecated("use Enumerator.generateM instead", "2.1.0")
-  def fromCallback[E](retriever: () => Future[Option[E]],
-    onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
-
-      var iterateeP = Promise[Iteratee[E, A]]()
-
-      def step(it: Iteratee[E, A]) {
-
-        val next = it.fold {
-          case Step.Cont(k) => {
-            Future(retriever())(ec).flatMap(x => x)(dec).map {
-              case None => {
-                val remainingIteratee = k(Input.EOF)
-                iterateeP.success(remainingIteratee)
-                None
-              }
-              case Some(read) => {
-                val nextIteratee = k(Input.El(read))
-                Some(nextIteratee)
-              }
-            }(dec)
-          }
-          case _ => { iterateeP.success(it); Future.successful(None) }
-        }(dec)
-
-        next.onComplete {
-          case Success(Some(i)) => step(i)
-          case Failure(e) =>
-            iterateeP.failure(e)
-          case _ => Future(onComplete())(ec)
-        }(dec)
-
-      }
-
-      step(it)
-      iterateeP.future
-    }
-  }
-
   /**
    * Create an enumerator from the given input stream.
    *
@@ -763,60 +664,5 @@ object Enumerator {
         loop(k(s.head), s.tail)
       else Future.successful(Cont(k))
   })
-
-}
-
-@scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
-class PushEnumerator[E] private[iteratee] (
-    onStart: () => Unit = () => (),
-    onComplete: () => Unit = () => (),
-    onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) extends Enumerator[E] with Enumerator.Pushee[E] {
-
-  val pec = ec.prepare()
-  var iteratee: Iteratee[E, _] = _
-  var promise: Promise[Iteratee[E, _]] = _
-
-  def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
-    Future(onStart())(pec).flatMap { _ =>
-      iteratee = it.asInstanceOf[Iteratee[E, _]]
-      val newPromise = Promise[Iteratee[E, A]]()
-      promise = newPromise.asInstanceOf[Promise[Iteratee[E, _]]]
-      newPromise.future
-    }(dec)
-  }
-
-  def close() {
-    if (iteratee != null) {
-      iteratee.feed(Input.EOF).map(result => promise.success(result))(dec)
-      iteratee = null
-      promise = null
-    }
-  }
-
-  def push(item: E): Boolean = {
-    if (iteratee != null) {
-      iteratee = iteratee.flatFold0[E, Any] {
-
-        case Step.Done(a, in) => {
-          Future(onComplete())(pec).map(_ => Done(a, in))(dec)
-        }
-
-        case Step.Cont(k) => {
-          val next = k(Input.El(item))
-          next.fold {
-            case Step.Done(a, in) => Future(onComplete())(pec).map(_ => next)(dec)
-            case _ => Future.successful(next)
-          }(dec)
-        }
-
-        case Step.Error(e, in) => {
-          Future(onError(e, in))(pec).map(_ => Error(e, in))(dec)
-        }
-      }(dec)
-      true
-    } else {
-      false
-    }
-  }
 
 }
