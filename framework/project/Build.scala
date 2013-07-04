@@ -29,6 +29,8 @@ object BuildSettings {
   val buildSbtVersion = propOr("play.sbt.version", "0.12.3")
   val buildSbtMajorVersion = "0.12"
   val buildSbtVersionBinaryCompatible = "0.12"
+  // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
+  val sourceCodeBranch = propOr("git.branch", "master")
 
   lazy val PerformanceTest = config("pt") extend(Test)
 
@@ -78,7 +80,9 @@ object BuildSettings {
     previousArtifact := Some(buildOrganization %% name % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     publishArtifact in packageDoc := buildWithDoc,
-    publishArtifact in (Compile, packageSrc) := true)
+    publishArtifact in (Compile, packageSrc) := true,
+    ApiDocs.apiDocsInclude := true
+  )
 
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
@@ -160,6 +164,7 @@ object PlayBuild extends Build {
       libraryDependencies := runtime,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
+      ApiDocs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
@@ -280,10 +285,10 @@ object PlayBuild extends Build {
     "Root",
     file("."))
     .settings(playCommonSettings: _*)
+    .settings(ApiDocs.settings: _*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
       cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
-      generateAPIDocsTask,
       publish := {},
       generateDistTask
     )
