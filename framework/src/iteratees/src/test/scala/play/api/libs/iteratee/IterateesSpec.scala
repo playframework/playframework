@@ -212,6 +212,12 @@ object IterateesSpec extends Specification
       }
     }
 
+    "map the final iteratee's result (with mapDone)" in {
+      mustExecute(4, 1) { (foldEC, mapEC) =>
+        await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapDone(_ * 2)(mapEC)) must equalTo(20)
+      }
+    }
+
     "map the final iteratee's result (with map)" in {
       mustExecute(4, 1) { (foldEC, mapEC) =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).map(_ * 2)(mapEC)) must equalTo(20)
