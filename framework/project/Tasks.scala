@@ -23,8 +23,8 @@ object Tasks {
   // ----- Generate Distribution
   lazy val generateDist = TaskKey[Unit]("create-dist")
   val generateDistTask: Setting[_] = 
-    generateDist <<= (/*generateAPIDocs,*/ RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target, version) map {
-      (/*_,*/ repo, bd, t, v) =>
+    generateDist <<= (ApiDocs.apiDocs, RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target, version) map {
+      (_, repo, bd, t, v) =>
         generateDistribution(repo, bd, t, v)
     }
 
@@ -105,6 +105,7 @@ object Tasks {
     // Copy the core files
     copyMaintainPerms(coreFiles map (f => f -> (dist / f.getName)))
     IO.copyDirectory(repo, dist / "repository" / "local", true, false)
+    IO.move(target / "apidocs", dist / "documentation" / "api")
 
     // Update versions
     def updatePlayVersion(file: File) {
@@ -126,43 +127,6 @@ object Tasks {
     ZipHelper.zipNative(dist.getParentFile, target / ("play-" + version + ".zip"))
 
     target
-  }
-  // ----- Generate API docs
-
-  lazy val generateAPIDocs = TaskKey[Unit]("api-docs")
-  val generateAPIDocsTask = TaskKey[Unit]("api-docs") <<= (dependencyClasspath in Test, compilers, streams, baseDirectory, scalaBinaryVersion) map {
-    (classpath, cs, s, base, sbv) =>
-
-      val allJars = (file("src") ** "*.jar").get
-
-      IO.delete(file("../documentation/api"))
-
-      // Scaladoc
-      val sourceFiles =
-        (file("src/play/src/main/scala/play/api") ** "*.scala").get ++
-          (file("src/iteratees/src/main/scala") ** "*.scala").get ++
-          (file("src/play-test/src/main/scala") ** "*.scala").get ++
-          (file("src/play/src/main/scala/views") ** "*.scala").get ++
-          (file("src/anorm/src/main/scala") ** "*.scala").get ++
-          (file("src/play-filters-helpers/src/main/scala") ** "*.scala").get ++
-          (file("src/play-jdbc/src/main/scala") ** "*.scala").get ++
-          (file("src/play/target/scala-" + sbv + "/src_managed/main/views/html/helper") ** "*.scala").get ++
-          (file("src/templates/src/main/scala") ** "*.scala").get
-      val options = Seq("-sourcepath", base.getAbsolutePath, "-doc-source-url", "https://github.com/playframework/Play20/tree/" + BuildSettings.buildVersion + "/framework€{FILE_PATH}.scala")
-      new Scaladoc(10, cs.scalac)("Play " + BuildSettings.buildVersion + " Scala API", sourceFiles, classpath.map(_.data) ++ allJars, file("../documentation/api/scala"), options, s.log)
-
-      // Javadoc
-      val javaSources = Seq(
-        file("src/play/src/main/java"),
-        file("src/play-test/src/main/java"),
-        file("src/play-java/src/main/java"),
-        file("src/play-java-ebean/src/main/java"),
-        file("src/play-java-jdbc/src/main/java"),
-        file("src/play-java-jpa/src/main/java")).mkString(":")
-      val javaApiTarget = file("../documentation/api/java")
-      val javaClasspath = classpath.map(_.data).mkString(":")
-      """javadoc -windowtitle playframework -doctitle Play&nbsp;""" + BuildSettings.buildVersion + """&nbsp;Java&nbsp;API  -sourcepath %s -d %s -subpackages play -exclude play.api:play.core -classpath %s""".format(javaSources, javaApiTarget, javaClasspath) ! s.log
-
   }
 
   // ----- Compile templates
