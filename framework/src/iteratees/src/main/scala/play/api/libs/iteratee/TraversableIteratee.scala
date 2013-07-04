@@ -8,9 +8,6 @@ import scala.concurrent.{ ExecutionContext, Future }
  */
 object Traversable {
 
-  @scala.deprecated("use Enumeratee.passAlong instead", "2.1.x")
-  def passAlong[M] = Enumeratee.passAlong[M]
-
   def head[E] = new {
     def apply[A](implicit p: E => scala.collection.TraversableLike[A, E]): Iteratee[E, Option[A]] = {
 
