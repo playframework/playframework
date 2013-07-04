@@ -6,17 +6,13 @@
 #
 # If you want the repo tagged, then supply a tag argument
 
-BRANCH=`git rev-parse --abbrev-ref HEAD`
+BRANCH=$1
+TAG=$2
 
-if [ $BRANCH == HEAD ]
+if [ -z "$BRANCH" ]
 then
-    BRANCH=$1
-    TAG=`git describe`
-else 
-    TAG=$1
-fi
-
-echo Detected branch $BRANCH
+    echo You must specify a branch
+fi 
 
 PLAYVERSION=""
 if [ -n "$TAG" ]
