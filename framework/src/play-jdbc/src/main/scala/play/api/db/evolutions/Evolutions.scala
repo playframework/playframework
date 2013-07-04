@@ -2,7 +2,6 @@ package play.api.db.evolutions
 
 import java.io._
 
-import scalax.file._
 import scalax.io.JavaConverters._
 
 import play.core._
@@ -98,8 +97,8 @@ object Evolutions {
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
     import play.api.libs._
 
-    val evolutions = application.getFile("conf/evolutions/" + db + "/" + revision + ".sql");
-    Files.createDirectory(application.getFile("conf/evolutions/" + db));
+    val evolutions = application.getFile(evolutionsFilename(db, revision));
+    Files.createDirectory(application.getFile(evolutionsDirectoryName(db)));
     Files.writeFileIfChanged(evolutions,
       """|# --- %s
                |
@@ -367,6 +366,12 @@ object Evolutions {
     }
   }
 
+  private def evolutionsDirectoryName(db: String): String = s"conf/evolutions/${db}"
+
+  private def evolutionsFilename(db: String, revision: Int): String = s"conf/evolutions/${db}/${revision}.sql"
+
+  private def evolutionsResourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
+
   /**
    * Reads the evolutions from the application.
    *
@@ -396,8 +401,8 @@ object Evolutions {
     }
 
     Collections.unfoldLeft(1) { revision =>
-      Option(new File(path, "conf/evolutions/" + db + "/" + revision + ".sql")).filter(_.exists).map(new FileInputStream(_)).orElse {
-        Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql"))
+      Option(new File(path, evolutionsFilename(db, revision))).filter(_.exists).map(new FileInputStream(_)).orElse {
+        Option(applicationClassloader.getResourceAsStream(evolutionsResourceName(db, revision)))
       }.map { stream =>
         (revision + 1, (revision, stream.asInput.string))
       }
@@ -453,14 +458,16 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
         withLock(ds) {
           val script = evolutionScript(dbApi, app.path, app.classloader, db)
           val hasDown = script.find(_.isInstanceOf[DownScript]).isDefined
+
+          lazy val applyEvolutions = app.configuration.getBoolean("applyEvolutions." + db).getOrElse(false)
+          lazy val applyDownEvolutions = app.configuration.getBoolean("applyDownEvolutions." + db).getOrElse(false)
+
           if (!script.isEmpty) {
             app.mode match {
               case Mode.Test => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Dev if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if !hasDown && app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if hasDown &&
-                app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined &&
-                app.configuration.getBoolean("applyDownEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Dev if applyEvolutions => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Prod if !hasDown && applyEvolutions => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => Evolutions.applyScript(dbApi, db, script)
               case Mode.Prod if hasDown => {
                 Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
                 Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
@@ -482,7 +489,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   def withLock(ds: DataSource)(block: => Unit) {
-    if (app.configuration.getBoolean("evolutions.use.locks").filter(_ == true).isDefined) {
+    if (app.configuration.getBoolean("evolutions.use.locks").getOrElse(false)) {
       val c = ds.getConnection
       c.setAutoCommit(false)
       val s = c.createStatement()
@@ -540,6 +547,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
 
+    lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")
+
     request.path match {
 
       case applyEvolutions(db) => {
@@ -547,7 +556,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
           val script = Evolutions.evolutionScript(dbApi, app.path, app.classloader, db)
           Evolutions.applyScript(dbApi, db, script)
           sbtLink.forceReload()
-          play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+          play.api.mvc.Results.Redirect(redirectUrl)
         }
       }
 
@@ -555,7 +564,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
         Some {
           Evolutions.resolve(dbApi, db, rev.toInt)
           sbtLink.forceReload()
-          play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+          play.api.mvc.Results.Redirect(redirectUrl)
         }
       }
 
@@ -572,6 +581,13 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
  */
 object OfflineEvolutions {
 
+  private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
+
+  private def getDBApi(appPath: File, classloader: ClassLoader): DBApi = {
+    val c = Configuration.load(appPath).getConfig("db").get
+    new BoneCPApi(c, classloader)
+  }
+
   /**
    * Computes and applies an evolutions script.
    *
@@ -580,20 +596,12 @@ object OfflineEvolutions {
    * @param dbName the database name
    */
   def applyScript(appPath: File, classloader: ClassLoader, dbName: String) {
-
-    import play.api._
-
-    val c = Configuration.load(appPath).getConfig("db").get
-
-    val dbApi = new BoneCPApi(c, classloader)
-
+    val dbApi = getDBApi(appPath, classloader)
     val script = Evolutions.evolutionScript(dbApi, appPath, classloader, dbName)
-
-    if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+    if (! isTest) {
       Play.logger.warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
     Evolutions.applyScript(dbApi, dbName, script)
-
   }
 
   /**
@@ -605,18 +613,11 @@ object OfflineEvolutions {
    * @param revision the revision
    */
   def resolve(appPath: File, classloader: ClassLoader, dbName: String, revision: Int) {
-
-    import play.api._
-
-    val c = Configuration.load(appPath).getConfig("db").get
-
-    val dbApi = new BoneCPApi(c, classloader)
-
-    if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+    val dbApi = getDBApi(appPath, classloader)
+    if (!isTest) {
       Play.logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     }
     Evolutions.resolve(dbApi, dbName, revision)
-
   }
 
 }
