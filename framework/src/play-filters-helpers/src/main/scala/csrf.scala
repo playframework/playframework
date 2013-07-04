@@ -226,10 +226,10 @@ package play.filters.csrf {
             _.fold(_ => checkRequest(request), body => checkRequest(request, Some(extractor(body))))
               .fold(
                 result => Done(result, Input.Empty: Input[Array[Byte]]),
-                r => Iteratee.flatten(Enumerator(b).apply(next(addRequestToken(r, token)))).map(result => addResponseToken(request, result, token))(defaultContext)
+                r => Iteratee.flatten(Enumerator(b).apply(next(addRequestToken(r, token)))).map(result => addResponseToken(request, result, token))
               )
           })
-      }(defaultContext)
+      }
     }
 
     def checkFormUrlEncodedBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
@@ -269,7 +269,7 @@ package play.filters.csrf {
             checkTextBody(request, token, next)
           case None if request.method == "GET" =>
             filterLogger.trace("[CSRF] GET request, adding the token")
-            next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))(defaultContext)
+            next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))
           case ct =>
             filterLogger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
             next(request)

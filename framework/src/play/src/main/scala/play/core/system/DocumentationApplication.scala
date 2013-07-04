@@ -57,7 +57,7 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, "api/" + page)).filter(f => f.exists && f.isFile)
           }.map { file =>
-            Ok.sendFile(file, inline = true)(Execution.defaultContext)
+            Ok.sendFile(file, inline = true)
           }.getOrElse {
             NotFound(views.html.play20.manual(page, None, None))
           }
@@ -71,7 +71,7 @@ class DocumentationHandler(markdownRenderer: (String, String, File) => String) {
           documentationHome.flatMap { home =>
             Option(new java.io.File(home, path)).filter(_.exists)
           }.map { file =>
-            Ok.sendFile(file, inline = true)(Execution.defaultContext)
+            Ok.sendFile(file, inline = true)
           }.getOrElse(NotFound("Resource not found [" + path + "]"))
         }
 

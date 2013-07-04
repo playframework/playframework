@@ -149,7 +149,7 @@ object Application extends Controller {
   def onCloseSendFile(filepath: String) = Action {
     import java.io.File
     val file = new File(filepath)
-    Ok.sendFile(file, onClose = () => { file.delete() })(play.api.libs.concurrent.Execution.defaultContext)
+    Ok.sendFile(file, onClose = () => { file.delete() })
   }
 
   def syncError = Action {
