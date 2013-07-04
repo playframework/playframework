@@ -47,9 +47,13 @@ object WS {
    */
   def resetClient(): Unit = {
     clientHolder.map { clientRef =>
-      clientRef.close()
+      synchronized {
+        clientHolder.map { clientRef => // double-checked locking
+          clientRef.close()
+        }
+        clientHolder = None
+      }
     }
-    clientHolder = None
   }
 
   /**
@@ -57,22 +61,26 @@ object WS {
    */
   def client =
     clientHolder.getOrElse {
-      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+      synchronized {
+        clientHolder.getOrElse { // double-checked locking
+          val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+          val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+            .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+            .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+            .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+            .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
 
-      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
+          playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+            asyncHttpConfig.setUserAgent(useragent)
+          }
+          if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
+            asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+          }
+          val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
+          clientHolder = Some(innerClient)
+          innerClient
+        }
       }
-      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
-        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-      }
-      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-      clientHolder = Some(innerClient)
-      innerClient
     }
 
   /**
