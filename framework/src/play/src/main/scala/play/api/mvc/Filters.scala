@@ -55,7 +55,7 @@ trait Filter extends EssentialFilter {
         Iteratee.flatten(bodyIteratee.future.map(_.mapM({ simpleResult =>
           promisedResult.success(simpleResult)
           result
-        })(defaultContext)))
+        })))
       }
 
     }

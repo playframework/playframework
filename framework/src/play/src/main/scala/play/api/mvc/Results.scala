@@ -8,7 +8,7 @@ import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext, Promise }
 
-import play.core.Execution.internalContext
+import play.core.Execution.Implicits.internalContext
 import scala.deprecated
 
 /**
@@ -451,20 +451,23 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @param f The transformation function
    * @return The transformed `AsyncResult`
    */
-  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map {
-    case AsyncResult(r) => AsyncResult(r.map {
+  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = {
+    implicit val functionContext = ec.prepare()
+    AsyncResult(result.map {
+      case AsyncResult(r) => AsyncResult(r.map {
+        case r: PlainResult => f(r)
+        case r: AsyncResult => r.transform(f)(functionContext)
+      }(functionContext))
       case r: PlainResult => f(r)
-      case r: AsyncResult => r.transform(f)
-    })
-    case r: PlainResult => f(r)
-  })
+    }(functionContext))
+  }
 
   def unflatten: Future[SimpleResult] = result.flatMap {
     case r: SimpleResult => Future.successful(r)
     case r @ AsyncResult(_) => r.unflatten
-  }(internalContext)
+  }
 
-  def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f))
+  def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f)(ec.prepare()))
 
   /**
    * Adds headers to this result.
@@ -478,7 +481,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withHeaders(headers: (String, String)*): AsyncResult = {
-    map(_.withHeaders(headers: _*))(internalContext)
+    map(_.withHeaders(headers: _*))
   }
 
   /**
@@ -493,7 +496,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withCookies(cookies: Cookie*): AsyncResult = {
-    map(_.withCookies(cookies: _*))(internalContext)
+    map(_.withCookies(cookies: _*))
   }
 
   /**
@@ -508,7 +511,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): AsyncResult = {
-    map(_.discardingCookies(cookies: _*))(internalContext)
+    map(_.discardingCookies(cookies: _*))
   }
 
   /**
@@ -523,7 +526,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withSession(session: Session): AsyncResult = {
-    map(_.withSession(session))(internalContext)
+    map(_.withSession(session))
   }
 
   /**
@@ -538,7 +541,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withSession(session: (String, String)*): AsyncResult = {
-    map(_.withSession(session: _*))(internalContext)
+    map(_.withSession(session: _*))
   }
 
   /**
@@ -552,7 +555,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def withNewSession: AsyncResult = {
-    map(_.withNewSession)(internalContext)
+    map(_.withNewSession)
   }
 
   /**
@@ -567,7 +570,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def flashing(flash: Flash): AsyncResult = {
-    map(_.flashing(flash))(internalContext)
+    map(_.flashing(flash))
   }
 
   /**
@@ -582,7 +585,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def flashing(values: (String, String)*): AsyncResult = {
-    map(_.flashing(values: _*))(internalContext)
+    map(_.flashing(values: _*))
   }
 
   /**
@@ -597,7 +600,7 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @return the new result
    */
   def as(contentType: String): AsyncResult = {
-    map(_.as(contentType))(internalContext)
+    map(_.as(contentType))
   }
 
 }
@@ -674,14 +677,14 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ())(ec: ExecutionContext): SimpleResult = {
+    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): SimpleResult = {
       val name = fileName(content)
       SimpleResult(
         ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
         ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
-        Enumerator.fromFile(content) &> Writeable.wBytes.toEnumeratee &> Enumeratee.onIterateeDone(onClose)(ec)
+        Enumerator.fromFile(content) &> Writeable.wBytes.toEnumeratee &> Enumeratee.onIterateeDone(onClose)
       )
     }
 

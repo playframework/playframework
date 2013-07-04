@@ -148,9 +148,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           //execute normal action
           case Right((action: EssentialAction, app)) =>
             val a = EssentialAction { rh =>
-              Iteratee.flatten(action(rh).unflatten.map(_.it)(internalExecutionContext).recover {
+              Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
                 case error => Done(app.handleError(requestHeader, error),Input.Empty): Iteratee[Array[Byte],SimpleResult]
-              }(internalExecutionContext))
+              })
             }
             handleAction(a, Some(app))
 
@@ -224,14 +224,14 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             case None => feedBody(bodyParser.map((_, 0)))
           }
 
-          val eventuallyResult = eventuallyResultIteratee.flatMap(it => it.run)(internalExecutionContext)
+          val eventuallyResult = eventuallyResultIteratee.flatMap(it => it.run)
 
           val sent = eventuallyResult.recover {
             case error =>
               Play.logger.error("Cannot invoke the action, eventually got an error: " + error)
               e.getChannel.setReadable(true)
               (app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)), 0)
-          }(internalExecutionContext).flatMap {
+          }.flatMap {
             case (result, sequence) =>
               NettyResultStreamer.sendResult(cleanFlashCookie(result), !keepAlive, nettyVersion, sequence)
           }
@@ -259,7 +259,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         case Empty => Cont(step(future))
       }
 
-    Enumeratee.breakE[A](_ => !channel.isConnected())(play.core.Execution.internalContext).transform(Cont(step(None)))
+    Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {

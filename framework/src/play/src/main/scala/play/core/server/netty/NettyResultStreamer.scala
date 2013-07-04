@@ -34,18 +34,18 @@ object NettyResultStreamer {
     val bodyIteratee: Iteratee[Array[Byte], Boolean] = result.header.headers.get(CONTENT_LENGTH).map { contentLength =>
 
       // Simple case, we have a content length, so we send with no transfer encoding
-      simpleResultIteratee(nettyResponse, startSequence).map(_ => closeConnection)(internalExecutionContext)
+      simpleResultIteratee(nettyResponse, startSequence).map(_ => closeConnection)
 
     } getOrElse {
 
       // We don't have a content length, decide how to send it based on the streaming strategy
       result.streamingStrategy match {
-        case StreamingStrategy.Simple => simpleResultIteratee(nettyResponse, startSequence).map(_ => true)(internalExecutionContext)
+        case StreamingStrategy.Simple => simpleResultIteratee(nettyResponse, startSequence).map(_ => true)
 
         case StreamingStrategy.Buffer(maxLength) => bufferingIteratee(nettyResponse, startSequence, maxLength, closeConnection, httpVersion)
 
         case StreamingStrategy.Chunked(trailers) if (httpVersion != HttpVersion.HTTP_1_0) =>
-          chunkedIteratee(nettyResponse, startSequence, trailers).map(_ => true)(internalExecutionContext)
+          chunkedIteratee(nettyResponse, startSequence, trailers).map(_ => true)
 
         case StreamingStrategy.Chunked(_) => {
           // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
@@ -53,7 +53,7 @@ object NettyResultStreamer {
           // Can't send chunked result if version is HTTP 1.0
           val error = Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
           simpleResultIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence)
-            .map(_ => closeConnection)(internalExecutionContext)
+            .map(_ => closeConnection)
         }
       }
     }
@@ -98,23 +98,23 @@ object NettyResultStreamer {
         nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
         nettyResponse.setContent(buffer)
         val promise = NettyPromise(sendDownstream(startSequence, true, nettyResponse))
-        Iteratee.flatten(promise.map(_ => Done[Array[Byte], Boolean](closeConnection))(internalExecutionContext))
+        Iteratee.flatten(promise.map(_ => Done[Array[Byte], Boolean](closeConnection)))
       }
       case Left(chunks) => {
         val bufferedAsEnumerator = Enumerator.enumerate(chunks.reverse)
 
         // Get the iteratee, maybe chunked or maybe not according HTTP version
         val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
-          simpleResultIteratee(nettyResponse, startSequence).map(_ => true)(internalExecutionContext)
+          simpleResultIteratee(nettyResponse, startSequence).map(_ => true)
         } else {
-          chunkedIteratee(nettyResponse, startSequence, None).map(_ => closeConnection)(internalExecutionContext)
+          chunkedIteratee(nettyResponse, startSequence, None).map(_ => closeConnection)
         }
 
         // Feed the buffered content into the iteratee, and return the iteratee so that future content can continue
         // to be fed directly in as normal
         Iteratee.flatten(bufferedAsEnumerator |>> bodyIteratee)
       }
-    }(internalExecutionContext)
+    }
 
   }
 
@@ -157,8 +157,8 @@ object NettyResultStreamer {
         val lastChunk = new DefaultHttpChunkTrailer()
         trailers.foreach((lastChunk.addHeader _).tupled)
         (subsequence, lastChunk)
-      }(internalExecutionContext)
-    ).getOrElse(bodyIteratee.map(subsequence => (subsequence, HttpChunk.LAST_CHUNK))(internalExecutionContext))
+      }
+    ).getOrElse(bodyIteratee.map(subsequence => (subsequence, HttpChunk.LAST_CHUNK)))
 
     // Send the last chunk
     bodyWithLastChunk.mapM { s =>
@@ -167,7 +167,7 @@ object NettyResultStreamer {
       } else {
         Future.successful(())
       }
-    }(internalExecutionContext)
+    }
 
   }
 
@@ -211,7 +211,7 @@ object NettyResultStreamer {
     } else {
       Iteratee.flatten(
         NettyPromise(future)
-          .map[Iteratee[E, A]](_ => if (ctx.getChannel.isConnected()) Cont(step) else Done(done))(internalExecutionContext))
+          .map[Iteratee[E, A]](_ => if (ctx.getChannel.isConnected()) Cont(step) else Done(done)))
     }
   }
 

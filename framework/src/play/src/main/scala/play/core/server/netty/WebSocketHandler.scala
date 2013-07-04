@@ -24,6 +24,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.stm._
 
+import play.core.Execution.Implicits.internalContext
+
 private[server] trait WebSocketHandler {
   def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = {
 
@@ -59,9 +61,9 @@ private[server] trait WebSocketHandler {
 
               case Step.Cont(_) => Future.successful(next)
               case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Future.successful(next) }
-            }(play.core.Execution.internalContext)
+            }
           },
-          (err, e) => /* handle error, maybe close the socket */ Future.successful(current))(play.core.Execution.internalContext)
+          (err, e) => /* handle error, maybe close the socket */ Future.successful(current))
         eventuallyNext.success(next)
       }
     }
