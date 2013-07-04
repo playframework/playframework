@@ -279,7 +279,7 @@ object Evolutions {
   /**
    * Translates an evolution script to something human-readable.
    *
-   * @param scripts the script
+   * @param script the script
    * @return a formatted script
    */
   def toHumanReadableScript(script: Seq[Script]): String = {
@@ -298,8 +298,10 @@ object Evolutions {
    * Computes the evolution script.
    *
    * @param api the `DBApi` to use
-   * @param applicationPath the application path
+   * @param path the application path
+   * @param applicationClassloader the classloader used to load the driver
    * @param db the database name
+   * @return evolution scripts
    */
   def evolutionScript(api: DBApi, path: File, applicationClassloader: ClassLoader, db: String): Seq[Product with Serializable with Script] = {
     val application = applicationEvolutions(path, applicationClassloader, db)
@@ -368,6 +370,8 @@ object Evolutions {
   /**
    * Reads the evolutions from the application.
    *
+   * @param path the application path
+   * @param applicationClassloader the classloader used to load the driver
    * @param db the database name
    */
   def applicationEvolutions(path: File, applicationClassloader: ClassLoader, db: String): Seq[Evolution] = {
@@ -571,6 +575,7 @@ object OfflineEvolutions {
   /**
    * Computes and applies an evolutions script.
    *
+   * @param appPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
@@ -594,8 +599,10 @@ object OfflineEvolutions {
   /**
    * Resolve an inconsistent evolution..
    *
+   * @param appPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
+   * @param revision the revision
    */
   def resolve(appPath: File, classloader: ClassLoader, dbName: String, revision: Int) {
 
@@ -644,6 +651,9 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
  * Exception thrown when the database is in inconsistent state.
  *
  * @param db the database name
+ * @param script the evolution script
+ * @param error an inconsistent state error
+ * @param rev the revision
  */
 case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException.RichDescription(
   "Database '" + db + "' is in an inconsistent state!",
