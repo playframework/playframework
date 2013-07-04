@@ -262,6 +262,7 @@ object PlayBuild extends Build {
       file("src/play-integration-test"),
       settings = buildSettingsWithMIMA ++ Seq(
         libraryDependencies := runtime,
+        publishTo := Some(playRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
         javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
         javacOptions in doc := Seq("-source", "1.6")
