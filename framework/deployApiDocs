@@ -1,0 +1,75 @@
+#! /bin/bash
+
+# Usage: deployApiDocs [branch | tag]
+#
+# If you have checked out a tag, then you must supply the branch to deploy the docs to.
+#
+# If you want the repo tagged, then supply a tag argument
+
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+if [ $BRANCH == HEAD ]
+then
+    BRANCH=$1
+    TAG=`git describe`
+else 
+    TAG=$1
+fi
+
+echo Detected branch $BRANCH
+
+PLAYVERSION=""
+if [ -n "$TAG" ]
+then
+    echo Will tag version $TAG
+    PLAYVERSION=-Dplay.version=$TAG
+fi
+
+# build the docs
+./build $PLAYVERSION -Dgit.branch=$BRANCH api-docs
+
+cd target
+# clone the git repo if it's not already there
+if [ -d play-generated-docs ]
+then
+    cd play-generated-docs
+    git fetch
+else
+    git clone git@github.com:playframework/play-generated-docs.git
+    cd play-generated-docs
+fi
+
+# Create the branch if it doesn't already exist
+git branch $BRANCH
+
+# Check it out
+git checkout $BRANCH
+# Merge from origin
+git merge origin/$BRANCH
+
+rm -r *
+mv ../apidocs api
+if ! git diff -w --quiet
+then
+    git add --all
+    # Commit changes
+    echo "Docs have changed, committing and pushing..."
+    if [ -z "$TAG" ]
+    then
+        git commit -m "Api docs changed"
+    else
+        git commit -m "Update for $TAG"
+    fi
+    git push origin $BRANCH
+else
+    echo "No changes in docs"
+fi
+
+if [ -n "$TAG" ]
+then
+    echo "Tagging docs..."
+    git tag -a -m $TAG $TAG
+    git push --tags
+fi
+
+
