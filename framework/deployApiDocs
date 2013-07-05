@@ -1,10 +1,12 @@
 #! /bin/bash
 
-# Usage: deployApiDocs [branch | tag]
+# Usage: deployApiDocs <branch> [ <tag> ]
 #
 # If you have checked out a tag, then you must supply the branch to deploy the docs to.
 #
 # If you want the repo tagged, then supply a tag argument
+
+set -e
 
 BRANCH=$1
 TAG=$2
@@ -36,12 +38,13 @@ else
 fi
 
 # Create the branch if it doesn't already exist
-git branch $BRANCH
-
-# Check it out
-git checkout $BRANCH
-# Merge from origin
-git merge origin/$BRANCH
+if git branch -a | grep -q $BRANCH
+then
+    git checkout $BRANCH
+    git merge origin/$BRANCH
+else
+    git checkout -b $BRANCH
+fi
 
 rm -r *
 mv ../apidocs api
