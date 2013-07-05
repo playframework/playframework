@@ -1,0 +1,9 @@
+@(id: Option[Long], myForm: Form[(String, String)])
+
+@import helper._
+
+@form(id.map(id => routes.Resource5.update(id)).getOrElse(routes.Resource5.create())) {
+  @inputText(myForm("foo"))
+  @inputText(myForm("bar"))
+  <input type="submit"/>
+}

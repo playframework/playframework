@@ -11,6 +11,12 @@ export PLAY=`pwd`/../play
 
 ./build "$@" publish-local test
 
+echo "[info]"
+echo "[info] ---- SBT PLUGIN TESTS"
+echo "[info]"
+
+./build "$@" Sbt-Plugin:scripted
+
 rm -rf ./logs
 
 cd ./test/integrationtest
@@ -85,3 +91,4 @@ done
 echo "[info]"
 echo "[info] ALL TESTS PASSED"
 echo "[info]"
+

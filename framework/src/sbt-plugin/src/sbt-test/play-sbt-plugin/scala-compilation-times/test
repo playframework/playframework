@@ -1,0 +1,36 @@
+# First clean
+> clean
+# Backup the files we're going to change, so we can run the test multiple times
+$ copy-file app/controllers/Resource1.scala changes/Resource1.scala.old
+$ copy-file conf/routes changes/routes.old
+
+# First run: warmup
+> compile
+$ copy-file changes/Resource1.scala app/controllers/Resource1.scala
+> compile
+$ copy-file changes/routes conf/routes
+> compile
+
+# Reset
+> clean
+$ copy-file changes/Resource1.scala.old app/controllers/Resource1.scala
+$ copy-file changes/routes.old conf/routes
+
+# Second run: still warming up
+> compile
+$ copy-file changes/Resource1.scala app/controllers/Resource1.scala
+> compile
+$ copy-file changes/routes conf/routes
+> compile
+
+# Reset
+> clean
+$ copy-file changes/Resource1.scala.old app/controllers/Resource1.scala
+$ copy-file changes/routes.old conf/routes
+
+# Third run: the actual test run
+> timed-compile ScalaFullCompile
+$ copy-file changes/Resource1.scala app/controllers/Resource1.scala
+> timed-compile ScalaControllerChange
+$ copy-file changes/routes conf/routes
+> timed-compile ScalaRoutesChange
