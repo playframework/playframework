@@ -101,14 +101,14 @@ object Evolutions {
     Files.createDirectory(application.getFile(evolutionsDirectoryName(db)));
     Files.writeFileIfChanged(evolutions,
       """|# --- %s
-               |
-               |# --- !Ups
-               |%s
-               |
-               |# --- !Downs
-               |%s
-               |
-               |""".stripMargin.format(comment, ups, downs));
+         |
+         |# --- !Ups
+         |%s
+         |
+         |# --- !Downs
+         |%s
+         |
+         |""".stripMargin.format(comment, ups, downs));
   }
 
   // --
@@ -179,7 +179,7 @@ object Evolutions {
       if (problem.next) {
         val revision = problem.getInt("id")
         val state = problem.getString("state")
-        val hash = problem.getString("hash").substring(0, 7)
+        val hash = problem.getString("hash").take(7)
         val script = state match {
           case "applying_up" => problem.getString("apply_script")
           case _ => problem.getString("revert_script")
@@ -291,10 +291,10 @@ object Evolutions {
       case DownScript(ev, sql) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + sql + "\n"
     }.mkString("\n")
 
-    script.find {
-      case DownScript(_, _) => true
-      case UpScript(_, _) => false
-    }.map(_ => "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n").getOrElse("") + txt
+    val hasDownWarning =
+      "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n"
+
+    if (script.exists(_.isInstanceOf[DownScript])) hasDownWarning + txt else txt
   }
 
   /**
@@ -450,7 +450,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
    * }}}
    */
   override lazy val enabled = app.configuration.getConfig("db").isDefined && {
-    !app.configuration.getString("evolutionplugin").filter(_ == "disabled").isDefined
+    !app.configuration.getString("evolutionplugin").exists(_ == "disabled")
   }
 
   /**
@@ -461,7 +461,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       case (ds, db) => {
         withLock(ds) {
           val script = evolutionScript(dbApi, app.path, app.classloader, db)
-          val hasDown = script.find(_.isInstanceOf[DownScript]).isDefined
+          val hasDown = script.exists(_.isInstanceOf[DownScript])
 
           lazy val applyEvolutions = app.configuration.getBoolean("applyEvolutions." + db).getOrElse(false)
           lazy val applyDownEvolutions = app.configuration.getBoolean("applyDownEvolutions." + db).getOrElse(false)
@@ -648,7 +648,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
     <span>An SQL script will be run on your database -</span>
     <input name="evolution-button" type="button" value="Apply this script now!" onclick={ javascript }/>
 
-  }.map(_.toString).mkString
+  }.mkString
 
 }
 
@@ -676,6 +676,6 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
     <span>An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved -</span>
     <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>
 
-  }.map(_.toString).mkString
+  }.mkString
 
 }
