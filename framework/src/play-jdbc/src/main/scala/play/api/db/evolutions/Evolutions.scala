@@ -153,10 +153,27 @@ object Evolutions {
    * @throws an error if the database is in an inconsistent state
    */
   def checkEvolutionsState(api: DBApi, db: String) {
+    def createPlayEvolutionsTable()(implicit conn: Connection): Unit = {
+      try {
+        execute(
+          """
+              create table play_evolutions (
+                  id int not null primary key, hash varchar(255) not null,
+                  applied_at timestamp not null,
+                  apply_script text,
+                  revert_script text,
+                  state varchar(255),
+                  last_problem text
+              )
+          """)
+      } catch {
+        case NonFatal(ex) => Logger.warn("play_evolutions table already existed")
+      }
+    }
+
     implicit val connection = api.getConnection(db, autocommit = true)
 
     try {
-
       val problem = executeQuery("select id, hash, apply_script, revert_script, state, last_problem from play_evolutions where state like 'applying_%'")
 
       if (problem.next) {
@@ -178,19 +195,7 @@ object Evolutions {
 
     } catch {
       case e: InconsistentDatabase => throw e
-      case NonFatal(_) => try {
-        execute(
-          """
-              create table play_evolutions (
-                  id int not null primary key, hash varchar(255) not null, 
-                  applied_at timestamp not null, 
-                  apply_script text, 
-                  revert_script text, 
-                  state varchar(255), 
-                  last_problem text
-              )
-          """)
-      } catch { case NonFatal(ex) => Logger.warn("play_evolutions table already existed") }
+      case NonFatal(_) => createPlayEvolutionsTable()
     } finally {
       connection.close()
     }
@@ -205,8 +210,44 @@ object Evolutions {
    * @param script the script to run
    */
   def applyScript(api: DBApi, db: String, script: Seq[Script]) {
-    implicit val connection = api.getConnection(db, autocommit = true)
+    def logBefore(s: Script)(implicit conn: Connection): Unit = {
+      s match {
+        case UpScript(e, _) => {
+          val ps = prepare("insert into play_evolutions values(?, ?, ?, ?, ?, ?, ?)")
+          ps.setInt(1, e.revision)
+          ps.setString(2, e.hash)
+          ps.setDate(3, new Date(System.currentTimeMillis()))
+          ps.setString(4, e.sql_up)
+          ps.setString(5, e.sql_down)
+          ps.setString(6, "applying_up")
+          ps.setString(7, "")
+          ps.execute()
+        }
+        case DownScript(e, _) => {
+          execute("update play_evolutions set state = 'applying_down' where id = " + e.revision)
+        }
+      }
+    }
 
+    def logAfter(s: Script)(implicit conn: Connection): Boolean = {
+      s match {
+        case UpScript(e, _) => {
+          execute("update play_evolutions set state = 'applied' where id = " + e.revision)
+        }
+        case DownScript(e, _) => {
+          execute("delete from play_evolutions where id = " + e.revision)
+        }
+      }
+    }
+
+    def updateLastProblem(message: String, revision: Int)(implicit conn: Connection): Boolean = {
+      val ps = prepare("update play_evolutions set last_problem = ? where id = ?")
+      ps.setString(1, message)
+      ps.setInt(2, revision)
+      ps.execute()
+    }
+
+    implicit val connection = api.getConnection(db, autocommit = true)
     checkEvolutionsState(api, db)
 
     var applying = -1
@@ -215,44 +256,10 @@ object Evolutions {
 
       script.foreach { s =>
         applying = s.evolution.revision
-
-        // Insert into log
-        s match {
-
-          case UpScript(e, _) => {
-            val ps = prepare("insert into play_evolutions values(?, ?, ?, ?, ?, ?, ?)")
-            ps.setInt(1, e.revision)
-            ps.setString(2, e.hash)
-            ps.setDate(3, new Date(System.currentTimeMillis()))
-            ps.setString(4, e.sql_up)
-            ps.setString(5, e.sql_down)
-            ps.setString(6, "applying_up")
-            ps.setString(7, "")
-            ps.execute()
-          }
-
-          case DownScript(e, _) => {
-            execute("update play_evolutions set state = 'applying_down' where id = " + e.revision)
-          }
-
-        }
-
+        logBefore(s)
         // Execute script
         s.statements.foreach(execute)
-
-        // Insert into logs
-        s match {
-
-          case UpScript(e, _) => {
-            execute("update play_evolutions set state = 'applied' where id = " + e.revision)
-          }
-
-          case DownScript(e, _) => {
-            execute("delete from play_evolutions where id = " + e.revision)
-          }
-
-        }
-
+        logAfter(s)
       }
 
     } catch {
@@ -261,11 +268,7 @@ object Evolutions {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex => ex.getMessage
         }
-
-        val ps = prepare("update play_evolutions set last_problem = ? where id = ?")
-        ps.setString(1, message)
-        ps.setInt(2, applying)
-        ps.execute()
+        updateLastProblem(message, applying)
       }
     } finally {
       connection.close()
@@ -274,6 +277,7 @@ object Evolutions {
     checkEvolutionsState(api, db)
 
   }
+
 
   /**
    * Translates an evolution script to something human-readable.
