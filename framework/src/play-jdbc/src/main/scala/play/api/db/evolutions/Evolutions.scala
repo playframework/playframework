@@ -278,7 +278,6 @@ object Evolutions {
 
   }
 
-
   /**
    * Translates an evolution script to something human-readable.
    *
@@ -602,7 +601,7 @@ object OfflineEvolutions {
   def applyScript(appPath: File, classloader: ClassLoader, dbName: String) {
     val dbApi = getDBApi(appPath, classloader)
     val script = Evolutions.evolutionScript(dbApi, appPath, classloader, dbName)
-    if (! isTest) {
+    if (!isTest) {
       Play.logger.warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
     Evolutions.applyScript(dbApi, dbName, script)
