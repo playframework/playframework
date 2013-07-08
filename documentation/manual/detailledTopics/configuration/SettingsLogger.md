@@ -10,7 +10,7 @@ Play defines a default `application` logger for your application, which is autom
 
 ```properties
 # Root logger:
-logger=ERROR
+logger.root=ERROR
 
 # Logger used by the framework:
 logger.play=INFO
