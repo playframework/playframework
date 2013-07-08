@@ -597,7 +597,7 @@ trait BodyParsers {
             val collectHeaders = maxHeaderBuffer.map { buffer =>
               val (headerBytes, rest) = Option(buffer.drop(2)).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
 
-              val headerString = new String(headerBytes)
+              val headerString = new String(headerBytes, "utf-8")
               val headers = headerString.lines.map { header =>
                 val key :: value = header.trim.split(":").toList
                 (key.trim.toLowerCase, value.mkString.trim)
