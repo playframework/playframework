@@ -89,11 +89,10 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   }
 
   val dist = TaskKey[File]("dist", "Build the standalone application package")
-  val distTask = (distDirectory, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (dist, root, packaged, dependencies, target, id, version) =>
+  val distTask = (distDirectory, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, distFileName) map { (dist, root, packaged, dependencies, target, packageName) =>
 
     import sbt.NameFilter._
 
-    val packageName = id + "-" + version
     val zip = dist / (packageName + ".zip")
 
     IO.delete(dist)

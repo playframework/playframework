@@ -38,6 +38,8 @@ trait PlayKeys {
 
   val distDirectory = SettingKey[File]("play-dist")
 
+  val distFileName = SettingKey[String]("play-dist-file-name")
+
   val distExcludes = SettingKey[Seq[String]]("dist-excludes")
 
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")

@@ -66,6 +66,7 @@ trait PlaySettings {
     javaSource in Test <<= baseDirectory / "test",
 
     distDirectory <<= baseDirectory / "dist",
+    distFileName <<= (normalizedName, version)(_ + "-" + _),
 
     distExcludes := Seq.empty,
 
