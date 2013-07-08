@@ -14,7 +14,7 @@ if exist "conf\reference.conf" goto existingApplication
 if exist "project" goto existingApplication
 
 :noApplication
-java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" -jar "%~dp0framework\sbt\sbt-launch.jar" %*
+java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" %PLAY_OPTS% -jar "%~dp0framework\sbt\sbt-launch.jar" %*
 
 goto end
 
