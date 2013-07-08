@@ -34,23 +34,24 @@ def loginPost = Action { implicit request =>
     error => {
       Logger.info("bad request " + error.toString)
       BadRequest(error.toString)
-    }, {
-      case (openid) => AsyncResult {
-        val url = OpenID.redirectURL(openid,
-         routes.Application.openIDCallback.absoluteURL())
-        url.map(a => Redirect(a)).
-         fallbackTo(Future(Redirect(routes.Application.login)))
-      }
+    },
+    {
+      case (openid) => AsyncResult(OpenID.redirectURL(openid, routes.Application.openIDCallback.absoluteURL())
+        .map( url => Redirect(url))
+        .recover { case Thrown(error) => Redirect(routes.Application.login) }
+      )
     }
   )
 }
 
 def openIDCallback = Action { implicit request =>
   AsyncResult(
-    OpenID.verifiedId.map((info: UserInfo) =>
-      Ok(info.id + "\n" + info.attributes)).
-       fallbackTo(Future(Forbidden))
-    )
+    OpenID.verifiedId.map(info => Ok(info.id + "\n" + info.attributes))
+      .recover { case Thrown(t) =>
+        // Here you should look at the error, and give feedback to the user
+        Redirect(routes.Application.login)
+      }
+  )
 }
 ```
 
