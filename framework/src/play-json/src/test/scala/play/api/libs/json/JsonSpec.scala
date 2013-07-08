@@ -224,6 +224,10 @@ object JsonSpec extends Specification {
   "key3" : [ 1, "tutu" ]
 }""")
     }
+
+    "null root object should be parsed as JsNull" in {
+      parse("null") must_== JsNull
+    }
   }
 
   "JSON Writes" should {

@@ -420,6 +420,9 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
     }
 
   }
+
+  // This is used when the root object is null, ie when deserialising "null"
+  override def getNullValue = JsNull
 }
 
 private[json] class PlayDeserializers(classLoader: ClassLoader) extends Deserializers.Base {
