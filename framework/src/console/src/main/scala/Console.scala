@@ -1,4 +1,3 @@
-
 package play.console
 
 import java.io._
@@ -16,8 +15,8 @@ object Console {
     """|       _            _
            | _ __ | | __ _ _  _| |
            || '_ \| |/ _' | || |_|
-           ||  __/|_|\____|\__ (_)
-           ||_|            |__/
+           ||  __/|_|\____|\_  ( )
+           ||_|            (__/
            |
            |""".stripMargin) +
     ("play! " + play.core.PlayVersion.current +

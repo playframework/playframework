@@ -86,7 +86,7 @@ ALTER TABLE User ADD age INT;
 ALTER TABLE User DROP age;
 ```
 
-Developer B finishes his feature and commits (let’s say they are using Git). Now developer A has to merge the his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
+Developer B finishes his feature and commits (let’s say they are using Git). Now developer A has to merge his colleague’s work before continuing, so he runs git pull, and the merge has a conflict, like:
 
 ```
 Auto-merging db/evolutions/2.sql
