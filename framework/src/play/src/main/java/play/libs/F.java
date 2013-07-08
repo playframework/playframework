@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.Arrays;
 
 import play.api.libs.concurrent.PlayPromise;
 import play.core.j.FPromiseHelper;
@@ -717,13 +718,14 @@ public class F {
         }
 
         @Override
-        public T[] toArray() {
-            return (T[])(new Object[0]);
+        public Object[] toArray() {
+            return new Object[0];
         }
 
         @Override
         public <R> R[] toArray(R[] r) {
-            return (R[])(new Object[0]);
+            Arrays.fill(r, null);
+            return r;
         }
 
         @Override
@@ -774,17 +776,23 @@ public class F {
         }
 
         @Override
-        public T[] toArray() {
-            T[] result = (T[])new Object[1];
+        public Object[] toArray() {
+            Object[] result = new Object[1];
             result[0] = value;
             return result;
         }
 
         @Override
         public <R> R[] toArray(R[] r) {
-            Object[] result = new Object[1];
-            result[0] = value;
-            return (R[])result;
+            if(r.length == 0){
+                 R[] array = (R[])Arrays.copyOf(r, 1);
+                 array[0] = (R)value;
+                 return array;
+            }else{
+                 Arrays.fill(r, 1, r.length, null);
+                 r[0] = (R)value;
+                 return r;
+            }
         }
 
         @Override
