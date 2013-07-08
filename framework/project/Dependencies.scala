@@ -143,7 +143,7 @@ object Dependencies {
 
     "com.h2database" % "h2" % "1.3.168",
     "org.javassist" % "javassist" % "3.16.1-GA",
-    "org.pegdown" % "pegdown" % "1.2.1-withplugins-1",
+    "com.typesafe.play" %% "play-doc" % "1.0.1",
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94")
 
