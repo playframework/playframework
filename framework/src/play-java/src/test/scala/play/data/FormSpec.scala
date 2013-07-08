@@ -16,7 +16,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def host() = "localhost"
   def acceptLanguages = new java.util.ArrayList[play.i18n.Lang]
   def accept = List("text/html").asJava
-  def acceptedTypes = List(play.api.http.MediaRange("text/html")).asJava
+  def acceptedTypes = List(play.api.http.MediaRange("text", "html", None)).asJava
   def accepts(mediaType: String) = false
   def headers() = new java.util.HashMap[String, Array[String]]()
   val remoteAddress = "127.0.0.1"

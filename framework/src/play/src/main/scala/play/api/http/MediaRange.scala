@@ -1,5 +1,7 @@
 package play.api.http
 
+import play.api.Play
+
 /**
  * Represent a media range as defined by the RFC 2616.
  * @param mediaType Media type (e.g. "audio", "text", etc.)
@@ -27,15 +29,47 @@ object MediaRange {
    *   MediaRange("text/html;level=1")
    * }}}
    */
-  def apply(mediaRange: String) = {
-    val parts = mediaRange.split('/')
-    val mediaType = parts(0)
-    val rhs = parts(1)
-    val i = rhs.indexOf(';')
-    val (mediaSubType, parameters) =
-      if (i > 0) (rhs.take(i), Some(rhs.drop(i + 1)))
-      else (rhs, None)
-    new MediaRange(mediaType, mediaSubType, parameters)
+  @deprecated("Use MediaRange.parse function or extractor object instead", "2.2")
+  def apply(mediaRange: String): MediaRange = {
+    parse(mediaRange).getOrElse(throw new IllegalArgumentException("Unable to parse media range from String " + mediaRange))
+  }
+
+  /**
+   * Function and extractor object for parsing media ranges.
+   */
+  object parse {
+
+    /**
+     * Extractor object for parsing a MediaRange from its MIME type.
+     */
+    def unapply(mediaRange: String): Option[MediaRange] = {
+      parse(mediaRange)
+    }
+
+    /**
+     * Convenient factory method to create a MediaRange from its MIME type followed by the type parameters.
+     * {{{
+     *   MediaRange.parse("text/html")
+     *   MediaRange.parse("text/html;level=1")
+     * }}}
+     *
+     * @return the media range if it could be parsed
+     */
+    def apply(mediaRange: String): Option[MediaRange] = {
+      val parts = mediaRange.split("/", 2)
+      if (parts.length == 1) {
+        Play.logger.debug("Invalid media range received: " + mediaRange)
+        None
+      } else {
+        val mediaType = parts(0)
+        val rhs = parts(1)
+        val i = rhs.indexOf(';')
+        val (mediaSubType, parameters) =
+          if (i > 0) (rhs.take(i), Some(rhs.drop(i + 1)))
+          else (rhs, None)
+        Some(new MediaRange(mediaType, mediaSubType, parameters))
+      }
+    }
   }
 
   implicit val ordering = new Ordering[play.api.http.MediaRange] {
