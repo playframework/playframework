@@ -3,6 +3,8 @@ package sbt
 import Keys._
 import PlayKeys._
 import PlayEclipse._
+import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.SbtNativePackager._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -64,10 +66,6 @@ trait PlaySettings {
     javaSource in Compile <<= baseDirectory / "app",
     javaSource in Test <<= baseDirectory / "test",
 
-    distDirectory <<= baseDirectory / "dist",
-
-    distExcludes := Seq.empty,
-
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
     libraryDependencies <+= (playPlugin) { isPlugin =>
@@ -120,8 +118,6 @@ trait PlaySettings {
 
     compile in (Compile) <<= PostCompile(scope = Compile),
 
-    dist <<= distTask,
-
     computeDependencies <<= computeDependenciesTask,
 
     playVersion := play.core.PlayVersion.current,
@@ -132,13 +128,7 @@ trait PlaySettings {
 
     playCompileEverything <<= playCompileEverythingTask,
 
-    playPackageEverything <<= playPackageEverythingTask,
-
     playReload <<= playReloadTask,
-
-    playStage <<= playStageTask,
-
-    cleanFiles <+= distDirectory,
 
     logManager <<= extraLoggers(PlayLogManager.default(playPositionMapper)),
 
@@ -201,7 +191,63 @@ trait PlaySettings {
       "txt" -> "play.api.templates.TxtFormat",
       "xml" -> "play.api.templates.XmlFormat",
       "js" -> "play.api.templates.JavaScriptFormat"
-    )
+    ),
+
+    // Native packaging
+
+    sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
+
+    playDistLibs <<= (dependencyClasspath in Runtime) map {
+      dependencies: Classpath =>
+
+        dependencies filter(_.data.ext == "jar") map {
+          dependency: Attributed[File] =>
+
+            val filename = for {
+              module <- dependency.get(AttributeKey[ModuleID]("module-id"))
+              artifact <- dependency.get(AttributeKey[Artifact]("artifact"))
+            } yield {
+              module.organization + "." +
+                module.name + "-" +
+                Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") +
+                module.revision + ".jar"
+            }
+            val path = "lib/" + filename.getOrElse(dependency.data.getName)
+            dependency.data -> path
+        }
+    },
+
+    makeBashScript <<= makeBashScriptTask,
+
+    mappings in Universal <+= (makeBashScript, normalizedName) map {
+      (script, scriptName) => script -> ("bin/" + scriptName)
+    },
+
+    mappings in Universal <++= (confDirectory) map {
+      confDirectory: File =>
+        val pathFinder = confDirectory.descendantsExcept("*", "routes")
+        pathFinder.get map {
+          confFile: File =>
+            confFile -> ("conf/" + confFile.getName)
+        }
+    },
+
+    mappings in Universal <++= (target in Compile in doc) map {
+      docDirectory: File =>
+        val pathFinder = docDirectory ** "*"
+        pathFinder.get map {
+          docFile: File =>
+            docFile -> ("share/doc/api/" + docFile.getName)
+        }
+    },
+
+    mappings in Universal <++= playDistLibs,
+
+    mappings in Universal <+= (baseDirectory) map {
+      baseDirectory: File =>
+        val readMe = "README"
+        (baseDirectory / readMe) -> readMe
+    }
 
   )
 

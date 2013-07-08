@@ -2,6 +2,8 @@ import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifact
+import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
 
 object BuildSettings {
@@ -97,7 +99,6 @@ object BuildSettings {
         publishArtifact in packageDoc := false,
         publishArtifact in (Compile, packageSrc) := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
-
   }
 }
 

@@ -3,6 +3,7 @@ package play
 import sbt.{ Project => _, _ }
 import play.console.Colors
 import sbt.Keys._
+import com.typesafe.sbt.SbtNativePackager._
 
 object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloader with PlayCommands
     with PlayRun with PlaySettings with PlayPositionMapper with PlaySourceGenerators {
@@ -34,12 +35,18 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
     val mainLang = if (dependencies.contains(javaCore)) JAVA else SCALA
 
     lazy val playSettings =
-      Project.defaultSettings ++ eclipseCommandSettings(mainLang) ++ intellijCommandSettings ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
-        scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
-        javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
-        version := applicationVersion,
-        libraryDependencies ++= dependencies
-      )
+      Project.defaultSettings ++
+        eclipseCommandSettings(mainLang) ++
+        intellijCommandSettings ++
+        seq(packagerSettings:_*) ++
+        Seq(testListeners += testListener) ++
+        whichLang(mainLang) ++
+        Seq(
+          scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
+          javacOptions in Compile ++= Seq("-encoding", "utf8", "-g"),
+          version := applicationVersion,
+          libraryDependencies ++= dependencies
+        )
 
     sbt.Project(name, path)
       .settings(playSettings: _*)
