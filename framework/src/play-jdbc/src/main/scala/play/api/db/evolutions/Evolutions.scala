@@ -2,7 +2,6 @@ package play.api.db.evolutions
 
 import java.io._
 
-import scalax.file._
 import scalax.io.JavaConverters._
 
 import play.core._
@@ -98,18 +97,18 @@ object Evolutions {
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
     import play.api.libs._
 
-    val evolutions = application.getFile("conf/evolutions/" + db + "/" + revision + ".sql");
-    Files.createDirectory(application.getFile("conf/evolutions/" + db));
+    val evolutions = application.getFile(evolutionsFilename(db, revision));
+    Files.createDirectory(application.getFile(evolutionsDirectoryName(db)));
     Files.writeFileIfChanged(evolutions,
       """|# --- %s
-               |
-               |# --- !Ups
-               |%s
-               |
-               |# --- !Downs
-               |%s
-               |
-               |""".stripMargin.format(comment, ups, downs));
+         |
+         |# --- !Ups
+         |%s
+         |
+         |# --- !Downs
+         |%s
+         |
+         |""".stripMargin.format(comment, ups, downs));
   }
 
   // --
@@ -154,16 +153,33 @@ object Evolutions {
    * @throws an error if the database is in an inconsistent state
    */
   def checkEvolutionsState(api: DBApi, db: String) {
+    def createPlayEvolutionsTable()(implicit conn: Connection): Unit = {
+      try {
+        execute(
+          """
+              create table play_evolutions (
+                  id int not null primary key, hash varchar(255) not null,
+                  applied_at timestamp not null,
+                  apply_script text,
+                  revert_script text,
+                  state varchar(255),
+                  last_problem text
+              )
+          """)
+      } catch {
+        case NonFatal(ex) => Logger.warn("play_evolutions table already existed")
+      }
+    }
+
     implicit val connection = api.getConnection(db, autocommit = true)
 
     try {
-
       val problem = executeQuery("select id, hash, apply_script, revert_script, state, last_problem from play_evolutions where state like 'applying_%'")
 
       if (problem.next) {
         val revision = problem.getInt("id")
         val state = problem.getString("state")
-        val hash = problem.getString("hash").substring(0, 7)
+        val hash = problem.getString("hash").take(7)
         val script = state match {
           case "applying_up" => problem.getString("apply_script")
           case _ => problem.getString("revert_script")
@@ -179,19 +195,7 @@ object Evolutions {
 
     } catch {
       case e: InconsistentDatabase => throw e
-      case NonFatal(_) => try {
-        execute(
-          """
-              create table play_evolutions (
-                  id int not null primary key, hash varchar(255) not null, 
-                  applied_at timestamp not null, 
-                  apply_script text, 
-                  revert_script text, 
-                  state varchar(255), 
-                  last_problem text
-              )
-          """)
-      } catch { case NonFatal(ex) => Logger.warn("play_evolutions table already existed") }
+      case NonFatal(_) => createPlayEvolutionsTable()
     } finally {
       connection.close()
     }
@@ -206,8 +210,44 @@ object Evolutions {
    * @param script the script to run
    */
   def applyScript(api: DBApi, db: String, script: Seq[Script]) {
-    implicit val connection = api.getConnection(db, autocommit = true)
+    def logBefore(s: Script)(implicit conn: Connection): Unit = {
+      s match {
+        case UpScript(e, _) => {
+          val ps = prepare("insert into play_evolutions values(?, ?, ?, ?, ?, ?, ?)")
+          ps.setInt(1, e.revision)
+          ps.setString(2, e.hash)
+          ps.setDate(3, new Date(System.currentTimeMillis()))
+          ps.setString(4, e.sql_up)
+          ps.setString(5, e.sql_down)
+          ps.setString(6, "applying_up")
+          ps.setString(7, "")
+          ps.execute()
+        }
+        case DownScript(e, _) => {
+          execute("update play_evolutions set state = 'applying_down' where id = " + e.revision)
+        }
+      }
+    }
 
+    def logAfter(s: Script)(implicit conn: Connection): Boolean = {
+      s match {
+        case UpScript(e, _) => {
+          execute("update play_evolutions set state = 'applied' where id = " + e.revision)
+        }
+        case DownScript(e, _) => {
+          execute("delete from play_evolutions where id = " + e.revision)
+        }
+      }
+    }
+
+    def updateLastProblem(message: String, revision: Int)(implicit conn: Connection): Boolean = {
+      val ps = prepare("update play_evolutions set last_problem = ? where id = ?")
+      ps.setString(1, message)
+      ps.setInt(2, revision)
+      ps.execute()
+    }
+
+    implicit val connection = api.getConnection(db, autocommit = true)
     checkEvolutionsState(api, db)
 
     var applying = -1
@@ -216,44 +256,10 @@ object Evolutions {
 
       script.foreach { s =>
         applying = s.evolution.revision
-
-        // Insert into log
-        s match {
-
-          case UpScript(e, _) => {
-            val ps = prepare("insert into play_evolutions values(?, ?, ?, ?, ?, ?, ?)")
-            ps.setInt(1, e.revision)
-            ps.setString(2, e.hash)
-            ps.setDate(3, new Date(System.currentTimeMillis()))
-            ps.setString(4, e.sql_up)
-            ps.setString(5, e.sql_down)
-            ps.setString(6, "applying_up")
-            ps.setString(7, "")
-            ps.execute()
-          }
-
-          case DownScript(e, _) => {
-            execute("update play_evolutions set state = 'applying_down' where id = " + e.revision)
-          }
-
-        }
-
+        logBefore(s)
         // Execute script
         s.statements.foreach(execute)
-
-        // Insert into logs
-        s match {
-
-          case UpScript(e, _) => {
-            execute("update play_evolutions set state = 'applied' where id = " + e.revision)
-          }
-
-          case DownScript(e, _) => {
-            execute("delete from play_evolutions where id = " + e.revision)
-          }
-
-        }
-
+        logAfter(s)
       }
 
     } catch {
@@ -262,11 +268,7 @@ object Evolutions {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex => ex.getMessage
         }
-
-        val ps = prepare("update play_evolutions set last_problem = ? where id = ?")
-        ps.setString(1, message)
-        ps.setInt(2, applying)
-        ps.execute()
+        updateLastProblem(message, applying)
       }
     } finally {
       connection.close()
@@ -279,7 +281,7 @@ object Evolutions {
   /**
    * Translates an evolution script to something human-readable.
    *
-   * @param scripts the script
+   * @param script the script
    * @return a formatted script
    */
   def toHumanReadableScript(script: Seq[Script]): String = {
@@ -288,18 +290,20 @@ object Evolutions {
       case DownScript(ev, sql) => "# --- Rev:" + ev.revision + ",Downs - " + ev.hash.take(7) + "\n" + sql + "\n"
     }.mkString("\n")
 
-    script.find {
-      case DownScript(_, _) => true
-      case UpScript(_, _) => false
-    }.map(_ => "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n").getOrElse("") + txt
+    val hasDownWarning =
+      "# !!! WARNING! This script contains DOWNS evolutions that are likely destructives\n\n"
+
+    if (script.exists(_.isInstanceOf[DownScript])) hasDownWarning + txt else txt
   }
 
   /**
    * Computes the evolution script.
    *
    * @param api the `DBApi` to use
-   * @param applicationPath the application path
+   * @param path the application path
+   * @param applicationClassloader the classloader used to load the driver
    * @param db the database name
+   * @return evolution scripts
    */
   def evolutionScript(api: DBApi, path: File, applicationClassloader: ClassLoader, db: String): Seq[Product with Serializable with Script] = {
     val application = applicationEvolutions(path, applicationClassloader, db)
@@ -365,9 +369,17 @@ object Evolutions {
     }
   }
 
+  private def evolutionsDirectoryName(db: String): String = s"conf/evolutions/${db}"
+
+  private def evolutionsFilename(db: String, revision: Int): String = s"conf/evolutions/${db}/${revision}.sql"
+
+  private def evolutionsResourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
+
   /**
    * Reads the evolutions from the application.
    *
+   * @param path the application path
+   * @param applicationClassloader the classloader used to load the driver
    * @param db the database name
    */
   def applicationEvolutions(path: File, applicationClassloader: ClassLoader, db: String): Seq[Evolution] = {
@@ -392,8 +404,8 @@ object Evolutions {
     }
 
     Collections.unfoldLeft(1) { revision =>
-      Option(new File(path, "conf/evolutions/" + db + "/" + revision + ".sql")).filter(_.exists).map(new FileInputStream(_)).orElse {
-        Option(applicationClassloader.getResourceAsStream("evolutions/" + db + "/" + revision + ".sql"))
+      Option(new File(path, evolutionsFilename(db, revision))).filter(_.exists).map(new FileInputStream(_)).orElse {
+        Option(applicationClassloader.getResourceAsStream(evolutionsResourceName(db, revision)))
       }.map { stream =>
         (revision + 1, (revision, stream.asInput.string))
       }
@@ -437,7 +449,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
    * }}}
    */
   override lazy val enabled = app.configuration.getConfig("db").isDefined && {
-    !app.configuration.getString("evolutionplugin").filter(_ == "disabled").isDefined
+    !app.configuration.getString("evolutionplugin").exists(_ == "disabled")
   }
 
   /**
@@ -448,15 +460,17 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       case (ds, db) => {
         withLock(ds) {
           val script = evolutionScript(dbApi, app.path, app.classloader, db)
-          val hasDown = script.find(_.isInstanceOf[DownScript]).isDefined
+          val hasDown = script.exists(_.isInstanceOf[DownScript])
+
+          lazy val applyEvolutions = app.configuration.getBoolean("applyEvolutions." + db).getOrElse(false)
+          lazy val applyDownEvolutions = app.configuration.getBoolean("applyDownEvolutions." + db).getOrElse(false)
+
           if (!script.isEmpty) {
             app.mode match {
               case Mode.Test => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Dev if app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if !hasDown && app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if hasDown &&
-                app.configuration.getBoolean("applyEvolutions." + db).filter(_ == true).isDefined &&
-                app.configuration.getBoolean("applyDownEvolutions." + db).filter(_ == true).isDefined => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Dev if applyEvolutions => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Prod if !hasDown && applyEvolutions => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => Evolutions.applyScript(dbApi, db, script)
               case Mode.Prod if hasDown => {
                 Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
                 Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
@@ -478,7 +492,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   def withLock(ds: DataSource)(block: => Unit) {
-    if (app.configuration.getBoolean("evolutions.use.locks").filter(_ == true).isDefined) {
+    if (app.configuration.getBoolean("evolutions.use.locks").getOrElse(false)) {
       val c = ds.getConnection
       c.setAutoCommit(false)
       val s = c.createStatement()
@@ -536,6 +550,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
 
+    lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")
+
     request.path match {
 
       case applyEvolutions(db) => {
@@ -543,7 +559,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
           val script = Evolutions.evolutionScript(dbApi, app.path, app.classloader, db)
           Evolutions.applyScript(dbApi, db, script)
           sbtLink.forceReload()
-          play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+          play.api.mvc.Results.Redirect(redirectUrl)
         }
       }
 
@@ -551,7 +567,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
         Some {
           Evolutions.resolve(dbApi, db, rev.toInt)
           sbtLink.forceReload()
-          play.api.mvc.Results.Redirect(request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/"))
+          play.api.mvc.Results.Redirect(redirectUrl)
         }
       }
 
@@ -568,48 +584,43 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
  */
 object OfflineEvolutions {
 
+  private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
+
+  private def getDBApi(appPath: File, classloader: ClassLoader): DBApi = {
+    val c = Configuration.load(appPath).getConfig("db").get
+    new BoneCPApi(c, classloader)
+  }
+
   /**
    * Computes and applies an evolutions script.
    *
+   * @param appPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
   def applyScript(appPath: File, classloader: ClassLoader, dbName: String) {
-
-    import play.api._
-
-    val c = Configuration.load(appPath).getConfig("db").get
-
-    val dbApi = new BoneCPApi(c, classloader)
-
+    val dbApi = getDBApi(appPath, classloader)
     val script = Evolutions.evolutionScript(dbApi, appPath, classloader, dbName)
-
-    if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+    if (!isTest) {
       Play.logger.warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
     Evolutions.applyScript(dbApi, dbName, script)
-
   }
 
   /**
    * Resolve an inconsistent evolution..
    *
+   * @param appPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
+   * @param revision the revision
    */
   def resolve(appPath: File, classloader: ClassLoader, dbName: String, revision: Int) {
-
-    import play.api._
-
-    val c = Configuration.load(appPath).getConfig("db").get
-
-    val dbApi = new BoneCPApi(c, classloader)
-
-    if (!Play.maybeApplication.exists(_.mode == Mode.Test)) {
+    val dbApi = getDBApi(appPath, classloader)
+    if (!isTest) {
       Play.logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     }
     Evolutions.resolve(dbApi, dbName, revision)
-
   }
 
 }
@@ -636,7 +647,7 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
     <span>An SQL script will be run on your database -</span>
     <input name="evolution-button" type="button" value="Apply this script now!" onclick={ javascript }/>
 
-  }.map(_.toString).mkString
+  }.mkString
 
 }
 
@@ -644,6 +655,9 @@ case class InvalidDatabaseRevision(db: String, script: String) extends PlayExcep
  * Exception thrown when the database is in inconsistent state.
  *
  * @param db the database name
+ * @param script the evolution script
+ * @param error an inconsistent state error
+ * @param rev the revision
  */
 case class InconsistentDatabase(db: String, script: String, error: String, rev: Int) extends PlayException.RichDescription(
   "Database '" + db + "' is in an inconsistent state!",
@@ -661,6 +675,6 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
     <span>An evolution has not been applied properly. Please check the problem and resolve it manually before marking it as resolved -</span>
     <input name="evolution-button" type="button" value="Mark it resolved" onclick={ javascript }/>
 
-  }.map(_.toString).mkString
+  }.mkString
 
 }
