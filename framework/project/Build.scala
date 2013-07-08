@@ -42,7 +42,7 @@ object BuildSettings {
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     publishTo := Some(publishingMavenRepository),
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8", "-Xlint:-options"),
-    javacOptions in doc := Seq("-source", "1.6", "-Xlint:-options"),
+    javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers,
     fork in Test := true,
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
