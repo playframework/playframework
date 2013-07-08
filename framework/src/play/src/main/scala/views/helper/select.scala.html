@@ -14,12 +14,18 @@
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
 
 @input(field, args:_*) { (id, name, value, htmlArgs) =>
-    <select id="@id" name="@name" @toHtmlArgs(htmlArgs)>
-        @args.toMap.get('_default).map { defaultValue =>
-            <option class="blank" value="">@defaultValue</option>
-        }
-        @options.map { v =>
-            <option value="@v._1" @(if(value == Some(v._1)) "selected" else "")>@v._2</option>
-        }
-    </select>
+    @defining( if( htmlArgs.contains('multiple) ) "%s[]".format(name) else name ) { selectName =>
+    @defining( ( !field.indexes.isEmpty && htmlArgs.contains('multiple) ) match {
+            case true => field.indexes.map( i => field("[%s]".format(i)).value ).flatten.toSet
+            case _ => field.value.toSet
+    }){ values =>
+        <select id="@id" name="@selectName" @toHtmlArgs(htmlArgs)>
+            @args.toMap.get('_default).map { defaultValue =>
+                <option class="blank" value="">@defaultValue</option>
+            }
+            @options.map { v =>
+                <option value="@v._1" @if(values.contains(v._1)){selected}>@v._2</option>
+            }
+        </select>
+    }}
 }

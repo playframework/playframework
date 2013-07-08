@@ -222,6 +222,9 @@ object PlayMagic {
    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
    * }}}
    */
-  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + HtmlFormat.escape(a._2.toString).body + "\"").mkString(" "))
+  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map({
+    case (s, None) => s.name
+    case (s, v) => s.name + "=\"" + HtmlFormat.escape(v.toString).body + "\""
+  }).mkString(" "))
 
 }
