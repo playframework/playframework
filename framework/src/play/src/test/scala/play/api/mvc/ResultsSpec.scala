@@ -3,6 +3,11 @@ package play.api.mvc
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 import org.specs2.execute.{Result => SpecsResult,AsResult}
+import play.api.libs.iteratee.{Iteratee, Enumerator}
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import java.util.concurrent.TimeUnit
+import scala.concurrent.ExecutionContext.Implicits._
 
 object ResultsSpec extends Specification {
 
@@ -173,4 +178,67 @@ object ResultsSpec extends Specification {
       }
     }
   }
+
+  "chunking enumeratee" should {
+    "chunk a stream" in {
+      consume(enumerator("a", "bc", "def") &> chunk) must containTheSameElementsAs(Seq(
+        "1\r\na\r\n",
+        "2\r\nbc\r\n",
+        "3\r\ndef\r\n",
+        "0\r\n\r\n"
+      ))
+    }
+
+    "support trailers" in {
+      consume(enumerator("a", "bc", "def") &> chunk(Some(
+        Iteratee.consume[Array[Byte]]().map(data => Seq("Full-Data" -> new String(data)))
+      ))) must containTheSameElementsAs(Seq(
+        "1\r\na\r\n",
+        "2\r\nbc\r\n",
+        "3\r\ndef\r\n",
+        "0\r\nFull-Data: abcdef\r\n\r\n"
+      ))
+    }
+
+  }
+
+  "dechunking enumeratee" should {
+    "dechunk a chunked stream" in {
+      consume(enumerator("a", "bc", "def") &> chunk &> dechunk) must containTheSameElementsAs(Seq(
+        "a", "bc", "def"
+      ))
+    }
+    "dechunk an empty stream" in {
+      consume(enumerator("0\r\n\r\n") &> dechunk) must containTheSameElementsAs(Seq())
+    }
+    "dechunk a stream with trailers" in {
+      consume(enumerator("a", "bc", "def") &> chunk(Some(
+        Iteratee.consume[Array[Byte]]().map(data => Seq("Full-Data" -> new String(data)))
+      )) &> dechunk) must containTheSameElementsAs(Seq(
+        "a", "bc", "def"
+      ))
+    }
+    "dechunk a stream that is not split at chunks" in {
+      consume(enumerator("1\r\na\r\n2\r\nbc\r\n3\r\ndef\r\n0\r\n\r\n") &> dechunk) must containTheSameElementsAs(Seq(
+        "a", "bc", "def"
+      ))
+    }
+    "dechunk a stream that is split at different places to the chunks" in {
+      consume(enumerator(
+        "1\r\na",
+        "\r\n2\r\nbc\r\n3\r\nd",
+        "ef\r\n0\r\n\r",
+        "\n"
+      ) &> dechunk) must containTheSameElementsAs(Seq(
+        "a", "bc", "def"
+      ))
+    }
+  }
+
+  def enumerator(elems: String*) = Enumerator.enumerate(elems.map(_.getBytes))
+  def consume(enumerator: Enumerator[Array[Byte]]) = Await.result(
+    enumerator |>>> Iteratee.getChunks[Array[Byte]],
+    Duration(5, TimeUnit.SECONDS)
+  ).map(new String(_))
+
 }

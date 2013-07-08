@@ -5,14 +5,12 @@ import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.libs.ws.Response
-import play.api.libs.iteratee.{Done, Iteratee, Enumerator}
+import play.api.libs.iteratee._
 import java.net.Socket
-import java.io.{InputStream, OutputStreamWriter}
+import java.io.OutputStreamWriter
 import org.apache.commons.io.IOUtils
 
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
-import scala.annotation.tailrec
-import scala.collection.mutable
 
 object ScalaResultsHandlingSpec extends Specification {
 
@@ -65,8 +63,8 @@ object ScalaResultsHandlingSpec extends Specification {
       response.body must_== "Hello world"
     }
 
-    "revert to chunked encoding when content size exceeds max buffer length" in makeRequest(
-      Results.Ok.stream(Enumerator("abc", "def", "ghi"), StreamingStrategy.Buffer(5))
+    "revert to chunked encoding when enumerator contains more than one item" in makeRequest(
+      SimpleResult(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { response =>
         response.header(CONTENT_LENGTH) must beNone
         response.header(TRANSFER_ENCODING) must beSome("chunked")
@@ -80,7 +78,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "chunk results for chunked streaming strategy" in makeRequest(
-      Results.Ok.stream(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { response =>
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
@@ -88,15 +86,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "close the connection for feed results" in makeRequest(
-      Results.Ok.stream(Enumerator("a", "b", "c"), StreamingStrategy.Simple)
-    ) { response =>
-      response.header(TRANSFER_ENCODING) must beNone
-      response.header(CONTENT_LENGTH) must beNone
-      response.body must_== "abc"
-    }
-
-    "close the connection for simple streaming strategy results" in makeRequest(
-      Results.Ok.stream(Enumerator("a", "b", "c"), StreamingStrategy.Simple)
+      Results.Ok.feed(Enumerator("a", "b", "c"))
     ) { response =>
       response.header(TRANSFER_ENCODING) must beNone
       response.header(CONTENT_LENGTH) must beNone
@@ -159,7 +149,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "close chunked connections when requested" in withServer(
-      Results.Ok.stream(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
       // will timeout if not closed
       makeBasicRequest(port,
@@ -170,7 +160,7 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "keep chunked connections alive by default" in withServer(
-      Results.Ok.stream(Enumerator("a", "b", "c"))
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
       val lines = makeBasicRequest(port,
         "GET / HTTP/1.1",
@@ -188,10 +178,11 @@ object ScalaResultsHandlingSpec extends Specification {
     }
 
     "allow sending trailers" in withServer(
-      Results.Ok.stream(Enumerator("aa", "bb", "cc"), StreamingStrategy.Chunked(Some(
+      SimpleResult(ResponseHeader(200, Map(TRANSFER_ENCODING -> CHUNKED, TRAILER -> "Chunks")),
+        Enumerator("aa", "bb", "cc") &> Enumeratee.map[String](_.getBytes)(ec) &> Results.chunk(Some(
         Iteratee.fold[Array[Byte], Int](0)((count, in) => count + 1)(ec)
-          .map(count => Map("Chunks" -> count.toString))(ec)
-      ))).withHeaders(TRAILER -> "Chunks")
+          .map(count => Seq("Chunks" -> count.toString))(ec)
+      )))
     ) { port =>
       val lines = makeBasicRequest(port,
         "GET / HTTP/1.1",
@@ -206,8 +197,8 @@ object ScalaResultsHandlingSpec extends Specification {
       lines(lines.length - 1) must_== ""
     }
 
-    "fall back to simple streaming when buffer max length is exceeded and protocol is HTTP 1.0" in withServer(
-      Results.Ok.stream(Enumerator("abc", "def", "ghi"), StreamingStrategy.Buffer(5))
+    "fall back to simple streaming when more than one chunk is sent and protocol is HTTP 1.0" in withServer(
+      SimpleResult(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { port =>
       val lines = makeBasicRequest(port,
         "GET / HTTP/1.0",

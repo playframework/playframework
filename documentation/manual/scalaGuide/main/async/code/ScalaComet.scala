@@ -80,6 +80,6 @@ object ScalaCometSpec extends Specification with Controller {
   }
 
   def cometMessages(result: Future[SimpleResult]):Seq[String] = {
-    await(await(result).body |>>> Iteratee.getChunks).map(bytes => new String(bytes))
+    await(await(result).body &> Results.dechunk |>>> Iteratee.getChunks).map(bytes => new String(bytes))
   }
 }

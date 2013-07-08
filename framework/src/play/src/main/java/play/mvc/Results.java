@@ -1293,7 +1293,7 @@ public class Results {
             if(chunks == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(chunks.enumerator, play.core.j.JavaResults.chunkedStrategy(), chunks.writable);
+            wrappedResult = status.chunked(chunks.enumerator, chunks.writable);
         }
 
         public Status(play.api.mvc.Results.Status status, byte[] content) {
@@ -1325,9 +1325,8 @@ public class Results {
             if(content == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(
+            wrappedResult = status.chunked(
                     play.core.j.JavaResults.chunked(content, chunkSize),
-                    play.core.j.JavaResults.chunkedStrategy(),
                     play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
                     );
         }
@@ -1336,9 +1335,8 @@ public class Results {
             if(content == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(
+            wrappedResult = status.chunked(
                     play.core.j.JavaResults.chunked(content, chunkSize),
-                    play.core.j.JavaResults.chunkedStrategy(),
                     play.core.j.JavaResults.writeBytes()
                     );
         }
