@@ -76,7 +76,7 @@ http {
 }
 ```
 
-> *Note* Make shure you are using version > 1.2 of Nginx otherwise chunked responses won't work properly.
+> *Note* Make sure you are using version > 1.2 of Nginx otherwise chunked responses won't work properly.
 
 ## Set-up with Apache
 

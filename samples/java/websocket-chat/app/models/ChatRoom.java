@@ -109,7 +109,7 @@ public class ChatRoom extends UntypedActor {
             
             members.remove(quit.username);
             
-            notifyAll("quit", quit.username, "has leaved the room");
+            notifyAll("quit", quit.username, "has left the room");
         
         } else {
             unhandled(message);
