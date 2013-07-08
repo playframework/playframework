@@ -9,11 +9,11 @@ package play.templates {
 
   object Hash {
 
-    def apply(bytes: Array[Byte]): String = {
+    def apply(bytes: Array[Byte], imports: String): String = {
       import java.security.MessageDigest
       val digest = MessageDigest.getInstance("SHA-1")
       digest.reset()
-      digest.update(bytes)
+      digest.update(bytes ++ imports.getBytes)
       digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft("") { _ + _ }
     }
 
@@ -106,10 +106,10 @@ package play.templates {
 
     def content = Path(file).string
 
-    def needRecompilation: Boolean = (!file.exists ||
+    def needRecompilation(imports: String): Boolean = (!file.exists ||
       // A generated source already exist but
       source.isDefined && ((source.get.lastModified > file.lastModified) || // the source has been modified
-        (meta("HASH") != Hash(Path(source.get).byteArray))) // or the hash don't match
+        (meta("HASH") != Hash(Path(source.get).byteArray, imports))) // or the hash don't match
     )
 
     def toSourcePosition(marker: Int): (Int, Int) = {
@@ -173,7 +173,7 @@ package play.templates {
     def compile(source: File, sourceDirectory: File, generatedDirectory: File, formatterType: String, additionalImports: String = "") = {
       val resultType = formatterType + ".Appendable"
       val (templateName, generatedSource) = generatedFile(source, sourceDirectory, generatedDirectory)
-      if (generatedSource.needRecompilation) {
+      if (generatedSource.needRecompilation(additionalImports)) {
         val generated = parseAndGenerateCode(templateName, Path(source).byteArray, source.getAbsolutePath, resultType, formatterType, additionalImports)
 
         Path(generatedSource.file).write(generated.toString)
@@ -562,7 +562,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
     def generateFinalTemplate(absolutePath: String, contents: Array[Byte], packageName: String, name: String, root: Template, resultType: String, formatterType: String, additionalImports: String): String = {
       val generated = generateCode(packageName, name, root, resultType, formatterType, additionalImports)
 
-      Source.finalSource(absolutePath, contents, generated)
+      Source.finalSource(absolutePath, contents, generated, Hash(contents, additionalImports))
     }
 
     object TemplateAsFunctionCompiler {
@@ -720,7 +720,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
     import scala.collection.mutable.ListBuffer
 
-    def finalSource(absolutePath: String, contents: Array[Byte], generatedTokens: Seq[Any]): String = {
+    def finalSource(absolutePath: String, contents: Array[Byte], generatedTokens: Seq[Any], hash: String): String = {
       val scalaCode = new StringBuilder
       val positions = ListBuffer.empty[(Int, Int)]
       val lines = ListBuffer.empty[(Int, Int)]
@@ -730,7 +730,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                     -- GENERATED --
                     DATE: """ + new java.util.Date + """
                     SOURCE: """ + absolutePath.replace(File.separator, "/") + """
-                    HASH: """ + Hash(contents) + """
+                    HASH: """ + hash + """
                     MATRIX: """ + positions.map { pos =>
         pos._1 + "->" + pos._2
       }.mkString("|") + """
@@ -740,11 +740,6 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
                     -- GENERATED --
                 */
             """
-    }
-
-    @deprecated("use finalSource with 3 parameters instead", "Play 2.1")
-    def finalSource(template: File, generatedTokens: Seq[Any]): String = {
-      finalSource(template.getAbsolutePath, Path(template).byteArray, generatedTokens)
     }
 
     private def serialize(parts: Seq[Any], source: StringBuilder, positions: ListBuffer[(Int, Int)], lines: ListBuffer[(Int, Int)]) {
