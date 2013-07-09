@@ -41,7 +41,7 @@ object WS {
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
-  val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
+  private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
   /**
    * resets the underlying AsyncHttpClient
