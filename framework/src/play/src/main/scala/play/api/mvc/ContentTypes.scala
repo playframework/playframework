@@ -643,44 +643,44 @@ trait BodyParsers {
       case class FileInfo(partName: String, fileName: String, contentType: Option[String])
 
       object FileInfoMatcher {
-        
-          private def split(str: String) = {
-              var buffer = new StringBuffer
-              var escape: Boolean = false
-              var quote: Boolean = false
-              val result = new ListBuffer[String]
 
-              def addPart() = {
-                result += buffer.toString().trim
-                buffer = new StringBuffer
-              }
-              
-              str foreach { c =>
-                c match {
-                  case '\\' =>
-                    buffer.append(c)
-                    escape = true
-                  case '"' =>
-                    buffer.append(c)
-                    if (!escape)
-                      quote = !quote
-                    escape = false  
-                  case ';' =>
-                    if (!quote) {
-                      addPart
-                    } else {
-                      buffer.append(c)
-                    }
-                    escape = false
-                  case _ =>
-                    buffer.append(c)
-                    escape = false
-                  }
-              }
+        private def split(str: String) = {
+          var buffer = new StringBuffer
+          var escape: Boolean = false
+          var quote: Boolean = false
+          val result = new ListBuffer[String]
 
-              addPart
-              result.toList
+          def addPart() = {
+            result += buffer.toString().trim
+            buffer = new StringBuffer
           }
+
+          str foreach { c =>
+            c match {
+              case '\\' =>
+                buffer.append(c)
+                escape = true
+              case '"' =>
+                buffer.append(c)
+                if (!escape)
+                  quote = !quote
+                escape = false
+              case ';' =>
+                if (!quote) {
+                  addPart
+                } else {
+                  buffer.append(c)
+                }
+                escape = false
+              case _ =>
+                buffer.append(c)
+                escape = false
+            }
+          }
+
+          addPart
+          result.toList
+        }
 
         def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
 
