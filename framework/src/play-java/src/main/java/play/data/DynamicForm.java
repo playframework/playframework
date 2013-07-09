@@ -107,7 +107,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param key field name
      * @return the field - even if the field does not exist you get a field
      */
-    public Field field(String key) {
+    public Form.Field field(String key) {
+        // #1310: We specify inner class as Form.Field rather than Field because otherwise,
+        // javadoc cannot find the static inner class.
         Field field = super.field(asDynamicKey(key));
         return new Field(this, key, field.constraints(), field.format(), field.errors(),
             field.value() == null ? get(key) : field.value()
