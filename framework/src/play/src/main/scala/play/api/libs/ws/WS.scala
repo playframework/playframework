@@ -46,7 +46,7 @@ object WS {
   /**
    * resets the underlying AsyncHttpClient
    */
-  def resetClient(): Unit = {
+  private[play] def resetClient(): Unit = {
     val oldClient = clientHolder.getAndSet(None)
     oldClient.map { clientRef =>
       clientRef.close()
