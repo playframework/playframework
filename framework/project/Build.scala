@@ -255,6 +255,11 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := playCacheDeps)
     .dependsOn(PlayProject)
 
+  // Bootstrap contains templates
+  lazy val PlayBootstrapProject = PlayRuntimeProject("Play-Bootstrap", "play-bootstrap")
+    .settings(libraryDependencies := playCacheDeps)
+    .dependsOn(PlayProject, TemplatesProject)
+
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
@@ -281,6 +286,7 @@ object PlayBuild extends Build {
     JsonProject,
     RoutesCompilerProject,
     PlayCacheProject,
+    PlayBootstrapProject,
     PlayJdbcProject,
     PlayJavaProject,
     PlayJavaJdbcProject,
