@@ -1,5 +1,5 @@
 # Deploying to Clever Cloud
-[Clever Cloud](http://www.clever-cloud.com/en) is a Platform as a Service solution. You can deploy on it Scala, Java, PHP, Python and Node.js applications. Its main particularitiy is that it supports **automatic vertical and horizontal scaling**!
+[Clever Cloud](http://www.clever-cloud.com/en) is a Platform as a Service solution. You can deploy on it Scala, Java, PHP, Python and Node.js applications. Its main particularity is that it supports **automatic vertical and horizontal scaling**.
 
 Clever Cloud supports Play! 2 applications natively. The present guide explains how to deploy your application on Clever Cloud.
 
@@ -9,7 +9,7 @@ Create your Play! application on Clever Cloud [dashboard](http://console.clever-
 
 ## Deploy your application
 
-To deploy your application on Clever Cloud, just use git to push in the application remote repository.
+To deploy your application on Clever Cloud, just use git to push your code to the application remote repository.
 
 
 ```bash
@@ -17,16 +17,16 @@ $ git remote add <your-remote-name> <your-git-deployment-url>
 $ git push <your-remote-name> master
 ```
 
-**Important tip: do not forget to push in master branch.**
+**Important tip: do not forget to push to the remote master branch.**
 
 If you work in a different branch, just use: 
+
 ```bash
 $ git remote add <your-remote-name> <your-git-deployment-url>
 $ git push <your-remote-name> <your-branch-name>:master
 ```
-<br/>
-<br/>
 
+<br/>
 Clever Cloud will run `sbt update stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but will be cached for future deployments).
 
 
@@ -39,11 +39,12 @@ You can check the deployment of your application by visiting the ***logs*** sect
 You can custom your application with a `clevercloud/play.json` file.
 
 The file must contain the following fields:
-```
+
+```javascript
 {
-   "deploy":{
-	   "goal":<string>
-	}
+    "deploy": {
+        "goal": <string>
+    }
 }
 ```
 
