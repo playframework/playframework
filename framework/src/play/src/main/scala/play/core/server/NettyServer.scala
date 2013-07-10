@@ -143,9 +143,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   mode match {
     case Mode.Test =>
     case _ => {
-      Play.logger.info("bwb Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
+      Play.logger.info("Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
       HTTPS.foreach { https =>
-        Play.logger.info("bwb Listening for HTTPS on port %s".format(https._2.getLocalAddress))
+        Play.logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
     }
   }
