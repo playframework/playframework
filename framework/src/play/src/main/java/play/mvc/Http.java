@@ -202,14 +202,14 @@ public class Http {
          */
         public abstract String uri();
 
-      /**
-       * The HTTP Method.
-       */
-      public abstract String method();
+        /**
+         * The HTTP Method.
+         */
+        public abstract String method();
 
-       /**
-        * The HTTP version.
-        */
+        /**
+         * The HTTP version.
+         */
         public abstract String version();
 
         /**
@@ -220,6 +220,11 @@ public class Http {
          * application configuration file.
          */
         public abstract String remoteAddress();
+
+        /**
+         * Is this an HTTPS connection?
+         */
+        public abstract boolean isHttps();
 
         /**
          * The request host.
