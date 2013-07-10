@@ -97,6 +97,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             def headers = rHeaders
             lazy val remoteAddress = rRemoteAddress
             def username = None
+            def isHttps : Boolean = ctx.getPipeline.get(classOf[SslHandler]) != null
           }
           untaggedRequestHeader
         }
