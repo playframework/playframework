@@ -37,30 +37,30 @@ import play.api._
  *
  * <pre>
  *   &lt;form action="/" method="POST" &gt;
-
- &lt;div class="control-group  " id="username_field"&gt;
-     &lt;label class="control-label" for="username"&gt;username&lt;/label&gt;
-     &lt;div class="controls"&gt;
-
-     &lt;input type="text" id="username" name="username" value="" &gt;
-
-         &lt;span class="help-inline"&gt;&lt;/span&gt;
-         &lt;p class="help-block"&gt;&lt;/p&gt;
-     &lt;/div&gt;
- &lt;/div&gt;
-
- &lt;div class="control-group  " id="password_field"&gt;
-     &lt;label class="control-label" for="password"&gt;password&lt;/label&gt;
-     &lt;div class="controls"&gt;
-
-     &lt;input type="password" id="password" name="password" &gt;
-
-         &lt;span class="help-inline"&gt;&lt;/span&gt;
-         &lt;p class="help-block"&gt;Required&lt;/p&gt;
-     &lt;/div&gt;
- &lt;/div&gt;
-
- &lt;/form&gt;
+ *
+ * &lt;div class="control-group  " id="username_field"&gt;
+ * &lt;label class="control-label" for="username"&gt;username&lt;/label&gt;
+ * &lt;div class="controls"&gt;
+ *
+ * &lt;input type="text" id="username" name="username" value="" &gt;
+ *
+ * &lt;span class="help-inline"&gt;&lt;/span&gt;
+ * &lt;p class="help-block"&gt;&lt;/p&gt;
+ * &lt;/div&gt;
+ * &lt;/div&gt;
+ *
+ * &lt;div class="control-group  " id="password_field"&gt;
+ * &lt;label class="control-label" for="password"&gt;password&lt;/label&gt;
+ * &lt;div class="controls"&gt;
+ *
+ * &lt;input type="password" id="password" name="password" &gt;
+ *
+ * &lt;span class="help-inline"&gt;&lt;/span&gt;
+ * &lt;p class="help-block"&gt;Required&lt;/p&gt;
+ * &lt;/div&gt;
+ * &lt;/div&gt;
+ *
+ * &lt;/form&gt;
  * </pre>
  *
  * as the output.
@@ -69,15 +69,15 @@ import play.api._
  */
 class TwitterBootstrapPlugin(app: Application) extends Plugin {
 
-   val logger = Logger("twitterbootstrap")
+  val logger = Logger("twitterbootstrap")
 
-   override val enabled = true
+  override val enabled = true
 
-   override def onStart() {
-     logger.debug("twitterbootstrap started.")
-   }
+  override def onStart() {
+    logger.debug("twitterbootstrap started.")
+  }
 
-   override def onStop() {
-     logger.debug("twitterbootstrap stopped.")
-   }
+  override def onStop() {
+    logger.debug("twitterbootstrap stopped.")
+  }
 }
