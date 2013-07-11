@@ -88,22 +88,21 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     )
   }
 
-  val makeBashScript = TaskKey[File]("make-bash-script")
   val makeBashScriptTask = (playDistLibs) map {
     libs =>
-      val script = java.io.File.createTempFile("start", "")
-      val classPath = 
+      val script: File = java.io.File.createTempFile("start", "")
+      val classPath =
         (for {
           (file, name) <- libs
-        } yield "${basedir}/"+name).mkString("",":","")
+        } yield "${basedir}/" + name).mkString("", ":", "")
 
       IO.write(script,
         """#!/usr/bin/env sh
-basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+basedir=$( cd "$( dirname "$0" )/.." && pwd )
 classpath=""" + classPath + """
-exec java $* -cp $classpath -Dconfig.file=$basedir/conf/application.conf play.core.server.NettyServer $basedir
+exec java $* -cp "$classpath" -Dconfig.file="$basedir"/conf/application.conf play.core.server.NettyServer "$basedir"
                             """)
-      script
+      Some(script): Option[File]
   }
 
   // ----- Post compile (need to be refactored and fully configurable)

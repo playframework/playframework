@@ -197,47 +197,46 @@ trait PlaySettings {
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
 
-    playDistLibs <<= (dependencyClasspath in Runtime, Keys.packageBin in Compile) map {
+    playDistLibs <<= (dependencyClasspath in Runtime, packageBin in Compile) map {
       (dependencies: Classpath, projectJar: File) =>
-        Seq(projectJar -> ("lib/" +projectJar.getName)) ++
-        dependencies.filter(_.data.ext == "jar").map {
-          dependency: Attributed[File] =>
+        Seq(projectJar -> ("lib/" + projectJar.getName)) ++
+          dependencies.filter(_.data.ext == "jar").map {
+            dependency: Attributed[File] =>
 
-            val filename = for {
-              module <- dependency.get(AttributeKey[ModuleID]("module-id"))
-              artifact <- dependency.get(AttributeKey[Artifact]("artifact"))
-            } yield {
-              module.organization + "." +
-                module.name + "-" +
-                Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") +
-                module.revision + ".jar"
-            }
-            val path = "lib/" + filename.getOrElse(dependency.data.getName)
-            dependency.data -> path
-        }
+              val filename = for {
+                module <- dependency.get(AttributeKey[ModuleID]("module-id"))
+                artifact <- dependency.get(AttributeKey[Artifact]("artifact"))
+              } yield {
+                module.organization + "." +
+                  module.name + "-" +
+                  Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") +
+                  module.revision + ".jar"
+              }
+              val path = "lib/" + filename.getOrElse(dependency.data.getName)
+              dependency.data -> path
+          }
     },
 
-    makeBashScript <<= makeBashScriptTask,
-
-    mappings in Universal <+= (makeBashScript, normalizedName) map {
-      (script, scriptName) => script -> ("bin/" + scriptName)
-    },
+    // FIXME: This is not kicking in and producing the bin folder now... was ok before when we declared our own key
+    makeBashScript in Universal <<= makeBashScriptTask,
 
     mappings in Universal <++= (confDirectory) map {
       confDirectory: File =>
-        val pathFinder = confDirectory.descendantsExcept("*", "routes")
+        val confDirectoryLen = confDirectory.getCanonicalPath.length
+        val pathFinder = confDirectory ** ("*" -- "routes")
         pathFinder.get map {
           confFile: File =>
-            confFile -> ("conf/" + confFile.getName)
+            confFile -> ("conf/" + confFile.getCanonicalPath.substring(confDirectoryLen))
         }
     },
 
     mappings in Universal <++= (target in Compile in doc) map {
       docDirectory: File =>
+        val docDirectoryLen = docDirectory.getCanonicalPath.length
         val pathFinder = docDirectory ** "*"
         pathFinder.get map {
           docFile: File =>
-            docFile -> ("share/doc/api/" + docFile.getName)
+            docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
         }
     },
 

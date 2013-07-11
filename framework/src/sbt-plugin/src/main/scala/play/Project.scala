@@ -36,7 +36,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
 
     lazy val playSettings =
       packagerSettings ++
-      Project.defaultSettings ++
+        Project.defaultSettings ++
         eclipseCommandSettings(mainLang) ++
         intellijCommandSettings ++
         Seq(testListeners += testListener) ++
