@@ -217,8 +217,9 @@ trait PlaySettings {
           }
     },
 
-    // FIXME: This is not kicking in and producing the bin folder now... was ok before when we declared our own key
-    makeBashScript in Universal <<= makeBashScriptTask,
+    mainClass in Compile := Some("play.core.server.NettyServer"),
+
+    makeBashScript <<= makeBashScriptTask,
 
     mappings in Universal <++= (confDirectory) map {
       confDirectory: File =>
@@ -230,6 +231,8 @@ trait PlaySettings {
         }
     },
 
+    // Note: This will *NOT* ensure docs are compiled before running stage.
+    // TO ensure docs are run, we want: `doc in Compile` rather than `target in Compile in doc`.
     mappings in Universal <++= (target in Compile in doc) map {
       docDirectory: File =>
         val docDirectoryLen = docDirectory.getCanonicalPath.length

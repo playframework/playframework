@@ -88,7 +88,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     )
   }
 
-  val makeBashScriptTask = (playDistLibs) map {
+  val makeBashScriptTask: Project.Initialize[Task[Option[File]]] = (playDistLibs) map {
     libs =>
       val script: File = java.io.File.createTempFile("start", "")
       val classPath =
@@ -102,7 +102,9 @@ basedir=$( cd "$( dirname "$0" )/.." && pwd )
 classpath=""" + classPath + """
 exec java $* -cp "$classpath" -Dconfig.file="$basedir"/conf/application.conf play.core.server.NettyServer "$basedir"
                             """)
-      Some(script): Option[File]
+      // This is needed so the packaging plugin preserves execution.
+      script.setExecutable(true)
+      Some(script)
   }
 
   // ----- Post compile (need to be refactored and fully configurable)
