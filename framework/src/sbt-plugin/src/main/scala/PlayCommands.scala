@@ -92,9 +92,10 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   val makeBashScriptTask = (playDistLibs) map {
     libs =>
       val script = java.io.File.createTempFile("start", "")
-      val classPath = libs.map {
-        case jar: File => "${basedir}/lib/" + jar.getName()
-      }.mkString("", ":", "")
+      val classPath = 
+        (for {
+          (file, name) <- libs
+        } yield "${basedir}/"+name).mkString("",":","")
 
       IO.write(script,
         """#!/usr/bin/env sh

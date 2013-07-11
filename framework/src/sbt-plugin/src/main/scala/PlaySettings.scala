@@ -197,10 +197,10 @@ trait PlaySettings {
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
 
-    playDistLibs <<= (dependencyClasspath in Runtime) map {
-      dependencies: Classpath =>
-
-        dependencies filter(_.data.ext == "jar") map {
+    playDistLibs <<= (dependencyClasspath in Runtime, Keys.packageBin in Compile) map {
+      (dependencies: Classpath, projectJar: File) =>
+        Seq(projectJar -> ("lib/" +projectJar.getName)) ++
+        dependencies.filter(_.data.ext == "jar").map {
           dependency: Attributed[File] =>
 
             val filename = for {
