@@ -10,7 +10,8 @@ import java.io.{ StringWriter, PrintWriter, File }
 import java.net.InetAddress
 import scala.collection.mutable.ListBuffer
 import scala.xml.{ Elem, Node, XML }
-import sbt.testing.{ Event => TEvent, Status => TStatus, Logger => TLogger }
+import sbt.testing.{ Event => TEvent, Status => TStatus }
+import test.SbtOptionalThrowable
 
 import play.console.Colors
 
@@ -95,36 +96,6 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
 
       val (errors, failures, tests) = count()
 
-      val result = <testsuite hostname={ hostname } name={ name } tests={ tests + "" } errors={ errors + "" } failures={ failures + "" } time={ (duration / 1000.0).toString }>
-                     { properties }
-                     {
-                       for (e <- events) yield <testcase classname={ name } name={ e.fullyQualifiedName() } time={ "0.0" }>
-                                                 {
-                                                   var trace: String = if (e.throwable != null) {
-                                                     val stringWriter = new StringWriter()
-                                                     val writer = new PrintWriter(stringWriter)
-                                                     e.throwable.printStackTrace(writer)
-                                                     writer.flush()
-                                                     stringWriter.toString
-                                                   } else {
-                                                     ""
-                                                   }
-                                                   e.status match {
-                                                     case TStatus.Error if (e.throwable != null) => <error message={ e.throwable.getMessage } type={ e.throwable.getClass.getName }>{ trace }</error>
-                                                     case TStatus.Error => <error message={ "No Exception or message provided" }/>
-                                                     case TStatus.Failure if (e.throwable != null) => <failure message={ e.throwable.getMessage } type={ e.throwable.getClass.getName }>{ trace }</failure>
-                                                     case TStatus.Failure => <failure message={ "No Exception or message provided" }/>
-                                                     case TStatus.Skipped => <skipped/>
-                                                     case _ => {}
-                                                   }
-                                                 }
-                                               </testcase>
-
-                     }
-                     <system-out><![CDATA[]]></system-out>
-                     <system-err><![CDATA[]]></system-err>
-                   </testsuite>
-
       if (name.endsWith("Test")) {
         logger.info("")
         logger.info("")
@@ -133,8 +104,57 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
         logger.info(Colors.blue(tests + " tests, " + failures + " failures, " + errors + " errors"))
       }
 
-      result
+      <testsuite hostname={ hostname } name={ name } tests={ tests.toString } errors={ errors.toString } failures={ failures.toString } time={ (duration / 1000.0).toString }>
+        { properties }
+        { events.map(e => formatTestCase(name, e)) }
+        <system-out>
+          <![CDATA[]]>
+        </system-out>
+        <system-err>
+          <![CDATA[]]>
+        </system-err>
+      </testsuite>
+
     }
+  }
+
+  def formatTestCase(className: String, event: TEvent) = {
+    val trace = event.throwable match {
+      case SbtOptionalThrowable(throwable) => {
+        val stringWriter = new StringWriter()
+        val writer = new PrintWriter(stringWriter)
+        throwable.printStackTrace(writer)
+        writer.flush()
+        stringWriter.toString
+      }
+      case _ => ""
+    }
+    <testcase classname={ className } name={ event.fullyQualifiedName() } time={ "0.0" }>
+      {
+        (event.status, event.throwable) match {
+          case (TStatus.Error, SbtOptionalThrowable(throwable)) =>
+            <error message={ throwable.getMessage } type={ throwable.getClass.getName }>
+              { trace }
+            </error>
+
+          case (TStatus.Error, _) =>
+            <error message={ "No Exception or message provided" }/>
+
+          case (TStatus.Failure, SbtOptionalThrowable(throwable)) =>
+            <failure message={ throwable.getMessage } type={ throwable.getClass.getName }>
+              { trace }
+            </failure>
+
+          case (TStatus.Failure, _) =>
+            <failure message={ "No Exception or message provided" }/>
+
+          case (TStatus.Skipped, _) =>
+            <skipped/>
+
+          case _ => {}
+        }
+      }
+    </testcase>
   }
 
   /**The currently running test suite*/
@@ -199,4 +219,5 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
 
   /**Returns None*/
   override def contentLogger(test: TestDefinition): Option[ContentLogger] = None
+
 }

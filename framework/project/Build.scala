@@ -25,11 +25,11 @@ object BuildSettings {
   val previousVersion = "2.1.0"
   val buildScalaVersion = propOr("scala.version", "2.10.0")
   // TODO - Try to compute this from SBT... or not.
-  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.1")
+  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.2")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
-  val buildSbtVersion = propOr("play.sbt.version", "0.13.0-M2")
+  val buildSbtVersion = propOr("play.sbt.version", "0.13.0-RC1")
   val buildSbtMajorVersion = "0.13"
-  val buildSbtVersionBinaryCompatible = "0.13.0-M2" // Maybe later, doesn't work on milestoens: CrossVersion.binarySbtVersion(buildSbtVersion)
+  val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
   val sourceCodeBranch = propOr("git.branch", "master")
 
@@ -73,7 +73,7 @@ object BuildSettings {
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(mimaDefaultSettings: _*)
-      .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
+      .settings(playScalariformSettings: _*)
       .settings(playRuntimeSettings(name): _*)
   }
 
@@ -88,7 +88,7 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
-      .settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
+      .settings(playScalariformSettings: _*)
       .settings(
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
@@ -97,6 +97,14 @@ object BuildSettings {
         publishArtifact in (Compile, packageSrc) := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
 
+  }
+
+  def playScalariformSettings = {
+    import com.typesafe.sbt.SbtScalariform._
+    import scalariform.formatter.preferences._
+
+    defaultScalariformSettings :+
+      (ScalariformKeys.preferences := FormattingPreferences())
   }
 
 }
@@ -225,7 +233,7 @@ object PlayBuild extends Build {
       publishMavenStyle := false,
       libraryDependencies := sbtDependencies,
       // Remove once there are releases for IDE plugins against 0.13
-      resolvers ++= Seq(sonatypeSnapshots, typesafeIvySnapshots),
+      resolvers += sonatypeSnapshots,
       sbtVersion in GlobalScope := buildSbtVersion,
       sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
       sbtDependency <<= sbtDependency { dep =>

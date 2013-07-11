@@ -147,8 +147,9 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0-SNAPSHOT" extra("sbtVersion" -> BuildSettings.buildSbtVersion, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.github.mpeltonen" % "sbt-idea" % "1.5.0-SNAPSHOT" extra("sbtVersion" -> BuildSettings.buildSbtVersion, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    // Once we upgrade to SBT 0.13.0, we can use the build version of SBT here
+    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.github.mpeltonen" % "sbt-idea" % "1.5.0-SNAPSHOT" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
 
     "org.specs2" %% "specs2" % "1.12.3" % "test" exclude("javax.transaction", "jta")
   )

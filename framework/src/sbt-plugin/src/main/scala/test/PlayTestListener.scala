@@ -1,6 +1,7 @@
 package sbt
 
 import sbt.testing.{ Event => TEvent, Status => TStatus }
+import test.SbtOptionalThrowable
 
 private[sbt] class PlayTestListener extends TestsListener {
 
@@ -57,7 +58,7 @@ private[sbt] class PlayTestListener extends TestsListener {
               te.status match {
                 case TStatus.Success => playReport("test case", "finished, result" -> event.result.get.toString)
                 case TStatus.Error | TStatus.Failure =>
-                  val e = Option(te.throwable).getOrElse(new RuntimeException("some unexpected error occurred during test execution"))
+                  val e = SbtOptionalThrowable.unapply(te.throwable).getOrElse(new RuntimeException("some unexpected error occurred during test execution"))
                   playReport("test", "failed" -> te.fullyQualifiedName, "details" -> (e.toString +
                     "\n" + e.getStackTrace.mkString("\n at ", "\n at ", "")))
                 case TStatus.Skipped =>
