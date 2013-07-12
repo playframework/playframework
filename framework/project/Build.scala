@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifact
+import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
 
 object BuildSettings {
   import Resolvers._
@@ -73,7 +74,7 @@ object BuildSettings {
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(mimaDefaultSettings: _*)
-      .settings(playScalariformSettings: _*)
+      .settings(defaultScalariformSettings: _*)
       .settings(playRuntimeSettings(name): _*)
   }
 
@@ -88,7 +89,7 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
-      .settings(playScalariformSettings: _*)
+      .settings(defaultScalariformSettings: _*)
       .settings(
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
@@ -98,15 +99,6 @@ object BuildSettings {
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
 
   }
-
-  def playScalariformSettings = {
-    import com.typesafe.sbt.SbtScalariform._
-    import scalariform.formatter.preferences._
-
-    defaultScalariformSettings :+
-      (ScalariformKeys.preferences := FormattingPreferences())
-  }
-
 }
 
 object Resolvers {
