@@ -265,7 +265,8 @@ object PlayBuild extends Build {
         publishTo := Some(playRepository),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked", "-feature"),
         javacOptions ++= Seq("-source","1.6","-target","1.6", "-encoding", "UTF-8"),
-        javacOptions in doc := Seq("-source", "1.6")
+        javacOptions in doc := Seq("-source", "1.6"),
+        parallelExecution in Test := false
       )
     ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
       .dependsOn(PlayProject, PlayTestProject)
