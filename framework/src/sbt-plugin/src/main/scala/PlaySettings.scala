@@ -197,29 +197,7 @@ trait PlaySettings {
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
 
-    playDistLibs <<= (dependencyClasspath in Runtime, packageBin in Compile) map {
-      (dependencies: Classpath, projectJar: File) =>
-        Seq(projectJar -> ("lib/" + projectJar.getName)) ++
-          dependencies.filter(_.data.ext == "jar").map {
-            dependency: Attributed[File] =>
-
-              val filename = for {
-                module <- dependency.get(AttributeKey[ModuleID]("module-id"))
-                artifact <- dependency.get(AttributeKey[Artifact]("artifact"))
-              } yield {
-                module.organization + "." +
-                  module.name + "-" +
-                  Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") +
-                  module.revision + ".jar"
-              }
-              val path = "lib/" + filename.getOrElse(dependency.data.getName)
-              dependency.data -> path
-          }
-    },
-
     mainClass in Compile := Some("play.core.server.NettyServer"),
-
-    makeBashScript <<= makeBashScriptTask,
 
     mappings in Universal <++= (confDirectory) map {
       confDirectory: File =>
@@ -231,9 +209,7 @@ trait PlaySettings {
         }
     },
 
-    // Note: This will *NOT* ensure docs are compiled before running stage.
-    // TO ensure docs are run, we want: `doc in Compile` rather than `target in Compile in doc`.
-    mappings in Universal <++= (target in Compile in doc) map {
+    mappings in Universal <++= (doc in Compile) map {
       docDirectory: File =>
         val docDirectoryLen = docDirectory.getCanonicalPath.length
         val pathFinder = docDirectory ** "*"
@@ -242,8 +218,6 @@ trait PlaySettings {
             docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
         }
     },
-
-    mappings in Universal <++= playDistLibs,
 
     mappings in Universal <+= (baseDirectory) map {
       baseDirectory: File =>

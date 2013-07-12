@@ -117,5 +117,4 @@ trait PlayInternalKeys {
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val buildRequire = TaskKey[Seq[(File, File)]]("play-build-require-assets")
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
-  val playDistLibs = TaskKey[Seq[(File, String)]]("play-dist-libs")
 }
