@@ -34,35 +34,27 @@ $ play start
 
 ## Using the stage task
 
-The problem with the `start` command is that it starts the application interactively, which means that human interaction is needed, and `Ctrl+D` is required to detach the process. This solution is not really convenient for automated deployment.
+The `start` command starts the application interactively, which means that human interaction is needed, and `Ctrl+D` is required to detach the process. This solution is not really convenient for automated deployment.
 
 You can use the `stage` task to prepare your application to be run in place. The typical command for preparing a project to be run in place is:
 
 ```bash
-$ play clean compile stage
+$ play clean stage
 ```
->Note that Play does not support Windows in production mode, therefore `stage` and `start` won't work under Windows.
-
 [[images/stage.png]]
 
-This cleans and compiles your application, retrieves the required dependencies and copies them to the `target/staged` directory. It also creates a `target/start` script that runs the Play server.
+This cleans and compiles your application, retrieves the required dependencies and copies them to the `target/universal/staged` directory. It also creates a `bin/<start>` script where `<start>` is the project's name. The script runs the Play server on Unix style systems and there is also a corresponding `bat` file for Windows.
 
-You can start your application using:
+For example to start an application of the project 'foo' from the project folder you can:
 
 ```bash
-$ target/start
+$ target/universal/stage/bin/foo
 ```
 
 You can also specify a different configuration file for a production environment, from the command line:
 
 ```bash
-$ target/start -Dconfig.file=/full/path/to/conf/application-prod.conf
+$ target/universal/stage/bin/foo -Dconfig.file=/full/path/to/conf/application-prod.conf
 ```
 
-The generated `start` script is very simple - in fact, you could even execute the `java` command directly.
-
-If you don’t have Play installed on the server, you can use sbt to do the same thing:
-
-```bash
-$ sbt clean compile stage
-```
+For a full description of usage invoke the start script with a "-h" option.

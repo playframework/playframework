@@ -1,7 +1,6 @@
 target/
 logs/
 repository/
-dist/
 *.lock
 *.komodoproject
 .DS_Store

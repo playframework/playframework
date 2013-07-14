@@ -13,10 +13,8 @@ object ApplicationBuild extends Build {
     anorm,
     cache)
 
-  val distTestSettings = DistTest.makeSettings(appName, appVersion)
-
   val main = play.Project(appName, appVersion, appDependencies).settings(
                   requireJs += "main.js"
-             ).settings(distTestSettings: _*)
+             )
 }
             

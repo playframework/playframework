@@ -1,0 +1,11 @@
+# Build the distribution and ensure that the files we expect are indeed there
+> dist-and-unzip
+$ exists target/dist/README
+$ exists target/dist/SomeFile.txt
+$ exists target/dist/SomeFolder/SomeOtherFile.txt
+> check-start-script
+$ exists target/dist/conf/application.conf
+-$ exists target/dist/conf/routes
+$ exists target/dist/lib
+$ exists target/dist/share/doc/api
+
