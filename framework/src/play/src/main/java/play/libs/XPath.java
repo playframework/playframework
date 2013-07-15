@@ -1,16 +1,41 @@
 package play.libs;
 
+import java.util.AbstractList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.*;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+
+import org.apache.ws.commons.util.NamespaceContextImpl;
+
+
 
 /**
  * XPath for parsing
  */
 public class XPath {
+
+    private static class NodeListList extends AbstractList<Node> {
+        private final NodeList nodeList;
+
+        private NodeListList(NodeList nodeList) {
+            this.nodeList = nodeList;
+        }
+
+        @Override
+        public Node get(int index) {
+            return nodeList.item(index);
+        }
+
+        @Override
+        public int size() {
+            return nodeList.getLength();
+        }
+    }
 
     /**
      * Select all nodes that are selected by this XPath expression. If multiple nodes match,
@@ -23,12 +48,22 @@ public class XPath {
      */
     @SuppressWarnings("unchecked")
     public static List<Node> selectNodes(String path, Object node, Map<String, String> namespaces) {
-        /*try {
-            return getDOMXPath(path, namespaces).selectNodes(node);
+        try {
+            XPathFactory factory = XPathFactory.newInstance();
+            javax.xml.xpath.XPath xpath = factory.newXPath();
+            
+            if (namespaces != null) {
+                NamespaceContextImpl nsContext = new NamespaceContextImpl();
+                for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
+                    nsContext.startPrefixMapping(namespace.getKey(), namespace.getValue());                    
+                }
+                xpath.setNamespaceContext(nsContext);
+            }
+
+            return new NodeListList((NodeList) xpath.evaluate(path, node, XPathConstants.NODESET));
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }*/
-        return null;
+        }
     }
 
     /**
@@ -39,26 +74,30 @@ public class XPath {
      * @return
      */
     public static List<Node> selectNodes(String path, Object node) {
-        /*return selectNodes(path, node, null);*/
-        return null;
+        return selectNodes(path, node, null);
     }
 
     public static Node selectNode(String path, Object node, Map<String, String> namespaces) {
-        /*try {
-            List<Node> nodes = selectNodes(path, node, namespaces);
-            if (nodes.size() == 0) {
-                return null;
+        try {
+            XPathFactory factory = XPathFactory.newInstance();
+            javax.xml.xpath.XPath xpath = factory.newXPath();
+            
+            if (namespaces != null) {
+                NamespaceContextImpl nsContext = new NamespaceContextImpl();
+                for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
+                    nsContext.startPrefixMapping(namespace.getKey(), namespace.getValue());                    
+                }
+                xpath.setNamespaceContext(nsContext);
             }
-            return nodes.get(0);
+
+            return (Node) xpath.evaluate(path, node, XPathConstants.NODE);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }*/
-        return null;
+        }
     }
 
     public static Node selectNode(String path, Object node) {
-        /*return selectNode(path, node, null);*/
-        return null;
+        return selectNode(path, node, null);
     }
 
     /**
@@ -67,22 +106,22 @@ public class XPath {
      * @param node the node, node-set or Context object for evaluation. This value can be null.
      */
     public static String selectText(String path, Object node, Map<String, String> namespaces) {
-        /*try {
-            Node rnode = (Node) getDOMXPath(path, namespaces).selectSingleNode(node);
-            if (rnode == null) {
-                return null;
+        try {
+            XPathFactory factory = XPathFactory.newInstance();
+            javax.xml.xpath.XPath xpath = factory.newXPath();
+
+            if (namespaces != null) {
+                NamespaceContextImpl nsContext = new NamespaceContextImpl();
+                for (Map.Entry<String, String> namespace : namespaces.entrySet()) {
+                    nsContext.startPrefixMapping(namespace.getKey(), namespace.getValue());                    
+                }
+                xpath.setNamespaceContext(nsContext);
             }
-            if (!(rnode instanceof Text)) {
-                rnode = rnode.getFirstChild();
-            }
-            if (!(rnode instanceof Text)) {
-                return null;
-            }
-            return ((Text) rnode).getData();
+
+            return (String) xpath.evaluate(path, node, XPathConstants.STRING);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }*/
-        return null;
+        }
     }
 
     /**
@@ -91,8 +130,7 @@ public class XPath {
      * @param node the node, node-set or Context object for evaluation. This value can be null.
      */
     public static String selectText(String path, Object node) {
-        /*return selectText(path, node, null);*/
-        return null;
+        return selectText(path, node, null);
     }
 
 }
