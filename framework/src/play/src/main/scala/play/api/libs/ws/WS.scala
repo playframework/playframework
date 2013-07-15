@@ -257,6 +257,11 @@ object WS {
 
   }
 
+  // Here to preserve binary compatibility
+  object WSRequestHolder extends scala.runtime.AbstractFunction5[String, Map[String, Seq[String]], Map[String, String], Option[SignatureCalculator], Option[Tuple3[String, String, AuthScheme]], WSRequestHolder] {
+    def apply(url: String, headers: Map[String, Seq[String]], queryString: Map[String, String], calc: Option[SignatureCalculator], auth: Option[(String, String, AuthScheme)]) = new WSRequestHolder(url, headers, queryString, calc, auth)
+  }
+
   /**
    * A WS Request builder.
    */
@@ -267,6 +272,20 @@ object WS {
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
       timeout: Option[Int]) {
+
+    def this(url: String,
+             headers: Map[String, Seq[String]],
+             queryString: Map[String, String],
+             calc: Option[SignatureCalculator],
+             auth: Option[Tuple3[String, String, AuthScheme]]) =
+      this(url, headers, queryString, calc, auth, None, None)
+
+    def copy(url: String = this.url,
+             headers: Map[String, Seq[String]] = this.headers,
+             queryString: Map[String, String] = this.queryString,
+             calc: Option[SignatureCalculator] = this.calc,
+             auth: Option[Tuple3[String, String, AuthScheme]] = this.auth) =
+      new WSRequestHolder(url, headers, queryString, calc, auth, this.followRedirects, this.timeout)
 
     /**
      * sets the signature calculator for the request
@@ -303,13 +322,13 @@ object WS {
      * Sets whether redirects (301, 302) should be followed automatically
      */
     def withFollowRedirects(follow: Boolean): WSRequestHolder =
-      this.copy(followRedirects = Some(follow))
+      new WSRequestHolder(url, headers, queryString, calc, auth, Some(follow), timeout)
 
     /**
      * Sets the request timeout in milliseconds
      */
     def withTimeout(timeout: Int): WSRequestHolder =
-      this.copy(timeout = Some(timeout))
+      new WSRequestHolder(url, headers, queryString, calc, auth, followRedirects, Some(timeout))
 
     /**
      * performs a get with supplied body
