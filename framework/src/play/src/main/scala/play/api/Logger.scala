@@ -197,8 +197,9 @@ object Logger extends LoggerLike {
   /**
    * Reconfigures the underlying logback infrastructure.
    *
-   * @param configFile the logback configuration file
    * @param properties these properties will be added to the logger context (for example `application.home`)
+   * @param levels the log levels
+   * @param mode the application mode
    * @see http://logback.qos.ch/
    */
   def configure(properties: Map[String, String] = Map.empty, levels: Map[String, ch.qos.logback.classic.Level] = Map.empty, mode: Mode.Value) {
@@ -234,19 +235,21 @@ object Logger extends LoggerLike {
         }
 
         try {
-          Option(System.getProperty("logger.resource")).map(s => if (s.startsWith("/")) s.drop(1) else s).map(r => Option(this.getClass.getClassLoader.getResource(r)).getOrElse(new java.net.URL("file:///" + System.getProperty("logger.resource")))).
-            orElse {
-              Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
-            }.
-            orElse {
-              Option(System.getProperty("logger.url")).map(new java.net.URL(_))
-            }.
-            orElse {
-              Option(this.getClass.getClassLoader.getResource("application-logger.xml")).orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
-            }.
-            map { url =>
-              configurator.doConfigure(url)
-            }
+          val configResource =
+            Option(System.getProperty("logger.resource"))
+              .map(s => if (s.startsWith("/")) s.drop(1) else s)
+              .map(r => Option(this.getClass.getClassLoader.getResource(r))
+                .getOrElse(new java.net.URL("file:///" + System.getProperty("logger.resource")))
+              ).orElse {
+                Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
+              }.orElse {
+                Option(System.getProperty("logger.url")).map(new java.net.URL(_))
+              }.orElse {
+                Option(this.getClass.getClassLoader.getResource("application-logger.xml"))
+                  .orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
+              }
+
+          configResource.foreach { url => configurator.doConfigure(url) }
         } catch {
           case NonFatal(e) => e.printStackTrace()
         }
@@ -267,13 +270,10 @@ object Logger extends LoggerLike {
    * Shutdown the logger infrastructure.
    */
   def shutdown() {
-    import ch.qos.logback.classic.joran._
-    import ch.qos.logback.core.util._
     import ch.qos.logback.classic._
 
     val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
-
   }
 
   import ch.qos.logback.classic._
