@@ -10,7 +10,7 @@ import scala.annotation.tailrec
  */
 object Console {
 
-  val consoleReader = new jline.ConsoleReader
+  val consoleReader = new jline.console.ConsoleReader
 
   val logo = Colors.yellow(
     """|       _            _
@@ -95,16 +95,14 @@ object Console {
       else {
         val name = readApplicationName(defaultName)
 
-        consoleReader.printNewline()
-        consoleReader.printString("Which template do you want to use for this new application? ")
-        consoleReader.printNewline()
-        consoleReader.printString(
+        consoleReader.println()
+        consoleReader.println("Which template do you want to use for this new application? ")
+        consoleReader.println(
           """|
                |  1             - Create a simple Scala application
                |  2             - Create a simple Java application
                |""".stripMargin)
 
-        consoleReader.printNewline()
         consoleReader.putString("")
 
         val templateToUse = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).getOrElse("") match {
@@ -132,14 +130,12 @@ object Console {
 
   @tailrec
   def readApplicationName(defaultName: String): String = {
-    consoleReader.printString("What is the application name? [%s]".format(defaultName))
-    consoleReader.printNewline()
+    consoleReader.println("What is the application name? [%s]".format(defaultName))
     Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).filter(_.size > 0).getOrElse(defaultName) match {
       case IdParser(name) => name
       case _ => {
-        consoleReader.printString(Colors.red("Error: ") + "Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
-        consoleReader.printNewline()
-        consoleReader.printNewline()
+        consoleReader.println(Colors.red("Error: ") + "Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
+        consoleReader.println()
         readApplicationName(defaultName)
       }
     }

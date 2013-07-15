@@ -30,9 +30,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       inAllDependencies(project, taskKey.task, Project structure state).join
 
     for {
-      packaged: Seq[Map[Artifact, File]] <- taskInAllDependencies(packagedArtifacts)
-      srcs: Seq[File] <- taskInAllDependencies(packageSrc in Compile)
-      docs: Seq[File] <- taskInAllDependencies(packageDoc in Compile)
+      packaged <- taskInAllDependencies(packagedArtifacts)
+      srcs <- taskInAllDependencies(packageSrc in Compile)
+      docs <- taskInAllDependencies(packageDoc in Compile)
     } yield {
       val allJars: Seq[Iterable[File]] = for {
         artifacts: Map[Artifact, File] <- packaged
@@ -556,18 +556,18 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
             case (org, name, rev) => org + ":" + name + ":" + rev
           }).flatten,
 
-            module.get('requiredBy).map {
-              case callers: Seq[_] => callers.map {
+            module.get('requiredBy).collect {
+              case callers: Seq[_] => callers.collect {
                 case (org, name, rev) => org.toString + ":" + name.toString + ":" + rev.toString
               }
-            }.flatten.toSeq,
+            }.toSeq.flatten,
 
             module.get('evictedBy).map {
               case Some(rev) => Seq("Evicted by " + rev)
-              case None => module.get('artifacts).map {
+              case None => module.get('artifacts).collect {
                 case artifacts: Seq[_] => artifacts.map("As " + _.toString)
-              }.flatten
-            }.flatten.toSeq)
+              }.toSeq.flatten
+            }.toSeq.flatten)
           val maxLines = Seq(formatted._1.size, formatted._2.size, formatted._3.size).max
 
           formatted._1.padTo(maxLines, "").zip(
