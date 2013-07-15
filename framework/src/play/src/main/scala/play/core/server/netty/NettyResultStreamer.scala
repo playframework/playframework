@@ -96,7 +96,11 @@ object NettyResultStreamer {
         nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
         nettyResponse.setContent(buffer)
         val promise = NettyPromise(sendDownstream(startSequence, true, nettyResponse))
-        Iteratee.flatten(promise.map(_ => Done[Array[Byte], Boolean](closeConnection)))
+        Iteratee.flatten(promise.map {
+          _ => Done[Array[Byte], Boolean](closeConnection)
+        }.recover {
+          case _ => Done[Array[Byte], Boolean](closeConnection)
+        })
       }
       case Left(chunk) => {
         val bufferedAsEnumerator = Enumerator(chunk)
@@ -172,8 +176,12 @@ object NettyResultStreamer {
       Done(done)
     } else {
       Iteratee.flatten(
-        NettyPromise(future)
-          .map[Iteratee[E, A]](_ => if (ctx.getChannel.isConnected()) Cont(step) else Done(done)))
+        NettyPromise(future).map[Iteratee[E, A]] {
+          _ => if (ctx.getChannel.isConnected()) Cont(step) else Done(done)
+        }.recover[Iteratee[E, A]] {
+          case _ => Done(done)
+        }
+      )
     }
   }
 
