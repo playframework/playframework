@@ -260,7 +260,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                     case Input.EOF =>
                       val f = sendDownstream(subsequence, true, HttpChunk.LAST_CHUNK)
                       val p = NettyPromise(f)
-                      Iteratee.flatten(p.map(_ => Done(())))
+                      Iteratee.flatten(p map {
+                        _ => Done[r.BODY_CONTENT, Unit](())
+                      } recover {
+                        case _ => Done[r.BODY_CONTENT, Unit](())
+                      })
                   }
                   nextWhenComplete(sendDownstream(startSequence, false, nettyResponse), step(startSequence + 1))
                 }
@@ -417,8 +421,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       (implicit ctx: ChannelHandlerContext)
                       : Iteratee[E, Unit] = {
     Iteratee.flatten(
-      NettyPromise(future)
-        .map(_ => if (ctx.getChannel.isConnected()) Cont(step) else Done((), Input.Empty)))
+      NettyPromise(future) map {
+        _ => if (ctx.getChannel.isConnected()) Cont(step) else Done[E, Unit](())
+      } recover {
+        case _ => Done[E, Unit](())
+      }
+    )
   }
 
 }
