@@ -95,50 +95,55 @@ object Assets extends Controller {
           if(length == 0) {
             NotFound
           } else {
-            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch => 
-              etagFor(url).filter(_ == ifNoneMatch)
-            }.map (_ => NotModified).getOrElse {
-              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
-                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-              }.map (_ => NotModified.withHeaders(
-                DATE -> df.print({new java.util.Date}.getTime)
-              )).getOrElse {
-
-                // Prepare a streamed response
-                val response = SimpleResult(
-                  header = ResponseHeader(OK, Map(
-                    CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY),
-                    DATE -> df.print({new java.util.Date}.getTime)
-                  )),
-                  resourceData
-                )
-
-                // Is Gzipped?
-                val gzippedResponse = if (isGzipped) {
-                  response.withHeaders(CONTENT_ENCODING -> "gzip")
-                } else {
-                  response
-                }
-
-                // Add Etag if we are able to compute it
-                val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
-
-                // Add Cache directive if configured
-                val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
-                  Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-                    case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-                    case _ => "no-cache"
-                  })
-                })
-
-                cachedResponse
-
-              }:Result
-
+            val maybeNotModified = request.headers.get(IF_NONE_MATCH) match {
+              case Some(etags) => {
+                etagFor(url).filter(etag =>
+                  etags.split(",").exists(_.trim == etag)
+                ).map(_ => NotModified)
+              }
+              case None => {
+                request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
+                  lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
+                }.map (_ => NotModified.withHeaders(
+                  DATE -> df.print({new java.util.Date}.getTime)
+                ))
+              }
             }
 
+            maybeNotModified.getOrElse {
+
+              // Prepare a streamed response
+              val response = SimpleResult(
+                header = ResponseHeader(OK, Map(
+                  CONTENT_LENGTH -> length.toString,
+                  CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY),
+                  DATE -> df.print({new java.util.Date}.getTime)
+                )),
+                resourceData
+              )
+
+              // Is Gzipped?
+              val gzippedResponse = if (isGzipped) {
+                response.withHeaders(CONTENT_ENCODING -> "gzip")
+              } else {
+                response
+              }
+
+              // Add Etag if we are able to compute it
+              val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
+              val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
+
+              // Add Cache directive if configured
+              val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
+                Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
+                  case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+                  case _ => "no-cache"
+                })
+              })
+
+              cachedResponse
+
+            }
           }
 
         }
