@@ -231,40 +231,20 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           case Right((action: Action[_], app)) => {
 
             Logger("play").trace("Serving this request with: " + action)
+            type BODY = action.BODY_CONTENT
 
-            val bodyParser = action.parser
+            val bodyParser = Iteratee.flatten(server.getBodyParser[BODY](requestHeader, action.parser))
 
-            val eventuallyBodyParser = server.getBodyParser[action.BODY_CONTENT](requestHeader, bodyParser)
+            val expectContinue: Option[_] = requestHeader.headers.get("Expect").filter(_.equalsIgnoreCase("100-continue"))
 
-            val _ =
-              eventuallyBodyParser.flatMap { bodyParser =>
+            def feedBody(bodyParser: Iteratee[Array[Byte], Either[Result, BODY]]) = if (nettyHttpRequest.isChunked) {
 
-                requestHeader.headers.get("Expect") match {
-                  case Some("100-continue") => {
-                    bodyParser.pureFold(
-                      (_, _) => (),
-                      k => {
-                        val continue = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
-                        e.getChannel.write(continue)
-                        
-                      },
-                      (_, _) => ()
-                    )
+              val ( result, handler) = newRequestBodyHandler(bodyParser, allChannels, server)
 
-                  }
-                  case _ => Promise.pure()
-                }
-             }
+              val p: ChannelPipeline = ctx.getChannel().getPipeline()
+              p.replace("handler", "handler", handler)
 
-
-            val eventuallyResultOrBody = if (nettyHttpRequest.isChunked) {
-
-                val ( result, handler) = newRequestBodyHandler(eventuallyBodyParser,allChannels, server)
-
-                val p: ChannelPipeline = ctx.getChannel().getPipeline()
-                p.replace("handler", "handler", handler)
-
-                result
+              result
 
             } else {
 
@@ -278,26 +258,37 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 Enumerator(body).andThen(Enumerator.enumInput(EOF))
               }
 
-              eventuallyBodyParser.flatMap(it => bodyEnumerator |>> it): Promise[Iteratee[Array[Byte], Either[Result, action.BODY_CONTENT]]]
-
+              bodyEnumerator |>> bodyParser
             }
 
-            val eventuallyResultOrRequest =
-              eventuallyResultOrBody
-                .flatMap(it => it.run)
-                .map {
-                  _.right.map(b =>
-                    new Request[action.BODY_CONTENT] {
-                      def uri = nettyHttpRequest.getUri
-                      def path = nettyUri.getPath
-                      def method = nettyHttpRequest.getMethod.getName
-                      def queryString = parameters
-                      def headers = rHeaders
-                      lazy val remoteAddress = rRemoteAddress
-                      def username = None
-                      val body = b
-                    })
-                }
+            val eventuallyResultOrBody = expectContinue match {
+              case Some(_) => {
+                bodyParser.fold(
+                  (resultOrBody, _) => Promise.pure(resultOrBody),
+                  k => {
+                    e.getChannel.write(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
+                    feedBody(bodyParser).flatMap(_.run)
+                  },
+                  (msg, _) => Promise.pure(sys.error(msg): Either[Result, BODY])
+                )
+
+              }
+              case None => feedBody(bodyParser).flatMap(_.run)
+            }
+
+            val eventuallyResultOrRequest = eventuallyResultOrBody.map {
+              _.right.map(b =>
+                new Request[BODY] {
+                  def uri = nettyHttpRequest.getUri
+                  def path = nettyUri.getPath
+                  def method = nettyHttpRequest.getMethod.getName
+                  def queryString = parameters
+                  def headers = rHeaders
+                  lazy val remoteAddress = rRemoteAddress
+                  def username = None
+                  val body = b
+                })
+            }
 
             eventuallyResultOrRequest.extend(_.value match {
               case Redeemed(Left(result)) => {
@@ -306,7 +297,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
               }
               case Redeemed(Right(request)) => {
                 Logger("play").trace("Invoking action with request: " + request)
-                server.invoke(request, response, action.asInstanceOf[Action[action.BODY_CONTENT]], app)
+                server.invoke(request, response, action.asInstanceOf[Action[BODY]], app)
               }
               case error => {
                 Logger("play").error("Cannot invoke the action, eventually got an error: " + error)

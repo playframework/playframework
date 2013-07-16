@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 
 private[server] trait RequestBodyHandler {
 
-  def newRequestBodyHandler[R](firstIteratee: Promise[Iteratee[Array[Byte], Either[Result, R]]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
+  def newRequestBodyHandler[R](firstIteratee: Iteratee[Array[Byte], Either[Result, R]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
     var redeemed = false
     var p = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
     val MAX_MESSAGE_WATERMARK = 10
@@ -31,7 +31,7 @@ private[server] trait RequestBodyHandler {
     import scala.concurrent.stm._
     val counter = Ref(0)
 
-    var iteratee: Ref[Iteratee[Array[Byte], Either[Result, R]]] = Ref(Iteratee.flatten(firstIteratee))
+    var iteratee: Ref[Iteratee[Array[Byte], Either[Result, R]]] = Ref(firstIteratee)
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
 
