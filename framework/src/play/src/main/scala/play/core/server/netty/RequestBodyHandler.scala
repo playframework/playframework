@@ -23,7 +23,7 @@ private[server] trait RequestBodyHandler {
    */
   def newRequestBodyUpstreamHandler[A](firstIteratee: Iteratee[Array[Byte], A],
     start: SimpleChannelUpstreamHandler => Unit,
-    finish: => Unit): Future[Iteratee[Array[Byte], A]] = {
+    finish: => Unit): Future[A] = {
 
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
@@ -105,7 +105,7 @@ private[server] trait RequestBodyHandler {
 
     })
 
-    p.future
+    p.future.flatMap(_.run)
   }
 
 }
