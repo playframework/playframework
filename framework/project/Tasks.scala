@@ -12,8 +12,9 @@ object Generators {
             |object PlayVersion {
             |    val current = "%s"
             |    val scalaVersion = "%s"
+            |    val sbtVersion = "%s"
             |}
-          """.stripMargin.format(BuildSettings.buildVersion, BuildSettings.buildScalaVersion))
+          """.stripMargin.format(BuildSettings.buildVersion, BuildSettings.buildScalaVersion, BuildSettings.buildSbtVersion))
       Seq(file)
   }
 }
