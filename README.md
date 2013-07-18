@@ -1,81 +1,19 @@
-# Play 2.2 
+## Play Framework - The High Velocity Web Framework 
 
-Play 2.2 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. 
+The Play Framework combines productivity and performance making it easy to build scalable web applications with Java and Scala.  Play is developer friendly with a "just hit refresh" workflow and built-in testing support.  With Play, applications scale predictably due to a stateless and non-blocking architecture.  By being RESTful by default, including assets compilers, JSON & WebSocket support, Play is a perfect fit for modern web & mobile applications.
 
-It is based on a lightweight stateless Web friendly architecture and features predictable and minimal resources consumption (CPU, Memory, Threads) for highly scalable applications thanks to its reactive model based on Iteratee IO.
+### Learn More
+- [www.playframework.com](http://www.playframework.com)
+- [Download](http://www.playframework.com/download)
+- [Install](http://www.playframework.com/documentation/latest/Installing)
+- [Get Started with Java](http://www.playframework.com/documentation/latest/JavaTodoList)
+- [Get Started with Scala](http://www.playframework.com/documentation/latest/ScalaTodoList)
+- [Build from source](http://www.playframework.com/documentation/latest/BuildingFromSource)
+- [Search or create issues](https://github.com/playframework/playframework/issues)
+- [Get help](http://stackoverflow.com/questions/tagged/playframework)
+- [Contribute](http://www.playframework.com/documentation/latest/Guidelines)
 
-http://www.playframework.com
-
-## Installing
-
-You first need to build Play:
-
-```bash
-$ cd framework/
-$ ./build
-> publish-local
-```
-
-Then, for convenience, add the framework installation directory to your system PATH.  
-On UNIX systems, it would be something like:
-
-```bash
-export PATH=$PATH:/path/to/play2.2
-```
-
-On windows systems you'll need to set it in the global environment variables.
-
-> If you’re on UNIX, make sure that the play script is executable (otherwise do a chmod a+x play).
-
-## Getting started
-
-Enter any existing Play 2.2 application directory and use the `play` command to launch the development console:
-
-```bash
-$ cd ~/workspace/myApplication
-$ play
-```
-
-You can also directly use `play run` to run the application:
-
-```bash
-$ cd ~/workspace/myApplication
-$ play run
-```
-
-Use `play new yourNewApplication` to create a new application:
-
-```bash
-$ cd ~/workspace
-$ play new myNewApplication
-```
-
-Once the application is created, use it as any existing application:
-
-```bash
-$ cd myNewApplication
-$ play
-```
-
-## Running the sample applications
-
-There are several samples applications included in the `samples/` directory. For example, to run the included Scala Hello World application:
-
-```bash
-$ cd ~/workspace/play2.1/samples/scala/helloworld/
-$ play run
-```
-> The application will be available on port 9000.
-
-## Issues tracker
-
-Report issues at https://github.com/playframework/Play20/issues.
-
-## Contributors
-
-Check for all contributors at https://github.com/playframework/Play20/contributors.
-
-## Licence
+### Licence
 
 This software is licensed under the Apache 2 license, quoted below.
 
