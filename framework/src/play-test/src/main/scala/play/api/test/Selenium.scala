@@ -21,6 +21,24 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
   baseUrl.map(baseUrl => withDefaultUrl(baseUrl))
 
   /**
+   * Submits a form with the given field values
+   *
+   * @example {{{
+   *   submit("#login", fields =
+   *     "email" -> email,
+   *     "password" -> password
+   *   )
+   * }}}
+   */
+  def submit(selector: String, fields: (String, String)*): Fluent = {
+    fields.foreach {
+      case (fieldName, fieldValue) =>
+        fill(s"${selector} *[name=${fieldName}]").`with`(fieldValue)
+    }
+    submit(selector)
+  }
+
+  /**
    * Repeatedly applies this instance's input value to the given block until one of the following occurs:
    * the function returns neither null nor false,
    * the function throws an unignored exception,
@@ -121,7 +139,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     }
     //play.core.Invoker.uninit()
     try {
-      server = new play.core.server.NettyServer(new play.core.TestApplication(application), port, sslPort = sslPort, mode = Mode.Test)
+      server = new play.core.server.NettyServer(new play.core.TestApplication(application), Option(port), sslPort = sslPort, mode = Mode.Test)
     } catch {
       case t: Throwable =>
         t.printStackTrace

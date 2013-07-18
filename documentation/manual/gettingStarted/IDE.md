@@ -68,7 +68,7 @@ The generated configuration files contain absolute references to your framework 
 
 ### Generate configuration
 
-Play provides a command to simplify Intellij IDEA configuration. To transform a Play application into a working IDEA module, use the idea command:
+Play provides a command to simplify Intellij IDEA configuration. To transform a Play application into a working IDEA module, use the idea command from the play console:
 
 without the source jars:
 

@@ -53,8 +53,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form, filled with the new data
    */
   def bind(data: Map[String, String]): Form[T] = mapping.bind(data).fold(
-    errors => this.copy(data = data, errors = errors, value = None),
-    value => this.copy(data = data, errors = Nil, value = Some(value)))
+    newErrors => this.copy(data = data, errors = errors ++ newErrors, value = None),
+    value => this.copy(data = data, errors = errors, value = Some(value)))
 
   /**
    * Binds data to this form, i.e. handles form submission.
@@ -85,8 +85,8 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
 
   def bindFromRequest(data: Map[String, Seq[String]]): Form[T] = {
     bind {
-      data.foldLeft(Map.empty[String,String]) { 
-        case (s, (key, values)) if key.endsWith("[]")=> s ++ values.zipWithIndex.map { case (v,i) => (key.dropRight(2) + "[" + i + "]") -> v }
+      data.foldLeft(Map.empty[String, String]) {
+        case (s, (key, values)) if key.endsWith("[]") => s ++ values.zipWithIndex.map { case (v, i) => (key.dropRight(2) + "[" + i + "]") -> v }
         case (s, (key, values)) => s + (key -> values.headOption.getOrElse(""))
       }
     }
@@ -131,7 +131,10 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @param success a function to handle form submission success
    * @return a result `R`.
    */
-  def fold[R](hasErrors: Form[T] => R, success: T => R): R = value.map(success(_)).getOrElse(hasErrors(this))
+  def fold[R](hasErrors: Form[T] => R, success: T => R): R = value match {
+    case Some(v) if errors.isEmpty => success(v)
+    case _ => hasErrors(this)
+  }
 
   /**
    * Retrieves a field.

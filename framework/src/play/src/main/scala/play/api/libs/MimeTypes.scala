@@ -36,18 +36,18 @@ object MimeTypes {
       }.toMap
     }
   }.getOrElse(Map.empty)
-  
+
   /**
    * tells you if mimeType is text or not.
-   * Useful to determine whether the charset suffix should be attached to Content-Type or not 
+   * Useful to determine whether the charset suffix should be attached to Content-Type or not
    * @param mimeType mimeType to check
    * @return true if mimeType is text
    */
   def isText(mimeType: String): Boolean = {
     mimeType.trim match {
-        case text if text.startsWith("text/") => true
-        case text if additionalText.contains(text) => true
-        case _ => false
+      case text if text.startsWith("text/") => true
+      case text if additionalText.contains(text) => true
+      case _ => false
     }
   }
 
@@ -125,6 +125,7 @@ object MimeTypes {
         deepv=application/x-deepv
         def=text/plain
         der=application/x-x509-ca-cert
+        dfont=application/x-font-ttf
         dif=video/x-dv
         dir=application/x-director
         divx=video/divx
@@ -473,6 +474,8 @@ object MimeTypes {
         tsp=application/dsptype
         tsv=text/tab-separated-values
         turbot=image/florian
+        tte=application/x-font-ttf
+        ttf=application/x-font-ttf
         ttl=text/turtle
         txt=text/plain
         uil=text/x-uil
@@ -551,7 +554,7 @@ object MimeTypes {
         xlv=application/excel
         xlw=application/excel
         xm=audio/xm
-        xml=text/xml
+        xml=application/xml
         xmz=xgl/movie
         xpi=application/x-xpinstall
         xpix=application/x-vndls-xpix
@@ -584,7 +587,7 @@ object MimeTypes {
         ppam=application/vnd.ms-powerpoint.addin.macroEnabled.12
         sldx=application/vnd.openxmlformats-officedocument.presentationml.slide
         sldm=application/vnd.ms-powerpoint.slide.macroEnabled.12
-        thmx=application/vnd.ms-officetheme 
+        thmx=application/vnd.ms-officetheme
         onetoc=application/onenote
         onetoc2=application/onenote
         onetmp=application/onenote
@@ -605,9 +608,10 @@ object MimeTypes {
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#').map(_.split('=')).map(parts =>
       parts(0) -> parts.drop(1).mkString).toMap
 
-    lazy val additionalText =
+  lazy val additionalText =
     """
         application/json
+        application/javascript
     """.split('\n').map(_.trim).filter(_.size > 0).filter(_(0) != '#')
 
 }

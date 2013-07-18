@@ -1,7 +1,8 @@
 package play.api.libs.ws
 
 import java.io.File
-import scala.concurrent.{Future, Promise}
+import java.util.concurrent.atomic.AtomicReference
+import scala.concurrent.{ Future, Promise }
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.http.{ Writeable, ContentTypeOf }
@@ -21,6 +22,8 @@ import play.core.utils.CaseInsensitiveOrdered
 import com.ning.http.client.Realm.{RealmBuilder, AuthScheme}
 import com.ning.http.util.AsyncHttpProviderUtils
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * Asynchronous API to to query web services, as an http client.
  *
@@ -39,27 +42,28 @@ object WS extends WSTrait {
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
-  private var clientHolder: Option[AsyncHttpClient] = None
+  private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
   /**
    * resets the underlying AsyncHttpClient
    */
-  def resetClient(): Unit = {
-    clientHolder.map { clientRef =>
+  private[play] def resetClient(): Unit = {
+    val oldClient = clientHolder.getAndSet(None)
+    oldClient.map { clientRef =>
       clientRef.close()
     }
-    clientHolder = None
   }
 
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client : AsyncHttpClient =
-    clientHolder.getOrElse {
+  def client = {
+    clientHolder.get.getOrElse {
       val innerClient = new AsyncHttpClient(asyncBuilder.build())
-      clientHolder = Some(innerClient)
-      innerClient
+      clientHolder.compareAndSet(None, Some(innerClient))
+      clientHolder.get.get
     }
+  }
 
   /**
    * The  builder AsncBuilder for default play app
@@ -75,8 +79,12 @@ object WS extends WSTrait {
       playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
         asyncHttpConfig.setUserAgent(useragent)
       }
-      asyncHttpConfig
-      }
+//TODO: if one does this then one cannot later reset it it seems... it breaks the FunctionalSpec
+//      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
+//        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+//      }
+    asyncHttpConfig
+  }
 
   /**
    * A WS Request.
@@ -89,7 +97,7 @@ object WS extends WSTrait {
 
     def getStringData = body.getOrElse("")
     protected var body: Option[String] = None
-    override def setBody(s: String) = { this.body = Some(s); super.setBody(s)}
+    override def setBody(s: String) = { this.body = Some(s); super.setBody(s) }
 
     protected var calculator: Option[SignatureCalculator] = _calc
 
@@ -274,7 +282,7 @@ object WS extends WSTrait {
           } else {
             iteratee = null
             // Must close underlying connection, otherwise async http client will drain the stream
-            bodyPart.closeUnderlyingConnection()
+            bodyPart.markUnderlyingConnectionAsClosed()
             STATE.ABORT
           }
         }
@@ -501,7 +509,6 @@ trait  WSTrait {
       }
       request
     }
-
   }
 }
 

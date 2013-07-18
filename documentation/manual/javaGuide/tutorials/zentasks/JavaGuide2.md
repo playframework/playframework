@@ -1,6 +1,6 @@
 # A first iteration for the data model
 
-Here we will start to write the model for our blog engine.
+Here we will start to write the model for our task management system.
 
 ## Introduction to Ebean
 
@@ -286,7 +286,7 @@ Edit the `conf/test-data.yml` file and start to describe a User:
 ...
 ```
 
-Notice that this object is defined as part of a root object that is a list.  We can now define more objects to be a part of that, however, our dataset is a little large, so you can download a full dataset [here](javaGuide/tutorials/zentasks/files/test-data.yml).
+Notice that this object is defined as part of a root object that is a list.  We can now define more objects to be a part of that, however, our dataset is a little large, so you can download a full dataset [here](resources/manual/javaGuide/tutorials/zentasks/files/test-data.yml).
 
 Now we create a test case that loads this data and runs some assertions over it:
 

@@ -5,11 +5,11 @@ import scala.language.higherKinds
 import play.core._
 import play.api._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{ FiniteDuration, Duration }
 
 import java.util.concurrent.{ TimeUnit }
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ Future, ExecutionContext, Promise => SPromise }
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
@@ -20,6 +20,7 @@ import scala.util.control.NonFatal
 /**
  * The state of a promise; it's waiting, contains a value, or contains an exception.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 sealed trait PromiseValue[+A] {
 
   /**
@@ -31,6 +32,7 @@ sealed trait PromiseValue[+A] {
 /**
  * A promise state that contains either a value or an exception.
  */
+@scala.deprecated("Use scala.util.Try instead.", "2.2")
 trait NotWaiting[+A] extends PromiseValue[A] {
 
   /**
@@ -56,11 +58,13 @@ trait NotWaiting[+A] extends PromiseValue[A] {
 /**
  * A promise state containing an exception.
  */
+@scala.deprecated("Use scala.util.Failure instead.", "2.2")
 case class Thrown(e: scala.Throwable) extends NotWaiting[Nothing]
 
 /**
  * A promise state containing a non-exception value.
  */
+@scala.deprecated("Use scala.util.Success instead.", "2.2")
 case class Redeemed[+A](a: A) extends NotWaiting[A]
 
 /**
@@ -70,7 +74,7 @@ case object Waiting extends PromiseValue[Nothing]
 
 class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
 
-  def redeem(a: => A)(implicit ec:ExecutionContext): Unit = p.completeWith(Future(a)(ec))
+  def redeem(a: => A)(implicit ec: ExecutionContext): Unit = p.completeWith(Future(a)(ec))
 
   def throwing(t: Throwable): Unit = p.failure(t)
 
@@ -82,6 +86,7 @@ class PlayRedeemable[-A](p: scala.concurrent.Promise[A]) extends Redeemable[A] {
  * The promise will be completed either with the expected value type or with
  * an exception.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
 
   /**
@@ -188,31 +193,31 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
   }
 
   /**
-   * Creates a timer promise with the given message.  Message a is shown if the timer promise
+   * Creates a scheduled promise with the given message.  Message a is shown if the scheduled promise
    * redeems before the current promise
-   * @param message message to be displayed if the timer promise redeems first
+   * @param message message to be displayed if the scheduled promise redeems first
    * @param duration duration
    * @param unti time unit
-   * @return either the timer message or the current promise
+   * @return either the scheduled message or the current promise
    */
   def orTimeout[B](message: => B, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[Either[A, B]] = {
     or(Promise.timeout(message, duration, unit)(ec))
   }
 
   /**
-   * Creates a timer promise with the given message (using the deafult Promise timeout).
-   * Message a is shown if the timer promise redeems before the current promise
-   * @param message message to be displayed if the timer promise redeems first
+   * Creates a scheduled promise with the given message (using the deafult Promise timeout).
+   * Message a is shown if the scheduled promise redeems before the current promise
+   * @param message message to be displayed if the scheduled promise redeems first
    * @param duration duration
    * @param unti time unit
-   * @return either the timer message or the current promise
+   * @return either the scheduled message or the current promise
    */
 
   def orTimeout[B](message: B): Future[Either[A, B]] = orTimeout(message, Promise.defaultTimeout)(internalContext)
 
   /**
-   * Creates a timer promise with  Throwable e (using the deafult Promise timeout).
-   * Exception e is shown if timer promise redeemds first
+   * Creates a scheduled promise with  Throwable e (using the deafult Promise timeout).
+   * Exception e is shown if scheduled promise redeemds first
    * @param e exception to be thrown
    * @return a Promise which may throw an exception
    */
@@ -223,6 +228,7 @@ class PlayPromise[+A](fu: scala.concurrent.Future[A]) {
 /**
  * A redeemable can be completed exactly once with either a value of type A or an exception.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 trait Redeemable[-A] {
 
   /**
@@ -230,7 +236,7 @@ trait Redeemable[-A] {
    * May only be called one time, and may not be called if throwing() was also called.
    * If evaluating the value throws an exception, equivalent to calling throwing() on that exception.
    */
-  def redeem(a: => A)(implicit ec:ExecutionContext): Unit
+  def redeem(a: => A)(implicit ec: ExecutionContext): Unit
 
   /**
    * Complete the redeemable with an exception.
@@ -245,11 +251,13 @@ trait Redeemable[-A] {
  * completes the promise with that exception. The promise is "pure" because it could
  * be just a pure value, the Promise wrapper is superflous.
  */
+@scala.deprecated("Use scala.concurrent.Promise instead.", "2.2")
 object PurePromise {
 
   /**
    * factory method for a pure promise
    */
+  @scala.deprecated("Use scala.concurrent.Promise.complete(Try(...)) instead.", "2.2")
   def apply[A](lazyA: => A): scala.concurrent.Future[A] = (try (scala.concurrent.Promise.successful(lazyA)) catch {
     case NonFatal(t) => scala.concurrent.Promise.failed(t)
   }).future
@@ -261,50 +269,46 @@ object PurePromise {
  */
 object Promise {
 
-  private[concurrent] lazy val defaultTimeout =
+  private[play] lazy val defaultTimeout =
     //TODO get it from conf
     Duration(10000, TimeUnit.MILLISECONDS).toMillis
-
-
 
   /**
    * Synonym for PurePromise.apply
    */
+  @scala.deprecated("Use scala.concurrent.Future.successful() or scala.concurrent.Promise.complete(Try(...)) instead.", "2.2")
   def pure[A](a: => A): Future[A] = PurePromise(a)
 
   /**
    * Constructs a new redeemable Promise which has not been redeemed yet.
    */
+  @scala.deprecated("Use scala.concurrent.Promise() instead.", "2.2")
   def apply[A](): scala.concurrent.Promise[A] = scala.concurrent.Promise[A]()
 
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses.
    * This is useful only when used in conjunction with other Promises
    * @param message message to be displayed
-   * @param duration duration for the timer promise
-   * @return a timer promise
+   * @param duration duration for the scheduled promise
+   * @return a scheduled promise
    */
-
   def timeout[A](message: => A, duration: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext): Future[A] = {
     timeout(message, duration.toMillis)
   }
-
-  private val timer = new java.util.Timer()
 
   /**
    * Constructs a promise which will contain value "message" after the given duration elapses.
    * This is useful only when used in conjunction with other Promises
    * @param message message to be displayed
-   * @param duration duration for the timer promise
-   * @return a timer promise
+   * @param duration duration for the scheduled promise
+   * @return a scheduled promise
    */
   def timeout[A](message: => A, duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS)(implicit ec: ExecutionContext): Future[A] = {
-    val p = Promise[A]()
-    timer.schedule( new java.util.TimerTask{
-      def run(){
-        p.completeWith(Future(message)(ec))
-      }
-    },unit.toMillis(duration) )
+    val p = SPromise[A]()
+    import play.api.Play.current
+    Akka.system.scheduler.scheduleOnce(FiniteDuration(duration, unit)) {
+      p.success(message)
+    }
     p.future
   }
 
@@ -313,6 +317,7 @@ object Promise {
    * This is useful only when used in conjunction with other Promises.
    * @return a timer promise
    */
+  @scala.deprecated("Use Promise.timeout(A, Duration) instead.", "2.2")
   def timeout: Future[Nothing] = {
     timeout(throw new TimeoutException("Timeout in promise"), Promise.defaultTimeout, unit = TimeUnit.MILLISECONDS)(internalContext)
   }
@@ -326,6 +331,7 @@ object Promise {
    * (see below) can operate on multi-element collections such as
    * lists.
    */
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequence[A](in: Option[Future[A]]): Future[Option[A]] = {
     implicit val internalContext = play.core.Execution.internalContext
     in.map { p => p.map { v => Some(v) } }.getOrElse { Promise.pure(None) }
@@ -338,6 +344,7 @@ object Promise {
    * @param in the traversable that's being converted into a promise
    * @return a Promise that's the result of the transformation
    */
+  @scala.deprecated("Use scala.concurrent.Future.sequence() instead.", "2.2")
   def sequence[B, M[_]](in: M[Future[B]])(implicit toTraversableLike: M[Future[B]] => TraversableLike[Future[B], M[Future[B]]], cbf: CanBuildFrom[M[Future[B]], B, M[B]]): Future[M[B]] = {
     toTraversableLike(in).foldLeft(Promise.pure(cbf(in)))((fr, fa: Future[B]) => fr.flatMap(r => fa.map(a => r += a)(internalContext))(internalContext)).map(_.result)(internalContext)
   }
@@ -348,15 +355,17 @@ object Promise {
    * @param either A or Future[B]
    * @return a promise with Either[A,B]
    */
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequenceEither[A, B](e: Either[A, Future[B]]): Future[Either[A, B]] = e.fold(r => Promise.pure(Left(r)), _.map(Right(_))(internalContext))
 
   /**
    * Converts an either containing a Promise on both Left and Right into a Promise
    * of an Either with plain (not-in-a-promise) values.
    */
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequenceEither1[A, B](e: Either[Future[A], Future[B]]): Future[Either[A, B]] = e.fold(_.map(Left(_))(internalContext), _.map(Right(_))(internalContext))
 
-  @deprecated("use sequence instead", "2.1")
+  @scala.deprecated("Provide the mapping as required.", "2.2")
   def sequenceOption[A](o: Option[Future[A]]): Future[Option[A]] = o.map(_.map(Some(_))(internalContext)).getOrElse(Promise.pure(None))
 
 }

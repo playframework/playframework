@@ -1,9 +1,13 @@
 package play.libs;
 
-import akka.actor.*;
+import akka.actor.ActorSystem;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
 import play.api.*;
+import play.core.j.FPromiseHelper;
 import play.libs.F.*;
 
 /**
@@ -12,10 +16,13 @@ import play.libs.F.*;
 public class Akka {
 
     /**
-     * Transform this Akka future to a Play Promise.
+     * Transforms a Scala Future into a Play Promise.
+     *
+     * @deprecated Since 2.2. Use {@link Promise#wrap(Future)} instead.
      */
-    public static <A> Promise<A> asPromise(Future<A> akkaFuture) {
-        return new Promise<A>(akkaFuture);
+    @Deprecated
+    public static <A> Promise<A> asPromise(Future<A> future) {
+        return Promise.wrap(future);
     }
 
     /**
@@ -27,16 +34,22 @@ public class Akka {
 
     /**
      * Executes a block of code asynchronously in the application Akka Actor system.
+     * 
+     * @deprecated Since 2.2. Use {@link Promise#promise(Function0)} instead.
      */
-    public static <T> Promise<T> future(java.util.concurrent.Callable<T> callable) {
-        return play.core.j.JavaPromise.akkaFuture(callable);
+    @Deprecated
+    public static <T> Promise<T> future(Callable<T> callable) {
+        return FPromiseHelper.promise(callable, HttpExecution.defaultContext());
     }
 
     /**
      * Returns a Promise which is redeemed after a period of time.
+     *
+     * @deprecated Since 2.2. Use {@link Promise#delayed(Function0,long,TimeUnit)} instead.
      */
-    public static <T> Promise<T> timeout(java.util.concurrent.Callable<T> callable, Long duration, java.util.concurrent.TimeUnit unit) {
-        return new Promise(play.core.j.JavaPromise.timeout(callable,duration,unit));
+    @Deprecated
+    public static <T> Promise<T> timeout(Callable<T> callable, Long duration, TimeUnit unit) {
+        return FPromiseHelper.delayed(callable, duration, unit, HttpExecution.defaultContext());
     }
 
 }

@@ -4,7 +4,7 @@ import scala.annotation._
 
 import play.api.mvc._
 
-import java.net.{ URLEncoder, URLDecoder }
+import java.net.{ URI, URLEncoder }
 import java.util.UUID
 import scala.annotation._
 

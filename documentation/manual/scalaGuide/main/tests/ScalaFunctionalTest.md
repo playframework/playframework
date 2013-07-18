@@ -48,32 +48,45 @@ Instead of calling the `Action` yourself, you can let the `Router` do it:
 Sometimes you want to test the real HTTP stack from with your test, in which case you can start a test server:
 
 ```scala
-"run in a server" in {
-  running(TestServer(3333)) {
-  
-    await(WS.url("http://localhost:3333").get).status must equalTo(OK)
-  
-  }
+"run in a server" in new WithServer {
+  await(WS.url("http://localhost:" + port).get).status must equalTo(OK)
+}
+```
+
+The `port` value contains the port number the server is running on, by default this is 19001, however you can change
+this either by passing the port into the with `WithServer` constructor, or by setting the system property
+`testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be
+dynamically reserved for each build.
+
+A custom `FakeApplication` can also be passed to the test server, for example:
+
+```scala
+"run in a server" in new WithServer(app = FakeApplication(additionalConfiguration = inMemoryDatabase), port = 3333) {
+  await(WS.url("http://localhost:3333").get).status must equalTo(OK)
 }
 ```
 
 ## Testing from within a Web browser.
 
-If you want to test your application using a browser, you can use [[Selenium WebDriver| http://code.google.com/p/selenium/?redir=1]]. Play will start the WebDriver for your, and wrap it in the convenient API provided by [[FluentLenium|https://github.com/FluentLenium/FluentLenium]].
+If you want to test your application using a browser, you can use [Selenium WebDriver](http://code.google.com/p/selenium/?redir=1). Play will start the WebDriver for your, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
 
 ```scala
-"run in a browser" in {
-  running(TestServer(3333), HTMLUNIT) { browser =>
+"run in a browser" in new WithBrowser {
+  browser.goTo("/")
+  browser.$("#title").getTexts().get(0) must equalTo("Hello Guest")
     
-    browser.goTo("http://localhost:3333")
-    browser.$("#title").getTexts().get(0) must equalTo("Hello Guest")
+  browser.$("a").click()
     
-    browser.$("a").click()
-    
-    browser.url must equalTo("http://localhost:3333/Coco")
-    browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
+  browser.url must equalTo("/")
+  browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
+}
+```
 
-  }
+Like `WithServer`, you can change the port, `FakeApplication`, and you can also select the web browser to use:
+
+```scala
+"run in a browser" in new WithBrowser(webDriver = FIREFOX) {
+  ...
 }
 ```
 

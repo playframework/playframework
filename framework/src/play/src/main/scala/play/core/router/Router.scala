@@ -9,6 +9,8 @@ import scala.util.parsing.combinator._
 import scala.util.matching._
 import java.net.URI
 import scala.util.control.Exception
+import scala.collection.concurrent.TrieMap
+import play.core.j.JavaActionAnnotations
 
 trait PathPart
 
@@ -34,14 +36,13 @@ case class PathPattern(parts: Seq[PathPart]) {
 
   private def decodeIfEncoded(decode: Boolean, groupCount: Int): Matcher => Either[Throwable, String] = matcher =>
     Exception.allCatch[String].either {
-      if(decode) {
+      if (decode) {
         val group = matcher.group(groupCount)
         // If param is not correctly encoded, get path will return null, so we prepend a / to it
-        new URI("/"+group).getPath.drop(1)
+        new URI("/" + group).getPath.drop(1)
       } else
         matcher.group(groupCount)
     }
-
 
   lazy val (regex, groups) = {
     Some(parts.foldLeft("", Map.empty[String, Matcher => Either[Throwable, String]], 0) { (s, e) =>
@@ -58,7 +59,6 @@ case class PathPattern(parts: Seq[PathPart]) {
     }.get
   }
 
-
   def apply(path: String): Option[Map[String, Either[Throwable, String]]] = {
     val matcher = regex.matcher(path)
     if (matcher.matches) {
@@ -68,12 +68,6 @@ case class PathPattern(parts: Seq[PathPart]) {
     } else {
       None
     }
-  }
-
-  // Unused, but left here for the purposes of backwards compatibility
-  def has(key: String): Boolean = parts.exists {
-    case DynamicPart(name, _, _) if name == key => true
-    case _ => false
   }
 
   override def toString = parts.map {
@@ -87,8 +81,11 @@ case class PathPattern(parts: Seq[PathPart]) {
  * provides Play's router implementation
  */
 object Router {
-  
-   object Route {
+
+  // Cache of annotation information for improving Java performance.
+  private val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
+
+  object Route {
 
     trait ParamsExtractor {
       def unapply(request: RequestHeader): Option[RouteParams]
@@ -156,16 +153,39 @@ object Router {
 
   object HandlerInvoker {
 
+    import play.libs.F.{ Promise => JPromise }
+    import play.mvc.{ Result => JResult }
+
     implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
       def call(call: => A, handler: HandlerDef): Handler = call
     }
 
-    implicit def wrapJava: HandlerInvoker[play.mvc.Result] = new HandlerInvoker[play.mvc.Result] {
-      def call(call: => play.mvc.Result, handler: HandlerDef) = {
-        new play.core.j.JavaAction {
+    implicit def wrapJava: HandlerInvoker[JResult] = new HandlerInvoker[JResult] {
+      def call(call: => JResult, handlerDef: HandlerDef) = {
+        new {
+          val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
+            val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
+            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+            new JavaActionAnnotations(controller, method)
+          })
+        } with play.core.j.JavaAction {
+          val parser = annotations.parser
+          def invocation = JPromise.pure(call)
+        }
+      }
+    }
+
+    implicit def wrapJavaPromise: HandlerInvoker[JPromise[JResult]] = new HandlerInvoker[JPromise[JResult]] {
+      def call(call: => JPromise[JResult], handlerDef: HandlerDef) = {
+        new {
+          val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
+            val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
+            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+            new JavaActionAnnotations(controller, method)
+          })
+        } with play.core.j.JavaAction {
+          val parser = annotations.parser
           def invocation = call
-          lazy val controller = handler.ref.getClass.getClassLoader.loadClass(handler.controller)
-          lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, handler.method, handler.parameterTypes: _*)
         }
       }
     }
@@ -178,8 +198,8 @@ object Router {
       def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
     }
 
-    implicit def javaJsonWebSocket: HandlerInvoker[play.mvc.WebSocket[org.codehaus.jackson.JsonNode]] = new HandlerInvoker[play.mvc.WebSocket[org.codehaus.jackson.JsonNode]] {
-      def call(call: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofJson(call)
+    implicit def javaJsonWebSocket: HandlerInvoker[play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]] = new HandlerInvoker[play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]] {
+      def call(call: => play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofJson(call)
     }
 
   }
@@ -345,8 +365,8 @@ object Router {
       d.call(call, handler) match {
         case javaAction: play.core.j.JavaAction => new play.core.j.JavaAction with RequestTaggingHandler {
           def invocation = javaAction.invocation
-          def controller = javaAction.controller
-          def method = javaAction.method
+          val annotations = javaAction.annotations
+          val parser = javaAction.annotations.parser
           def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
         }
         case action: EssentialAction => new EssentialAction with RequestTaggingHandler {

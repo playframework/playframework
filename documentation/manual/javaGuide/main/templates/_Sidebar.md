@@ -2,6 +2,7 @@
 
 - [[Templates syntax | JavaTemplates]]
 - [[Common use cases | JavaTemplateUseCases]]
+- [[Custom formats | JavaCustomTemplateFormat]]
 
 ### Main concepts
 

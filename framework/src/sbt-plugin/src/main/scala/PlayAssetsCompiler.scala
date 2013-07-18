@@ -51,7 +51,7 @@ trait PlayAssetsCompiler {
               val (debug, min, dependencies) = try {
                 compile(sourceFile, options ++ requireSupport)
               } catch {
-                case e: AssetCompilationException => throw reportCompilationError(state, e)
+                case e: AssetCompilationException => throw PlaySourceGenerators.reportCompilationError(state, e)
               }
               val out = new File(resources, "public/" + naming(name, false))
               IO.write(out, debug)
@@ -111,24 +111,5 @@ trait PlayAssetsCompiler {
     },
     coffeescriptOptions
   )
-
-  def reportCompilationError(state: State, error: PlayException.ExceptionSource) = {
-    val log = state.log
-    // log the source file and line number with the error message
-    log.error(Option(error.sourceName).getOrElse("") + Option(error.line).map(":" + _).getOrElse("") + ": " + error.getMessage)
-    Option(error.interestingLines(0)).map(_.focus).flatMap(_.headOption) map { line =>
-      // log the line
-      log.error(line)
-      Option(error.position).map { pos =>
-      // print a carat under the offending character
-        val spaces = (line: Seq[Char]).take(pos).map {
-          case '\t' => '\t'
-          case x => ' '
-        }
-        log.error(spaces.mkString + "^")
-      }
-    }
-    error
-  }
 
 }

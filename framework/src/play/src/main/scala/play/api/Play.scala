@@ -10,10 +10,10 @@ import java.io._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-/** Application mode, either `DEV` or `PROD`. */
+/** Application mode, either `DEV`, `TEST`, or `PROD`. */
 object Mode extends Enumeration {
   type Mode = Value
-  val Dev, Prod, Test = Value
+  val Dev, Test, Prod = Value
 }
 
 /**
@@ -26,6 +26,11 @@ object Mode extends Enumeration {
  * }}}
  */
 object Play {
+
+  /*
+   * A general purpose logger for Play. Intended for internal usage.
+   */
+  private[play] val logger = Logger("play")
 
   /**
    * Returns the currently running application, or `null` if not defined.
@@ -65,7 +70,7 @@ object Play {
 
     app.mode match {
       case Mode.Test =>
-      case mode => Logger("play").info("Application started (" + mode + ")")
+      case mode => logger.info("Application started (" + mode + ")")
     }
 
   }
@@ -77,7 +82,7 @@ object Play {
     Option(_currentApp).map { app =>
       Threads.withContextClassLoader(classloader(app)) {
         app.plugins.reverse.foreach { p =>
-          try { p.onStop() } catch { case NonFatal(e) => Logger("play").warn("Error stopping plugin", e)}
+          try { p.onStop() } catch { case NonFatal(e) => logger.warn("Error stopping plugin", e) }
         }
       }
     }

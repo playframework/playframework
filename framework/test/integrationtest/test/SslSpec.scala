@@ -8,8 +8,11 @@ import org.specs2.execute.{Result, AsResult}
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
+import play.api.test.FakeApplication
+import play.api.test.TestServer
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
+import scala.Some
 
 class SslSpec extends Specification {
 
@@ -29,29 +32,17 @@ class SslSpec extends Specification {
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal("CN=localhost, OU=Unit Test, O=Unit Testers, L=Testland, ST=Test, C=TT")
     }
-
-    "support client certificates" in new Ssl(None, None, trustStore = Some("noCA")) {
-      val conn = clientCertRequest()
-      conn.getResponseCode must_== 200
-      contentAsString(conn) must_== "Bob Client"
-  }
-
-    "not trust untrusted client certificates" in new Ssl(None, None, trustStore=Some("default")) {
-      val conn = clientCertRequest()
-      conn.getResponseCode must throwA[SSLHandshakeException]
+    "report a tampered keystore" in new Ssl(keyStore = Some("conf/badKeystore.jks"), password = Some("password")) {
+      val conn = createConn
+      conn.getResponseCode must throwA[java.io.IOException].like {
+        case e => e.getMessage must startWith("Remote host closed connection during handshake")        
+        /*
+          What I'd really like to test for is that the log contains "Keystore was tampered with, or password was incorrect"
+          but I don't know how to do that...
+        */
+      }
     }
-
-    "not accept no client certificate" in new Ssl(None, None, trustStore = Some("noCA")) {
-      val conn = clientCertRequest(withClientCert = false)
-      conn.getResponseCode must throwA[SSLHandshakeException]
-    }
-
-    "accept a trusted client certificate" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password"),
-      trustStore = Some("keystore")) {
-      val conn = clientCertRequest()
-      conn.getResponseCode must_== 200
-      contentAsString(conn) must_== "Bob Client"
-    }
+    
   }
 
   abstract class Ssl(keyStore: Option[String] = None,

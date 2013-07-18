@@ -28,7 +28,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 
 - `app/` contains the application’s core, split between models, controllers and views directories. This is the directory where .scala source files live.
 - `conf/` contains all the application’s configuration files, especially the main `application.conf` file, the `routes` definition files and the `messages` files used for internationalization.
-- `project` contains the build scripts. The build system is based on sbt. But a new Play application comes with a default build script that will just work fine for our application.
+- `project/` contains the build scripts. The build system is based on sbt. But a new Play application comes with a default build script that will just work fine for our application.
 - `public/` contains all the publicly available resources, which includes JavaScript, stylesheets and images directories.
 - `test/` contains all the application tests. Tests are written as Specs2 specifications.
 
@@ -50,7 +50,7 @@ This launches the Play console. There are several things you can do from the Pla
 
 [[images/run.png]]
 
-The application is now running in development mode. Open a browser at [[http://localhost:9000/]]:
+The application is now running in development mode. Open a browser at <http://localhost:9000/>:
 
 [[images/welcome.png]]
 
@@ -68,7 +68,7 @@ GET	/       controllers.Application.index
 
 That simply tells Play that when the web server receives a GET request for the / path, it must retrieve the `Action` to execute from the `controllers.Application.index` method. 
 
-Let’s see how the `controllers.Application.index` method looks like. Open the `todolist/app/controllers/Application.scala` source file:
+Let’s see what the `controllers.Application.index` method looks like. Open the `todolist/app/controllers/Application.scala` source file:
 
 ```
 package controllers
@@ -96,14 +96,14 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
     
     @play20.welcome(message)
     
 }
 ```
 
-The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mix HTML (or any text based language) with Scala statements. The Scala statements starts with the special `@` character.
+The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text based language) with Scala statements. The Scala statements start with the special `@` character.
 
 ## Development workflow
 
@@ -177,7 +177,7 @@ object Application extends Controller {
 
 As you see we use `TODO` to define our action implementations. Because we don’t want to write the action implementations yet, we can use the built-in `TODO` action that will return a `501 Not Implemented` HTTP response. 
 
-You can try to access the [[http://localhost:9000/tasks]] to see that:
+You can try to access the <http://localhost:9000/tasks> to see that:
 
 [[images/todo.png]]
 
@@ -293,7 +293,7 @@ def tasks = Action {
 
 This renders a **200 OK** result filled with the HTML rendered by the `index.scala.html` template called with the tasks list and the task form.
 
-You can now try to access [[http://localhost:9000/tasks]] in your browser:
+You can now try to access <http://localhost:9000/tasks> in your browser:
 
 [[images/blank.png]]
 
@@ -319,14 +319,11 @@ To fill the form we need to have the `request` in the scope, so it can be used b
 
 ## Persist the tasks in a database
 
-It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application. In the `conf/application.conf` file, add:
+It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application.
 
-```
-db.default.driver=org.h2.Driver
-db.default.url="jdbc:h2:mem:play"
-```
+For now we will use a simple in memory database using **H2**, follow the process described in the [[Accessing an SQL database|ScalaDatabase]] page.
 
-For now we will use a simple in memory database using **H2**. No need to restart the server, refreshing the browser is enough to set up the database.
+No need to restart the server, refreshing the browser is enough to set up the database.
 
 We will use **Anorm** in this tutorial to query the database. First we need to define the database schema. Let’s use Play evolutions for that, so create a first evolution script in `conf/evolutions/default/1.sql`:
 

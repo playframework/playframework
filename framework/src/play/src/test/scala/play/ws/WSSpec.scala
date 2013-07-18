@@ -7,7 +7,7 @@ object WSSpec extends Specification {
 
   "WS" should {
     "support several query string values for a parameter" in {
-      val req = WS.url("http://playframework.org/")
+      val req = WS.url("http://playframework.com/")
           .withQueryString("foo"->"foo1", "foo"->"foo2")
           .prepare("GET").build
        req.getQueryParams.get("foo").contains("foo1") must beTrue

@@ -13,6 +13,7 @@ import play.api.libs.ws.ResponseHeaders
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.core.server.noCATrustManager
 import com.ning.http.client.AsyncHttpClient
+import javax.net.ssl.{SSLSession, HostnameVerifier}
 
 
 class FunctionalSpec extends Specification {
@@ -37,11 +38,14 @@ class FunctionalSpec extends Specification {
 
       "when connecting unsecured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
       val h = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").get)
-      h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
+        h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
     }
 
       "when connecting secured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
-        val ws = WSx(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).build))
+        val ws = WSx(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
+          def verify(p1: String, p2: SSLSession) = true
+        }).build))
+        val url = s"https://localhost:${sslPort.get}/public/stylesheets/main.css"
         val req = ws.url("https://localhost:" + sslPort.get + "/public/stylesheets/main.css")
         val h = await(req.get)
         h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
@@ -105,10 +109,10 @@ class FunctionalSpec extends Specification {
 
       await(WS.url("http://localhost:" + port + "/json").get()).json.as[User] must equalTo(User(1, "Sadek", List("tea")))
 
-      browser.goTo("/conf")
+      val f= browser.goTo("/conf")
       browser.pageSource must contain("This value comes from complex-app's complex1.conf")
       browser.pageSource must contain("override akka:2 second")
-      browser.pageSource must contain("akka-loglevel:WARNING")
+      browser.pageSource must contain("akka-loglevel:DEBUG")
       browser.pageSource must contain("promise-timeout:7000")
       browser.pageSource must contain("None")
       browser.title must beNull

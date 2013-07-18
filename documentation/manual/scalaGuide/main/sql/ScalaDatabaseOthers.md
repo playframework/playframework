@@ -4,7 +4,7 @@ You can use any **SQL** database access library you like with Play, as can easil
 
 ## Integrating with ScalaQuery
 
-From here you can integrate any JDBC access layer that needs a JDBC data source. For example, to integrate with [[ScalaQuery | https://github.com/szeiger/scala-query]]:
+From here you can integrate any JDBC access layer that needs a JDBC data source. For example, to integrate with [ScalaQuery](https://github.com/szeiger/scala-query):
 
 ```scala
 import play.api.db._

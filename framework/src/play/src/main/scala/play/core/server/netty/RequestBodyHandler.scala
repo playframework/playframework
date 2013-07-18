@@ -1,84 +1,81 @@
 package play.core.server.netty
 
-import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
-import org.jboss.netty.bootstrap._
-import org.jboss.netty.channel.Channels._
 import org.jboss.netty.handler.codec.http._
-import org.jboss.netty.channel.socket.nio._
-import org.jboss.netty.handler.stream._
 
-import org.jboss.netty.channel.group._
-import java.util.concurrent._
-
-import play.core._
-import server.Server
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.api.libs.concurrent._
 
-import scala.concurrent.Future
-import scala.collection.JavaConverters._
+import scala.concurrent.{ Future, Promise }
+import scala.util.{ Failure, Success }
 
 private[server] trait RequestBodyHandler {
 
-  def newRequestBodyHandler[R](firstIteratee: Future[Iteratee[Array[Byte], Result]], allChannels: DefaultChannelGroup, server: Server): (Future[Iteratee[Array[Byte], Result]], SimpleChannelUpstreamHandler) = {
+  /**
+   * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
+   * optimization.
+   * @param firstIteratee the iteratee to be used to process the first chunk
+   * @param start a function to handle the registration of the handler. A handler is passed as a param.
+   * @param finish a function to handle the de-registration of the handler i.e. when the chunked request is complete.
+   * @return a future of an iteratee that will return the result.
+   */
+  def newRequestBodyUpstreamHandler[A](firstIteratee: Iteratee[Array[Byte], A],
+    start: SimpleChannelUpstreamHandler => Unit,
+    finish: => Unit): Future[Iteratee[Array[Byte], A]] = {
+
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
-    val redeemed = Ref(false)
-    var p = Promise[Iteratee[Array[Byte], Result]]()
-    val MAX_MESSAGE_WATERMARK = 10
-    val MIN_MESSAGE_WATERMARK = 10
+    var p = Promise[Iteratee[Array[Byte], A]]()
+    val MaxMessages = 10
+    val MinMessages = 10
     val counter = Ref(0)
 
-    var iteratee: Ref[Iteratee[Array[Byte], Result]] = Ref(Iteratee.flatten(firstIteratee))
+    var iteratee: Ref[Iteratee[Array[Byte], A]] = Ref(firstIteratee)
 
     def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
-      if (counter.single.transformAndGet { _ + 1 } > MAX_MESSAGE_WATERMARK && ctx.getChannel.isOpen() && !redeemed.single())
+      if (counter.single.transformAndGet { _ + 1 } > MaxMessages && ctx.getChannel.isOpen() && !p.isCompleted)
         ctx.getChannel.setReadable(false)
 
-      val itPromise = Promise[Iteratee[Array[Byte], Result]]()
+      val itPromise = Promise[Iteratee[Array[Byte], A]]()
       val current = atomic { implicit txn =>
-        if (!redeemed())
+        if (!p.isCompleted)
           Some(iteratee.single.swap(Iteratee.flatten(itPromise.future)))
         else None
       }
 
       current.foreach { i =>
-        i.feed(chunk).flatMap(_.unflatten).extend1 {
-          case Redeemed(c @ Step.Cont(k)) =>
+        i.feed(chunk).flatMap(_.unflatten).onComplete {
+          case Success(c @ Step.Cont(k)) =>
             continue(c.it)
-          case Redeemed(finished) =>
+          case Success(finished) =>
             finish(finished.it)
-          case Thrown(e) =>
-            if (!redeemed.single.swap(true)) {
-              p.throwing(e)
+          case Failure(e) =>
+            if (!p.tryFailure(e)) {
               iteratee = null; p = null;
               if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
             }
-            itPromise.throwing(e)
+            itPromise.failure(e)
         }
       }
 
-      def continue(it: Iteratee[Array[Byte], Result]) {
-        if (counter.single.transformAndGet { _ - 1 } <= MIN_MESSAGE_WATERMARK && ctx.getChannel.isOpen())
+      def continue(it: Iteratee[Array[Byte], A]) {
+        if (counter.single.transformAndGet { _ - 1 } <= MinMessages && ctx.getChannel.isOpen())
           ctx.getChannel.setReadable(true)
-        itPromise.redeem(it)
+        itPromise.success(it)
       }
 
-      def finish(it: Iteratee[Array[Byte], Result]) {
-        if (!redeemed.single.swap(true)) {
-          p.redeem(it)
+      def finish(it: Iteratee[Array[Byte], A]) {
+        if (!p.trySuccess(it)) {
           iteratee = null; p = null;
           if (ctx.getChannel.isOpen()) ctx.getChannel.setReadable(true)
         }
-        itPromise.redeem(it)
+        itPromise.success(it)
       }
     }
 
-    (p.future, new SimpleChannelUpstreamHandler {
+    start(new SimpleChannelUpstreamHandler {
       override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
         e.getMessage match {
 
@@ -90,10 +87,10 @@ private[server] trait RequestBodyHandler {
 
           case chunk: HttpChunk if chunk.isLast() => {
             pushChunk(ctx, EOF)
-            ctx.getChannel.getPipeline.replace("handler", "handler", new PlayDefaultUpstreamHandler(server, allChannels))
+            finish
           }
 
-          case unexpected => Logger("play").error("Oops, unexpected message received in NettyServer/ChunkHandler (please report this problem): " + unexpected)
+          case unexpected => Play.logger.error("Oops, unexpected message received in NettyServer/ChunkHandler (please report this problem): " + unexpected)
 
         }
       }
@@ -108,6 +105,7 @@ private[server] trait RequestBodyHandler {
 
     })
 
+    p.future
   }
 
 }

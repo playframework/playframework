@@ -1,6 +1,6 @@
 # Integrating with Akka
 
-[[Akka| http://akka.io/]] uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
+[Akka](http://akka.io/) uses the Actor Model to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications. For fault-tolerance it adopts the ‘Let it crash’ model, which has been used with great success in the telecoms industry to build applications that self-heal - systems that never stop. Actors also provide the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.
 
 ## The application actor system
 
@@ -12,9 +12,8 @@ A Play application defines a special actor system to be used by the application.
 
 You can access the default application actor system using the `play.api.libs.concurrent.Akka` helper:
 
-```scala
-val myActor = Akka.system.actorOf(Props[MyActor], name = "myactor")
-```
+@[play-akka-myactor](code/ScalaAkka.scala)
+
 
 ## Configuration
 
@@ -32,22 +31,14 @@ akka.actor.debug.receive = on
 
 You can schedule sending messages to actors and executing tasks (functions or `Runnable`). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
 
-For example, to send a message to the `testActor` every 30 minutes:
+For example, to send a message to the `testActor` every 30 microseconds:
 
-```scala
-import play.api.libs.concurrent.Execution.Implicits._
-Akka.system.scheduler.schedule(0.seconds, 30.minutes, testActor, "tick")
-```
+@[play-akka-actor-schedule-repeat](code/ScalaAkka.scala)
 
 > **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
 
-Similarly, to run a block of code ten seconds from now:
+Similarly, to run a block of code one seconds from now:
 
-```scala
-import play.api.libs.concurrent.Execution.Implicits._
-Akka.system.scheduler.scheduleOnce(10.seconds) {
-  file.delete()
-}
-```
+@[play-akka-actor-schedule-run-once](code/ScalaAkka.scala)
 
 > **Next:** [[Internationalization | ScalaI18N]]

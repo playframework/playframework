@@ -1,25 +1,6 @@
 package sbt
 
-import xsbti.{Maybe, Position}
-
-object InPlaceLogger {
-
-  private var lastMessage: String = null
-
-  def log(message: String) {
-    val logged = "[info] " + message + "\r"
-    print(logged)
-    lastMessage = logged
-  }
-
-  def clear() {
-    if (lastMessage != null) {
-      print(" " * lastMessage.size + "\r")
-      lastMessage = null
-    }
-  }
-
-}
+import xsbti.{ Maybe, Position }
 
 object PlayLogManager {
 
@@ -29,40 +10,20 @@ object PlayLogManager {
 }
 
 class PlayLogManager(extra: ScopedKey[_] => Seq[AbstractLogger], playPositionMapper: Position => Option[Position]) extends LogManager {
-  //reintroduce missing methods
-  def defaultScreen: AbstractLogger = ConsoleLogger()
-  //reintroduce missing methods
-  def defaultBacked(useColor: Boolean = ConsoleLogger.formatEnabled): java.io.PrintWriter => ConsoleLogger =
-    to => ConsoleLogger(ConsoleLogger.printWriterOut(to), useColor = useColor)
 
-  val screen = defaultScreen
-  val backed = defaultBacked()
+  val screen = MainLogging.defaultScreen(StandardMain.console)
+  val backed = MainLogging.defaultBacked()
   val sourcePositionFilter = new PlaySourcePositionFilter(playPositionMapper)
 
   def apply(data: Settings[Scope], state: State, task: ScopedKey[_], to: java.io.PrintWriter): Logger = {
     new FilterLogger(
       delegate = LogManager.defaultLogger(data, state, task, screen, backed(to), extra(task).toList).asInstanceOf[AbstractLogger]
     ) {
-
-      override def log(level: Level.Value, message: => String): Unit =  {
+      override def log(level: Level.Value, message: => String): Unit = {
         if (atLevel(level)) {
-          sourcePositionFilter.filter(level, message) { (level, message) =>
-            InPlaceLogger.clear()
-            if (!message.contains("Running java with options -classpath")) {
-              if (filtered(message)) {
-                InPlaceLogger.log(message)
-              } else {
-                super.log(level, message)
-              }
-            }
-          }
+          sourcePositionFilter.filter(level, message)(super.log)
         }
       }
-
-      def filtered(message: String) = {
-        message.startsWith("Resolving ") && message.endsWith("...")
-      }
-
     }
   }
 }
@@ -76,15 +37,14 @@ class PlayLogManager(extra: ScopedKey[_] => Seq[AbstractLogger], playPositionMap
  */
 class PlaySourcePositionFilter(val playPositionMapper: Position => Option[Position]) {
   import scala.collection.mutable
-  import play.templates.{MaybeGeneratedSource => TemplateSource}
-  import play.router.RoutesCompiler.{MaybeGeneratedSource => RoutesSource}
+  import play.templates.{ MaybeGeneratedSource => TemplateSource }
+  import play.router.RoutesCompiler.{ MaybeGeneratedSource => RoutesSource }
 
   val CompileError = """(?s)(.*\.scala):(\d+): (.*)""".r
   val Pointer = """([\t ]*)\^""".r
   val CompilationFailed = """.*Compilation failed"""
   private val buffer = mutable.ArrayBuffer[(Level.Value, String)]()
   private var current: Option[(File, Int, String)] = None
-
 
   def filter(level: Level.Value, message: String)(log: (Level.Value, => String) => Unit) {
     buffer.synchronized {
@@ -126,7 +86,7 @@ class PlaySourcePositionFilter(val playPositionMapper: Position => Option[Positi
   }
 
   def matchCompileError(level: Level.Value, message: String, filename: String, line: String, error: String,
-                        log: (Level.Value, => String) => Unit) {
+    log: (Level.Value, => String) => Unit) {
     val file = new File(filename)
     file match {
       case TemplateSource(generatedSource) => {
@@ -164,9 +124,9 @@ class PlaySourcePositionFilter(val playPositionMapper: Position => Option[Positi
     buffer.slice(1, buffer.size - 1).foreach(m => log(m._1, m._2))
 
     val lineContent = pos.lineContent
-    if(!lineContent.isEmpty) {
+    if (!lineContent.isEmpty) {
       log(level, lineContent)
-      for(space <- m2o(pos.pointerSpace))
+      for (space <- m2o(pos.pointerSpace))
         log(level, space + "^") // pointer to the column position of the error/warning
     }
 

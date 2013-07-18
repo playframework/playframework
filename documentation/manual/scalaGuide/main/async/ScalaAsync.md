@@ -14,37 +14,21 @@ The web client will be blocked while waiting for the response, but nothing will 
 
 To create a `Future[Result]` we need another future first: the future that will give us the actual value we need to compute the result:
 
-```scala
-val futurePIValue: Future[Double] = computePIAsynchronously()
-val futureResult: Future[Result] = futurePIValue.map { pi =>
-  Ok("PI value computed: " + pi)    
-}
-```
+@[future-result](code/ScalaAsync.scala)
 
 All of Play’s asynchronous API calls give you a `Future`. This is the case whether you are calling an external web service using the `play.api.libs.WS` API, or using Akka to schedule asynchronous tasks or to communicate with actors using `play.api.libs.Akka`.
 
 Here is a simple way to execute a block of code asynchronously and to get a `Future`:
 
-```scala
-val futureInt: Future[Int] = scala.concurrent.Future {
-  intensiveComputation()
-}
-```
+@[intensive-computation](code/ScalaAsync.scala)
 
-> **Note:** Here, the intensive computation will just be run on another thread. It is also possible to run it remotely on a cluster of backend servers using Akka remote.
+It's important to understand which thread code runs on with futures.  In the two code blocks above, there is an import on Plays default execution context.  This is an implicit parameter that gets passed to all methods on the future API that accept callbacks.  The execution context will often be equivalent to a thread pool, though not necessarily.
 
 ## AsyncResult
 
 While we were using `SimpleResult` until now, to send an asynchronous result, we need an `AsyncResult` to wrap the actual `SimpleResult`:
 
-```scala
-def index = Action {
-  val futureInt = scala.concurrent.Future { intensiveComputation() }
-  Async {
-    futureInt.map(i => Ok("Got result: " + i))
-  }
-}
-```
+@[async-result](code/ScalaAsync.scala)
 
 > **Note:** `Async { }` is an helper method that builds an `AsyncResult` from a `Future[Result]`.
 
@@ -52,18 +36,6 @@ def index = Action {
 
 It is often useful to handle time-outs properly, to avoid having the web browser block and wait if something goes wrong. You can easily compose a promise with a promise timeout to handle these cases:
 
-```scala
-
-def index = Action {
-  val futureInt = scala.concurrent.Future { intensiveComputation() }
-  val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 2.seconds)
-  Async {
-    Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map { 
-      case i: Int => Ok("Got result: " + i)
-      case t: String => InternalServerError(t)
-    }  
-  }
-}
-```
+@[timeout](code/ScalaAsync.scala)
 
 > **Next:** [[Streaming HTTP responses | ScalaStream]]

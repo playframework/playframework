@@ -15,6 +15,10 @@
 - [[The application Global object | JavaGlobal]]
 - [[Testing your application | JavaTest]]
 
+### Advanced Topics
+
+- [[Extending Play|JavaPlugins]]
+
 ### Tutorials
 
 - [[Your first application | JavaTodoList]]

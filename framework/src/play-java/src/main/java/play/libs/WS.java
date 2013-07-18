@@ -26,8 +26,8 @@ import org.w3c.dom.Document;
 
 import play.libs.F.Promise;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -185,7 +185,7 @@ public class WS {
         }
 
         /**
-         * Sets a header with the given name, this can be called repeatedly 
+         * Sets a header with the given name, this can be called repeatedly.
          *
          * @param name
          * @param value
@@ -203,7 +203,7 @@ public class WS {
         }
 
         /**
-         * Sets a query parameter with the given name,this can be called repeatedly
+         * Sets a query parameter with the given name,this can be called repeatedly.
          *
          * @param name
          * @param value
@@ -253,7 +253,7 @@ public class WS {
         }
 
         /**
-         * Sets whether redirects (301, 302) should be followed automatically
+         * Sets whether redirects (301, 302) should be followed automatically.
          *
          * @param followRedirects
          */
@@ -263,7 +263,7 @@ public class WS {
         }
 
         /**
-         * Sets the request timeout in milliseconds
+         * Sets the request timeout in milliseconds.
          *
          * @param timeout
          */
@@ -280,6 +280,69 @@ public class WS {
          */
         public WSRequestHolder setContentType(String contentType) {
             return setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        }
+
+        /**
+         * @return the URL of the request.
+         */
+        public String getUrl() {
+            return this.url;
+        }
+
+        /**
+         * @return the headers (a copy to prevent side-effects).
+         */
+        public Map<String, Collection<String>> getHeaders() {
+            return new HashMap<String, Collection<String>>(this.headers);
+        }
+
+        /**
+         * @return the query parameters (a copy to prevent side-effects).
+         */
+        public Map<String, Collection<String>> getQueryParameters() {
+            return new HashMap<String, Collection<String>>(this.queryParameters);
+        }
+
+        /**
+         * @return the auth username, null if not an authenticated request.
+         */
+        public String getUsername() {
+            return this.username;
+        }
+
+        /**
+         * @return the auth password, null if not an authenticated request
+         */
+        public String getPassword() {
+            return this.password;
+        }
+
+        /**
+         * @return the auth scheme, null if not an authenticated request
+         */
+        public AuthScheme getScheme() {
+            return this.scheme;
+        }
+
+        /**
+         * @return the signature calculator (exemple: OAuth), null if none is set.
+         */
+        public SignatureCalculator getCalculator() {
+            return this.calculator;
+        }
+
+        /**
+         * @return the auth scheme (null if not an authenticated request)
+         */
+        public int getTimeout() {
+            return this.timeout;
+        }
+
+        /**
+         * @return true if the request is configure to follow redirect, false if it is configure not to, null if nothing is configured and the global client preference should be used instead.
+         */
+        public Boolean getFollowRedirects() {
+            return this.followRedirects;
         }
 
         /**
@@ -533,14 +596,13 @@ public class WS {
         }
 
         /**
-         * Get the response body as a {@link org.codehaus.jackson.JsonNode}
+         * Get the response body as a {@link com.fasterxml.jackson.databind.JsonNode}
          * @return the json response
          */
         public JsonNode asJson() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
                 // Jackson will automatically detect the correct encoding according to the rules in RFC-4627
-                return mapper.readValue(ahcResponse.getResponseBodyAsStream(), JsonNode.class);
+                return Json.parse(ahcResponse.getResponseBodyAsStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

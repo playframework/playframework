@@ -1,5 +1,18 @@
 # Integrating with JPA
 
+## Adding dependencies to your project
+
+First you need to tell play that your project need javaJpa plugin which provide JDBC and JPA api dependencies.
+
+There is no built-in JPA implementation in Play 2.0; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
+
+```
+val appDependencies = Seq(
+  javaJpa,
+  "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final" // replace by your jpa implementation
+)
+```
+
 ## Exposing the datasource through JNDI
 
 JPA requires the datasource to be accessible via JNDI. You can expose any Play-managed datasource via JDNI by adding this configuration in `conf/application.conf`:
@@ -8,16 +21,6 @@ JPA requires the datasource to be accessible via JNDI. You can expose any Play-m
 db.default.driver=org.h2.Driver
 db.default.url="jdbc:h2:mem:play"
 db.default.jndiName=DefaultDS
-```
-
-## Adding a JPA implementation to your project
-
-There is no built-in JPA implementation in Play 2.0; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
-
-```
-val appDependencies = Seq(
-  "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
-)
 ```
 
 ## Creating a persistence unit
@@ -31,7 +34,7 @@ Here is a sample configuration file to use with Hibernate:
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
-             
+
     <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
         <non-jta-data-source>DefaultDS</non-jta-data-source>
@@ -39,8 +42,14 @@ Here is a sample configuration file to use with Hibernate:
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
         </properties>
     </persistence-unit>
-    
+
 </persistence>
+```
+
+Finally you have to tell Play, which persistent unit should be used by your JPA provider. This is done by the `jpa.default` property in your `application.conf`.
+
+```
+jpa.default=defaultPerstistenceUnit
 ```
 
 ## Annotating JPA actions with `@Transactional`
@@ -74,4 +83,3 @@ public static Company findById(Long id) {
 ```
 
 > **Next:** [[Using the cache | JavaCache]]
-

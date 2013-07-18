@@ -7,6 +7,7 @@ import play.templates._
 object PlayMagicForJava {
 
   import scala.collection.JavaConverters._
+  import scala.language.implicitConversions
 
   /** Transforms a Play Java `Option` to a proper Scala `Option`. */
   implicit def javaOptionToScala[T](x: play.libs.F.Option[T]): Option[T] = x match {

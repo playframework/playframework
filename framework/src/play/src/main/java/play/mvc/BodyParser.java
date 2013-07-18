@@ -47,7 +47,7 @@ public interface BodyParser {
     }
 
     /**
-     * Parse the body as Xml if the Content-Type is text/xml.
+     * Parse the body as Xml if the Content-Type is application/xml.
      */
     public static class Xml implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {

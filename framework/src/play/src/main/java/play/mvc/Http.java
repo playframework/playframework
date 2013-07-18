@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import org.w3c.dom.*;
-import org.codehaus.jackson.*;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import play.i18n.Lang;
 import play.Play;
@@ -683,7 +683,7 @@ public class Http {
          * @param secure Whether the cookie to discard is secure
          */
         public void discardCookie(String name, String path, String domain, boolean secure) {
-            cookies.add(new Cookie(name, "", -1, path, domain, secure, false));
+            cookies.add(new Cookie(name, "", -86400, path, domain, secure, false));
         }
 
         // FIXME return a more convenient type? e.g. Map<String, Cookie>

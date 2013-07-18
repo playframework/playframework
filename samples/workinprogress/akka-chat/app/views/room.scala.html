@@ -20,11 +20,7 @@
         }
         
         $("#say").click(function() {
-            jsRoutes.controllers.Application.say($('#msg').val()).ajax({
-                success: function() {
-                    
-                }
-            })
+            $.ajax(jsRoutes.controllers.Application.say($('#msg').val()));
         })
     </script>
     

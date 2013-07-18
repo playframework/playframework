@@ -6,6 +6,8 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.templates._
 
+import play.core.Execution.Implicits.internalContext
+
 object EventSource {
 
   case class EventNameExtractor[E](eventName: E => Option[String])
@@ -34,7 +36,7 @@ object EventSource {
 
   def apply[E]()(implicit encoder: Comet.CometMessage[E], eventNameExtractor: EventNameExtractor[E], eventIdExtractor: EventIdExtractor[E]) = Enumeratee.map[E] { chunk =>
     eventNameExtractor.eventName(chunk).map("event: " + _ + "\r\n").getOrElse("") +
-    eventIdExtractor.eventId(chunk).map("id: " + _ + "\r\n").getOrElse("") +
+      eventIdExtractor.eventId(chunk).map("id: " + _ + "\r\n").getOrElse("") +
       "data: " + encoder.toJavascriptMessage(chunk) + "\r\n\r\n"
   }
 

@@ -1,6 +1,6 @@
 package anorm
 
-import scala.language.{postfixOps,reflectiveCalls}
+import scala.language.{ postfixOps, reflectiveCalls }
 
 import MayErr._
 import java.util.Date
@@ -330,6 +330,8 @@ object ToStatement {
         case None => stmt.setObject(index, null)
         case bd: java.math.BigDecimal => stmt.setBigDecimal(index, bd)
         case date: java.util.Date => stmt.setTimestamp(index, new java.sql.Timestamp(date.getTime()))
+        case Id(id) => stmt.setObject(index, id)
+        case NotAssigned => stmt.setObject(index, null)
         case o => stmt.setObject(index, o)
       }
       stmt
@@ -413,9 +415,9 @@ case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]
   def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
     val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
     else connection.prepareStatement(sql.query)
-    
+
     sql.queryTimeout.foreach(timeout => statement.setQueryTimeout(timeout))
-    
+
     params.foldLeft(statement)((s, ps) => {
       val argsMap = Map(ps: _*)
       val result = sql.argsInitialOrder

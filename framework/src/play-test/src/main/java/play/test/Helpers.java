@@ -2,10 +2,8 @@ package play.test;
 
 import play.*;
 
-import play.api.mvc.Session;
-import play.api.libs.json.JsValue;
-import play.api.test.Helpers$;
 import play.mvc.*;
+import play.api.test.Helpers$;
 import play.libs.*;
 import play.libs.F.*;
 
@@ -13,7 +11,6 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
 
-import org.codehaus.jackson.*;
 
 import java.util.*;
 
@@ -38,20 +35,30 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest) {
         if(handler instanceof play.core.j.JavaAction) {
             play.api.mvc.Action action = (play.api.mvc.Action)handler;
-            final play.api.mvc.Result iResult = action.apply(fakeRequest.getWrappedRequest());
-            return new Result() {
-
-                public play.api.mvc.Result getWrappedResult() {
-                    return iResult;
-                }
-
-                public String toString() {
-                    return iResult.toString();
-                }
-
-            };
+            return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()));
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
+        }
+    }
+
+    private static SimpleResult wrapScalaResult(scala.concurrent.Future<play.api.mvc.SimpleResult> result) {
+        if (result == null) {
+            return null;
+        } else {
+            final play.api.mvc.SimpleResult simpleResult = new Promise<play.api.mvc.SimpleResult>(result).get();
+            return new SimpleResult() {
+                public play.api.mvc.SimpleResult getWrappedSimpleResult() {
+                    return simpleResult;
+                }
+            };
+        }
+    }
+
+    private static SimpleResult unwrapJavaResult(Result result) {
+        if (result instanceof SimpleResult) {
+            return (SimpleResult) result;
+        } else {
+            return wrapScalaResult(result.getWrappedResult());
         }
     }
 
@@ -161,7 +168,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the Status code of this Result value.
      */
     public static int status(Result result) {
-        return play.core.j.JavaResultExtractor.getStatus(result);
+        return unwrapJavaResult(result).getWrappedSimpleResult().header().status();
     }
 
     /**
@@ -175,35 +182,35 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the Flash values of this Result value.
      */
     public static play.mvc.Http.Flash flash(Result result) {
-        return play.core.j.JavaResultExtractor.getFlash(result);
+        return play.core.j.JavaResultExtractor.getFlash(unwrapJavaResult(result));
     }
 
     /**
      * Extracts the Session of this Result value.
      */
     public static play.mvc.Http.Session session(Result result) {
-        return play.core.j.JavaResultExtractor.getSession(result);
+        return play.core.j.JavaResultExtractor.getSession(unwrapJavaResult(result));
     }
 
     /**
      * * Extracts a Cookie value from this Result value
      */
     public static play.mvc.Http.Cookie cookie(String name, Result result) {
-        return play.core.j.JavaResultExtractor.getCookies(result).get(name);
+        return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result)).get(name);
     }
 
     /**
      * Extracts an Header value of this Result value.
      */
     public static String header(String header, Result result) {
-        return play.core.j.JavaResultExtractor.getHeaders(result).get(header);
+        return play.core.j.JavaResultExtractor.getHeaders(unwrapJavaResult(result)).get(header);
     }
 
     /**
      * Extracts all Headers of this Result value.
      */
     public static Map<String,String> headers(Result result) {
-        return play.core.j.JavaResultExtractor.getHeaders(result);
+        return play.core.j.JavaResultExtractor.getHeaders(unwrapJavaResult(result));
     }
 
     /**
@@ -243,7 +250,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the content as bytes.
      */
     public static byte[] contentAsBytes(Result result) {
-        return play.core.j.JavaResultExtractor.getBody(result);
+        return play.core.j.JavaResultExtractor.getBody(unwrapJavaResult(result));
     }
 
     /**
@@ -318,31 +325,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result route(Application app, FakeRequest fakeRequest) {
-      final scala.Option<play.api.mvc.Result> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
-      final play.api.mvc.Result r = opt.getOrElse(null);
-      if(r != null){
-        return new Result() {
-          public play.api.mvc.Result getWrappedResult(){
-            return r;
-          }
-        };
-      }
-      return null;
+      final scala.Option<scala.concurrent.Future<play.api.mvc.SimpleResult>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
+      return wrapScalaResult(Scala.orNull(opt));
     }
 
-    public static <T> Result route(Application app, FakeRequest fakeRequest, byte[] body) {
-      final play.api.mvc.Result r = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body).getOrElse(null);
-      if(r != null){
-        return new Result() {
-          public play.api.mvc.Result getWrappedResult(){
-            return r;
-          }
-        };
-      }
-      return null;
+    public static Result route(Application app, FakeRequest fakeRequest, byte[] body) {
+      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body)));
     }
 
-    public static <T> Result route(FakeRequest fakeRequest, byte[] body) {
+    public static Result route(FakeRequest fakeRequest, byte[] body) {
       return route(play.Play.application(), fakeRequest, body);
     }
 

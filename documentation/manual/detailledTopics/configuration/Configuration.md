@@ -1,6 +1,6 @@
 # Configuration file syntax and features
 
-> The configuration file used by Play is based on the [[Typesafe config library | https://github.com/typesafehub/config]].
+> The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
 
 The default configuration file of a Play 2.0 application must be defined in `conf/application.conf`. It uses the HOCON format ( "Human-Optimized Config Object Notation").
 

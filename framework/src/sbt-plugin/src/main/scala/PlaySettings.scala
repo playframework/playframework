@@ -2,10 +2,11 @@ package sbt
 
 import Keys._
 import PlayKeys._
+import PlayEclipse._
 
 trait PlaySettings {
-  this: PlayCommands with PlayPositionMapper =>
-  
+  this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
+
   protected def whichLang(name: String): Seq[Setting[_]] = {
     if (name == JAVA) {
       defaultJavaSettings
@@ -15,28 +16,10 @@ trait PlaySettings {
       Seq.empty
     }
   }
+
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    templatesImport ++= Seq(
-      "models._",
-      "controllers._",
-
-      "java.lang._",
-      "java.util._",
-
-      "scala.collection.JavaConversions._",
-      "scala.collection.JavaConverters._",
-
-      "play.api.i18n._",
-      "play.core.j.PlayMagicForJava._",
-
-      "play.mvc._",
-      "play.data._",
-      "play.api.data.Field",
-
-      "play.mvc.Http.Context.Implicit._",
-
-      "views.%format%._"),
+    templatesImport ++= defaultJavaTemplatesImport,
 
     routesImport ++= Seq(
       "play.libs.F"
@@ -47,17 +30,8 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-
-    templatesImport ++= Seq(
-      "models._",
-      "controllers._",
-
-      "play.api.i18n._",
-
-      "play.api.mvc._",
-      "play.api.data._",
-
-      "views.%format%._"))
+    templatesImport ++= defaultScalaTemplatesImport
+  )
 
   def closureCompilerSettings(optionCompilerOptions: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
     resourceGenerators in Compile <<= JavascriptCompiler(Some(optionCompilerOptions))(Seq(_)),
@@ -72,8 +46,7 @@ trait PlaySettings {
     playPlugin := false,
 
     resolvers ++= Seq(
-      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
-      "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
     ),
 
     target <<= baseDirectory / "target",
@@ -98,22 +71,22 @@ trait PlaySettings {
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
     libraryDependencies <+= (playPlugin) { isPlugin =>
-      val d = "play" %% "play" % play.core.PlayVersion.current
-      if(isPlugin)
-         d % "provided"
+      val d = "com.typesafe.play" %% "play" % play.core.PlayVersion.current
+      if (isPlugin)
+        d % "provided"
       else
         d
     },
 
-    libraryDependencies += "play" %% "play-test" % play.core.PlayVersion.current % "test",
+    libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     parallelExecution in Test := false,
 
     fork in Test := true,
 
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true"),
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
 
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
 
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
@@ -121,7 +94,11 @@ trait PlaySettings {
 
     testResultReporterReset <<= testResultReporterResetTask,
 
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport) map RouteFiles,
+    generateReverseRouter := true,
+
+    namespaceReverseRouter := false,
+
+    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map RouteFiles,
 
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
@@ -131,7 +108,9 @@ trait PlaySettings {
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get },
 
-    commands ++= Seq(shCommand, playCommand, playRunCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+
+    run <<= playRunSetting,
 
     shellPrompt := playPrompt,
 
@@ -213,12 +192,17 @@ trait PlaySettings {
 
     // Templates
 
-    templatesImport := Seq("play.api.templates._", "play.api.templates.PlayMagic._"),
+    templatesImport := defaultTemplatesImport,
 
-    templatesTypes := {
-      case "html" => ("play.api.templates.Html", "play.api.templates.HtmlFormat")
-      case "txt" => ("play.api.templates.Txt", "play.api.templates.TxtFormat")
-      case "xml" => ("play.api.templates.Xml", "play.api.templates.XmlFormat")
-    })
+    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) },
+
+    templatesTypes := Map(
+      "html" -> "play.api.templates.HtmlFormat",
+      "txt" -> "play.api.templates.TxtFormat",
+      "xml" -> "play.api.templates.XmlFormat",
+      "js" -> "play.api.templates.JavaScriptFormat"
+    )
+
+  )
 
 }

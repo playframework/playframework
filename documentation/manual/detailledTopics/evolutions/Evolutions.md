@@ -202,7 +202,7 @@ Evolutions are stored in your database in a table called PLAY_EVOLUTIONS.  A Tex
 
 ## Running Evolutions in Production
 
-The appropriate up and down scripts are run in dev mode when you click 'Apply Evolutions' in the play console. To use evolutions in PROD mode there are two things to consier.
+The appropriate up and down scripts are run in dev mode when you click 'Apply Evolutions' in the play console. To use evolutions in PROD mode there are two things to consider.
 
 If you want to apply UP evolutions automatically, you should set the system property `-DapplyEvolutions.<database>=true` or set `applyEvolutions.<database>=true` in application.conf.
 If the evolution script calculated by Play only contains UP evolutions and this property is set, then Play will apply them and start the server.

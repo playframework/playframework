@@ -2,7 +2,7 @@
 
 ## Typesafe repository
 
-All Play artifacts are published to the Typesafe repository at [[http://repo.typesafe.com/typesafe/releases/]].
+All Play artifacts are published to the Typesafe repository at <http://repo.typesafe.com/typesafe/releases/>.
 
 > **Note:** it's a Maven2 compatible repository.
 
@@ -15,7 +15,7 @@ resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/
 
 ## Accessing snapshots
 
-Snapshots are published daily from our [[Continuous Server|CIServer]] to the Typesafe snapshots repository at [[http://repo.typesafe.com/typesafe/snapshots/]].
+Snapshots are published daily from our [[Continuous Integration Server|ThirdPartyTools]] to the Typesafe snapshots repository at <http://repo.typesafe.com/typesafe/snapshots/>.
 
 ```
 // The Typesafe snapshots repository

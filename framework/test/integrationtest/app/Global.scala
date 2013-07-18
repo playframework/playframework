@@ -1,12 +1,12 @@
 
 import play.api.GlobalSettings
-import play.api.mvc.{RequestHeader, Result}
+import play.api.mvc.{RequestHeader, SimpleResult}
 import play.api.mvc.Results.InternalServerError
 import play.api.{Logger, Configuration}
 import com.typesafe.config.ConfigFactory
 
 object Global extends GlobalSettings {
-  override def onError(r: RequestHeader, e: Throwable): Result = {
+  override def onError(r: RequestHeader, e: Throwable): SimpleResult = {
     InternalServerError("Something went wrong.")
   }
 

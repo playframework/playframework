@@ -29,16 +29,34 @@ package play.api.templates {
 
 package play.templates {
 
-import reflect.ClassTag
+  import reflect.ClassTag
 
-trait Appendable[T] {
+  /**
+   * A type that has a binary `+=` operation.
+   */
+  trait Appendable[T] {
     def +=(other: T): T
-    override def equals(x: Any): Boolean = super.equals(x)
+    override def equals(x: Any): Boolean = super.equals(x) // FIXME Why do we need these overrides?
     override def hashCode() = super.hashCode()
   }
 
+  /**
+   * A template format defines how to properly integrate content for a type `T` (e.g. to prevent cross-site scripting attacks)
+   * @tparam T The underlying type that this format applies to.
+   */
   trait Format[T <: Appendable[T]] {
+    type Appendable = T
+
+    /**
+     * Integrate `text` without performing any escaping process.
+     * @param text Text to integrate
+     */
     def raw(text: String): T
+
+    /**
+     * Integrate `text` after escaping special characters. e.g. for HTML, “<” becomes “&amp;lt;”
+     * @param text Text to integrate
+     */
     def escape(text: String): T
   }
 
@@ -65,6 +83,8 @@ trait Appendable[T] {
 
   object TemplateMagic {
 
+    import scala.language.implicitConversions
+
     // --- UTILS
 
     def defining[T](t: T)(handler: T => Any) = {
@@ -88,7 +108,7 @@ trait Appendable[T] {
 
     // --- DEFAULT
 
-    case class Default(default: Any) {
+    implicit class Default(val default: Any) extends AnyVal {
       def ?:(x: Any) = x match {
         case "" => default
         case Nil => default
@@ -99,11 +119,9 @@ trait Appendable[T] {
       }
     }
 
-    implicit def anyToDefault(x: Any) = Default(x)
-
     // --- DATE
 
-    class RichDate(date: java.util.Date) {
+    implicit class RichDate(val date: java.util.Date) extends AnyVal {
 
       def format(pattern: String) = {
         new java.text.SimpleDateFormat(pattern).format(date)
@@ -111,11 +129,9 @@ trait Appendable[T] {
 
     }
 
-    implicit def richDate(date: java.util.Date) = new RichDate(date)
-
     // --- STRING
 
-    class RichString(string: String) {
+    implicit class RichString(val string: String) extends AnyVal {
 
       def when(predicate: => Boolean) = {
         predicate match {
@@ -125,8 +141,6 @@ trait Appendable[T] {
       }
 
     }
-
-    implicit def richString(string: String) = new RichString(string)
 
   }
 

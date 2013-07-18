@@ -1,6 +1,6 @@
 # The Play cache API
 
-The default implementation of the Cache API uses [[EHCache| http://ehcache.org/]]. You can also provide your own implementation via a plug-in.
+The default implementation of the Cache API uses [EHCache](http://ehcache.org/). You can also provide your own implementation via a plug-in.
 
 ## Accessing the Cache API
 
@@ -10,29 +10,22 @@ The cache API is provided by the `play.api.cache.Cache` object. It requires a re
 
 Using this simple API you can either store data in cache:
 
-```
-Cache.set("item.key", connectedUser)
-```
+@[set-value](code/ScalaCache.scala)
+
 
 And then retrieve it later:
 
-```
-val maybeUser: Option[User] = Cache.getAs[User]("item.key")
-```
+@[get-value](code/ScalaCache.scala)
 
 There is also a convenient helper to retrieve from cache or set the value in cache if it was missing:
 
-```
-val user: User = Cache.getOrElse[User]("item.key") {
-  User.findById(connectedUser)
-}
-```
+@[retrieve-missing](code/ScalaCache.scala)
+
 
 To remove an item from the cache use the `remove` method:
 
-```
-Cache.remove("item.key")
-```
+@[remove-value](code/ScalaCache.scala)
+
 
 ## Caching HTTP responses
 
@@ -42,24 +35,12 @@ You can easily create smart cached actions using standard Action composition.
 
 Play provides a default built-in helper for standard cases:
 
-```
-def index = Cached("homePage") {
-  Action {
-    Ok("Hello world")
-  }
-}
-```
+@[cached-action](code/ScalaCache.scala)
+
 
 Or even:
 
-```
-def userProfile = Authenticated { user =>
-  Cached(req => "profile." + user) {      
-    Action { 
-      Ok(views.html.profile(User.find(user)))
-    }   
-  }
-}
-```
+@[composition-cached-action](code/ScalaCache.scala)
+
 
 > **Next:** [[Calling web services | ScalaWS]]

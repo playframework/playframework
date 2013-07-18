@@ -1,6 +1,6 @@
 # Configuring logging
 
-Play 2.0 uses [[logback | http://logback.qos.ch/]] as its logging engine.
+Play 2.0 uses [logback](http://logback.qos.ch/) as its logging engine.
 
 ## Configuration logging level in application.conf
 
@@ -10,7 +10,7 @@ Play defines a default `application` logger for your application, which is autom
 
 ```properties
 # Root logger:
-logger=ERROR
+logger.root=ERROR
 
 # Logger used by the framework:
 logger.play=INFO
@@ -29,7 +29,7 @@ logger.org.springframework=TRACE
 
 The default is to define two appenders, one dispatched to the standard out stream, and the other to the `logs/application.log` file.
 
-If you want to fully customize logback, just define a `conf/application-logger.xml` configuration file. Here is the default configuration file used by Play:
+If you want to fully customize logback, just define a `conf/application-logger.xml` or `conf/logger.xml` configuration file. Here is the default configuration file used by Play:
 
 ```xml
 <configuration>

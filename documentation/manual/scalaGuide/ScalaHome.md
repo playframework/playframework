@@ -31,7 +31,6 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[Json Transformers | ScalaJsonTransformers]]
     1. [[Json Macro Inception | ScalaJsonInception]]
     1. [[Handling and serving Json requests | ScalaJsonRequests]]
-    1. [[The Play Json Library with Generics | ScalaJsonGenerics]]
 1. [[Working with XML | ScalaXmlRequests]]
     1. [[Handling and serving XML requests | ScalaXmlRequests]]
 1. [[Handling file upload | ScalaFileUpload]]
@@ -68,6 +67,8 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[HTTP Filters | ScalaHttpFilters]]
 1. [[Reverse routing | ScalaJavascriptRouting]]
     1. [[Javascript Routing | ScalaJavascriptRouting]]
+1. [[Extending Play|ScalaPlugins]]
+    1. [[Writing Plugins|ScalaPlugins]]
 
 ## Tutorials
 

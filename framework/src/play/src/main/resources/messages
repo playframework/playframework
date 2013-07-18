@@ -15,6 +15,7 @@ format.real=Real
 
 # --- Errors
 error.invalid=Invalid value
+error.invalid.java.util.Date=Invalid date value
 error.required=This field is required
 error.number=Numeric value expected
 error.real=Real number value expected
@@ -27,3 +28,18 @@ error.minLength=Minimum length is {0}
 error.maxLength=Maximum length is {0}
 error.email=Valid email required
 error.pattern=Must satisfy {0}
+
+error.expected.date=Date value expected
+error.expected.date.isoformat=Iso date value expected
+error.expected.jodadate.format=Joda date value expected
+error.expected.jsarray=Array value expected
+error.expected.jsboolean=Boolean value expected
+error.expected.jsnumber=Number value expected
+error.expected.jsobject=Object value expected
+error.expected.jsstring=String value expected
+error.expected.jsnumberorjsstring=String or number expected
+error.expected.keypathnode=Node value expected
+
+error.path.empty=Empty path
+error.path.missing=Missing path
+error.path.result.multiple=Multiple results for the given path

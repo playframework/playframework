@@ -1,6 +1,6 @@
 package play.api.mvc
 
-import play.api.http.{Writeable, MediaRange}
+import play.api.http.{ Writeable, MediaRange }
 import play.api.mvc.Results._
 import play.api.http.HeaderNames._
 
@@ -14,7 +14,7 @@ trait Rendering {
    *     case Accepts.Json() => Ok(Json.toJson(value))
    *   }
    * }}}
-   * 
+   *
    * @param f A partial function returning a `Result` for a given request media range
    * @return A result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
    */
@@ -27,8 +27,10 @@ trait Rendering {
     }
 
     // “If no Accept header field is present, then it is assumed that the client accepts all media types.”
-    if (request.acceptedTypes.isEmpty) _render(Seq(MediaRange("*", "*", None)))
-    else _render(request.acceptedTypes)
+    val result =
+      if (request.acceptedTypes.isEmpty) _render(Seq(MediaRange("*", "*", None)))
+      else _render(request.acceptedTypes)
+    result.withHeaders(VARY -> ACCEPT)
   }
 
 }

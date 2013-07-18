@@ -54,7 +54,7 @@ val appDependencies = Seq(
 
 ### Resolvers
 
-Not all packages live on the same server; sbt uses the standard Maven2 repository and the Scala Tools Releases ([[http://scala-tools.org/repo-releases]]) repositories by default. If your dependency isn’t on one of the default repositories, you’ll have to add a resolver to help Ivy find it.
+Not all packages live on the same server; sbt uses the standard Maven2 repository and the Scala Tools Releases (<http://scala-tools.org/repo-releases>) repositories by default. If your dependency isn’t on one of the default repositories, you’ll have to add a resolver to help Ivy find it.
 
 Use the `resolvers` setting key to add your own resolver.
 
@@ -83,7 +83,7 @@ Here is a final example, for a project defining several managed dependencies, wi
 ```scala
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 object ApplicationBuild extends Build {
 
@@ -97,8 +97,8 @@ object ApplicationBuild extends Build {
       
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies).settings(defaultScalaSettings:_*).settings(
-      
+    val main = play.Project(appName, appVersion, appDependencies).settings(defaultScalaSettings:_*).settings(
+
       resolvers += "JBoss repository" at "https://repository.jboss.org/nexus/content/repositories/",
       resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
             

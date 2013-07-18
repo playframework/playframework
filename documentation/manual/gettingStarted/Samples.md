@@ -1,6 +1,6 @@
 # Sample applications
 
-The Play 2.0 package comes with a comprehensive set of sample applications written in both Java and Scala. This is a very good place to look for code snippets and examples.
+The Play binary package comes with a comprehensive set of sample applications written in both Java and Scala. This is a very good place to look for code snippets and examples.
 
 > The sample applications are available in the `samples/` directory of your Play installation.
 
@@ -8,7 +8,7 @@ The Play 2.0 package comes with a comprehensive set of sample applications writt
 
 [[images/helloworld.png]]
 
-This is a very basic application that demonstrates Play 2.0 fundamentals:
+This is a very basic application that demonstrates Play fundamentals:
 
 - Writing controllers and actions.
 - Routing and reverse routing.
@@ -24,7 +24,7 @@ This is a classic CRUD application, backed by a JDBC database. It demonstrates:
 
 - accessing a JDBC database, using Ebean in Java and Anorm in Scala
 - table pagination and CRUD forms
-- integrating with a CSS framework ([[Twitter Bootstrap | http://twitter.github.com/bootstrap/]]).
+- integrating with a CSS framework ([Twitter Bootstrap](http://twitter.github.com/bootstrap/)).
 
 Twitter Bootstrap requires a different form layout to the default layout provided by the Play 2.0 form helper, so this application also provides an example of integrating a custom form input constructor.
 
@@ -74,9 +74,9 @@ This mobile web application monitors Play server performance. It demonstrates:
 
 - advanced usage of Enumerators and Enumeratees.
 
-----
+&nbsp;
 
 > **Next:** 
 >
-> – [[Play 2.0 for Scala developers | ScalaHome]]
-> – [[Play 2.0 for Java developers | JavaHome]]
+> – [[Play for Scala developers | ScalaHome]]
+> – [[Play for Java developers | JavaHome]]

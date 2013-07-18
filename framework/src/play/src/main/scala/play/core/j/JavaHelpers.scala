@@ -1,13 +1,16 @@
 package play.core.j
 
-import play.mvc.{ Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
-import concurrent.ExecutionContext
-import ExecutionContext.Implicits.global
+import play.api.mvc._
+import play.mvc.{ SimpleResult => JSimpleResult }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 
-class EitherToFEither[A,B]() extends play.libs.F.Function[Either[A,B],play.libs.F.Either[A,B]] {
+import scala.collection.JavaConverters._
+import play.libs.F
+import java.security.cert.Certificate
 
-  def apply(e:Either[A,B]): play.libs.F.Either[A,B] = e.fold(play.libs.F.Either.Left(_), play.libs.F.Either.Right(_))
+class EitherToFEither[A, B]() extends play.libs.F.Function[Either[A, B], play.libs.F.Either[A, B]] {
+
+  def apply(e: Either[A, B]): play.libs.F.Either[A, B] = e.fold(play.libs.F.Either.Left(_), play.libs.F.Either.Right(_))
 
 }
 
@@ -21,34 +24,31 @@ trait JavaHelpers {
   import play.api.mvc._
   import play.mvc.Http.RequestBody
 
-
   /**
    * creates a scala result from java context and result objects
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: play.mvc.Result): Result = javaResult.getWrappedResult match {
-    case result: PlainResult => {
-      val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-        .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value,
-          if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
+  def createResult(javaContext: JContext, javaResult: JSimpleResult): SimpleResult = {
+    val wResult = javaResult.getWrappedSimpleResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
+      .withCookies((javaContext.response.cookies.asScala.toSeq map { c =>
+        Cookie(c.name, c.value,
+          if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
+      }): _*)
 
-      if (javaContext.session.isDirty && javaContext.flash.isDirty) {
-        wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+    if (javaContext.session.isDirty && javaContext.flash.isDirty) {
+      wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
+    } else {
+      if (javaContext.session.isDirty) {
+        wResult.withSession(Session(javaContext.session.asScala.toMap))
       } else {
-        if (javaContext.session.isDirty) {
-          wResult.withSession(Session(javaContext.session.asScala.toMap))
+        if (javaContext.flash.isDirty) {
+          wResult.flashing(Flash(javaContext.flash.asScala.toMap))
         } else {
-          if (javaContext.flash.isDirty) {
-            wResult.flashing(Flash(javaContext.flash.asScala.toMap))
-          } else {
-            wResult
-          }
+          wResult
         }
       }
-
     }
-    case other => other
   }
 
   /**
@@ -91,7 +91,15 @@ trait JavaHelpers {
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
 
-      def certs(required: Boolean) = new play.libs.F.Promise(req.certs(required).map(c => c.asJava))
+      def certs(required: Boolean) = F.Promise.wrap(req.certs(required)).map(
+        new F.Function[scala.Seq[Certificate],java.util.List[Certificate]]() {
+
+          @Override
+          def apply(s: scala.Seq[Certificate]): java.util.List[Certificate] = {
+            import collection.convert._
+            s.asJava
+          }
+        })
 
       override def toString = req.toString
 
@@ -153,7 +161,16 @@ trait JavaHelpers {
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
 
-      def certs(required: Boolean) = new play.libs.F.Promise(req.certs(required).map(c => c.asJava))
+      def certs(required: Boolean) = F.Promise.wrap(req.certs(required)).map(
+        new F.Function[scala.Seq[Certificate],java.util.List[Certificate]]() {
+
+          @Override
+          def apply(s: scala.Seq[Certificate]): java.util.List[Certificate] = {
+            import collection.convert._
+            s.asJava
+          }
+        })
+
 
       override def toString = req.toString
 
@@ -175,7 +192,7 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => Option[JResult]): Option[Result] = {
+  def invokeWithContext(request: RequestHeader, f: JRequest => Option[JSimpleResult]): Option[SimpleResult] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)
@@ -183,6 +200,14 @@ trait JavaHelpers {
     } finally {
       JContext.current.remove()
     }
+  }
+
+  /**
+   * Creates a partial function from a Java function
+   */
+  def toPartialFunction[A, B](f: F.Function[A, B]): PartialFunction[A, B] = new PartialFunction[A, B] {
+    def apply(a: A) = f.apply(a)
+    def isDefinedAt(x: A) = true
   }
 
 }

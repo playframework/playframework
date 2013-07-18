@@ -55,11 +55,22 @@
 * **Repository(snapshot):** <http://hakandilek.github.com/play2-cache/snapshots/>
 * **Short description:** Utilities for simplifying caching
 
+## ClojureScript Plugin
+
+* **Website:** <https://bitbucket.org/jmhofer/play-clojurescript> (docs, code)
+* **Short description:** Compiles ClojureScript asset files to JavaScript
+
 ## Cloudfront module (Scala)
 
 * **Website:** <https://github.com/mchv/play2-cloudfront>
 * **Documentation:** <https://github.com/mchv/play2-cloudfront/blob/master/README.md>
 * **Short description** This module helps to integrate a play application with Cloudfront CDN. 
+
+## Currency Converter (Java)
+
+* **Website:** <https://github.com/blabluble/play-currency-converter-module>
+* **Documentation:** <https://github.com/blabluble/play-currency-converter-module/blob/master/README.md>
+* **Short description:** Currency converter for Play 2.1. It uses web services to get the current exchange rate.
 
 ## Deadbolt 2 Plugin
 * **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
@@ -80,12 +91,24 @@
 * **Repository:** <http://cleverage.github.com/play2-elasticsearch/releases/>
 * **Short description** Indexing/Requesting Object in Embedded ElasticSearch Server or remote(s) Node(s). 
 
+## Ember.js
+
+* **Website:** <https://github.com/krumpi/play-emberjs>
+* **Documentation:** <https://github.com/krumpi/play-emberjs/blob/master/README.md>
+* **Short description** Supports precompilation of ember.js/handlebars templates.
+
 ## funcy - Page Driven Functional Tests (Java)
 
 * **Website:** <https://github.com/joergviola/funcy>
 * **Documentation:** <https://github.com/joergviola/funcy/blob/master/README.md>
 * **Repository:** <http://joergviola.github.com/releases/>
 * **Short description** Simplifies writing functional test using Page Driver classes.
+
+## Geolocation (Java)
+
+* **Website:** <https://github.com/blabluble/play-geolocation-module>
+* **Documentation:** <https://github.com/blabluble/play-geolocation-module/blob/master/README.md>
+* **Short description:** Module for retrieve Geolocation data based on IP.
 
 ## Groovy Templates plugin
 
@@ -97,7 +120,7 @@
 
 * **Website:** <https://github.com/mbknor/gt-engine-play2>
 * **Documentation:** <https://github.com/mbknor/gt-engine-play2/blob/master/README.markdown>
-* **Short description:** This module brings the Groovy Template engine from play 1 to Play 2. It uses gt-engine which is used by the Play 1 module "Faster Groovy Templates" <http://www.playframework.org/modules/fastergt>
+* **Short description:** This module brings the Groovy Template engine from play 1 to Play 2. It uses gt-engine which is used by the Play 1 module "Faster Groovy Templates" <http://www.playframework.com/modules/fastergt>
 * **Samples:** <https://github.com/mbknor/gt-engine-play2/tree/master/samples>
 
 ## Guice Plugin (Java and Scala)
@@ -113,6 +136,10 @@
 
 * **Website:** <https://github.com/seratch/inputvalidator/tree/master/play-module>
 * **Short description:** provides a simple validation API for Play20
+
+## JackRabbit Plugin (Java and Scala)
+* **Website (docs, sample):** [JackRabbit Plugin GitHub](http://goo.gl/2OXEp)
+* **Short description:** Apache JackRabbit Plugin for play! framework 2
 
 ## Japid module
 
@@ -130,6 +157,11 @@
 * **Website:** <https://github.com/joscha/play-jsonminify>
 * **Documentation:** <https://github.com/joscha/play-jsonminify/blob/master/README.md>
 * **Short description:** Allows JSON asset pretty-printing and minification
+
+## JSONP filter
+
+* **Website:** <https://github.com/julienrf/play-jsonp-filter>
+* **Short description:** Enables JSONP on your existing HTTP API.
 
 ## Manual Dependency Injection Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
@@ -179,6 +211,10 @@
 * **Website (docs, sample):** <https://github.com/dontcare4free/nina>
 * **Short description:** provides a typesafe way to query SQL databases with a special emphasis on selective querying
 
+## Origami: OrientDB O/G Mapper (Java and Scala)
+* **Website (docs, sample):** [Origami Plugin GitHub](http://goo.gl/KEmWU)
+* **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.
+
 ## PDF module (Java)
 
 * **Website:** <https://github.com/joergviola/play20-pdf>
@@ -192,13 +228,22 @@
 * **Documentation:** <https://github.com/joscha/play-authenticate/blob/master/README.md>
 * **Short description:** A highly customizable authentication module for Play 2.0
 
-## Play Mini (Java and Scala)
-* **Website (docs, sample):** <https://github.com/typesafehub/play2-mini>
-* **Short description:** uses play as an HTTP library (in a standard SBT project)
+## play-jaxrs (Java)
+* **Website (docs, sample):** [play-jaxrs](https://github.com/pk11/play-jaxrs/)
+* **Short description:** a JAX-RS router plugin for play java apps 
+
+## Play-pac4j (Java and Scala)
+* **Website:** <https://github.com/leleuj/play-pac4j>
+* **Documentation:** <https://github.com/leleuj/play-pac4j/blob/master/README.md>
+* **Short description:** Play 2.x client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
 
 ## Play Plovr Plugin
 * **Website (docs, sample):** <https://github.com/benmccann/play-plovr-plugin>
 * **Short description:** Adds Closure Compiler and Closure Library support to Play
+
+## Play-Slick
+* **Website (docs, sample):** <https://github.com/freekh/play-slick>
+* **Short description:** This plugin makes Slick a first-class citizen of Play 2.1.
 
 ## Pusher
 * **Website:** https://github.com/tindr/Play2Pusher
@@ -248,6 +293,12 @@ your Play 2 application.
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/session-cache/README.md>
 * **Short description:** Session cache for Play 2.0 
 
+## Sitemap Generator (Java)
+
+* **Website:** <https://github.com/blabluble/play-sitemap-module>
+* **Documentation:** <https://github.com/blabluble/play-sitemap-module/blob/master/README.md>
+* **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play 2.1
+
 ## Snapshot Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/vznet/play-snapshot>
 * **Short description:** provides a hash bang snapshot functionality using HtmlUnit, as described by Google [here](https://developers.google.com/webmasters/ajax-crawling/docs/html-snapshot)
@@ -276,6 +327,10 @@ your Play 2 application.
 
 * **Website:** <https://github.com/patiencelabs/play-stylus>
 * **Short description:** Support for [Stylus](https://github.com/learnboost/stylus) CSS compilation
+
+## TinkerPop Frames O/G Mapper Plugins (Java)
+* **Website (docs, sample):** GitHub: [Frames-Neo4j Plugin](http://goo.gl/S9xB7) / [Frames-OrientDB Plugin](http://goo.gl/H3tiz) / [Frames-Titan Plugin](http://goo.gl/5YBCI)
+* **Short description:** Java O/G mapper plugins for GraphDBs
 
 ## Typesafe util Plugin (Scala)
 * **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
@@ -306,8 +361,3 @@ your Play 2 application.
 * **Website:** http://literalice.github.com/play-xwiki-rendering/
 * **Documentation:** https://github.com/literalice/play-xwiki-rendering/
 * **Short description:** XWiki Rendering Framework integration for Play 2.0
-
-## Origami: OrientDB O/G Mapper (Java and Scala)
-* **Website:** [For Play2.1.X](https://github.com/sgougi/play21-origami-plugin) / [For Play2.0.X](https://github.com/sgougi/play20-origami-plugin) 
-* **Documentation:** [For Play2.1.X](https://github.com/sgougi/play21-origami-plugin#what-is-origami) / [For Play2.0.4.X](https://github.com/sgougi/play20-origami-plugin#what-is-origami)
-* **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.

@@ -1,18 +1,14 @@
 # Deploying to Heroku
 
-[[Heroku | http://www.heroku.com/]] is a cloud application platform – a new way of building and deploying web apps.
+[Heroku](http://www.heroku.com/) is a cloud application platform – a new way of building and deploying web apps.
 
-## Add the Procfile　
+To get started:
 
-Heroku requires a special file in the application root called `Procfile`. Create a simple text file with the following content:
+1. [Install the Heroku Toolbelt](http://toolbelt.heroku.com)
+2. [Sign up for a Heroku account](http://heroku.com/signup)
 
-```txt
-web: target/start -Dhttp.port=${PORT} ${JAVA_OPTS}
-```
 
 ## Store your application in git
-
-Just create a git repository for your application:
 
 ```bash
 $ git init
@@ -20,16 +16,18 @@ $ git add .
 $ git commit -m "init"
 ```
 
+
 ## Create a new application on Heroku
 
-> Note that you need an Heroku account, and to install the heroku gem.
-
 ```bash
-$ heroku create --stack cedar
+$ heroku create
 Creating warm-frost-1289... done, stack is cedar
 http://warm-1289.herokuapp.com/ | git@heroku.com:warm-1289.git
 Git remote heroku added
 ```
+
+This provisions a new application with an HTTP (and HTTPS) endpoint and Git endpoint for your application.  The Git endpoint is set as a new remote named `heroku` in your Git repository's configuration.
+
 
 ## Deploy your application
 
@@ -60,6 +58,7 @@ To git@heroku.com:floating-lightning-8044.git
 
 Heroku will run `sbt clean compile stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but will be cached for future deployments).
 
+
 ## Check that your application has been deployed
 
 Now, let’s check the state of the application’s processes:
@@ -82,74 +81,36 @@ $ heroku logs
 ...
 ```
 
-Looks good. We can now visit the app with `heroku open`.
-
-If you don't see the web process, and you see `Error H14 (No web processes running)` in your logs, you probably need to add a web dyno:
-
-    heroku ps:scale web=1
-    heroku restart
-
-## Running play commands remotely
-
-Cedar allows you to launch a REPL process attached to your local terminal for experimenting in your application’s environment:
+Looks good. We can now visit the app by running:
 
 ```bash
-$ heroku run sbt play
-Running sbt play attached to terminal... up, run.2
-[info] Loading global plugins from /app/.sbt_home/.sbt/plugins
-[info] Updating {file:/app/.sbt_home/.sbt/plugins/}default-0f55ac...
-[info] Set current project to My first application (in build file:/app/)
-       _            _ 
- _ __ | | __ _ _  _| |
-| '_ \| |/ _' | || |_|
-|  __/|_|\____|\__ (_)
-|_|            |__/ 
-             
-play! 2.0-beta, http://www.playframework.org
-
-> Type "help" or "license" for more information.
-> Type "exit" or use Ctrl+D to leave this console.
-
-[My first application] $
+$ heroku open
 ```
 
-## Finetuning
 
-Even for simple apps, the heroku slug size will soon exceed 100MB, which is the allowed range.
-The reason is the .ivy cache that is included in the slug. You can easily overcome that using your own custom heroku "build pack". A build pack is a bunch of scripts stored in a remote git repository. The are fetched and executed at compile time. The original build pack is available here: https://github.com/heroku/heroku-buildpack-scala.
+## Connecting to a database
 
-You simply fork it on github and change the ```bin/compile``` script towards its end:
+Heroku provides a number of relational and NoSQL databases through [Heroku Add-ons](http://addons.heroku.com).  Play applications on Heroku are automatically provisioned a [Heroku Postgres](https://addons.heroku.com/heroku-postgresql) database.  To configure your Play 2 application to use the Heroku Postgres database, first add the PostgreSQL JDBC driver to your application dependencies (`project/Build.scala`):
 
-```
-...
-mkdir -p $CACHE_DIR
-for DIR in $CACHED_DIRS ; do
-  rm -rf $CACHE_DIR/$DIR
-  mkdir -p $CACHE_DIR/$DIR
-  cp -r $DIR/.  $CACHE_DIR/$DIR
-echo "-----> Dropping ivy cache from the slug: $DIR"
-rm -rf $SBT_USER_HOME/.ivy2
-done
+```scala
+"postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 ```
 
-Using the same tool, you can overcome another problem: On heroku, the scala template compilation needs the UTF8 encoding to be explicitly set. Simply change that in your build pack like that:
+Then create a new file in your project's root directory named `Procfile` (with a capital "P") that contains the following:
 
-```
-...
-echo "-----> Running: sbt $SBT_TASKS"
-test -e "$SBT_BINDIR"/sbt.boot.properties && PROPS_OPTION="-Dsbt.boot.properties=$SBT_BINDIR/sbt.boot.properties"
-HOME="$SBT_USER_HOME_ABSOLUTE" java -Xmx512M -Dfile.encoding=UTF8 -Duser.home="$SBT_USER_HOME_ABSOLUTE" -Divy.default.ivy.user.dir="$SBT_USER_HOME_ABSOLUTE/.ivy2" $PROPS_OPTION -jar "$SBT_BINDIR"/$SBT_JAR $SBT_TASKS 2>&1 | sed -u 's/^/       /'
-if [ "${PIPESTATUS[*]}" != "0 0" ]; then
-  echo " !     Failed to build app with SBT $SBT_VERSION"
-  exit 1
-fi
-...
+```txt
+web: target/start -Dhttp.port=${PORT} ${JAVA_OPTS} -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
 ```
 
-Here you can find an example of a working build pack: https://github.com/joergviola/heroku-buildpack-scala.
+This instructs Heroku that for the process named `web` it will run Play and override the `applyEvolutions.default`, `db.default.driver`, and `db.default.url` configuration parameters.  Note that the `Procfile` command can be maximum 255 characters long.  Alternatively, use the `-Dconfig.resource=` or `-Dconfig.file=` mentioned in [[production configuration|ProductionConfiguration]] page.
 
-Last step: Add the build pack address as a config var to heroku:
 
-```
-heroku config:add BUILDPACK_URL='git@github.com:joergviola/heroku-buildpack-scala.git'
-```
+## Further learning resources
+
+* [Play 2 Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
+* [Getting Started with Play 2, Scala, and Squeryl](http://www.artima.com/articles/play2_scala_squeryl.html)
+* [Edge Caching With Play 2, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
+* [Optimizing Play 2 for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
+* [Play 2 Scala Console on Heroku](http://www.jamesward.com/2012/06/11/play-2-scala-console-on-heroku)
+* [Play 2 App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)
+* [Using Amazon S3 for File Uploads with Java and Play 2](https://devcenter.heroku.com/articles/using-amazon-s3-for-file-uploads-with-java-and-play-2)

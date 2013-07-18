@@ -111,15 +111,15 @@ public class EbeanPlugin extends Plugin {
         }
         
         return (
-            "# --- Created by Ebean DDL\n" +
-            "# To stop Ebean DDL generation, remove this comment and start using Evolutions\n" +
-            "\n" + 
-            "# --- !Ups\n" +
-            "\n" + 
+            "# --- Created by Ebean DDL\r\n" +
+            "# To stop Ebean DDL generation, remove this comment and start using Evolutions\r\n" +
+            "\r\n" + 
+            "# --- !Ups\r\n" +
+            "\r\n" + 
             ups +
-            "\n" + 
-            "# --- !Downs\n" +
-            "\n" +
+            "\r\n" + 
+            "# --- !Downs\r\n" +
+            "\r\n" +
             downs
         );
     }

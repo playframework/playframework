@@ -1,16 +1,22 @@
 #! /usr/bin/env sh
 
 PRG="$0"
+# resolve relative/absolute symlinks
 while [ -h "$PRG" ] ; do
-  PRG=`readlink "$PRG"`
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG="`dirname "$PRG"`/$link"
+  fi
 done
-
 dir=`dirname $PRG`
 
 if [ -z "$JAVA_HOME" ]; then
-    JAVA="java"
+  JAVA="java"
 else
-    JAVA="$JAVA_HOME/bin/java"
+ JAVA="$JAVA_HOME/bin/java"
 fi
 
 if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; then
@@ -61,5 +67,5 @@ if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; the
   fi
   
 else
-  "$JAVA" -Dsbt.ivy.home=$dir/repository -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -jar $dir/framework/sbt/sbt-launch.jar "$@"
+  "$JAVA" -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties ${PLAY_OPTS} -jar $dir/framework/sbt/sbt-launch.jar "$@"
 fi

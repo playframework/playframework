@@ -22,7 +22,7 @@ object ApplicationBuild extends Build {
     //if it's a java project add javaCore, javaJdbc, jdbc etc.
   )
   
-  val mySubProject = Project("my-library", file("myLibrary"))
+  val mySubProject = play.Project("my-library", file("myLibrary"))
 
   val main = play.Project(
     appName, appVersion, appDependencies, path = file("myProject")
@@ -110,8 +110,8 @@ Here we define a complete project split in two main parts: the website and the a
 If you would like the dependent projects to be recompiled and tested when you recompile and test the main project then you will need to add an "aggregate" clause.
 
 ```
-val main = PlayProject(
-  appName, appVersion
+val main = play.Project(
+  appName, appVersion, appDependencies
 ).dependsOn(
   website, adminArea
 ).aggregate(
@@ -148,10 +148,10 @@ object ApplicationBuild extends Build {
 
     val mainDeps = Seq()
   
-   lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
+    lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
 
 
-  lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
+    lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
       // Add your own project settings here      
     ).dependsOn(admin).aggregate(admin)
 
@@ -214,10 +214,13 @@ object Assets extends controllers.AssetsBuilder
 
 ```java
 // Assets.java
-package controllers.my;
+package controllers.admin;
+import play.api.mvc.*;
+
 public class Assets {
-//can be referenced as `controllers.my.Assets.delegate.at` in the route file
-public static controllers.AssetsBuilder delegate = new controllers.AssetsBuilder();
+  public static Action<AnyContent> at(String path, String file) {
+    return controllers.Assets.at(path, file);
+  }
 }
 ```
 

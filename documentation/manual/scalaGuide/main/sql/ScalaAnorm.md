@@ -4,16 +4,9 @@ Play includes a simple data access layer called Anorm that uses plain SQL to int
 
 **Anorm is Not an Object Relational Mapper**
 
-> In the following documentation, we will use the [[MySQL world sample database | http://dev.mysql.com/doc/world-setup/en/world-setup.html]]. 
+> In the following documentation, we will use the [MySQL world sample database](http://dev.mysql.com/doc/index-other.html). 
 > 
-> If you want to enable it for your application, follow the MySQL website instructions, and enable it for your application by adding the following configuration line in your `conf/application.conf` file:
->
-> ```
-> db.default.driver= com.mysql.jdbc.Driver
-> db.default.url="jdbc:mysql://localhost/world"
-> db.default.user=root
-> db.default.password=secret
-> ```
+> If you want to enable it for your application, follow the MySQL website instructions, and configure it as  explained [[on the Scala database page | ScalaDatabase]].
 
 ## Overview
 
@@ -47,6 +40,17 @@ Object Relational Mapping works well for trivial cases, but when you have to dea
 
 Writing SQL queries yourself can be tedious for a simple ‘Hello World’ application, but for any real-life application, you will eventually save time and simplify your code by taking full control of your SQL code.
 
+## Add Anorm to your project
+
+You will need to add Anorm and jdbc plugin to your dependencies : 
+
+```scala
+val appDependencies = Seq(
+  jdbc,
+  anorm
+)
+```
+
 ## Executing SQL queries
 
 To start you need to learn how to execute SQL queries.
@@ -55,6 +59,7 @@ First, import `anorm._`, and then simply use the `SQL` object to create queries.
 
 ```scala
 import anorm._ 
+import play.api.db.DB
 
 DB.withConnection { implicit c =>
   val result: Boolean = SQL("Select 1").execute()    
@@ -72,8 +77,8 @@ val result: Int = SQL("delete from City where id = 99").executeUpdate()
 If you are inserting data that has an auto-generated `Long` primary key, you can call `executeInsert()`. If you have more than one generated key, or it is not a Long, `executeInsert` can be passed a `ResultSetParser` to return the correct key.
 
 ```scala
-val id: Int = SQL("insert into City(name, country) values ({name}, {country}")
-              .on("Cambridge", "New Zealand").executeInsert()
+val id: Option[Long] = SQL("insert into City(name, country) values ({name}, {country})")
+              .on('name -> "Cambridge", 'country -> "New Zealand").executeInsert()
 ```
 Since Scala supports multi-line strings, feel free to use them for complex SQL statements:
 
@@ -169,6 +174,10 @@ SQL("Select name,image from Country")().map {
 }
 ```
 
+### Database interoperability
+
+Note that different databases will return different data types in the Row. For instance, an SQL 'smallint' is returned as a Short by org.h2.Driver and an Integer by org.postgresql.Driver. A solution to this is to simply write separate case statements for each database (i.e. one for development and one for production).
+
 ## Dealing with Nullable columns
 
 If a column can contain `Null` values in the database schema, you need to manipulate it as an `Option` type.
@@ -207,6 +216,8 @@ You can use the parser API to create generic and reusable parsers that can parse
 >
 > First you need to `import anorm.SqlParser._`
 
+### Getting a single result
+
 First you need a `RowParser`, i.e. a parser able to parse one row to a Scala value. For example we can define a parser to transform a single column result set row, to a Scala `Long`:
 
 ```scala
@@ -224,6 +235,17 @@ So this parser will parse a result set to return a `Long`. It is useful to parse
 ```scala
 val count: Long = SQL("select count(*) from Country").as(scalar[Long].single)
 ```
+
+
+### Getting a single optional result
+
+Let's say you want to retrieve the country_id from the country name, but the query might return null. We'll use the singleOpt parser :
+
+```scala
+val countryId: Option[Long] = SQL("select country_id from Country C where C.country='France'").as(scalar[Long].singleOpt)
+```
+
+### Getting a more complex result
 
 Let’s write a more complicated parser:
 
@@ -263,6 +285,8 @@ val result:List[(String,Int)] = {
 }
 ```
 
+### A more complicated example
+
 Now let’s try with a more complicated example. How to parse the result of the following query to retrieve the country name and all spoken languages for a country code?
 
 ```
@@ -274,7 +298,7 @@ select c.name, l.language from Country c
 Let’s start by parsing all rows as a `List[(String,String)]` (a list of name,language tuple):
 
 ```scala
-var p: ResultSetParser[List[(String,String)] = {
+var p: ResultSetParser[List[(String,String)]] = {
   str("name") ~ str("language") map(flatten) *
 }
 ```
@@ -359,7 +383,7 @@ def spokenLanguages(countryCode: String): Option[SpokenLanguages] = {
 }
 ```
 
-If you try this on the world sample database, you will get:
+If you try this on the MySQL world sample database, you will get:
 
 ```
 $ spokenLanguages("FRA")

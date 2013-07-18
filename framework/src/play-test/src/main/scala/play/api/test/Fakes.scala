@@ -2,17 +2,19 @@ package play.api.test
 
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import play.api.libs.concurrent.Promise
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import scala.concurrent.Future
 import xml.NodeSeq
+import play.core.Router
+import scala.runtime.AbstractPartialFunction
 
 /**
  * Fake HTTP headers implementation.
  *
  * @param data Headers data.
  */
-case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
 
 /**
  * Fake HTTP request implementation.
@@ -24,19 +26,18 @@ case class FakeHeaders(val data: Seq[(String, Seq[String])] = Seq.empty) extends
  * @param body The request body.
  * @param remoteAddress The client IP.
  */
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String,String] = Map.empty[String,String]) extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String]) extends Request[A] {
 
   private def _copy[B](
     id: Long = this.id,
-    tags: Map[String,String] = this.tags,
+    tags: Map[String, String] = this.tags,
     uri: String = this.uri,
     path: String = this.path,
     method: String = this.method,
     version: String = this.version,
     headers: FakeHeaders = this.headers,
     remoteAddress: String = this.remoteAddress,
-    body: B = this.body
-  ): FakeRequest[B] = {
+    body: B = this.body): FakeRequest[B] = {
     new FakeRequest[B](
       method, uri, headers, body, remoteAddress, version, id, tags
     )
@@ -53,12 +54,15 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   lazy val queryString: Map[String, Seq[String]] = play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
 
   /**
-   * Constructs a new request with additional headers.
+   * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = FakeHeaders(
-      headers.data ++ newHeaders.groupBy(_._1).mapValues(_.map(_._2)).toSeq
-    ))
+    _copy(headers = FakeHeaders({
+      val newData = newHeaders.map {
+        case (k, v) => (k, Seq(v))
+      }
+      (Map() ++ (headers.data ++ newData)).toSeq
+    }))
   }
 
   /**
@@ -99,7 +103,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     _copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 
-  def certs(required:Boolean) = Promise.pure(Seq.empty)
+  def certs(required:Boolean) = Future.successful(Seq.empty)
 
   /**
    * Sets a JSON body to this request.
@@ -171,6 +175,9 @@ object FakeRequest {
     FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
   }
 
+  def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] = {
+    apply(call.method, call.url)
+  }
 }
 
 /**
@@ -181,16 +188,18 @@ object FakeRequest {
  * @param additionalPlugins Additional plugins class names loaded by this application
  * @param withoutPlugins Plugins class names to disable
  * @param additionalConfiguration Additional configuration
+ * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
 
-import  play.api.{Application, WithDefaultConfiguration, WithDefaultGlobal, WithDefaultPlugins}
+import play.api.{ Application, WithDefaultConfiguration, WithDefaultGlobal, WithDefaultPlugins }
 case class FakeApplication(
-    override val path: java.io.File = new java.io.File("."),
-    override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-    val additionalPlugins: Seq[String] = Nil,
-    val withoutPlugins: Seq[String] = Nil,
-    val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    val withGlobal: Option[play.api.GlobalSettings] = None) extends {
+  override val path: java.io.File = new java.io.File("."),
+  override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
+  val additionalPlugins: Seq[String] = Nil,
+  val withoutPlugins: Seq[String] = Nil,
+  val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+  val withGlobal: Option[play.api.GlobalSettings] = None,
+  val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
   override val sources = None
   override val mode = play.api.Mode.Test
 } with Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
@@ -203,4 +212,25 @@ case class FakeApplication(
   }
 
   override lazy val global = withGlobal.getOrElse(super.global)
+
+  override lazy val routes: Option[Router.Routes] = {
+    val parentRoutes = loadRoutes
+    Some(new Router.Routes() {
+      def documentation = parentRoutes.map(_.documentation).getOrElse(Nil)
+      // Use withRoutes first, then delegate to the parentRoutes if no route is defined
+      val routes = new AbstractPartialFunction[RequestHeader, Handler] {
+        override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+          withRoutes.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
+        def isDefinedAt(rh: RequestHeader) = withRoutes.isDefinedAt((rh.method, rh.path))
+      } orElse new AbstractPartialFunction[RequestHeader, Handler] {
+        override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+          parentRoutes.map(_.routes.applyOrElse(rh, default)).getOrElse(default(rh))
+        def isDefinedAt(x: RequestHeader) = parentRoutes.map(_.routes.isDefinedAt(x)).getOrElse(false)
+      }
+      def setPrefix(prefix: String) {
+        parentRoutes.foreach(_.setPrefix(prefix))
+      }
+      def prefix = parentRoutes.map(_.prefix).getOrElse("")
+    })
+  }
 }

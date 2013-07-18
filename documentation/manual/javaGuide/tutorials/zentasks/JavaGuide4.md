@@ -204,7 +204,7 @@ public void authenticateSuccess() {
             "email", "bob@example.com",
             "password", "secret"))
     );
-    assertEquals(302, status(result));
+    assertEquals(303, status(result));
     assertEquals("bob@example.com", session(result).get("email"));
 }
 ```

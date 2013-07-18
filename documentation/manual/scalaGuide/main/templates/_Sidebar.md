@@ -2,6 +2,7 @@
 
 - [[Scala templates syntax | ScalaTemplates]]
 - [[Common use cases | ScalaTemplateUseCases]]
+- [[Custom format | ScalaCustomTemplateFormat]]
 
 ### Main concepts
 

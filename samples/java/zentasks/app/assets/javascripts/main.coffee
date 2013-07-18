@@ -79,7 +79,10 @@ class Drawer extends Backbone.View
                 new Project
                     el: $(project)
     addGroup: ->
-        jsRoutes.controllers.Projects.addGroup().ajax
+        r = jsRoutes.controllers.Projects.addGroup()
+        $.ajax
+            url: r.url
+            type: r.type
             success: (data) ->
                 _view = new Group
                     el: $(data).appendTo("#projects")
@@ -101,7 +104,10 @@ class Group extends Backbone.View
     newProject: (e) ->
         e.preventDefault()
         @el.removeClass("closed")
-        jsRoutes.controllers.Projects.add().ajax
+        r = jsRoutes.controllers.Projects.add()
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 group: @el.attr("data-group")
@@ -117,7 +123,10 @@ class Group extends Backbone.View
         false if (!confirm "Remove group and projects inside?")
         id = @el.attr("data-group-id")
         @loading(true)
-        jsRoutes.controllers.Projects.deleteGroup(@id).ajax
+        r = jsRoutes.controllers.Projects.deleteGroup(@id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             success: ->
                 @el.remove()
@@ -127,7 +136,10 @@ class Group extends Backbone.View
                 $.error("Error: " + err)
     renameGroup: (name) =>
         @loading(true)
-        jsRoutes.controllers.Projects.renameGroup(@id).ajax
+        r = jsRoutes.controllers.Projects.renameGroup(@id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 name: name
@@ -162,7 +174,10 @@ class Project extends Backbone.View
             onChange: @renameProject
     renameProject: (name) ->
         @loading(true)
-        jsRoutes.controllers.Projects.rename(@id).ajax
+        r = jsRoutes.controllers.Projects.rename(@id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 name: name
@@ -175,7 +190,10 @@ class Project extends Backbone.View
     deleteProject: (e) ->
         e.preventDefault()
         @loading(true)
-        jsRoutes.controllers.Projects.delete(@id).ajax
+        r = jsRoutes.controllers.Projects.delete(@id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             success: ->
                 @el.remove()
@@ -224,7 +242,10 @@ class Tasks extends Backbone.View
                 project: @project
     newFolder: (e) ->
         e.preventDefault()
-        jsRoutes.controllers.Tasks.addFolder(@project).ajax
+        r = jsRoutes.controllers.Tasks.addFolder(@project)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             success: (tpl) ->
                 newFolder = new TaskFolder
@@ -236,7 +257,10 @@ class Tasks extends Backbone.View
         false
     removeUser: (e) ->
         e.preventDefault()
-        jsRoutes.controllers.Projects.removeUser(@project).ajax
+        r = jsRoutes.controllers.Projects.removeUser(@project)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 user: $(e.target).parent().data('user-id')
@@ -247,7 +271,10 @@ class Tasks extends Backbone.View
         false
     addUser: (e) ->
         e.preventDefault()
-        jsRoutes.controllers.Projects.addUser(@project).ajax
+        r = jsRoutes.controllers.Projects.addUser(@project)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 user: $(e.target).parent().data('user-id')
@@ -284,10 +311,10 @@ class TaskFolder extends Backbone.View
         $(document).focus() # temporary disable form
         form = $(e.target)
         taskBody = $("input[name=taskBody]", form).val()
-        url = form.attr("action")
-        jsRoutes.controllers.Tasks.add(@project, @id).ajax
-            url: url
-            type: "POST"
+        r = jsRoutes.controllers.Tasks.add(@project, @id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 title: $("input[name=taskBody]", form).val()
@@ -304,7 +331,10 @@ class TaskFolder extends Backbone.View
         false
     renameFolder: (name) =>
         @loading(true)
-        jsRoutes.controllers.Tasks.renameFolder(@project, @id).ajax
+        r = jsRoutes.controllers.Tasks.renameFolder(@project, @id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 name: name
@@ -366,7 +396,10 @@ class TaskItem extends Backbone.View
     deleteTask: (e) =>
         e.preventDefault() if e?
         @loading(false)
-        jsRoutes.controllers.Tasks.delete(@id).ajax
+        r = jsRoutes.controllers.Tasks.delete(@id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 name: name
@@ -385,7 +418,10 @@ class TaskItem extends Backbone.View
         false
     toggle: (val) =>
         @loading(true)
-        jsRoutes.controllers.Tasks.update(@id).ajax
+        r = jsRoutes.controllers.Tasks.update(@id)
+        $.ajax
+            url: r.url
+            type: r.type
             context: this
             data:
                 done: val

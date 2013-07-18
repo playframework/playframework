@@ -11,7 +11,7 @@
 1. [[Managing database evolutions | Evolutions]]
 1. [[Configuration file syntax and features | Configuration]]
     1. [[Configuring the JDBC connection pool | SettingsJDBC]]
-    1. [[Configuring the internal Akka system | AkkaCore]]
+    1. [[Configuring the thread pools | ThreadPools]]
     1. [[Configuring logging | SettingsLogger]]
 1. [[Deploying your application | Production]]
     1. [[Creating a standalone version of your application | ProductionDist]]
@@ -20,8 +20,7 @@
     1. [[Set-up a front-end HTTP server | HTTPServer]]
 1. Hacking Play 2.0
     1. [[Building Play 2.0 from source | BuildingFromSource]]
-    1. [[CI server at Cloudbees | CIServer]]
+    1. [[Third party tools | ThirdPartyTools]]
     1. [[Repositories | Repositories]]
     1. [[Issue tracker | Issues]]
-    1. [[Pull requests | PullRequests]]
     1. [[Contributor guidelines | Guidelines]]

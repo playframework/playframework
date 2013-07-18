@@ -28,6 +28,22 @@ case class Lang(language: String, country: String = "") {
   }
 
   /**
+   * Whether this lang satisfies the given lang.
+   *
+   * If the other lang defines a country code, then this is equivalent to equals, if it doesn't, then the equals is
+   * only done on language and the country of this lang is ignored.
+   *
+   * This implements the language matching specified by RFC2616 Section 14.4.  Equality is case insensitive as per
+   * Section 3.10.
+   *
+   * @param accept The accepted language
+   */
+  def satisfies(accept: Lang) = language.equalsIgnoreCase(accept.language) && (accept match {
+    case Lang(_, "") => true
+    case Lang(_, c) => country.equalsIgnoreCase(c)
+  })
+
+  /**
    * The Lang code (such as fr or en-US).
    */
   lazy val code = language + Option(country).filterNot(_.isEmpty).map("-" + _).getOrElse("")
@@ -95,9 +111,10 @@ object Lang {
    */
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
     val all = availables
-    langs.find(all.contains(_)).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
+    langs.collectFirst(Function.unlift { lang =>
+      all.find(_.satisfies(lang))
+    }).getOrElse(all.headOption.getOrElse(Lang.defaultLang))
   }
-
 }
 
 /**
@@ -123,6 +140,17 @@ object Messages {
     Play.maybeApplication.flatMap { app =>
       app.plugin[MessagesPlugin].map(_.api.translate(key, args)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
     }.getOrElse(noMatch(key, args))
+  }
+
+  /**
+   * Check if a message key is defined.
+   * @param key the message key
+   * @return a boolean
+   */
+  def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
+    Play.maybeApplication.map { app =>
+      app.plugin[MessagesPlugin].map(_.api.isDefinedAt(key)).getOrElse(throw new Exception("this plugin was not registered or disabled"))
+    }.getOrElse(false)
   }
 
   /**
@@ -226,6 +254,19 @@ case class MessagesApi(messages: Map[String, Map[String, String]]) {
         res.orElse(messages.get(lang.code).flatMap(_.get(key))))
     pattern.map(pattern =>
       new MessageFormat(pattern, lang.toLocale).format(args.map(_.asInstanceOf[java.lang.Object]).toArray))
+  }
+
+  /**
+   * Check if a message key is defined.
+   * @param key the message key
+   * @return a boolean
+   */
+  def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
+    val langsToTry: List[Lang] = List(lang, Lang(lang.language, ""), Lang("default", ""))
+
+    langsToTry.foldLeft[Boolean](false)({ (acc, lang) =>
+      acc || messages.get(lang.code).map(_.isDefinedAt(key)).getOrElse(false)
+    })
   }
 
 }

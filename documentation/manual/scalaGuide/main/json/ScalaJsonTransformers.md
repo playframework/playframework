@@ -85,6 +85,26 @@ We have provided a function helper in `JsValue` to help people consider a `Reads
 
 This is exactly the same `JsValue.validate(reads)`
 
+## The details
+
+In the code samples below, we’ll use the following JSON:
+
+```
+{
+  "key1" : "value1",
+  "key2" : {
+    "key21" : 123,
+    "key22" : true,
+    "key23" : [ "alpha", "beta", "gamma"]
+    "key24" : {
+      "key241" : 234.123,
+      "key242" : "value242"
+    }
+  },
+  "key3" : 234
+}
+```
+
 ## <a name="step-pick">Case 1: Pick JSON value in JsPath</a>
 
 

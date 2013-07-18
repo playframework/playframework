@@ -17,8 +17,9 @@ import play.api._
 import play.core.server.netty._
 
 import java.security.cert.X509Certificate
-import java.io.{File, FileInputStream}
+import java.io.{ File, FileInputStream }
 import scala.util.control.NonFatal
+import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 
 /**
  * provides a stopable Server
@@ -31,7 +32,9 @@ trait ServerWithStop {
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+
+  require(port.isDefined || sslPort.isDefined, "Neither http.port nor https.port is specified")
 
   def applicationProvider = appProvider
 
@@ -46,14 +49,18 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       val newPipeline = pipeline()
       if (secure) {
         sslContext.map { ctxt =>
-            val sslEngine = ctxt.createSSLEngine
-            sslEngine.setUseClientMode(false)
-            newPipeline.addLast("ssl", new SslHandler(sslEngine))
+          val sslEngine = ctxt.createSSLEngine
+          sslEngine.setUseClientMode(false)
+          newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
+      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
+      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
+      newPipeline.addLast("http-pipelining", new HttpPipeliningHandler())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
     }
@@ -81,9 +88,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
-          for (in <- resource.managed(new FileInputStream(file))) {
+            for (in <- resource.managed(new FileInputStream(file))) {
               keyStore.load(in, password)
-          }
+            }
           Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
           Some(keyStore)
         } else {
@@ -118,11 +125,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     val algorithm = System.getProperty("https.trustStoreAlgorithm", TrustManagerFactory.getDefaultAlgorithm)
 
     System.getProperty("https.trustStore", "keystore") match {
-            case "noCA" => {
+          case "noCA" => {
               Logger("play").warn("HTTPS configured with no client " +
-                "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+              "side CA verification. Requires http://webid.info/ for client certifiate verification.")
         Some(Array[TrustManager](noCATrustManager))
-            }
+          }
       case "keystore" => {
         Logger("play").debug("Using configured key store as the trust store")
         try {
@@ -133,9 +140,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
           case e: Exception => {
             Logger("play").error("Error loading trust managers", e)
             None
-            }
           }
         }
+      }
       case "default" => Some(null) // Use the Java default trust store
       case className => {
         try {
@@ -149,7 +156,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
               case e: InstantiationException => {
                 Logger("play").error("could not instantiate "+className)
                 None
-      }
+  }
             }
           } else {
             Logger("play").error("TrustManager class " + className+ " does not implement javax.net.ssl.TrustManager")
@@ -173,7 +180,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
 
   // The HTTP server channel
-  val HTTP = {
+  val HTTP = port.map { port =>
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory)
     val channel = bootstrap.bind(new InetSocketAddress(address, port))
@@ -193,9 +200,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
   mode match {
     case Mode.Test =>
     case _ => {
-      Logger("play").info("Listening for HTTP on %s".format(HTTP._2.getLocalAddress))
+      HTTP.foreach { http =>
+        Play.logger.info("Listening for HTTP on %s".format(http._2.getLocalAddress))
+      }
       HTTPS.foreach { https =>
-        Logger("play").info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
+        Play.logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
     }
   }
@@ -205,32 +214,38 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
     try {
       Play.stop()
     } catch {
-      case NonFatal(e) => Logger("play").error("Error while stopping the application", e)
+      case NonFatal(e) => Play.logger.error("Error while stopping the application", e)
     }
 
     try {
       super.stop()
     } catch {
-      case NonFatal(e) => Logger("play").error("Error while stopping akka", e)
+      case NonFatal(e) => Play.logger.error("Error while stopping logger", e)
     }
 
     mode match {
       case Mode.Test =>
-      case _ => Logger("play").info("Stopping server...")
+      case _ => Play.logger.info("Stopping server...")
     }
 
     // First, close all opened sockets
     allChannels.close().awaitUninterruptibly()
 
     // Release the HTTP server
-    HTTP._1.releaseExternalResources()
+    HTTP.foreach(_._1.releaseExternalResources())
 
     // Release the HTTPS server if needed
     HTTPS.foreach(_._1.releaseExternalResources())
 
   }
 
-  override lazy val mainAddress = HTTP._2.getLocalAddress.asInstanceOf[InetSocketAddress]
+  override lazy val mainAddress = {
+    if (HTTP.isDefined) {
+      HTTP.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
+    } else {
+      HTTPS.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
+    }
+  }
 
 }
 
@@ -278,7 +293,7 @@ object NettyServer {
     try {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
-        Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000),
+        Option(System.getProperty("http.port")).fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
@@ -314,15 +329,23 @@ object NettyServer {
       }
   }
 
+  def mainDevOnlyHttpsMode(sbtLink: SBTLink, httpsPort: Int): NettyServer = {
+    mainDev(sbtLink, None, Some(httpsPort))
+  }
+
   /**
    * provides a NettyServer for the dev environment
    */
-  def mainDev(sbtLink: SBTLink, port: Int): NettyServer = {
+  def mainDevHttpMode(sbtLink: SBTLink, httpPort: Int): NettyServer = {
+    mainDev(sbtLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+  }
+
+  private def mainDev(sbtLink: SBTLink, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val appProvider = new ReloadableApplication(sbtLink)
-        new NettyServer(appProvider, port,
-          Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
+        new NettyServer(appProvider, httpPort,
+          httpsPort,
           mode = Mode.Dev)
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause

@@ -51,7 +51,7 @@ Use the following properties to configure the WS client
 * `ws.followRedirects` configures the client to follow 301 and 302 redirects
 * `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort) 
 * `ws.useragent` to configure the User-Agent header field
-* `ws.acceptAnyCertificate` set it to fail to use the default SSLContext
+* `ws.acceptAnyCertificate` set it to false to use the default SSLContext
 
 You can also get access to the underlying client using `def client` method  
  

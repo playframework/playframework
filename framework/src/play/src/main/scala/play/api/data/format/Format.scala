@@ -125,30 +125,33 @@ object Formats {
   }
 
   /**
-  * Default formatter for the `BigDecimal` type.
-  */
+   * Default formatter for the `BigDecimal` type.
+   */
   def bigDecimalFormat(precision: Option[(Int, Int)]): Formatter[BigDecimal] = new Formatter[BigDecimal] {
 
-    override val format = Some("format.real", Nil)
+    override val format = Some(("format.real", Nil))
 
     def bind(key: String, data: Map[String, String]) = {
       Formats.stringFormat.bind(key, data).right.flatMap { s =>
         scala.util.control.Exception.allCatch[BigDecimal]
-          .either{
+          .either {
             val bd = BigDecimal(s)
-            precision.map({ case (p, s) =>
-              if( bd.precision - bd.scale > p - s ){
-                throw new java.lang.ArithmeticException("Invalid precision")
-              }
-              bd.setScale(s)
+            precision.map({
+              case (p, s) =>
+                if (bd.precision - bd.scale > p - s) {
+                  throw new java.lang.ArithmeticException("Invalid precision")
+                }
+                bd.setScale(s)
             }).getOrElse(bd)
           }
-          .left.map{e => Seq(
-            precision match {
-              case Some((p, s)) => FormError(key, "error.real.precision", Seq(p,s))
-              case None => FormError(key, "error.real", Nil)
-            }
-          )}
+          .left.map { e =>
+            Seq(
+              precision match {
+                case Some((p, s)) => FormError(key, "error.real.precision", Seq(p, s))
+                case None => FormError(key, "error.real", Nil)
+              }
+            )
+          }
       }
     }
 
@@ -178,28 +181,25 @@ object Formats {
     def unbind(key: String, value: Boolean) = Map(key -> value.toString)
   }
 
-  import java.util.{Date, TimeZone}
-  import java.text.SimpleDateFormat
+  import java.util.{ Date, TimeZone }
 
   /**
    * Formatter for the `java.util.Date` type.
    *
-   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
   def dateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[Date] = new Formatter[Date] {
 
-    val sdf = new SimpleDateFormat(pattern)
-    sdf.setTimeZone(timeZone)
-    sdf.setLenient(false)
+    val jodaTimeZone = org.joda.time.DateTimeZone.forTimeZone(timeZone)
+    val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(jodaTimeZone)
+    def dateParse(data: String) = formatter.parseDateTime(data).toDate
 
     override val format = Some(("format.date", Seq(pattern)))
 
-    def bind(key: String, data: Map[String, String]) = {
-      parsing(sdf.parse, "error.date", Nil)(key, data)
-    }
+    def bind(key: String, data: Map[String, String]) = parsing(dateParse, "error.date", Nil)(key, data)
 
-    def unbind(key: String, value: Date) = Map(key -> sdf.format(value))
+    def unbind(key: String, value: Date) = Map(key -> formatter.print(new org.joda.time.DateTime(value).withZone(jodaTimeZone)))
   }
 
   /**
@@ -210,19 +210,20 @@ object Formats {
   /**
    * Formatter for the `java.sql.Date` type.
    *
-   * @param pattern a date pattern as specified in `java.text.SimpleDateFormat`.
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
-  def sqlDateFormat(pattern: String, timeZone: java.util.TimeZone = java.util.TimeZone.getDefault): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
+  def sqlDateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
+
+    val dateFormatter = dateFormat(pattern, timeZone)
 
     override val format = Some(("format.date", Seq(pattern)))
 
     def bind(key: String, data: Map[String, String]) = {
-      dateFormat(pattern, timeZone).bind(key, data).right.map(d => new java.sql.Date(d.getTime))
+      dateFormatter.bind(key, data).right.map(d => new java.sql.Date(d.getTime))
     }
 
-    def unbind(key: String, value: java.sql.Date) = dateFormat(pattern, timeZone).unbind(key, value)
-
+    def unbind(key: String, value: java.sql.Date) = dateFormatter.unbind(key, value)
   }
 
   /**
@@ -238,20 +239,13 @@ object Formats {
    */
   def jodaDateTimeFormat(pattern: String, timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
 
-    import org.joda.time.DateTime
+    val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(timeZone)
 
     override val format = Some(("format.date", Seq(pattern)))
 
-    def bind(key: String, data: Map[String, String]) = {
+    def bind(key: String, data: Map[String, String]) = parsing(formatter.parseDateTime, "error.date", Nil)(key, data)
 
-      stringFormat.bind(key, data).right.flatMap { s =>
-        scala.util.control.Exception.allCatch[DateTime]
-          .either(DateTime.parse(s, org.joda.time.format.DateTimeFormat.forPattern(pattern).withZone(timeZone)))
-          .left.map(e => Seq(FormError(key, "error.date", Nil)))
-      }
-    }
-
-    def unbind(key: String, value: DateTime) = Map(key -> value.withZone(timeZone).toString(pattern))
+    def unbind(key: String, value: org.joda.time.DateTime) = Map(key -> value.withZone(timeZone).toString(pattern))
   }
 
   /**
@@ -270,16 +264,12 @@ object Formats {
 
     import org.joda.time.LocalDate
 
+    val formatter = org.joda.time.format.DateTimeFormat.forPattern(pattern)
+    def jodaLocalDateParse(data: String) = LocalDate.parse(data, formatter)
+
     override val format = Some(("format.date", Seq(pattern)))
 
-    def bind(key: String, data: Map[String, String]) = {
-
-      stringFormat.bind(key, data).right.flatMap { s =>
-        scala.util.control.Exception.allCatch[LocalDate]
-          .either(LocalDate.parse(s, org.joda.time.format.DateTimeFormat.forPattern(pattern)))
-          .left.map(e => Seq(FormError(key, "error.date", Nil)))
-      }
-    }
+    def bind(key: String, data: Map[String, String]) = parsing(jodaLocalDateParse, "error.date", Nil)(key, data)
 
     def unbind(key: String, value: LocalDate) = Map(key -> value.toString(pattern))
   }
@@ -292,4 +282,3 @@ object Formats {
   implicit val jodaLocalDateFormat: Formatter[org.joda.time.LocalDate] = jodaLocalDateFormat("yyyy-MM-dd")
 
 }
-

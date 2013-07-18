@@ -2,36 +2,35 @@ package play.api.templates
 
 import play.api.mvc._
 import play.templates._
+import play.api.http.MimeTypes
+import org.apache.commons.lang3.StringEscapeUtils
 
 /**
- * Content type used in default HTML templates.
- *
- * @param buffer the HTML text
+ * Appendable content using a StringBuilder.
+ * @param buffer StringBuilder to use
+ * @tparam A self-type
  */
-class Html(val buffer: StringBuilder) extends Appendable[Html] with Content with play.mvc.Content {
+abstract class BufferedContent[A <: BufferedContent[A]](private val buffer: StringBuilder) extends Appendable[A] with Content with play.mvc.Content { this: A =>
 
-  /**
-   * Appends another Html fragment to this, modifying this.
-   */
-  def +=(other: Html): Html = {
+  def +=(other: A) = {
     buffer.append(other.buffer)
     this
   }
 
-  @deprecated(message="Use += method instead.", since="2012/12")
-  def +(other: Html): Html = {
-    this += other
-  }
+  override def toString = buffer.toString()
 
-  override def toString = buffer.toString
+  def body = toString
 
+}
+
+/**
+ * Content type used in default HTML templates.
+ */
+class Html(buffer: StringBuilder) extends BufferedContent[Html](buffer) {
   /**
-   * Content type of HTML (`text/html`).
+   * Content type of HTML.
    */
-  def contentType: String = "text/html"
-
-  def body: String = toString
-
+  val contentType = MimeTypes.HTML
 }
 
 /**
@@ -84,34 +83,12 @@ object HtmlFormat extends Format[Html] {
 
 /**
  * Content type used in default text templates.
- *
- * @param text The plain text.
  */
-class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Content {
-  private val buffer = new StringBuilder(text)
-
-  /**
-   * Appends another text fragment to this, modifying this.
-   */
-  def +=(other: Txt): Txt = {
-    buffer.append(other.buffer)
-    this
-  }
-
-  @deprecated(message="Use += method instead.", since="2012/12")
-  def +(other: Txt): Txt = {
-    this += other
-  }
-
-  override def toString = buffer.toString
-
+class Txt(buffer: StringBuilder) extends BufferedContent[Txt](buffer) {
   /**
    * Content type of text (`text/plain`).
    */
-  def contentType = "text/plain"
-
-  def body = toString
-
+  def contentType = MimeTypes.TEXT
 }
 
 /**
@@ -123,14 +100,13 @@ object Txt {
    * Creates a text fragment with initial content specified.
    */
   def apply(text: String): Txt = {
-    new Txt(text)
+    new Txt(new StringBuilder(text))
   }
-
 
   /**
    * Creates an empty text fragment.
    */
-  def empty = new Txt("")
+  def empty = new Txt(new StringBuilder)
 
 }
 
@@ -153,34 +129,12 @@ object TxtFormat extends Format[Txt] {
 
 /**
  * Content type used in default XML templates.
- *
- * @param text the plain xml text
  */
-class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Content {
-  private val buffer = new StringBuilder(text)
-
+class Xml(buffer: StringBuilder) extends BufferedContent[Xml](buffer) {
   /**
-   * Appends another XML fragment to this, modifying this.
+   * Content type of XML (`application/xml`).
    */
-  def +=(other: Xml): Xml = {
-    buffer.append(other.buffer)
-    this
-  }
-
-  @deprecated(message="Use += method instead.", since="2012/12")
-  def +(other: Xml): Xml = {
-    this += other
-  }
-
-  override def toString = buffer.toString
-
-  /**
-   * Content type of XML (`text/xml`).
-   */
-  def contentType = "text/xml"
-
-  def body = toString
-
+  def contentType = MimeTypes.XML
 }
 
 /**
@@ -192,13 +146,13 @@ object Xml {
    * Creates an XML fragment with initial content specified.
    */
   def apply(text: String): Xml = {
-    new Xml(text)
+    new Xml(new StringBuilder(text))
   }
 
   /**
    * Create an empty XML fragment.
    */
-  def empty = new Xml("")
+  def empty = new Xml(new StringBuilder)
 
 }
 
@@ -219,6 +173,44 @@ object XmlFormat extends Format[Xml] {
 
 }
 
+/**
+ * Type used in default JavaScript templates.
+ */
+class JavaScript(buffer: StringBuilder) extends BufferedContent[JavaScript](buffer) {
+  /**
+   * Content type of JavaScript
+   */
+  val contentType = MimeTypes.JAVASCRIPT
+}
+
+/**
+ * Helper for JavaScript utility methods.
+ */
+object JavaScript {
+  /**
+   * Creates a JavaScript fragment with initial content specified
+   */
+  def apply(content: String) = new JavaScript(new StringBuilder(content))
+}
+
+/**
+ * Formatter for JavaScript content.
+ */
+object JavaScriptFormat extends Format[JavaScript] {
+  /**
+   * Integrate `text` without performing any escaping process.
+   * @param text Text to integrate
+   */
+  def raw(text: String): JavaScript = JavaScript(text)
+
+  /**
+   * Escapes `text` using JavaScript String rules.
+   * @param text Text to integrate
+   */
+  def escape(text: String): JavaScript = JavaScript(StringEscapeUtils.escapeEcmaScript(text))
+
+}
+
 /** Defines a magic helper for Play templates. */
 object PlayMagic {
 
@@ -230,6 +222,9 @@ object PlayMagic {
    * toHtmlArgs(Seq('id -> "item", 'style -> "color:red"))
    * }}}
    */
-  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map(a => a._1.name + "=\"" + HtmlFormat.escape(a._2.toString).body + "\"").mkString(" "))
+  def toHtmlArgs(args: Map[Symbol, Any]) = Html(args.map({
+    case (s, None) => s.name
+    case (s, v) => s.name + "=\"" + HtmlFormat.escape(v.toString).body + "\""
+  }).mkString(" "))
 
 }

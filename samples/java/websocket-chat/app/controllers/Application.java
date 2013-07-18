@@ -4,8 +4,8 @@ import play.*;
 import play.mvc.*;
 import play.libs.F.*;
 
-import org.codehaus.jackson.*;
-
+import com.fasterxml.jackson.databind.JsonNode; 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import views.html.*;
 
 import models.*;
@@ -28,6 +28,10 @@ public class Application extends Controller {
             return redirect(routes.Application.index());
         }
         return ok(chatRoom.render(username));
+    }
+
+    public static Result chatRoomJs(String username) {
+        return ok(views.js.chatRoom.render(username));
     }
     
     /**

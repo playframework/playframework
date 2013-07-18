@@ -19,18 +19,13 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 Let’s see what a route definition looks like:
 
-```
-GET   /clients/:id          controllers.Clients.show(id: Long)  
-```
+@[clients-show](code/scalaguide.http.routing.routes)
 
 Each route starts with the HTTP method, followed by the URI pattern. The last element is the call definition.
 
 You can also add comments to the route file, with the `#` character.
 
-```
-# Display a client.
-GET   /clients/:id          controllers.Clients.show(id: Long)  
-```
+@[clients-show-comment](code/scalaguide.http.routing.routes)
 
 ## The HTTP method
 
@@ -44,17 +39,13 @@ The URI pattern defines the route’s request path. Parts of the request path ca
 
 For example, to exactly match incoming `GET /clients/all` requests, you can define this route:
 
-```
-GET   /clients/all              controllers.Clients.list()
-```
+@[static-path](code/scalaguide.http.routing.routes)
 
 ### Dynamic parts 
 
 If you want to define a route that retrieves a client by ID, you’ll need to add a dynamic part:
 
-```
-GET   /clients/:id          controllers.Clients.show(id: Long)  
-```
+@[clients-show](code/scalaguide.http.routing.routes)
 
 > Note that a URI pattern may have more than one dynamic part.
 
@@ -64,9 +55,7 @@ The default matching strategy for a dynamic part is defined by the regular expre
 
 If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.*` regular expression:
 
-```
-GET   /files/*name          controllers.Application.download(name)  
-```
+@[spanning-path](code/scalaguide.http.routing.routes)
 
 Here for a request like `GET /files/images/logo.png`, the `name` dynamic part will capture the `images/logo.png` value.
 
@@ -74,9 +63,7 @@ Here for a request like `GET /files/images/logo.png`, the `name` dynamic part wi
 
 You can also define your own regular expression for the dynamic part, using the `$id<regex>` syntax:
     
-```
-GET   /clients/$id<[0-9]+>  controllers.Clients.show(id: Long)  
-```
+@[regex-path](code/scalaguide.http.routing.routes)
 
 ## Call to the Action generator method
 
@@ -84,79 +71,47 @@ The last part of a route definition is the call. This part must define a valid c
 
 If the method does not define any parameters, just give the fully-qualified method name:
 
-```
-GET   /                     controllers.Application.homePage()
-```
+@[home-page](code/scalaguide.http.routing.routes)
 
 If the action method defines some parameters, all these parameter values will be searched for in the request URI, either extracted from the URI path itself, or from the query string.
 
-```
-# Extract the page parameter from the path.
-GET   /:page                controllers.Application.show(page)
-```
+@[page](code/scalaguide.http.routing.routes)
 
 Or:
 
-```
-# Extract the page parameter from the query string.
-GET   /                     controllers.Application.show(page)
-```
+@[page](code/scalaguide.http.routing.query.routes)
 
 Here is the corresponding, `show` method definition in the `controllers.Application` controller:
 
-```scala
-def show(page: String) = Action {
-    loadContentFromDatabase(page).map { htmlContent =>
-        Ok(htmlContent).as("text/html")
-    }.getOrElse(NotFound)
-}
-```
+@[show-page-action](code/ScalaRouting.scala)
 
 ### Parameter types
 
 For parameters of type `String`, typing the parameter is optional. If you want Play to transform the incoming parameter into a specific Scala type, you can explicitly type the parameter:
 
-```
-GET   /client/:id           controllers.Clients.show(id: Long)
-```
+@[clients-show](code/scalaguide.http.routing.routes)
 
 And do the same on the corresponding `show` method definition in the `controllers.Clients` controller:
 
-```scala
-def show(id: Long) = Action {
-    Client.findById(id).map { client =>
-        Ok(views.html.Clients.display(client))
-    }.getOrElse(NotFound)
-}
-```
+@[show-client-action](code/ScalaRouting.scala)
 
 ### Parameters with fixed values
 
 Sometimes you’ll want to use a fixed value for a parameter:
 
-```
-# Extract the page parameter from the path, or fix the value for /
-GET   /                     controllers.Application.show(page = "home")
-GET   /:page                controllers.Application.show(page)
-```
+@[page](code/scalaguide.http.routing.fixed.routes)
 
 ### Parameters with default values
 
 You can also provide a default value that will be used if no value is found in the incoming request:
 
-```
-# Pagination links, like /clients?page=3
-GET   /clients              controllers.Clients.list(page: Int ?= 1)
-```
+@[clients](code/scalaguide.http.routing.defaultvalue.routes)
 
 ### Optional parameters
 
 You can also specify an optional parameter that does not need to be present in all requests:
 
-```
-# The version parameter is optional. E.g. /api/list-all?version=3.0
-GET   /api/list-all         controllers.Api.list(Option[version])
-```
+@[optional](code/scalaguide.http.routing.routes)
 
 ## Routing priority
 
@@ -172,35 +127,14 @@ The `play.api.mvc.Call` defines an HTTP call, and provides both the HTTP method 
 
 For example, if you create a controller like:
 
-```scala
-package controllers
-
-import play.api._
-import play.api.mvc._
-
-object Application extends Controller {
-    
-  def hello(name: String) = Action {
-      Ok("Hello " + name + "!")
-  }
-    
-}
-```
+@[reverse-controller](code/ScalaRouting.scala)
 
 And if you map it in the `conf/routes` file:
 
-```
-# Hello action
-GET   /hello/:name          controllers.Application.hello(name)
-```
+@[route](code/scalaguide.http.routing.reverse.routes)
 
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
-```scala
-// Redirect to /hello/Bob
-def helloBob = Action {
-    Redirect(routes.Application.hello("Bob"))    
-}
-```
+@[reverse-router](code/ScalaRouting.scala)
 
 > **Next:** [[Manipulating results | ScalaResults]]

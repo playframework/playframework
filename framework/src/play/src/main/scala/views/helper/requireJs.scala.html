@@ -1,13 +1,15 @@
 @**
- * Generate an HTML form.
+ * RequireJS Javascript module loader.
  *
  * Example:
  * {{{
  * @requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
  * }}}
  *
- * @param core reference to require.js
- * @param module javascript module in question
+ * @param module Javascript module in question.
+ * @param core Reference to require.js.
+ * @param productionFolderPrefix Prefix of Javascript production folder, defaut "-min".
+ * @param folder Javascript folder, default "javascripts".
  *@
 
 @(module: String, core: String, productionFolderPrefix: String = "-min", folder: String= "javascripts")

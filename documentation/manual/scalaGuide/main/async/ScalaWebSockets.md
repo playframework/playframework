@@ -14,7 +14,7 @@ Modern web browsers natively support two-way live communication via WebSockets.
 >
 >WebSocket is also useful for web applications that require real-time bi-directional communication. Before the implementation of WebSocket, such bi-directional communication was only possible using Comet channels; however, Comet is not trivial to implement reliably, and due to the TCP handshaking and HTTP header overhead, it may be inefficient for small messages. The WebSocket protocol aims to solve these problems without compromising the web’s security assumptions.
 >
-> [[http://en.wikipedia.org/wiki/WebSocket]]
+> <http://en.wikipedia.org/wiki/WebSocket>
 
 ## Handling WebSockets
 
@@ -46,7 +46,7 @@ When constructing a `WebSocket` this way, we must return both `in` and `out` cha
 
 It this example we are creating a simple iteratee that prints each message to console. To send messages, we create a simple dummy enumerator that will send a single **Hello!** message.
 
-> **Tip:** You can test WebSockets on [[http://websocket.org/echo.html]]. Just set the location to `ws://localhost:9000`.
+> **Tip:** You can test WebSockets on <http://websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
 
 Let’s write another example that discards the input data and closes the socket just after sending the **Hello!** message:
 

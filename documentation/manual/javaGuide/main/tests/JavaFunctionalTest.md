@@ -13,6 +13,8 @@ public void renderTemplate() {
 }
 ```
 
+You can find the complete list of the *test helpers* in the [Helper class API documentation](http://www.playframework.com/documentation/api/2.1.1/java/play/test/Helpers.html). 
+
 ## Testing your controllers
 
 You can also retrieve an action reference from the reverse router, such as `controllers.routes.ref.Application.index`. You can then invoke it:
@@ -49,10 +51,10 @@ Sometimes you want to test the real HTTP stack from with your test. You can do t
 ```
 @Test
 public void testInServer() {
-  running(testServer(3333), new Callback0() {
-      public void invoke() {
+  running(testServer(3333), new Runnable() {
+      public void run() {
          assertThat(
-           WS.url("http://localhost:3333").get().get().status
+           WS.url("http://localhost:3333").get().get().getStatus()
          ).isEqualTo(OK);
       }
   });
@@ -61,7 +63,7 @@ public void testInServer() {
 
 ## Testing from within a web browser
 
-If you want to test your application from with a Web browser, you can use [[Selenium WebDriver| http://code.google.com/p/selenium/?redir=1]]. Play will start the WebDriver for your, and wrap it in the convenient API provided by [[FluentLenium|https://github.com/FluentLenium/FluentLenium]].
+If you want to test your application from with a Web browser, you can use [Selenium WebDriver](http://code.google.com/p/selenium/?redir=1). Play will start the WebDriver for your, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
 
 ```
 @Test

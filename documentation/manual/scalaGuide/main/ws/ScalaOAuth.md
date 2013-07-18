@@ -1,8 +1,8 @@
 # OAuth
 
-[[OAuth|http://oauth.net/]] is a simple way to publish and interact with protected data. It's also a safer and more secure way for people to give you access. For example, it can be used to access your users' data on [[Twitter|https://dev.twitter.com/docs/auth/using-oauth]].
+[OAuth](http://oauth.net/) is a simple way to publish and interact with protected data. It's also a safer and more secure way for people to give you access. For example, it can be used to access your users' data on [Twitter](https://dev.twitter.com/docs/auth/using-oauth).
 
-There are 2 very different versions of OAuth: [[OAuth 1.0|http://tools.ietf.org/html/rfc5849]] and [[OAuth 2.0|http://oauth.net/2/]]. Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.
+There are 2 very different versions of OAuth: [OAuth 1.0](http://tools.ietf.org/html/rfc5849) and [OAuth 2.0](http://oauth.net/2/). Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.
 
 ## Required Information
 
@@ -38,10 +38,10 @@ object Twitter extends Controller {
     "https://api.twitter.com/oauth/request_token",
     "https://api.twitter.com/oauth/access_token",
     "https://api.twitter.com/oauth/authorize", KEY),
-    false)
+    true)
 
   def authenticate = Action { request =>
-    request.queryString.get("oauth_verifier").flatMap(_.headOption).map { verifier =>
+    request.getQueryString("oauth_verifier").map { verifier =>
       val tokenPair = sessionTokenPair(request).get
       // We got the verifier; now get the access token, store it and back to index
       TWITTER.retrieveAccessToken(tokenPair, verifier) match {
@@ -71,4 +71,24 @@ object Twitter extends Controller {
   }
 }
 ```
+
+```scala
+object Application extends Controller {
+
+  def timeline = Action { implicit request =>
+    Twitter.sessionTokenPair match {
+      case Some(credentials) =>
+        Async {
+          WS.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
+            .sign(OAuthCalculator(Twitter.KEY, credentials))
+            .get
+            .map(result => Ok(result.json))
+        }
+      
+      case _ => Redirect(routes.Twitter.authenticate)
+    }
+  }
+}
+```
+
 > **Next:** [[Integrating with Akka| ScalaAkka]]

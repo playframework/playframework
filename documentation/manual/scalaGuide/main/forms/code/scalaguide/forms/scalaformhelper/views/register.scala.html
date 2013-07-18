@@ -1,0 +1,18 @@
+@(myForm: Form[User])
+@import scalaguide.forms.scalaformhelper.controllers.routes
+
+@import helper._
+
+@helper.form(action = routes.Application.submit) {
+
+@* #form-field-repeat *@
+@inputText(myForm("name"))
+
+@repeat(myForm("emails"), min = 1) { emailField =>
+
+@inputText(emailField)
+
+}
+@* #form-field-repeat *@
+
+})

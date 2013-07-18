@@ -26,17 +26,17 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
     Option(underlying.onRouteRequest(r)).map(Some(_)).getOrElse(super.onRouteRequest(request))
   }
 
-  override def onError(request: RequestHeader, ex: Throwable): Result = {
+  override def onError(request: RequestHeader, ex: Throwable): SimpleResult = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onError(req, ex)))
       .getOrElse(super.onError(request, ex))
   }
 
-  override def onHandlerNotFound(request: RequestHeader): Result = {
+  override def onHandlerNotFound(request: RequestHeader): SimpleResult = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onHandlerNotFound(req)))
       .getOrElse(super.onHandlerNotFound(request))
   }
 
-  override def onBadRequest(request: RequestHeader, error: String): Result = {
+  override def onBadRequest(request: RequestHeader, error: String): SimpleResult = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onBadRequest(req, error)))
       .getOrElse(super.onBadRequest(request, error))
   }
@@ -53,7 +53,7 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
 
   override def doFilter(a: EssentialAction): EssentialAction = {
     try {
-      Filters(super.doFilter(a), underlying.filters.map(_.newInstance:play.api.mvc.EssentialFilter):_*)
+      Filters(super.doFilter(a), underlying.filters.map(_.newInstance: play.api.mvc.EssentialFilter): _*)
     } catch {
       case e: Throwable => EssentialAction(req => play.api.libs.iteratee.Done(onError(req, e)))
     }

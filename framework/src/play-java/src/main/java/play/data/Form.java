@@ -253,7 +253,7 @@ public class Form<T> {
      * @param data data to submit
      * @return a copy of this form filled with the new data
      */
-    public Form<T> bind(org.codehaus.jackson.JsonNode data, String... allowedFields) {
+    public Form<T> bind(com.fasterxml.jackson.databind.JsonNode data, String... allowedFields) {
         return bind(
             play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("", 
@@ -361,9 +361,23 @@ public class Form<T> {
                     }                    
                 }
                 if(!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<ValidationError>()); 
+                   errors.put(key, new ArrayList<ValidationError>());
                 }
-                errors.get(key).add(new ValidationError(key, error.isBindingFailure() ? "error.invalid" : error.getDefaultMessage(), arguments));                    
+
+                String message = "error.invalid";
+                if( error.isBindingFailure() ){
+                    for(String code : error.getCodes() ){
+                        code = code.replace("typeMismatch", "error.invalid");
+                        if( play.i18n.Messages.isDefined(code) ){
+                            message = code;
+                            break;
+                        }
+                    }
+                }else{
+                    message = error.getDefaultMessage();
+                }
+
+                errors.get(key).add(new ValidationError(key, message, arguments));
             }
             return new Form(rootName, backedType, data, errors, None(), groups);
         } else {
@@ -496,14 +510,14 @@ public class Form<T> {
     /**
      * Returns the form errors serialized as Json.
      */
-    public org.codehaus.jackson.JsonNode errorsAsJson() {
+    public com.fasterxml.jackson.databind.JsonNode errorsAsJson() {
         return errorsAsJson(Http.Context.Implicit.lang());
     }
 
     /**
      * Returns the form errors serialized as Json using the given Lang.
      */
-    public org.codehaus.jackson.JsonNode errorsAsJson(play.i18n.Lang lang) {
+    public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
         Map<String, List<String>> allMessages = new HashMap<String, List<String>>();
         for (String key : errors.keySet()) {
             List<ValidationError> errs = errors.get(key);

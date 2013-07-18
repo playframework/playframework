@@ -6,11 +6,7 @@ Since HTTP 1.1, to keep a single connection open to serve several HTTP requests 
 
 By default, when you send a simple result, such as:
 
-```
-public static Result index() {
-  return ok("Hello World")
-}
-```
+@[by-default](code/javaguide/async/JavaStream.java)
 
 You are not specifying a `Content-Length` header. Of course, because the content you are sending is well known, Play is able to compute the content size for you and to generate the appropriate header.
 
@@ -24,11 +20,7 @@ If it’s not a problem to load the whole content into memory for simple content
 
 Play provides easy to use helpers to this common task of serving a local file:
 
-```
-public static Result index() {
-  return ok(new java.io.File("/tmp/fileToServe.pdf"));
-}
-```
+@[serve-file](code/javaguide/async/JavaStream.java)
 
 Additionally this helper will also compute the `Content-Type` header from the file name. And it will also add the `Content-Disposition` header to specify how the web browser should handle this response. The default is to ask the web browser to download this file by using `Content-Disposition: attachment; filename=fileToServe.pdf`.
 
@@ -42,50 +34,23 @@ For this kind of response we have to use **Chunked transfer encoding**.
 > 
 > The size of each chunk is sent right before the chunk itself so that a client can tell when it has finished receiving data for that chunk. The data transfer is terminated by a final chunk of length zero.
 >
-> [[http://en.wikipedia.org/wiki/Chunked_transfer_encoding]]
+> <http://en.wikipedia.org/wiki/Chunked_transfer_encoding>
 
 The advantage is that we can serve data **live**, meaning that we send chunks of data as soon as they are available. The drawback is that since the web browser doesn’t know the content size, it is not able to display a proper download progress bar.
 
 Let’s say that we have a service somewhere that provides a dynamic `InputStream` that computes some data. We can ask Play to stream this content directly using a chunked response:
 
-```
-public static Result index() {
-  InputStream is = getDynamicStreamSomewhere();
-  return ok(is);
-}
-```
+@[input-stream](code/javaguide/async/JavaStream.java)
 
 You can also set up your own chunked response builder. The Play Java API supports both text and binary chunked streams (via `String` and `byte[]`):
 
-```
-public static index() {
-  // Prepare a chunked text stream
-  Chunks<String> chunks = new StringChunks() {
-    
-    // Called when the stream is ready
-    public void onReady(Chunks.Out<String> out) {
-      registerOutChannelSomewhere(out);
-    }
-    
-  }
-  
-  // Serves this stream with 200 OK
-  ok(chunks);
-}
-```
+@[chunked](code/javaguide/async/JavaStream.java)
 
 The `onReady` method is called when it is safe to write to this stream. It gives you a `Chunks.Out` channel you can write to.
 
 Let’s say we have an asynchronous process (like an `Actor`) somewhere pushing to this stream:
 
-```
-public void registerOutChannelSomewhere(Chunks.Out<String> out) {
-  out.write("kiki");
-  out.write("foo");
-  out.write("bar");
-  out.close();
-}
-```
+@[register-out-channel](code/javaguide/async/JavaStream.java)
 
 We can inspect the HTTP response sent by the server:
 

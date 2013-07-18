@@ -1,10 +1,8 @@
 
 package play.console
 
-import jline._
 import java.io._
 import scalax.file._
-import giter8.Giter8
 import scala.annotation.tailrec
 
 /**
@@ -12,7 +10,7 @@ import scala.annotation.tailrec
  */
 object Console {
 
-  val consoleReader = new jline.ConsoleReader
+  val consoleReader = new jline.console.ConsoleReader
 
   val logo = Colors.yellow(
     """|       _            _
@@ -21,23 +19,19 @@ object Console {
            ||  __/|_|\____|\__ (_)
            ||_|            |__/
            |
-           |""".stripMargin) + ("play! " + play.core.PlayVersion.current + " (using Java " + System.getProperty("java.version") + " and Scala " + play.core.PlayVersion.scalaVersion + "), http://www.playframework.org")
+           |""".stripMargin) +
+    ("play! " + play.core.PlayVersion.current +
+      " built with Scala " + play.core.PlayVersion.scalaVersion +
+      " (running Java " + System.getProperty("java.version") + ")," +
+      " http://www.playframework.com")
 
   // -- Commands
 
   def replace(file: File, tokens: (String, String)*) {
     if (file.exists) {
-      Path(file).write(tokens.foldLeft(Path(file).slurpString) { (state, token) =>
+      Path(file).write(tokens.foldLeft(Path(file).string) { (state, token) =>
         state.replace("%" + token._1 + "%", token._2)
       })
-    }
-  }
-
-  private def interact(params: Map[String, String]): Map[String, String] = {
-    params.map { e =>
-      consoleReader.printString(e._1 + "[" + e._2 + "]:".stripMargin)
-      consoleReader.putString("")
-      e._1 -> Option(consoleReader.readLine()).map(_.trim).filter(_.size > 0).getOrElse(e._2)
     }
   }
 
@@ -101,22 +95,20 @@ object Console {
       else {
         val name = readApplicationName(defaultName)
 
-        consoleReader.printNewline()
-        consoleReader.printString("Which template do you want to use for this new application? ")
-        consoleReader.printNewline()
-        consoleReader.printString(
+        consoleReader.println()
+        consoleReader.println("Which template do you want to use for this new application? ")
+        consoleReader.println(
           """|
                |  1             - Create a simple Scala application
                |  2             - Create a simple Java application
                |""".stripMargin)
 
-        consoleReader.printNewline()
         consoleReader.putString("")
 
         val templateToUse = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).getOrElse("") match {
           case "1" => "scala-skel"
           case "2" => "java-skel"
-          case g8 @ _ => g8
+          case other => other
         }
         (templateToUse, name)
       }
@@ -126,72 +118,7 @@ object Console {
           generateLocalTemplate(template._1, template._2, path)
           (haveFun(template._2), 0)
         } else {
-
-          import giter8._
-          import G8Helpers.Regs._
-
-          val repo = template._1
-          val appName = template._2
-
-          def usage = """
-                        |Usage: [TEMPLATE] [OPTION]...
-                        |Apply specified template.
-                        |
-                        |OPTIONS
-                        |    -b, --branch
-                        |        Resolves a template within a given branch
-                        |
-                        |
-                        |Apply template and interactively fulfill parameters.
-                        |    typesafehub/play-scala
-                        |
-                        |Or
-                        |    git://github.com/typesafehub/play-scala.g8.git
-                        |
-                        |Apply template from a remote branch
-                        |    typesafehub/play-scala -b some-branch
-                        |
-                        |Apply template from a local repo
-                        |    file://path/to/the/repo
-                        |
-                        |""".stripMargin
-
-          def toGitRepo(user: String, proj: String) =
-            "git://github.com/%s/%s.g8.git".format(user, proj)
-
-          val parsed = repo.split(" ").partition { s => Param.pattern.matcher(s).matches } match {
-            case (params, Array(Local(repo))) =>
-              Right(repo, None, params)
-            case (params, Array(Local(repo), Branch(_), branch)) =>
-              Right(repo, Some(branch), params)
-            case (params, Array(Repo(user, proj))) =>
-              Right(toGitRepo(user, proj), None, params)
-            case (params, Array(Repo(user, proj), Branch(_), branch)) =>
-              Right(toGitRepo(user, proj), Some(branch), params)
-            case (params, Array(Git(remote))) =>
-              Right(remote, None, params)
-            case (params, Array(Git(remote), Branch(_), branch)) =>
-              Right(remote, Some(branch), params)
-            case _ =>
-              Left(usage)
-          }
-
-          val result = parsed.right.flatMap { case (repo, branch, _) =>
-            // this is necessary because g8 only provides an option to either
-            // pass params or use interactive session to populate fields
-            // but in our case we have the application_name (and path) already
-            Giter8.clone(repo, branch).right.map { f =>
-              val (parameters, templates, templatesRoot) = G8Helpers.fetchInfo(f.jfile, Some("src/main/g8"))
-              val ps = G8Helpers.interact(parameters - "application_name") + ("application_name" -> appName)
-              val base = new File(G8.normalize(appName))
-              G8Helpers.write(templatesRoot, templates, ps, base)
-            }
-          }
-
-          result.fold(
-            ex => ("something went wrong while processing g8 template: \n\t" + ex, -1),
-            _ => (haveFun(appName), 0)
-          )
+          ("Unknown option: " + template._1, -1)
         }
       } catch {
         case ex: Exception =>
@@ -203,14 +130,12 @@ object Console {
 
   @tailrec
   def readApplicationName(defaultName: String): String = {
-    consoleReader.printString("What is the application name? [%s]".format(defaultName))
-    consoleReader.printNewline()
+    consoleReader.println("What is the application name? [%s]".format(defaultName))
     Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).filter(_.size > 0).getOrElse(defaultName) match {
       case IdParser(name) => name
       case _ => {
-        consoleReader.printString(Colors.red("Error: ") + "Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
-        consoleReader.printNewline()
-        consoleReader.printNewline()
+        consoleReader.println(Colors.red("Error: ") + "Application name may only contain letters, digits, '_' and '-', and it must start with a letter.")
+        consoleReader.println()
         readApplicationName(defaultName)
       }
     }
@@ -218,14 +143,14 @@ object Console {
 
   def helpCommand(args: Array[String]): (String, Int) = {
     (
-     "Welcome to Play " + play.core.PlayVersion.current + """!
+      "Welcome to Play " + play.core.PlayVersion.current + """!
             |
             |These commands are available:
             |-----------------------------
             |license            Display licensing informations.
             |new [directory]    Create a new Play application in the specified directory.
             |
-            |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin, 0)
+            |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin, 0)
   }
 
   def main(args: Array[String]) {
@@ -241,7 +166,7 @@ object Console {
            |Use `play new` to create a new Play application in the current directory,
            |or go to an existing application and launch the development console using `play`.
            |
-           |You can also browse the complete documentation at http://www.playframework.org.""".stripMargin), -1)
+           |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin), -1)
     }
 
     println(text)

@@ -1,0 +1,5 @@
+# #page
+# Extract the page parameter from the path, or fix the value for /
+GET   /                     controllers.Application.show(page = "home")
+GET   /:page                controllers.Application.show(page)
+# #page

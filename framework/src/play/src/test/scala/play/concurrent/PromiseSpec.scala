@@ -4,13 +4,14 @@ import org.specs2.mutable.Specification
 import play.api.libs.concurrent._
 import org.specs2.execute.Result
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.mvc.ResultsSpec.WithApplication
 
 
 class PromiseSpec extends Specification {
 
   "Promise" can {
 
-    "filter" in {
+    "filter" in new WithApplication {
 
       "Redeemed values" << {
         val p = Promise.timeout(42, 100)

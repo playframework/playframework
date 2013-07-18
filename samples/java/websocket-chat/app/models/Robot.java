@@ -9,8 +9,7 @@ import scala.concurrent.duration.*;
 import akka.actor.*;
 import akka.dispatch.*;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.node.*;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -30,7 +29,7 @@ public class Robot {
         };
         
         // Join the room
-        chatRoom.tell(new ChatRoom.Join("Robot", robotChannel));
+        chatRoom.tell(new ChatRoom.Join("Robot", robotChannel), null);
         
         // Make the robot talk every 30 seconds
         Akka.system().scheduler().schedule(

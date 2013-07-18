@@ -841,17 +841,14 @@ You apply `write[String]` on this JsPath (exactly the same as `Reads`)
    
 ####`(…)(unlift(Creature.unapply))` builds a `Writes[Creature]`
   - Remark that:
-  
+
 ```
 (__ \ "name").write[String] and (__ \ "isDead").write[Boolean] and (__ \ "weight").write[Float]` 
 ```
 
-builds a 
-
-```
-Builder[Writes[String ~ Boolean ~ Float])]` but you want a `Writes[Creature]
-```  
-  - So you apply the `Builder[Writes[String ~ Boolean ~ String])]` to a function `Creature => (String, Boolean, Float)` to finally obtain a `Writes[Creature]`. Please note that it may seem a bit strange to provide `Creature => (String, Boolean, Float)` to obtain a `Writes[Creature]` from a `Builder[Writes[String ~ Boolean ~ String])]` but it's due to the contravariant nature of `Writes[-T]`.
+builds a `Builder[Writes[String ~ Boolean ~ Float])]` whereas you want a `Writes[Creature]`. 
+  - So you apply the `Builder[Writes[String ~ Boolean ~ String])]` to a function `Creature => (String, Boolean, Float)` to finally obtain a `Writes[Creature]`.  
+Please note that it may seem a bit strange to provide `Creature => (String, Boolean, Float)` to obtain a `Writes[Creature]` from a `Builder[Writes[String ~ Boolean ~ String])]` but it's due to the contravariant nature of `Writes[-T]`.
   - We have `Creature.unapply` but its signature is `Creature => Option[(String, Boolean, Float)]` so we `unlift` it to obtain `Creature => (String, Boolean, Float)`.
 <br/>
 

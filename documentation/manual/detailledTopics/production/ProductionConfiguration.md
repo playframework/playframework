@@ -83,7 +83,7 @@ Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no
 
 Create an alternative logback config file called `application-logger.xml` and copy that to `<app>/conf`
 
-You can also specify another logback configuration file via a System property.
+You can also specify another logback configuration file via a System property. Please note that if the configuration file is not specified then play will use the default `logger.xml` that comes with play in the production mode. This means that any log level settings in application.conf file will be overridden. As a good practice always specify your `application-logger.xml`.
 
 ### Using `-Dlogger.resource`
 

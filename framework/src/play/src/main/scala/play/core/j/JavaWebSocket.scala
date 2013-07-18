@@ -5,6 +5,8 @@ import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
 import scala.collection.JavaConverters._
 
+import play.core.Execution.Implicits.internalContext
+
 /**
  * handles a scala websocket in a Java Context
  */
@@ -22,23 +24,23 @@ object JavaWebSocket extends JavaHelpers {
         JContext.current.remove()
       }
 
-      val enumerator = Enumerator.imperative[A]()
+      val (enumerator, channel) = Concurrent.broadcast[A]
 
       val socketOut = new play.mvc.WebSocket.Out[A] {
 
         def write(frame: A) {
-          enumerator.push(frame)
+          channel.push(frame)
         }
 
         def close() {
-          enumerator.close()
+          channel.eofAndEnd()
         }
 
       }
       val socketIn = new play.mvc.WebSocket.In[A]
 
       in |>> {
-        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).mapDone { _ =>
+        Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).map { _ =>
           socketIn.closeCallbacks.asScala.foreach(_.invoke())
         }
       }
@@ -63,5 +65,5 @@ object JavaWebSocket extends JavaHelpers {
     play.libs.Json.stringify, play.libs.Json.parse
   )
 
-  def ofJson(retrieveWebSocket: => play.mvc.WebSocket[org.codehaus.jackson.JsonNode]): Handler = webSocketWrapper[org.codehaus.jackson.JsonNode](retrieveWebSocket)
+  def ofJson(retrieveWebSocket: => play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]): Handler = webSocketWrapper[com.fasterxml.jackson.databind.JsonNode](retrieveWebSocket)
 }

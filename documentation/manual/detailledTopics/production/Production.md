@@ -2,9 +2,11 @@
 
 There are several ways to deploy a Play application in production mode. Let's start by using the simplest way, using a local Play installation.
 
+> Note, different play apps require different configuration in production. The default configuration is setup for apps that are mainly processing requests asynchronously. If your app is executing mainly blocking calls, then it's recommended to increase the number of available threads and the timeouts.
+
 ## Using the start command
 
-The easiest way to start an application in production mode is to use the `start` command from the Play console. This requires a Play 2.0 installation on the server.
+The easiest way to start an application in production mode is to use the `start` command from the Play console. This requires a Play 2 installation on the server.
 
 ```bash
 [My first application] $ start
@@ -39,6 +41,7 @@ You can use the `stage` task to prepare your application to be run in place. The
 ```bash
 $ play clean compile stage
 ```
+>Note that Play does not support Windows in production mode, therefore `stage` and `start` won't work under Windows.
 
 [[images/stage.png]]
 
@@ -48,6 +51,12 @@ You can start your application using:
 
 ```bash
 $ target/start
+```
+
+You can also specify a different configuration file for a production environment, from the command line:
+
+```bash
+$ target/start -Dconfig.file=/full/path/to/conf/application-prod.conf
 ```
 
 The generated `start` script is very simple - in fact, you could even execute the `java` command directly.

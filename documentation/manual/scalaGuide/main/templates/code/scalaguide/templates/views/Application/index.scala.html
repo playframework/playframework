@@ -1,0 +1,11 @@
+@* #example-template *@
+@(customer: Customer, orders: List[Order])
+
+<h1>Welcome @customer.name!</h1>
+
+<ul>
+@for(order <- orders) {
+  <li>@order.title</li>
+}
+</ul>
+@* #example-template *@

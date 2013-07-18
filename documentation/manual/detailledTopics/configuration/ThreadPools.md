@@ -44,41 +44,13 @@ All actions in Play Framework use the default thread pool.  When doing certain a
 
 In most situations, the appropriate execution context to use will be the Play default thread pool.  This can be used by importing it into your Scala source file:
 
-```scala
-import play.api.libs.concurrent.Execution.Implicits._
-
-def someAsyncAction = Action {
-  Async {
-    WS.get("http://www.example.com").get().map { response =>
-      // This code block is executed in the imported default execution context
-      // which happens to be the same thread pool in which the outer block of
-      // code in this action will be executed.
-      Ok("The response code was " + response.status)
-    }
-  }
-}
-```
+@[global-thread-pool](code/ThreadPools.scala)
 
 ### Configuring the default thread pool
 
 The default thread pool can be configured using standard Akka configuration in `application.conf` under the `play` namespace.  Here is the default configuration:
 
-```
-play {
-  akka {
-    event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
-    loglevel = WARNING
-    actor {
-      default-dispatcher = {
-        fork-join-executor {
-          parallelism-factor = 1.0
-          parallelism-max = 24
-        }
-      }
-    }
-  }
-}
-```
+@[default-config](code/ThreadPools.scala)
 
 This configuration instructs Akka to create one thread per available processor, with a maximum of 24 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.1.0/general/configuration.html#Listing_of_the_Reference_Configuration).
 
@@ -88,44 +60,19 @@ This configuration instructs Akka to create one thread per available processor, 
 
 In certain circumstances, you may wish to dispatch work to other thread pools.  This may include CPU heavy work, or IO work, such as database access.  To do this, you should first create a thread pool, this can be done easily in Scala:
 
-```scala
-object Contexts {
-  implicit val myExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.my-context")
-}
-```
+@[my-context-usage](code/ThreadPools.scala)
 
 In this case, we are using Akka to create the execution context, but you could also easily create your own execution contexts using Java executors, or the Scala fork join thread pool, for example.  To configure this Akka execution context, you can add the following configuration to your `application.conf`:
 
-```
-akka {
-  actor {
-    my-context {
-      fork-join-executor {
-        parallelism-factor = 20.0
-        parallelism-max = 200
-      }
-    }
-  }
-}
-```
+@[my-context-config](code/ThreadPools.scala)
 
 To use this excecution context in Scala, you would simply use the scala `Future` companion object function:
 
-```scala
-Future {
-  // Some blocking or expensive code here
-}(Contexts.myExecutionContext)
-```
+@[my-context-explicit](code/ThreadPools.scala)
 
 or you could just use it implicitly:
 
-```scala
-import Contexts.myExecutionContext
-
-Future {
-  // Some blocking or expensive code here
-}
-```
+@[my-context-implicit](code/ThreadPools.scala)
 
 ## Best practices
 
@@ -143,22 +90,7 @@ This profile matches that of a traditional synchronous IO based web framework, s
 
 In this profile, you would simply use the default execution context everywhere, but configure it to have a very large number of threads in its pool, like so:
 
-```
-play {
-  akka {
-    event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
-    loglevel = WARNING
-    actor {
-      default-dispatcher = {
-        fork-join-executor {
-          parallelism-min = 300
-          parallelism-max = 300
-        }
-      }
-    }
-  }
-}
-```
+@[highly-synchronous](code/ThreadPools.scala)
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
 
@@ -168,45 +100,11 @@ This profile is for when you want to do a lot of synchronous IO, but you also wa
 
 In this case, you might create a number of different execution contexts for different types of operations, like this:
 
-```scala
-object Contexts {
-  implicit val simpleDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.simple-db-lookups")
-  implicit val expensiveDbLookups: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.expensive-db-lookups")
-  implicit val dbWriteOperations: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.db-write-operations")
-  implicit val expensiveCpuOperations: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.expensive-cpu-operations")
-}
-```
+@[many-specific-contexts](code/ThreadPools.scala)
 
 These might then be configured like so:
 
-```
-play {
-  akka {
-    actor {
-      simple-db-lookups {
-        fork-join-executor {
-          parallelism-factor = 10.0
-        }
-      }
-      expensive-db-lookups {
-        fork-join-executor {
-          parallelism-max = 4
-        }
-      }
-      db-write-operations {
-        fork-join-executor {
-          parallelism-factor = 2.0
-        }
-      }
-      expensive-cpu-operations {
-        fork-join-executor {
-          parallelism-max = 2
-        }
-      }
-    }
-  }  
-}
-```
+@[many-specific-config](code/ThreadPools.scala)
 
 Then in your code, you would create futures and pass the relevant execution context for the type of work that future was doing.
 

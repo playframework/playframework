@@ -1,5 +1,5 @@
 package play.filters.csrf {
-  
+
   import scala.language.reflectiveCalls
 
   import play.api.mvc._
@@ -17,7 +17,7 @@ import java.security.cert.Certificate
 
   object CSRF {
 
-    lazy val logger = play.api.Logger("play.filters")
+    val filterLogger = play.api.Logger("play.filters")
 
     case class Token(value: String)
 
@@ -47,7 +47,7 @@ import java.security.cert.Certificate
     val encoder = new Hex
     val random = new SecureRandom
 
-    val INVALID_TOKEN: PlainResult  = BadRequest("Invalid CSRF Token")
+    val INVALID_TOKEN: SimpleResult = BadRequest("Invalid CSRF Token")
 
     def generate: Token = {
       val bytes = new Array[Byte](10)
@@ -58,9 +58,9 @@ import java.security.cert.Certificate
     def checkTokens(paramToken: Token, sessionToken: Token) = paramToken == sessionToken
 
     // -
-    def checkRequest(request: RequestHeader, body: Option[Map[String, Seq[String]]] = None): Either[PlainResult, RequestHeader] = {
+    def checkRequest(request: RequestHeader, body: Option[Map[String, Seq[String]]] = None): Either[SimpleResult, RequestHeader] = {
       val maybeToken: Option[Token] = (
-        if(POST_LOOKUP)
+        if (POST_LOOKUP)
           body.flatMap(_.get(TOKEN_NAME)).orElse(request.queryString.get(TOKEN_NAME))
         else
           request.queryString.get(TOKEN_NAME)
@@ -68,83 +68,75 @@ import java.security.cert.Certificate
 
       request.method match {
         case UNSAFE_METHOD() => {
-          (for{ token <- maybeToken;
+          (for {
+            token <- maybeToken;
             cookieToken <- COOKIE_NAME.flatMap(request.cookies.get).map(_.value).orElse(request.session.get(TOKEN_NAME))
-          } yield if(checkTokens(token, Token(cookieToken))) Right(request) else Left(INVALID_TOKEN)) getOrElse Left(INVALID_TOKEN)
+          } yield if (checkTokens(token, Token(cookieToken))) Right(request) else Left(INVALID_TOKEN)) getOrElse Left(INVALID_TOKEN)
         }
         case _ => Right(request)
       }
     }
 
-    /**
-     * Add the token to the Response (session|cookie) if it's not already in the request
-     */
-    def addResponseToken(req: RequestHeader, res: Result, token: Token): Result = res match {
-      case r: PlainResult => addResponseToken(req, r, token)
-      case r: AsyncResult => r.transform(addResponseToken(req, _, token))
-    }
-    def addResponseToken(req: RequestHeader, r: PlainResult, token: Token): PlainResult = {
+    def addResponseToken(req: RequestHeader, r: SimpleResult, token: Token): SimpleResult = {
 
-      logger.trace("[CSRF] Adding token to result: " + r)
+      filterLogger.trace("[CSRF] Adding token to result: " + r)
 
       /**
        * Add Token to the Response session if necessary
        */
-       def addSessionToken: PlainResult = {
-         if(req.session.get(TOKEN_NAME).isDefined){
-           logger.trace("[CSRF] session already contains token")
-           r
-         }
-         else {
-           val session = Cookies(r.header.headers.get("Set-Cookie"))
-             .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
-             .getOrElse(Map.empty)
-           val newSession = if(session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
-           logger.trace("[CSRF] Adding session token to response")
-           logger.trace("[CSRF] response was: " + r)
-           val resp = r.withSession(Session.deserialize(newSession))
-           logger.trace("[CSRF] response is now: " + resp)
-           resp
-         }
-       }
+      def addSessionToken: SimpleResult = {
+        val session = Cookies(r.header.headers.get("Set-Cookie"))
+          .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+          .getOrElse(req.session.data)
+        if (session.get(TOKEN_NAME).isDefined) {
+          filterLogger.trace("[CSRF] session already contains token")
+          r
+        } else {
+          val newSession = if (session.contains(TOKEN_NAME)) session else (session + (TOKEN_NAME -> token.value))
+          filterLogger.trace("[CSRF] Adding session token to response")
+          filterLogger.trace("[CSRF] response was: " + r)
+          val resp = r.withSession(Session.deserialize(newSession))
+          filterLogger.trace("[CSRF] response is now: " + resp)
+          resp
+        }
+      }
 
-       /**
+      /**
        * Add Token to the Response cookies if necessary
        */
-       def addCookieToken(c: String): PlainResult = {
-         if(req.cookies.get(c).isDefined){
-           logger.trace("[CSRF] cookie already contains token")
-           r
-         }
-         else {
-           val cookies = Cookies(r.header.headers.get("Set-Cookie"))
-           logger.trace("[CSRF] Adding cookie token to response")
-           logger.trace("[CSRF] response was: " + r)
-           val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
-           logger.trace("[CSRF] response is now: " + resp)
-           resp
-         }
-       }
+      def addCookieToken(c: String): SimpleResult = {
+        if (req.cookies.get(c).isDefined) {
+          filterLogger.trace("[CSRF] cookie already contains token")
+          r
+        } else {
+          val cookies = Cookies(r.header.headers.get("Set-Cookie"))
+          filterLogger.trace("[CSRF] Adding cookie token to response")
+          filterLogger.trace("[CSRF] response was: " + r)
+          val resp = cookies.get(c).map(_ => r).getOrElse(r.withCookies(Cookie(c, token.value)))
+          filterLogger.trace("[CSRF] response is now: " + resp)
+          resp
+        }
+      }
 
-       if(CREATE_IF_NOT_FOUND)
-         COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
-       else
-         r
+      if (CREATE_IF_NOT_FOUND)
+        COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
+      else
+        r
     }
 
     /**
-    * Extract token fron current request
-    */
+     * Extract token fron current request
+     */
     def getToken(request: RequestHeader): Option[Token] = COOKIE_NAME
       .flatMap(n => request.cookies.get(n).map(_.value))
       .orElse(request.session.get(TOKEN_NAME)).map(Token.apply)
 
     /**
-    * Add token to the request if necessary (token not yet in session)
-    */
+     * Add token to the request if necessary (token not yet in session)
+     */
     def addRequestToken(request: RequestHeader, token: Token): RequestHeader = {
 
-      logger.trace("[CSRF] Adding request token to request: " + request)
+      filterLogger.trace("[CSRF] Adding request token to request: " + request)
 
       def addSessionToken = request.session.get(TOKEN_NAME)
         .map(_ => request)
@@ -169,20 +161,20 @@ import java.security.cert.Certificate
           override def headers: Headers = new Headers {
             override def getAll(key: String): Seq[String] = toMap.get(key).toSeq.flatten
             override def keys: Set[String] = toMap.keys.toSet
-            override lazy val toMap: Map[String,Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
-            def data = toMap.toSeq
+            override lazy val toMap: Map[String, Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
+            val data = toMap.toSeq
           }
 
           lazy val newSession = request.session + (TOKEN_NAME -> token.value)
           lazy val sc = Cookies.encode(Seq(Cookie(Session.COOKIE_NAME, Session.encode(newSession.data))))
 
-          logger.trace("[CSRF] adding session token to request: " + newSession)
+          filterLogger.trace("[CSRF] adding session token to request: " + newSession)
 
           lazy val cookiesHeader = request.headers.get(HeaderNames.COOKIE).map { cookies =>
             Cookies.merge(cookies, Seq(Cookie(Session.COOKIE_NAME, Session.encode(newSession.data))))
           }.getOrElse(sc)
 
-          logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
+          filterLogger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
       def addCookieToken(c: String) = request.cookies.get(c)
@@ -204,24 +196,24 @@ import java.security.cert.Certificate
           override def headers: Headers = new Headers {
             override def getAll(key: String): Seq[String] = toMap.get(key).toSeq.flatten
             override def keys: Set[String] = toMap.keys.toSet
-            override lazy val toMap: Map[String,Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
-            def data = toMap.toSeq
+            override lazy val toMap: Map[String, Seq[String]] = request.headers.toMap - HeaderNames.COOKIE + (HeaderNames.COOKIE -> Seq(cookiesHeader))
+            val data = toMap.toSeq
           }
 
-          logger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
+          filterLogger.trace("[CSRF] adding cookie %s token to request: %s".format(c, token))
 
           lazy val sc = Cookies.encode(Seq(Cookie(c, token.value)))
           lazy val cookiesHeader = request.headers.get(HeaderNames.COOKIE).map { cookies =>
             Cookies.merge(cookies, Seq(Cookie(c, token.value)))
           }.getOrElse(sc)
 
-          logger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
+          filterLogger.trace("[CSRF] cookies header value in request is now: " + cookiesHeader)
         })
 
-        if(CREATE_IF_NOT_FOUND)
-          COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
-        else
-          request
+      if (CREATE_IF_NOT_FOUND)
+        COOKIE_NAME.map(addCookieToken).getOrElse(addSessionToken)
+      else
+        request
     }
   }
 
@@ -233,17 +225,18 @@ import java.security.cert.Certificate
 
     def this() = this(CSRF.generate _) // Default constructor, useful from Java
 
-    private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, token: Token,  next: EssentialAction) = {
-      (Traversable.take[Array[Byte]](102400) &>> Iteratee.consume[Array[Byte]]()).flatMap{ b: Array[Byte] =>
-          val eventuallyEither = Enumerator(b).run(parser(request))
-          Iteratee.flatten(
-            eventuallyEither.map{
-              _.fold(_ => checkRequest(request), body => checkRequest(request, Some(extractor(body))))
-                .fold(
-                  result => Done(result, Input.Empty: Input[Array[Byte]]),
-                  r => Iteratee.flatten(Enumerator(b).apply(next(addRequestToken(r, token)))).map(result => addResponseToken(request, result, token))
-                )})
-        }
+    private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, token: Token, next: EssentialAction) = {
+      (Traversable.take[Array[Byte]](102400) &>> Iteratee.consume[Array[Byte]]()).flatMap { b: Array[Byte] =>
+        val eventuallyEither = Enumerator(b).run(parser(request))
+        Iteratee.flatten(
+          eventuallyEither.map {
+            _.fold(_ => checkRequest(request), body => checkRequest(request, Some(extractor(body))))
+              .fold(
+                result => Done(result, Input.Empty: Input[Array[Byte]]),
+                r => Iteratee.flatten(Enumerator(b).apply(next(addRequestToken(r, token)))).map(result => addResponseToken(request, result, token))
+              )
+          })
+      }
     }
 
     def checkFormUrlEncodedBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
@@ -258,34 +251,34 @@ import java.security.cert.Certificate
      *
      * So check that too, however, only check the query string, as it doesn't really make sense to check the body.
      */
-    def checkTextBody(request: RequestHeader, token: Token, next: EssentialAction): Iteratee[Array[Byte], Result] = {
+    def checkTextBody(request: RequestHeader, token: Token, next: EssentialAction): Iteratee[Array[Byte], SimpleResult] = {
       checkRequest(request, None).fold(result => Done(result), rh => next(addRequestToken(rh, token)))
     }
 
     def apply(next: EssentialAction): EssentialAction = new EssentialAction {
-      def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
+      def apply(request: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
         import play.api.http.HeaderNames._
 
-        logger.trace("[CSRF] original request: " + request)
-        logger.trace("[CSRF] original cookies: " + request.cookies)
-        logger.trace("[CSRF] original session: " + request.session)
+        filterLogger.trace("[CSRF] original request: " + request)
+        filterLogger.trace("[CSRF] original cookies: " + request.cookies)
+        filterLogger.trace("[CSRF] original session: " + request.session)
 
         val token = generator()
         request.headers.get(CONTENT_TYPE) match {
           case Some(ct) if ct.trim.startsWith("multipart/form-data") =>
-            logger.trace("[CSRF] request is multipart/form-data")
+            filterLogger.trace("[CSRF] request is multipart/form-data")
             checkMultipart(request, token, next)
           case Some(ct) if ct.trim.startsWith("application/x-www-form-urlencoded") =>
-            logger.trace("[CSRF] request is application/x-www-form-urlencoded")
+            filterLogger.trace("[CSRF] request is application/x-www-form-urlencoded")
             checkFormUrlEncodedBody(request, token, next)
           case Some(ct) if ct.trim.startsWith("text/plain") =>
-            logger.trace("[CSRF] request is text/playn")
+            filterLogger.trace("[CSRF] request is text/playn")
             checkTextBody(request, token, next)
-          case None if request.method == "GET" => 
-            logger.trace("[CSRF] GET request, adding the token")
+          case None if request.method == "GET" =>
+            filterLogger.trace("[CSRF] GET request, adding the token")
             next(addRequestToken(request, token)).map(result => addResponseToken(request, result, token))
-          case ct => 
-            logger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
+          case ct =>
+            filterLogger.trace("[CSRF] bypass the request (%s)".format(ct.toString))
             next(request)
         }
       }
@@ -297,14 +290,12 @@ import java.security.cert.Certificate
     def apply(generator: () => CSRF.Token) = new CSRFFilter(generator)
   }
 
-
   /**
-  * Default global, use this if CSRF is your only Filter
-  */
+   * Default global, use this if CSRF is your only Filter
+   */
   object Global extends WithFilters(CSRFFilter()) with GlobalSettings
 
 }
-
 
 package views.html.helper {
 
@@ -315,8 +306,8 @@ package views.html.helper {
     def apply(call: Call)(implicit token: play.filters.csrf.CSRF.Token): Call = {
       new Call(
         call.method,
-        call.url + { 
-          if(call.url.contains("?")) "&" else "?"
+        call.url + {
+          if (call.url.contains("?")) "&" else "?"
         } + play.filters.csrf.CSRF.Conf.TOKEN_NAME + "=" + token.value
       )
     }

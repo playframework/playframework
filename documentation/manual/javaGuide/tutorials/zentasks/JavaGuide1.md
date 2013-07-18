@@ -46,7 +46,7 @@ Open a new command line and type:
 
     ~$ play new zentasks
 
-It will prompt you for the application full name.  Type **'Zen Tasks'**.  It will then prompt you for a template to use.  We are creating a Java application, so type **2**.
+It will prompt you for the application full name.  Type **'ZenTasks'**.  It will then prompt you for a template to use.  We are creating a Java application, so type **2**.
 
 > Whether you select Java or Scala now, you can always change it later.
 
@@ -128,7 +128,7 @@ Templates are simple text files that live in the `/app/views` directory.  To see
 ```html
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
 
     @play20.welcome(message, style = "Java")
 
@@ -137,11 +137,11 @@ Templates are simple text files that live in the `/app/views` directory.  To see
 
 The template content seems pretty light.  In fact, all you see are Scala template directives.
 
-The `@(message: String)` directive declares the arguments that this template accepts, in this case, it is a single parameter called `message` of type `String`.  The message parameter gets used later in the template.
+The `@(message: String)` directive declares the arguments that this template accepts, in this case, it is a single parameter called `message` of type `String`.  The `message` parameter gets used later in the template.
 
 The `@play20.welcome()` directive is a call to the built in Play 2 welcome template that generate the welcome message you saw in the browser.  You can see that it passes the `message` parameter that our arguments directive declared earlier.
 
-The `@main()` directive is a call to another template called `main.scala.html`.  Both the `@play2.welcome()` and the `@main()` calls are examples of template composition.  Template composition is a powerful concept that allows you to create complex web pages by reusing common parts.
+The `@main()` directive is a call to another template called `main.scala.html`.  Both the `@play20.welcome()` and the `@main()` calls are examples of template composition.  Template composition is a powerful concept that allows you to create complex web pages by reusing common parts.
 
 Open the `app/views/main.scala.html` template:
 
@@ -168,7 +168,7 @@ Open the `app/views/main.scala.html` template:
 Note the argument declaration, this time we are accepting a `title` parameter, and also a second argument called `content` of type `Html`.  The second argument is in its own set of braces, this allows the syntax we saw before in the `index.scala.html` template:
 
 ```html
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
    ...
 }
 ```
@@ -203,7 +203,7 @@ Now edit the `app/views/Application/index.scala.html` template to replace the we
 ```html
 @(message: String)
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
 
   <h1>@message</h1>
 
@@ -218,14 +218,10 @@ One more thing before starting to code.  For the task engine, we will need a dat
 
 At the beginning, we will do a lot of testing and changes in the application model.  For that reason, it's better to use an in-memory database so we always start with a fresh data set.
 
-To set up the database, open the `conf/application.conf` file and uncomment the following lines:
+Follow instructions to setup an in-memory H2 database on [[Accessing an SQL database|JavaDatabase]] page.
 
-    db.default.driver=org.h2.Driver
-    db.default.url="jdbc:h2:mem:play"
-
-You can easily set up any JDBC compliant database and even configure the connection pool, but for now we'll keep it at this.  Additionally, we need to enable Ebean, so uncoment the following line:
-
-    ebean.default="models.*"
+You can easily set up any JDBC compliant database and even configure the connection pool, but for now we'll keep it at this.  Additionally, we need to enable Ebean.
+Define a default Ebean server following instructions on [[Using the Ebean ORM page|JavaEbean]] page.
 
 ## Using a version control system (VCS) to track changes
 

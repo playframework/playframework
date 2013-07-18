@@ -1,14 +1,18 @@
 package play.mvc;
 
+import play.api.libs.iteratee.Concurrent;
+import play.api.libs.iteratee.Enumerator;
 import play.api.mvc.*;
 
+import play.core.j.JavaResults;
 import play.libs.*;
 import play.libs.F.*;
 
 import java.io.*;
 import java.util.*;
 
-import org.codehaus.jackson.*;
+import com.fasterxml.jackson.databind.JsonNode;
+
 
 /**
  * Common results.
@@ -27,9 +31,22 @@ public class Results {
 
     /**
      * Handles an Asynchronous result.
+     *
+     * @deprecated Return Promise&lt;Result&gt; from your action instead
      */
-    public static AsyncResult async(play.libs.F.Promise<Result> p) {
-        return new AsyncResult(p);
+    @Deprecated
+    public static <R extends Result> AsyncResult async(play.libs.F.Promise<R> p) {
+        return new AsyncResult(p.flatMap(new Function<R, play.libs.F.Promise<SimpleResult>>() {
+            @Override
+            public play.libs.F.Promise<SimpleResult> apply(R result) throws Throwable {
+                if (result instanceof AsyncResult) {
+                    return ((AsyncResult)result).promise;
+                } else {
+                    // Must be a simple result
+                    return play.libs.F.Promise.pure((SimpleResult) result);
+                }
+            }
+        }));
     }
 
     // -- Status
@@ -108,7 +125,7 @@ public class Results {
      * Generates a chunked result.
      */
     public static Status status(int status, File content) {
-        return status(status, content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Status(status), content);
     }
 
     /**
@@ -198,15 +215,40 @@ public class Results {
     }
 
     /**
-     * Generates a 200 OK chunked result.
+     * Generates a 200 OK file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status ok(File content) {
-        return ok(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Ok(), content);
     }
 
     /**
-     * Generates a 200 OK simple result.
+     * Generates a 200 OK file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status ok(File content, boolean inline) {
+        return new Status(JavaResults.Ok(), content, inline);
+    }
+
+    /**
+     * Generates a 200 OK file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status ok(File content, String filename) {
+        return new Status(JavaResults.Ok(), content, true, filename);
+    }
+
+    /**
+     * Generates a 200 OK file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status ok(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Ok(), content, chunkSize);
     }
@@ -291,15 +333,40 @@ public class Results {
     }
 
     /**
-     * Generates a 201 CREATED chunked result.
+     * Generates a 201 CREATED file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status created(File content) {
-        return created(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Created(), content);
     }
 
     /**
-     * Generates a 201 CREATED simple result.
+     * Generates a 201 CREATED file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status created(File content, boolean inline) {
+        return new Status(JavaResults.Created(), content, inline);
+    }
+
+    /**
+     * Generates a 201 CREATED file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status created(File content, String filename) {
+        return new Status(JavaResults.Created(), content, true, filename);
+    }
+
+    /**
+     * Generates a 201 CREATED file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status created(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Created(), content, chunkSize);
     }
@@ -393,15 +460,40 @@ public class Results {
     }
 
     /**
-     * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
+     * Generates a 500 INTERNAL_SERVER_ERROR file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status internalServerError(File content) {
-        return internalServerError(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.InternalServerError(), content);
     }
 
     /**
-     * Generates a 500 INTERNAL_SERVER_ERROR simple result.
+     * Generates a 500 INTERNAL_SERVER_ERROR file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status internalServerError(File content, boolean inline) {
+        return new Status(JavaResults.InternalServerError(), content, inline);
+    }
+
+    /**
+     * Generates a 500 INTERNAL_SERVER_ERROR file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status internalServerError(File content, String filename) {
+        return new Status(JavaResults.InternalServerError(), content, true, filename);
+    }
+
+    /**
+     * Generates a 500 INTERNAL_SERVER_ERROR file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status internalServerError(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content, chunkSize);
     }
@@ -486,15 +578,40 @@ public class Results {
     }
 
     /**
-     * Generates a 404 NOT_FOUND chunked result.
+     * Generates a 404 NOT_FOUND file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status notFound(File content) {
-        return notFound(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.NotFound(), content);
     }
 
     /**
-     * Generates a 404 NOT_FOUND simple result.
+     * Generates a 404 NOT_FOUND file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status notFound(File content, boolean inline) {
+        return new Status(JavaResults.NotFound(), content, inline);
+    }
+
+    /**
+     * Generates a 404 NOT_FOUND file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status notFound(File content, String filename) {
+        return new Status(JavaResults.NotFound(), content, true, filename);
+    }
+
+    /**
+     * Generates a 404 NOT_FOUND file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status notFound(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.NotFound(), content, chunkSize);
     }
@@ -579,15 +696,40 @@ public class Results {
     }
 
     /**
-     * Generates a 403 FORBIDDEN chunked result.
+     * Generates a 403 FORBIDDEN file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status forbidden(File content) {
-        return forbidden(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Forbidden(), content);
     }
 
     /**
-     * Generates a 403 FORBIDDEN simple result.
+     * Generates a 403 FORBIDDEN file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status forbidden(File content, boolean inline) {
+        return new Status(JavaResults.Forbidden(), content, inline);
+    }
+
+    /**
+     * Generates a 403 FORBIDDEN file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status forbidden(File content, String filename) {
+        return new Status(JavaResults.Forbidden(), content, true, filename);
+    }
+
+    /**
+     * Generates a 403 FORBIDDEN file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status forbidden(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Forbidden(), content, chunkSize);
     }
@@ -672,15 +814,40 @@ public class Results {
     }
 
     /**
-     * Generates a 401 UNAUTHORIZED chunked result.
+     * Generates a 401 UNAUTHORIZED file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status unauthorized(File content) {
-        return unauthorized(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.Unauthorized(), content);
     }
 
     /**
-     * Generates a 401 UNAUTHORIZED simple result.
+     * Generates a 401 UNAUTHORIZED file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status unauthorized(File content, boolean inline) {
+        return new Status(JavaResults.Unauthorized(), content, inline);
+    }
+
+    /**
+     * Generates a 401 UNAUTHORIZED file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status unauthorized(File content, String filename) {
+        return new Status(JavaResults.Unauthorized(), content, true, filename);
+    }
+
+    /**
+     * Generates a 401 UNAUTHORIZED file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status unauthorized(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content, chunkSize);
     }
@@ -765,15 +932,40 @@ public class Results {
     }
 
     /**
-     * Generates a 400 BAD_REQUEST chunked result.
+     * Generates a 400 BAD_REQUEST file result as an attachment.
+     *
+     * @param content The file to send.
      */
     public static Status badRequest(File content) {
-        return badRequest(content, defaultChunkSize);
+        return new Status(play.core.j.JavaResults.BadRequest(), content);
     }
 
     /**
-     * Generates a 400 BAD_REQUEST simple result.
+     * Generates a 400 BAD_REQUEST file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
      */
+    public static Status badRequest(File content, boolean inline) {
+        return new Status(JavaResults.BadRequest(), content, inline);
+    }
+
+    /**
+     * Generates a 400 BAD_REQUEST file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status badRequest(File content, String filename) {
+        return new Status(JavaResults.BadRequest(), content, true, filename);
+    }
+
+    /**
+     * Generates a 400 BAD_REQUEST file result, sent as a chunked response.
+     *
+     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
+     */
+    @Deprecated
     public static Status badRequest(File content, int chunkSize) {
         return new Status(play.core.j.JavaResults.BadRequest(), content, chunkSize);
     }
@@ -892,35 +1084,31 @@ public class Results {
      */
     public abstract static class Chunks<A> {
 
-        final scala.Function1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit> f;
-        final play.api.http.Writeable<A> w;
+        final Enumerator<A> enumerator;
+        final play.api.http.Writeable<A> writable;
 
-        public Chunks(play.api.http.Writeable<A> w) {
+        public Chunks(play.api.http.Writeable<A> writable) {
             final Chunks<A> self = this;
-            this.w = w;
-            f = new scala.runtime.AbstractFunction1<play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit>, scala.runtime.BoxedUnit>() {
-                public scala.runtime.BoxedUnit apply(play.api.libs.iteratee.Iteratee<A,scala.runtime.BoxedUnit> iteratee) {
-                    final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
-                    play.api.libs.iteratee.PushEnumerator<A> enumerator = play.core.j.JavaResults.chunked(
-                            new scala.runtime.AbstractFunction0<scala.runtime.BoxedUnit>() {
-                                public scala.runtime.BoxedUnit apply() {
-                                    for(Callback0 callback: disconnectedCallbacks) {
-                                        try {
-                                            callback.invoke();
-                                        } catch(Throwable e) {
-                                            play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
-                                        }
-                                    }
-                                    return null;
-                                }
-                            }
-                            );
-                    enumerator.apply(iteratee);
-                    Chunks.Out<A> chunked = new Chunks.Out<A>(enumerator, disconnectedCallbacks);
+            this.writable = writable;
+            final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
+            this.enumerator = play.core.j.JavaResults.chunked(new Callback<Concurrent.Channel<A>>() {
+                @Override
+                public void invoke(Concurrent.Channel<A> channel) {
+                    Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnectedCallbacks);
                     self.onReady(chunked);
-                    return null;
                 }
-            };
+            }, new Callback0() {
+                @Override
+                public void invoke() throws Throwable {
+                    for(Callback0 callback: disconnectedCallbacks) {
+                        try {
+                            callback.invoke();
+                        } catch(Throwable e) {
+                            play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
+                        }
+                    }
+                }
+            });
         }
 
         /**
@@ -936,10 +1124,10 @@ public class Results {
         public static class Out<A> {
 
             final List<Callback0> disconnectedCallbacks;
-            final play.api.libs.iteratee.PushEnumerator<A>  enumerator;
+            final play.api.libs.iteratee.Concurrent.Channel<A> channel;
 
-            public Out(play.api.libs.iteratee.PushEnumerator<A> enumerator, List<Callback0> disconnectedCallbacks) {
-                this.enumerator = enumerator;
+            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, List<Callback0> disconnectedCallbacks) {
+                this.channel = channel;
                 this.disconnectedCallbacks = disconnectedCallbacks;
             }
 
@@ -947,7 +1135,7 @@ public class Results {
              * Write a Chunk.
              */
             public void write(A chunk) {
-                enumerator.push(chunk);
+                channel.push(chunk);
             }
 
             /**
@@ -961,7 +1149,7 @@ public class Results {
              * Closes the stream.
              */
             public void close() {
-                enumerator.close();
+                channel.eofAndEnd();
             }
 
         }
@@ -1000,13 +1188,16 @@ public class Results {
 
     /**
      * An asynchronous result.
+     *
+     * @deprecated return Promise&lt;Result&gt; from your actions instead.
      */
+    @Deprecated
     public static class AsyncResult implements Result {
 
-        private final F.Promise<Result> promise;
+        private final F.Promise<SimpleResult> promise;
         private final Http.Context context = Http.Context.current();
 
-        public AsyncResult(F.Promise<Result> promise) {
+        public AsyncResult(F.Promise<SimpleResult> promise) {
             this.promise = promise;
         }
 
@@ -1016,28 +1207,30 @@ public class Results {
          * @param f The transformation function
          * @return The transformed AsyncResult
          */
-        public AsyncResult transform(F.Function<Result, Result> f) {
+        public AsyncResult transform(F.Function<SimpleResult, SimpleResult> f) {
             return new AsyncResult(promise.map(f));
         }
 
-        public play.api.mvc.Result getWrappedResult() {
-            return play.core.j.JavaResults.async(
-                    promise.map(new F.Function<Result,play.api.mvc.Result>() {
-                        public play.api.mvc.Result apply(Result r) {
-                            return play.core.j.JavaHelpers$.MODULE$.createResult(context, r);
-                        }
-                    }).getWrappedPromise()
-            );
+        public scala.concurrent.Future<play.api.mvc.SimpleResult> getWrappedResult() {
+            return promise.map(new Function<SimpleResult, play.api.mvc.SimpleResult>() {
+                @Override
+                public play.api.mvc.SimpleResult apply(SimpleResult result) throws Throwable {
+                    return play.core.j.JavaHelpers$.MODULE$.createResult(context, result);
+                }
+            }).wrapped();
         }
 
+        public Promise<SimpleResult> getPromise() {
+            return promise;
+        }
     }
 
     /**
      * A 501 NOT_IMPLEMENTED simple result.
      */
-    public static class Todo implements Result {
+    public static class Todo extends SimpleResult {
 
-        final private play.api.mvc.Result wrappedResult;
+        final private play.api.mvc.SimpleResult wrappedResult;
 
         public Todo() {
             wrappedResult = play.core.j.JavaResults.NotImplemented().apply(
@@ -1046,18 +1239,18 @@ public class Results {
                     );
         }
 
-        public play.api.mvc.Result getWrappedResult() {
+        @Override
+        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
             return this.wrappedResult;
         }
-
     }
 
     /**
      * A simple result.
      */
-    public static class Status implements Result {
+    public static class Status extends SimpleResult {
 
-        private play.api.mvc.PlainResult wrappedResult;
+        private play.api.mvc.SimpleResult wrappedResult;
 
         public Status(play.api.mvc.Results.Status status) {
             wrappedResult = status.apply(
@@ -1100,7 +1293,7 @@ public class Results {
             if(chunks == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(chunks.f, chunks.w);
+            wrappedResult = status.chunked(chunks.enumerator, chunks.writable);
         }
 
         public Status(play.api.mvc.Results.Status status, byte[] content) {
@@ -1113,12 +1306,27 @@ public class Results {
                     );
         }
 
+        public Status(play.api.mvc.Results.Status status, File content) {
+            this(status, content, false);
+        }
+
+        public Status(play.api.mvc.Results.Status status, File content, boolean inline) {
+            this(status, content, inline, content.getName());
+        }
+
+        public Status(play.api.mvc.Results.Status status, File content, boolean inline, String filename) {
+            if(content == null) {
+                throw new NullPointerException("null content");
+            }
+            wrappedResult = play.core.j.JavaResults.sendFile(status, content, inline, filename);
+        }
+
         public Status(play.api.mvc.Results.Status status, File content, int chunkSize) {
             if(content == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(
-                    play.core.j.JavaResults.chunked(content, chunkSize), 
+            wrappedResult = status.chunked(
+                    play.core.j.JavaResults.chunked(content, chunkSize),
                     play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
                     );
         }
@@ -1127,13 +1335,13 @@ public class Results {
             if(content == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.stream(
-                    play.core.j.JavaResults.chunked(content, chunkSize), 
+            wrappedResult = status.chunked(
+                    play.core.j.JavaResults.chunked(content, chunkSize),
                     play.core.j.JavaResults.writeBytes()
                     );
         }
 
-        public play.api.mvc.Result getWrappedResult() {
+        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
             return wrappedResult;
         }
 
@@ -1154,18 +1362,17 @@ public class Results {
     /**
      * A redirect result.
      */
-    public static class Redirect implements Result {
+    public static class Redirect extends SimpleResult {
 
-        final private play.api.mvc.Result wrappedResult;
+        final private play.api.mvc.SimpleResult wrappedResult;
 
         public Redirect(int status, String url) {
             wrappedResult = play.core.j.JavaResults.Redirect(url, status);
         }
 
-        public play.api.mvc.Result getWrappedResult() {
+        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
             return this.wrappedResult;
         }
 
     }
-
 }

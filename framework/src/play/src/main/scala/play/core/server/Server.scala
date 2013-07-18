@@ -47,15 +47,16 @@ trait Server {
 
   def mode: Mode.Mode
 
-  def getHandlerFor(request: RequestHeader): Either[Result, (Handler, Application)] = {
+  def getHandlerFor(request: RequestHeader): Either[SimpleResult, (RequestHeader, Handler, Application)] = {
 
     import scala.util.control.Exception
 
-    def sendHandler: Either[Throwable, (Handler, Application)] = {
+    def sendHandler: Either[Throwable, (RequestHeader, Handler, Application)] = {
       try {
         applicationProvider.get.right.map { application =>
-          val maybeAction = application.global.onRouteRequest(request)
-          (maybeAction.getOrElse(Action(BodyParsers.parse.empty)(_ => application.global.onHandlerNotFound(request))), application)
+          application.global.onRequestReceived(request) match {
+            case (requestHeader, handler) => (requestHeader, handler, application)
+          }
         }
       } catch {
         case e: ThreadDeath => throw e
@@ -81,7 +82,7 @@ trait Server {
     }
 
     Exception
-      .allCatch[Option[Result]]
+      .allCatch[Option[SimpleResult]]
       .either(applicationProvider.handleWebCommand(request))
       .left.map(logExceptionAndGetResult)
       .right.flatMap(maybeResult => maybeResult.toLeft(())).right.flatMap { _ =>

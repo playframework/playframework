@@ -1,0 +1,3 @@
+GET   /hello          controllers.Application.index
+
+GET   /bad          controllers.Application.bad

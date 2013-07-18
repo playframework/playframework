@@ -17,8 +17,13 @@ import play.cache.{Cache=>JCache}
 import play.api.i18n._
 import java.security.cert.X509Certificate
 import concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Application extends Controller {
+
+  def plainHelloWorld = Action {
+    Ok("Hello World")
+  }
 
   def index = Action {
     if (Messages("home.title")(Lang("fr")) != "ffff" ) throw new RuntimeException("i18n does not work")
@@ -173,18 +178,17 @@ object Application extends Controller {
       action(null).parser
     }
 
-    Action(authenticatedBodyParser) { request =>
-      Async {
-        request.certs(true).map { certs =>
+    Action.async(authenticatedBodyParser) { request =>
+        request.certs(true).flatMap { certs =>
           certs.headOption match {
-            case Some(cert: X509Certificate) =>
+            case Some(cert: X509Certificate) =>  {
               getUser(cert.getSubjectX500Principal.getName).map(user => action(user)(request))
-                .getOrElse(Forbidden("No user found for certificate " + cert))
-            case _ => Unauthorized("You did not provide a certificate")
+                     .getOrElse(Future.successful(Forbidden("No user found for certificate " + cert)))
+            }
+            case _ => Future.successful(Unauthorized("You did not provide a certificate"))
           }
         }
       }
-    }
   }
 
   def getUser(dName: String): Option[User] = {
@@ -200,5 +204,13 @@ object Application extends Controller {
 
   def routetest(parameter: String) = Action {
     Ok("")
+  }
+
+  def anyXml = Action { request =>
+    request.body.asXml.map(xml => Ok(xml)).getOrElse(NotFound("Not XML"))
+  }
+
+  def xml = Action(parse.xml) { request =>
+    Ok(request.body)
   }
 }

@@ -1,5 +1,6 @@
 package play;
 
+import play.libs.F;
 import play.mvc.*;
 import play.mvc.Http.*;
 
@@ -44,7 +45,7 @@ public class GlobalSettings {
      * @param t is any throwable
      * @return null as the default implementation
      */
-    public Result onError(RequestHeader request, Throwable t) {
+    public SimpleResult onError(RequestHeader request, Throwable t) {
         return null;
     }
     
@@ -59,7 +60,7 @@ public class GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
         return new Action.Simple() {
-            public Result call(Context ctx) throws Throwable {
+            public F.Promise<SimpleResult> call(Context ctx) throws Throwable {
                 return delegate.call(ctx);
             }
         };
@@ -91,7 +92,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public Result onHandlerNotFound(RequestHeader request) {
+    public SimpleResult onHandlerNotFound(RequestHeader request) {
         return null;
     }
     
@@ -106,7 +107,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public Result onBadRequest(RequestHeader request, String error) {
+    public SimpleResult onBadRequest(RequestHeader request, String error) {
         return null;
     }
 

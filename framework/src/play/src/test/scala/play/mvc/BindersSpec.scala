@@ -38,6 +38,7 @@ object BindersSpec extends Specification {
   "URL Path string binder" should {
     val subject = implicitly[PathBindable[String]]
     val pathString = "/path/to/some%20file"
+    val pathStringBinded = "/path/to/some file"
 
     "Unbind Path string as string" in {
       subject.unbind("key", pathString) must equalTo(pathString)

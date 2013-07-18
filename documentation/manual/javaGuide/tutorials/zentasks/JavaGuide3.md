@@ -10,7 +10,7 @@ Here is a mock of what we want to achieve:
 
 In fact before coding the first screen we need one more thing.  Working on a web application without test data is not fun.  You can't even test what you're doing.  But because we haven't developed the screens for managing tasks yet, we can't populate the task dashboard with tasks ourselves.
 
-One way to inject default data into the blog is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onApplicationStart()` method.  Let's do that now, by creating the `app/Global.java` file:
+One way to inject default data into the task management system is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onApplicationStart()` method.  Let's do that now, by creating the `app/Global.java` file:
 
 ```java
 import play.*;
@@ -77,7 +77,7 @@ Open the `app/views/index.scala.html` template and modify it to accept and displ
 ```html
 @(projects: List[Project], todoTasks: List[Task])
 
-@main("Welcome to Play 2.0") {
+@main("Welcome to Play 2.1") {
 
     <header>
         <hgroup>
@@ -249,11 +249,11 @@ And now refresh the page to make sure it all works.  We should see the list of p
 
 ## Adding some style
 
-Now the first version of the dashboard is almost done, but it's not very pretty.  We'll add some style to make it shinier.  As you have seen, the main template file `mail.scala.html` includes the `public/stylesheets/main.css`.  The first thing to do is delete this stylesheet, because we are not going to use it.  Rather, we are going to implement our stylesheets using LESS.
+Now the first version of the dashboard is almost done, but it's not very pretty.  We'll add some style to make it shinier.  As you have seen, the main template file `main.scala.html` includes the `public/stylesheets/main.css`.  The first thing to do is delete this stylesheet, because we are not going to use it.  Rather, we are going to implement our stylesheets using LESS.
 
 > There is nothing stopping you from using plain CSS for your stylesheets, but Play framework comes in built with LESS support, which allows you to define stylesheets in a more dynamic fashion, using varaibles, mixins, functions etc.
 
-Explaining CSS and LESS is beyond the scope of this tutorial, so for now we'll just get you to download the stylesheets that we've already written.  These stylesheets should contain all the styles needed to build the rest of the site.  You can download a tarball of these files [here](javaGuide/tutorials/zentasks/files/less-stylesheets.tar.gz), which you can extract from the root folder of your project, this will place a number of `*.less` files in the `app/assets/stylesheets` directory.
+Explaining CSS and LESS is beyond the scope of this tutorial, so for now we'll just get you to download the stylesheets that we've already written.  These stylesheets should contain all the styles needed to build the rest of the site.  You can download a tarball of these files [here](resources/manual/javaGuide/tutorials/zentasks/files/less-stylesheets.tar.gz), which you can extract from the root folder of your project, this will place a number of `*.less` files in the `app/assets/stylesheets` directory.
 
 LESS stylesheets need to be compiled to CSS before they can be used.  Just like Play automatically compiles the routes, Java code and templates, when Play sees LESS files on your classpath, it will automatically compile them, and recompile them each time you change them.  And again, it displays errors beautifully in your browser if a compile error is encountered.
 

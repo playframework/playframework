@@ -17,6 +17,7 @@ RequireJs support is enabled by default, so all you need to do is to drop javasc
 * empty ```requireJs``` key indicates that no optimization should take place
 *  ```stage```, ```dist``` and ```start``` commands were changed to
 run [RequireJS's optimizer](http://requirejs.org/docs/optimization.html) for configured moduled in ```app/assets/javascripts```. The minified and combined assets are stored in ```app/assets/javascripts-min```
+* use ```requireJsShim``` to pass build options file to the optimizer (e.g. if you are defining paths for your modules)
 * a new template tag ```@requireJs``` can be used  to switch between dev and prod mode seamlessly 
 * by default a rhino based optimizer is used, the native, node version can be configured for performance via ```requireNativePath``` setting
 * right now this is enabled only for javascript but we are looking into using it for css as well
@@ -26,7 +27,14 @@ run [RequireJS's optimizer](http://requirejs.org/docs/optimization.html) for con
 create `app/assets/javascripts/main.js`:
 
 ```js
-require(["helper/lib"],function(l) {
+require.config({
+    paths: {
+        'thirdParty': 'path/to/lib'
+    }
+});
+
+
+require(["helper/lib","thirdParty"],function(l,t) {
 	var s = l.sum(4, 5);
 	alert(s);
 });
@@ -54,7 +62,8 @@ In `project/Build.scala` add:
 
 ```
 val main = play.Project(appName, appVersion, appDependencies).settings(
-    	requireJs += "main.js"
+    	requireJs += "main.js",
+    	requireJsShim += "main.js"
     )	
 ```
 
@@ -62,7 +71,7 @@ After rendering the page in Dev mode you should see: ```9``` popping up in an al
 
 ## When running stage, dist or start
 
-your application's jar file should contain (```public/javascript/main.js```):
+your application's jar file should contain (```public/javascripts-min/main.js```):
 
 ```js
 define("helper/lib",[],function(){return{sum:function(e,t){return e+t}}}),require(["helper/lib"],function(e){var t=e.sum(5,4);alert(t)}),define("main",function(){})

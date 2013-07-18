@@ -38,7 +38,7 @@ object Security {
    */
   def Authenticated[A](
     userinfo: RequestHeader => Option[A],
-    onUnauthorized: RequestHeader => Result)(action: A => EssentialAction): EssentialAction = {
+    onUnauthorized: RequestHeader => SimpleResult)(action: A => EssentialAction): EssentialAction = {
 
     EssentialAction { request =>
       userinfo(request).map { user =>

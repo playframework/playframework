@@ -9,20 +9,13 @@ export SCRIPT=`dirname $0`
 cd $SCRIPT
 export PLAY=`pwd`/../play
 
-./build "$@" publish-local
+./build "$@" publish-local test
 
 echo "[info]"
-echo "[info] ---- CHECKING BINARY COMPATIBILITY"
+echo "[info] ---- SBT PLUGIN TESTS"
 echo "[info]"
 
-echo ./build "$@" mima-report-binary-issues
-
-
-echo "[info]"
-echo "[info] ---- RUNNING FRAMEWORK SPECS"
-echo "[info]"
-
-./build "$@" test
+./build "$@" Sbt-Plugin:scripted
 
 rm -rf ./logs
 
@@ -43,6 +36,15 @@ echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
 echo "[info]"
 
 $PLAY "$@" clean-all test
+if [ ! -f target/junit-running ]
+then
+  echo "[Error]"
+  echo "[Error] ---- Junit tests might not be running"
+  echo "[Error]"
+  exit 1
+fi
+
+
 cd $CURRENT
 
 cd ./test/integrationtest-scala
@@ -64,6 +66,14 @@ $PLAY "$@" clean-all test
 cd $CURRENT
 
 echo "[info]"
+echo "[info] ---- RUNNING DOCUMENTATION TESTS"
+echo "[info]"
+
+cd ../documentation
+$PLAY "$@" clean-all test validate-docs
+cd $CURRENT
+
+echo "[info]"
 echo "[info] ---- TESTING SAMPLE APPLICATIONS"
 echo "[info]"
 
@@ -81,3 +91,4 @@ done
 echo "[info]"
 echo "[info] ALL TESTS PASSED"
 echo "[info]"
+

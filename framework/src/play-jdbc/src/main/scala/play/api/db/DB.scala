@@ -12,7 +12,7 @@ import javax.sql._
 
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
-import scala.util.control.NonFatal
+import scala.util.control.{ NonFatal, ControlThrowable }
 
 /**
  * The Play Database API manages several connection pools.
@@ -101,6 +101,7 @@ trait DBApi {
         connection.commit()
         r
       } catch {
+        case e: ControlThrowable => connection.commit(); throw e
         case NonFatal(e) => connection.rollback(); throw e
       }
     }
@@ -244,7 +245,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
         ds._1.getConnection.close()
         app.mode match {
           case Mode.Test =>
-          case mode => Logger("play").info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
+          case mode => Play.logger.info("database [" + ds._2 + "] connected at " + dbURL(ds._1.getConnection))
         }
       } catch {
         case NonFatal(e) => {
@@ -379,6 +380,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     datasource.setIdleMaxAge(conf.getMilliseconds("idleMaxAge").getOrElse(1000 * 60 * 10), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setMaxConnectionAge(conf.getMilliseconds("maxConnectionAge").getOrElse(1000 * 60 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setDisableJMX(conf.getBoolean("disableJMX").getOrElse(true))
+    datasource.setStatisticsEnabled(conf.getBoolean("statisticsEnabled").getOrElse(false))
     datasource.setIdleConnectionTestPeriod(conf.getMilliseconds("idleConnectionTestPeriod").getOrElse(1000 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     // Release helper threads has caused users issues, and the feature has been removed altogether from BoneCP 0.8.0
     // (which is yet to be released) because it offered no real performance advantage.  Once we upgrade to BoneCP 0.8.x,
@@ -392,7 +394,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     // Bind in JNDI
     conf.getString("jndiName").map { name =>
       JNDI.initialContext.rebind(name, datasource)
-      Logger("play").info("datasource [" + conf.getString("url").get + "] bound to JNDI as " + name)
+      Play.logger.info("datasource [" + conf.getString("url").get + "] bound to JNDI as " + name)
     }
 
     datasource

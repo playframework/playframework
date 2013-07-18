@@ -67,10 +67,40 @@ trait GlobalSettings {
     config ++ configuration
 
   /**
-   * Called Just before the action is used.
-   *
+   * Retrieve the (RequestHeader,Handler) to use to serve this request.
+   * Default is: route, tag request, then apply filters
    */
-  def doFilter(a: EssentialAction): EssentialAction = a
+  def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
+    onRouteRequest(request)
+      .map {
+        case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
+        case handler => (request, handler)
+      }
+      .map {
+        case (taggedRequest, handler) => (taggedRequest, doFilter(rh => handler)(taggedRequest))
+      }
+      .getOrElse {
+        (request, Action(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request)))
+      }
+  }
+
+  /**
+   * Filters.
+   */
+  def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
+    (request: RequestHeader) =>
+      {
+        next(request) match {
+          case action: EssentialAction => doFilter(action)
+          case handler => handler
+        }
+      }
+  }
+
+  /**
+   * Filters for EssentialAction.
+   */
+  def doFilter(next: EssentialAction): EssentialAction = next
 
   /**
    * Called when an HTTP request has been received.
@@ -94,7 +124,7 @@ trait GlobalSettings {
    * @param ex The exception
    * @return The result to send to the client
    */
-  def onError(request: RequestHeader, ex: Throwable): Result = {
+  def onError(request: RequestHeader, ex: Throwable): SimpleResult = {
     try {
       InternalServerError(Play.maybeApplication.map {
         case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
@@ -110,7 +140,7 @@ trait GlobalSettings {
         Logger.error("Error while rendering default error page", e)
         InternalServerError
       }
-    } 
+    }
   }
 
   /**
@@ -121,7 +151,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onHandlerNotFound(request: RequestHeader): Result = {
+  def onHandlerNotFound(request: RequestHeader): SimpleResult = {
     NotFound(Play.maybeApplication.map {
       case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
@@ -136,7 +166,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onBadRequest(request: RequestHeader, error: String): Result = {
+  def onBadRequest(request: RequestHeader, error: String): SimpleResult = {
     BadRequest(views.html.defaultpages.badRequest(request, error))
   }
 

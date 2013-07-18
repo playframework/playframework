@@ -51,6 +51,7 @@ public class Computer extends Model {
                 .orderBy(sortBy + " " + order)
                 .fetch("company")
                 .findPagingList(pageSize)
+                .setFetchAhead(false)
                 .getPage(page);
     }
     

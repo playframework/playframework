@@ -1,13 +1,14 @@
 package play.api.http
 
 import play.api.mvc._
-import play.api._
-import play.api.http.Status._
-import play.api.http.HeaderNames._
-import play.api.templates._
 import play.api.libs.json._
 
 import scala.annotation._
+import scala.language.reflectiveCalls
+import play.api.libs.iteratee.Enumeratee
+import play.api.libs.concurrent.Execution
+
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
  * Transform a value of type A to a Byte Array.
@@ -19,6 +20,7 @@ import scala.annotation._
 )
 case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[String]) {
   def map[B](f: B => A): Writeable[B] = Writeable(b => transform(f(b)), contentType)
+  def toEnumeratee[E <: A]: Enumeratee[E, Array[Byte]] = Enumeratee.map[E](transform)
 }
 
 /**

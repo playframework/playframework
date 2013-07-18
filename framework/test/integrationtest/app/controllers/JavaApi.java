@@ -2,7 +2,7 @@ package controllers;
 
 import java.util.*;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import play.*;
 import play.libs.Json;

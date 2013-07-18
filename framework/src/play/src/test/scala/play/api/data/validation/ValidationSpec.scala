@@ -94,6 +94,13 @@ object ValidationSpec extends Specification {
         { number => "The mapping should fail." must equalTo("Error") }
       )
     }
+
+    "Text containing whitespace only should be rejected by nonEmptyText" in {
+      Form( "value" -> nonEmptyText ).bind( Map( "value" -> " ") ).fold(
+        formWithErrors => { formWithErrors.errors.head.message must equalTo("error.required") },
+        { text => "The mapping should fail." must equalTo("Error") }
+      )
+    }
   }
 
 }

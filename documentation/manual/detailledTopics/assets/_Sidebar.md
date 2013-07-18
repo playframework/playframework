@@ -29,8 +29,8 @@
 
 ### Additional documentation
 
-- [[Scala|http://docs.scala-lang.org/]]
-- [[Akka|http://akka.io/docs/]]
-- [[sbt|http://www.scala-sbt.org/learn.html]]
-- [[Configuration|https://github.com/typesafehub/config]]
-- [[Logback|http://logback.qos.ch/documentation.html]]
+- [Scala](http://docs.scala-lang.org/)
+- [Akka](http://akka.io/docs/)
+- [sbt](http://www.scala-sbt.org/learn.html)
+- [Configuration](https://github.com/typesafehub/config)
+- [Logback](http://logback.qos.ch/documentation.html)

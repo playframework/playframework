@@ -1,0 +1,59 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+GET     /resource1                  controllers.Resource1.index
+GET     /resource1/new              controllers.Resource1.create
+POST    /resource1                  controllers.Resource1.save
+GET     /resource1/:id              controllers.Resource1.get(id: Long)
+GET     /resource1/:id/edit         controllers.Resource1.edit(id: Long)
+PUT     /resource1/:id              controllers.Resource1.update(id: Long)
+DELETE  /resource1/:id              controllers.Resource1.delete(id: Long)
+GET     /resource1/:id/foo          controllers.Resource1.foo(id: Long)
+
+GET     /resource2                  controllers.Resource2.index
+GET     /resource2/new              controllers.Resource2.create
+POST    /resource2                  controllers.Resource2.save
+GET     /resource2/:id              controllers.Resource2.get(id: Long)
+GET     /resource2/:id/edit         controllers.Resource2.edit(id: Long)
+PUT     /resource2/:id              controllers.Resource2.update(id: Long)
+DELETE  /resource2/:id              controllers.Resource2.delete(id: Long)
+
+GET     /resource3                  controllers.Resource3.index
+GET     /resource3/new              controllers.Resource3.create
+POST    /resource3                  controllers.Resource3.save
+GET     /resource3/:id              controllers.Resource3.get(id: Long)
+GET     /resource3/:id/edit         controllers.Resource3.edit(id: Long)
+PUT     /resource3/:id              controllers.Resource3.update(id: Long)
+DELETE  /resource3/:id              controllers.Resource3.delete(id: Long)
+
+GET     /resource4                  controllers.Resource4.index
+GET     /resource4/new              controllers.Resource4.create
+POST    /resource4                  controllers.Resource4.save
+GET     /resource4/:id              controllers.Resource4.get(id: Long)
+GET     /resource4/:id/edit         controllers.Resource4.edit(id: Long)
+PUT     /resource4/:id              controllers.Resource4.update(id: Long)
+DELETE  /resource4/:id              controllers.Resource4.delete(id: Long)
+
+GET     /resource5                  controllers.Resource5.index
+GET     /resource5/new              controllers.Resource5.create
+POST    /resource5                  controllers.Resource5.save
+GET     /resource5/:id              controllers.Resource5.get(id: Long)
+GET     /resource5/:id/edit         controllers.Resource5.edit(id: Long)
+PUT     /resource5/:id              controllers.Resource5.update(id: Long)
+DELETE  /resource5/:id              controllers.Resource5.delete(id: Long)
+
+GET     /resource6                  controllers.Resource6.index
+GET     /resource6/new              controllers.Resource6.create
+POST    /resource6                  controllers.Resource6.save
+GET     /resource6/:id              controllers.Resource6.get(id: Long)
+GET     /resource6/:id/edit         controllers.Resource6.edit(id: Long)
+PUT     /resource6/:id              controllers.Resource6.update(id: Long)
+DELETE  /resource6/:id              controllers.Resource6.delete(id: Long)
+

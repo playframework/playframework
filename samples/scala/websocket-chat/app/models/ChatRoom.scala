@@ -62,7 +62,7 @@ object ChatRoom {
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
           default ! Talk(username, (event \ "text").as[String])
-        }.mapDone { _ =>
+        }.map { _ =>
           default ! Quit(username)
         }
 

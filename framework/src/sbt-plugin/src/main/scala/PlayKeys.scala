@@ -1,22 +1,24 @@
 package sbt
 
 trait PlayKeys {
-  
-  val jdbc =  "play" %% "play-jdbc" % play.core.PlayVersion.current
-  
-  val anorm = "play" %% "anorm" % play.core.PlayVersion.current
-  
-  val javaCore = "play" %% "play-java" % play.core.PlayVersion.current
-  
-  val javaJdbc = "play" %% "play-java-jdbc" % play.core.PlayVersion.current
-  
-  val javaEbean = "play" %% "play-java-ebean" % play.core.PlayVersion.current
-  
-  val javaJpa = "play" %% "play-java-jpa" % play.core.PlayVersion.current
 
-  def component(id: String) = "play" %% id % play.core.PlayVersion.current
+  val jdbc = "com.typesafe.play" %% "play-jdbc" % play.core.PlayVersion.current
 
-  val filters = "play" %% "filters-helpers" % play.core.PlayVersion.current
+  val anorm = "com.typesafe.play" %% "anorm" % play.core.PlayVersion.current
+
+  val javaCore = "com.typesafe.play" %% "play-java" % play.core.PlayVersion.current
+
+  val javaJdbc = "com.typesafe.play" %% "play-java-jdbc" % play.core.PlayVersion.current
+
+  val javaEbean = "com.typesafe.play" %% "play-java-ebean" % play.core.PlayVersion.current
+
+  val javaJpa = "com.typesafe.play" %% "play-java-jpa" % play.core.PlayVersion.current
+
+  def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current
+
+  val filters = "com.typesafe.play" %% "filters-helpers" % play.core.PlayVersion.current
+
+  val cache = "com.typesafe.play" %% "play-cache" % play.core.PlayVersion.current
 
   val playVersion = SettingKey[String]("play-version")
 
@@ -48,9 +50,15 @@ trait PlayKeys {
 
   val routesImport = SettingKey[Seq[String]]("play-routes-imports")
 
+  val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router",
+    "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
+
+  val namespaceReverseRouter = SettingKey[Boolean]("play-namespace-reverse-router",
+    "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
+
   val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 
-  val templatesTypes = SettingKey[PartialFunction[String, (String, String)]]("play-templates-formats")
+  val templatesTypes = SettingKey[Map[String, String]]("play-templates-formats")
 
   val closureCompilerOptions = SettingKey[Seq[String]]("play-closure-compiler-options")
 
@@ -66,7 +74,52 @@ trait PlayKeys {
 
   val playPlugin = SettingKey[Boolean]("play-plugin")
 
-  val devSettings = SettingKey[Seq[(String,String)]]("play-dev-settings")
+  val devSettings = SettingKey[Seq[(String, String)]]("play-dev-settings")
+
+  val scalaIdePlay2Prefs = TaskKey[Unit]("scala-ide-play2-prefs")
+
+  // Constants that may be useful elsewhere
+  val defaultJavaTemplatesImport = Seq(
+    "models._",
+    "controllers._",
+
+    "java.lang._",
+    "java.util._",
+
+    "scala.collection.JavaConversions._",
+    "scala.collection.JavaConverters._",
+
+    "play.api.i18n._",
+    "play.core.j.PlayMagicForJava._",
+
+    "play.mvc._",
+    "play.data._",
+    "play.api.data.Field",
+
+    "play.mvc.Http.Context.Implicit._",
+
+    "views.%format%._")
+
+  val defaultScalaTemplatesImport = Seq(
+    "models._",
+    "controllers._",
+
+    "play.api.i18n._",
+
+    "play.api.mvc._",
+    "play.api.data._",
+
+    "views.%format%._")
+
+  val defaultTemplatesImport = Seq("play.api.templates._", "play.api.templates.PlayMagic._")
 
 }
 object PlayKeys extends PlayKeys
+
+trait PlayInternalKeys {
+  val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
+  val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
+  val buildRequire = TaskKey[Seq[(File, File)]]("play-build-require-assets")
+  val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
+  val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
+}

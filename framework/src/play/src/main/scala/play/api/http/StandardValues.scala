@@ -86,7 +86,7 @@ trait MimeTypes {
   /**
    * Content-Type of xml.
    */
-  val XML = "text/xml"
+  val XML = "application/xml"
 
   /**
    * Content-Type of css.
@@ -242,6 +242,7 @@ trait HeaderNames {
   val TE = "Te"
   val TRAILER = "Trailer"
   val TRANSFER_ENCODING = "Transfer-Encoding"
+  val CHUNKED = "chunked"
 
   val UPGRADE = "Upgrade"
   val USER_AGENT = "User-Agent"
@@ -256,7 +257,7 @@ trait HeaderNames {
   val X_FORWARDED_HOST = "X-Forwarded-Host"
   val X_FORWARDED_PORT = "X-Forwarded-Port"
   val X_FORWARDED_PROTO = "X-Forwarded-Proto"
-  
+
   val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
   val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
   val ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"

@@ -43,12 +43,13 @@ package play.api {
       javascriptRouter(name, ajaxMethod, request.host, routes: _*)
     }
 
+    // TODO: This JS needs to be re-written as it isn't easily maintained.
     def javascriptRouter(name: String, ajaxMethod: Option[String], host: String, routes: JavascriptReverseRoute*): String = {
       """|var %s = {}; (function(_root){
              |var _nS = function(c,f,b){var e=c.split(f||"."),g=b||_root,d,a;for(d=0,a=e.length;d<a;d++){g=g[e[d]]=g[e[d]]||{}}return g}
              |var _qS = function(items){var qs = ''; for(var i=0;i<items.length;i++) {if(items[i]) qs += (qs ? '&' : '') + items[i]}; return qs ? ('?' + qs) : ''}
              |var _s = function(p,s){return p+((s===true||(s&&s.secure))?'s':'')+'://'}
-             |var _wA = function(r){return {%s method:r.method,url:r.url,absoluteURL: function(s){return _s('http',s)+'%s'+r.url},webSocketURL: function(s){return _s('ws',s)+'%s'+r.url}}}
+             |var _wA = function(r){return {%s method:r.method,type:r.method,url:r.url,absoluteURL: function(s){return _s('http',s)+'%s'+r.url},webSocketURL: function(s){return _s('ws',s)+'%s'+r.url}}}
              |%s
              |})(%s)
           """.stripMargin.format(
@@ -60,8 +61,7 @@ package play.api {
           "_nS('%s'); _root.%s = %s".format(
             route.name.split('.').dropRight(1).mkString("."),
             route.name,
-            route.f,
-            route.name)
+            route.f)
         }.mkString("\n"),
         name)
     }

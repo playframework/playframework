@@ -4,6 +4,7 @@ import play.api._
 import play.core._
 import Keys._
 import PlayExceptions._
+import play.doc.{ PlayDoc, FilesystemRepository }
 
 trait PlayReloader {
   this: PlayCommands with PlayPositionMapper =>
@@ -27,7 +28,7 @@ trait PlayReloader {
       var reloadNextTime = false
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
-      
+
       // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
 
       lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
@@ -91,7 +92,7 @@ trait PlayReloader {
             def hasChanged = _changed
           }
 
-          ( /* Try it */ nativeWatcher.removeWatch(0) )
+          ( /* Try it */ nativeWatcher.removeWatch(0))
 
           nativeWatcher
 
@@ -116,22 +117,21 @@ trait PlayReloader {
           }
         }
 
-        
       }
 
       val (monitoredFiles, monitoredDirs) = {
-        val all = extracted.runTask(playMonitoredFiles, state)._2.map( f => new File(f) )
+        val all = extracted.runTask(playMonitoredFiles, state)._2.map(f => new File(f))
         (all.filter(!_.isDirectory), all.filter(_.isDirectory))
       }
 
-      def calculateTimestamps = monitoredFiles.map( f => f.getAbsolutePath -> f.lastModified ).toMap
+      def calculateTimestamps = monitoredFiles.map(f => f.getAbsolutePath -> f.lastModified).toMap
 
       var fileTimestamps = calculateTimestamps
 
-      def hasChangedFiles: Boolean = monitoredFiles.exists{ f =>
+      def hasChangedFiles: Boolean = monitoredFiles.exists { f =>
         val fileChanged = fileTimestamps.get(f.getAbsolutePath).map { timestamp =>
           f.lastModified != timestamp
-        }.getOrElse{
+        }.getOrElse {
           state.log.debug("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
           true
         }
@@ -141,46 +141,11 @@ trait PlayReloader {
         fileChanged
       }
 
-      val watchChanges: Seq[Int] = monitoredDirs.map( f => jnotify.addWatch(f.getAbsolutePath) )
+      val watchChanges: Seq[Int] = monitoredDirs.map(f => jnotify.addWatch(f.getAbsolutePath))
 
       lazy val settings = {
         import scala.collection.JavaConverters._
         extracted.get(PlayKeys.devSettings).toMap.asJava
-      }
-
-      // --- Utils
-
-      def markdownToHtml(markdown: String, pagePath: String) = {
-        import org.pegdown._
-        import org.pegdown.ast._
-
-        val link:(String => (String, String)) = _ match {
-          case link if link.contains("|") => {
-            val parts = link.split('|')
-            (parts.tail.head, parts.head)
-          }
-          case image if image.endsWith(".png") => {
-            val link = image match {
-              case full if full.startsWith("http://") => full
-              case absolute if absolute.startsWith("/") => "resources/manual" + absolute
-              case relative => "resources/" + pagePath + "/" + relative
-            }
-            (link, """<img src="""" + link + """"/>""")
-          }
-          case link => {
-            (link, link)
-          }
-        }
-
-        val processor = new PegDownProcessor(Extensions.ALL)
-        val links = new LinkRenderer {
-          override def render(node: WikiLinkNode) = {
-            val (href, text) = link(node.getText)
-            new LinkRenderer.Rendering(href, text)
-          }
-        }
-
-        processor.markdownToHtml(markdown, links)
       }
 
       // ---
@@ -224,13 +189,13 @@ trait PlayReloader {
                 sourceFile: java.io.File
               } -> line)
             }
-          }.headOption.map { 
+          }.headOption.map {
             case (source, maybeLine) => {
               play.templates.MaybeGeneratedSource.unapply(source).map { generatedSource =>
-                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l):java.lang.Integer).orNull
+                generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l): java.lang.Integer).orNull
               }.getOrElse(source -> maybeLine)
             }
-          }     
+          }
         }.map {
           case (file, line) => {
             Array[java.lang.Object](file, line)
@@ -240,7 +205,8 @@ trait PlayReloader {
 
       def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
         val mappedPosition = playPositionMapper(problem.position)
-        mappedPosition.map { pos => new xsbti.Problem {
+        mappedPosition.map { pos =>
+          new xsbti.Problem {
             def message = problem.message
             def category = ""
             def position = pos
@@ -252,11 +218,11 @@ trait PlayReloader {
       private def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
         allProblems(inc :: Nil)
       }
-        
+
       private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] = {
         problems(Incomplete.allExceptions(incs).toSeq)
       }
-        
+
       private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] = {
         es flatMap {
           case cf: xsbti.CompileFailed => cf.problems
@@ -336,7 +302,7 @@ trait PlayReloader {
 
       def reload: AnyRef = {
 
-        PlayProject.synchronized {
+        play.Project.synchronized {
 
           if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
@@ -346,13 +312,17 @@ trait PlayReloader {
                 Incomplete.allExceptions(incomplete).headOption.map {
                   case e: PlayException => e
                   case e: xsbti.CompileFailed => {
-                    getProblems(incomplete).headOption.map(CompilationException(_)).getOrElse {
-                      UnexpectedException(Some("Compilation failed without reporting any problem!?"), Some(e))
-                    }
+                    getProblems(incomplete)
+                      .filter(_.severity == xsbti.Severity.Error)
+                      .headOption
+                      .map(CompilationException(_))
+                      .getOrElse {
+                        UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e))
+                      }
                   }
                   case e: Exception => UnexpectedException(unexpected = Some(e))
                 }.getOrElse {
-                  UnexpectedException(Some("Compilation task failed without any exception!?"))
+                  UnexpectedException(Some("The compilation task failed without any exception!"))
                 }
               }
               .right.map { compilationResult =>
@@ -373,12 +343,24 @@ trait PlayReloader {
 
       def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
-        val Right(sk: ScopedKey[Task[_]]) = complete.DefaultParsers.result(parser, task)
-        val result = Project.runTask(sk, state).map(_._2)
+        val Right(sk) = complete.DefaultParsers.result(parser, task)
+        val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
 
-        result.flatMap(_.toEither.right.toOption).getOrElse(null).asInstanceOf[AnyRef]
+        result.flatMap(_.toEither.right.toOption).getOrElse(null)
       }
 
+      private val markdownRenderer = Option(System.getProperty("play.home")).map { playHome =>
+        val repo = new FilesystemRepository(new java.io.File(playHome, "../documentation/manual"))
+        new PlayDoc(repo, repo, "resources/manual")
+      }
+
+      def markdownToHtml(page: String) = {
+        markdownRenderer.map(_.renderPage(page) match {
+          case Some((page, Some(sidebar))) => Array(page, sidebar)
+          case Some((page, None)) => Array(page)
+          case None => Array[String]()
+        }).getOrElse(Array[String]())
+      }
     }
 
   }

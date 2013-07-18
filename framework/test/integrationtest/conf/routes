@@ -13,6 +13,8 @@ GET     /cookie                 controllers.JavaApi.setCookie()
 GET     /read/:name             controllers.JavaApi.readCookie(name)
 GET     /clear/:name            controllers.JavaApi.clearCookie(name)
 
+GET     /helloWorld 			controllers.Application.plainHelloWorld()
+
 GET     /json_java_instance     @controllers.JavaControllerInstance.index()
 GET     /json_scala_instance    @controllers.ScalaControllerInstance.index()
 
@@ -59,6 +61,9 @@ GET     /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
 GET     /hello                  controllers.Application.hello()
 GET     /setLang                controllers.Application.setLang(lang)
 GET     /clientCert             controllers.Application.clientCert()
+
+POST    /any-xml                controllers.Application.anyXml
+POST    /xml                    controllers.Application.xml
 
 ->      /module                 module.Routes
 

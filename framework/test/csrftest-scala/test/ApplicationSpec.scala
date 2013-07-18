@@ -26,6 +26,8 @@ class CSRFSpec extends Specification {
       result must beSome.which { r =>
         status(r) must equalTo(OK)
         session(r).get(TOKEN_NAME) must beSome
+        session(r).get("user") must beSome
+        session(r).get("user").get must beEqualTo("jto")
       }
     }
 

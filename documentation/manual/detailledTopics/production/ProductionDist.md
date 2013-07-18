@@ -43,8 +43,8 @@ You can also publish your application to a Maven repository. This publishes both
 You have to configure the repository you want to publish to, in the `project/Build.scala` file:
 
 ```scala
-val main = PlayProject(appName, appVersion, appDependencies).settings(
-  
+val main = play.Project(appName, appVersion, appDependencies).settings(
+
   publishTo := Some(
     "My resolver" at "http://mycompany.com/repo"
   ),
@@ -62,4 +62,4 @@ Then in the Play console, use the `publish` task:
 [My first application] $ publish
 ```
 
-> Check the sbt documentation to get more information about the resolvers and credentials definition.
+> Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.

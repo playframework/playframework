@@ -8,6 +8,8 @@ import models._
 import play.api.mvc.AnyContentAsEmpty
 import module.Routes
 
+import scala.concurrent.Future
+
 class ApplicationSpec extends Specification {
 
   "an Application" should {
@@ -54,7 +56,7 @@ class ApplicationSpec extends Specification {
       contentAsString(result) must contain("{\"id\":1,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
     }
 
-    def javaResult(result: play.api.mvc.Result) =
+    def javaResult(result: Future[play.api.mvc.SimpleResult]) =
       new play.mvc.Result {
         def getWrappedResult = result
       }
@@ -215,6 +217,7 @@ class ApplicationSpec extends Specification {
 
         val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html"))
         contentType(result) must equalTo (Some("text/html"))
+        header(VARY, result) must equalTo (Some(ACCEPT))
 
         val Some(result2) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html;q=0.5,application/*"))
         contentType(result2) must equalTo (Some("application/json"))
@@ -271,6 +274,31 @@ class ApplicationSpec extends Specification {
       route._2 must_== "/read/$name<[^/]+>"
       route._3 must startWith("controllers.JavaApi.readCookie")
     }
+
+    "support xml" in {
+      "detect xml when content type is application/xml" in new WithServer() {
+        await(wsUrl("/any-xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "detect xml when content type is text/xml" in new WithServer() {
+        await(wsUrl("/any-xml").withHeaders("Content-Type" -> "text/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "detect xml when content type is application/atom+xml" in new WithServer() {
+        await(wsUrl("/any-xml").withHeaders("Content-Type" -> "application/atom+xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "accept xml when content type is application/xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "accept xml when content type is text/xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "text/xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "accept xml when content type is application/atom+xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "application/atom+xml").post(<foo>bar</foo>)).status must_== 200
+      }
+      "send xml responses as application/xml" in new WithServer() {
+        await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).header("Content-Type").get must startWith("application/xml")
+      }
+    }
+    
   }
 
 }

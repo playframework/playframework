@@ -5,7 +5,7 @@ import play.api.http.{ContentTypeOf, Writeable, HeaderNames}
 import play.api.libs.ws.WS.WSRequestHolder
 import play.api.libs.ws.Response
 import play.api.http.Status._
-import play.api.libs.concurrent.Promise
+import scala.concurrent.Future
 
 
 class WSMock extends Mockito {
@@ -18,8 +18,8 @@ class WSMock extends Mockito {
     response.header(HeaderNames.CONTENT_TYPE) returns Some("text/html;charset=UTF-8")
     response.body returns ""
 
-    request.get() returns Promise.pure(response)
-    request.post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]]) returns Promise.pure(response)
+    request.get() returns Future.successful(response)
+    request.post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]]) returns Future.successful(response)
 
     def url(url: String): WSRequestHolder = {
       urls += url

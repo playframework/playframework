@@ -1,0 +1,11 @@
+@(id: Long, data: (String, String))
+
+<dl>
+    <dt>Foo</dt>
+    <dd>$data._1</dd>
+    <dt>Bar</dt>
+    <dd>$data._2</dd>
+</dl>
+
+<a href="@routes.Resource5.edit(id)">Edit</a>
+<a href="@routes.Resource5.delete(id)">Delete</a>

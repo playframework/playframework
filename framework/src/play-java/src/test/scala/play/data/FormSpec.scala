@@ -1,6 +1,7 @@
 package play.data
 
 import org.specs2.mutable.Specification
+import play.api.test.WithApplication
 import play.mvc._
 import play.mvc.Http.Context
 import scala.collection.JavaConverters._
@@ -16,7 +17,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def host() = "localhost"
   def acceptLanguages = new java.util.ArrayList[play.i18n.Lang]
   def accept = List("text/html").asJava
-  def acceptedTypes = List(play.api.http.MediaRange("text/html")).asJava
+  def acceptedTypes = List(play.api.http.MediaRange("text", "html", None)).asJava
   def accepts(mediaType: String) = false
   def headers() = new java.util.HashMap[String, Array[String]]()
   def certs(required: Boolean) = play.libs.F.Promise.pure(java.util.Collections.emptyList())
@@ -111,36 +112,38 @@ object ScalaForms {
 
 object FormSpec extends Specification {
 
+  sequential
+
   "A form" should {
-    "be valid" in {
+    "be valid" in new WithApplication{
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "done" -> Array("true"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = JForm.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
-    "be valid with mandatory params passed" in {
+    "be valid with mandatory params passed" in new WithApplication{
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = JForm.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
-    "have an error due to baldy formatted date" in {
+    "have an error due to baldy formatted date" in new WithApplication{
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = JForm.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-
+      myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
     }
-    "have an error due to bad value in Id field" in {
+    "have an error due to bad value in Id field" in new WithApplication{
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = JForm.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-
+      myForm.errors.get("id").get(0).message() must beEqualTo("error.invalid")
     }
     "have an error due to a malformed email" in {
       val f5 = ScalaForms.emailForm.fillAndValidate("john@", "John")
@@ -247,7 +250,7 @@ object FormSpec extends Specification {
     user1.getName must beEqualTo("Kiki")
     user1.getEmails.size must beEqualTo(0)
 
-    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")) )).get
+    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com")))).get
     user2.getName must beEqualTo("Kiki")
     user2.getEmails.size must beEqualTo(1)
 
@@ -263,6 +266,14 @@ object FormSpec extends Specification {
     user5.getName must beEqualTo("Kiki")
     user5.getEmails.size must beEqualTo(2)
 
+  }
+
+  "support option deserialization" in {
+    val user1 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki")))).get
+    user1.getCompany.isDefined must beEqualTo(false)
+
+    val user2 = JForm.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "company" -> Array("Acme")))).get
+    user2.getCompany.get must beEqualTo("Acme")
   }
 
   "render a form with max 18 fields" in {
@@ -298,7 +309,7 @@ object FormSpec extends Specification {
     val data = Map("date" -> "30/1/2012")
     dateForm.bind(data).get mustEqual(new DateTime(2012,1,30,0,0))
   }
-  
+
   "render form using jodaLocalDate with format(30/1/2012)" in {
     import play.api.data._
     import play.api.data.Forms._

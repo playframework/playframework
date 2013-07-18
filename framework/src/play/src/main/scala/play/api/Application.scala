@@ -15,14 +15,13 @@ import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 import scala.util.control.NonFatal
 
-
 trait WithDefaultGlobal {
   self: Application with WithDefaultConfiguration =>
 
   // -- Global stuff
 
   private lazy val globalClass = initialConfiguration.getString("application.global").getOrElse(initialConfiguration.getString("global").map { g =>
-    Logger("play").warn("`global` key is deprecated, please change `global` key to `application.global`")
+    Play.logger.warn("`global` key is deprecated, please change `global` key to `application.global`")
     g
   }.getOrElse("Global"))
 
@@ -97,7 +96,7 @@ trait WithDefaultPlugins {
     val pluginFiles = self.classloader.getResources("play.plugins").asScala.toList ++ self.classloader.getResources("conf/play.plugins").asScala.toList
 
     pluginFiles.distinct.map { plugins =>
-      (plugins.asInput.string.split("\n").map(_.trim)).filterNot(_.isEmpty).map {
+      (plugins.asInput.string.split("\n").map(_.replaceAll("#.*$", "").trim)).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => (priority.toInt, className)
       }
     }.flatten.sortBy(_._1).map(_._2)
@@ -130,12 +129,12 @@ trait WithDefaultPlugins {
     pluginClasses.map { className =>
       try {
         val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
-        if (plugin.enabled) Some(plugin) else { Logger("play").debug("Plugin [" + className + "] is disabled"); None }
+        if (plugin.enabled) Some(plugin) else { Play.logger.debug("Plugin [" + className + "] is disabled"); None }
       } catch {
         case e: java.lang.NoSuchMethodException => {
           try {
             val plugin = classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
-            if (plugin.enabled) Some(plugin) else { Logger("play").warn("Plugin [" + className + "] is disabled"); None }
+            if (plugin.enabled) Some(plugin) else { Play.logger.warn("Plugin [" + className + "] is disabled"); None }
           } catch {
             case e: PlayException => throw e
             case e: VirtualMachineError => throw e
@@ -171,7 +170,7 @@ trait WithDefaultPlugins {
  * If you need to create an ad-hoc application,
  * for example in case of unit testing, you can easily achieve this using:
  * {{{
- * val application = Application(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
+ * val application = new DefaultApplication(new File("."), this.getClass.getClassloader, None, Play.Mode.Dev)
  * }}}
  *
  * This will create an application using the current classloader.
@@ -234,11 +233,12 @@ trait Application {
    */
   def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
-
   /**
    * The router used by this application (if defined).
    */
-  lazy val routes: Option[Router.Routes] = try {
+  lazy val routes: Option[Router.Routes] = loadRoutes
+
+  protected def loadRoutes: Option[Router.Routes] = try {
     Some(classloader.loadClass(configuration.getString("application.router").map(_ + "$").getOrElse("Routes$")).getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
       router.setPrefix(configuration.getString("application.context").map { prefix =>
         if (!prefix.startsWith("/")) {
@@ -279,7 +279,7 @@ trait Application {
   /**
    * Handle a runtime error during the execution of an action
    */
-  private[play] def handleError(request: RequestHeader, e: Throwable): Result = try {
+  private[play] def handleError(request: RequestHeader, e: Throwable): SimpleResult = try {
     e match {
       case e: UsefulException => throw e
       case e: Throwable => {
@@ -318,9 +318,12 @@ trait Application {
   /**
    * Retrieves a file relative to the application root path.
    *
-   * For example, to retrieve a configuration file:
+   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
+   * be nothing available in the application root path.
+   *
+   * For example, to retrieve some deployment specific data file:
    * {{{
-   * val myConf = application.getFile("conf/myConf.yml")
+   * val myDataFile = application.getFile("data/data.xml")
    * }}}
    *
    * @param relativePath relative path of the file to fetch
@@ -332,9 +335,12 @@ trait Application {
    * Retrieves a file relative to the application root path.
    * This method returns an Option[File], using None if the file was not found.
    *
-   * For example, to retrieve a configuration file:
+   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
+   * be nothing available in the application root path.
+   *
+   * For example, to retrieve some deployment specific data file:
    * {{{
-   * val myConf = application.getExistingFile("conf/myConf.yml")
+   * val myDataFile = application.getExistingFile("data/data.xml")
    * }}}
    *
    * @param relativePath the relative path of the file to fetch
@@ -345,9 +351,12 @@ trait Application {
   /**
    * Scans the application classloader to retrieve a resource.
    *
-   * For example, to retrieve a configuration file:
+   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
+   * directory.
+   *
+   * For example, to retrieve the conf/logger.xml configuration file:
    * {{{
-   * val maybeConf = application.resource("conf/logger.xml")
+   * val maybeConf = application.resource("logger.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
@@ -363,9 +372,12 @@ trait Application {
   /**
    * Scans the application classloader to retrieve a resource’s contents as a stream.
    *
-   * For example, to retrieve a configuration file:
+   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
+   * directory.
+   *
+   * For example, to retrieve the conf/logger.xml configuration file:
    * {{{
-   * val maybeConf = application.resourceAsStream("conf/logger.xml")
+   * val maybeConf = application.resourceAsStream("logger.xml")
    * }}}
    *
    * @param name the absolute name of the resource (from the classpath root)
@@ -384,5 +396,4 @@ class DefaultApplication(
   override val path: File,
   override val classloader: ClassLoader,
   override val sources: Option[SourceMapper],
-  override val mode: Mode.Mode
-) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins
+  override val mode: Mode.Mode) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins

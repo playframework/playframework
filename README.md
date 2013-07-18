@@ -1,10 +1,10 @@
-# Play 2.1 
+# Play 2.2 
 
-Play 2.1 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. 
+Play 2.2 is a high productivity Java and Scala Web application framework, integrating all components and API needed for modern Web application development. 
 
 It is based on a lightweight stateless Web friendly architecture and features predictable and minimal resources consumption (CPU, Memory, Threads) for highly scalable applications thanks to its reactive model based on Iteratee IO.
 
-http://www.playframework.org
+http://www.playframework.com
 
 We use [Travis CI](http://travis-ci.org/) to test and verify the build: [![Build Status](https://travis-ci.org/bblfish/Play20.png)](http://travis-ci.org/bblfish/Play20)
 
@@ -47,7 +47,7 @@ Then, for convenience, add the framework installation directory to your system P
 On UNIX systems, it would be something like:
 
 ```bash
-export PATH=$PATH:/path/to/play2.1
+export PATH=$PATH:/path/to/play2.2
 ```
 
 On windows systems you'll need to set it in the global environment variables.
@@ -56,7 +56,7 @@ On windows systems you'll need to set it in the global environment variables.
 
 ## Getting started
 
-Enter any existing Play 2.1 application directory and use the `play` command to launch the development console:
+Enter any existing Play 2.2 application directory and use the `play` command to launch the development console:
 
 ```bash
 $ cd ~/workspace/myApplication
@@ -96,7 +96,7 @@ $ play run
 
 ## Issues tracker
 
-Report issues at https://play.lighthouseapp.com/projects/82401-play-20/overview.
+Report issues at https://github.com/playframework/Play20/issues.
 
 ## Contributors
 
@@ -106,7 +106,7 @@ Check for all contributors at https://github.com/playframework/Play20/contributo
 
 This software is licensed under the Apache 2 license, quoted below.
 
-Copyright 2012 Typesafe (http://www.typesafe.com).
+Copyright 2013 Typesafe (http://www.typesafe.com).
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 

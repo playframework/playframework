@@ -2,7 +2,7 @@
 
 ## A type safe template engine based on Scala
 
-Play 2.0 comes with a new and really powerful Scala-based template engine, whose design was inspired by ASP.NET Razor. Specifically it is:
+Play 2.x comes with a new and really powerful Scala-based template engine, whose design was inspired by ASP.NET Razor. Specifically it is:
 
 - **compact, expressive, and fluid**: it minimizes the number of characters and keystrokes required in a file, and enables a fast, fluid coding workflow. Unlike most template syntaxes, you do not need to interrupt your coding to explicitly denote server blocks within your HTML. The parser is smart enough to infer this from your code. This enables a really compact and expressive syntax which is clean, fast and fun to type.
 - **easy to learn**: it allows you to quickly become productive, with a minimum of concepts. You use simple Scala constructs and all your existing HTML skills.
@@ -193,7 +193,7 @@ To make an absolute resolution, use **_root_** prefix in the import statement.
 If you have common imports, which you need in all templates, you can declare in `project/Build.scala`
 
 ```
-val main = PlayProject(…).settings(
+val main = play.Project(…).settings(
   templatesImport += "com.abc.backend._"
 )
 ```
