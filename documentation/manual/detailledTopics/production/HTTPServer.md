@@ -3,7 +3,7 @@
 You can easily deploy your application as a stand-alone server by setting the application HTTP port to 80:
 
 ```
-$ /path/to/bin/start -Dhttp.port=80
+$ /path/to/bin/<project-name> -Dhttp.port=80
 ```
 
 > Note that you probably need root permissions to bind a process on this port.

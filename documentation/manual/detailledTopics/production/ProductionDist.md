@@ -25,7 +25,7 @@ $ play dist
 > For Unix users, zip files do not retain Unix file permissions so when the file is expanded the start script will be required to be set as an executable:
 >
 > ```bash
-> $ chmod +x /path/to/bin/start
+> $ chmod +x /path/to/bin/<project-name>
 > ```
 >
 > Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:package-zip-tarball` task instead of the `dist` task:

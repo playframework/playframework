@@ -9,23 +9,23 @@ All these additional configurations are specified using Java System properties a
 You can provide both HTTP port and address. The default is to listen on port `9000` at the `0.0.0.0` address (all addresses).
 
 ```
-$ /path/to/bin/start -Dhttp.port=1234 -Dhttp.address=127.0.0.1
+$ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=127.0.0.1
 ```
 
-> Note that these configuration are only provided for the default embeded Netty server.
+> Note that these configuration are only provided for the default embedded Netty server.
 
 ## Specifying additional JVM arguments
 
 You can specify any JVM arguments to the `start` script. Otherwise the default JVM settings will be used:
 
 ```
-$ /path/to/bin/start -J-Xms128M -J-Xmx512m -J-server
+$ /path/to/bin/<project-name> -J-Xms128M -J-Xmx512m -J-server
 ```
 
 As a convenience you can also set memory min, max, permgen and the reserved code cache size in one go:
 
 ```
-$ /path/to/bin/start -mem 512 -J-server
+$ /path/to/bin/<project-name> -mem 512 -J-server
 ```
 
 ## Specifying alternative configuration file
@@ -37,7 +37,7 @@ The default is to load the `application.conf` file from the classpath. You can s
 It will search for an alternative configuration file in the application classpath (you usually provide these alternative configuration files into your application `conf/` directory before packaging). Play will look into `conf/` so you don't have to add `conf/`.
 
 ```
-$ /path/to/bin/start -Dconfig.resource=prod.conf
+$ /path/to/bin/<project-name> -Dconfig.resource=prod.conf
 ```
 
 ### Using `-Dconfig.file`
@@ -45,7 +45,7 @@ $ /path/to/bin/start -Dconfig.resource=prod.conf
 You can also specify another local configuration file not packaged into the application artifacts:
 
 ```
-$ /path/to/bin/start -Dconfig.file=/opt/conf/prod.conf
+$ /path/to/bin/<project-name> -Dconfig.file=/opt/conf/prod.conf
 ```
 
 ### Using `-Dconfig.url`
@@ -53,7 +53,7 @@ $ /path/to/bin/start -Dconfig.file=/opt/conf/prod.conf
 You can also specify a configuration file to be loaded from any URL:
 
 ```
-$ /path/to/bin/start -Dconfig.url=http://conf.mycompany.com/conf/prod.conf
+$ /path/to/bin/<project-name> -Dconfig.url=http://conf.mycompany.com/conf/prod.conf
 ```
 
 > Note that you can always reference the original configuration file in a new `prod.conf` file using the `include` directive, such as:
@@ -69,7 +69,7 @@ $ /path/to/bin/start -Dconfig.url=http://conf.mycompany.com/conf/prod.conf
 Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying then as Java System properties:
 
 ```
-$ /path/to/bin/start -Dapplication.secret=verysecretkey -Ddb.default.password=toto
+$ /path/to/bin/<project-name> -Dapplication.secret=verysecretkey -Ddb.default.password=toto
 ```
 
 ## Using environment variables
@@ -96,7 +96,7 @@ You can also specify another logback configuration file via a System property. P
 Specify another loback configuration file to be loaded from the classpath:
 
 ```
-$ /path/to/bin/start -Dlogger.resource=conf/prod-logger.xml
+$ /path/to/bin/<project-name> -Dlogger.resource=conf/prod-logger.xml
 ```
 
 ### Using `-Dlogger.file`
@@ -104,7 +104,7 @@ $ /path/to/bin/start -Dlogger.resource=conf/prod-logger.xml
 Specify another logback configuration file to be loaded from the file system:
 
 ```
-$ /path/to/bin/start -Dlogger.file=/opt/prod/prod-logger.xml
+$ /path/to/bin/<project-name> -Dlogger.file=/opt/prod/prod-logger.xml
 ```
 
 ### Using `-Dlogger.url`
@@ -112,7 +112,7 @@ $ /path/to/bin/start -Dlogger.file=/opt/prod/prod-logger.xml
 Specify another logback configuration file to be loaded from an URL:
 
 ```
-$ /path/to/bin/start -Dlogger.url=http://conf.mycompany.com/logger.xml
+$ /path/to/bin/<project-name> -Dlogger.url=http://conf.mycompany.com/logger.xml
 ```
 
 ## Changing the path of RUNNING_PID
@@ -120,6 +120,6 @@ $ /path/to/bin/start -Dlogger.url=http://conf.mycompany.com/logger.xml
 It is possible to change the file path to the created RUNNING_PID file which contains the process id of the started application. Normally this file is placed in the root directory of your play project.
 
 ```
-$ /path/to/bin/start -Dpidfile.path=instance1
+$ /path/to/bin/<project-name> -Dpidfile.path=instance1
 ```
 This changes the directory relative to the root folder. You could also use absolute paths. With this option it is possible to start multiple play instances without colliding RUNNING_PID files (actually play won't start another instance). Don't forget to create the directory.
