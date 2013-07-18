@@ -34,7 +34,7 @@ object Project extends Plugin with PlayExceptions with PlayKeys with PlayReloade
   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), settings: => Seq[Setting[_]] = Seq()): sbt.Project = {
     val mainLang = if (dependencies.contains(javaCore)) JAVA else SCALA
 
-    lazy val playSettings =
+    lazy val playSettings: Seq[Setting[_]] =
       packageArchetype.java_application ++
         Project.defaultSettings ++
         eclipseCommandSettings(mainLang) ++
