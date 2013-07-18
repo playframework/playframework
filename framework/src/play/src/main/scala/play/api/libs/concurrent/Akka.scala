@@ -45,7 +45,7 @@ object Akka {
    * }}}
    */
   def future[T](body: => T)(implicit app: Application): Future[T] = {
-    Future(body)(system.dispatcher)
+    Future(body)(system.dispatchers.defaultGlobalDispatcher)
   }
 
 }

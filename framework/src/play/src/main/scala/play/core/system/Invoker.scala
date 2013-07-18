@@ -20,6 +20,6 @@ private[play] object Invoker {
 
   val system: ActorSystem = ActorSystem("play", loadActorConfig)
 
-  val executionContext: scala.concurrent.ExecutionContext = system.dispatcher
+  val executionContext: scala.concurrent.ExecutionContext = system.dispatchers.defaultGlobalDispatcher
 
 }

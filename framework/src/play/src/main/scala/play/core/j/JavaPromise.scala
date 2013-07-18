@@ -17,7 +17,7 @@ object JavaPromise {
   def akkaAsk (actor: akka.actor.ActorRef, message: Any, timeout: akka.util.Timeout): scala.concurrent.Future[AnyRef] =
     akka.pattern.Patterns.ask(actor,message,timeout)
 
-  def akkaFuture[T](callable: java.util.concurrent.Callable[T]) = play.libs.Akka.asPromise(akka.dispatch.Futures.future(callable, play.libs.Akka.system.dispatcher))
+  def akkaFuture[T](callable: java.util.concurrent.Callable[T]) = play.libs.Akka.asPromise(akka.dispatch.Futures.future(callable, play.libs.Akka.system.dispatchers.defaultGlobalDispatcher))
 
   def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS, ec: ExecutionContext): scala.concurrent.Future[A] =
     play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)(ec)
