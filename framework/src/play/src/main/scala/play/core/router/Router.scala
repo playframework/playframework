@@ -11,6 +11,7 @@ import java.net.URI
 import scala.util.control.Exception
 import scala.collection.concurrent.TrieMap
 import play.core.j.JavaActionAnnotations
+import play.utils.UriEncoding
 
 trait PathPart
 
@@ -144,6 +145,10 @@ object Router {
   }
 
   case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
+
+  def dynamicString(dynamic: String): String = {
+    UriEncoding.encodePathSegment(dynamic, "utf-8")
+  }
 
   def queryString(items: List[Option[String]]) = {
     Option(items.filter(_.isDefined).map(_.get).filterNot(_.isEmpty)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")
