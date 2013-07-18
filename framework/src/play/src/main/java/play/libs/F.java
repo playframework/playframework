@@ -422,9 +422,9 @@ public class F {
                     try {
                         Thread.currentThread().setContextClassLoader(classLoader);
                         play.mvc.Http.Context.current.set(context);
-                        getSender().tell(Either.Right(f.apply(a)));
+                        getSender().tell(Either.Right(f.apply(a)), null);
                     } catch(Throwable t) {
-                        getSender().tell(Either.Left(t));
+                        getSender().tell(Either.Left(t), null);
                     } finally {
                         play.mvc.Http.Context.current.remove();
                         Thread.currentThread().setContextClassLoader(oldClassLoader);
