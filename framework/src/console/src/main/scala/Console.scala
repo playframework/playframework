@@ -57,6 +57,8 @@ object Console {
       "APPLICATION_NAME" -> name)
     replace(new File(path, "project/plugins.sbt"),
       "PLAY_VERSION" -> play.core.PlayVersion.current)
+    replace(new File(path, "project/build.properties"),
+      "SBT_VERSION" -> play.core.PlayVersion.sbtVersion)
     replace(new File(path, "conf/application.conf"),
       "APPLICATION_SECRET" -> newSecret)
   }
