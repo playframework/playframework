@@ -16,11 +16,11 @@ sealed trait PathNode {
 case class RecursiveSearch(key: String) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => (json \\ key).toList.filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case arr: JsArray => (json \\ key).toList.filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case _ => List()
@@ -63,7 +63,7 @@ case class KeyPathNode(key: String) extends PathNode {
 
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => List(json \ key).filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case _ => List()

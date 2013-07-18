@@ -1,15 +1,13 @@
 package play.api.libs.json
 
 import com.fasterxml.jackson.core.{ JsonGenerator, JsonToken, JsonParser }
-import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind._
-import com.fasterxml.jackson.databind.`type`.{ TypeFactory, ArrayType }
+import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.ser.Serializers
 
 import scala.collection._
 
-import scala.collection.immutable.Stack
 import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
 import java.io.ByteArrayInputStream
@@ -20,7 +18,6 @@ case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extend
  * Generic json value
  */
 sealed trait JsValue {
-  import scala.util.control.Exception._
 
   /**
    * Return the property corresponding to the fieldName, supposing we have a JsObject.
@@ -34,7 +31,7 @@ sealed trait JsValue {
    * Return the element at a given index, supposing we have a JsArray.
    *
    * @param idx the index to lookup
-   * @param the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
+   * @return the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
    */
   def apply(idx: Int): JsValue = JsUndefined(this.toString + " is not an array")
 
@@ -55,7 +52,7 @@ sealed trait JsValue {
     invalid = _ => None,
     valid = v => Some(v)
   ).filter {
-      case JsUndefined(_) => false
+      case JsUndefined() => false
       case _ => true
     }
 
@@ -95,7 +92,15 @@ case object JsNull extends JsValue
 /**
  * Represent a missing Json value.
  */
-case class JsUndefined(error: String) extends JsValue
+class JsUndefined(err: => String) extends JsValue {
+  def error = err
+  override def toString = "JsUndefined(" + err + ")"
+}
+
+object JsUndefined {
+  def apply(err: => String) = new JsUndefined(err)
+  def unapply(o: Object): Boolean = o.isInstanceOf[JsUndefined]
+}
 
 /**
  * Represent a Json boolean value.
@@ -315,7 +320,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeEndObject()
       }
       case JsNull => json.writeNull()
-      case JsUndefined(error) => {
+      case JsUndefined() => {
         json.writeNull()
       }
     }
