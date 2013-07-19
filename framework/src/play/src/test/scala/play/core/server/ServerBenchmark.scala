@@ -12,7 +12,7 @@ import scala.concurrent.{Promise, Future, Await}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import play.core.server.netty.PlayDefaultUpstreamHandler
-import com.typesafe.netty.http.pipelining.OrderedUpstreamMessageEvent
+import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import org.jboss.netty.channel._
 import play.core._
 import play.api.{Play, DefaultApplication, Application, Mode}
@@ -152,7 +152,9 @@ class ServerBenchmark {
     def sendUpstream(e: ChannelEvent) {}
 
     def sendDownstream(e: ChannelEvent) = {
-      val me = e.asInstanceOf[MessageEvent]
+      val ode = e.asInstanceOf[OrderedDownstreamChannelEvent]
+      val ce = ode.getChannelEvent
+      val me = ce.asInstanceOf[MessageEvent]
       rp.success(me.getMessage.asInstanceOf[HttpResponse])
     }
 
