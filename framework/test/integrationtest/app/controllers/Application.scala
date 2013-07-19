@@ -129,8 +129,8 @@ object Application extends Controller {
     Ok(Jsonp(callback, json))
   }
 
-  def urldecode(fromPath: String, fromQueryString: String) = Action {
-    Ok("fromPath=%s fromQueryString=%s".format(fromPath, fromQueryString))
+  def urlcoding(dynamic: String, static: String, query: String) = Action {
+    Ok(s"dynamic=$dynamic static=$static query=$query")
   }
 
   def accept = Action { request =>

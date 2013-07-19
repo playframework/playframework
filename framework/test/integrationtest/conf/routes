@@ -41,7 +41,7 @@ GET     /take-list-java         controllers.JavaApi.takeList(x: java.util.List[j
 GET     /jsonp                  controllers.Application.jsonp(callback)
 GET     /jsonp-java             controllers.JavaApi.jsonpJava(callback)
 
-GET     /urldecode/:p           controllers.Application.urldecode(p, q)
+GET     /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
 
 GET     /javascript-routes      controllers.Application.javascriptRoutes()
 GET     /javascript-test        controllers.Application.javascriptTest(name)

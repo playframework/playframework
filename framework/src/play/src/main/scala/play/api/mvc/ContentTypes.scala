@@ -1,21 +1,18 @@
 package play.api.mvc
 
 import scala.language.reflectiveCalls
-
 import java.io._
-
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.xml._
-
 import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.iteratee.Parsing._
 import play.api.libs.Files.{ TemporaryFile }
-
 import Results._
 import MultipartFormData._
+import scala.collection.mutable.ListBuffer
 
 import play.core.Execution.Implicits.internalContext
 
@@ -649,6 +646,44 @@ trait BodyParsers {
 
       object FileInfoMatcher {
 
+        private def split(str: String) = {
+          var buffer = new StringBuffer
+          var escape: Boolean = false
+          var quote: Boolean = false
+          val result = new ListBuffer[String]
+
+          def addPart() = {
+            result += buffer.toString().trim
+            buffer = new StringBuffer
+          }
+
+          str foreach { c =>
+            c match {
+              case '\\' =>
+                buffer.append(c)
+                escape = true
+              case '"' =>
+                buffer.append(c)
+                if (!escape)
+                  quote = !quote
+                escape = false
+              case ';' =>
+                if (!quote) {
+                  addPart
+                } else {
+                  buffer.append(c)
+                }
+                escape = false
+              case _ =>
+                buffer.append(c)
+                escape = false
+            }
+          }
+
+          addPart
+          result.toList
+        }
+
         def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
 
           val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
@@ -656,8 +691,9 @@ trait BodyParsers {
           for {
             value <- headers.get("content-disposition")
 
-            values = value.split(";").map(_.trim).map {
-              case keyValue(key, value) => (key.trim, value.trim)
+            values = split(value).map(_.trim).map {
+              // unescape escaped quotes 
+              case keyValue(key, value) => (key.trim, value.trim.replaceAll("""\\"""", "\""))
               case key => (key.trim, "")
             }.toMap
 
