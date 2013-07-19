@@ -22,7 +22,8 @@ You can specify any JVM arguments to the `start` script. Otherwise the default J
 $ /path/to/bin/<project-name> -J-Xms128M -J-Xmx512m -J-server
 ```
 
-As a convenience you can also set memory min, max, permgen and the reserved code cache size in one go:
+As a convenience you can also set memory min, max, permgen and the reserved code cache size in one go; a formula is used to
+determine these values given the supplied parameter (which represents maximum memory):
 
 ```
 $ /path/to/bin/<project-name> -mem 512 -J-server
@@ -93,7 +94,7 @@ You can also specify another logback configuration file via a System property. P
 
 ### Using `-Dlogger.resource`
 
-Specify another loback configuration file to be loaded from the classpath:
+Specify another logback configuration file to be loaded from the classpath:
 
 ```
 $ /path/to/bin/<project-name> -Dlogger.resource=conf/prod-logger.xml

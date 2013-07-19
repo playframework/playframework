@@ -36,7 +36,7 @@ $ play dist
 
 ## The Native Packager
 
-Play leverages the functionality offered by the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager declares the `dist` task to create a zip file. Invoking the dist task is directly equivalent to invoking the following:
+Play uses the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
 $ play universal:package-bin

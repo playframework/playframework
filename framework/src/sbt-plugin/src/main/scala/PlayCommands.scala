@@ -8,9 +8,6 @@ import PlayKeys._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 import sbt.complete.Parsers._
 
-import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.SbtNativePackager._
-
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
 
