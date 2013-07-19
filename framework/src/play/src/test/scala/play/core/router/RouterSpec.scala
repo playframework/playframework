@@ -4,6 +4,28 @@ import org.specs2.mutable.Specification
 import play.core.{Router, PathPattern, DynamicPart, StaticPart}
 
 object RouterSpec extends Specification {
+
+  "Router dynamic string builder" should {
+    "handle empty parts" in {
+      Router.dynamicString("") must_== ""
+    }
+    "handle simple parts" in {
+      Router.dynamicString("xyz") must_== "xyz"
+    }
+    "handle parts containing backslashes" in {
+      Router.dynamicString("x/y") must_== "x%2Fy"
+    }
+    "handle parts containing spaces" in {
+      Router.dynamicString("x y") must_== "x%20y"
+    }
+    "handle parts containing pluses" in {
+      Router.dynamicString("x+y") must_== "x+y"
+    }
+    "handle parts with unicode characters" in {
+      Router.dynamicString("ℛat") must_== "%E2%84%9Bat"
+    }
+  }
+
   "Router queryString builder" should {
     "build a query string" in {
       Router.queryString(List(Some("a"), Some("b"))) must_== "?a&b"
@@ -21,8 +43,6 @@ object RouterSpec extends Specification {
       Router.queryString(List()) must_== ""
     }
   }
-
-
 
   "PathPattern" should {
     val pathPattern = PathPattern(Seq(StaticPart("/path/"), StaticPart("to/"), DynamicPart("foo", "[^/]+", true)))
