@@ -113,14 +113,14 @@ trait ConstraintReads {
   def map[A](implicit reads: Reads[A]): Reads[collection.immutable.Map[String, A]] = Reads.mapReads[A]
 
   /**
-   * Defines a minimum size for a numeric Reads. Combine with `max` using `or`, e.g.
+   * Defines a minimum value for a numeric Reads. Combine with `max` using `or`, e.g.
    * `.read(Reads.min(0) or Reads.max(100))`.
    */
   def min[N](m: N)(implicit reads: Reads[N], num: Numeric[N]) =
     filterNot[N](ValidationError("error.min", m))(num.lt(_, m))(reads)
 
   /**
-   * Defines a maximum size for a numeric Reads. Combine with `min` using `or`, e.g.
+   * Defines a maximum value for a numeric Reads. Combine with `min` using `or`, e.g.
    * `.read(Reads.min(0.1) or Reads.max(1.0))`.
    */
   def max[N](m: N)(implicit reads: Reads[N], num: Numeric[N]) =
