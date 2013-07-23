@@ -22,7 +22,7 @@ import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.control.Exception
-import com.typesafe.netty.http.pipelining.{OrderedDownstreamMessageEvent, OrderedUpstreamMessageEvent}
+import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
 
 
@@ -424,7 +424,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
   def sendDownstream(subSequence: Int, last: Boolean, message: Object)
                     (implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
-    val ode = new OrderedDownstreamMessageEvent(oue, subSequence, last, message)
+    val ode = new OrderedDownstreamChannelEvent(oue, subSequence, last, message)
     ctx.sendDownstream(ode)
     ode.getFuture
   }
