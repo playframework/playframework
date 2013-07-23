@@ -62,18 +62,18 @@ $ play
 There are several samples applications included in the `samples/` directory. For example, to run the included Scala Hello World application:
 
 ```bash
-$ cd ~/workspace/play2.1/samples/scala/helloworld/
+$ cd ~/play/samples/scala/helloworld/
 $ play run
 ```
 > The application will be available on port 9000.
 
 ## Issues tracker
 
-Report issues at https://github.com/playframework/Play20/issues.
+Report issues at https://github.com/playframework/playframework/issues.
 
 ## Contributors
 
-Check for all contributors at https://github.com/playframework/Play20/contributors.
+Check for all contributors at https://github.com/playframework/playframework/contributors.
 
 ## Licence
 
