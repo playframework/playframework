@@ -63,7 +63,7 @@ object Dependencies {
   val runtime = Seq(
     "io.netty" % "netty" % "3.6.3.Final",
 
-    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.0",
+    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.1",
 
     "org.slf4j" % "slf4j-api" % "1.6.6",
     "org.slf4j" % "jul-to-slf4j" % "1.6.6",
