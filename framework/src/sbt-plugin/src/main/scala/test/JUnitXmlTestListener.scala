@@ -10,7 +10,8 @@ import java.io.{ StringWriter, PrintWriter, File }
 import java.net.InetAddress
 import scala.collection.mutable.ListBuffer
 import scala.xml.{ Elem, Node, XML }
-import org.scalatools.testing.{ Event => TEvent, Result => TResult, Logger => TLogger }
+import sbt.testing.{ Event => TEvent, Status => TStatus }
+import test.SbtOptionalThrowable
 
 import play.console.Colors
 
@@ -61,11 +62,11 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
     }
 
     def logEvent(e: TEvent) = {
-      e.result match {
-        case TResult.Error => logger.info(Colors.red("!") + " " + e.testName)
-        case TResult.Failure => logger.info(Colors.yellow("x") + " " + e.testName)
-        case TResult.Skipped => logger.info(Colors.yellow("o") + " " + e.testName)
-        case TResult.Success => logger.info(Colors.green("+") + " " + e.testName)
+      e.status match {
+        case TStatus.Error => logger.info(Colors.red("!") + " " + e.fullyQualifiedName)
+        case TStatus.Failure => logger.info(Colors.yellow("x") + " " + e.fullyQualifiedName)
+        case TStatus.Skipped => logger.info(Colors.yellow("o") + " " + e.fullyQualifiedName)
+        case TStatus.Success => logger.info(Colors.green("+") + " " + e.fullyQualifiedName)
       }
     }
 
@@ -76,9 +77,9 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
     def count(): (Int, Int, Int) = {
       var errors, failures = 0
       for (e <- events) {
-        e.result match {
-          case TResult.Error => errors += 1
-          case TResult.Failure => failures += 1
+        e.status match {
+          case TStatus.Error => errors += 1
+          case TStatus.Failure => failures += 1
           case _ =>
         }
       }
@@ -95,36 +96,6 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
 
       val (errors, failures, tests) = count()
 
-      val result = <testsuite hostname={ hostname } name={ name } tests={ tests + "" } errors={ errors + "" } failures={ failures + "" } time={ (duration / 1000.0).toString }>
-                     { properties }
-                     {
-                       for (e <- events) yield <testcase classname={ name } name={ e.testName } time={ "0.0" }>
-                                                 {
-                                                   var trace: String = if (e.error != null) {
-                                                     val stringWriter = new StringWriter()
-                                                     val writer = new PrintWriter(stringWriter)
-                                                     e.error.printStackTrace(writer)
-                                                     writer.flush()
-                                                     stringWriter.toString
-                                                   } else {
-                                                     ""
-                                                   }
-                                                   e.result match {
-                                                     case TResult.Error if (e.error != null) => <error message={ e.error.getMessage } type={ e.error.getClass.getName }>{ trace }</error>
-                                                     case TResult.Error => <error message={ "No Exception or message provided" }/>
-                                                     case TResult.Failure if (e.error != null) => <failure message={ e.error.getMessage } type={ e.error.getClass.getName }>{ trace }</failure>
-                                                     case TResult.Failure => <failure message={ "No Exception or message provided" }/>
-                                                     case TResult.Skipped => <skipped/>
-                                                     case _ => {}
-                                                   }
-                                                 }
-                                               </testcase>
-
-                     }
-                     <system-out><![CDATA[]]></system-out>
-                     <system-err><![CDATA[]]></system-err>
-                   </testsuite>
-
       if (name.endsWith("Test")) {
         logger.info("")
         logger.info("")
@@ -133,8 +104,57 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
         logger.info(Colors.blue(tests + " tests, " + failures + " failures, " + errors + " errors"))
       }
 
-      result
+      <testsuite hostname={ hostname } name={ name } tests={ tests.toString } errors={ errors.toString } failures={ failures.toString } time={ (duration / 1000.0).toString }>
+        { properties }
+        { events.map(e => formatTestCase(name, e)) }
+        <system-out>
+          <![CDATA[]]>
+        </system-out>
+        <system-err>
+          <![CDATA[]]>
+        </system-err>
+      </testsuite>
+
     }
+  }
+
+  def formatTestCase(className: String, event: TEvent) = {
+    val trace = event.throwable match {
+      case SbtOptionalThrowable(throwable) => {
+        val stringWriter = new StringWriter()
+        val writer = new PrintWriter(stringWriter)
+        throwable.printStackTrace(writer)
+        writer.flush()
+        stringWriter.toString
+      }
+      case _ => ""
+    }
+    <testcase classname={ className } name={ event.fullyQualifiedName() } time={ "0.0" }>
+      {
+        (event.status, event.throwable) match {
+          case (TStatus.Error, SbtOptionalThrowable(throwable)) =>
+            <error message={ throwable.getMessage } type={ throwable.getClass.getName }>
+              { trace }
+            </error>
+
+          case (TStatus.Error, _) =>
+            <error message={ "No Exception or message provided" }/>
+
+          case (TStatus.Failure, SbtOptionalThrowable(throwable)) =>
+            <failure message={ throwable.getMessage } type={ throwable.getClass.getName }>
+              { trace }
+            </failure>
+
+          case (TStatus.Failure, _) =>
+            <failure message={ "No Exception or message provided" }/>
+
+          case (TStatus.Skipped, _) =>
+            <skipped/>
+
+          case _ => {}
+        }
+      }
+    </testcase>
   }
 
   /**The currently running test suite*/
@@ -199,4 +219,5 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
 
   /**Returns None*/
   override def contentLogger(test: TestDefinition): Option[ContentLogger] = None
+
 }

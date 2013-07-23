@@ -85,16 +85,19 @@ object Helper {
 
   class CompilerHelper(sourceDir: File, generatedDir: File, generatedClasses: File) {
     import scala.tools.nsc.Global
-    import scala.tools.nsc.io.AbstractFile
-    import scala.tools.nsc.util.{ SourceFile, Position, BatchSourceFile }
     import scala.tools.nsc.Settings
     import scala.tools.nsc.reporters.ConsoleReporter
+    import scala.reflect.internal.util.Position
+    import scala.collection.mutable
 
     import java.net._
 
     val templateCompiler = ScalaTemplateCompiler
 
     val classloader = new URLClassLoader(Array(generatedClasses.toURI.toURL), Class.forName("play.templates.ScalaTemplateCompiler").getClassLoader)
+
+    // A list of the compile errors from the most recent compiler run
+    val compileErrors = new mutable.ListBuffer[CompilationError]
 
     val compiler = {
 
@@ -116,7 +119,7 @@ object Helper {
 
       val compiler = new Global(settings, new ConsoleReporter(settings) {
         override def printMessage(pos: Position, msg: String) = {
-          throw CompilationError(msg, pos.line, pos.point)
+          compileErrors.append(CompilationError(msg, pos.line, pos.point))
         }
       })
 
@@ -133,11 +136,15 @@ object Helper {
 
       val run = new compiler.Run
 
-      try {
-        run.compile(List(generated.getAbsolutePath))
-      } catch {
-        case CompilationError(msg, line, column) => throw CompilationError(
-          msg, mapper.mapLine(line), mapper.mapPosition(column))
+      compileErrors.clear()
+
+      run.compile(List(generated.getAbsolutePath))
+
+      compileErrors.headOption.foreach {
+        case CompilationError(msg, line, column) => {
+          compileErrors.clear()
+          throw CompilationError(msg, mapper.mapLine(line), mapper.mapPosition(column))
+        }
       }
 
       val t = classloader.loadClass(className + "$").getDeclaredField("MODULE$").get(null)

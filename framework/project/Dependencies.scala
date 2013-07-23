@@ -1,13 +1,12 @@
 import sbt._
+import sbt.Keys._
 
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
   val specsBuild = "org.specs2" %% "specs2" % "1.14"
-  val scalaIoFileBuild = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
-  val scalaIoFileSbt = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1" exclude ("javax.transaction", "jta")
+  val scalaIoFile = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
   val guava = "com.google.guava" % "guava" % "14.0.1"
-
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.7.1.RELEASE" exclude ("com.google.guava", "guava"),
@@ -64,7 +63,7 @@ object Dependencies {
   val runtime = Seq(
     "io.netty" % "netty" % "3.6.3.Final",
 
-    "com.typesafe.netty" % "netty-http-pipelining" % "1.0.0",
+    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.1",
 
     "org.slf4j" % "slf4j-api" % "1.6.6",
     "org.slf4j" % "jul-to-slf4j" % "1.6.6",
@@ -73,7 +72,7 @@ object Dependencies {
     "ch.qos.logback" % "logback-core" % "1.0.7",
     "ch.qos.logback" % "logback-classic" % "1.0.7",
 
-    scalaIoFileBuild,
+    scalaIoFile,
 
     "com.typesafe.akka" %% "akka-actor" % "2.1.0",
     "com.typesafe.akka" %% "akka-slf4j" % "2.1.0",
@@ -112,15 +111,16 @@ object Dependencies {
     "org.javassist" % "javassist" % "3.16.1-GA")
 
   val routersCompilerDependencies = Seq(
-    scalaIoFileSbt,
+    scalaIoFile,
     "org.specs2" %% "specs2" % "1.12.3" % "test" exclude ("javax.transaction", "jta"))
 
   val templatesCompilerDependencies = Seq(
-    scalaIoFileSbt,
+    scalaIoFile,
     "org.specs2" %% "specs2" % "1.12.3" % "test"
       exclude ("javax.transaction", "jta"))
 
   val sbtDependencies = Seq(
+    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersionForSbt % "provided",
     "com.typesafe" % "config" % "1.0.0",
     "org.mozilla" % "rhino" % "1.7R4",
 
@@ -145,16 +145,23 @@ object Dependencies {
     "org.javassist" % "javassist" % "3.16.1-GA",
     "com.typesafe.play" %% "play-doc" % "1.0.1",
 
-    "net.contentobjects.jnotify" % "jnotify" % "0.94")
+    "net.contentobjects.jnotify" % "jnotify" % "0.94",
+
+    // Once we upgrade to SBT 0.13.0, we can use the build version of SBT here
+    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.github.mpeltonen" % "sbt-idea" % "1.5.0-SNAPSHOT" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+
+    "org.specs2" %% "specs2" % "1.12.3" % "test" exclude("javax.transaction", "jta")
+  )
 
   val consoleDependencies = Seq(
-    scalaIoFileSbt,
+    scalaIoFile,
     "org.scala-sbt" % "launcher-interface" % BuildSettings.buildSbtVersion,
-    "jline" % "jline" % "1.0"
+    "jline" % "jline" % "2.10"
   )
 
   val templatesDependencies = Seq(
-    scalaIoFileBuild,
+    scalaIoFile,
     specsBuild % "test")
 
   val iterateesDependencies = Seq(
@@ -168,7 +175,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.1.1",
     "com.fasterxml.jackson.core" % "jackson-core" % "2.1.1",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.1.1",
-    "org.scala-lang" % "scala-reflect" % "2.10.0",
+    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
     specsBuild % "test")
 
   val testDependencies = Seq(

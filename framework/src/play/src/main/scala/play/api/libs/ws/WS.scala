@@ -1,6 +1,7 @@
 package play.api.libs.ws
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.{ Future, Promise }
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -40,23 +41,28 @@ object WS {
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
-  private var clientHolder: Option[AsyncHttpClient] = None
+  private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
   /**
    * resets the underlying AsyncHttpClient
    */
-  def resetClient(): Unit = {
-    clientHolder.map { clientRef =>
+  private[play] def resetClient(): Unit = {
+    val oldClient = clientHolder.getAndSet(None)
+    oldClient.map { clientRef =>
       clientRef.close()
     }
-    clientHolder = None
   }
 
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client =
-    clientHolder.getOrElse {
+  def client = {
+    clientHolder.get.getOrElse {
+      // Note, the following code may execute more than once, if there are several
+      // simultaneous calls to this function on different threads.  In that case,
+      // it's possible that an AsyncHttpClient will be created by the following
+      // code, but then discarded, because another thread was able to create one
+      // and store it in `clientHolder` first.
       val playConfig = play.api.Play.maybeApplication.map(_.configuration)
       val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
         .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
@@ -71,9 +77,12 @@ object WS {
         asyncHttpConfig.setSSLContext(SSLContext.getDefault)
       }
       val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-      clientHolder = Some(innerClient)
-      innerClient
+      // Only use our newly created AsyncHttpClient if clientHolder is still None, that is,
+      // if no other thread has snuck in and stored a different one in clientHolder.
+      clientHolder.compareAndSet(None, Some(innerClient))
+      clientHolder.get.get
     }
+  }
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.

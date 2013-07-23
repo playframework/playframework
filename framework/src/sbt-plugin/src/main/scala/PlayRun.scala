@@ -13,12 +13,14 @@ import scala.collection.JavaConverters._
 trait PlayRun extends PlayInternalKeys {
   this: PlayReloader =>
 
-  private val consoleReader = new jline.ConsoleReader
+  // For some reason, jline disables echo when it creates a new console reader.
+  // When we use the reader, we also enabled echo after using it, so as long as this is lazy, and that holds true,
+  // then we won't exit SBT with echo disabled.
+  private lazy val consoleReader = new jline.console.ConsoleReader
 
   private def waitForKey() = {
-    consoleReader.getTerminal.disableEcho()
     def waitEOF() {
-      consoleReader.readVirtualKey() match {
+      consoleReader.readCharacter() match {
         case 4 => // STOP
         case 11 => consoleReader.clearScreen(); waitEOF()
         case 10 => println(); waitEOF()
@@ -26,8 +28,12 @@ trait PlayRun extends PlayInternalKeys {
       }
 
     }
-    waitEOF()
-    consoleReader.getTerminal.enableEcho()
+    consoleReader.getTerminal.setEchoEnabled(false)
+    try {
+      waitEOF()
+    } finally {
+      consoleReader.getTerminal.setEchoEnabled(true)
+    }
   }
 
   private def parsePort(portString: String): Int = {
@@ -213,9 +219,12 @@ trait PlayRun extends PlayInternalKeys {
         val newState = maybeContinuous match {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
-            consoleReader.getTerminal.disableEcho()
-            executeContinuously(w, state, reloader, Some(WatchState.empty))
-            consoleReader.getTerminal.enableEcho()
+            consoleReader.getTerminal.setEchoEnabled(false)
+            try {
+              executeContinuously(w, state, reloader, Some(WatchState.empty))
+            } finally {
+              consoleReader.getTerminal.setEchoEnabled(true)
+            }
 
             // Remove state two first commands added by sbt ~
             state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)

@@ -133,12 +133,12 @@ object ApplicationBuild extends Build {
     state
   }
 
-  private val consoleReader = new jline.ConsoleReader
+  private val consoleReader = new jline.console.ConsoleReader
 
   private def waitForKey() = {
-    consoleReader.getTerminal.disableEcho()
+    consoleReader.getTerminal.setEchoEnabled(false)
     def waitEOF() {
-      consoleReader.readVirtualKey() match {
+      consoleReader.readCharacter() match {
         case 4 => // STOP
         case 11 => consoleReader.clearScreen(); waitEOF()
         case 10 => println(); waitEOF()
@@ -147,7 +147,7 @@ object ApplicationBuild extends Build {
 
     }
     waitEOF()
-    consoleReader.getTerminal.enableEcho()
+    consoleReader.getTerminal.setEchoEnabled(true)
   }
 
   lazy val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")

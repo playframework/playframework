@@ -52,7 +52,6 @@ object RepositoryBuilder {
       ivy: IvySbt, 
       log: Logger): Unit = ivy.withIvy(log) { ivy =>
 
-    import org.apache.ivy.core.module.id.ModuleRevisionId
     import org.apache.ivy.core.report.ResolveReport
     import org.apache.ivy.core.install.InstallOptions
     import org.apache.ivy.plugins.matcher.PatternMatcher

@@ -343,10 +343,10 @@ trait PlayReloader {
 
       def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
-        val Right(sk: ScopedKey[Task[_]]) = complete.DefaultParsers.result(parser, task)
-        val result = Project.runTask(sk, state).map(_._2)
+        val Right(sk) = complete.DefaultParsers.result(parser, task)
+        val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
 
-        result.flatMap(_.toEither.right.toOption).getOrElse(null).asInstanceOf[AnyRef]
+        result.flatMap(_.toEither.right.toOption).getOrElse(null)
       }
 
       private val markdownRenderer = Option(System.getProperty("play.home")).map { playHome =>

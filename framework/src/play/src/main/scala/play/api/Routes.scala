@@ -61,8 +61,7 @@ package play.api {
           "_nS('%s'); _root.%s = %s".format(
             route.name.split('.').dropRight(1).mkString("."),
             route.name,
-            route.f,
-            route.name)
+            route.f)
         }.mkString("\n"),
         name)
     }

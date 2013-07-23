@@ -46,8 +46,7 @@ trait PlaySettings {
     playPlugin := false,
 
     resolvers ++= Seq(
-      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
-      "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
     ),
 
     target <<= baseDirectory / "target",

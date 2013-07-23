@@ -88,13 +88,21 @@ class AssetsBuilder extends Controller {
       }
 
       def maybeNotModified(url: java.net.URL) = {
-        request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch =>
-          etagFor(url).filter(_ == ifNoneMatch)
-        }.map(_ => cacheableResult(url, NotModified)).orElse {
-          request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
-            lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-          }.map(_ => NotModified.withHeaders(
-            DATE -> df.print({ new java.util.Date }.getTime)))
+        // First check etag. Important, if there is an If-None-Match header, we MUST not check the
+        // If-Modified-Since header, regardless of whether If-None-Match matches or not. This is in
+        // accordance with section 14.26 of RFC2616.
+        request.headers.get(IF_NONE_MATCH) match {
+          case Some(etags) => {
+            etagFor(url).filter(etag =>
+              etags.split(",").exists(_.trim == etag)
+            ).map(_ => cacheableResult(url, NotModified))
+          }
+          case None => {
+            request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
+              lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
+            }.map(_ => NotModified.withHeaders(
+              DATE -> df.print({ new java.util.Date }.getTime)))
+          }
         }
       }
 
