@@ -48,7 +48,7 @@ This is the process for committing code into master. There are of course excepti
 
 1. Make sure you have signed the [Typesafe CLA](http://www.typesafe.com/contribute/cla), if not, sign it online.
 2. Before starting to work on a feature or a fix, you have to make sure that:
-    1. There is a ticket for your work in the project's issue tracker. If not, create it first (See: https://play.lighthouseapp.com/projects/82401-play-20/overview).
+    1. There is a ticket for your work in the project's issue tracker. If not, create it first (See: https://github.com/playframework/playframework/issues).
     2. The ticket has been scheduled for the current milestone.
     3. The ticket is estimated by the team.
     4. The ticket has been discussed and prioritized by the team.
