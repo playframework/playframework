@@ -1,54 +1,127 @@
 package play.libs;
 
+/**
+ * Cryptographic utilities.
+ * <p/>
+ * These utilities are intended as a convenience, however it is important to read each methods documentation and
+ * understand the concepts behind encryption to use this class properly.  Safe encryption is hard, and there is no
+ * substitute for an adequate understanding of cryptography.  These methods will not be suitable for all encryption
+ * needs.
+ *
+ * For more information about cryptography, we recommend reading the OWASP Cryptographic Storage Cheatsheet:
+ *
+ * https://www.owasp.org/index.php/Cryptographic_Storage_Cheat_Sheet
+ */
 public class Crypto {
 
     /**
      * Signs the given String with HMAC-SHA1 using the given key.
+     * <p/>
+     * By default this uses the platform default JSSE provider.  This can be overridden by defining
+     * <code>application.crypto.provider</code> in <codeapplication.conf</code>.
+     *
+     * @param message The message to sign.
+     * @param key     The private key to sign with.
+     * @return A hexadecimal encoded signature.
      */
     public static String sign(String message, byte[] key) {
         return play.api.libs.Crypto.sign(message, key);
     }
 
     /**
-     * Signs the given String with HMAC-SHA1 using the application secret key.
+     * Signs the given String with HMAC-SHA1 using the application's secret key.
+     * <p/>
+     * By default this uses the platform default JSSE provider.  This can be overridden by defining
+     * <code>application.crypto.provider</code> in <codeapplication.conf</code>.
+     *
+     * @param message The message to sign.
+     * @return A hexadecimal encoded signature.
      */
     public static String sign(String message) {
         return play.api.libs.Crypto.sign(message);
     }
 
     /**
-     * Encrypt a String with the AES encryption standard using the application secret
-     * @param value The String to encrypt
-     * @return An hexadecimal encrypted string
+     * Encrypt a String with the AES encryption standard using the application's secret key.
+     * <p/>
+     * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
+     * <code>application.crypto.provider</code> in <code>application.conf</code>.
+     * <p/>
+     * The transformation algorithm used is the provider specific implementation of the <code>AES</code> name.  On
+     * Oracles JDK, this is <code>AES/ECB/PKCS5Padding</code>.  This algorithm is suitable for small amounts of data,
+     * typically less than 32 bytes, hence is useful for encrypting credit card numbers, passwords etc.  For larger
+     * blocks of data, this algorithm may expose patterns and be vulnerable to repeat attacks.
+     * <p/>
+     * The transformation algorithm can be configured by defining <code>application.crypto.aes.transformation</code> in
+     * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
+     * spec used is always AES, so only AES transformation algorithms will work.
+     *
+     * @param value The String to encrypt.
+     * @return An hexadecimal encrypted string.
      */
     public static String encryptAES(String value) {
         return play.api.libs.Crypto.encryptAES(value);
     }
 
     /**
-     * Encrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
-     * @param value The String to encrypt
-     * @param privateKey The key used to encrypt
-     * @return An hexadecimal encrypted string
+     * Encrypt a String with the AES encryption standard and the supplied private key.
+     * <p/>
+     * The private key must have a length of 16 bytes.
+     * <p/>
+     * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
+     * <code>application.crypto.provider</code> in <code>application.conf</code>.
+     * <p/>
+     * The transformation algorithm used is the provider specific implementation of the <code>AES</code> name.  On
+     * Oracles JDK, this is <code>AES/ECB/PKCS5Padding</code>.  This algorithm is suitable for small amounts of data,
+     * typically less than 32bytes, hence is useful for encrypting credit card numbers, passwords etc.  For larger
+     * blocks of data, this algorithm may expose patterns and be vulnerable to repeat attacks.
+     * <p/>
+     * The transformation algorithm can be configured by defining <code>application.crypto.aes.transformation</code> in
+     * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
+     * spec used is always AES, so only AES transformation algorithms will work.
+     *
+     * @param value      The String to encrypt.
+     * @param privateKey The key used to encrypt.
+     * @return An hexadecimal encrypted string.
      */
     public static String encryptAES(String value, String privateKey) {
         return play.api.libs.Crypto.encryptAES(value, privateKey);
     }
 
     /**
-     * Decrypt a String with the AES encryption standard using the application secret
-     * @param value An hexadecimal encrypted string
-     * @return The decrypted String
+     * Decrypt a String with the AES encryption standard using the application's secret key.
+     * <p/>
+     * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
+     * <code>application.crypto.provider</code> in <code>application.conf</code>.
+     * <p/>
+     * The transformation used is by default <code>AES/ECB/PKCS5Padding</code>.  It can be configured by defining
+     * <code>application.crypto.aes.transformation</code> in <code>application.conf</code>.  Although any cipher
+     * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
+     * algorithms will work.
+     *
+     * @param value An hexadecimal encrypted string.
+     * @return The decrypted String.
      */
     public static String decryptAES(String value) {
         return play.api.libs.Crypto.decryptAES(value);
     }
 
     /**
-     * Decrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
-     * @param value An hexadecimal encrypted string
-     * @param privateKey The key used to encrypt
-     * @return The decrypted String
+     * Decrypt a String with the AES encryption standard.
+     * <p/>
+     * The private key must have a length of 16 bytes.
+     * <p/>
+     * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
+     * <code>application.crypto.provider</code> in <code>application.conf</code>.
+     * <p/>
+     * The transformation used is by default <code>AES/ECB/PKCS5Padding</code>.  It can be configured by defining
+     * <code>application.crypto.aes.transformation</code> in <code>application.conf</code>.  Although any cipher
+     * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
+     * algorithms will work.
+     *
+     * @param value      An hexadecimal encrypted string.
+     * @param privateKey The key used to encrypt.
+     * @return The decrypted String.
      */
     public static String decryptAES(String value, String privateKey) {
         return play.api.libs.Crypto.decryptAES(value, privateKey);
