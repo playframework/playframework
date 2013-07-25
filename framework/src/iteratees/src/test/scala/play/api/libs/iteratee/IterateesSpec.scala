@@ -34,7 +34,7 @@ object IterateesSpec extends Specification
     }
   }
 
-  def mustTranslate3To(x: Int)(f: Iteratee[Int, Int] => Iteratee[Int, Int]): Unit = {
+  def mustTranslate3To(x: Int)(f: Iteratee[Int, Int] => Iteratee[Int, Int]) = {
     await(f(Done(3)).unflatten) must equalTo(Step.Done(x, Input.Empty))
   }
 

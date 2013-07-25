@@ -8,6 +8,7 @@ package scalaguide.http.scalabodyparsers {
   import org.specs2.runner.JUnitRunner
   import scala.concurrent.Future
   import java.io.File
+  import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends Specification with Controller {
@@ -100,11 +101,11 @@ package scalaguide.http.scalabodyparsers {
 
     }
 
-    def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) {
-      assertAction(action, request, expectedResponse) { result => }
+    def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
+      assertAction(action, request, expectedResponse) { result => success }
     }
 
-    def assertAction[A](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
+    def assertAction[A, T: AsResult](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => T) = {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {        
         val result = action(request).run
         status(result) must_== expectedResponse

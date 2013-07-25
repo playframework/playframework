@@ -43,7 +43,8 @@ public class Application extends Controller {
             Akka.system().scheduler().schedule(
                 Duration.Zero(),
                 Duration.create(100, MILLISECONDS),
-                instance, "TICK",  Akka.system().dispatcher()
+                instance, "TICK",  Akka.system().dispatcher(),
+                /* sender */ null
             );
         }
         

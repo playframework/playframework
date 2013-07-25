@@ -11,6 +11,7 @@ package scalaguide.http.scalaactionscomposition {
   import play.api.Logger
   import play.api.mvc._
   import scala.concurrent.Future
+  import org.specs2.execute.AsResult
 
   case class User(name: String)
   object User {
@@ -205,15 +206,15 @@ package scalaguide.http.scalaactionscomposition {
       "Wrapping authenticated request" in {
 
         //#authenticated-request
-        case class AuthenticatedRequest(
-          user: User, private val request: Request[AnyContent]) extends WrappedRequest(request)
+        class AuthenticatedRequest(
+          val user: User, request: Request[AnyContent]) extends WrappedRequest(request)
 
         def Authenticated(f: AuthenticatedRequest => Result) = {
           Action { request =>
             val result = for {
               id <- request.session.get("user")
               user <- User.find(id)
-            } yield f(AuthenticatedRequest(user, request))
+            } yield f(new AuthenticatedRequest(user, request))
             result getOrElse Unauthorized
           }
         }
@@ -263,11 +264,11 @@ package scalaguide.http.scalaactionscomposition {
 
     }
 
-    def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) {
-      assertAction(action, request, expectedResponse) { result => }
+    def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
+      assertAction(action, request, expectedResponse) { result => success }
     }
 
-    def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
+    def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => T) = {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
         val result = action(request).run
         status(result) must_== expectedResponse

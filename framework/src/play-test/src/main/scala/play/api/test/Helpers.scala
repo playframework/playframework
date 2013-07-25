@@ -14,16 +14,17 @@ import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration.{ Duration, SECONDS }
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import akka.util.Timeout
 
 /**
  * Helper functions to run tests.
  */
-object Helpers extends Status with HeaderNames {
+trait PlayRunners {
 
   val GET = "GET"
   val POST = "POST"
@@ -89,101 +90,91 @@ object Helpers extends Status with HeaderNames {
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
 
   /**
-   * Extracts the Content-Type of this Content value.
+   * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
    */
-  def contentType(of: Content): String = of.contentType
+  def inMemoryDatabase(name: String = "default", options: Map[String, String] = Map.empty[String, String]): Map[String, String] = {
+    val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
 
-  /**
-   * Extracts the content as String.
-   */
-  def contentAsString(of: Content): String = of.body
-
-  /**
-   * Extracts the content as bytes.
-   */
-  def contentAsBytes(of: Content): Array[Byte] = of.body.getBytes
-
-  /**
-   * Extracts the content as Json.
-   */
-  def contentAsJson(of: Content): JsValue = Json.parse(of.body)
-
-  /**
-   * Extracts the Content-Type of this Result value.
-   */
-  def contentType(of: Future[SimpleResult]): Option[String] = header(CONTENT_TYPE, of).map(_.split(";").take(1).mkString.trim)
-
-  /**
-   * Extracts the Charset of this Result value.
-   */
-  def charset(of: Future[SimpleResult]): Option[String] = header(CONTENT_TYPE, of) match {
-    case Some(s) if s.contains("charset=") => Some(s.split("; charset=").drop(1).mkString.trim)
-    case _ => None
+    Map(
+      ("db." + name + ".driver") -> "org.h2.Driver",
+      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
+    )
   }
 
-  /**
-   * Extracts the content as String.
-   */
-  def contentAsString(of: Future[SimpleResult]): String = new String(contentAsBytes(of), charset(of).getOrElse("utf-8"))
+}
+
+trait Writeables {
+  implicit def writeableOf_AnyContentAsJson(implicit codec: Codec): Writeable[AnyContentAsJson] =
+    Writeable.writeableOf_JsValue.map(c => c.json)
+
+  implicit def writeableOf_AnyContentAsXml(implicit codec: Codec): Writeable[AnyContentAsXml] =
+    Writeable.writeableOf_NodeSeq.map(c => c.xml)
+
+  implicit def writeableOf_AnyContentAsFormUrlEncoded(implicit code: Codec): Writeable[AnyContentAsFormUrlEncoded] =
+    Writeable.writeableOf_urlEncodedForm.map(c => c.data)
+
+  implicit def writeableOf_AnyContentAsRaw: Writeable[AnyContentAsRaw] =
+    Writeable.wBytes.map(c => c.raw.initialData)
+
+  implicit def writeableOf_AnyContentAsText(implicit code: Codec): Writeable[AnyContentAsText] =
+    Writeable.wString.map(c => c.txt)
+
+  implicit def writeableOf_AnyContentAsEmpty(implicit code: Codec): Writeable[AnyContentAsEmpty.type] =
+    Writeable(_ => Array.empty[Byte], None)
+}
+
+trait DefaultAwaitTimeout {
 
   /**
-   * Extracts the content as bytes.
+   * The default await timeout.  Override this to change it.
    */
-  def contentAsBytes(of: Future[SimpleResult]): Array[Byte] =
-    await(await(of).body |>>> Iteratee.consume[Array[Byte]]())
+  implicit def defaultAwaitTimeout: Timeout = 5 seconds
+}
+
+trait FutureAwaits {
+  self: DefaultAwaitTimeout =>
+
+  import java.util.concurrent.TimeUnit
 
   /**
-   * Extracts the content as Json.
+   * Block until a Promise is redeemed.
    */
-  def contentAsJson(of: Future[SimpleResult]): JsValue = Json.parse(contentAsString(of))
+  def await[T](future: Future[T])(implicit timeout: Timeout): T = Await.result(future, timeout.duration)
 
   /**
-   * Extracts the Status code of this Result value.
+   * Block until a Promise is redeemed with the specified timeout.
    */
-  def status(of: Future[SimpleResult]): Int = await(of).header.status
+  def await[T](future: Future[T], timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): T =
+    Await.result(future, Duration(timeout, unit))
+
+}
+
+trait WsTestClient {
 
   /**
-   * Extracts the Cookies of this Result value.
+   * Construct a WS request for the given reverse route.
+   *
+   * For example:
+   * {{{
+   *   wsCall(controllers.routes.Application.index()).get()
+   * }}}
    */
-  def cookies(of: Future[SimpleResult]): Cookies = Cookies(header(SET_COOKIE, of))
+  def wsCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wsUrl(call.url)
 
   /**
-   * Extracts the Flash values of this Result value.
+   * Construct a WS request for the given relative URL.
    */
-  def flash(of: Future[SimpleResult]): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
+  def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
+}
 
-  /**
-   * Extracts the Session of this Result value.
-   * Extracts the Session from this Result value.
-   */
-  def session(of: Future[SimpleResult]): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
-
-  /**
-   * Extracts the Location header of this Result value if this Result is a Redirect.
-   */
-  def redirectLocation(of: Future[SimpleResult]): Option[String] = await(of).header match {
-    case ResponseHeader(FOUND, headers) => headers.get(LOCATION)
-    case ResponseHeader(SEE_OTHER, headers) => headers.get(LOCATION)
-    case ResponseHeader(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
-    case ResponseHeader(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
-    case ResponseHeader(_, _) => None
-  }
-
-  /**
-   * Extracts an Header value of this Result value.
-   */
-  def header(header: String, of: Future[SimpleResult]): Option[String] = headers(of).get(header)
-
-  /**
-   * Extracts all Headers of this Result value.
-   */
-  def headers(of: Future[SimpleResult]): Map[String, String] = await(of).header.headers
+trait RouteInvokers {
+  self: Writeables =>
 
   /**
    * Use the Router to determine the Action to call for this request and executes it.
    */
   @deprecated("Use `route` instead.", "2.1.0")
-  def routeAndCall[T](request: FakeRequest[T]): Option[Future[SimpleResult]] = {
+  def routeAndCall[T](request: FakeRequest[T])(implicit timeout: Timeout): Option[Future[SimpleResult]] = {
     routeAndCall(this.getClass.getClassLoader.loadClass("Routes").asInstanceOf[Class[play.core.Router.Routes]], request)
   }
 
@@ -191,17 +182,17 @@ object Helpers extends Status with HeaderNames {
    * Use the Router to determine the Action to call for this request and executes it.
    */
   @deprecated("Use `route` instead.", "2.1.0")
-  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T]): Option[Future[SimpleResult]] = {
+  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T])(implicit timeout: Timeout): Option[Future[SimpleResult]] = {
     val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
     routes.routes.lift(request).map {
       case a: Action[_] =>
         val action = a.asInstanceOf[Action[T]]
         val parsedBody: Option[Either[SimpleResult, T]] = {
-          await(action.parser(request).fold(step => Future.successful(step match {
+          Await.result(action.parser(request).fold(step => Future.successful(step match {
             case Step.Done(a, in) => Some(a)
             case Step.Cont(k) => None: Option[Either[SimpleResult, T]]
             case Step.Error(msg, in) => None: Option[Either[SimpleResult, T]]
-          }))(global))
+          }))(global), timeout.duration)
         }
         parsedBody.map { resultOrT =>
           resultOrT.right.toOption.map { innerBody =>
@@ -273,59 +264,109 @@ object Helpers extends Status with HeaderNames {
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
   def route[T](req: Request[T])(implicit w: Writeable[T]): Option[Future[SimpleResult]] = route(Play.current, req)
+}
+
+trait ResultExtractors {
+  self: HeaderNames with Status =>
 
   /**
-   * Block until a Promise is redeemed.
+   * Extracts the Content-Type of this Content value.
    */
-  def await[T](p: scala.concurrent.Future[T]): T = await(p, 5000)
+  def contentType(of: Content)(implicit timeout: Timeout): String = of.contentType
 
   /**
-   * Block until a Promise is redeemed with the specified timeout.
+   * Extracts the content as String.
    */
-  def await[T](p: scala.concurrent.Future[T], timeout: Long, unit: java.util.concurrent.TimeUnit = java.util.concurrent.TimeUnit.MILLISECONDS): T = Await.result(p, Duration(timeout, unit))
+  def contentAsString(of: Content)(implicit timeout: Timeout): String = of.body
 
   /**
-   * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
+   * Extracts the content as bytes.
    */
-  def inMemoryDatabase(name: String = "default", options: Map[String, String] = Map.empty[String, String]): Map[String, String] = {
-    val optionsForDbUrl = options.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+  def contentAsBytes(of: Content)(implicit timeout: Timeout): Array[Byte] = of.body.getBytes
 
-    Map(
-      ("db." + name + ".driver") -> "org.h2.Driver",
-      ("db." + name + ".url") -> ("jdbc:h2:mem:play-test-" + scala.util.Random.nextInt + optionsForDbUrl)
-    )
+  /**
+   * Extracts the content as Json.
+   */
+  def contentAsJson(of: Content)(implicit timeout: Timeout): JsValue = Json.parse(of.body)
+
+  /**
+   * Extracts the Content-Type of this Result value.
+   */
+  def contentType(of: Future[SimpleResult])(implicit timeout: Timeout): Option[String] = header(CONTENT_TYPE, of).map(_.split(";").take(1).mkString.trim)
+
+  /**
+   * Extracts the Charset of this Result value.
+   */
+  def charset(of: Future[SimpleResult])(implicit timeout: Timeout): Option[String] = header(CONTENT_TYPE, of) match {
+    case Some(s) if s.contains("charset=") => Some(s.split("; charset=").drop(1).mkString.trim)
+    case _ => None
   }
 
   /**
-   * Construct a WS request for the given reverse route.
-   *
-   * For example:
-   * {{{
-   *   wsCall(controllers.routes.Application.index()).get()
-   * }}}
+   * Extracts the content as String.
    */
-  def wsCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wsUrl(call.url)
+  def contentAsString(of: Future[SimpleResult])(implicit timeout: Timeout): String = new String(contentAsBytes(of), charset(of).getOrElse("utf-8"))
 
   /**
-   * Construct a WS request for the given relative URL.
+   * Extracts the content as bytes.
    */
-  def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
+  def contentAsBytes(of: Future[SimpleResult])(implicit timeout: Timeout): Array[Byte] =
+    Await.result(Await.result(of, timeout.duration).body |>>> Iteratee.consume[Array[Byte]](), timeout.duration)
 
-  implicit def writeableOf_AnyContentAsJson(implicit codec: Codec): Writeable[AnyContentAsJson] =
-    Writeable.writeableOf_JsValue.map(c => c.json)
+  /**
+   * Extracts the content as Json.
+   */
+  def contentAsJson(of: Future[SimpleResult])(implicit timeout: Timeout): JsValue = Json.parse(contentAsString(of))
 
-  implicit def writeableOf_AnyContentAsXml(implicit codec: Codec): Writeable[AnyContentAsXml] =
-    Writeable.writeableOf_NodeSeq.map(c => c.xml)
+  /**
+   * Extracts the Status code of this Result value.
+   */
+  def status(of: Future[SimpleResult])(implicit timeout: Timeout): Int = Await.result(of, timeout.duration).header.status
 
-  implicit def writeableOf_AnyContentAsFormUrlEncoded(implicit code: Codec): Writeable[AnyContentAsFormUrlEncoded] =
-    Writeable.writeableOf_urlEncodedForm.map(c => c.data)
+  /**
+   * Extracts the Cookies of this Result value.
+   */
+  def cookies(of: Future[SimpleResult])(implicit timeout: Timeout): Cookies = Cookies(header(SET_COOKIE, of))
 
-  implicit def writeableOf_AnyContentAsRaw: Writeable[AnyContentAsRaw] =
-    Writeable.wBytes.map(c => c.raw.initialData)
+  /**
+   * Extracts the Flash values of this Result value.
+   */
+  def flash(of: Future[SimpleResult])(implicit timeout: Timeout): Flash = Flash.decodeFromCookie(cookies(of).get(Flash.COOKIE_NAME))
 
-  implicit def writeableOf_AnyContentAsText(implicit code: Codec): Writeable[AnyContentAsText] =
-    Writeable.wString.map(c => c.txt)
+  /**
+   * Extracts the Session of this Result value.
+   * Extracts the Session from this Result value.
+   */
+  def session(of: Future[SimpleResult])(implicit timeout: Timeout): Session = Session.decodeFromCookie(cookies(of).get(Session.COOKIE_NAME))
 
-  implicit def writeableOf_AnyContentAsEmpty(implicit code: Codec): Writeable[AnyContentAsEmpty.type] =
-    Writeable(_ => Array.empty[Byte], None)
+  /**
+   * Extracts the Location header of this Result value if this Result is a Redirect.
+   */
+  def redirectLocation(of: Future[SimpleResult])(implicit timeout: Timeout): Option[String] = Await.result(of, timeout.duration).header match {
+    case ResponseHeader(FOUND, headers) => headers.get(LOCATION)
+    case ResponseHeader(SEE_OTHER, headers) => headers.get(LOCATION)
+    case ResponseHeader(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
+    case ResponseHeader(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
+    case ResponseHeader(_, _) => None
+  }
+
+  /**
+   * Extracts an Header value of this Result value.
+   */
+  def header(header: String, of: Future[SimpleResult])(implicit timeout: Timeout): Option[String] = headers(of).get(header)
+
+  /**
+   * Extracts all Headers of this Result value.
+   */
+  def headers(of: Future[SimpleResult])(implicit timeout: Timeout): Map[String, String] = Await.result(of, timeout.duration).header.headers
 }
+
+object Helpers extends PlayRunners
+  with HeaderNames
+  with Status
+  with DefaultAwaitTimeout
+  with ResultExtractors
+  with Writeables
+  with RouteInvokers
+  with WsTestClient
+  with FutureAwaits

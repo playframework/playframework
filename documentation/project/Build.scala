@@ -2,10 +2,11 @@ import play.console.Colors
 import play.core.server.ServerWithStop
 import play.doc._
 import sbt._
-import Keys._
+import sbt.Keys._
 import PlayKeys._
 import play.core.{SBTLink, PlayVersion}
 import PlaySourceGenerators._
+import scala.Some
 
 object ApplicationBuild extends Build {
 
@@ -57,7 +58,11 @@ object ApplicationBuild extends Build {
 
     run <<= docsRunSetting,
 
-    DocValidation.validateDocs <<= DocValidation.ValidateDocsTask
+    DocValidation.validateDocs <<= DocValidation.ValidateDocsTask,
+
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
+    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
 
   )
 
