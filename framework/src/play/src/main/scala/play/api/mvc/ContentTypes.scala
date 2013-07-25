@@ -168,15 +168,27 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
   import play.api.libs.Files._
   import scala.collection.mutable._
 
-  private var inMemory = new ArrayBuffer[Byte] ++= initialData
-  private var backedByTemporaryFile: TemporaryFile = _
-  private var outStream: OutputStream = _
+  @volatile private var inMemory = if (initialData.length == 0) new Array[Byte](Math.min(memoryThreshold, 8192)) else initialData
+  @volatile private var position = initialData.length
+  @volatile private var backedByTemporaryFile: TemporaryFile = _
+  @volatile private var outStream: OutputStream = _
 
   private[play] def push(chunk: Array[Byte]) {
     if (inMemory != null) {
-      inMemory ++= chunk
-      if (inMemory.size > memoryThreshold) {
+      if (chunk.length + size > memoryThreshold) {
         backToTemporaryFile()
+        outStream.write(chunk)
+      } else {
+        val needed = chunk.length + position
+        val current = inMemory.length
+        if (needed > current) {
+          val newCapacity = Math.max(needed, current + (current >> 1))
+          val old = inMemory
+          inMemory = new Array[Byte](newCapacity)
+          System.arraycopy(old, 0, inMemory, 0, position)
+        }
+        System.arraycopy(chunk, 0, inMemory, position, chunk.length)
+        position = needed
       }
     } else {
       outStream.write(chunk)
@@ -192,7 +204,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
   private[play] def backToTemporaryFile() {
     backedByTemporaryFile = TemporaryFile("requestBody", "asRaw")
     outStream = new FileOutputStream(backedByTemporaryFile.file)
-    outStream.write(inMemory.toArray)
+    outStream.write(inMemory, 0, position)
     inMemory = null
   }
 
@@ -200,7 +212,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
    * Buffer size.
    */
   def size: Long = {
-    if (inMemory != null) inMemory.size else backedByTemporaryFile.file.length
+    if (inMemory != null) position else backedByTemporaryFile.file.length
   }
 
   /**
@@ -212,7 +224,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
   def asBytes(maxLength: Int = memoryThreshold): Option[Array[Byte]] = {
     if (size <= maxLength) {
       if (inMemory != null) {
-        Some(inMemory.toArray)
+        Some(inMemory.take(position))
       } else {
         val inStream = new FileInputStream(backedByTemporaryFile.file)
         try {
