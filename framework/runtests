@@ -25,7 +25,7 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean-all test test-dist
+$PLAY "$@" clean-all test
 
 cd $CURRENT
 

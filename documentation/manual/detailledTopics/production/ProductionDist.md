@@ -2,7 +2,7 @@
 
 ## Using the dist task
 
-The simplest way to deploy a Play 2.1 application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
+The simplest way to deploy a Play 2 application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
 
 However, you sometimes need to build a binary version of your application and deploy it to the server without any dependencies on Play itself. You can do this with the `dist` task.
 
@@ -14,27 +14,43 @@ In the Play console, simply type `dist`:
 
 [[images/dist.png]]
 
-> one can easily use an external application.conf by using a special system property called ```conf.file```, so assuming your production ```application.conf``` is stored under your home directory, the following command should create a play distribution using the custom ```application.conf```:_ 
-> ```bash
->  $ play -Dconfig.file=/home/peter/prod/application.conf dist 
-> ```
-
-This produces a ZIP file containing all JAR files needed to run your application in the `target` folder of your application, the ZIP file’s contents are organized as:
-
-```
-my-first-application-1.0
- └ lib
-    └ *.jar
- └ start
-```
-
-You can use the generated `start` script to run your application.
-
-Alternatively you can run `play dist` directly from your OS shell prompt, which does the same thing:
+This produces a ZIP file containing all JAR files needed to run your application in the `target/universal` folder of your application. Alternatively you can run `play dist` directly from your OS shell prompt, which does the same thing:
 
 ```bash
 $ play dist
 ```
+
+> For Windows users a start script will be produced with a .bat file extension. Use this file when running a Play application on Windows.
+>
+> For Unix users, zip files do not retain Unix file permissions so when the file is expanded the start script will be required to be set as an executable:
+>
+> ```bash
+> $ chmod +x /path/to/bin/<project-name>
+> ```
+>
+> Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:package-zip-tarball` task instead of the `dist` task:
+>
+> ```bash
+> play universal:package-zip-tarball
+> ```
+
+## The Native Packager
+
+Play uses the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
+
+```bash
+$ play universal:package-bin
+```
+
+Many other types of archive can be generated including:
+
+* tar.gz
+* OS X disk images
+* Microsoft Installer (MSI)
+* RPMs
+* Debian files
+
+Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager for more information.
 
 ## Publishing to a Maven (or Ivy) repository
 

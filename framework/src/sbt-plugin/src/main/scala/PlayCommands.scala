@@ -17,37 +17,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   val SCALA = "scala"
   val NONE = "none"
 
-  /**
-   * Executes the {{packaged-artifacts}} task in the current project (the project to which this setting is applied)
-   * and all of its dependencies, yielding a list of all resulting {{jar}} files *except*:
-   *
-   * * jar files from artifacts with names in [[sbt.PlayKeys.distExcludes]]
-   * * the jar file that is returned by {{packageSrc in Compile}}
-   * * the jar file that is returned by {{packageDoc in Compile}}
-   */
-  val playPackageEverythingTask = (state, thisProjectRef, distExcludes).flatMap { (state, project, excludes) =>
-    def taskInAllDependencies[T](taskKey: TaskKey[T]): Task[Seq[T]] =
-      inAllDependencies(project, taskKey.task, Project structure state).join
-
-    for {
-      packaged <- taskInAllDependencies(packagedArtifacts)
-      srcs <- taskInAllDependencies(packageSrc in Compile)
-      docs <- taskInAllDependencies(packageDoc in Compile)
-    } yield {
-      val allJars: Seq[Iterable[File]] = for {
-        artifacts: Map[Artifact, File] <- packaged
-      } yield {
-        artifacts
-          .filter { case (artifact, _) => artifact.extension == "jar" && !excludes.contains(artifact.name) }
-          .map { case (_, path) => path }
-      }
-      allJars
-        .flatten
-        .diff(srcs ++ docs) //remove srcs & docs since we do not need them in the dist
-        .distinct
-    }
-  }
-
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
   val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>
     val cacheFile = c / "copy-assets"
@@ -88,64 +57,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     analysises.reduceLeft(_ ++ _)
   }
 
-  val dist = TaskKey[File]("dist", "Build the standalone application package")
-  val distTask = (distDirectory, baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, normalizedName, version) map { (dist, root, packaged, dependencies, target, id, version) =>
-
-    import sbt.NameFilter._
-
-    val packageName = id + "-" + version
-    val zip = dist / (packageName + ".zip")
-
-    IO.delete(dist)
-    IO.createDirectory(dist)
-
-    val libs = {
-      dependencies.filter(_.data.ext == "jar").map { dependency =>
-        val filename = for {
-          module <- dependency.metadata.get(AttributeKey[ModuleID]("module-id"))
-          artifact <- dependency.metadata.get(AttributeKey[Artifact]("artifact"))
-        } yield {
-          module.organization + "." + module.name + "-" + Option(artifact.name.replace(module.name, "")).filterNot(_.isEmpty).map(_ + "-").getOrElse("") + module.revision + ".jar"
-        }
-        val path = ("lib/" + filename.getOrElse(dependency.data.getName))
-        dependency.data -> path
-      } ++ packaged.map(jar => jar -> ("lib/" + jar.getName))
-    }
-
-    val start = target / "start"
-
-    val customConfig = Option(System.getProperty("config.file"))
-    val customFileName = customConfig.map(f => Some((new File(f)).getName)).getOrElse(None)
-
-    IO.write(start,
-      """#!/usr/bin/env sh
-scriptdir=`dirname $0`
-classpath=""" + libs.map { case (jar, path) => "$scriptdir/" + path }.mkString("\"", ":", "\"") + """
-exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirname $0`/" + fn + " ").getOrElse("") + """play.core.server.NettyServer `dirname $0`
-""" /* */ )
-    val scripts = Seq(start -> (packageName + "/start"))
-
-    val other = Seq((root / "README") -> (packageName + "/README"))
-
-    val productionConfig = customFileName.map(fn => target / fn).getOrElse(target / "application.conf")
-
-    val prodApplicationConf = customConfig.map { location =>
-      val customConfigFile = new File(location)
-      IO.copyFile(customConfigFile, productionConfig)
-      Seq(productionConfig -> (packageName + "/" + customConfigFile.getName))
-    }.getOrElse(Nil)
-
-    IO.zip(libs.map { case (jar, path) => jar -> (packageName + "/" + path) } ++ scripts ++ other ++ prodApplicationConf, zip)
-    IO.delete(start)
-    IO.delete(productionConfig)
-
-    println()
-    println("Your application is ready in " + zip.getCanonicalPath)
-    println()
-
-    zip
-  }
-
   def intellijCommandSettings = {
     import org.sbtidea.SbtIdeaPlugin
 
@@ -172,38 +83,6 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         })
       }
     )
-  }
-
-  val playStage = TaskKey[Unit]("stage")
-  val playStageTask = (baseDirectory, playPackageEverything, dependencyClasspath in Runtime, target, streams) map { (root, packaged, dependencies, target, s) =>
-
-    import sbt.NameFilter._
-
-    val staged = target / "staged"
-
-    IO.delete(staged)
-    IO.createDirectory(staged)
-
-    val libs = dependencies.filter(_.data.ext == "jar").map(_.data) ++ packaged
-
-    libs.foreach { jar =>
-      IO.copyFile(jar, new File(staged, jar.getName))
-    }
-
-    val start = target / "start"
-    IO.write(start,
-      """|#!/usr/bin/env sh
-         |
-         |exec java $@ -cp "`dirname $0`/staged/*" play.core.server.NettyServer `dirname $0`/..
-         |""".stripMargin)
-
-    "chmod a+x %s".format(start.getAbsolutePath) !
-
-    s.log.info("")
-    s.log.info("Your application is ready to be run in place: target/start")
-    s.log.info("")
-
-    ()
   }
 
   // ----- Post compile (need to be refactored and fully configurable)
