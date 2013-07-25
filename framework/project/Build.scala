@@ -97,7 +97,6 @@ object BuildSettings {
         publishArtifact in packageDoc := false,
         publishArtifact in (Compile, packageSrc) := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
-
   }
 }
 
