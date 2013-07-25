@@ -219,10 +219,13 @@ trait PlaySettings {
         }
     },
 
-    mappings in Universal <+= (baseDirectory) map {
+    mappings in Universal <++= (baseDirectory) map {
       baseDirectory: File =>
-        val readMe = "README"
-        (baseDirectory / readMe) -> readMe
+        val pathFinder = baseDirectory * "README*"
+        pathFinder.get map {
+          readmeFile: File =>
+            readmeFile -> readmeFile.getName
+        }
     }
 
   )
