@@ -1,23 +1,19 @@
 package scalaguide.akka {
 
-
-import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import scala.concurrent.duration._
 
 import akka.actor.{Actor, Props}
 import akka.pattern.ask
-import akka.util.Timeout
 
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import play.api.test._
-import play.api.test.Helpers._
 import java.io.File
 
 @RunWith(classOf[JUnitRunner])
-class ScalaAkkaSpec extends Specification {
+class ScalaAkkaSpec extends PlaySpecification {
 
   "A scala Akka" should {
 
@@ -26,11 +22,10 @@ class ScalaAkkaSpec extends Specification {
         //#play-akka-myactor
         val myActor = Akka.system.actorOf(Props[MyActor], name = "myactor")
         //#play-akka-myactor
-        implicit val timeout = Timeout(5, SECONDS)
 
-        val future = myActor ? "Alan"
+        val future = myActor.ask("Alan")(5 seconds)
         val result = await(future).asInstanceOf[String]
-        result must contain("Hello")
+        result must contain("Hello, Alan")
       }
     }
 
@@ -70,7 +65,9 @@ class ScalaAkkaSpec extends Specification {
 
 class MyActor extends Actor {
   def receive = {
-    case s: String => sender ! "Hello," + s
+    case s: String =>
+      println(s)
+      sender ! "Hello, " + s
   }
 }
 

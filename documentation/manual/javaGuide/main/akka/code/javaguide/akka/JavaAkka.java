@@ -32,7 +32,7 @@ public class JavaAkka extends WithApplication {
         //#actor-for
 
         latch = new CountDownLatch(1);
-        myActor.tell("hello");
+        myActor.tell("hello", null);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
@@ -65,7 +65,7 @@ public class JavaAkka extends WithApplication {
     public static class EchoActor extends UntypedActor {
         @Override
         public void onReceive(Object msg) throws Exception {
-            sender().tell("got " + msg);
+            sender().tell("got " + msg, null);
         }
     }
 
@@ -89,7 +89,8 @@ public class JavaAkka extends WithApplication {
                 Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
                 testActor,
                 "tick",
-                Akka.system().dispatcher()
+                Akka.system().dispatcher(),
+                null
         );
         //#schedule-actor
         assertTrue(latch.await(5, TimeUnit.SECONDS));

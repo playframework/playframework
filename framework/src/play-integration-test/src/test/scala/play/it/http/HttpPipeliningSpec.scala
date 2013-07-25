@@ -1,8 +1,6 @@
 package play.it.http
 
-import org.specs2.mutable.Specification
 import play.api.mvc.{Results, EssentialAction}
-import play.api.test.Helpers._
 import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.concurrent.Promise
@@ -12,7 +10,7 @@ import scala.concurrent.Future
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object HttpPipeliningSpec extends Specification {
+object HttpPipeliningSpec extends PlaySpecification {
 
   "Play's http pipelining support" should {
 

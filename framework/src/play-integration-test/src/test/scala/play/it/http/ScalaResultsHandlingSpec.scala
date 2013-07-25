@@ -1,15 +1,13 @@
 package play.it.http
 
-import org.specs2.mutable._
 import play.api.mvc._
 import play.api.test._
-import play.api.test.Helpers._
 import play.api.libs.ws.Response
 import play.api.libs.iteratee._
 
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
 
-object ScalaResultsHandlingSpec extends Specification {
+object ScalaResultsHandlingSpec extends PlaySpecification {
 
   "scala body handling" should {
 
