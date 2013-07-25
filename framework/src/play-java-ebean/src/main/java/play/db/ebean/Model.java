@@ -682,13 +682,6 @@ public class Model {
         }
 
         /**
-         * Sets whether to use 'vanilla mode', in which the returned beans and collections will be plain classes rather than Ebean-generated dynamic subclasses etc.
-         */
-        public Query<T> setVanillaMode(boolean vanillaMode) {
-            return query().setVanillaMode(vanillaMode);
-        }
-
-        /**
          * Adds expressions to the <code>where</code> clause with the ability to chain on the <code>ExpressionList</code>.
          */
         public ExpressionList<T> where() {

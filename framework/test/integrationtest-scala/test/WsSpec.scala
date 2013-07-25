@@ -46,6 +46,6 @@ object WsSpec extends Specification {
   }
 
   def slave(toReturn: ToReturn)(implicit port: Port): Response =
-    await(wsCall(controllers.routes.TestController.slave()).post(Json.toJson(toReturn)))
+    Helpers.await(wsCall(controllers.routes.TestController.slave()).post(Json.toJson(toReturn)))
 
 }

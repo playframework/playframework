@@ -35,6 +35,7 @@ class ScalaGlobalSpec extends Specification with Controller {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"),withGlobal=Some(Global))) {
         println("Hello")
       }
+      success
     }
 
     "hooking global to log when error" in {

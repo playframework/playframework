@@ -1,9 +1,7 @@
 package test
 
 import play.api.test._
-import play.api.test.Helpers._
 import play.api.libs.ws._
-import org.specs2.mutable._
 import models._
 import models.Protocol._
 import java.util.Calendar
@@ -12,8 +10,7 @@ import play.api.libs.iteratee.Iteratee
 import play.api.libs.ws.ResponseHeaders
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
-class FunctionalSpec extends Specification {
+class FunctionalSpec extends PlaySpecification {
   "an Application" should {
     
 

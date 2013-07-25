@@ -1,13 +1,11 @@
 package play.it.http
 
-import org.specs2.mutable.Specification
 import play.api.mvc._
-import play.api.test.Helpers._
 import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.iteratee._
 
-object Expect100ContinueSpec extends Specification {
+object Expect100ContinueSpec extends PlaySpecification {
 
   "Play" should {
 

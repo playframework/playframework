@@ -2,15 +2,14 @@ package scalaguide.http.scalaresults {
 
   import play.api.mvc._
   import play.api.test._
-  import play.api.test.Helpers._
-  import org.specs2.mutable.Specification
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
   import play.api.http.HeaderNames
   import scala.concurrent.Future
+  import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaResultsSpec extends Specification with Controller {
+  class ScalaResultsSpec extends PlaySpecification with Controller {
 
     "A scala result" should {
       "default result Content-Type" in {
@@ -81,11 +80,11 @@ package scalaguide.http.scalaresults {
       results.header.headers.get(key).get must contain(value)
     }
 
-    def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) {
-      assertAction(action, expectedResponse, request) { result => }
+    def testAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest()) = {
+      assertAction(action, expectedResponse, request) { result => success }
     }
 
-    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[SimpleResult] => Unit) {
+    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[SimpleResult] => T) = {
       running(FakeApplication()) {
         val result = action(request)
         status(result) must_== expectedResponse

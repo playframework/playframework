@@ -21,15 +21,15 @@ object ConfigurationSpec extends Specification {
 
     "be accessible as an entry set" in {
       val map = Map(exampleConfig.entrySet.toList:_*)
-      map.keySet must contain("foo.bar1", "foo.bar2", "blah", "blah2.blah3.blah4").only
+      map.keySet must contain(exactly("foo.bar1", "foo.bar2", "blah", "blah2.blah3.blah4"))
     }
 
     "make all paths accessible" in {
-      exampleConfig.keys must contain("foo.bar1", "foo.bar2", "blah", "blah2.blah3.blah4").only
+      exampleConfig.keys must contain(exactly("foo.bar1", "foo.bar2", "blah", "blah2.blah3.blah4"))
     }
 
     "make all sub keys accessible" in {
-      exampleConfig.subKeys must contain("foo", "blah", "blah2").only
+      exampleConfig.subKeys must contain(exactly("foo", "blah", "blah2"))
     }
 
   }
