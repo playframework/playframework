@@ -22,7 +22,7 @@ info("Running Play pre commit hook...")
 def status = "git status -s".!!.split("\r?\n").toSeq
 
 val stagedFiles = status
-  .filter(_.charAt(0) != ' ')
+  .filter(_.headOption.map(_ != ' ').getOrElse(false))
   .map(_.drop(3).takeWhile(_ != ' '))
   .filter(_.startsWith("framework/src"))
   .filter(_.endsWith(".scala"))
