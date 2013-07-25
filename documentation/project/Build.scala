@@ -133,7 +133,12 @@ object ApplicationBuild extends Build {
     state
   }
 
-  private val consoleReader = new jline.console.ConsoleReader
+  private lazy val consoleReader = {
+    val cr = new jline.console.ConsoleReader
+    // Because jline, whenever you create a new console reader, turns echo off. Stupid thing.
+    cr.getTerminal.setEchoEnabled(true)
+    cr
+  }
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)
