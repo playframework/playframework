@@ -343,40 +343,47 @@ object JsonExtensionSpec extends Specification {
       implicit val XReads = Json.reads[X]
       implicit val XWrites = Json.writes[X]
       implicit val XFormat = Json.format[X]
+      success
     }
 
     "test inception with overriden object" in {      
       implicit val programFormat = Json.reads[Program]
+      success
     }
 
     "test case class 1 field" in {
       implicit val totoReads = Json.reads[Toto]
       implicit val totoWrites = Json.writes[Toto]
       implicit val totoFormat = Json.format[Toto]
+      success
     }
 
     "test case class 1 field option" in {
       implicit val toto2Reads = Json.reads[Toto2]
       implicit val toto2Writes = Json.writes[Toto2]
       implicit val toto2Format = Json.format[Toto2]
+      success
     }
 
     "test case class 1 field list" in {
       implicit val toto3Reads = Json.reads[Toto3]
       implicit val toto3Writes = Json.writes[Toto3]
       implicit val toto3Format = Json.format[Toto3]
+      success
     }
 
     "test case class 1 field set" in {
       implicit val toto4Reads = Json.reads[Toto4]
       implicit val toto4Writes = Json.writes[Toto4]
       implicit val toto4Format = Json.format[Toto4]
+      success
     }
 
     "test case class 1 field map" in {
       implicit val toto5Reads = Json.reads[Toto5]
       implicit val toto5Writes = Json.writes[Toto5]
       implicit val toto5Format = Json.format[Toto5]
+      success
     }
 
     "test case class 1 field seq[Dog]" in {

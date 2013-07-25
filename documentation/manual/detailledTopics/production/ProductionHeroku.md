@@ -1,6 +1,6 @@
 # Deploying to Heroku
 
-[Heroku](http://www.heroku.com/) is a cloud application platform – a new way of building and deploying web apps.
+[Heroku](http://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.
 
 To get started:
 
@@ -56,7 +56,7 @@ To git@heroku.com:floating-lightning-8044.git
 * [new branch]      master -> master
 ```
 
-Heroku will run `sbt clean compile stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but will be cached for future deployments).
+Heroku will run `sbt clean stage` to prepare your application. On the first deployment, all dependencies will be downloaded, which takes a while to complete (but will be cached for future deployments).
 
 
 ## Check that your application has been deployed
@@ -67,14 +67,14 @@ Now, let’s check the state of the application’s processes:
 $ heroku ps
 Process       State               Command
 ------------  ------------------  ----------------------
-web.1         up for 10s          target/start 
+web.1         up for 10s          target/universal/stage/bin/myapp 
 ```
 
 The web process is up.  Review the logs for more information:
 
 ```bash
 $ heroku logs
-2011-08-18T00:13:41+00:00 heroku[web.1]: Starting process with command `target/start`
+2011-08-18T00:13:41+00:00 heroku[web.1]: Starting process with command `target/universal/stage/bin/myapp`
 2011-08-18T00:14:18+00:00 app[web.1]: Starting on port:28328
 2011-08-18T00:14:18+00:00 app[web.1]: Started.
 2011-08-18T00:14:19+00:00 heroku[web.1]: State changed from starting to up
@@ -96,10 +96,10 @@ Heroku provides a number of relational and NoSQL databases through [Heroku Add-o
 "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 ```
 
-Then create a new file in your project's root directory named `Procfile` (with a capital "P") that contains the following:
+Then create a new file in your project's root directory named `Procfile` (with a capital "P") that contains the following (substituting the `myapp` with your project's name):
 
 ```txt
-web: target/start -Dhttp.port=${PORT} ${JAVA_OPTS} -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
+web: bin/myapp -Dhttp.port=${PORT} ${JAVA_OPTS} -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
 ```
 
 This instructs Heroku that for the process named `web` it will run Play and override the `applyEvolutions.default`, `db.default.driver`, and `db.default.url` configuration parameters.  Note that the `Procfile` command can be maximum 255 characters long.  Alternatively, use the `-Dconfig.resource=` or `-Dconfig.file=` mentioned in [[production configuration|ProductionConfiguration]] page.

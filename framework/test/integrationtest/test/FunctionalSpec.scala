@@ -1,9 +1,7 @@
 package test
 
 import play.api.test._
-import play.api.test.Helpers._
 import play.api.libs.ws._
-import org.specs2.mutable._
 import models._
 import models.Protocol._
 import java.util.Calendar
@@ -15,8 +13,7 @@ import play.core.server.noCATrustManager
 import com.ning.http.client.AsyncHttpClient
 import javax.net.ssl.{SSLSession, HostnameVerifier}
 
-
-class FunctionalSpec extends Specification {
+class FunctionalSpec extends PlaySpecification {
   "an Application" should {
     
     val  trustAllservers = {

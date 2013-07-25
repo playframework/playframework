@@ -23,7 +23,7 @@ val result: Future[ws.Response] = {
 
 ## Retrieving the HTTP response result
 
-The call is asynchronous and you need to manipulate it as a `Promise[ws.Response]` to get the actual content. You can compose several promises and end with a `Promise[Result]` that can be handled directly by the Play server:
+The call is asynchronous and you need to manipulate it as a `Future[ws.Response]` to get the actual content. You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server:
 
 ```scala
 def feedTitle(feedUrl: String) = Action {

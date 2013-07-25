@@ -1,16 +1,14 @@
 package test
 
 import play.api.test._
-import play.api.test.Helpers._
 
-import org.specs2.mutable._
 import models._
 import play.api.mvc.AnyContentAsEmpty
 import module.Routes
 
 import scala.concurrent.Future
 
-class ApplicationSpec extends Specification {
+class ApplicationSpec extends PlaySpecification {
 
   "an Application" should {
   
@@ -216,7 +214,6 @@ class ApplicationSpec extends Specification {
     }
 
     "test Accept header mime-types" in {
-      import play.api.http.HeaderNames._
       "Scala API" in new WithApplication() {
         val url = controllers.routes.Application.accept().url
         val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))

@@ -48,6 +48,7 @@ object OrderedExecutionContextSpec extends Specification {
       }
 
       actorSystem.shutdown()
+      success
     }
 
   }

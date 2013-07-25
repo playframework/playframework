@@ -7,6 +7,7 @@ package scalaguide.http.scalasessionflash {
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
   import scala.concurrent.Future
+  import org.specs2.execute.AsResult
 
   @RunWith(classOf[JUnitRunner])
   class ScalaSessionFlashSpec extends Specification with Controller {
@@ -120,7 +121,7 @@ package scalaguide.http.scalasessionflash {
       session.get(key) === value
     }
 
-    def assertAction[A](action: Action[A], expectedResponse: Int = OK, request: => Request[A] = FakeRequest())(assertions: Future[SimpleResult] => Unit) {
+    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: => Request[A] = FakeRequest())(assertions: Future[SimpleResult] => T) = {
       val fakeApp = FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))
       running(fakeApp) {
         val result = action(request)

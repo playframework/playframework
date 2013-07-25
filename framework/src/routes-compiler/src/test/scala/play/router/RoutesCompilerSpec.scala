@@ -3,10 +3,36 @@ package play.router
 import org.specs2.mutable.Specification
 import play.router.RoutesCompiler._
 import java.io.File
+import org.specs2.execute.Result
 
 object RoutesCompilerSpec extends Specification {
 
   "route file parser" should {
+
+    def parseRoute(line: String) = {
+      val rule = parseRule(line)
+      rule must beAnInstanceOf[Route]
+      rule.asInstanceOf[Route]
+    }
+
+    def parseRule(line: String) = {
+      val parser = new RouteFileParser
+      val result = parser.parse(line)
+      def describeResult[T](result: parser.ParseResult[T]) = result match {
+        case parser.NoSuccess(msg, _) => msg
+        case _ => "successful"
+      }
+      result.successful aka describeResult(result) must_== true
+      result.get.size must_== 1
+      result.get.head
+    }
+
+    def parseError(line: String): Result = {
+      val parser = new RouteFileParser
+      val result = parser.parse(line)
+      result must beAnInstanceOf[parser.NoSuccess]
+    }
+
     "parse the HTTP method" in {
       parseRoute("GET /s p.c.m").verb must_== HttpVerb("GET")
     }
@@ -84,7 +110,7 @@ object RoutesCompilerSpec extends Specification {
     }
 
     "parse a comment with a route" in {
-      parseRoute("# some comment\nGET /s p.c.m").comments must contain(Comment(" some comment")).only
+      parseRoute("# some comment\nGET /s p.c.m").comments must containTheSameElementsAs(Seq(Comment(" some comment")))
     }
 
     "throw an error for an unexpected line" in parseError("foo")
@@ -94,31 +120,6 @@ object RoutesCompilerSpec extends Specification {
     "throw an error if no method specified" in parseError("GET /s p.c")
     "throw an error for an invalid include path" in parseError("-> s someFile")
     "throw an error if no include file specified" in parseError("-> /s")
-
-    def parseRoute(line: String) = {
-      val rule = parseRule(line)
-      rule must beAnInstanceOf[Route]
-      rule.asInstanceOf[Route]
-    }
-
-    def parseRule(line: String) = {
-      val parser = new RouteFileParser
-      val result = parser.parse(line)
-      def describeResult[T](result: parser.ParseResult[T]) = result match {
-        case parser.NoSuccess(msg, _) => msg
-        case _ => "successful"
-      }
-      result.successful aka describeResult(result) must_== true
-      result.get.size must_== 1
-      result.get.head
-    }
-
-    def parseError(line: String) = {
-      val parser = new RouteFileParser
-      val result = parser.parse(line)
-      result must beAnInstanceOf[parser.NoSuccess]
-    }
-
   }
 
   "route file compiler" should {

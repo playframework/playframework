@@ -27,7 +27,8 @@ import java.nio.channels.ClosedChannelException
 import scala.util.control.NonFatal
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
-
+import scala.concurrent.Future
+import java.net.URI
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
@@ -41,13 +42,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
       case e: ClosedChannelException => {
         // One example of when this happens is when renegotiating SSL to use peer certificates in Chrome,
         // Chrome doesn't support renegotiation properly, so it just closes the channel and reconnects.
-        Logger.debug("Channel closed early", e)
+        Logger.trace("Channel closed early", e)
       }
       case e: SSLHandshakeException => {
         // This could be thrown when requesting a peer certificate, and none is provided
-        Logger.debug("SSL Handshake exception", e)
+        Logger.trace("SSL Handshake exception", e)
       }
-      case _ => Logger.warn("Exception caught in Netty", e.getCause)
+      case _ => Logger.debug("Exception caught in Netty", e.getCause)
     }
     e.getChannel.close()
   }
@@ -142,7 +143,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             val id = requestIDs.incrementAndGet
             val tags = Map.empty[String,String]
             def uri = nettyHttpRequest.getUri
-            def path = nettyUri.getPath
+            def path = new URI(nettyUri.getPath).getRawPath //wrapping into URI to handle absoluteURI
             def method = nettyHttpRequest.getMethod.getName
             def version = nettyVersion.getText
             def queryString = parameters

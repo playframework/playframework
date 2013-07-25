@@ -8,6 +8,7 @@ import scala.concurrent.Future
 import xml.NodeSeq
 import play.core.Router
 import scala.runtime.AbstractPartialFunction
+import play.api.libs.Files.TemporaryFile
 
 /**
  * Fake HTTP headers implementation.
@@ -146,6 +147,13 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    */
   def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
     _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  }
+
+  /**
+   * Adds a multipart form data body to the request
+   */
+  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
+    _copy(body = AnyContentAsMultipartFormData(form))
   }
 
   /**

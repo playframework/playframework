@@ -2,24 +2,28 @@ package scalaguide.upload.fileupload {
 
   import play.api.mvc._
   import play.api.test._
-  import play.api.test.Helpers._
-  import org.specs2.mutable.Specification
-  import play.api.libs.json._
-  import play.api.libs.iteratee.Enumerator
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import scala.concurrent.Future
   import java.io.File
 
   import controllers._
+  import scalax.file.Path
+  import play.api.libs.Files.TemporaryFile
+  import play.api.mvc.MultipartFormData.FilePart
 
   @RunWith(classOf[JUnitRunner])
-  class ScalaFileUploadSpec extends Specification with Controller {
+  class ScalaFileUploadSpec extends PlaySpecification with Controller {
 
     "A scala file upload" should {
 
       "upload file" in {
-        new File("/tmp/picture").mkdirs
+        val tmpFile = new File("/tmp/picture/tmpformuploaded")
+        Path(tmpFile).write("hello")
+
+        new File("/tmp/picture").mkdirs()
+        val uploaded = new File("/tmp/picture/formuploaded")
+        uploaded.delete()
+
         //#upload-file-action
         def upload = Action(parse.multipartFormData) { request =>
           request.body.file("picture").map { picture =>
@@ -35,33 +39,40 @@ package scalaguide.upload.fileupload {
         }
         //#upload-file-action
 
-        val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
-        testAction(upload, request, BAD_REQUEST)
+        val request = FakeRequest().withBody(
+          MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, TemporaryFile(tmpFile))), Nil, Nil)
+        )
+        testAction(upload, request)
+
+        uploaded.delete()
+        success
       }
 
       "upload file directly" in {
-        
-        new File("/tmp/picture").mkdirs
-        new File("/tmp/picture/uploaded").delete
-        def upload = controllers.Application.upload
-        
-        val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
-        testAction(upload, request)
+        val tmpFile = new File("/tmp/picture/tmpuploaded")
+        Path(tmpFile).write("hello")
 
-      }
+        new File("/tmp/picture").mkdirs()
+        val uploaded = new File("/tmp/picture/uploaded")
+        uploaded.delete()
 
-      def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) {
-        assertAction(action, request, expectedResponse) { result => }
-      }
+        val request = FakeRequest().withBody(TemporaryFile(tmpFile))
+        testAction(controllers.Application.upload, request)
 
-      def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
-        running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
-          val result = action(request).run
-          status(result) must_== expectedResponse
-          assertions(result)
-        }
+        uploaded.delete()
+        success
       }
     }
+
+    def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
+      running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
+
+        val result = action(request)
+
+        status(result) must_== expectedResponse
+      }
+    }
+
   }
   package controllers {
     object Application extends Controller {

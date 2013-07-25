@@ -13,17 +13,17 @@ class PromiseSpec extends Specification {
 
     "filter" in new WithApplication {
 
-      "Redeemed values" << {
+      "Redeemed values" in {
         val p = Promise.timeout(42, 100)
         p.filter(_ == 42).value1.get must equalTo (42)
       }
 
-      "Redeemed values not matching the predicate" << {
+      "Redeemed values not matching the predicate" in {
         val p = Promise.timeout(42, 100)
         p.filter(_ != 42).value1.get must throwA [NoSuchElementException]
       }
 
-      "Thrown values" << {
+      "Thrown values" in {
         val p = Promise.timeout(42, 100).map[Int]{ _ => throw new Exception("foo") }
         p.filter(_ => true).value1.get must throwAn [Exception](message = "foo")
       }
