@@ -53,7 +53,7 @@ object Invoker {
   /**
    * provides actor helper
    */ 
-  case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application)
+  case class HandleAction[A](request: Request[A], response: Response, action: Action[A], app: Application, closeConnection: Boolean)
 
   private var invokerOption: Option[Invoker] = None
 
@@ -118,7 +118,7 @@ class ActionInvoker extends Actor {
       sender ! (bodyParser(request))
     }
 
-    case Invoker.HandleAction(request, response: Response, action, app: Application) => {
+    case Invoker.HandleAction(request, response: Response, action, app: Application, closeConnection) => {
 
       val result = try {
         try {
@@ -162,7 +162,7 @@ class ActionInvoker extends Actor {
         }
       }
 
-      response.handle {
+      response.handle({
 
         // Handle Flash Scope (probably not the good place to do it)
         result match {
@@ -188,7 +188,7 @@ class ActionInvoker extends Actor {
           case r => r
         }
 
-      }
+      }, closeConnection)
 
     }
   }

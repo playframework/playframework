@@ -1,15 +1,9 @@
 package play.core.server.netty
 
-import org.jboss.netty.buffer._
 import org.jboss.netty.channel._
-import org.jboss.netty.bootstrap._
-import org.jboss.netty.channel.Channels._
 import org.jboss.netty.handler.codec.http._
-import org.jboss.netty.channel.socket.nio._
-import org.jboss.netty.handler.stream._
 
 import org.jboss.netty.channel.group._
-import java.util.concurrent._
 
 import play.core._
 import server.Server
@@ -19,11 +13,10 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.concurrent._
 
-import scala.collection.JavaConverters._
 
 private[server] trait RequestBodyHandler {
 
-  def newRequestBodyHandler[R](firstIteratee: Iteratee[Array[Byte], Either[Result, R]], allChannels: DefaultChannelGroup, server: Server): (Promise[Iteratee[Array[Byte], Either[Result, R]]], SimpleChannelUpstreamHandler) = {
+  def newRequestBodyHandler[R](firstIteratee: Iteratee[Array[Byte], Either[Result, R]], allChannels: DefaultChannelGroup, server: Server): (Promise[Either[Result, R]], SimpleChannelUpstreamHandler) = {
     var redeemed = false
     var p = Promise[Iteratee[Array[Byte], Either[Result, R]]]()
     val MAX_MESSAGE_WATERMARK = 10
@@ -67,7 +60,7 @@ private[server] trait RequestBodyHandler {
       }
     }
 
-    (p, new SimpleChannelUpstreamHandler {
+    (p.flatMap(_.run), new SimpleChannelUpstreamHandler {
       override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
         e.getMessage match {
 
