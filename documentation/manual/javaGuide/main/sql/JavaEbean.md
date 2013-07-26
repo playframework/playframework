@@ -116,13 +116,24 @@ List<Task> tasks = find.where()
 
 ## Transactional actions
 
-By default Ebean will not use transactions. However, you can use any transaction helper provided by Ebean to create a transaction. For example:
+By default Ebean will use transactions. However this transactions will be created before and commited or rollbacked after every single query, update, create or delete, as you can see here:
 
-:: Rob Bygrave - 
-The above statement is not correct. Ebean will use implicit transactions. To demarcate transactions you have 3 options: @Transactional, TxRunnable() or a beginTransaction(), commitTransaction()
+```
+//Created implicit transaction
+List<User> users =   
+            Ebean.find(User.class)  
+                .join("customer")  
+                .where().eq("state", UserState.ACTIVE)  
+                .findList();  
+//Transaction commited or rollbacked
 
-See http://www.avaje.org/ebean/introtrans.html for examples and an explanation.
-:: - end note
+//Created implicit transaction
+Ebean.save(user);
+//Transaction commited or rollbacked
+
+```
+
+So, if you want to do more than one action in the same transaction you can use TxRunnable and TxCallable:
 
 ```
 // run in Transactional scope...  
@@ -145,13 +156,33 @@ Ebean.execute(new TxRunnable() {
 });
 ```
 
-You can also annotate your action method with `@play.db.ebean.Transactional` to compose your action method with an `Action` that will automatically manage a transaction:
+You can also, if the class is a POJO one, annotate your action method with `@play.db.ebean.Transactional` to compose your action method with an `Action` that will automatically manage a transaction:
 
 ```
 @Transactional
 public static Result save() {
   ...
 }
+```
+
+Or if you want a more traditional approach you can begin, commit and rollback transactions explicitly:
+
+```
+Ebean.beginTransaction();  
+try {  
+    // fetch some stuff...  
+    User u = Ebean.find(User.class, 1);  
+    ...  
+  
+    // save or delete stuff...  
+    Ebean.save(u);  
+    ...  
+  
+    Ebean.commitTransaction();  
+      
+} finally {  
+    Ebean.endTransaction();  
+}  
 ```
 
 > **Next:** [[Integrating with JPA | JavaJPA]]
