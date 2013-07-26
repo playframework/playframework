@@ -315,8 +315,8 @@ Now we create a test case that loads this data and runs some assertions over it:
         assertEquals(4, bobsTasks.size());
     }
 ```
-
-> You may find it more convenient to load the test data in your `@Before` method, so that the test data is available for every test.
+> **Don't forget** to import **com.avaje.ebean.*** and **play.libs.*** or you will get a compilation error.
+>  Also, you may find it more convenient to load the test data in your `@Before` method, so that the test data is available for every test.
 
 ## Save your work
 
