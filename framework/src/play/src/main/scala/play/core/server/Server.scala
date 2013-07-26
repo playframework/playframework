@@ -91,8 +91,8 @@ trait Server {
 
   }
 
-  def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application) = {
-    invoker.actionInvoker ! Invoker.HandleAction(request, response, action, app)
+  def invoke[A](request: Request[A], response: Response, action: Action[A], app: Application, closeConnection: Boolean) = {
+    invoker.actionInvoker ! Invoker.HandleAction(request, response, action, app, closeConnection)
   }
 
   def getBodyParser[A](requestHeaders: RequestHeader, bodyFunction: BodyParser[A]): Promise[Iteratee[Array[Byte], Either[Result, A]]] = {
