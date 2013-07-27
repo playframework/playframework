@@ -10,7 +10,7 @@ Here is a mock of what we want to achieve:
 
 In fact before coding the first screen we need one more thing.  Working on a web application without test data is not fun.  You can't even test what you're doing.  But because we haven't developed the screens for managing tasks yet, we can't populate the task dashboard with tasks ourselves.
 
-One way to inject default data into the task management system is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onApplicationStart()` method.  Let's do that now, by creating the `app/Global.java` file:
+One way to inject default data into the task management system is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onStart()` method.  Let's do that now, by creating the `app/Global.java` file:
 
 ```java
 import play.*;
