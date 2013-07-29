@@ -19,6 +19,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def accepts(mediaType: String) = false
   def headers() = new java.util.HashMap[String, Array[String]]()
   val remoteAddress = "127.0.0.1"
+  def isHttps = false
   def body() = new Http.RequestBody {
     override def asFormUrlEncoded = data.asJava
     override def asRaw = null

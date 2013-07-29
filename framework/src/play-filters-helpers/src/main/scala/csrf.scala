@@ -151,6 +151,7 @@ package play.filters.csrf {
           def method = request.method
           def queryString = request.queryString
           def remoteAddress = request.remoteAddress
+          def isHttps = request.isHttps
           override def version = request.version
           override def tags = request.tags
           override def id = request.id
@@ -188,6 +189,7 @@ package play.filters.csrf {
           def method = request.method
           def queryString = request.queryString
           def remoteAddress = request.remoteAddress
+          def isHttps = request.isHttps
           override def version = request.version
           override def tags = request.tags
           override def id = request.id

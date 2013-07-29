@@ -64,6 +64,11 @@ import scala.util.control.NonFatal
      */
     def remoteAddress: String
 
+    /**
+     * Is this an HTTPS connection?
+     */
+    def isHttps: Boolean
+
     // -- Computed
 
     /**
@@ -175,9 +180,10 @@ import scala.util.control.NonFatal
       version: String = this.version,
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
-      remoteAddress: String = this.remoteAddress
+      remoteAddress: String = this.remoteAddress,
+      isHttps:Boolean = this.isHttps
     ): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress)
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _isHttps) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress, isHttps)
       new RequestHeader {
         val id = _id
         val tags = _tags
@@ -188,6 +194,7 @@ import scala.util.control.NonFatal
         val queryString = _queryString
         val headers = _headers
         val remoteAddress = _remoteAddress
+        val isHttps = _isHttps
       }
     }
 
@@ -229,6 +236,7 @@ import scala.util.control.NonFatal
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
+      def isHttps = self.isHttps
       lazy val body = f(self.body)
     }
 
@@ -246,6 +254,7 @@ import scala.util.control.NonFatal
       def queryString = rh.queryString
       def headers = rh.headers
       lazy val remoteAddress = rh.remoteAddress
+      def isHttps = rh.isHttps
       def username = None
       val body = a
     }
@@ -265,6 +274,7 @@ import scala.util.control.NonFatal
     def method = request.method
     def version = request.version
     def remoteAddress = request.remoteAddress
+    def isHttps = request.isHttps
   }
 
   /**
