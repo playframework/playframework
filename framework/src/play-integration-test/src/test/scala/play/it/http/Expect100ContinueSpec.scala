@@ -21,7 +21,7 @@ object Expect100ContinueSpec extends PlaySpecification {
     }
 
     "honour 100 continue" in withServer(Action(Results.Ok)) { port =>
-      val responses = BasicHttpClient.makeRequests(port, false,
+      val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "10"), "abcdefghij")
       )
       responses.length must_== 2
@@ -32,7 +32,7 @@ object Expect100ContinueSpec extends PlaySpecification {
     "not read body when expecting 100 continue but action iteratee is done" in withServer(
       EssentialAction(_ => Done(Results.Ok))
     ) { port =>
-      val responses = BasicHttpClient.makeRequests(port, false,
+      val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "100000"), "foo")
       )
       responses.length must_== 1
@@ -49,7 +49,7 @@ object Expect100ContinueSpec extends PlaySpecification {
     "close the connection after rejecting a Expect: 100-continue body" in withServer(
       EssentialAction(_ => Done(Results.Ok))
     ) { port =>
-      val responses = BasicHttpClient.makeRequests(port, true,
+      val responses = BasicHttpClient.makeRequests(port, checkClosed = true)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "100000"), "foo")
       )
       responses.length must_== 1
@@ -59,7 +59,7 @@ object Expect100ContinueSpec extends PlaySpecification {
     "leave the Netty pipeline in the right state after accepting a 100 continue request" in withServer(
       Action(Results.Ok)
     ) { port =>
-      val responses = BasicHttpClient.makeRequests(port, false,
+      val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "10"), "abcdefghij"),
         BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )
