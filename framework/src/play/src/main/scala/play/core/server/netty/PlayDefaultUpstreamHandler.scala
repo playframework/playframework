@@ -78,7 +78,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         // converting netty response to play's
         val response = new Response {
 
-          def handle(result: Result) {
+          def handle(result: Result, closeConnection: Boolean) {
             result match {
 
               case AsyncResult(p) => p.extend1 {
@@ -108,7 +108,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 }
 
                 // Response header Connection: Keep-Alive is needed for HTTP 1.0
-                if (keepAlive && version == HttpVersion.HTTP_1_0) {
+                if (!closeConnection && version == HttpVersion.HTTP_1_0) {
                   nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
                 }
 
@@ -131,7 +131,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
                     Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected()).transform(writeIteratee).mapDone { _ =>
                       if (e.getChannel.isConnected()) {
-                        if (!keepAlive) e.getChannel.close()
+                        if (closeConnection) e.getChannel.close()
                       }
                     }
                   }
@@ -150,7 +150,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       nettyResponse.setHeader(CONTENT_LENGTH, channelBuffer.readableBytes)
                       nettyResponse.setContent(buffer)
                       val f = e.getChannel.write(nettyResponse)
-                      if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                      if (closeConnection) f.addListener(ChannelFutureListener.CLOSE)
                     }
 
                 }
@@ -203,7 +203,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   Enumeratee.breakE[r.BODY_CONTENT](_ => !e.getChannel.isConnected())(writeIteratee).mapDone { _ =>
                     if (e.getChannel.isConnected()) {
                       val f = e.getChannel.write(HttpChunk.LAST_CHUNK);
-                      if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                      if (closeConnection) f.addListener(ChannelFutureListener.CLOSE)
                     }
                   }
                   }
@@ -218,7 +218,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 nettyResponse.setContent(channelBuffer)
                 nettyResponse.setHeader(CONTENT_LENGTH, 0)
                 val f = e.getChannel.write(nettyResponse)
-                if (!keepAlive) f.addListener(ChannelFutureListener.CLOSE)
+                if (closeConnection) f.addListener(ChannelFutureListener.CLOSE)
             }
           }
         }
@@ -237,7 +237,11 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             val expectContinue: Option[_] = requestHeader.headers.get("Expect").filter(_.equalsIgnoreCase("100-continue"))
 
-            def feedBody(bodyParser: Iteratee[Array[Byte], Either[Result, BODY]]) = if (nettyHttpRequest.isChunked) {
+            // Regardless of whether the client is expecting 100 continue or not, we need to feed the body here in the
+            // Netty thread, so that the handler is replaced in this thread, so that if the client does start sending
+            // body chunks (which it might according to the HTTP spec if we're slow to respond), we can handle them.
+
+            val eventuallyResultOrBody: Promise[Either[Result, BODY]] = if (nettyHttpRequest.isChunked) {
 
               val ( result, handler) = newRequestBodyHandler(bodyParser, allChannels, server)
 
@@ -248,7 +252,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             } else {
 
-              lazy val bodyEnumerator = {
+              val bodyEnumerator = {
                 val body = {
                   val cBuffer = nettyHttpRequest.getContent()
                   val bytes = new Array[Byte](cBuffer.readableBytes())
@@ -258,26 +262,27 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 Enumerator(body).andThen(Enumerator.enumInput(EOF))
               }
 
-              bodyEnumerator |>> bodyParser
+              (bodyEnumerator |>> bodyParser).flatMap(_.run)
             }
 
-            val eventuallyResultOrBody = expectContinue match {
+            // A promise containing the result and whether the connection should be closed.
+            // The connection should be closed if a 100 continue expectation wasn't sent.
+            val eventuallyResultOrBodyAndClose: Promise[(Either[Result, BODY], Boolean)] = expectContinue match {
               case Some(_) => {
                 bodyParser.fold(
-                  (resultOrBody, _) => Promise.pure(resultOrBody),
+                  (resultOrBody, _) => Promise.pure((resultOrBody, true)),
                   k => {
                     e.getChannel.write(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
-                    feedBody(bodyParser).flatMap(_.run)
+                    eventuallyResultOrBody.map((_, !keepAlive))
                   },
-                  (msg, _) => Promise.pure(sys.error(msg): Either[Result, BODY])
+                  (msg, _) => Promise.pure(sys.error(msg): (Either[Result, BODY], Boolean))
                 )
-
               }
-              case None => feedBody(bodyParser).flatMap(_.run)
+              case None => eventuallyResultOrBody.map((_, !keepAlive))
             }
 
-            val eventuallyResultOrRequest = eventuallyResultOrBody.map {
-              _.right.map(b =>
+            val eventuallyResultOrRequest = eventuallyResultOrBodyAndClose.map {
+              case (resultOrBody, close) => (resultOrBody.right.map(b =>
                 new Request[BODY] {
                   def uri = nettyHttpRequest.getUri
                   def path = nettyUri.getPath
@@ -287,22 +292,22 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   lazy val remoteAddress = rRemoteAddress
                   def username = None
                   val body = b
-                })
+                }
+              ), close)
             }
 
             eventuallyResultOrRequest.extend(_.value match {
-              case Redeemed(Left(result)) => {
+              case Redeemed((Left(result), close)) => {
                 Logger("play").trace("Got direct result from the BodyParser: " + result)
-                response.handle(result)
+                response.handle(result, close)
               }
-              case Redeemed(Right(request)) => {
+              case Redeemed((Right(request), close)) => {
                 Logger("play").trace("Invoking action with request: " + request)
-                server.invoke(request, response, action.asInstanceOf[Action[BODY]], app)
+                server.invoke(request, response, action.asInstanceOf[Action[BODY]], app, close)
               }
               case error => {
                 Logger("play").error("Cannot invoke the action, eventually got an error: " + error)
-                response.handle(Results.InternalServerError)
-                e.getChannel.setReadable(true)
+                response.handle(Results.InternalServerError, true)
               }
             })
 

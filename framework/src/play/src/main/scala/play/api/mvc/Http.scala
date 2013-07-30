@@ -173,7 +173,9 @@ package play.api.mvc {
      *
      * Depending on the result type, it will be sent synchronously or asynchronously.
      */
-    def handle(result: Result): Unit
+    def handle(result: Result): Unit = handle(result, true)
+
+    def handle(result: Result, closeConnection: Boolean): Unit
 
   }
 
