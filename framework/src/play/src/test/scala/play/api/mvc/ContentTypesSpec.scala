@@ -1,6 +1,7 @@
 package play.api.mvc
 
 import org.specs2.mutable.Specification
+import scalax.io.Resource
 
 object ContentTypesSpec extends Specification {
 
@@ -79,6 +80,15 @@ object ContentTypesSpec extends Specification {
       }
     }
 
+    "allow something that fits in memory to be accessed as a file" in {
+      val buffer = RawBuffer(20)
+      buffer.push("hello")
+      buffer.push(" ")
+      buffer.push("world")
+      buffer.size must_== 11
+      val file = buffer.asFile
+      Resource.fromFile(file).string must_== "hello world"
+    }
   }
 }
 
