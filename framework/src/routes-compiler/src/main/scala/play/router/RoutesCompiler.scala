@@ -19,7 +19,9 @@ object RoutesCompiler {
     "super", "then", "this", "throw",
     "trait", "try", "true", "type",
     "val", "var", "while", "with",
-    "yield"
+    "yield",
+    // Not scala keywords, but are used in the router
+    "queryString"
   )
 
   case class HttpVerb(value: String) {

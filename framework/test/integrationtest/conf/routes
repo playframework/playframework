@@ -106,6 +106,8 @@ GET     /routes                 controllers.Application.route(while)
 GET     /routestest             controllers.Application.routetest(with)
 GET     /routestest             controllers.Application.routetest(yield)
 
+GET     /routes2                controllers.Application.route2(queryString)
+
 # Map static resources from the /public folder to the /public path
 GET     /public/*file           controllers.Assets.at(path="/public", file)
 
