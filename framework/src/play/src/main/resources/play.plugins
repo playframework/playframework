@@ -1,4 +1,5 @@
 100:play.api.i18n.MessagesPlugin
+100:play.core.RouterCacheLifecycle
 600:play.api.cache.EhCachePlugin
 1000:play.api.libs.concurrent.AkkaPlugin
 10000:play.api.GlobalPlugin
