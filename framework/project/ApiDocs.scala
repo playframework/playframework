@@ -32,7 +32,7 @@ object ApiDocs {
     val scalaApiTarget = new File(base, "target/apidocs/scala")
     val options = Seq(
       "-sourcepath", base.getAbsolutePath,
-      "-doc-source-url", "https://github.com/playframework/Play20/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+      "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
     new Scaladoc(10, compilers.scalac)("Play " + BuildSettings.buildVersion + " Scala API", scalaSources, classpath,
       scalaApiTarget, options, streams.log)
 

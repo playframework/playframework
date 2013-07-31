@@ -2,7 +2,7 @@
 
 We use GitHub as our issue tracker, at:
 
-<https://github.com/playframework/Play20/issues>.
+<https://github.com/playframework/playframework/issues>.
 
 ## Reporting bugs
 
