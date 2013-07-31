@@ -516,9 +516,12 @@ public class Http {
 
         /**
          * Adds a new header to the response.
-         */ 
-        public void setHeader(String name, String Stringue) {
-            this.headers.put(name, Stringue);
+         *
+         * @param name The name of the header. Must not be null.
+         * @param value The value of the header. Must not be null.
+         */
+        public void setHeader(String name, String value) {
+            this.headers.put(name, value);
         }
 
         /**
@@ -530,6 +533,8 @@ public class Http {
 
         /**
          * Sets the content-type of the response.
+         *
+         * @param contentType The content type.  Must not be null.
          */
         public void setContentType(String contentType) {
             setHeader(CONTENT_TYPE, contentType);
@@ -541,8 +546,8 @@ public class Http {
          * <pre>
          * response().setCookie("theme", "blue");
          * </pre>
-         * @param name Cookie name
-         * @param value Cookie value
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value.
          */
         public void setCookie(String name, String value) {
             setCookie(name, value, null);
@@ -550,9 +555,9 @@ public class Http {
 
         /**
          * Set a new cookie with path “/”
-         * @param name Cookie name
-         * @param value Cookie value
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value.
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now).
          */
         public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
@@ -560,7 +565,7 @@ public class Http {
 
         /**
          * Set a new cookie
-         * @param name Cookie name
+         * @param name Cookie name.  Must not be null.
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
@@ -571,7 +576,7 @@ public class Http {
 
         /**
          * Set a new cookie
-         * @param name Cookie name
+         * @param name Cookie name.  Must not be null.
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
@@ -583,7 +588,7 @@ public class Http {
 
         /**
          * Set a new cookie
-         * @param name Cookie name
+         * @param name Cookie name.  Must not be null.
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
@@ -605,7 +610,7 @@ public class Http {
          * This only discards cookies on the default path ("/") with no domain and that didn't have secure set.  To
          * discard other cookies, use the discardCookie method.
          *
-         * @param names Names of the cookies to discard
+         * @param names Names of the cookies to discard.  Must not be null.
          * @deprecated Use the discardCookie methods instead
          */
         @Deprecated
@@ -618,7 +623,7 @@ public class Http {
         /**
          * Discard a cookie on the default path ("/") with no domain and that's not secure
          *
-         * @param name The name of the cookie to discard
+         * @param name The name of the cookie to discard.  Must not be null.
          */
         public void discardCookie(String name) {
             discardCookie(name, "/", null, false);
@@ -627,7 +632,7 @@ public class Http {
         /**
          * Discard a cookie on the give path with no domain and not that's secure
          *
-         * @param name The name of the cookie to discard
+         * @param name The name of the cookie to discard.  Must not be null.
          * @param path The path of the cookie te discard, may be null
          */
         public void discardCookie(String name, String path) {
@@ -637,7 +642,7 @@ public class Http {
         /**
          * Discard a cookie on the given path and domain that's not secure
          *
-         * @param name The name of the cookie to discard
+         * @param name The name of the cookie to discard.  Must not be null.
          * @param path The path of the cookie te discard, may be null
          * @param domain The domain of the cookie to discard, may be null
          */
@@ -648,7 +653,7 @@ public class Http {
         /**
          * Discard a cookie in this result
          *
-         * @param name The name of the cookie to discard
+         * @param name The name of the cookie to discard.  Must not be null.
          * @param path The path of the cookie te discard, may be null
          * @param domain The domain of the cookie to discard, may be null
          * @param secure Whether the cookie to discard is secure
