@@ -6,13 +6,13 @@ To benefit from the latest improvements and bug fixes after the initial beta rel
 From the shell, first checkout the Play sources:
 
 ```bash
-$ git clone git://github.com/playframework/Play20.git
+$ git clone git://github.com/playframework/playframework.git
 ```
 
-Then go to the `Play20/framework` directory and launch the `build` script to enter the sbt build console:
+Then go to the `playframework/framework` directory and launch the `build` script to enter the sbt build console:
 
 ```bash
-$ cd Play20/framework
+$ cd playframework/framework
 $ ./build
 > publish-local
 ```
@@ -23,10 +23,10 @@ If you want to make changes to the code you can use `publish-local` to rebuild t
 
 ## Build the documentation
 
-Documentation is available at Play20/documentation as Markdown files.  You can generate formatted documentation, javadoc and scaladoc:
+Documentation is available at playframework/documentation as Markdown files.  You can generate formatted documentation, javadoc and scaladoc:
 
 ```bash
-$ cd Play20/framework
+$ cd playframework/framework
 $ ./build doc
 ```
 If done properly, once you run a project, you should be able to see documentation available locally at [http://localhost:9000/@documentation](http://localhost:9000/@documentation)
@@ -49,14 +49,14 @@ $ ./runtests
 
 Creating projects using the Play version you have built from source works much the same as a regular Play application.
 
-export PATH=$PATH:<projdir>/Play20
+export PATH=$PATH:<projdir>/playframework
 
 If you have an existing Play application that you are upgrading, please add
 
 ```
 resolvers ++= Seq(
   ...
-  Resolver.file("Local Repository", file("<projdir>/Play20/repository/local"))(Resolver.ivyStylePatterns),
+  Resolver.file("Local Repository", file("<projdir>/playframework/repository/local"))(Resolver.ivyStylePatterns),
   ...
 )
 
