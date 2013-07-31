@@ -2,17 +2,16 @@ package play.api.mvc
 
 import scala.language.reflectiveCalls
 import java.io._
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.xml._
 import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.libs.iteratee.Parsing._
-import play.api.libs.Files.{ TemporaryFile }
-import Results._
+import play.api.libs.Files.TemporaryFile
 import MultipartFormData._
 import scala.collection.mutable.ListBuffer
+import scalax.io.Resource
 
 import play.core.Execution.Implicits.internalContext
 
@@ -168,15 +167,19 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
   import play.api.libs.Files._
   import scala.collection.mutable._
 
-  private var inMemory = new ArrayBuffer[Byte] ++= initialData
-  private var backedByTemporaryFile: TemporaryFile = _
-  private var outStream: OutputStream = _
+  @volatile private var inMemory: List[Array[Byte]] = if (initialData.length == 0) Nil else List(initialData)
+  @volatile private var inMemorySize = initialData.length
+  @volatile private var backedByTemporaryFile: TemporaryFile = _
+  @volatile private var outStream: OutputStream = _
 
   private[play] def push(chunk: Array[Byte]) {
     if (inMemory != null) {
-      inMemory ++= chunk
-      if (inMemory.size > memoryThreshold) {
+      if (chunk.length + inMemorySize > memoryThreshold) {
         backToTemporaryFile()
+        outStream.write(chunk)
+      } else {
+        inMemory = chunk :: inMemory
+        inMemorySize += chunk.length
       }
     } else {
       outStream.write(chunk)
@@ -192,7 +195,9 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
   private[play] def backToTemporaryFile() {
     backedByTemporaryFile = TemporaryFile("requestBody", "asRaw")
     outStream = new FileOutputStream(backedByTemporaryFile.file)
-    outStream.write(inMemory.toArray)
+    inMemory.reverse.foreach { chunk =>
+      outStream.write(chunk)
+    }
     inMemory = null
   }
 
@@ -200,29 +205,36 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
    * Buffer size.
    */
   def size: Long = {
-    if (inMemory != null) inMemory.size else backedByTemporaryFile.file.length
+    if (inMemory != null) inMemorySize else backedByTemporaryFile.file.length
   }
 
   /**
    * Returns the buffer content as a bytes array.
    *
-   * @param maxLength The max length allowed to be stored in memory.
-   * @return None if the content is too big to fit in memory.
+   * This operation will cause the internal collection of byte arrays to be copied into a new byte array on each
+   * invocation, no caching is done.  If the buffer has been written out to a file, it will read the contents of the
+   * file.
+   *
+   * @param maxLength The max length allowed to be stored in memory.  If this is smaller than memoryThreshold, and the
+   *                  buffer is already in memory then None will still be returned.
+   * @return None if the content is greater than maxLength, otherwise, the data as bytes.
    */
   def asBytes(maxLength: Int = memoryThreshold): Option[Array[Byte]] = {
     if (size <= maxLength) {
+
       if (inMemory != null) {
-        Some(inMemory.toArray)
-      } else {
-        val inStream = new FileInputStream(backedByTemporaryFile.file)
-        try {
-          val buffer = new Array[Byte](size.toInt)
-          inStream.read(buffer)
-          Some(buffer)
-        } finally {
-          inStream.close()
+
+        val buffer = new Array[Byte](inMemorySize)
+        inMemory.reverse.foldLeft(0) { (position, chunk) =>
+          System.arraycopy(chunk, 0, buffer, position, Math.min(chunk.length, buffer.length - position))
+          chunk.length + position
         }
+        Some(buffer)
+
+      } else {
+        Some(Resource.fromFile(backedByTemporaryFile.file).byteArray)
       }
+
     } else {
       None
     }
