@@ -29,8 +29,15 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
+  /**
+   * We don't know what the consequence of changing logging exceptions from trace to error will be.  We hope that it
+   * won't have any impact, but in case it turns out that there are many exceptions that are normal occurrences, we
+   * want to give people the opportunity to turn it off.
+   */
+  val nettyExceptionLogger = Logger("play.nettyException")
+
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    Logger.trace("Exception caught in Netty", e.getCause)
+    nettyExceptionLogger.error("Exception caught in Netty", e.getCause)
     e.getChannel.close()
   }
 
