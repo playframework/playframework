@@ -131,3 +131,12 @@ Iteratee.foreach[String] { msg =>
 }
 ```
 
+## Preparing a distribution
+
+The _stage_ and _dist_ tasks have been completely re-written in Play 2.2 so that they use the [Native Packager Plugin](https://github.com/sbt/sbt-native-packager). 
+
+Play distributions are no longer created in the project's `dist` folder. Instead, they are created in the project's `target` folder. 
+
+Another thing that has changed is the location of the Unix script that starts a Play application. Prior to 2.2 the Unix script was named `start` and it resided in the root level folder of the distribution. With 2.2 the `start` script is named as per the project's name and it resides in the distribution's `bin` folder. In addition there is now a `.bat` script available to start the Play application on Windows.
+
+Please consult the [["Starting your application in production mode"|Production]] documentation for more information on the new `stage` and `dist` tasks.
