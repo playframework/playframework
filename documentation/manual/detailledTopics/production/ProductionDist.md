@@ -2,7 +2,7 @@
 
 ## Using the dist task
 
-The simplest way to deploy a Play 2 application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
+The simplest way to deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
 
 However, you sometimes need to build a binary version of your application and deploy it to the server without any dependencies on Play itself. You can do this with the `dist` task.
 

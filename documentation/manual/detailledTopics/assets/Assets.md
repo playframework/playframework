@@ -2,7 +2,7 @@
 
 This section covers serving your application’s static resources such as JavaScript, CSS and images.
 
-Serving a public resource in Play 2.0 is the same as serving any other HTTP request. It uses the same routing as regular resources: using the controller/action path to distribute CSS, JavaScript or image files to the client.
+Serving a public resource in Play is the same as serving any other HTTP request. It uses the same routing as regular resources: using the controller/action path to distribute CSS, JavaScript or image files to the client.
 
 ## The public/ folder
 
@@ -23,7 +23,7 @@ During the build process, the contents of the `public` folder are processed and 
 
 ## The Assets controller
 
-Play 2.0 comes with a built-in controller to serve public assets. By default, this controller provides caching, ETag, gzip compression and JavaScript minification support.
+Play comes with a built-in controller to serve public assets. By default, this controller provides caching, ETag, gzip compression and JavaScript minification support.
 
 The controller is available in the default Play JAR as `controllers.Assets`, and defines a single `at` action with two parameters:
 

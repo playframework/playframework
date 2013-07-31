@@ -1,6 +1,6 @@
 # Writing Plugins
 
-Play 2 comes with a few plugins predefined for all applications, these plugins are the following: 
+Play comes with a few plugins predefined for all applications, these plugins are the following: 
 
 * `DBPlugin` -> providing a JDBC datasource
 * `EvolutionPlugin` -> provides migration  _(only available if db was configured)_

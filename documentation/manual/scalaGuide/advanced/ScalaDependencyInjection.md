@@ -1,4 +1,4 @@
-In Play 2.1, routes which start with ```@``` will be managed by ```play.GlobalSettings#getControllerInstance``` method, so given the following route definition: 
+In Play, routes which start with ```@``` will be managed by ```play.GlobalSettings#getControllerInstance``` method, so given the following route definition: 
 
     GET     /                  @controllers.Application.index()
 
