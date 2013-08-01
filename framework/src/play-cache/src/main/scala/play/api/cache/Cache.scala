@@ -6,6 +6,8 @@ import reflect.{ ClassTag, ClassManifest }
 import org.apache.commons.lang3.reflect.TypeUtils
 
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ Future, ExecutionContext }
+
 /**
  * API for a Cache plugin.
  */
@@ -82,13 +84,30 @@ object Cache {
    *
    * @param key Item key.
    * @param expiration expiration period in seconds.
-   * @param orElse The default function to invoke if the value was found in cache.
+   * @param orElse The default function to invoke if the value was not found in the cache.
    */
   def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
     getAs[A](key).getOrElse {
       val value = orElse
       set(key, value, expiration)
       value
+    }
+  }
+
+  /**
+   * Retrieve a value from the cache, or set it from a default function.
+   *
+   * This should be used specificaly when you are caching Future results. Any Future
+   * which returns a failure will not be persisted to the cache.
+   *
+   * @param key Item key.
+   * @param expiration expiration period in seconds.
+   * @param orElse The default function to invoke if the value was not found in the cache.
+   */
+  def futureGetOrElse[T](key: String, ttl: Int = 0)(future: => Future[T])(implicit app: Application, executionContext: ExecutionContext) = getAs[Future[T]](key).getOrElse {
+    future.map { result =>
+      set(key, Future(result), ttl)
+      result
     }
   }
 
