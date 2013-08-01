@@ -6,6 +6,7 @@ import org.specs2.runner.JUnitRunner
 
 import play.api.Play.current
 import play.api.test._
+import play.api.test.Helpers._
 import play.api.cache.{Cached, Cache}
 import play.api.mvc._
 import scala.concurrent.Future
@@ -48,6 +49,20 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
         }
         //#retrieve-missing
         user must beEqualTo(User(connectedUser))
+      }
+    }
+
+    "a cache or get user with future" in {
+      implicit val execContext = play.api.libs.concurrent.Execution.defaultContext
+
+      running(FakeApplication()) {
+        val connectedUser = "xfasync"
+        //#retrieve-missing-future
+        val user: Future[User] = Cache.futureGetOrElse[User]("item.key") {
+          User.findAsync(connectedUser)
+        }
+        //#retrieve-missing-future
+        await(user) must beEqualTo(User(connectedUser))
       }
     }
 
@@ -119,6 +134,8 @@ object User {
   def findById(userId: String) = User(userId)
 
   def find(user: String) = User(user)
+
+  def findAsync(user: String) = Future.successful(User(user))
 }
 
 }

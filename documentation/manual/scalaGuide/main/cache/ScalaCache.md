@@ -21,6 +21,10 @@ There is also a convenient helper to retrieve from cache or set the value in cac
 
 @[retrieve-missing](code/ScalaCache.scala)
 
+If you want to cache a Future response there is a convenient helper to prevent Future failures from being cached for example if you are caching a Play WS result:
+
+@[retrieve-missing-future](code/ScalaCache.scala)
+
 
 To remove an item from the cache use the `remove` method:
 
