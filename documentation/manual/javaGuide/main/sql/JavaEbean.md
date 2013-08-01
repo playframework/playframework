@@ -2,7 +2,7 @@
 
 ## Configuring Ebean
 
-Play 2.0 comes with the [Ebean](http://www.avaje.org/) ORM. To enable it, add javaEbean to your
+Play comes with the [Ebean](http://www.avaje.org/) ORM. To enable it, add javaEbean to your
 dependencies : 
 
 ```scala
@@ -52,7 +52,7 @@ Note that Ebean will also make use of a `conf/orm.xml` file (if present), to con
 
 ## Using the play.db.ebean.Model superclass
 
-Play 2.0 defines a convenient superclass for your Ebean model classes. Here is a typical Ebean class, mapped in Play 2.0:
+Play defines a convenient superclass for your Ebean model classes. Here is a typical Ebean class, mapped in Play:
 
 ```java
 package models;
@@ -91,7 +91,7 @@ public class Task extends Model {
 
 > (1) Because Ebean class enhancement occurs *after* compilation, **do not expect Ebean-generated getter/setters to be available at compilation time.** If you'd prefer to code with them directly, either add the getter/setters explicitly yourself, or ensure that your model classes are compiled before the remainder of your project, eg. by putting them in a separate subproject.
 
-> (2) Enhancement of direct Ebean field access (enabling lazy loading) is only applied to Java classes, not to Scala. Thus, direct field access from Scala source files (including standard Play 2 templates) does not invoke lazy loading, often resulting in empty (unpopulated) entity fields. To ensure the fields get populated, either (a) manually create getter/setters and call them instead, or (b) ensure the entity is fully populated *before* accessing the fields.
+> (2) Enhancement of direct Ebean field access (enabling lazy loading) is only applied to Java classes, not to Scala. Thus, direct field access from Scala source files (including standard Play templates) does not invoke lazy loading, often resulting in empty (unpopulated) entity fields. To ensure the fields get populated, either (a) manually create getter/setters and call them instead, or (b) ensure the entity is fully populated *before* accessing the fields.
 
 As you can see, we've added a `find` static field, defining a `Finder` for an entity of type `Task` with a `Long` identifier. This helper field is then used to simplify querying our model:
 

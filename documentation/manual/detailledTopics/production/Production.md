@@ -6,7 +6,7 @@ There are several ways to deploy a Play application in production mode. Let's st
 
 ## Using the start command
 
-The easiest way to start an application in production mode is to use the `start` command from the Play console. This requires a Play 2 installation on the server.
+The easiest way to start an application in production mode is to use the `start` command from the Play console. This requires a Play installation on the server.
 
 ```bash
 [My first application] $ start
