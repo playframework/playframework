@@ -4,7 +4,7 @@ Test source files must be placed in your application’s `test` folder. You can 
 
 ## Using specs2
 
-The default way to test a Play 2 application is by using [specs2](http://etorreborre.github.com/specs2/).
+The default way to test a Play application is by using [specs2](http://etorreborre.github.com/specs2/).
 
 Unit specifications extend the `org.specs2.mutable.Specification` trait and are using the should/in format:
 
@@ -98,7 +98,7 @@ abstract class WithDbData extends WithApplication {
 
 ## Unit Testing Controllers
 
-Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play 2.1 this can be alleviated by [[dependency injection | ScalaDependencyInjection]]. Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
+Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection | ScalaDependencyInjection]]. Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
 ```scala
 trait ExampleController {

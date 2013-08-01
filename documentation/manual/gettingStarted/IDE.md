@@ -225,7 +225,7 @@ Scala is a newer programming language, so the functionality is provided in plugi
 - IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
 - Nika (11.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml
 - Leda (12.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml
-- IntelliJ IDEA Play 2.0 plugin (available only for Leda 12.x): http://plugins.intellij.net/plugin/?idea&pluginId=7080
+- IntelliJ IDEA Play plugin (available only for Leda 12.x): http://plugins.intellij.net/plugin/?idea&pluginId=7080
 - ENSIME - Scala IDE Mode for Emacs: https://github.com/aemoncannon/ensime
 (see below for ENSIME/Play instructions)
 

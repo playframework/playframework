@@ -77,7 +77,7 @@ Open the `app/views/index.scala.html` template and modify it to accept and displ
 ```html
 @(projects: List[Project], todoTasks: List[Task])
 
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
 
     <header>
         <hgroup>

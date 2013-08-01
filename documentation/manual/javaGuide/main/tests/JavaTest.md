@@ -4,7 +4,7 @@ Test source files must be placed in your application’s `test` folder. You can 
 
 ## Using JUnit
 
-The default way to test a Play 2 application is with [JUnit](http://www.junit.org/).
+The default way to test a Play application is with [JUnit](http://www.junit.org/).
 
 ```
 package test;

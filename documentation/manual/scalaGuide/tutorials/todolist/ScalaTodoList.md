@@ -1,6 +1,6 @@
 # Your first Play application
 
-Let’s write a simple to do list application with Play 2.0 and deploy it to the cloud.
+Let’s write a simple to do list application with Play and deploy it to the cloud.
 
 ## Prerequisites
 
@@ -96,7 +96,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
     
     @play20.welcome(message)
     
