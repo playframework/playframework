@@ -14,6 +14,7 @@ import scala.collection.mutable.ListBuffer
 import scalax.io.Resource
 
 import play.core.Execution.Implicits.internalContext
+import java.util.Locale
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -311,7 +312,7 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def text(maxLength: Int): BodyParser[String] = when(
-      _.contentType.exists(_ == "text/plain"),
+      _.contentType.exists(_.equalsIgnoreCase("text/plain")),
       tolerantText(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/plain body")).getOrElse(Results.BadRequest)
     )
@@ -376,7 +377,7 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def json(maxLength: Int): BodyParser[JsValue] = when(
-      _.contentType.exists(m => m == "text/json" || m == "application/json"),
+      _.contentType.exists(m => m.equalsIgnoreCase("text/json") || m.equalsIgnoreCase("application/json")),
       tolerantJson(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/json or application/json body")).getOrElse(Results.BadRequest)
     )
@@ -430,8 +431,10 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def xml(maxLength: Int): BodyParser[NodeSeq] = when(
-      _.contentType.exists(t => t.startsWith("text/xml") || t.startsWith("application/xml")
-        || ApplicationXmlMatcher.pattern.matcher(t).matches()),
+      _.contentType.exists { t =>
+        val tl = t.toLowerCase(Locale.ENGLISH)
+        tl.startsWith("text/xml") || tl.startsWith("application/xml") || ApplicationXmlMatcher.pattern.matcher(tl).matches()
+      },
       tolerantXml(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting xml body")).getOrElse(Results.BadRequest)
     )
@@ -505,7 +508,7 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
-      _.contentType.exists(_ == "application/x-www-form-urlencoded"),
+      _.contentType.exists(_.equalsIgnoreCase("application/x-www-form-urlencoded")),
       tolerantFormUrlEncoded(maxLength),
       request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting application/x-www-form-urlencoded body")).getOrElse(Results.BadRequest)
     )
@@ -521,7 +524,7 @@ trait BodyParsers {
      * Guess the body content by checking the Content-Type header.
      */
     def anyContent: BodyParser[AnyContent] = BodyParser("anyContent") { request =>
-      request.contentType match {
+      request.contentType.map(_.toLowerCase(Locale.ENGLISH)) match {
         case _ if request.method == "GET" || request.method == "HEAD" => {
           Play.logger.trace("Parsing AnyContent as empty")
           empty(request).map(_.right.map(_ => AnyContentAsEmpty))
@@ -588,9 +591,11 @@ trait BodyParsers {
 
       def multipartParser[A](partHandler: Map[String, String] => Iteratee[Array[Byte], A]): BodyParser[Seq[A]] = parse.using { request =>
 
-        val maybeBoundary = request.headers.get(play.api.http.HeaderNames.CONTENT_TYPE).filter(ct => ct.trim.startsWith("multipart/form-data")).flatMap { mpCt =>
-          mpCt.trim.split("boundary=").tail.headOption.map(b => ("\r\n--" + b).getBytes("utf-8"))
-        }
+        val maybeBoundary = for {
+          mt <- request.mediaType
+          param <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
+          boundary <- param._2
+        } yield ("\r\n--" + boundary).getBytes("utf-8")
 
         maybeBoundary.map { boundary =>
 

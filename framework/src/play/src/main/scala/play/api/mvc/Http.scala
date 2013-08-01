@@ -1,7 +1,7 @@
 package play.api.mvc {
 
   import play.api._
-  import play.api.http.{ MediaRange, HeaderNames }
+  import play.api.http.{ MediaType, MediaRange, HeaderNames }
   import play.api.i18n.Lang
   import play.api.libs.iteratee._
   import play.api.libs.Crypto
@@ -106,10 +106,7 @@ package play.api.mvc {
      * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
-      val mediaTypes = acceptHeader(HeaderNames.ACCEPT).collect {
-        case (q, MediaRange.parse(mediaRange)) => (q, mediaRange)
-      }
-      mediaTypes.sorted.map(_._2).reverse
+      headers.get(HeaderNames.ACCEPT).toSeq.flatMap(MediaRange.parse.apply)
     }
 
     /**
@@ -157,14 +154,23 @@ package play.api.mvc {
     lazy val rawQueryString: String = uri.split('?').drop(1).mkString("?")
 
     /**
-     * Returns the value of the Content-Type header (without the ;charset= part if exists)
+     * The media type of this request.  Same as contentType, except returns a fully parsed media type with parameters.
      */
-    lazy val contentType: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').headOption).map(_.toLowerCase)
+    lazy val mediaType: Option[MediaType] = headers.get(HeaderNames.CONTENT_TYPE).flatMap(MediaType.parse.apply)
+
+    /**
+     * Returns the value of the Content-Type header (without the parameters (eg charset))
+     */
+    lazy val contentType: Option[String] = mediaType.map(mt => mt.mediaType + "/" + mt.mediaSubType)
 
     /**
      * Returns the charset of the request for text-based body
      */
-    lazy val charset: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').tail.headOption).map(_.toLowerCase.trim).filter(_.startsWith("charset=")).flatMap(_.split('=').tail.headOption.map(_.replaceAll("""^"|"$""", "")))
+    lazy val charset: Option[String] = for {
+      mt <- mediaType
+      param <- mt.parameters.find(_._1.equalsIgnoreCase("charset"))
+      charset <- param._2
+    } yield charset
 
     /**
      * Copy the request.
