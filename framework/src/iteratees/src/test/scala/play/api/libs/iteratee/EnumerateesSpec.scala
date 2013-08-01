@@ -222,7 +222,7 @@ object EnumerateesSpec extends Specification
 
     "add one to each of the ints enumerated" in {
       mustExecute(4) { mapEC =>
-        val add1AndConsume = Enumeratee.map[Int](i => List(i+1))(mapEC) &>>  Iteratee.consume()
+        val add1AndConsume = Enumeratee.map[Int](i => List(i+1))(mapEC) &>> Iteratee.consume[List[Int]]()
         val enumerator = Enumerator(1,2,3,4)  
         Await.result(enumerator |>>> add1AndConsume, Duration.Inf) must equalTo(Seq(2,3,4,5))
       }
@@ -231,7 +231,8 @@ object EnumerateesSpec extends Specification
 
     "infer its types correctly from previous enumeratee" in {
       mustExecute(0, 0) { (map1EC, map2EC) =>
-        val add1AndConsume = Enumeratee.map[Int](i => i+1)(map1EC) ><> Enumeratee.map[Int](i => List(i))(map2EC) &>>  Iteratee.consume()
+        val add1AndConsume = Enumeratee.map[Int](i => i+1)(map1EC) ><> Enumeratee.map[Int](i => List(i))(map2EC) &>>
+          Iteratee.consume[List[Int]]()
         add1AndConsume : Iteratee[Int,List[Int]]
         true //this test is about compilation and if it compiles it means we got it right
       }
@@ -309,7 +310,7 @@ object EnumerateesSpec extends Specification
           Enumerator("He", "ll", "o", "Concat", "Wo", "r", "ld", "Concat", "!") &>
             Enumeratee.grouped(folderIteratee) ><>
             Enumeratee.map[String](List(_))(mapEC) |>>>
-            Iteratee.consume()
+            Iteratee.consume[List[String]]()
         Await.result(result, Duration.Inf) must equalTo(List("Hello", "World", "!"))
       }
     }
@@ -335,7 +336,7 @@ object EnumerateesSpec extends Specification
           Enumerator(1, 2, 3, 4) &>
             Enumeratee.scanLeft[Int](0)(_ + _) ><>
             Enumeratee.map[Int](List(_))(mapEC) |>>>
-            Iteratee.consume()
+            Iteratee.consume[List[Int]]()
 
         Await.result(result, Duration.Inf) must equalTo(List(1, 3, 6, 10))
       }

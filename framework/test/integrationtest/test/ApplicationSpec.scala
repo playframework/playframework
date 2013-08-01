@@ -1,16 +1,14 @@
 package test
 
 import play.api.test._
-import play.api.test.Helpers._
 
-import org.specs2.mutable._
 import models._
 import play.api.mvc.AnyContentAsEmpty
 import module.Routes
 
 import scala.concurrent.Future
 
-class ApplicationSpec extends Specification {
+class ApplicationSpec extends PlaySpecification {
 
   "an Application" should {
   
@@ -173,14 +171,49 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "urldecode correctly parameters from path and query string" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/urldecode/2%2B2?q=2%2B2"))
-      contentAsString(result) must contain("fromPath=2+2")
-      contentAsString(result) must contain("fromQueryString=2+2")
+    "URL encoding and decoding works correctly" in new WithApplication() {
+      def checkDecoding(
+          dynamicEncoded: String, staticEncoded: String, queryEncoded: String,
+          dynamicDecoded: String, staticDecoded: String, queryDecoded: String) = {
+        val path = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+        val expected = s"dynamic=$dynamicDecoded static=$staticDecoded query=$queryDecoded"
+        val Some(result) = route(FakeRequest(GET, path))
+        val actual = contentAsString(result)
+        actual must equalTo(expected)
+      }
+      def checkEncoding(
+          dynamicDecoded: String, staticDecoded: String, queryDecoded: String,
+          dynamicEncoded: String, staticEncoded: String, queryEncoded: String) = {
+        val expected = s"/urlcoding/$dynamicEncoded/$staticEncoded?q=$queryEncoded"
+        val call = controllers.routes.Application.urlcoding(dynamicDecoded, staticDecoded, queryDecoded)
+        call.url must equalTo(expected)
+      }
+      checkDecoding("a",   "a",   "a",   "a",   "a",   "a")
+      checkDecoding("%2B", "%2B", "%2B", "+",   "%2B", "+")
+      checkDecoding("+",   "+",   "+",   "+",   "+",   " ")
+      checkDecoding("%20", "%20", "%20", " ",   "%20", " ")
+      checkDecoding("&",   "&",   "-",   "&",   "&",   "-")
+      checkDecoding("=",   "=",   "-",   "=",   "=",   "-")
+
+      checkEncoding("+", "+", "+", "+",   "+",   "%2B")
+      checkEncoding(" ", " ", " ", "%20", " ",   "+")
+      checkEncoding("&", "&", "&", "&",   "&",   "%26")
+      checkEncoding("=", "=", "=", "=",   "=",   "%3D")
+
+      // We use java.net.URLEncoder for query string encoding, which is not
+      // RFC compliant, e.g. it percent-encodes "/" which is not a delimiter
+      // for query strings, and it percent-encodes "~" which is an "unreserved" character
+      // that should never be percent-encoded. The following tests, therefore
+      // don't really capture our ideal desired behaviour for query string
+      // encoding. However, the behaviour for dynamic and static paths is correct.
+      checkEncoding("/", "/", "/", "%2F", "/",   "%2F")
+      checkEncoding("~", "~", "~", "~",   "~",   "%7E")
+
+      checkDecoding("123", "456", "789", "123", "456", "789")
+      checkEncoding("123", "456", "789", "123", "456", "789")
     }
 
     "test Accept header mime-types" in {
-      import play.api.http.HeaderNames._
       "Scala API" in new WithApplication() {
         val url = controllers.routes.Application.accept().url
         val Some(result) = route(FakeRequest(GET, url).withHeaders(ACCEPT -> "text/html,application/xml;q=0.5"))

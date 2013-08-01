@@ -76,7 +76,7 @@ object ResultsSpec extends Specification {
 
     "allow discarding multiple cookies by deprecated names method" in {
       val cookies = Cookies.decode(Ok.discardingCookies("foo", "bar").header.headers("Set-Cookie")).map(_.name)
-      cookies must contain("foo", "bar").only
+      cookies must containTheSameElementsAs(Seq("foo", "bar"))
     }
 
     "support session helper" in new WithApplication {

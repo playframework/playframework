@@ -11,6 +11,8 @@ import java.net.URI
 import scala.util.control.Exception
 import scala.collection.concurrent.TrieMap
 import play.core.j.JavaActionAnnotations
+import play.utils.UriEncoding
+import play.api.Plugin
 
 trait PathPart
 
@@ -70,12 +72,24 @@ case class PathPattern(parts: Seq[PathPart]) {
 }
 
 /**
+ * The javaActionAnnotations map holds references to Java classes.  The map is needed for performance reasons
+ * (introspecting actions on every request is very slow), but in dev mode, this causes classloader leaks.
+ *
+ * This "plugin" hooks into the Play lifecycle to clear the map when Play shuts down.
+ */
+class RouterCacheLifecycle(app: play.api.Application) extends Plugin {
+  override def onStop() {
+    Router.javaActionAnnotations.clear()
+  }
+}
+
+/**
  * provides Play's router implementation
  */
 object Router {
 
   // Cache of annotation information for improving Java performance.
-  private val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
+  private[core] val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
 
   object Route {
 
@@ -131,6 +145,10 @@ object Router {
   }
 
   case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
+
+  def dynamicString(dynamic: String): String = {
+    UriEncoding.encodePathSegment(dynamic, "utf-8")
+  }
 
   def queryString(items: List[Option[String]]) = {
     Option(items.filter(_.isDefined).map(_.get).filterNot(_.isEmpty)).filterNot(_.isEmpty).map("?" + _.mkString("&")).getOrElse("")

@@ -35,8 +35,8 @@ This is the process for a contributor (that is, a non Play core developer) to co
         * Java and Scala APIs should be implemented the following way:
             * implement the core API in scala (`play.api.xxx`)
             * if your component requires life cycle management or needs to be swappable, create a plugin, otherwise skip this step
-            * wrap core API for scala users ([example]  (https://github.com/playframework/Play20/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala#L69))
-            * wrap scala API for java users ([example](https://github.com/playframework/Play20/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java))
+            * wrap core API for scala users ([example]  (https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala#L69))
+            * wrap scala API for java users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java))
         * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
 3. Submit a pull request.  If an issue already exists for the pull request, then follow [these](http://opensoul.org/blog/archives/2012/11/09/convert-a-github-issue-into-a-pull-request/) instructions for converting an issue into a pull request.
 
@@ -48,7 +48,7 @@ This is the process for committing code into master. There are of course excepti
 
 1. Make sure you have signed the [Typesafe CLA](http://www.typesafe.com/contribute/cla), if not, sign it online.
 2. Before starting to work on a feature or a fix, you have to make sure that:
-    1. There is a ticket for your work in the project's issue tracker. If not, create it first (See: https://play.lighthouseapp.com/projects/82401-play-20/overview).
+    1. There is a ticket for your work in the project's issue tracker. If not, create it first (See: https://github.com/playframework/playframework/issues).
     2. The ticket has been scheduled for the current milestone.
     3. The ticket is estimated by the team.
     4. The ticket has been discussed and prioritized by the team.

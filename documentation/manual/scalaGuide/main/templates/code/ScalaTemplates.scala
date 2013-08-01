@@ -132,8 +132,5 @@ object ScalaTemplatesSpec extends Specification {
         body must contain("<foo>")
       }
     }
-
-    {
-    }
   }
 }

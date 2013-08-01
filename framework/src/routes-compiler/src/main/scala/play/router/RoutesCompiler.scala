@@ -19,7 +19,9 @@ object RoutesCompiler {
     "super", "then", "this", "throw",
     "trait", "try", "true", "type",
     "val", "var", "while", "with",
-    "yield"
+    "yield",
+    // Not scala keywords, but are used in the router
+    "queryString"
   )
 
   case class HttpVerb(value: String) {
@@ -470,7 +472,6 @@ object RoutesCompiler {
         |import play.core._
         |import play.core.Router._
         |import play.core.j._
-        |import java.net.URLEncoder
         |
         |import play.api.mvc._
         |%s
@@ -839,7 +840,7 @@ object RoutesCompiler {
                         case DynamicPart(name, _, encode) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
                             if (encode && encodeable(param.typeName))
-                              """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", URLEncoder.encode(""" + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """, "utf-8"))"""
+                              """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", dynamicString(""" + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """))"""
                             else
                               """implicitly[PathBindable[""" + param.typeName + """]].unbind("""" + param.name + """", """ + safeKeyword(localNames.get(param.name).getOrElse(param.name)) + """)"""
                           }.getOrElse {

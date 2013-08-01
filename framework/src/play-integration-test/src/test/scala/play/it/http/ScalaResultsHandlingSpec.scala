@@ -1,19 +1,13 @@
 package play.it.http
 
-import org.specs2.mutable._
 import play.api.mvc._
 import play.api.test._
-import play.api.test.Helpers._
 import play.api.libs.ws.Response
 import play.api.libs.iteratee._
-import java.net.Socket
-import java.io.OutputStreamWriter
-import org.apache.commons.io.IOUtils
 
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
 
-object ScalaResultsHandlingSpec extends Specification {
-
+object ScalaResultsHandlingSpec extends PlaySpecification {
 
   "scala body handling" should {
 
@@ -22,36 +16,11 @@ object ScalaResultsHandlingSpec extends Specification {
       block(response)
     }
 
-    // Low level stuff, for when our WS API isn't enough
-    def makeBasicRequest(port: Int, lines: String*): Seq[String] = {
-      val s = new Socket("localhost", port)
-      try {
-        s.setSoTimeout(5000)
-        // Send request
-        val out = new OutputStreamWriter(s.getOutputStream)
-        var expectedResponses = 1
-        lines.foreach { line =>
-          out.write(line)
-          out.write("\r\n")
-        }
-        out.write("\r\n")
-        out.flush()
-
-        import scala.collection.JavaConverters._
-        IOUtils.readLines(s.getInputStream).asScala
-
-      } finally {
-        s.close()
-      }
-    }
-
-    def withServer[T](result: SimpleResult)(block: Port => T) = withServerAction(Action(result))(block)
-
-    def withServerAction[T](action: EssentialAction)(block: Port => T) = {
+    def withServer[T](result: SimpleResult)(block: Port => T) = {
       val port = testServerPort
       running(TestServer(port, FakeApplication(
         withRoutes = {
-          case _ => action
+          case _ => Action(result)
         }
       ))) {
         block(port)
@@ -96,85 +65,59 @@ object ScalaResultsHandlingSpec extends Specification {
     "close the connection when the connection close header is present" in withServer(
       Results.Ok
     ) { port =>
-      // Will only return if the connection is closed by the server
-      makeBasicRequest(port,
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "Connection: close"
-      )(0) must_== "HTTP/1.1 200 OK"
+      BasicHttpClient.makeRequests(port, checkClosed = true)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
+      )(0).status must_== 200
     }
 
     "close the connection when the connection when protocol is HTTP 1.0" in withServer(
       Results.Ok
     ) { port =>
-    // Will only return if the connection is closed by the server
-      makeBasicRequest(port,
-        "GET / HTTP/1.0",
-        "Host: localhost"
-      )(0) must_== "HTTP/1.0 200 OK"
+      BasicHttpClient.makeRequests(port, checkClosed = true)(
+        BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
+      )(0).status must_== 200
     }
 
     "honour the keep alive header for HTTP 1.0" in withServer(
       Results.Ok
     ) { port =>
-      val lines = makeBasicRequest(port,
-        "GET / HTTP/1.0",
-        "Host: localhost",
-        "Connection: keep-alive",
-        "",
-        "GET / HTTP/1.0",
-        "Host: localhost"
+      val responses = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.0", Map("Connection" -> "keep-alive"), ""),
+        BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
       )
-      // First response
-      lines(0) must_== "HTTP/1.0 200 OK"
-      // Second response will only exist if keep alive was honoured
-      lines.tail must containAllOf(Seq("HTTP/1.0 200 OK"))
+      responses(0).status must_== 200
+      responses(1).status must_== 200
     }
 
     "keep alive HTTP 1.1 connections" in withServer(
       Results.Ok
     ) { port =>
-      val lines = makeBasicRequest(port,
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "",
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "Connection: close"
+      val responses = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )
-      // First response
-      lines(0) must_== "HTTP/1.1 200 OK"
-      // Second response will only exist if keep alive was honoured
-      lines.tail must containAllOf(Seq("HTTP/1.1 200 OK"))
+      responses(0).status must_== 200
+      responses(1).status must_== 200
     }
 
     "close chunked connections when requested" in withServer(
       Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
       // will timeout if not closed
-      makeBasicRequest(port,
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "Connection: close"
-      )(0) must_== "HTTP/1.1 200 OK"
+      BasicHttpClient.makeRequests(port, checkClosed = true)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
+      )(0).status must_== 200
     }
 
     "keep chunked connections alive by default" in withServer(
       Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
-      val lines = makeBasicRequest(port,
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "",
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "Connection: close"
+      val responses = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), ""),
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
       )
-      // First response
-      lines(0) must_== "HTTP/1.1 200 OK"
-      // Second response will only exist if keep alive was honoured
-      lines.tail must containAllOf(Seq("HTTP/1.1 200 OK"))
-        .orSkip("There is a race condition between the socket closing and the responses received")
+      responses(0).status must_== 200
+      responses(1).status must_== 200
     }
 
     "allow sending trailers" in withServer(
@@ -184,56 +127,27 @@ object ScalaResultsHandlingSpec extends Specification {
           .map(count => Seq("Chunks" -> count.toString))(ec)
       )))
     ) { port =>
-      val lines = makeBasicRequest(port,
-        "GET / HTTP/1.1",
-        "Host: localhost",
-        "Connection: close"
-      )
-      // Assert each chunk is there
-      lines must containAllOf(Seq("aa", "bb", "cc"))
-      // Assertion on last chunk
-      lines(lines.length - 3) must_== "0"
-      lines(lines.length - 2) must_== "Chunks: 3"
-      lines(lines.length - 1) must_== ""
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 200
+      response.body must beRight
+      val (chunks, trailers) = response.body.right.get
+      chunks must containAllOf(Seq("aa", "bb", "cc")).inOrder
+      trailers.get("Chunks") must beSome("3")
     }
 
     "fall back to simple streaming when more than one chunk is sent and protocol is HTTP 1.0" in withServer(
       SimpleResult(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { port =>
-      val lines = makeBasicRequest(port,
-        "GET / HTTP/1.0",
-        "Host: localhost"
-      )
-      lines.foreach { _ must not contain "Transfer-Encoding" }
-      lines.last must_== "abcdefghi"
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
+      )(0)
+      response.headers.keySet must not contain TRANSFER_ENCODING
+      response.headers.keySet must not contain CONTENT_LENGTH
+      response.body must beLeft("abcdefghi")
     }
-
-    "honour 100 continue" in withServer(
-      Results.Ok
-    ) { port =>
-      val lines = makeBasicRequest(port,
-        "POST / HTTP/1.1",
-        "Host: localhost",
-        "Expect: 100-continue",
-        "Connection: close"
-      )
-      lines(0) must_== "HTTP/1.1 100 Continue"
-      lines must containAllOf(Seq("HTTP/1.1 200 OK"))
-    }
-
-    "not read body when expecting 100 continue but action iteratee is done" in withServerAction(new EssentialAction {
-      def apply(v1: RequestHeader) = Done(Results.Ok)
-    }) { port =>
-      val lines = makeBasicRequest(port,
-        "POST / HTTP/1.1",
-        "Host: localhost",
-        "Expect: 100-continue",
-        "Connection: close",
-        "Content-Length: 10000000"
-      )
-      lines(0) must_== ("HTTP/1.1 200 OK")
-    }
-
   }
 
 }

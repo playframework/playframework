@@ -3,6 +3,8 @@ package sbt
 import Keys._
 import PlayKeys._
 import PlayEclipse._
+import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.SbtNativePackager._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -46,8 +48,7 @@ trait PlaySettings {
     playPlugin := false,
 
     resolvers ++= Seq(
-      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
-      "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
+      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
     ),
 
     target <<= baseDirectory / "target",
@@ -64,10 +65,6 @@ trait PlaySettings {
 
     javaSource in Compile <<= baseDirectory / "app",
     javaSource in Test <<= baseDirectory / "test",
-
-    distDirectory <<= baseDirectory / "dist",
-
-    distExcludes := Seq.empty,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
@@ -121,8 +118,6 @@ trait PlaySettings {
 
     compile in (Compile) <<= PostCompile(scope = Compile),
 
-    dist <<= distTask,
-
     computeDependencies <<= computeDependenciesTask,
 
     playVersion := play.core.PlayVersion.current,
@@ -133,13 +128,7 @@ trait PlaySettings {
 
     playCompileEverything <<= playCompileEverythingTask,
 
-    playPackageEverything <<= playPackageEverythingTask,
-
     playReload <<= playReloadTask,
-
-    playStage <<= playStageTask,
-
-    cleanFiles <+= distDirectory,
 
     logManager <<= extraLoggers(PlayLogManager.default(playPositionMapper)),
 
@@ -202,7 +191,42 @@ trait PlaySettings {
       "txt" -> "play.api.templates.TxtFormat",
       "xml" -> "play.api.templates.XmlFormat",
       "js" -> "play.api.templates.JavaScriptFormat"
-    )
+    ),
+
+    // Native packaging
+
+    sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
+
+    mainClass in Compile := Some("play.core.server.NettyServer"),
+
+    mappings in Universal <++= (confDirectory) map {
+      confDirectory: File =>
+        val confDirectoryLen = confDirectory.getCanonicalPath.length
+        val pathFinder = confDirectory ** ("*" -- "routes")
+        pathFinder.get map {
+          confFile: File =>
+            confFile -> ("conf/" + confFile.getCanonicalPath.substring(confDirectoryLen))
+        }
+    },
+
+    mappings in Universal <++= (doc in Compile) map {
+      docDirectory: File =>
+        val docDirectoryLen = docDirectory.getCanonicalPath.length
+        val pathFinder = docDirectory ** "*"
+        pathFinder.get map {
+          docFile: File =>
+            docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
+        }
+    },
+
+    mappings in Universal <++= (baseDirectory) map {
+      baseDirectory: File =>
+        val pathFinder = baseDirectory * "README*"
+        pathFinder.get map {
+          readmeFile: File =>
+            readmeFile -> readmeFile.getName
+        }
+    }
 
   )
 

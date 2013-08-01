@@ -20,7 +20,7 @@ In addition, if you have any other dependencies on Play artifacts, and you are n
 
 ### Update SBT version
 
-todo
+`project/build.properties` is required to be updated to use sbt 0.13.0.
 
 ### Play cache module
 
@@ -33,6 +33,8 @@ val addDependencies = Seq(
   ...
 )
 ```
+
+Note that if you depend on plugins that depend on versions of Play prior to 2.2 then there will be a conflict within caching due to multiple caches being loaded. Update to a later plugin version or ensure that older Play versions are excluded if you see this issue.
 
 ## New results structure in Scala
 
@@ -131,3 +133,12 @@ Iteratee.foreach[String] { msg =>
 }
 ```
 
+## Preparing a distribution
+
+The _stage_ and _dist_ tasks have been completely re-written in Play 2.2 so that they use the [Native Packager Plugin](https://github.com/sbt/sbt-native-packager). 
+
+Play distributions are no longer created in the project's `dist` folder. Instead, they are created in the project's `target` folder. 
+
+Another thing that has changed is the location of the Unix script that starts a Play application. Prior to 2.2 the Unix script was named `start` and it resided in the root level folder of the distribution. With 2.2 the `start` script is named as per the project's name and it resides in the distribution's `bin` folder. In addition there is now a `.bat` script available to start the Play application on Windows.
+
+Please consult the [["Starting your application in production mode"|Production]] documentation for more information on the new `stage` and `dist` tasks.

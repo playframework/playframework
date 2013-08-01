@@ -5,6 +5,13 @@ import org.specs2.mutable._
 object MediaRangeSpec extends Specification {
 
   "A MediaRange" should {
+
+    def parse(mediaRange: String): MediaRange = {
+      val parsed = MediaRange.parse(mediaRange)
+      parsed must beSome
+      parsed.get
+    }
+
     "accept all media types" in {
       val mediaRange = parse("*/*")
       mediaRange.accepts("text/html") must beTrue
@@ -31,12 +38,6 @@ object MediaRangeSpec extends Specification {
     }
     "not choke on invalid media ranges" in {
       MediaRange.parse("foo") must beNone
-    }
-
-    def parse(mediaRange: String): MediaRange = {
-      val parsed = MediaRange.parse(mediaRange)
-      parsed must beSome
-      parsed.get
     }
   }
 

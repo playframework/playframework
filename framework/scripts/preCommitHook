@@ -1,0 +1,60 @@
+#!/bin/sh
+exec scala -savecompiled "$0" $@
+!#
+
+// This script will check that the commit is correctly formatted.  It only checks files that are to be committed.
+
+// To use it as a pre commit hook, run ln -s ../../framework/scripts/preCommitHook .git/hooks/pre-commit
+
+import scala.sys.process._
+import java.io.File
+
+def color(color: String, msg: String) = color + msg + Console.RESET
+def log(level: String, msg: String) = println("[" + level + "] " + msg)
+def info(msg: String) = log("info", msg)
+def error(msg: String) = log(color(Console.RED, "error"), msg)
+def success(msg: String) = log(color(Console.GREEN, "success"), msg)
+
+info("Running Play pre commit hook...")
+
+// Get a list of all Scala source files in the main project that are staged to be committed
+
+def status = "git status -s".!!.split("\r?\n").toSeq
+
+val stagedFiles = status
+  .filter(_.headOption.map(_ != ' ').getOrElse(false))
+  .map(_.drop(3).takeWhile(_ != ' '))
+  .filter(_.startsWith("framework/src"))
+  .filter(_.endsWith(".scala"))
+
+if (stagedFiles.isEmpty) {
+  info("No staged scala files in main project to check")
+} else {
+  // Run scalariform and see if anything changes
+  val rt = Process(Seq("./build", "scalariform-format"), Some(new File("framework"))) ! ProcessLogger { s =>
+    // Ignore final success line
+    if (!s.contains("success")) {
+      println(s)
+    }
+  }
+  if (rt > 0) {
+    System.exit(rt)
+  }
+
+  // Get a list of all the unstaged changes
+  val unstagedChangedFiles = status
+    .filter(_.charAt(1) != ' ')
+    .map(_.drop(3).takeWhile(_ != ' ')).toSet
+
+  val changedStagedFiles = stagedFiles.filter(unstagedChangedFiles)
+
+  if (!changedStagedFiles.isEmpty) {
+    error("Scalariform check failed")
+    error("The following staged files were modified after running scalariform:")
+    changedStagedFiles.foreach(f => println("  " + f))
+    System.exit(1)
+  }
+}
+
+success("Pre-commit hook passed")
+System.exit(0)

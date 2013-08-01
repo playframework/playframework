@@ -2,7 +2,7 @@
 
 ## Configuring JDBC connection pools
 
-Play 2.0 provides a plugin for managing JDBC connection pools. You can configure as many databases you need.
+Play provides a plugin for managing JDBC connection pools. You can configure as many databases you need.
 
 To enable the database plugin add javaJdbc in your build dependencies :
 
@@ -67,7 +67,7 @@ db.default.jndiName=DefaultDS
 
 ## Importing a Database Driver
 
-Other than for the h2 in-memory database, useful mostly in development mode, Play 2.0 does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
+Other than for the h2 in-memory database, useful mostly in development mode, Play does not provide any database drivers. Consequently, to deploy in production you will have to add your database driver as an application dependency.
 
 For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
 

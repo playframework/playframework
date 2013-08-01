@@ -8,7 +8,7 @@ import play.api.data.Forms._
 
 object FormatSpec extends Specification {
   "dateFormat" should {
-    "support custom time zones" << {
+    "support custom time zones" in {
       val data = Map("date" -> "00:00")
 
       val format = Formats.dateFormat("HH:mm", TimeZone.getTimeZone("America/Los_Angeles"))

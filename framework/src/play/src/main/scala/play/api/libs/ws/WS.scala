@@ -1,6 +1,7 @@
 package play.api.libs.ws
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.{ Future, Promise }
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -14,6 +15,7 @@ import com.ning.http.client.{
   HttpResponseHeaders,
   HttpResponseStatus,
   Response => AHCResponse,
+  Cookie => AHCCookie,
   PerRequestConfig
 }
 import collection.immutable.TreeMap
@@ -40,23 +42,28 @@ object WS {
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
-  private var clientHolder: Option[AsyncHttpClient] = None
+  private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
   /**
    * resets the underlying AsyncHttpClient
    */
-  def resetClient(): Unit = {
-    clientHolder.map { clientRef =>
+  private[play] def resetClient(): Unit = {
+    val oldClient = clientHolder.getAndSet(None)
+    oldClient.map { clientRef =>
       clientRef.close()
     }
-    clientHolder = None
   }
 
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client =
-    clientHolder.getOrElse {
+  def client = {
+    clientHolder.get.getOrElse {
+      // Note, the following code may execute more than once, if there are several
+      // simultaneous calls to this function on different threads.  In that case,
+      // it's possible that an AsyncHttpClient will be created by the following
+      // code, but then discarded, because another thread was able to create one
+      // and store it in `clientHolder` first.
       val playConfig = play.api.Play.maybeApplication.map(_.configuration)
       val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
         .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
@@ -71,9 +78,12 @@ object WS {
         asyncHttpConfig.setSSLContext(SSLContext.getDefault)
       }
       val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-      clientHolder = Some(innerClient)
-      innerClient
+      // Only use our newly created AsyncHttpClient if clientHolder is still None, that is,
+      // if no other thread has snuck in and stored a different one in clientHolder.
+      clientHolder.compareAndSet(None, Some(innerClient))
+      clientHolder.get.get
     }
+  }
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
@@ -483,6 +493,109 @@ object WS {
 }
 
 /**
+ * A WS Cookie.  This is a trait so that we are not tied to a specific client.
+ */
+trait Cookie {
+
+  /**
+   * The underlying "native" cookie object for the client.
+   */
+  def underlying: AnyRef
+
+  /**
+   * The domain.
+   */
+  def domain: String
+
+  /**
+   * The cookie name.
+   */
+  def name: Option[String]
+
+  /**
+   * The cookie value.
+   */
+  def value: Option[String]
+
+  /**
+   * The path.
+   */
+  def path: String
+
+  /**
+   * The maximum age.
+   */
+  def maxAge: Int
+
+  /**
+   * If the cookie is secure.
+   */
+  def secure: Boolean
+
+  /**
+   * The cookie version.
+   */
+  def version: Int
+}
+
+/**
+ * The Ning implementation of a WS cookie.
+ */
+private class NingCookie(ahcCookie: AHCCookie) extends Cookie {
+
+  private def noneIfEmpty(value: String): Option[String] = {
+    if (value.isEmpty) None else Some(value)
+  }
+
+  /**
+   * The underlying cookie object for the client.
+   */
+  def underlying = ahcCookie
+
+  /**
+   * The domain.
+   */
+  def domain: String = ahcCookie.getDomain
+
+  /**
+   * The cookie name.
+   */
+  def name: Option[String] = noneIfEmpty(ahcCookie.getName)
+
+  /**
+   * The cookie value.
+   */
+  def value: Option[String] = noneIfEmpty(ahcCookie.getValue)
+
+  /**
+   * The path.
+   */
+  def path: String = ahcCookie.getPath
+
+  /**
+   * The maximum age.
+   */
+  def maxAge: Int = ahcCookie.getMaxAge
+
+  /**
+   * If the cookie is secure.
+   */
+  def secure: Boolean = ahcCookie.isSecure
+
+  /**
+   * The cookie version.
+   */
+  def version: Int = ahcCookie.getVersion
+
+  /*
+   * Cookie ports should not be used; cookies for a given host are shared across
+   * all the ports on that host.
+   */
+
+  override def toString: String = ahcCookie.toString
+}
+
+/**
  * A WS HTTP response.
  */
 case class Response(ahcResponse: AHCResponse) {
@@ -509,6 +622,19 @@ case class Response(ahcResponse: AHCResponse) {
    * Get a response header.
    */
   def header(key: String): Option[String] = Option(ahcResponse.getHeader(key))
+
+  /**
+   * Get all the cookies.
+   */
+  def cookies: Seq[Cookie] = {
+    import scala.collection.JavaConverters._
+    ahcResponse.getCookies.asScala.map(new NingCookie(_))
+  }
+
+  /**
+   * Get only one cookie, using the cookie name.
+   */
+  def cookie(name: String): Option[Cookie] = cookies.find(_.name == Option(name))
 
   /**
    * The response body as String.
