@@ -5,10 +5,6 @@
 @import scalaguide.forms.scalaformhelper.controllers.routes
 @import views.html.helper.FieldConstructor
 
-@* #import-twitterbootstrap *@
-@import helper.twitterBootstrap._
-@* #import-twitterbootstrap *@
-
 @* #import-myhelper *@
 @import MyHelpers._
 @* #import-myhelper *@
@@ -46,15 +42,15 @@
 
 }
 
-@* #import-myhelper-implicit*@
+@* #import-myhelper-implicit *@
 @implicitField = @{ FieldConstructor(myFieldConstructorTemplate.f) }
-@* #import-myhelper-implicit*@
+@* #import-myhelper-implicit *@
 
 @helper.form(action = routes.Application.submit) {
 
-@* #form-myfield-helper*@
+@* #form-myfield-helper *@
 @helper.inputText(myForm("username"))
-@* #form-myfield-helper*@
+@* #form-myfield-helper *@
 
 @helper.inputPassword(myForm("password"))
 

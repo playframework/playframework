@@ -49,43 +49,25 @@ This default field constructor supports additional options you can pass in the i
 
 @[form-field-options](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
 
-## Twitter bootstrap field constructor
-
-There is also another built-in field constructor that can be used with [TwitterBootstrap](http://twitter.github.com/bootstrap/) 1.4.  (Note: 2.0.2 will support LESS 1.3 and Bootstrap 2.0.)
-
-To use it, just import it in the current scope:
-
-@[import-twitterbootstrap](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
-
-It generates Html like:
-
-@[form-bootstrap-generated](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
-
-It supports the same set of options as the default field constructor (see below).
-
 ## Writing your own field constructor
 
 Often you will need to write your own field constructor. Start by writing a template like:
 
-@[form-myfield](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
+@[template](code/scalaguide/forms/scalaformhelper/views/myFieldConstructorTemplate.scala.html)
 
+Save it in `views/` and name `myFieldConstructorTemplate.scala.html`
 
 > **Note:** This is just a sample. You can make it as complicated as you need. You also have access to the original field using `@elements.field`.
 
 Now create a `FieldConstructor` using this template function:
 
-@[form-myfield-helper](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
+@[field](code/scalaguide/forms/scalaformhelper/views/withFieldConstructor.scala.html)
 
 And to make the form helpers use it, just import it in your templates:
-
 
 @[import-myhelper](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
 
 @[form-myfield-helper](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
 
 It will then use your field constructor to render the input text.
 
@@ -100,7 +82,6 @@ It will then use your field constructor to render the input text.
 The last helper makes it easier to generate inputs for repeated values. Let’s say you have this kind of form definition:
 
 @[userForm-repeated](code/ScalaForms.scala)
-
 
 Now you have to generate as many inputs for the `emails` field as the form contains. Just use the `repeat` helper for that:
 
