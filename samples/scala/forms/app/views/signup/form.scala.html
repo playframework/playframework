@@ -1,7 +1,7 @@
 @(signupForm: Form[User])
 
 @import helper._
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
 
 @title = {
     Sign Up <small><a href="@routes.SignUp.editForm">Or edit an existing user</a></small>
