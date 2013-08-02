@@ -99,7 +99,7 @@ In order to simply action composition, the Java structure of results has been ch
 Previously, futures in async actions had to be wrapped in the `async` call.  Now actions may return either `Result` or `Promise<Result>`.  For example:
 
 ```java
-public static Future<Result> myAsyncAction() {
+public static Promise<Result> myAsyncAction() {
     Promise<Integer> promiseOfInt = play.libs.Akka.future(
     new Callable<Integer>() {
       public Integer call() {
