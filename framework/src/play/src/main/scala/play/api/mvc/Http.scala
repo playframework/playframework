@@ -7,7 +7,8 @@ package play.api.mvc {
   import play.api.libs.Crypto
 
   import scala.annotation._
-import scala.util.control.NonFatal
+  import scala.util.control.NonFatal
+  import java.net.{ URLDecoder, URLEncoder }
 
 /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -406,7 +407,9 @@ import scala.util.control.NonFatal
      * Encodes the data as a `String`.
      */
     def encode(data: Map[String, String]): String = {
-      val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"), "UTF-8")
+      val encoded = data.map {
+        case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
+      }.mkString("&")
       if (isSigned)
         Crypto.sign(encoded) + "-" + encoded
       else
@@ -418,7 +421,13 @@ import scala.util.control.NonFatal
      */
     def decode(data: String): Map[String, String] = {
 
-      def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+      def urldecode(data: String) = {
+        data
+          .split("&")
+          .map(_.split("=", 2))
+          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
+          .toMap
+      }
 
       // Do not change this unless you understand the security issues behind timing attacks.
       // This method intentionally runs in constant time if the two strings have the same length.
@@ -437,7 +446,7 @@ import scala.util.control.NonFatal
 
       try {
         if (isSigned) {
-          val splitted = data.split("-")
+          val splitted = data.split("-", 2)
           val message = splitted.tail.mkString("-")
           if (safeEquals(splitted(0), Crypto.sign(message)))
             urldecode(message)
