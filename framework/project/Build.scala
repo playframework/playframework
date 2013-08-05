@@ -155,6 +155,7 @@ object PlayBuild extends Build {
   lazy val FunctionalProject = PlayRuntimeProject("Play-Functional", "play-functional")
 
   lazy val DataCommonsProject = PlayRuntimeProject("Play-DataCommons", "play-datacommons")
+    .dependsOn(FunctionalProject)
 
   lazy val JsonProject = PlayRuntimeProject("Play-Json", "play-json")
     .settings(libraryDependencies := jsonDependencies)
@@ -215,7 +216,7 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := javaDeps)
     .dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
-  
+
   import ScriptedPlugin._
 
   lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
@@ -278,7 +279,7 @@ object PlayBuild extends Build {
         "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
       )
     )
-    
+
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     SbtLinkProject,
@@ -303,7 +304,7 @@ object PlayBuild extends Build {
     PlayFiltersHelpersProject,
     PlayIntegrationTestProject
   )
-    
+
   lazy val Root = Project(
     "Root",
     file("."))
