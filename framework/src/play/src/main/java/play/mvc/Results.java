@@ -984,7 +984,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static Result redirect(String url) {
+    public static SimpleResult redirect(String url) {
         return new Redirect(303, url);
     }
 
@@ -993,7 +993,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static Result redirect(Call call) {
+    public static SimpleResult redirect(Call call) {
         return new Redirect(303, call.url());
     }
 
@@ -1004,7 +1004,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static Result found(String url) {
+    public static SimpleResult found(String url) {
         return new Redirect(302, url);
     }
 
@@ -1013,7 +1013,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static Result found(Call call) {
+    public static SimpleResult found(Call call) {
         return new Redirect(302, call.url());
     }
 
@@ -1024,7 +1024,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static Result movedPermanently(String url) {
+    public static SimpleResult movedPermanently(String url) {
         return new Redirect(301, url);
     }
 
@@ -1033,7 +1033,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static Result movedPermanently(Call call) {
+    public static SimpleResult movedPermanently(Call call) {
         return new Redirect(301, call.url());
     }
 
@@ -1044,7 +1044,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static Result seeOther(String url) {
+    public static SimpleResult seeOther(String url) {
         return new Redirect(303, url);
     }
 
@@ -1053,7 +1053,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static Result seeOther(Call call) {
+    public static SimpleResult seeOther(Call call) {
         return new Redirect(303, call.url());
     }
 
@@ -1064,7 +1064,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static Result temporaryRedirect(String url) {
+    public static SimpleResult temporaryRedirect(String url) {
         return new Redirect(307, url);
     }
 
@@ -1073,7 +1073,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static Result temporaryRedirect(Call call) {
+    public static SimpleResult temporaryRedirect(Call call) {
         return new Redirect(307, call.url());
     }
 
