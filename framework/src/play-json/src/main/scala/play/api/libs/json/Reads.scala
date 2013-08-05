@@ -32,16 +32,34 @@ trait Reads[A] {
     Reads[A] { json => self.reads(json).filter(f) }
 
   def filter(error: ValidationError)(f: A => Boolean): Reads[A] =
-    Reads[A] { json => self.reads(json).filter(error)(f) }
+    Reads[A]{ js =>
+      // Since filter returns a Validation[E, A], we need to transform it into a JsResut
+      self.reads(js) match {
+        case s@JsSuccess(_, path) => s.filter(error)(f).fail.map(_ => Seq(path -> Seq(error)))
+        case f => f
+      }
+    }
 
   def filterNot(f: A => Boolean): Reads[A] =
     Reads[A] { json => self.reads(json).filterNot(f) }
 
   def filterNot(error: ValidationError)(f: A => Boolean): Reads[A] =
-    Reads[A] { json => self.reads(json).filterNot(error)(f) }
+    Reads[A]{ js =>
+      // Since filterNot returns a Validation[E, A], we need to transform it into a JsResut
+      self.reads(js) match {
+        case s@JsSuccess(_, path) => s.filterNot(error)(f).fail.map(_ => Seq(path -> Seq(error)))
+        case f => f
+      }
+    }
 
   def collect[B](error: ValidationError)(f: PartialFunction[A, B]) =
-    Reads[B] { json => self.reads(json).collect(error)(f) }
+    Reads[B]{ js =>
+      // Since collect returns a Validation[E, A], we need to transform it into a JsResut
+      self.reads(js) match {
+        case s @ JsSuccess(_, path) => s.collect(error)(f).fail.map(_ => Seq(path -> Seq(error)))
+        case JsError(errs) => JsError(errs)
+      }
+    }
 
   def orElse(v: Reads[A]): Reads[A] =
     Reads[A] { json => self.reads(json).orElse(v.reads(json)) }

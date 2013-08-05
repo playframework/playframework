@@ -8,7 +8,6 @@ import java.text.ParseException
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 
-
 object JsonValidSpec extends Specification {
   "JSON reads" should {
     "validate simple types" in {
@@ -139,7 +138,7 @@ object JsonValidSpec extends Specification {
 
   "JSON JsResult" should {
     "recover from error" in {
-      JsNumber(123).validate[String].recover{
+      JsNumber(123).validate[String].recover[(JsPath, Seq[ValidationError]), String]{
         case JsError(e) => "error"
       } must beEqualTo(JsSuccess("error"))
 
