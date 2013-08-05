@@ -67,7 +67,7 @@ object ResultsSpec extends Specification {
 
       Session.decode("  ").isEmpty must be_==(true)
 
-      val data = Map("user" -> "kiki", "bad:key" -> "yop", "langs" -> "fr:en:de")
+      val data = Map("user" -> "kiki", "langs" -> "fr:en:de")
       val encodedSession = Session.encode(data)
       val decodedSession = Session.decode(encodedSession)
 
@@ -98,7 +98,7 @@ object ResultsSpec extends Specification {
       val data = Map("user" -> "alice")
       val encodedSession = Session.encode(data)
       // Change a value in the session
-      val maliciousSession = encodedSession.replaceFirst("user%3Aalice", "user%3Amallory")
+      val maliciousSession = encodedSession.replaceFirst("user=alice", "user=mallory")
       val decodedSession = Session.decode(maliciousSession)
       decodedSession must beEmpty
     }
