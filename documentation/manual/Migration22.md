@@ -22,6 +22,10 @@ In addition, if you have any other dependencies on Play artifacts, and you are n
 
 `project/build.properties` is required to be updated to use sbt 0.13.0.
 
+### Update Scala version
+
+If you have set the scalaVersion (e.g. because you have a multi-project build that uses Project in addition to play.Project), you should update it to 2.10.2.
+
 ### Play cache module
 
 Play cache is now split out into its own module.  If you are using the Play cache, you will need to add this as a dependency.  For example, in `Build.scala`:
