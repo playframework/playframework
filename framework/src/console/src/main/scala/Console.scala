@@ -21,7 +21,7 @@ object Console {
            |
            |""".stripMargin) +
     ("play! " + play.core.PlayVersion.current +
-      " built with Scala " + play.core.PlayVersion.scalaVersion +
+      " built with Scala " + scala.util.Properties.versionString +
       " (running Java " + System.getProperty("java.version") + ")," +
       " http://www.playframework.com")
 
