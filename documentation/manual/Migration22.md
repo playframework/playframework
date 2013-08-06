@@ -24,7 +24,7 @@ In addition, if you have any other dependencies on Play artifacts, and you are n
 
 ### Update root project
 
-If you're using a multi-project build, the root project is now determined by overriding rootProject instead of alphabetically:
+If you're using a multi-project build, and none of the projects has a root directory of the current directory, the root project is now determined by overriding rootProject instead of alphabetically:
 
 ```scala
 override def rootProject = Some(myProject) 
