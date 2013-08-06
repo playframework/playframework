@@ -10,6 +10,7 @@ import xml.NodeSeq
 import play.core.Router
 import scala.runtime.AbstractPartialFunction
 import play.api.libs.Files.TemporaryFile
+import play.api.{ DefaultInjectionProvider, InjectionProvider }
 
 /**
  * Fake HTTP headers implementation.
@@ -207,27 +208,33 @@ object FakeRequest {
  * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
 
-import play.api.{ Application, WithDefaultConfiguration, WithDefaultGlobal, WithDefaultPlugins }
+import play.api.{ Application, WithDefaultConfiguration, WithDefaultInjectionProvider }
 case class FakeApplication(
   override val path: java.io.File = new java.io.File("."),
   override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-  val additionalPlugins: Seq[String] = Nil,
-  val withoutPlugins: Seq[String] = Nil,
-  val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-  val withGlobal: Option[play.api.GlobalSettings] = None,
-  val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
+  additionalPlugins: Seq[String] = Nil,
+  withoutPlugins: Seq[String] = Nil,
+  additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+  withGlobal: Option[play.api.GlobalSettings] = None,
+  withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
   override val sources = None
   override val mode = play.api.Mode.Test
-} with Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
-  override def pluginClasses = {
-    additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
+} with Application with WithDefaultConfiguration with WithDefaultInjectionProvider {
+
+  override lazy val injectionProvider: InjectionProvider = {
+    val provider = super.injectionProvider
+    new DefaultInjectionProvider(FakeApplication.this) {
+      override lazy val plugins = {
+        InjectionProvider.loadPlugins(FakeApplication.this, additionalPlugins) ++
+          provider.plugins.filterNot(withoutPlugins contains _.getClass.getName)
+      }
+      override lazy val global = withGlobal getOrElse super.global
+    }
   }
 
   override def configuration = {
     super.configuration ++ play.api.Configuration.from(additionalConfiguration)
   }
-
-  override lazy val global = withGlobal.getOrElse(super.global)
 
   override lazy val routes: Option[Router.Routes] = {
     val parentRoutes = loadRoutes

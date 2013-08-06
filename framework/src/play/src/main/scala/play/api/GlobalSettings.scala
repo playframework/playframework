@@ -4,6 +4,7 @@
 package play.api
 
 import play.api.mvc._
+import play.api.Play.current
 import java.io.File
 import scala.util.control.NonFatal
 import scala.concurrent.Future
@@ -194,9 +195,7 @@ trait GlobalSettings {
    * @param controllerClass the controller class to instantiate.
    * @return the appropriate instance for the given controller class.
    */
-  def getControllerInstance[A](controllerClass: Class[A]): A = {
-    controllerClass.newInstance();
-  }
+  def getControllerInstance[A](controllerClass: Class[A]): A = current.inject(controllerClass).get
 
 }
 

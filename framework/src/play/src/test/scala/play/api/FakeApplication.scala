@@ -14,8 +14,12 @@ case class FakeApplication(config: Map[String, Any] = Map(),
                            path: File = new File("."),
                            sources: Option[SourceMapper] = None,
                            mode: Mode.Mode = Mode.Test,
-                           global: GlobalSettings = DefaultGlobal,
-                           plugins: Seq[Plugin] = Nil) extends Application {
+                           withGlobal: GlobalSettings = DefaultGlobal,
+                           withPlugins: Seq[Plugin] = Seq()) extends Application {
+  lazy val injectionProvider = new DefaultInjectionProvider(this) {
+    override lazy val plugins = withPlugins
+    override lazy val global = withGlobal
+  }
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
 }

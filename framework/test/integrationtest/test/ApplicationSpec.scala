@@ -9,6 +9,8 @@ import models._
 import play.api.libs.json.Json
 import play.api.libs.json.JsString
 import play.api.mvc.AnyContentAsEmpty
+import play.api.Play.current
+
 import module.Routes
 
 import scala.concurrent.Future
@@ -16,7 +18,7 @@ import scala.concurrent.Future
 class ApplicationSpec extends PlaySpecification with WsTestClient {
 
   "an Application" should {
-  
+
     "execute index" in new WithApplication() {
       val action = controllers.Application.index()
       val result = action(FakeRequest())
@@ -41,7 +43,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
        anyData.put("email", "peter.hausel@yay.com")
        userForm.bind(anyData).get.toString must contain ("")
     }
-  
+
     "execute index again" in new WithApplication() {
       val action = controllers.Application.index()
       val result = action(FakeRequest())
@@ -51,7 +53,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       charset(result) must equalTo(Some("utf-8"))
       contentAsString(result) must contain("Hello world")
     }
-    
+
     "execute json" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/json"))
       status(result) must equalTo(OK)
@@ -91,7 +93,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       val Some(result2) = route(FakeRequest(GET, "/public//empty.txt"))
       status(result2) must equalTo (OK)
     }
-   
+
     "remove cache elements" in new WithApplication() {
       import play.api.cache.Cache
       Cache.set("foo", "bar")
@@ -383,6 +385,10 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
 
       session.get("foo") must equalTo (Some("bar"))
 
+    }
+
+    "get plugins loaded by the injection provider" in new WithApplication() {
+      current.plugin[InjectedPlugin].get.name must_== "test"
     }
 
   }
