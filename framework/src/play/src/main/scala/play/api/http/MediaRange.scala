@@ -50,25 +50,6 @@ class MediaRange(mediaType: String,
       (mediaSubType == "*" && mediaType.equalsIgnoreCase(mimeType.takeWhile(_ != '/'))) ||
       (mediaType == "*" && mediaSubType == "*")
 
-  /**
-   * Since floats are notoriously inexact, when comparing qValues, we want to use a function that uses exact values.
-   *
-   * This function converts the value to an exact integer value, such that comparing this integer from two different
-   * qValues will return the right result.
-   *
-   * Exploits the fact that RFC 2616 defines that q values may not have more than 3 digits after the decimal point.
-   */
-  lazy val toExactIntWeight = {
-    qValue.map { q =>
-      // Truncate to 3 decimal places
-      q.setScale(3, BigDecimal.RoundingMode.DOWN)
-        // Move decimal point 3 places to the right
-        .bigDecimal.movePointRight(3)
-        // It now should be an exact integer
-        .intValueExact()
-    }.getOrElse(1000)
-  }
-
   override def toString = {
     new MediaType(mediaType, mediaSubType,
       parameters ++ qValue.map(q => ("q", Some(q.toString()))).toSeq ++ acceptExtensions).toString
@@ -150,9 +131,18 @@ object MediaRange {
    * Otherwise the least specific has the lower priority, otherwise they have the same priority.
    */
   implicit val ordering = new Ordering[play.api.http.MediaRange] {
+
+    def compareQValues(x: Option[BigDecimal], y: Option[BigDecimal]) = {
+      if (x.isEmpty && y.isEmpty) 0
+      else if (x.isEmpty) 1
+      else if (y.isEmpty) -1
+      else x.get.compare(y.get)
+    }
+
     def compare(a: play.api.http.MediaRange, b: play.api.http.MediaRange) = {
-      if (a.toExactIntWeight > b.toExactIntWeight) -1
-      else if (a.toExactIntWeight < b.toExactIntWeight) 1
+      val qCompare = compareQValues(a.qValue, b.qValue)
+
+      if (qCompare != 0) -qCompare
       else if (a.mediaType == b.mediaType) {
         if (a.mediaSubType == b.mediaSubType) b.parameters.size - a.parameters.size
         else if (a.mediaSubType == "*") 1
@@ -179,6 +169,7 @@ object MediaRange {
     type Elem = Char
 
     val any = acceptIf(_ => true)(_ => "Expected any character")
+    val end = not(any)
 
     /*
      * RFC 2616 section 2.2
@@ -196,6 +187,16 @@ object MediaRange {
 
     val token = rep1(not(separators | ctl) ~> any) ^^ charSeqToString
 
+    def badPart(p: Char => Boolean, msg: => String) = rep1(acceptIf(p)(ignoreErrors)) ^^ {
+      case chars =>
+        Play.logger.debug(msg + ": " + charSeqToString(chars))
+        None
+    }
+    val badParameter = badPart(c => c != ',' && c != ';', "Bad media type parameter")
+    val badMediaType = badPart(c => c != ',', "Bad media type")
+
+    def tolerant[T](p: Parser[T], bad: Parser[Option[T]]) = p.map(Some.apply) | bad
+
     // The spec is really vague about what a quotedPair means. We're going to assume that it's just to quote quotes,
     // which means all we have to do for the result of it is ignore the slash.
     val quotedPair = '\\' ~> char
@@ -205,12 +206,16 @@ object MediaRange {
     /*
      * RFC 2616 section 3.7
      */
-    val parameter = token ~ opt('=' ~> (token | quotedString)) ^^ {
+    val parameter = token ~ opt('=' ~> (token | quotedString)) <~ rep(' ') ^^ {
       case name ~ value => name -> value
     }
-    val parameters = rep(';' ~> rep(' ') ~> parameter)
-    val mediaType: Parser[MediaType] = (token <~ '/') ~ token ~ parameters ^^ {
-      case mainType ~ subType ~ ps => MediaType(mainType, subType, ps)
+
+    // Either it's a valid parameter followed immediately by the end, a comma or a semicolon, or it's a bad parameter
+    val tolerantParameter = tolerant(parameter <~ guard(end | ';' | ','), badParameter)
+
+    val parameters = rep(';' ~> rep(' ') ~> tolerantParameter <~ rep(' '))
+    val mediaType: Parser[MediaType] = (token <~ '/') ~ (token <~ rep(' ')) ~ parameters ^^ {
+      case mainType ~ subType ~ ps => MediaType(mainType, subType, ps.flatten)
     }
 
     /*
@@ -221,16 +226,21 @@ object MediaRange {
 
     // Some clients think that '*' is a valid media range.  Spec says it isn't, but it's used widely enough that we
     // need to support it.
-    val mediaRange = (mediaType | ('*' ~> parameters ^^ (MediaType("*", "*", _)))) ^^ { mediaType =>
-      val params = mediaType.parameters.takeWhile(_._1 != "q")
-      val rest = mediaType.parameters.drop(params.size)
+    val mediaRange = (mediaType | ('*' ~> parameters.map(ps => MediaType("*", "*", ps.flatten)))) ^^ { mediaType =>
+      val (params, rest) = mediaType.parameters.span(_._1 != "q")
       val (qValueStr, acceptParams) = rest match {
         case q :: ps => (q._2, ps)
         case _ => (None, Nil)
       }
       val qValue = qValueStr.flatMap { q =>
         try {
-          Some(BigDecimal(q))
+          val qbd = BigDecimal(q)
+          if (qbd > 1) {
+            Play.logger.debug("Invalid q value: " + q)
+            None
+          } else {
+            Some(BigDecimal(q))
+          }
         } catch {
           case _: NumberFormatException =>
             Play.logger.debug("Invalid q value: " + q)
@@ -240,7 +250,10 @@ object MediaRange {
       new MediaRange(mediaType.mediaType, mediaType.mediaSubType, params, qValue, acceptParams)
     }
 
-    val mediaRanges = rep1sep(mediaRange, ',' ~ rep(' '))
+    // Either it's a valid media range followed immediately by the end or a comma, or it's a bad media type
+    val tolerantMediaRange = tolerant(mediaRange <~ guard(end | ','), badMediaType)
+
+    val mediaRanges = rep1sep(tolerantMediaRange, ',' ~ rep(' ')).map(_.flatten)
 
     def apply(in: Input): ParseResult[List[MediaRange]] = mediaRanges(in)
 

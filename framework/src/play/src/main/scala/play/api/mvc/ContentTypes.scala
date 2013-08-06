@@ -296,8 +296,10 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def tolerantText(maxLength: Int): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
+      // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
+
       Traversable.takeUpTo[Array[Byte]](maxLength)
-        .transform(Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("utf-8"))))
+        .transform(Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("ISO-8859-1"))))
         .flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
     }
 
@@ -352,7 +354,10 @@ trait BodyParsers {
     def tolerantJson(maxLength: Int): BodyParser[JsValue] = BodyParser("json, maxLength=" + maxLength) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
         scala.util.control.Exception.allCatch[JsValue].either {
-          Json.parse(new String(bytes, request.charset.getOrElse("utf-8")))
+          // Encoding notes: RFC 4627 requires that JSON be encoded in Unicode, and states that whether that's
+          // UTF-8, UTF-16 or UTF-32 can be auto detected by reading the first two bytes. So we ignore the declared
+          // charset and don't decode, we passing the byte array as is because Jackson supports auto detection.
+          Json.parse(bytes)
         }.left.map { e =>
           (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid Json")).getOrElse(Results.BadRequest), bytes)
         }
@@ -406,7 +411,27 @@ trait BodyParsers {
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser("xml, maxLength=" + maxLength) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
         scala.util.control.Exception.allCatch[NodeSeq].either {
-          XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
+          val inputSource = new InputSource(new ByteArrayInputStream(bytes))
+
+          // Encoding notes: RFC 3023 is the RFC for XML content types.  Comments below reflect what it says.
+
+          // An externally declared charset takes precedence
+          request.charset.orElse(
+            // If omitted, maybe select a default charset, based on the media type.
+            request.mediaType.collect {
+              // According to RFC 3023, the default encoding for text/xml is us-ascii. This contradicts RFC 2616, which
+              // states that the default for text/* is ISO-8859-1.  An RFC 3023 conforming client will send US-ASCII,
+              // in that case it is safe for us to use US-ASCII or ISO-8859-1.  But a client that knows nothing about
+              // XML, and therefore nothing about RFC 3023, but rather conforms to RFC 2616, will send ISO-8859-1.
+              // Since decoding as ISO-8859-1 works for both clients that conform to RFC 3023, and clients that conform
+              // to RFC 2616, we use that.
+              case mt if mt.mediaType == "text" => "iso-8859-1"
+              // Otherwise, there should be no default, it will be detected by the XML parser.
+            }
+          ).foreach { charset =>
+              inputSource.setEncoding(charset)
+            }
+          XML.load(inputSource)
         }.left.map { e =>
           (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid XML")).getOrElse(Results.BadRequest), bytes)
         }
@@ -593,8 +618,8 @@ trait BodyParsers {
 
         val maybeBoundary = for {
           mt <- request.mediaType
-          param <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
-          boundary <- param._2
+          (_, value) <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
+          boundary <- value
         } yield ("\r\n--" + boundary).getBytes("utf-8")
 
         maybeBoundary.map { boundary =>

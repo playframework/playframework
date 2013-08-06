@@ -1,6 +1,7 @@
 package play.api.http
 
 import org.specs2.mutable._
+import java.net.URLEncoder
 
 object MediaRangeSpec extends Specification {
 
@@ -8,8 +9,12 @@ object MediaRangeSpec extends Specification {
 
     def parseSingleMediaRange(mediaRange: String): MediaRange = {
       val parsed = MediaRange.parse(mediaRange)
-      parsed.headOption must beSome
-      parsed.headOption.get
+      parsed.length must_== 1
+      parsed.head
+    }
+
+    def parseInvalidMediaRange(mediaRange: String) = {
+      MediaRange.parse(mediaRange) must beEmpty
     }
 
     "accept all media types" in {
@@ -105,6 +110,35 @@ object MediaRangeSpec extends Specification {
       new MediaRange("foo", "bar", Nil, Some(0.25f), Nil).toString must_== "foo/bar; q=0.25"
       new MediaRange("foo", "bar", Seq("p1" -> Some("v1")), Some(0.25f), Seq("p2" -> Some("v2"))).toString must_==
         "foo/bar; p1=v1; q=0.25; p2=v2"
+    }
+    // Rich tests
+    "gracefully handle empty parts" in {
+      parseInvalidMediaRange("text/")
+      parseInvalidMediaRange("text/;foo")
+    }
+    "gracefully handle invalid characters in tokens" in {
+      for {
+        c <- "\u0000\u007F (){}\\\"".toSeq
+        format <- Seq(
+          "fo%so/bar, text/plain;charset=utf-8",
+          "foo/ba%sr, text/plain;charset=utf-8",
+          "text/plain;pa%sram;charset=utf-8",
+          "text/plain;param=va%slue;charset=utf-8"
+        )
+      } yield {
+        // Use URL encoder so we can see which ctl character it's using
+        def description = "Media type format: '" + format + "' Invalid character: " + c.toInt
+        val parsed = MediaRange.parse(format.format(c))
+
+        parsed aka description must haveSize(1)
+        parsed.head aka description must_==
+          new MediaRange("text", "plain", Seq("charset" -> Some("utf-8")), None, Nil)
+      }
+      success
+    }
+    "gracefully handle invalid q values" in {
+      parseSingleMediaRange("foo/bar;q=a") must_== new MediaRange("foo", "bar", Nil, None, Nil)
+      parseSingleMediaRange("foo/bar;q=1.01") must_== new MediaRange("foo", "bar", Nil, None, Nil)
     }
   }
 
