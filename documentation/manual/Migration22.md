@@ -22,6 +22,14 @@ In addition, if you have any other dependencies on Play artifacts, and you are n
 
 `project/build.properties` is required to be updated to use sbt 0.13.0.
 
+### Update root project
+
+If you're using a multi-project build, and none of the projects has a root directory of the current directory, the root project is now determined by overriding rootProject instead of alphabetically:
+
+```scala
+override def rootProject = Some(myProject) 
+```
+
 ### Update Scala version
 
 If you have set the scalaVersion (e.g. because you have a multi-project build that uses Project in addition to play.Project), you should update it to 2.10.2.
