@@ -100,12 +100,6 @@ sealed trait Validation[+E, +A] { self =>
     case (Failure(e1), Failure(e2)) => Failure((e1: Seq[E]) ++ (e2: Seq[EE])) // dafuk??? hy do I need to force types ?
   }
 
-  def |[EE >: E, AA >: A](o: => Validation[EE, AA]): Validation[EE, AA] =  (this, o) match {
-    case (Success(v), _) => Success(v)
-    case (Failure(e), Success(v)) => Success(v)
-    case (Failure(e), _) => Failure(e)
-  }
-
   def fail = FailProjection(this)
   def success = SuccessProjection(this)
 }
@@ -139,6 +133,16 @@ object Validation {
       case (Failure(e), _) => Failure(e)
       case (_, Failure(e)) => Failure(e)
     }
+  }
+
+  implicit def alternativeValidation[E](implicit a: Applicative[({type f[A] = Validation[E, A]})#f]) = new Alternative[({type f[A] = Validation[E, A]})#f] {
+    val app = a
+    def |[A, B >: A](alt1: Validation[E, A], alt2: Validation[E, B]): Validation[E, B] = (alt1, alt2) match {
+      case (Success(v), _) => Success(v)
+      case (Failure(e), Success(v)) => Success(v)
+      case (Failure(e), _) => Failure(e)
+    }
+    def empty: Validation[E, Nothing] = Failure(Seq())
   }
 
   implicit def monoidConstraint[T] = new Monoid[Constraint[T]] {

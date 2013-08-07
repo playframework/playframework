@@ -57,16 +57,4 @@ package object json {
   implicit def jsValidationToWithRepath[A](v: Validation[(JsPath, Seq[ValidationError]), A]): WithRepath[A] = new WithRepath[A] {
     val self = v
   }
-
-  import play.api.libs.functional._
-
-  implicit def alternativeJsResult(implicit a: Applicative[JsResult]): Alternative[JsResult] = new Alternative[JsResult] {
-    val app = a
-    def |[A, B >: A](alt1: JsResult[A], alt2: JsResult[B]): JsResult[B] = (alt1, alt2) match {
-      case (JsError(e), JsSuccess(t, p)) => JsSuccess(t, p)
-      case (JsSuccess(t, p), _) => JsSuccess(t, p)
-      case (JsError(e1), JsError(e2)) => JsError(JsError.merge(e1, e2))
-    }
-    def empty: JsResult[Nothing] = JsError(Seq())
-  }
 }
