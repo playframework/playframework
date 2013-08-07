@@ -204,7 +204,7 @@ final case class SuccessProjection[+E, +A](v: Validation[E, A]) {
 class Success[+E, +A](val value: A) extends Validation[E, A] {
   def get: A = value
   override def toString = s"Success($value)"
-
+  override def hashCode = value.hashCode
   override def equals(o: Any) = {
     if(canEqual(o)) {
       val j = o.asInstanceOf[Success[E, A]]
@@ -219,7 +219,7 @@ class Success[+E, +A](val value: A) extends Validation[E, A] {
 class Failure[+E, +A](val errors: Seq[E]) extends Validation[E, A] {
   def get: Nothing = throw new NoSuchElementException("Failure.get")
   override def toString = s"Failure($errors)"
-
+  override def hashCode = errors.hashCode
   override def equals(o: Any) = {
     if(canEqual(o)) {
       val j = o.asInstanceOf[Failure[E, A]]

@@ -12,7 +12,7 @@ class JsSuccess[T](override val value: T, val path: JsPath = JsPath()) extends S
     }
     else false
   }
-
+  override def hashCode = 41 * (41 + value.hashCode) + path.hashCode
   override def canEqual(o: Any) = o.isInstanceOf[JsSuccess[T]]
 }
 
@@ -34,7 +34,7 @@ class JsError(override val errors: Seq[(JsPath, Seq[ValidationError])]) extends 
   def prepend(error: (JsPath, ValidationError)): JsError = this.+:(error)
 
   override def toString = s"JsError($errors)"
-
+  override def hashCode = errors.hashCode
   override def equals(o: Any) = {
     if(canEqual(o)) {
       val j = o.asInstanceOf[JsError]
