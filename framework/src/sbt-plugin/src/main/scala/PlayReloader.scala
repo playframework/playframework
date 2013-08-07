@@ -10,7 +10,7 @@ trait PlayReloader {
 
   // ----- Reloader
 
-  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], baseLoader: ClassLoader) = {
+  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], createClassLoader: ClassLoaderCreator, classpathTask: TaskKey[Classpath], baseLoader: ClassLoader) = {
 
     val extracted = Project.extract(state)
 
@@ -311,25 +311,11 @@ trait PlayReloader {
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       private def newClassLoader = {
-        val loader = new java.net.URLClassLoader(
-          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray, baseLoader) {
-
-          val version = classLoaderVersion.incrementAndGet
-
-          override def getResources(name: String): java.util.Enumeration[java.net.URL] = {
-            import scala.collection.JavaConverters._
-            new java.util.Vector[java.net.URL](
-              super.getResources(name).asScala.toList.distinct.asJava
-            ).elements
-          }
-
-          override def toString = {
-            "ReloadableClassLoader(v" + version + ") {" + {
-              getURLs.map(_.toString).mkString(", ")
-            } + "}"
-          }
-
-        }
+        val version = classLoaderVersion.incrementAndGet
+        val name = "ReloadableClassLoader(v" + version + ")"
+        val classpath = Project.runTask(classpathTask, state).map(_._2).get.toEither.right.get
+        val urls = Path.toURLs(classpath.files)
+        val loader = createClassLoader(name, urls, baseLoader)
         currentApplicationClassLoader = Some(loader)
         loader
       }
