@@ -127,6 +127,20 @@ object Validation {
   import play.api.libs.functional._
   import scala.language.reflectiveCalls
 
+  implicit def applicativeValidation[E] = new Applicative[({type f[A] = Validation[E, A]})#f] {
+
+    def pure[A](a: A): Validation[E, A] = Success(a)
+
+    def map[A, B](m: Validation[E, A], f: A => B): Validation[E, B] = m.map(f)
+
+    def apply[A, B](mf: Validation[E, A => B], ma: Validation[E, A]): Validation[E, B] = (mf, ma) match {
+      case (Success(f), Success(a)) => Success(f(a))
+      case (Failure(e1), Failure(e2)) => Failure.merge(Failure(e1), Failure(e2))
+      case (Failure(e), _) => Failure(e)
+      case (_, Failure(e)) => Failure(e)
+    }
+  }
+
   implicit def monoidConstraint[T] = new Monoid[Constraint[T]] {
     def append(c1: Constraint[T], c2: Constraint[T]) = v => c1(v) *> (c2(v))
     def identity = Constraints.noConstraint[T]

@@ -59,7 +59,7 @@ object JsError {
   def unapply[T](f: Failure[(JsPath, Seq[ValidationError]), T]) = Some(f.errors)
 
   def merge(e1: Seq[(JsPath, Seq[ValidationError])], e2: Seq[(JsPath, Seq[ValidationError])]): Seq[(JsPath, Seq[ValidationError])] = {
-    (e1 ++ e2).groupBy(_._1).mapValues(_.map(_._2).flatten).toList
+    (e1 ++ e2).groupBy(_._1).mapValues(_.map(_._2).flatten).toList.reverse
   }
 
   def merge(e1: JsError, e2: JsError): JsError = {

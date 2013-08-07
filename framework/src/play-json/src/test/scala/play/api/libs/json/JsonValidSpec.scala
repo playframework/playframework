@@ -342,10 +342,10 @@ object JsonValidSpec extends Specification {
       val jsFail = Json.toJson(fail)
 
       jsOk.validate[Numbers] must equalTo(JsSuccess(ok))
-      jsFail.validate[Numbers] must equalTo(
-        JsError((__ \ 'f), ValidationError("error.min", 13.0F)) ++
-        JsError((__ \ 'd), ValidationError("error.max", 1.0))
-      )
+      jsFail.validate[Numbers] must equalTo(JsError(Seq(
+        (__ \ 'f) -> Seq(ValidationError("error.min", 13.0F)),
+        (__ \ 'd) -> Seq(ValidationError("error.max", 1.0))
+      )))
     }
 
   }
@@ -476,8 +476,8 @@ object JsonValidSpec extends Specification {
         )
       ).validate[User] must beEqualTo(
         JsError(Seq(
-          __ \ 'coords \ 'phone -> Seq(ValidationError("error.path.missing")),
-          __ \ 'coords \ 'email -> Seq(ValidationError("error.path.missing"))
+          __ \ 'coords \ 'email -> Seq(ValidationError("error.path.missing")),
+          __ \ 'coords \ 'phone -> Seq(ValidationError("error.path.missing"))
         ))
       )
     }
@@ -505,7 +505,11 @@ object JsonValidSpec extends Specification {
 
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("error.email")) ++ JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
+      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(
+        JsError((__ \ 'email), ValidationError("error.email")) ++
+        JsError((__ \ 'age), ValidationError("error.max", 55)) ++
+        JsError((__ \ 'age), ValidationError("error.min", 65))
+      )
     }
 
     "verifyingIf reads" in {
