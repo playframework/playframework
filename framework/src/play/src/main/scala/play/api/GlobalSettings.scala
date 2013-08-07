@@ -110,7 +110,7 @@ trait GlobalSettings {
         Logger.error("Error while rendering default error page", e)
         InternalServerError
       }
-    } 
+    }
   }
 
   /**

@@ -17,7 +17,7 @@ import play.api._
 import play.core.server.netty._
 
 import java.security.cert.X509Certificate
-import java.io.{File, FileInputStream}
+import java.io.{ File, FileInputStream }
 import scala.util.control.NonFatal
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 
@@ -47,9 +47,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       val newPipeline = pipeline()
       if (secure) {
         sslContext.map { ctxt =>
-            val sslEngine = ctxt.createSSLEngine
-            sslEngine.setUseClientMode(false)
-            newPipeline.addLast("ssl", new SslHandler(sslEngine))
+          val sslEngine = ctxt.createSSLEngine
+          sslEngine.setUseClientMode(false)
+          newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
       newPipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192))
@@ -60,7 +60,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
       newPipeline
     }
 
-    lazy val sslContext: Option[SSLContext] =  //the sslContext should be reused on each connection
+    lazy val sslContext: Option[SSLContext] = //the sslContext should be reused on each connection
       Option(System.getProperty("https.keyStore")) map { path =>
         // Load the configured key store
         val keyStore = KeyStore.getInstance(System.getProperty("https.keyStoreType", "JKS"))
@@ -69,7 +69,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         val file = new File(path)
         if (file.isFile) {
           for (in <- resource.managed(new FileInputStream(file))) {
-              keyStore.load(in, password)
+            keyStore.load(in, password)
           }
           Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
           try {
@@ -93,28 +93,28 @@ class NettyServer(appProvider: ApplicationProvider, port: Int, sslPort: Option[I
         Some(FakeKeyStore.keyManagerFactory(applicationProvider.path))
 
       } flatMap { a => a } map { kmf =>
-          // Load the configured trust manager
-          val tm = Option(System.getProperty("https.trustStore")).map {
-            case "noCA" => {
-              Play.logger.warn("HTTPS configured with no client " +
-                "side CA verification. Requires http://webid.info/ for client certifiate verification.")
-              Array[TrustManager](noCATrustManager)
-            }
-            case _ => {
-              Play.logger.debug("Using default trust store for client side CA verification")
-              null
-            }
-          }.getOrElse {
+        // Load the configured trust manager
+        val tm = Option(System.getProperty("https.trustStore")).map {
+          case "noCA" => {
+            Play.logger.warn("HTTPS configured with no client " +
+              "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+            Array[TrustManager](noCATrustManager)
+          }
+          case _ => {
             Play.logger.debug("Using default trust store for client side CA verification")
             null
           }
-
-          // Configure the SSL context
-          val sslContext = SSLContext.getInstance("TLS")
-          sslContext.init(kmf.getKeyManagers, tm, null)
-          sslContext
+        }.getOrElse {
+          Play.logger.debug("Using default trust store for client side CA verification")
+          null
         }
+
+        // Configure the SSL context
+        val sslContext = SSLContext.getInstance("TLS")
+        sslContext.init(kmf.getKeyManagers, tm, null)
+        sslContext
       }
+  }
 
   // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)
   val allChannels = new DefaultChannelGroup

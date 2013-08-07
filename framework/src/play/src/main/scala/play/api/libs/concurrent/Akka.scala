@@ -6,14 +6,12 @@ import play.api.libs.concurrent._
 import scala.concurrent.{ Future, Await }
 import scala.util.Try
 import akka.actor.ActorSystem
-import scala.concurrent.duration.{Duration}
-import scala.concurrent.{CanAwait,ExecutionContext}
+import scala.concurrent.duration.{ Duration }
+import scala.concurrent.{ CanAwait, ExecutionContext }
 
 import java.util.concurrent.{ TimeUnit }
 
 import com.typesafe.config._
-
-
 
 /**
  * Helper to access the application defined Akka Actor system.

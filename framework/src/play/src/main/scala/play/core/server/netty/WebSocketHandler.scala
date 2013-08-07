@@ -58,11 +58,11 @@ private[server] trait WebSocketHandler {
                 Play.logger.trace("cleaning for channel " + ctx.getChannel());
                 Promise.pure(next)
 
-                case Step.Cont(_) => Promise.pure(next)
-                case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
-              }
-            },
-            (err, e) => /* handle error, maybe close the socket */ Promise.pure(current))
+              case Step.Cont(_) => Promise.pure(next)
+              case Step.Error(msg, e) => { /* deal with error, maybe close the socket */ Promise.pure(next) }
+            }
+          },
+          (err, e) => /* handle error, maybe close the socket */ Promise.pure(current))
         eventuallyNext.success(next)
       }
     }
