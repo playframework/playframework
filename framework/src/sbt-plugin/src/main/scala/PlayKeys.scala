@@ -37,6 +37,9 @@ trait PlayKeys {
 
   val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
 
+  /** A hook to configure how play blocks on user input while running. */
+  val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode")
+
   val distDirectory = SettingKey[File]("play-dist")
 
   val distExcludes = SettingKey[Seq[String]]("dist-excludes")

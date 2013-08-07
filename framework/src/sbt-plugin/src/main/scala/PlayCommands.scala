@@ -28,25 +28,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   val SCALA = "scala"
   val NONE = "none"
 
-  // ----- We need this later
-
-  private val consoleReader = new jline.ConsoleReader
-
-  private def waitForKey() = {
-    consoleReader.getTerminal.disableEcho()
-    def waitEOF() {
-      consoleReader.readVirtualKey() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    waitEOF()
-    consoleReader.getTerminal.enableEcho()
-  }
-
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     inAllProjects(Dag.topologicalSort(base)(deps), key, data)
@@ -489,6 +470,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     val extracted = Project.extract(state)
 
     val (_, hooks) = extracted.runTask(playRunHooks, state)
+    val interaction = extracted.get(playInteractionMode)
 
     // Parse HTTP port argument
     val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
@@ -643,16 +625,16 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       val newState = maybeContinuous match {
         case (true, w: sbt.Watched, ws) => {
           // ~ run mode
-          consoleReader.getTerminal.disableEcho()
-          executeContinuously(w, state, reloader)
-          consoleReader.getTerminal.enableEcho()
+          interaction doWithoutEcho {
+            executeContinuously(w, state, reloader)
+          }
 
           // Remove state two first commands added by sbt ~
           state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)
         }
         case _ => {
           // run mode
-          waitForKey()
+          interaction.waitForCancel()
           state
         }
       }
@@ -682,6 +664,8 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
     val extracted = Project.extract(state)
+
+    val interaction = extracted.get(playInteractionMode)
 
     // Parse HTTP port argument
     val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
@@ -716,7 +700,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
                |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
                |""".stripMargin))
 
-          waitForKey()
+          interaction.waitForCancel()
 
           println()
 
