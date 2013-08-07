@@ -26,7 +26,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             crossPaths := false
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val TemplatesProject = Project(
         "Templates",
@@ -39,7 +39,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val RoutesCompilerProject = Project(
         "Routes-Compiler",
@@ -53,7 +53,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := false,
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val TemplatesCompilerProject = Project(
         "Templates-Compiler",
@@ -68,7 +68,7 @@ object PlayBuild extends Build {
             unmanagedJars in Compile <+= (baseDirectory) map { b => compilerJar(b / "../..") },
             scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint","-deprecation", "-unchecked")
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val AnormProject = Project(
         "Anorm",
@@ -80,7 +80,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val IterateesProject = Project(
         "Play-Iteratees",
@@ -93,7 +93,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val PlayExceptionsProject = Project(
         "Play-Exceptions",
@@ -108,7 +108,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             crossPaths := false
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val PlayProject = Project(
         "Play",
@@ -142,7 +142,7 @@ object PlayBuild extends Build {
             ),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject)
 
     lazy val PlayJdbcProject = Project(
@@ -158,7 +158,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(PlayJavaProject)
 
     lazy val PlayJavaJdbcProject = Project(
@@ -173,7 +173,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(PlayJdbcProject)
 
     lazy val PlayEbeanProject = Project(
@@ -205,7 +205,7 @@ object PlayBuild extends Build {
                 analysis
             }
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(PlayJavaJdbcProject)
 
     lazy val PlayJpaProject = Project(
@@ -221,7 +221,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(PlayJavaJdbcProject)
 
     lazy val PlayJavaProject = Project(
@@ -237,7 +237,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(PlayProject)
 
     lazy val PlayTestProject = Project(
@@ -254,7 +254,7 @@ object PlayBuild extends Build {
             publishArtifact in (Compile, packageSrc) := true,
             parallelExecution in Test := false
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*).dependsOn(PlayProject)
 
     // This project is just for testing Play, not really a public artifact
     lazy val PlayIntegrationTestProject = Project(
@@ -268,7 +268,7 @@ object PlayBuild extends Build {
         javacOptions in doc := Seq("-source", "1.6"),
         parallelExecution in Test := false
       )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
       .dependsOn(PlayProject, PlayTestProject)
 
     lazy val SbtPluginProject = Project(
@@ -288,7 +288,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
 
 
@@ -306,7 +306,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
 
     lazy val PlayFiltersHelpersProject = Project(
         "Filters-Helpers",
@@ -321,7 +321,7 @@ object PlayBuild extends Build {
             publishArtifact in packageDoc := buildWithDoc,
             publishArtifact in (Compile, packageSrc) := true
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
     .dependsOn(PlayProject)
 
     val Root = Project(
@@ -336,7 +336,7 @@ object PlayBuild extends Build {
             generateAPIDocsTask,
             publish := {}
         )
-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+    ).settings(com.typesafe.sbt.SbtScalariform.defaultScalariformSettings: _*)
      .aggregate(
         PlayProject,
         SbtLinkProject,
