@@ -138,7 +138,7 @@ object JsonValidSpec extends Specification {
 
   "JSON JsResult" should {
     "recover from error" in {
-      JsNumber(123).validate[String].recover[(JsPath, Seq[ValidationError]), String]{
+      JsNumber(123).validate[String].recover{
         case JsError(e) => "error"
       } must beEqualTo(JsSuccess("error"))
 

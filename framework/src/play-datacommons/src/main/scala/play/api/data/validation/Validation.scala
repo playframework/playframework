@@ -82,7 +82,7 @@ sealed trait Validation[+E, +A] { self =>
     case Failure(e) => Left(e)
   }
 
-  def recover[EE >: E, AA >: A](errManager: PartialFunction[Failure[EE, AA], AA]): Validation[EE, AA] = this match {
+  def recover[AA >: A](errManager: PartialFunction[Failure[E, A], AA]): Validation[E, AA] = this match {
     case Success(v) => Success(v)
     case e@Failure(_) => if (errManager isDefinedAt e) Success(errManager(e)) else this
   }
