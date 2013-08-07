@@ -488,6 +488,8 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
     val extracted = Project.extract(state)
 
+    val (_, hooks) = extracted.runTask(playRunHooks, state)
+
     // Parse HTTP port argument
     val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
 
@@ -568,6 +570,9 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
 
       lazy val reloader = newReloader(state, playReload, applicationLoader)
 
+      // Now we're about to start, let's call the hooks:
+      hooks.run(_.beforeStarted())
+
       val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
       val mainDev = mainClass.getMethod("mainDev", classOf[SBTLink], classOf[Int])
 
@@ -575,7 +580,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       val server = mainDev.invoke(null, reloader, port: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
 
       // Notify hooks
-      extracted.get(playOnStarted).foreach(_(server.mainAddress))
+      hooks.run(_.afterStarted(server.mainAddress))
 
       println()
       println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -656,7 +661,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       reloader.clean()
 
       // Notify hooks
-      extracted.get(playOnStopped).foreach(_())
+      hooks.run(_.afterStopped())
 
       newState
     }
