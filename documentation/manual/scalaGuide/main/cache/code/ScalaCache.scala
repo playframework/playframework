@@ -1,22 +1,19 @@
 
 package scalaguide.cache {
 
-
-import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
-
 import play.api.Play.current
 import play.api.test._
-import play.api.test.Helpers._
 import play.api.cache.{Cached, Cache}
 import play.api.mvc._
 import scala.concurrent.Future
+import org.specs2.execute.AsResult
 
 
 @RunWith(classOf[JUnitRunner])
-class ScalaCacheSpec extends Specification with Controller {
+class ScalaCacheSpec extends PlaySpecification with Controller {
 
   "A scala Cache" should {
 
@@ -56,14 +53,14 @@ class ScalaCacheSpec extends Specification with Controller {
 
     "cached page" in {
       running(FakeApplication()) {
-      //#cached-action
-      def index = Cached("homePage") {
-        Action {
-          Ok("Hello world")
+        //#cached-action
+        def index = Cached("homePage") {
+          Action {
+            Ok("Hello world")
+          }
         }
-      }
-      //#cached-action
-      val result = index(FakeRequest()).run
+        //#cached-action
+        val result = index(FakeRequest()).run
         status(result) must_== 200
       }
     }
@@ -88,13 +85,13 @@ class ScalaCacheSpec extends Specification with Controller {
   }
 
 
-  def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) {
+  def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
     assertAction(action, request, expectedResponse) {
-      result =>
+      result => success
     }
   }
 
-  def assertAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => Unit) {
+  def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => T) = {
     running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
       val result = action(request).run
       status(result) must_== expectedResponse

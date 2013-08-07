@@ -1,13 +1,11 @@
 package scalaguide.async.scalaasync
 
-import org.specs2.mutable.Specification
 import scala.concurrent.Future
 import play.api.mvc._
 
 import play.api.test._
-import play.api.test.Helpers._
 
-object ScalaAsyncSpec extends Specification with Controller {
+object ScalaAsyncSpec extends PlaySpecification {
 
   "scala async" should {
     "allow returning a future" in new WithApplication() {

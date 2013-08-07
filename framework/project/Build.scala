@@ -24,11 +24,11 @@ object BuildSettings {
   val buildVersion = propOr("play.version", "2.2-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
-  val buildScalaVersion = propOr("scala.version", "2.10.0")
+  val buildScalaVersion = propOr("scala.version", "2.10.2")
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.2")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
-  val buildSbtVersion = propOr("play.sbt.version", "0.13.0-RC1")
+  val buildSbtVersion = propOr("play.sbt.version", "0.13.0-RC4")
   val buildSbtMajorVersion = "0.13"
   val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
@@ -97,7 +97,6 @@ object BuildSettings {
         publishArtifact in packageDoc := false,
         publishArtifact in (Compile, packageSrc) := false,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
-
   }
 }
 
@@ -224,8 +223,6 @@ object PlayBuild extends Build {
       sbtPlugin := true,
       publishMavenStyle := false,
       libraryDependencies := sbtDependencies,
-      // Remove once there are releases for IDE plugins against 0.13
-      resolvers += sonatypeSnapshots,
       sbtVersion in GlobalScope := buildSbtVersion,
       sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
       sbtDependency <<= sbtDependency { dep =>

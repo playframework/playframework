@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In this tutorial you will learn the Play 2 Framework by coding a real web application, from start to finish.  In this application, we will try to use everything you would need in a real project, while introducing good practices for play application development.
+In this tutorial you will learn the Play Framework by coding a real web application, from start to finish.  In this application, we will try to use everything you would need in a real project, while introducing good practices for play application development.
 
 We have split the tutorial into several independent parts.  Each part will introduce more complex features, and provide everything that a real project needs: validation, error handling, a complete security framework, an automated test suite, a shiny web interface, an administration area etc.
 
@@ -128,7 +128,7 @@ Templates are simple text files that live in the `/app/views` directory.  To see
 ```html
 @(message: String)
 
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
 
     @play20.welcome(message, style = "Java")
 
@@ -139,7 +139,7 @@ The template content seems pretty light.  In fact, all you see are Scala templat
 
 The `@(message: String)` directive declares the arguments that this template accepts, in this case, it is a single parameter called `message` of type `String`.  The `message` parameter gets used later in the template.
 
-The `@play20.welcome()` directive is a call to the built in Play 2 welcome template that generate the welcome message you saw in the browser.  You can see that it passes the `message` parameter that our arguments directive declared earlier.
+The `@play20.welcome()` directive is a call to the built in Play welcome template that generate the welcome message you saw in the browser.  You can see that it passes the `message` parameter that our arguments directive declared earlier.
 
 The `@main()` directive is a call to another template called `main.scala.html`.  Both the `@play20.welcome()` and the `@main()` calls are examples of template composition.  Template composition is a powerful concept that allows you to create complex web pages by reusing common parts.
 
@@ -168,7 +168,7 @@ Open the `app/views/main.scala.html` template:
 Note the argument declaration, this time we are accepting a `title` parameter, and also a second argument called `content` of type `Html`.  The second argument is in its own set of braces, this allows the syntax we saw before in the `index.scala.html` template:
 
 ```html
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
    ...
 }
 ```
@@ -203,7 +203,7 @@ Now edit the `app/views/Application/index.scala.html` template to replace the we
 ```html
 @(message: String)
 
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
 
   <h1>@message</h1>
 

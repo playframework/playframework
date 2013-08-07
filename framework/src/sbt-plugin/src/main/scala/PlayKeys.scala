@@ -38,10 +38,6 @@ trait PlayKeys {
 
   val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
 
-  val distDirectory = SettingKey[File]("play-dist")
-
-  val distExcludes = SettingKey[Seq[String]]("dist-excludes")
-
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
 
   val playExternalAssets = SettingKey[Seq[(File, File => PathFinder, String)]]("play-external-assets")
@@ -123,5 +119,4 @@ trait PlayInternalKeys {
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val buildRequire = TaskKey[Seq[(File, File)]]("play-build-require-assets")
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
-  val playPackageEverything = TaskKey[Seq[File]]("play-package-everything")
 }

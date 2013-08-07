@@ -10,12 +10,12 @@ trait Enumerator[E] {
   /**
    * Apply this Enumerator to an Iteratee
    */
-  def apply[A](i: Iteratee[E, A]): Promise[Iteratee[E, A]]
+  def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]]
 
 }
 ```
 
-An `Enumerator[E]` takes an `Iteratee[E,A]` which is any iteratee that consumes `Input[E]` and returns a `Promise[Iteratee[E,A]]` which eventually gives the new state of the iteratee.
+An `Enumerator[E]` takes an `Iteratee[E,A]` which is any iteratee that consumes `Input[E]` and returns a `Future[Iteratee[E,A]]` which eventually gives the new state of the iteratee.
 
 We can go ahead and manually implement `Enumerator` instances by consequently calling the iteratee’s fold method, or use one of the provided `Enumerator` creation methods. For instance we can create an `Enumerator[String]` that pushes a list of strings into an iteratee, like the following:
 
@@ -32,7 +32,7 @@ val consume = Iteratee.consume[String]()
 val newIteratee: Future[Iteratee[String,String]] = enumerateUsers(consume) 
 ```
 
-To terminate the iteratee and extract the computed result we pass `Input.EOF`. An `Iteratee` carries a `run` method that does just this. It pushes an `Input.EOF` and returns a `Promise[A]`, ignoring left input if any.
+To terminate the iteratee and extract the computed result we pass `Input.EOF`. An `Iteratee` carries a `run` method that does just this. It pushes an `Input.EOF` and returns a `Future[A]`, ignoring left input if any.
 
 ```scala
 // We use flatMap since newIteratee is a promise, 
@@ -45,7 +45,7 @@ eventuallyResult.onSuccess { case x => println(x) }
 // Prints "GuillaumeSadekPeterErwan"
 ```
 
-You might notice here that an `Iteratee` will eventually produce a result (returning a promise when calling fold and passing appropriate calbacks), and a `Promise` eventually produces a result. Then a `Promise[Iteratee[E,A]]` can be viewed as `Iteratee[E,A]`. Indeed this is what `Iteratee.flatten` does, Let’s apply it to the previous example:
+You might notice here that an `Iteratee` will eventually produce a result (returning a promise when calling fold and passing appropriate calbacks), and a `Future` eventually produces a result. Then a `Future[Iteratee[E,A]]` can be viewed as `Iteratee[E,A]`. Indeed this is what `Iteratee.flatten` does, Let’s apply it to the previous example:
 
 ```scala
 //Apply the enumerator and flatten then run the resulting iteratee
@@ -67,7 +67,7 @@ val eventuallyResult: Future[String] = {
 }
 ```
 
-Since an `Enumerator` pushes some input into an iteratee and eventually return a new state of the iteratee, we can go on pushing more input into the returned iteratee using another `Enumerator`. This can be done either by using the `flatMap` function on `Promise`s or more simply by combining `Enumerator` instancess using the `andThen` method, as follows:
+Since an `Enumerator` pushes some input into an iteratee and eventually return a new state of the iteratee, we can go on pushing more input into the returned iteratee using another `Enumerator`. This can be done either by using the `flatMap` function on `Future`s or more simply by combining `Enumerator` instancess using the `andThen` method, as follows:
 
 ```scala
 val colors = Enumerator("Red","Blue","Green")
@@ -103,7 +103,7 @@ Actually both methods are based on the more generic `Enumerator.fromCallback` th
 
 ```scala
 def fromCallback[E](
-  retriever: () => Promise[Option[E]],
+  retriever: () => Future[Option[E]],
   onComplete: () => Unit = () => (),
   onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()
 ): Enumerator[E] = {
@@ -111,7 +111,7 @@ def fromCallback[E](
 }
 ```
 
-This method defined on the `Enumerator` object is one of the most important methods for creating `Enumerator`s from imperative logic. Looking closely at the signature, this method takes a callback function `retriever: () => Promise[Option[E]]` that will be called each time the iteratee this `Enumerator` is applied to is ready to take some input. 
+This method defined on the `Enumerator` object is one of the most important methods for creating `Enumerator`s from imperative logic. Looking closely at the signature, this method takes a callback function `retriever: () => Future[Option[E]]` that will be called each time the iteratee this `Enumerator` is applied to is ready to take some input. 
 
 It can be easily used to create an `Enumerator` that represents a stream of time values every 100 millisecond using the opportunity that we can return a promise, like the following:
 
@@ -121,7 +121,7 @@ Enumerator.fromCallback { () =>
 }
 ```
 
-In the same manner we can construct an `Enumerator` that would fetch a url every some time using the `WS` api which returns, not suprisingly a `Promise`
+In the same manner we can construct an `Enumerator` that would fetch a url every some time using the `WS` api which returns, not suprisingly a `Future`
 
 Combining this, callback Enumerator, with an imperative `Iteratee.foreach` we can println a stream of time values periodically:
 

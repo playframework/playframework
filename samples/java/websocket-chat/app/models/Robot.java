@@ -37,7 +37,8 @@ public class Robot {
             Duration.create(30, SECONDS),
             chatRoom,
             new ChatRoom.Talk("Robot", "I'm still alive"),
-            Akka.system().dispatcher()
+            Akka.system().dispatcher(),
+            /** sender **/ null
         );
         
     }

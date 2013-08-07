@@ -109,7 +109,7 @@ trait GlobalSettings {
    *
    * @param request the HTTP request header (the body has not been parsed yet)
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
-   * @see onActionNotFound
+   * @see onHandlerNotFound
    */
   def onRouteRequest(request: RequestHeader): Option[Handler] = Play.maybeApplication.flatMap(_.routes.flatMap { router =>
     router.handlerFor(request)

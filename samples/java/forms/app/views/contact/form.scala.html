@@ -1,20 +1,20 @@
 @(contactForm: Form[Contact])
 
 @import helper._
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
 
 @title = {
     Add a new contact <small><a href="@routes.Contacts.edit">Or edit an existing contact</a></small>
 }
 
-@phoneField(field: Field, className: String = "phone") = {
+@phoneField(field: Field, className: String = "phone")(implicit implicitFieldConstructor:FieldConstructor) = {
     @input(field, '_label -> "Phone numbers", '_class -> className) { (id, name, value, _) =>
         <input type="text" name="@name" value="@value"> 
         <a class="removePhone btn danger">Remove</a>
     }
 }
 
-@informationGroup(field: Field, className: String = "profile") = {
+@informationGroup(field: Field, className: String = "profile")(implicit implicitFieldConstructor:FieldConstructor) = {
     <div class="twipsies well @className">
         
         <a class="removeProfile btn danger pull-right">Remove this profile</a>

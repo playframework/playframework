@@ -10,7 +10,7 @@ import java.io.{ StringWriter, PrintWriter, File }
 import java.net.InetAddress
 import scala.collection.mutable.ListBuffer
 import scala.xml.{ Elem, Node, XML }
-import sbt.testing.{ Event => TEvent, Status => TStatus }
+import sbt.testing.{ Event => TEvent, Status => TStatus, NestedSuiteSelector, NestedTestSelector, TestSelector }
 import test.SbtOptionalThrowable
 
 import play.console.Colors
@@ -41,6 +41,27 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
     </properties>
 
   /**
+   * Extract the test name from the TestEvent.
+   *
+   * I think there should be a nicer way to do this, but it doesn't look like SBT is going to give us that.
+   */
+  def testNameFromTestEvent(event: TEvent) = {
+    def dropPrefix(s: String, prefix: String) = if (s.startsWith(prefix)) {
+      s.drop(prefix.length)
+    } else {
+      s
+    }
+
+    event.selector() match {
+      case test: TestSelector => dropPrefix(test.testName(), event.fullyQualifiedName() + ".")
+      // I don't know if the events below are possible with JUnit, nor do I know exactly what to do with them.
+      case test: NestedTestSelector => dropPrefix(test.testName(), event.fullyQualifiedName() + ".")
+      case suite: NestedSuiteSelector => suite.suiteId()
+      case _ => event.fullyQualifiedName()
+    }
+  }
+
+  /**
    * Gathers data for one Test Suite. We map test groups to TestSuites.
    * Each TestSuite gets its own output file.
    */
@@ -61,12 +82,15 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
       }
     }
 
-    def logEvent(e: TEvent) = {
-      e.status match {
-        case TStatus.Error => logger.info(Colors.red("!") + " " + e.fullyQualifiedName)
-        case TStatus.Failure => logger.info(Colors.yellow("x") + " " + e.fullyQualifiedName)
-        case TStatus.Skipped => logger.info(Colors.yellow("o") + " " + e.fullyQualifiedName)
-        case TStatus.Success => logger.info(Colors.green("+") + " " + e.fullyQualifiedName)
+    def logEvent(event: TEvent) = {
+
+      def logWith(color: String) = logger.info(color + " " + testNameFromTestEvent(event))
+
+      event.status match {
+        case TStatus.Error => logWith(Colors.red("!"))
+        case TStatus.Failure => logWith(Colors.yellow("x"))
+        case TStatus.Skipped => logWith(Colors.yellow("o"))
+        case TStatus.Success => logWith(Colors.green("+"))
       }
     }
 
@@ -129,7 +153,7 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
       }
       case _ => ""
     }
-    <testcase classname={ className } name={ event.fullyQualifiedName() } time={ "0.0" }>
+    <testcase classname={ className } name={ testNameFromTestEvent(event) } time={ "0.0" }>
       {
         (event.status, event.throwable) match {
           case (TStatus.Error, SbtOptionalThrowable(throwable)) =>

@@ -1,10 +1,7 @@
 package detailedtopics.configuration.threadpools
 
-import org.specs2.mutable.Specification
 import play.api.libs.ws.WS
 import play.api.mvc._
-import play.api.mvc.Results._
-import play.api.test.Helpers._
 import play.api.test._
 import play.api._
 import com.typesafe.config.ConfigFactory
@@ -12,8 +9,9 @@ import akka.actor.ActorSystem
 import play.api.libs.concurrent.Akka
 import scala.concurrent.{Future, ExecutionContext}
 import java.io.File
+import org.specs2.execute.AsResult
 
-object ThreadPoolsSpec extends Specification {
+object ThreadPoolsSpec extends PlaySpecification {
   "Play's thread pools" should {
 
     "make a global thread pool available" in new WithApplication() {
@@ -40,6 +38,7 @@ object ThreadPoolsSpec extends Specification {
       val parsed = ConfigFactory.parseString(config)
       val actorSystem = ActorSystem("test", parsed.getConfig("play"))
       actorSystem.shutdown()
+      success
     }
 
     "allow configuring a custom thread pool" in runningWithConfig(
@@ -74,7 +73,7 @@ object ThreadPoolsSpec extends Specification {
         }
         //#my-context-implicit
       }
-      pass
+      success
     }
 
     "allow changing the default thread pool" in {
@@ -97,6 +96,7 @@ object ThreadPoolsSpec extends Specification {
 
       val actorSystem = ActorSystem("test", config.getConfig("play"))
       actorSystem.shutdown()
+      success
     }
 
     "allow configuring many custom thread pools" in runningWithConfig(
@@ -144,7 +144,7 @@ object ThreadPoolsSpec extends Specification {
 
   }
 
-  def runningWithConfig[T](config: String )(block: Application => T) {
+  def runningWithConfig[T: AsResult](config: String )(block: Application => T) = {
     val parsed = ConfigFactory.parseString(config)
     val app = FakeApplication(withGlobal = Some(new GlobalSettings {
       override def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode) = {
@@ -153,8 +153,6 @@ object ThreadPoolsSpec extends Specification {
     }))
     running(app)(block(app))
   }
-
-  def pass = true must_== true
 }
 
 // since specs provides defaultContext, implicitly importing it doesn't work
@@ -168,7 +166,7 @@ object Samples {
       // This code block is executed in the imported default execution context
       // which happens to be the same thread pool in which the outer block of
       // code in this action will be executed.
-      Ok("The response code was " + response.status)
+      Results.Ok("The response code was " + response.status)
     }
   }
   //#global-thread-pool

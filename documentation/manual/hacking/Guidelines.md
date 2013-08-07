@@ -45,8 +45,8 @@ For a Pull Request to be considered at all it has to meet these requirements:
    * Java and Scala APIs should be implemented the following way:
      * implement the core API in scala (```play.api.xxx```)
      * if your component requires life cycle management or needs to be swappable, create a plugin, otherwise skip this step
-     * wrap core API for scala users ([example]  (https://github.com/playframework/Play20/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala#L69))
-     * wrap scala API for java users ([example](https://github.com/playframework/Play20/blob/master/framework/src/play/src/main/java/play/cache/Cache.java))
+     * wrap core API for scala users ([example]  (https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala#L69))
+     * wrap scala API for java users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/java/play/cache/Cache.java))
    * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
 
 If these requirements are not met then the code should **not** be merged into master, or even reviewed - regardless of how good or important it is. No exceptions.
