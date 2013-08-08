@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import play.api._
 import play.api.mvc._
 import scala.util.control.NonFatal
-import system.DocumentationHandler
 
 /**
  * provides source code to be displayed on error pages
@@ -70,7 +69,7 @@ class TestApplication(application: Application) extends ApplicationProvider {
 /**
  * represents an application that can be reloaded in Dev Mode
  */
-class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
+class ReloadableApplication(sbtLink: SBTLink, sbtDocLink: SBTDocLink) extends ApplicationProvider {
 
   // Use plain Java call here in case of scala classloader mess
   {
@@ -83,7 +82,6 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
   }
 
   lazy val path = sbtLink.projectPath
-  private lazy val documentationHandler = new DocumentationHandler(sbtLink.markdownToHtml _)
 
   println(play.utils.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
   println()
@@ -169,7 +167,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[SimpleResult] = {
 
-    documentationHandler.maybeHandleDocumentationRequest(request).orElse(
+    sbtDocLink.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
       for {
         app <- Play.maybeApplication
         result <- app.plugins.foldLeft(Option.empty[SimpleResult]) {

@@ -148,7 +148,6 @@ object Dependencies {
 
     "com.h2database" % "h2" % "1.3.172",
     "org.javassist" % "javassist" % "3.18.0-GA",
-    "com.typesafe.play" %% "play-doc" % "1.0.1",
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
@@ -158,6 +157,10 @@ object Dependencies {
     "com.typesafe.sbt" % "sbt-native-packager" % "0.6.0" extra("sbtVersion" ->  "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
 
     specsSbt
+  )
+
+  val playDocsDependencies = Seq(
+    "com.typesafe.play" %% "play-doc" % "1.0.3"
   )
 
   val consoleDependencies = Seq(

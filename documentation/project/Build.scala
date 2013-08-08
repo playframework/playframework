@@ -1,10 +1,9 @@
 import play.console.Colors
 import play.core.server.ServerWithStop
-import play.doc._
 import sbt._
 import sbt.Keys._
 import PlayKeys._
-import play.core.{SBTLink, PlayVersion}
+import play.core.{ SBTDocLink, SBTLink, PlayVersion }
 import PlaySourceGenerators._
 import scala.Some
 
@@ -17,7 +16,8 @@ object ApplicationBuild extends Build {
       component("play") % "test",
       component("play-test") % "test",
       component("play-java") % "test",
-      component("play-cache") % "test"
+      component("play-cache") % "test",
+      component("play-docs") % "runtime"
     ),
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),
@@ -82,6 +82,7 @@ object ApplicationBuild extends Build {
       val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
         val sharedClasses = Seq(
           classOf[play.core.SBTLink].getName,
+          classOf[play.core.SBTDocLink].getName,
           classOf[play.core.server.ServerWithStop].getName,
           classOf[play.api.UsefulException].getName,
           classOf[play.api.PlayException].getName,
@@ -99,32 +100,16 @@ object ApplicationBuild extends Build {
         }
       }
 
-      import scala.collection.JavaConverters._
-      // create sbt link
-      val sbtLink = new SBTLink {
-        def runTask(name: String) = null
-        def reload() = null
-        def projectPath() = extracted.currentProject.base
-        def settings() = Map.empty[String, String].asJava
-        def forceReload() {}
-        def findSource(className: String, line: java.lang.Integer) = null
-        private val markdownRenderer = {
-          val repo = new FilesystemRepository(new java.io.File(extracted.get(baseDirectory), "manual"))
-          new PlayDoc(repo, repo, "resources/manual")
-        }
-
-        def markdownToHtml(page: String) = {
-          markdownRenderer.renderPage(page) match {
-            case Some((page, Some(sidebar))) => Array(page, sidebar)
-            case Some((page, None)) => Array(page)
-            case None => Array[String]()
-          }
-        }
+      val projectPath = extracted.get(baseDirectory)
+      val sbtDocLink = {
+        val docLinkFactoryClass = classloader.loadClass("play.docs.SBTDocLinkFactory")
+        val fromDirectoryMethod = docLinkFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
+        fromDirectoryMethod.invoke(null, projectPath)
       }
 
-      val clazz = classloader.loadClass("play.core.system.DocumentationServer")
-      val constructor = clazz.getConstructor(classOf[SBTLink], classOf[java.lang.Integer])
-      val server = constructor.newInstance(sbtLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+      val clazz = classloader.loadClass("play.docs.DocumentationServer")
+      val constructor = clazz.getConstructor(classOf[File], classOf[SBTDocLink], classOf[java.lang.Integer])
+      val server = constructor.newInstance(projectPath, sbtDocLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
 
       println()
       println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
