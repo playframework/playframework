@@ -47,9 +47,10 @@ trait PlayRun extends PlayInternalKeys {
     override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
 
   def playRunTask(
+    runHooks: TaskKey[Seq[play.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath],
     dependencyClassLoader: TaskKey[ClassLoaderCreator],
     reloaderClasspath: TaskKey[Classpath],
@@ -57,7 +58,7 @@ trait PlayRun extends PlayInternalKeys {
     (argsTask, state, dependencyClassLoader, reloaderClassLoader) map { (args, state, createClassLoader, createReloader) =>
       val extracted = Project.extract(state)
 
-      val (_, hooks) = extracted.runTask(playRunHooks, state)
+      val (_, hooks) = extracted.runTask(runHooks, state)
       val interaction = extracted.get(playInteractionMode)
 
       val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
