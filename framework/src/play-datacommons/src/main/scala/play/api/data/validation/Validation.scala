@@ -1,16 +1,52 @@
 package play.api.data.validation
 
+/**
+* Validation[E, A] is the result of a validation, where E is the type of each error, and A is the type of the result if the validation is successful
+* The only two possible implementations are Success[E, A](value: A), or Failure[E, A](errors: Seq[E])
+*/
 sealed trait Validation[+E, +A] { self =>
+
+  /**
+  * [use case] Builds a new Validation by applying a function to the value of this validation if it's a Success
+  * {{{
+  *   val f: Int => Int = _ + 2
+  *   Success(5).map(f) == Success(7)
+  *   Failure(Seq("error")).map(f) == Failure(Seq("error"))
+  * }}}
+  * @param f the function to apply if this is a `Success`
+  * @return the result of applying the function
+  */
   def map[X](f: A => X): Validation[E, X] = this match {
     case Success(v) => Success(f(v))
     case Failure(e) => Failure(e)
   }
 
+  /**
+  * [use case] Builds a new Validation by applying a function to the value of this validation if it's a Success
+  * and using the resulting Validation.
+  * {{{
+  *   val f: Int => Validation[String, Int] = x => Success(x + 2)
+  *   Success(5).flatMap(f) == Success(7)
+  *   Failure(Seq("error")).flatMap(f) == Failure(Seq("error"))
+  *
+  *   val fe: Int => Validation[String, Int] = _ => Failure(Seq("don't panic"))
+  *   Success(5).flatMap(fe) == Failure(Seq("don't panic"))
+  *   Failure(Seq("error")).flatMap(fe) == Failure(Seq("error"))
+  * }}}
+  * @param f the function to apply if this is a `Success`
+  * @return the result of applying the function
+  */
   def flatMap[EE >: E, AA](f: A => Validation[EE, AA]): Validation[EE, AA] = this match {
     case Success(v) => f(v)
     case Failure(e) => Failure(e)
   }
 
+  /**
+  * Applies `invalid` if this is a Failure or `valid` if this is a Success.
+  * @param invalid the function to apply if this is a `Failure`
+  * @param valid the function to apply if this is a `Success`
+  * @return the results of applying the function
+  */
   def fold[X](invalid: Seq[E] => X, valid: A => X): X = this match {
     case Success(v) => valid(v)
     case Failure(e) => invalid(e)
@@ -22,22 +58,69 @@ sealed trait Validation[+E, +A] { self =>
   def filterNot(p: A => Boolean): Validation[E, A] =
     this.flatMap { a => if (p(a)) Failure[E, A](Nil) else Success[E, A](a) }
 
+  /**
+  * filter Successful Validation if it does not match the predicate `p`
+  * @param p the predicate to apply if this is a `Success`
+  * @return a Success if this was a Success and the predicate matched, a Failure otherwise
+  */
   def filter(p: A => Boolean): Validation[E, A] =
     this.flatMap { a => if (p(a)) Success[E, A](a) else Failure[E, A](Nil) }
 
+  /**
+  * filter Successful Validation if it does not match the predicate `p`
+  * {{{
+  *   val isFive: Int => Boolean = _ == 5
+  *   Success(5).filter("Not five")(isFive) == Success(5)
+  *   Success(7).filter("Not five")(isFive) == Failure(Seq("Not five"))
+  *   Failure(Seq("error")).filter("Not five")(isFive) == Failure(Seq("error"))
+  * }}}
+  * @param otherwise the error to return if the predicate `p` is not verified
+  * @param p the predicate to apply if this is a `Success`
+  * @return a Success if this was a Success and the predicate matched, a Failure otherwise
+  */
   def filter[EE >: E](otherwise: EE)(p: A => Boolean): Validation[EE, A] =
     this.flatMap { a => if (p(a)) Success[EE, A](a) else Failure[EE, A](Seq(otherwise)) }
 
+  /**
+  * Like `map`, but for partial function. If `p` us not defined for the value, it return a Failure
+  * {{{
+  *   val p: PartialFunction[Int, String] = { case 5 => "High five!" }
+  *   Success(5).collect("OOoops")(p) == Success("High five!")
+  *   Success(7).collect("OOoops")(p) == Failure(Seq("OOoops"))
+  *   Failure(Seq("error")).collect("OOoops")(p) == Failure(Seq("error"))
+  * }}}
+  * @param otherwise the error to return if the `p` is not defined
+  * @param p the partial function to apply if this is a `Success`
+  * @return a Success if this was a Success and `p` was defined, a Failure otherwise
+  */
   def collect[EE >: E, B](otherwise: EE)(p: PartialFunction[A, B]): Validation[EE, B] = flatMap {
     case t if p.isDefinedAt(t) => Success(p(t))
     case _ => Failure(Seq(otherwise))
   }
 
+  /**
+  * Applies the given function `f` if this is a Success, otherwise returns Unit if this is a Failure
+  * @param f the function to apply if this is a `Success`
+  * @return Unit
+  */
   def foreach(f: A => Unit): Unit = this match {
     case Success(a) => f(a)
     case _ => ()
   }
 
+  /** Creates a non-strict filter of this Validation.
+  *
+  *  Note: the difference between `c filter p` and `c withFilter p` is that
+  *        the former creates a new vlaidation, whereas the latter only
+  *        restricts the domain of subsequent `map`, `flatMap`, `foreach`,
+  *        and `withFilter` operations.
+  *
+  *  @param p   the predicate used to test value.
+  *  @return    an object of class `WithFilter`, which supports
+  *             `map`, `flatMap`, `foreach`, and `withFilter` operations.
+  *             All these operations apply to the value of this Validation
+  *             which satisfy the predicate `p`.
+  */
   def withFilter(p: A => Boolean) = new WithFilter(p)
 
   final class WithFilter(p: A => Boolean) {
@@ -60,33 +143,54 @@ sealed trait Validation[+E, +A] { self =>
     def withFilter(q: A => Boolean) = new WithFilter(a => p(a) && q(a))
   }
 
+  /**
+  * Returns the value from this Success or throws the exception if this is a Failure.
+  */
   def get: A
 
+  /**
+  * Returns the value from this Success or returns `t` if this is a Failure.
+  */
   def getOrElse[AA >: A](t: => AA): AA = this match {
     case Success(a) => a
     case Failure(_) => t
   }
 
+  /**
+  * Returns this Validation if it is a Success or returns `t` if it is a Failure.
+  */
   def orElse[EE >: E, AA >: A](t: => Validation[EE, AA]): Validation[EE, AA] = this match {
     case s @ Success(_) => s
     case Failure(_) => t
   }
 
+  /**
+  * Returns None if this is a Failure or a Some containing the value if this is a Success.
+  */
   def asOpt = this match {
     case Success(v) => Some(v)
     case Failure(_) => None
   }
 
+  /**
+  * Returns Left containing the errors if this is a Failure or a Right containing the value if this is a Success.
+  */
   def asEither = this match {
     case Success(v) => Right(v)
     case Failure(e) => Left(e)
   }
 
+  /**
+  * Applies the given  partial function `errManager` if this is a Failure, otherwise returns this if this is a Success.
+  */
   def recover[AA >: A](errManager: PartialFunction[Failure[E, A], AA]): Validation[E, AA] = this match {
     case Success(v) => Success(v)
     case e@Failure(_) => if (errManager isDefinedAt e) Success(errManager(e)) else this
   }
 
+  /**
+  * Applies the given  function `errManager` if this is a Failure, otherwise returns this if this is a Success.
+  */
   def recoverTotal[AA >: A](errManager: Failure[E, A] => AA): AA = this match {
     case Success(v) => v
     case e@Failure(_) => errManager(e)

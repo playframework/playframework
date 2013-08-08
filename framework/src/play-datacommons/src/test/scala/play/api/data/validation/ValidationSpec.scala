@@ -45,7 +45,7 @@ object JsonValidSpec extends Specification {
 
     }
 
-    "be a foldable" in {
+    "be foldable" in {
       success.fold(
         err => "err",
         identity
