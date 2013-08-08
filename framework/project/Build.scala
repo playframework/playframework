@@ -155,6 +155,7 @@ object PlayBuild extends Build {
   lazy val FunctionalProject = PlayRuntimeProject("Play-Functional", "play-functional")
 
   lazy val DataCommonsProject = PlayRuntimeProject("Play-DataCommons", "play-datacommons")
+    .settings(libraryDependencies := dataCommonsDependencies)
     .dependsOn(FunctionalProject)
 
   lazy val JsonProject = PlayRuntimeProject("Play-Json", "play-json")
