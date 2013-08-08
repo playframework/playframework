@@ -37,8 +37,12 @@ trait PlayRun extends PlayInternalKeys {
     else (javaProperties, (maybePort.map(parsePort)).orElse(Some(defaultHttpPort)), maybeHttpsPort)
   }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
-    (argsTask, state) map { (args, state) =>
+  val createURLClassLoader: ClassLoaderCreator = (paths, parent) => new java.net.URLClassLoader(paths, parent)
+
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(dependencyClasspath in Compile, playClassLoaderCreator)
+
+  def playRunTask(classpathTask: TaskKey[Classpath], classLoaderTask: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    (argsTask, state, classLoaderTask) map { (args, state, createClassLoader) =>
       val extracted = Project.extract(state)
 
       val (_, hooks) = extracted.runTask(playRunHooks, state)
@@ -61,7 +65,7 @@ trait PlayRun extends PlayInternalKeys {
         state.log.warn("Some of the dependencies were not recompiled properly, so classloader is not available")
         throw commonLoaderEither.left.get
       }
-      val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
+      val maybeNewState = Project.runTask(classpathTask, state).get._2.toEither.right.map { dependencies =>
 
         // All jar dependencies. They will not been reloaded and must be part of this top classloader
         val classpath = dependencies.map(_.data.toURI.toURL).filter(_.toString.endsWith(".jar")).toArray
@@ -73,7 +77,7 @@ trait PlayRun extends PlayInternalKeys {
          * It also uses the same Scala classLoader as SBT allowing to share any
          * values coming from the Scala library between both.
          */
-        lazy val applicationLoader: ClassLoader = new java.net.URLClassLoader(classpath, commonLoader) {
+        lazy val delegatingLoader: ClassLoader = new ClassLoader(commonLoader) {
 
           val sharedClasses = Seq(
             classOf[play.core.SBTLink].getName,
@@ -85,11 +89,11 @@ trait PlayRun extends PlayInternalKeys {
             classOf[play.api.PlayException.ExceptionSource].getName,
             classOf[play.api.PlayException.ExceptionAttachment].getName)
 
-          override def loadClass(name: String): Class[_] = {
+          override def loadClass(name: String, resolve: Boolean): Class[_] = {
             if (sharedClasses.contains(name)) {
               sbtLoader.loadClass(name)
             } else {
-              super.loadClass(name)
+              super.loadClass(name, resolve)
             }
           }
 
@@ -118,10 +122,12 @@ trait PlayRun extends PlayInternalKeys {
           }
 
           override def toString = {
-            "SBT/Play shared ClassLoader, with: " + (getURLs.toSeq) + ", using parent: " + (getParent)
+            "SBT/Play shared ClassLoader, using parent: " + (getParent)
           }
 
         }
+
+        lazy val applicationLoader = createClassLoader(classpath, delegatingLoader)
 
         lazy val reloader = newReloader(state, playReload, applicationLoader)
 

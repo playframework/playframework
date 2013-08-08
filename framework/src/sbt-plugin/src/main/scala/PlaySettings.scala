@@ -125,6 +125,8 @@ trait PlaySettings {
 
     playCommonClassloader <<= playCommonClassloaderTask,
 
+    playClassLoaderCreator := createURLClassLoader,
+
     playCopyAssets <<= playCopyAssetsTask,
 
     playCompileEverything <<= playCompileEverythingTask,
