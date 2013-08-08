@@ -123,9 +123,15 @@ trait PlaySettings {
 
     playVersion := play.core.PlayVersion.current,
 
+    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
+
+    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
+
     playCommonClassloader <<= playCommonClassloaderTask,
 
-    playClassLoaderCreator := createURLClassLoader,
+    playDependencyClassLoader := createURLClassLoader,
+
+    playReloaderClassLoader := createDelegatedResourcesClassLoader,
 
     playCopyAssets <<= playCopyAssetsTask,
 

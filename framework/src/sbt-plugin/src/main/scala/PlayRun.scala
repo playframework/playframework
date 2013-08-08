@@ -37,12 +37,24 @@ trait PlayRun extends PlayInternalKeys {
     else (javaProperties, (maybePort.map(parsePort)).orElse(Some(defaultHttpPort)), maybeHttpsPort)
   }
 
-  val createURLClassLoader: ClassLoaderCreator = (paths, parent) => new java.net.URLClassLoader(paths, parent)
+  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(dependencyClasspath in Compile, playClassLoaderCreator)
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    require(parent ne null)
+    override def getResources(name: String): java.util.Enumeration[java.net.URL] = getParent.getResources(name)
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
 
-  def playRunTask(classpathTask: TaskKey[Classpath], classLoaderTask: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
-    (argsTask, state, classLoaderTask) map { (args, state, createClassLoader) =>
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+
+  def playRunTask(
+    dependencyClasspath: TaskKey[Classpath],
+    dependencyClassLoader: TaskKey[ClassLoaderCreator],
+    reloaderClasspath: TaskKey[Classpath],
+    reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    (argsTask, state, dependencyClassLoader, reloaderClassLoader) map { (args, state, createClassLoader, createReloader) =>
       val extracted = Project.extract(state)
 
       val (_, hooks) = extracted.runTask(playRunHooks, state)
@@ -65,10 +77,10 @@ trait PlayRun extends PlayInternalKeys {
         state.log.warn("Some of the dependencies were not recompiled properly, so classloader is not available")
         throw commonLoaderEither.left.get
       }
-      val maybeNewState = Project.runTask(classpathTask, state).get._2.toEither.right.map { dependencies =>
+      val maybeNewState = Project.runTask(dependencyClasspath, state).get._2.toEither.right.map { dependencies =>
 
         // All jar dependencies. They will not been reloaded and must be part of this top classloader
-        val classpath = dependencies.map(_.data.toURI.toURL).filter(_.toString.endsWith(".jar")).toArray
+        val classpath = Path.toURLs(dependencies.files)
 
         /**
          * Create a temporary classloader to run the application.
@@ -127,9 +139,9 @@ trait PlayRun extends PlayInternalKeys {
 
         }
 
-        lazy val applicationLoader = createClassLoader(classpath, delegatingLoader)
+        lazy val applicationLoader = createClassLoader("PlayDependencyClassLoader", classpath, delegatingLoader)
 
-        lazy val reloader = newReloader(state, playReload, applicationLoader)
+        lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, applicationLoader)
 
         // Now we're about to start, let's call the hooks:
         hooks.run(_.beforeStarted())
