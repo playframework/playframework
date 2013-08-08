@@ -11,7 +11,6 @@ import scala.collection.mutable.ListBuffer
 
 import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
-import java.io.ByteArrayInputStream
 
 case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException("JsResultException(errors:%s)".format(errors))
 
@@ -460,7 +459,7 @@ private[json] object JacksonJson {
 
   private[this] val classLoader = Thread.currentThread().getContextClassLoader
 
-  private[this] val mapper = new ObjectMapper
+  private[this] val mapper = (new ObjectMapper).registerModule(module)
 
   object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
     override def setupModule(context: SetupContext) {
@@ -468,16 +467,14 @@ private[json] object JacksonJson {
       context.addSerializers(new PlaySerializers)
     }
   }
-  mapper.registerModule(module)
 
   private[this] lazy val jsonFactory = new com.fasterxml.jackson.core.JsonFactory(mapper)
 
-  private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createJsonGenerator(out)
+  private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createGenerator(out)
 
-  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createJsonParser(c)
+  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createParser(c)
 
-  // Pass in ByteArrayInputStream to work around https://github.com/FasterXML/jackson-core/issues/42
-  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createJsonParser(new ByteArrayInputStream(data))
+  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createParser(data)
 
   def parseJsValue(data: Array[Byte]): JsValue = {
     mapper.readValue(jsonParser(data), classOf[JsValue])
@@ -491,7 +488,7 @@ private[json] object JacksonJson {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw)
     mapper.writeValue(gen, jsValue)
-    sw.flush
+    sw.flush()
     sw.getBuffer.toString
   }
 
@@ -501,7 +498,7 @@ private[json] object JacksonJson {
       new com.fasterxml.jackson.core.util.DefaultPrettyPrinter()
     )
     mapper.writerWithDefaultPrettyPrinter().writeValue(gen, jsValue)
-    sw.flush
+    sw.flush()
     sw.getBuffer.toString
   }
 
