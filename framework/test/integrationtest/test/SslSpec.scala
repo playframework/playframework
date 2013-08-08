@@ -65,7 +65,7 @@ class SslSpec extends Specification {
         setOrUnset("https.keyStore", keyStore)
         setOrUnset("https.keyStorePassword", password)
         setOrUnset("https.trustStore", trustStore)
-        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult(t))
+        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult.effectively(t))
       } finally {
         props.remove("https.keyStore")
         props.remove("https.keyStorePassword")
