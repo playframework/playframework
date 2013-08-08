@@ -13,29 +13,6 @@ import scala.collection.JavaConverters._
 trait PlayRun extends PlayInternalKeys {
   this: PlayReloader =>
 
-  // For some reason, jline disables echo when it creates a new console reader.
-  // When we use the reader, we also enabled echo after using it, so as long as this is lazy, and that holds true,
-  // then we won't exit SBT with echo disabled.
-  private lazy val consoleReader = new jline.console.ConsoleReader
-
-  private def waitForKey() = {
-    def waitEOF() {
-      consoleReader.readCharacter() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    consoleReader.getTerminal.setEchoEnabled(false)
-    try {
-      waitEOF()
-    } finally {
-      consoleReader.getTerminal.setEchoEnabled(true)
-    }
-  }
-
   private def parsePort(portString: String): Int = {
     try {
       Integer.parseInt(portString)
@@ -60,9 +37,29 @@ trait PlayRun extends PlayInternalKeys {
     else (javaProperties, (maybePort.map(parsePort)).orElse(Some(defaultHttpPort)), maybeHttpsPort)
   }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
-    (argsTask, state) map { (args, state) =>
+  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
+
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    require(parent ne null)
+    override def getResources(name: String): java.util.Enumeration[java.net.URL] = getParent.getResources(name)
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
+
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+
+  def playRunTask(
+    runHooks: TaskKey[Seq[play.PlayRunHook]],
+    dependencyClasspath: TaskKey[Classpath],
+    dependencyClassLoader: TaskKey[ClassLoaderCreator],
+    reloaderClasspath: TaskKey[Classpath],
+    reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    (argsTask, state, dependencyClassLoader, reloaderClassLoader) map { (args, state, createClassLoader, createReloader) =>
       val extracted = Project.extract(state)
+
+      val (_, hooks) = extracted.runTask(runHooks, state)
+      val interaction = extracted.get(playInteractionMode)
 
       val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
 
@@ -81,10 +78,10 @@ trait PlayRun extends PlayInternalKeys {
         state.log.warn("Some of the dependencies were not recompiled properly, so classloader is not available")
         throw commonLoaderEither.left.get
       }
-      val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
+      val maybeNewState = Project.runTask(dependencyClasspath, state).get._2.toEither.right.map { dependencies =>
 
         // All jar dependencies. They will not been reloaded and must be part of this top classloader
-        val classpath = dependencies.map(_.data.toURI.toURL).filter(_.toString.endsWith(".jar")).toArray
+        val classpath = Path.toURLs(dependencies.files)
 
         /**
          * Create a temporary classloader to run the application.
@@ -93,7 +90,7 @@ trait PlayRun extends PlayInternalKeys {
          * It also uses the same Scala classLoader as SBT allowing to share any
          * values coming from the Scala library between both.
          */
-        lazy val applicationLoader: ClassLoader = new java.net.URLClassLoader(classpath, commonLoader) {
+        lazy val delegatingLoader: ClassLoader = new ClassLoader(commonLoader) {
 
           val sharedClasses = Seq(
             classOf[play.core.SBTLink].getName,
@@ -105,11 +102,11 @@ trait PlayRun extends PlayInternalKeys {
             classOf[play.api.PlayException.ExceptionSource].getName,
             classOf[play.api.PlayException.ExceptionAttachment].getName)
 
-          override def loadClass(name: String): Class[_] = {
+          override def loadClass(name: String, resolve: Boolean): Class[_] = {
             if (sharedClasses.contains(name)) {
               sbtLoader.loadClass(name)
             } else {
-              super.loadClass(name)
+              super.loadClass(name, resolve)
             }
           }
 
@@ -138,12 +135,17 @@ trait PlayRun extends PlayInternalKeys {
           }
 
           override def toString = {
-            "SBT/Play shared ClassLoader, with: " + (getURLs.toSeq) + ", using parent: " + (getParent)
+            "SBT/Play shared ClassLoader, using parent: " + (getParent)
           }
 
         }
 
-        lazy val reloader = newReloader(state, playReload, applicationLoader)
+        lazy val applicationLoader = createClassLoader("PlayDependencyClassLoader", classpath, delegatingLoader)
+
+        lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, applicationLoader)
+
+        // Now we're about to start, let's call the hooks:
+        hooks.run(_.beforeStarted())
 
         val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
         val server = if (httpPort.isDefined) {
@@ -156,7 +158,7 @@ trait PlayRun extends PlayInternalKeys {
         }
 
         // Notify hooks
-        extracted.get(playOnStarted).foreach(_(server.mainAddress))
+        hooks.run(_.afterStarted(server.mainAddress))
 
         println()
         println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -219,11 +221,8 @@ trait PlayRun extends PlayInternalKeys {
         val newState = maybeContinuous match {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
-            consoleReader.getTerminal.setEchoEnabled(false)
-            try {
+            interaction doWithoutEcho {
               executeContinuously(w, state, reloader, Some(WatchState.empty))
-            } finally {
-              consoleReader.getTerminal.setEchoEnabled(true)
             }
 
             // Remove state two first commands added by sbt ~
@@ -231,7 +230,7 @@ trait PlayRun extends PlayInternalKeys {
           }
           case _ => {
             // run mode
-            waitForKey()
+            interaction.waitForCancel()
             state
           }
         }
@@ -240,7 +239,7 @@ trait PlayRun extends PlayInternalKeys {
         reloader.clean()
 
         // Notify hooks
-        extracted.get(playOnStopped).foreach(_())
+        hooks.run(_.afterStopped())
 
         newState
       }
@@ -252,6 +251,8 @@ trait PlayRun extends PlayInternalKeys {
 
       println()
 
+      // Since we're an input task, we don't actually return state anymore.
+      // Anything we do is ignored, hence the warning below.
       maybeNewState match {
         case Right(x) => x
         case _ => state
@@ -263,6 +264,7 @@ trait PlayRun extends PlayInternalKeys {
 
     val extracted = Project.extract(state)
 
+    val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -297,7 +299,7 @@ trait PlayRun extends PlayInternalKeys {
               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
               |""".stripMargin))
 
-          waitForKey()
+          interaction.waitForCancel()
 
           println()
 
