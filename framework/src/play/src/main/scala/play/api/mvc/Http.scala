@@ -614,7 +614,7 @@ package play.api.mvc {
   object Flash extends CookieBaker[Flash] {
 
     val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("flash.cookieName")).getOrElse("PLAY_FLASH")
-    override val path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
 
     val emptyCookie = new Flash
 
