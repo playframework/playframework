@@ -311,9 +311,9 @@ object PlayBuild extends Build {
     .settings(ApiDocs.settings: _*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
-      cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
       publish := {},
       generateDistTask
     )
     .aggregate(publishedProjects: _*)
+    .aggregate(RepositoryProject)
 }
