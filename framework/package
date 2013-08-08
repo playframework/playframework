@@ -92,7 +92,7 @@ fi
 
 if [ $CLEAN -eq 0 ]
 then
-    $DIR/build clean Play-Repository:clean
+    $DIR/build clean
 fi
 
 $DIR/build -Dplay.version=${PLAY_VERSION} $PUBLISHCMD create-dist
