@@ -13,29 +13,6 @@ import scala.collection.JavaConverters._
 trait PlayRun extends PlayInternalKeys {
   this: PlayReloader =>
 
-  // For some reason, jline disables echo when it creates a new console reader.
-  // When we use the reader, we also enabled echo after using it, so as long as this is lazy, and that holds true,
-  // then we won't exit SBT with echo disabled.
-  private lazy val consoleReader = new jline.console.ConsoleReader
-
-  private def waitForKey() = {
-    def waitEOF() {
-      consoleReader.readCharacter() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    consoleReader.getTerminal.setEchoEnabled(false)
-    try {
-      waitEOF()
-    } finally {
-      consoleReader.getTerminal.setEchoEnabled(true)
-    }
-  }
-
   private def parsePort(portString: String): Int = {
     try {
       Integer.parseInt(portString)
@@ -65,6 +42,7 @@ trait PlayRun extends PlayInternalKeys {
       val extracted = Project.extract(state)
 
       val (_, hooks) = extracted.runTask(playRunHooks, state)
+      val interaction = extracted.get(playInteractionMode)
 
       val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
 
@@ -224,11 +202,8 @@ trait PlayRun extends PlayInternalKeys {
         val newState = maybeContinuous match {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
-            consoleReader.getTerminal.setEchoEnabled(false)
-            try {
+            interaction doWithoutEcho {
               executeContinuously(w, state, reloader, Some(WatchState.empty))
-            } finally {
-              consoleReader.getTerminal.setEchoEnabled(true)
             }
 
             // Remove state two first commands added by sbt ~
@@ -236,7 +211,7 @@ trait PlayRun extends PlayInternalKeys {
           }
           case _ => {
             // run mode
-            waitForKey()
+            interaction.waitForCancel()
             state
           }
         }
@@ -257,6 +232,8 @@ trait PlayRun extends PlayInternalKeys {
 
       println()
 
+      // Since we're an input task, we don't actually return state anymore.
+      // Anything we do is ignored, hence the warning below.
       maybeNewState match {
         case Right(x) => x
         case _ => state
@@ -268,6 +245,7 @@ trait PlayRun extends PlayInternalKeys {
 
     val extracted = Project.extract(state)
 
+    val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -302,7 +280,7 @@ trait PlayRun extends PlayInternalKeys {
               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
               |""".stripMargin))
 
-          waitForKey()
+          interaction.waitForCancel()
 
           println()
 

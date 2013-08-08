@@ -41,6 +41,9 @@ trait PlayKeys {
   @deprecated("2.2", "Please use playRunHooks setting instead.")
   val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
 
+  /** A hook to configure how play blocks on user input while running. */
+  val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode")
+
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
 
   val playExternalAssets = SettingKey[Seq[(File, File => PathFinder, String)]]("play-external-assets")
