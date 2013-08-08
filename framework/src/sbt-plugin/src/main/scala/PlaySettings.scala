@@ -140,9 +140,21 @@ trait PlaySettings {
 
     playDefaultPort := 9000,
 
+    // Default hooks
+
     playOnStarted := Nil,
 
     playOnStopped := Nil,
+
+    playRunHooks := Nil,
+
+    playRunHooks <++= playOnStarted map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStarted
+    },
+
+    playRunHooks <++= playOnStopped map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStopped
+    },
 
     // Assets
 

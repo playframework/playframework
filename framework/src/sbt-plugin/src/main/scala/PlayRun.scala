@@ -64,6 +64,8 @@ trait PlayRun extends PlayInternalKeys {
     (argsTask, state) map { (args, state) =>
       val extracted = Project.extract(state)
 
+      val (_, hooks) = extracted.runTask(playRunHooks, state)
+
       val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
 
       require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -145,6 +147,9 @@ trait PlayRun extends PlayInternalKeys {
 
         lazy val reloader = newReloader(state, playReload, applicationLoader)
 
+        // Now we're about to start, let's call the hooks:
+        hooks.run(_.beforeStarted())
+
         val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
         val server = if (httpPort.isDefined) {
           val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[play.core.SBTLink], classOf[Int])
@@ -156,7 +161,7 @@ trait PlayRun extends PlayInternalKeys {
         }
 
         // Notify hooks
-        extracted.get(playOnStarted).foreach(_(server.mainAddress))
+        hooks.run(_.afterStarted(server.mainAddress))
 
         println()
         println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -240,7 +245,7 @@ trait PlayRun extends PlayInternalKeys {
         reloader.clean()
 
         // Notify hooks
-        extracted.get(playOnStopped).foreach(_())
+        hooks.run(_.afterStopped())
 
         newState
       }
