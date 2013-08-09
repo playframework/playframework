@@ -1,0 +1,8 @@
+# Compile
+> compile-ignore-errors
+
+# Check that the compile errors are successfully mapped from the generated Scala back to the original source
+> check-log-contains app/views/index.scala.html:3: not found: value foo
+> check-log-contains Foo: @foo.bar
+> check-log-contains conf/routes:3: object Foo is not a member of package controllers
+> check-log-contains GET / controllers.Foo.index
