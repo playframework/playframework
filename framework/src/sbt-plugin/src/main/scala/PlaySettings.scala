@@ -120,7 +120,8 @@ trait PlaySettings {
 
     commands ++= Seq(shCommand, playCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
-    run <<= playRunSetting,
+    // THE `in Compile` IS IMPORTANT!
+    run in Compile <<= playRunSetting,
 
     shellPrompt := playPrompt,
 
