@@ -82,10 +82,6 @@ trait PlaySettings {
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
-    ivyConfigurations += SharedApplication,
-    libraryDependencies += "com.typesafe.play" %% "play" % play.core.PlayVersion.current % SharedApplication.name,
-    manageClasspath(SharedApplication),
-
     ivyConfigurations += DocsApplication,
     libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
     manageClasspath(DocsApplication),
@@ -135,7 +131,17 @@ trait PlaySettings {
 
     playVersion := play.core.PlayVersion.current,
 
+    // all dependencies from outside the project (all dependency jars)
+    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
+
+    // all user classes, in this project and any other subprojects that it depends on
+    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
+
     playCommonClassloader <<= playCommonClassloaderTask,
+
+    playDependencyClassLoader := createURLClassLoader,
+
+    playReloaderClassLoader := createDelegatedResourcesClassLoader,
 
     playCopyAssets <<= playCopyAssetsTask,
 
