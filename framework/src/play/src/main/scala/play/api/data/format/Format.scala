@@ -125,8 +125,8 @@ object Formats {
   }
 
   /**
-  * Default formatter for the `BigDecimal` type.
-  */
+   * Default formatter for the `BigDecimal` type.
+   */
   def bigDecimalFormat(precision: Option[(Int, Int)]): Formatter[BigDecimal] = new Formatter[BigDecimal] {
 
     override val format = Some("format.real", Nil)
@@ -134,21 +134,24 @@ object Formats {
     def bind(key: String, data: Map[String, String]) = {
       Formats.stringFormat.bind(key, data).right.flatMap { s =>
         scala.util.control.Exception.allCatch[BigDecimal]
-          .either{
+          .either {
             val bd = BigDecimal(s)
-            precision.map({ case (p, s) =>
-              if( bd.precision - bd.scale > p - s ){
-                throw new java.lang.ArithmeticException("Invalid precision")
-              }
-              bd.setScale(s)
+            precision.map({
+              case (p, s) =>
+                if (bd.precision - bd.scale > p - s) {
+                  throw new java.lang.ArithmeticException("Invalid precision")
+                }
+                bd.setScale(s)
             }).getOrElse(bd)
           }
-          .left.map{e => Seq(
-            precision match {
-              case Some((p, s)) => FormError(key, "error.real.precision", Seq(p,s))
-              case None => FormError(key, "error.real", Nil)
-            }
-          )}
+          .left.map { e =>
+            Seq(
+              precision match {
+                case Some((p, s)) => FormError(key, "error.real.precision", Seq(p, s))
+                case None => FormError(key, "error.real", Nil)
+              }
+            )
+          }
       }
     }
 
@@ -178,7 +181,7 @@ object Formats {
     def unbind(key: String, value: Boolean) = Map(key -> value.toString)
   }
 
-  import java.util.{Date, TimeZone}
+  import java.util.{ Date, TimeZone }
   import java.text.SimpleDateFormat
 
   /**

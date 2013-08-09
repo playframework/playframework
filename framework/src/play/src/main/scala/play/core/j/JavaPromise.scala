@@ -14,14 +14,13 @@ import play.core.Execution.internalContext
 
 object JavaPromise {
 
-  def akkaAsk (actor: akka.actor.ActorRef, message: Any, timeout: akka.util.Timeout): scala.concurrent.Future[AnyRef] =
-    akka.pattern.Patterns.ask(actor,message,timeout)
+  def akkaAsk(actor: akka.actor.ActorRef, message: Any, timeout: akka.util.Timeout): scala.concurrent.Future[AnyRef] =
+    akka.pattern.Patterns.ask(actor, message, timeout)
 
   def akkaFuture[T](callable: java.util.concurrent.Callable[T]) = play.libs.Akka.asPromise(akka.dispatch.Futures.future(callable, play.libs.Akka.system.dispatchers.defaultGlobalDispatcher))
 
   def timeout[A](callable: Callable[A], duration: Long, unit: TimeUnit = TimeUnit.MILLISECONDS, ec: ExecutionContext): scala.concurrent.Future[A] =
     play.api.libs.concurrent.Promise.timeout(callable.call(), duration, unit)(ec)
-    
 
   def sequence[A](promises: JList[F.Promise[_ <: A]]): Future[JList[A]] = {
     Promise.sequence(JavaConverters.asScalaBufferConverter(promises).asScala.map(_.getWrappedPromise))
@@ -34,7 +33,7 @@ object JavaPromise {
 
   def timeout: Future[Nothing] = Promise.timeout
 
-  def recover[A](promise: Future[A], f: Throwable => Future[A], ec:ExecutionContext): Future[A] = {
+  def recover[A](promise: Future[A], f: Throwable => Future[A], ec: ExecutionContext): Future[A] = {
     promise.extend1 {
       case Thrown(e) => f(e)
       case Redeemed(a) => Promise.pure(a)

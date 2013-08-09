@@ -1,7 +1,7 @@
 package play.api.mvc {
 
   import play.api._
-  import play.api.http.{MediaRange, HeaderNames}
+  import play.api.http.{ MediaRange, HeaderNames }
   import play.api.i18n.Lang
   import play.api.libs.iteratee._
   import play.api.libs.Crypto
@@ -10,7 +10,7 @@ package play.api.mvc {
   import scala.util.control.NonFatal
   import java.net.{ URLDecoder, URLEncoder }
 
-/**
+  /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
    */
   @implicitNotFound("Cannot find any HTTP Request Header here")
@@ -19,12 +19,12 @@ package play.api.mvc {
     /**
      * The request ID.
      */
-    def id: Long 
+    def id: Long
 
     /**
      * The request Tags.
      */
-    def tags: Map[String,String]
+    def tags: Map[String, String]
 
     /**
      * The complete request URI, containing both path and query string.
@@ -169,15 +169,14 @@ package play.api.mvc {
      */
     def copy(
       id: Long = this.id,
-      tags: Map[String,String] = this.tags,
+      tags: Map[String, String] = this.tags,
       uri: String = this.uri,
       path: String = this.path,
       method: String = this.method,
       version: String = this.version,
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
-      remoteAddress: String = this.remoteAddress
-    ): RequestHeader = {
+      remoteAddress: String = this.remoteAddress): RequestHeader = {
       val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress)
       new RequestHeader {
         val id = _id
@@ -329,7 +328,7 @@ package play.api.mvc {
     /**
      * Retrieve all header values associated with the given key.
      */
-    def getAll(key: String): Seq[String] = (toMap.get(key):Option[Seq[String]]).toSeq.flatten
+    def getAll(key: String): Seq[String] = (toMap.get(key): Option[Seq[String]]).toSeq.flatten
 
     /**
      * Retrieve all header keys
@@ -399,7 +398,7 @@ package play.api.mvc {
     def secure = false
 
     /**
-     *  The cookie path. 
+     *  The cookie path.
      */
     def path = "/"
 
@@ -700,7 +699,7 @@ package play.api.mvc {
      */
     def encode(cookies: Seq[Cookie]): String = {
       val encoder = new CookieEncoder(true)
-      val newCookies = cookies.map{c =>
+      val newCookies = cookies.map { c =>
         encoder.addCookie {
           val nc = new DefaultCookie(c.name, c.value)
           nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
@@ -710,7 +709,7 @@ package play.api.mvc {
           nc.setHttpOnly(c.httpOnly)
           nc
         }
-         encoder.encode()
+        encoder.encode()
       }
       newCookies.mkString("; ")
     }

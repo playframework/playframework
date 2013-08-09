@@ -76,7 +76,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       JContext.current.set(javaContext)
       play.mvc.Results.async {
         play.libs.F.Promise.pure("").map(
-          new play.libs.F.Function[String,JResult] {
+          new play.libs.F.Function[String, JResult] {
             def apply(nothing: String) = finalAction.call(javaContext)
           }
         )

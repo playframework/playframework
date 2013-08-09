@@ -18,7 +18,7 @@ class Html(val buffer: StringBuilder) extends Appendable[Html] with Content with
     this
   }
 
-  @deprecated(message="Use += method instead.", since="2012/12")
+  @deprecated(message = "Use += method instead.", since = "2012/12")
   def +(other: Html): Html = {
     this += other
   }
@@ -98,7 +98,7 @@ class Txt(text: String) extends Appendable[Txt] with Content with play.mvc.Conte
     this
   }
 
-  @deprecated(message="Use += method instead.", since="2012/12")
+  @deprecated(message = "Use += method instead.", since = "2012/12")
   def +(other: Txt): Txt = {
     this += other
   }
@@ -125,7 +125,6 @@ object Txt {
   def apply(text: String): Txt = {
     new Txt(text)
   }
-
 
   /**
    * Creates an empty text fragment.
@@ -167,7 +166,7 @@ class Xml(text: String) extends Appendable[Xml] with Content with play.mvc.Conte
     this
   }
 
-  @deprecated(message="Use += method instead.", since="2012/12")
+  @deprecated(message = "Use += method instead.", since = "2012/12")
   def +(other: Xml): Xml = {
     this += other
   }
