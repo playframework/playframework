@@ -16,7 +16,6 @@ case class RecursiveSearch(key: String) extends PathNode {
   override def toString = "//" + key
 }
 
-
 object \: {
   def unapply[I](path: Path[I]): Option[(PathNode, Path[I])] = {
     path match {
@@ -27,6 +26,7 @@ object \: {
 }
 
 object Path {
+  def apply[I](path: String) = new Path[I](KeyPathNode(path) :: Nil)
 	def apply[I](path: List[PathNode] = Nil) = new Path[I](path)
 	def unapply[I](p: Path[I]): Option[List[PathNode]] = Some(p.path)
 }
@@ -70,4 +70,15 @@ class Path[I](val path: List[PathNode]) {
       case (path, RecursiveSearch(k)) => path + "//" + k
     }
   }
+
+  override def hashCode = path.hashCode
+  override def equals(o: Any) = {
+    if(canEqual(o)) {
+      val j = o.asInstanceOf[Path[I]]
+      this.path == j.path
+    }
+    else
+      false
+  }
+  def canEqual(o: Any) = o.isInstanceOf[Path[I]]
 }
