@@ -12,6 +12,11 @@ case class IdxPathNode(idx: Int) extends PathNode {
   override def toString = s"[$idx]"
 }
 
+case class RecursiveSearch(key: String) extends PathNode {
+  override def toString = "//" + key
+}
+
+
 object \: {
   def unapply[I](path: Path[I]): Option[(PathNode, Path[I])] = {
     path match {
@@ -35,6 +40,7 @@ class Path[I](val path: List[PathNode]) {
   def as[J] = Path[J](path)
 
   def compose(p: Path[I]): Path[I] = Path(this.path ++ p.path)
+  def ++(other: Path[I]) = this compose other
 
   def read[O](v: Constraint[O])(implicit m: Path[I] => Mapping[ValidationError, I, O]): Rule[I, O] =
     Rule(this, (p: Path[I]) => (d: I) => m(p)(d).fail.map{ errs => Seq(p -> errs) }, v) // XXX: DRY "fail.map" thingy
@@ -61,6 +67,7 @@ class Path[I](val path: List[PathNode]) {
     case hs => hs.foldLeft("") {
       case (path, IdxPathNode(i)) => path + s"[$i]"
       case (path, KeyPathNode(k)) => path + "/" + k
+      case (path, RecursiveSearch(k)) => path + "//" + k
     }
   }
 }

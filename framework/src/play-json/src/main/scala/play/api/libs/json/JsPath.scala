@@ -1,8 +1,9 @@
 package play.api.libs.json
 
-import play.api.data.validation.ValidationError
+// TODO: I should rename PathNodes to Js* in this package instead
+import play.api.data.validation.{ ValidationError, Path, PathNode => DPathNode, KeyPathNode => DKeyPathNode, IdxPathNode => DIdxPathNode, RecursiveSearch => DRecursiveSearch }
 
-sealed trait PathNode {
+sealed trait PathNode { self: DPathNode =>
   def apply(json: JsValue): List[JsValue]
   def toJsonString: String
 
@@ -13,7 +14,13 @@ sealed trait PathNode {
 
 }
 
-case class RecursiveSearch(key: String) extends PathNode {
+object PathNode {
+  def apply(p: DKeyPathNode): KeyPathNode = new KeyPathNode(p.key)
+  def apply(p: DIdxPathNode): IdxPathNode = new IdxPathNode(p.idx)
+  def apply(p: DRecursiveSearch): RecursiveSearch = new RecursiveSearch(p.key)
+}
+
+class RecursiveSearch(key: String) extends DRecursiveSearch(key) with PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => (json \\ key).toList.filterNot {
       case JsUndefined() => true
@@ -59,7 +66,12 @@ case class RecursiveSearch(key: String) extends PathNode {
   }
 }
 
-case class KeyPathNode(key: String) extends PathNode {
+object RecursiveSearch {
+  def apply(k: String) = new RecursiveSearch(k)
+  def unapply(p: RecursiveSearch) = DRecursiveSearch.unapply(p)
+}
+
+class KeyPathNode(override val key: String) extends DKeyPathNode(key) with PathNode {
 
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => List(json \ key).filterNot {
@@ -100,7 +112,12 @@ case class KeyPathNode(key: String) extends PathNode {
 
 }
 
-case class IdxPathNode(idx: Int) extends PathNode {
+object KeyPathNode {
+  def apply(k: String) = new KeyPathNode(k)
+  def unapply(p: KeyPathNode) = DKeyPathNode.unapply(p)
+}
+
+class IdxPathNode(override val idx: Int) extends DIdxPathNode(idx) with PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
     case arr: JsArray => List(arr(idx))
     case _ => List()
@@ -127,7 +144,18 @@ case class IdxPathNode(idx: Int) extends PathNode {
 
 }
 
+object IdxPathNode {
+  def apply(i: Int) = new IdxPathNode(i)
+  def unapply(p: IdxPathNode) = DIdxPathNode.unapply(p)
+}
+
 object JsPath extends JsPath(List.empty) {
+
+  def apply(p: Path[JsValue]) = new JsPath(p.path.map {
+    case k: DKeyPathNode => PathNode(k)
+    case i: DIdxPathNode => PathNode(i)
+    case s: DRecursiveSearch => PathNode(s)
+  })
 
   // TODO implement it correctly (doesn't merge )
   def createObj(pathValues: (JsPath, JsValue)*) = {
@@ -161,8 +189,9 @@ object JsPath extends JsPath(List.empty) {
   }
 }
 
-case class JsPath(path: List[PathNode] = List()) {
-  def \(child: String) = JsPath(path :+ KeyPathNode(child))
+case class JsPath(override val path: List[DPathNode with PathNode] = List()) extends Path[JsValue](path) {
+
+  override def \(child: String) = JsPath(path :+ KeyPathNode(child))
   def \(child: Symbol) = JsPath(path :+ KeyPathNode(child.name))
 
   def \\(child: String) = JsPath(path :+ RecursiveSearch(child))
