@@ -1,7 +1,7 @@
 package play.api.libs.ws
 
 import java.io.File
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.http.{ Writeable, ContentTypeOf }
@@ -89,7 +89,7 @@ object WS {
 
     def getStringData = body.getOrElse("")
     protected var body: Option[String] = None
-    override def setBody(s: String) = { this.body = Some(s); super.setBody(s)}
+    override def setBody(s: String) = { this.body = Some(s); super.setBody(s) }
 
     protected var calculator: Option[SignatureCalculator] = _calc
 

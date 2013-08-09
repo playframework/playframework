@@ -1,6 +1,5 @@
 package play.api.libs.concurrent
 
-
 object Execution {
 
   object Implicits {

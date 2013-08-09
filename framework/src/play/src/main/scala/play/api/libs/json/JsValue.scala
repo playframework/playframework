@@ -13,8 +13,7 @@ import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
 import java.io.ByteArrayInputStream
 
-
-case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException( "JsResultException(errors:%s)".format(errors) )
+case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException("JsResultException(errors:%s)".format(errors))
 
 /**
  * Generic json value
@@ -55,9 +54,9 @@ sealed trait JsValue {
     invalid = _ => None,
     valid = v => Some(v)
   ).filter {
-    case JsUndefined(_) => false
-    case _ => true
-  }
+      case JsUndefined(_) => false
+      case _ => true
+    }
 
   /**
    * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
@@ -115,7 +114,7 @@ case class JsString(value: String) extends JsValue
 /**
  * Represent a Json array value.
  */
-case class JsArray(value: Seq[JsValue] = List()) extends JsValue{
+case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
 
   /**
    * Access a value of this array.
@@ -202,13 +201,13 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
    * removes one field from JsObject
    */
   def -(otherField: String): JsObject =
-    JsObject(fields.filterNot( _._1 == otherField ))
+    JsObject(fields.filterNot(_._1 == otherField))
 
   /**
    * adds one field from JsObject
    */
   def +(otherField: (String, JsValue)): JsObject =
-    JsObject(fields :+ otherField)  
+    JsObject(fields :+ otherField)
 
   /**
    * merges everything in depth and doesn't stop at first level as ++
@@ -218,52 +217,56 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     def step(fields: List[(String, JsValue)], others: List[(String, JsValue)]): Seq[(String, JsValue)] = {
       others match {
         case List() => fields
-        case List(sv) => 
+        case List(sv) =>
           var found = false
           val newFields = fields match {
             case List() => List(sv)
-            case _ => fields.foldLeft(List[(String, JsValue)]()){ (acc, field) => field match {
-              case (key, obj: JsObject) if(key == sv._1) => 
-                found = true
-                acc :+ key -> {
-                  sv._2 match {
-                    case o @ JsObject(_) => obj.deepMerge(o) 
-                    case js => js
+            case _ => fields.foldLeft(List[(String, JsValue)]()) { (acc, field) =>
+              field match {
+                case (key, obj: JsObject) if (key == sv._1) =>
+                  found = true
+                  acc :+ key -> {
+                    sv._2 match {
+                      case o @ JsObject(_) => obj.deepMerge(o)
+                      case js => js
+                    }
                   }
+                case (key, value) if (key == sv._1) =>
+                  found = true
+                  acc :+ key -> sv._2
+                case (key, value) => acc :+ key -> value
               }
-              case (key, value) if(key == sv._1) => 
-                found = true
-                acc :+ key -> sv._2
-              case (key, value) => acc :+ key -> value
-            } }
+            }
           }
-          
-          if(!found) fields :+ sv
+
+          if (!found) fields :+ sv
           else newFields
 
-        case head :: tail => 
+        case head :: tail =>
           var found = false
           val headFields = fields match {
             case List() => List(head)
-              case _ => fields.foldLeft(List[(String, JsValue)]()){ (acc, field) => field match {
-              case (key, obj: JsObject) if(key == head._1) => 
-                found = true
-                acc :+ key -> {
-                  head._2 match {
-                    case o @ JsObject(_) => obj.deepMerge(o) 
-                    case js => js
+            case _ => fields.foldLeft(List[(String, JsValue)]()) { (acc, field) =>
+              field match {
+                case (key, obj: JsObject) if (key == head._1) =>
+                  found = true
+                  acc :+ key -> {
+                    head._2 match {
+                      case o @ JsObject(_) => obj.deepMerge(o)
+                      case js => js
+                    }
                   }
-                }
-              case (key, value) if(key == head._1) => 
-                found = true
-                acc :+ key -> head._2
-              case (key, value) => acc :+ key -> value
-            } }
+                case (key, value) if (key == head._1) =>
+                  found = true
+                  acc :+ key -> head._2
+                case (key, value) => acc :+ key -> value
+              }
+            }
           }
 
-          if(!found) step(fields :+ head, tail)
+          if (!found) step(fields :+ head, tail)
           else step(headFields, tail)
-          
+
       }
     }
 
@@ -275,7 +278,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
       case that: JsObject =>
         (that canEqual this) &&
-        fieldSet == that.fieldSet
+          fieldSet == that.fieldSet
 
       case _ => false
     }
@@ -442,16 +445,16 @@ private[json] class PlaySerializers extends Serializers.Base {
   }
 }
 
-private[json] object JacksonJson{
+private[json] object JacksonJson {
 
   import org.codehaus.jackson.Version
   import org.codehaus.jackson.map.module.SimpleModule
   import org.codehaus.jackson.map.Module.SetupContext
 
-  private[this]  val classLoader = Thread.currentThread().getContextClassLoader
+  private[this] val classLoader = Thread.currentThread().getContextClassLoader
 
   private[this] val mapper = new ObjectMapper
-  
+
   object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
     override def setupModule(context: SetupContext) {
       context.addDeserializers(new PlayDeserializers(classLoader))
@@ -463,7 +466,7 @@ private[json] object JacksonJson{
   private[this] lazy val jsonFactory = new org.codehaus.jackson.JsonFactory(mapper)
 
   private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createJsonGenerator(out)
-  
+
   private[this] def jsonParser(c: String): JsonParser = jsonFactory.createJsonParser(c)
 
   // Pass in ByteArrayInputStream to work around https://github.com/FasterXML/jackson-core/issues/42

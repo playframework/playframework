@@ -114,8 +114,8 @@ case class MultipartFormData[A](dataParts: Map[String, Seq[String]], files: Seq[
   // For binary compatibility with 2.1.0
   def this(dataParts: Map[String, Seq[String]], files: Seq[FilePart[A]], badParts: Seq[BadPart]) = this(dataParts, files, badParts, Nil)
   def copy(dataParts: Map[String, Seq[String]] = this.dataParts,
-           files: Seq[FilePart[A]] = this.files,
-           badParts: Seq[BadPart] = this.badParts) = new MultipartFormData(dataParts, files, badParts)
+    files: Seq[FilePart[A]] = this.files,
+    badParts: Seq[BadPart] = this.badParts) = new MultipartFormData(dataParts, files, badParts)
 
   /**
    * Extract the data parts as Form url encoded.

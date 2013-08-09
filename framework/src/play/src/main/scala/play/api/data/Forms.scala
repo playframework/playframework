@@ -329,7 +329,7 @@ object Forms {
    * @param precision The maximun total number of digits (including decimals)
    * @param scale The maximun number of decimals
    */
-  def bigDecimal( precision : Int, scale: Int ): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some(precision,scale))
+  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some(precision, scale))
 
   /**
    * Constructs a simple mapping for a date field.
@@ -374,7 +374,7 @@ object Forms {
    * @param mapping The mapping to make optional.
    * @param value The default value when mapping and the field is not present.
    */
-  def default[A](mapping: Mapping[A], value:A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
+  def default[A](mapping: Mapping[A], value: A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
 
   /**
    * Defines a repeated mapping.

@@ -7,7 +7,7 @@ import play.api.http._
 import play.api.libs.json._
 import play.api.http.Status._
 import play.api.http.HeaderNames._
-import play.api.{Application, Play}
+import play.api.{ Application, Play }
 import play.api.i18n.Lang
 
 import scala.concurrent.{ Future, ExecutionContext }
@@ -60,7 +60,6 @@ sealed trait WithHeaders[+A <: Result] {
    */
   def withCookies(cookies: Cookie*): A
 
-
   /**
    * Discards cookies along this result.
    *
@@ -73,7 +72,7 @@ sealed trait WithHeaders[+A <: Result] {
    * @return the new result
    */
   @deprecated("This method can only discard cookies on the / path with no domain and without secure set.  Use discardingCookies(DiscardingCookie*) instead.", "2.1")
-  def discardingCookies(name: String, names: String*): A = discardingCookies((name :: names.toList).map(n => DiscardingCookie(n)):_*)
+  def discardingCookies(name: String, names: String*): A = discardingCookies((name :: names.toList).map(n => DiscardingCookie(n)): _*)
 
   /**
    * Discards cookies along this result.
@@ -396,16 +395,17 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
    * @param f The transformation function
    * @return The transformed `AsyncResult`
    */
-  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult (result.map {
-      case AsyncResult(r) => AsyncResult(r.map{
-        case r:PlainResult => f(r)
-        case r:AsyncResult => r.transform(f)})
-      case r:PlainResult => f(r)
+  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map {
+    case AsyncResult(r) => AsyncResult(r.map {
+      case r: PlainResult => f(r)
+      case r: AsyncResult => r.transform(f)
+    })
+    case r: PlainResult => f(r)
   })
 
-  def unflatten:Future[PlainResult] = result.flatMap {
-      case r:PlainResult => Promise.pure(r)
-      case r@AsyncResult(_) => r.unflatten
+  def unflatten: Future[PlainResult] = result.flatMap {
+    case r: PlainResult => Promise.pure(r)
+    case r @ AsyncResult(_) => r.unflatten
   }(internalContext)
 
   def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f))
@@ -545,7 +545,6 @@ case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[A
   }
 
 }
-
 
 /**
  * A Codec handle the conversion of String to Byte arrays.
@@ -787,7 +786,7 @@ trait Results {
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
-  
+
   /** Generates a ‘501 NOT_IMPLEMENTED’ result. */
   val NotImplemented = new Status(NOT_IMPLEMENTED)
 

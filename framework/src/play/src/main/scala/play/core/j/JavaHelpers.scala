@@ -6,10 +6,9 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => 
 
 import scala.collection.JavaConverters._
 
+class EitherToFEither[A, B]() extends play.libs.F.Function[Either[A, B], play.libs.F.Either[A, B]] {
 
-class EitherToFEither[A,B]() extends play.libs.F.Function[Either[A,B],play.libs.F.Either[A,B]] {
-
-  def apply(e:Either[A,B]): play.libs.F.Either[A,B] = e.fold(play.libs.F.Either.Left(_), play.libs.F.Either.Right(_))
+  def apply(e: Either[A, B]): play.libs.F.Either[A, B] = e.fold(play.libs.F.Either.Left(_), play.libs.F.Either.Right(_))
 
 }
 
@@ -23,7 +22,6 @@ trait JavaHelpers {
   import play.api.mvc._
   import play.mvc.Http.RequestBody
 
-
   /**
    * creates a scala result from java context and result objects
    * @param javaContext
@@ -32,8 +30,10 @@ trait JavaHelpers {
   def createResult(javaContext: JContext, javaResult: play.mvc.Result): Result = javaResult.getWrappedResult match {
     case result: PlainResult => {
       val wResult = result.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-        .withCookies((javaContext.response.cookies.asScala.toSeq map { c => Cookie(c.name, c.value,
-          if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly) }): _*)
+        .withCookies((javaContext.response.cookies.asScala.toSeq map { c =>
+          Cookie(c.name, c.value,
+            if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
+        }): _*)
 
       if (javaContext.session.isDirty && javaContext.flash.isDirty) {
         wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
