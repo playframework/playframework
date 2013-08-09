@@ -41,6 +41,11 @@ trait PlaySettings {
     resourceGenerators in Compile <+= CoffeescriptCompiler
   )
 
+  /** Ask SBT to manage the classpath for the given configuration. */
+  def manageClasspath(config: Configuration) = managedClasspath in config <<= (classpathTypes in config, update) map { (ct, report) =>
+    Classpaths.managedJars(config, ct, report)
+  }
+
   lazy val defaultSettings = Seq[Setting[_]](
 
     scalaVersion := play.core.PlayVersion.scalaVersion,
@@ -75,8 +80,15 @@ trait PlaySettings {
       else
         d
     },
-
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
+
+    ivyConfigurations += SharedApplication,
+    libraryDependencies += "com.typesafe.play" %% "play" % play.core.PlayVersion.current % SharedApplication.name,
+    manageClasspath(SharedApplication),
+
+    ivyConfigurations += DocsApplication,
+    libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
+    manageClasspath(DocsApplication),
 
     parallelExecution in Test := false,
 

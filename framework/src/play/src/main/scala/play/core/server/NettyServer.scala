@@ -277,21 +277,30 @@ object NettyServer {
       }
   }
 
-  def mainDevOnlyHttpsMode(sbtLink: SBTLink, httpsPort: Int): NettyServer = {
-    mainDev(sbtLink, None, Some(httpsPort))
+  /**
+   * Provides an HTTPS-only NettyServer for the dev environment.
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
+   */
+  def mainDevOnlyHttpsMode(sbtLink: SBTLink, sbtDocLink: SBTDocLink, httpsPort: Int): NettyServer = {
+    mainDev(sbtLink, sbtDocLink, None, Some(httpsPort))
   }
 
   /**
-   * provides a NettyServer for the dev environment
+   * Provides an HTTP NettyServer for the dev environment
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
    */
-  def mainDevHttpMode(sbtLink: SBTLink, httpPort: Int): NettyServer = {
-    mainDev(sbtLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+  def mainDevHttpMode(sbtLink: SBTLink, sbtDocLink: SBTDocLink, httpPort: Int): NettyServer = {
+    mainDev(sbtLink, sbtDocLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
   }
 
-  private def mainDev(sbtLink: SBTLink, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
+  private def mainDev(sbtLink: SBTLink, sbtDocLink: SBTDocLink, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
-        val appProvider = new ReloadableApplication(sbtLink)
+        val appProvider = new ReloadableApplication(sbtLink, sbtDocLink)
         new NettyServer(appProvider, httpPort,
           httpsPort,
           mode = Mode.Dev)
