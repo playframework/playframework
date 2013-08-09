@@ -82,10 +82,6 @@ trait PlaySettings {
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
-    ivyConfigurations += SharedApplication,
-    libraryDependencies += "com.typesafe.play" %% "play" % play.core.PlayVersion.current % SharedApplication.name,
-    manageClasspath(SharedApplication),
-
     ivyConfigurations += DocsApplication,
     libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
     manageClasspath(DocsApplication),
@@ -120,7 +116,8 @@ trait PlaySettings {
 
     commands ++= Seq(shCommand, playCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
-    run <<= playRunSetting,
+    // THE `in Compile` IS IMPORTANT!
+    run in Compile <<= playRunSetting,
 
     shellPrompt := playPrompt,
 
@@ -134,7 +131,17 @@ trait PlaySettings {
 
     playVersion := play.core.PlayVersion.current,
 
+    // all dependencies from outside the project (all dependency jars)
+    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
+
+    // all user classes, in this project and any other subprojects that it depends on
+    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
+
     playCommonClassloader <<= playCommonClassloaderTask,
+
+    playDependencyClassLoader := createURLClassLoader,
+
+    playReloaderClassLoader := createDelegatedResourcesClassLoader,
 
     playCopyAssets <<= playCopyAssetsTask,
 
@@ -152,9 +159,23 @@ trait PlaySettings {
 
     playDefaultPort := 9000,
 
+    // Default hooks
+
     playOnStarted := Nil,
 
     playOnStopped := Nil,
+
+    playRunHooks := Nil,
+
+    playRunHooks <++= playOnStarted map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStarted
+    },
+
+    playRunHooks <++= playOnStopped map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStopped
+    },
+
+    playInteractionMode := play.PlayConsoleInteractionMode,
 
     // Assets
 
