@@ -75,7 +75,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             val remoteAddress = ra.getAddress.getHostAddress
             (for {
               xff <- rHeaders.get(X_FORWARDED_FOR)
-              app <- server.applicationProvider.get.right.toOption
+              app <- server.applicationProvider.get.toOption
               trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
               if remoteAddress == "127.0.0.1" || trustxforwarded
             } yield xff).getOrElse(remoteAddress)
@@ -109,7 +109,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             .fold(
               e => {
                 val rh = createRequestHeader()
-                val r = server.applicationProvider.get.fold(e => DefaultGlobal, a => a.global).onBadRequest(rh, e.getMessage)
+                val r = server.applicationProvider.get.map(_.global).getOrElse(DefaultGlobal).onBadRequest(rh, e.getMessage)
                 (rh, Left(r))
               },
               rh => server.getHandlerFor(rh) match {
@@ -122,10 +122,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
         def cleanup() {
           if (!alreadyClean.getAndSet(true)) {
-            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))            
+            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
           }
         }
-        
+
         // attach the cleanup function to the channel context for after cleaning
         ctx.setAttachment(cleanup _)
 

@@ -8,6 +8,7 @@ import org.junit.rules.{TemporaryFolder, TestRule}
 import org.junit.runners.model.{FrameworkMethod, Statement}
 import org.junit.runner.Description
 import org.jboss.netty.handler.codec.http._
+import scala.util.{ Try, Success }
 import scala.concurrent.{Promise, Future, Await}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -123,7 +124,7 @@ class ServerBenchmark {
   Play.start(application)
 
   val ap = new ApplicationProvider {
-    def get: Either[Throwable, Application] = Right(application)
+    def get: Try[Application] = Success(application)
 
     def path: File = tempFolder.getRoot
   }

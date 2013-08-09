@@ -4,6 +4,7 @@ import java.io.File
 import play.api.mvc._
 import play.api._
 import play.core._
+import scala.util.Success
 
 /**
  * Provides a very simple application that renders Play documentation.
@@ -23,7 +24,7 @@ case class DocumentationApplication(projectPath: File, sbtDocLink: SBTDocLink) e
   Play.start(application)
 
   override def path = projectPath
-  override def get = Right(application)
+  override def get = Success(application)
   override def handleWebCommand(request: RequestHeader) =
     sbtDocLink.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
       Some(Results.Redirect("/@documentation"))

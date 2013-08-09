@@ -3,6 +3,7 @@ package play.core
 import java.io._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.{ Try, Success, Failure }
 
 import play.api._
 import play.api.mvc._
@@ -32,7 +33,7 @@ trait DevSettings {
  */
 trait ApplicationProvider {
   def path: File
-  def get: Either[Throwable, Application]
+  def get: Try[Application]
   def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[SimpleResult] = None
 }
 
@@ -50,7 +51,7 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
 
   Play.start(application)
 
-  def get = Right(application)
+  def get = Success(application)
   def path = applicationPath
 }
 
@@ -62,7 +63,7 @@ class TestApplication(application: Application) extends ApplicationProvider {
 
   Play.start(application)
 
-  def get = Right(application)
+  def get = Success(application)
   def path = application.path
 }
 
@@ -86,7 +87,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocLink: SBTDocLink) extends Ap
   println(play.utils.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
   println()
 
-  var lastState: Either[Throwable, Application] = Left(new PlayException("Not initialized", "?"))
+  var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
 
   def get = {
 
@@ -101,17 +102,17 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocLink: SBTDocLink) extends Ap
       Await.result(scala.concurrent.Future {
 
         val reloaded = sbtLink.reload match {
-          case t: Throwable => Left(t)
-          case cl: ClassLoader => Right(Some(cl))
-          case null => Right(None)
+          case t: Throwable => Failure(t)
+          case cl: ClassLoader => Success(Some(cl))
+          case null => Success(None)
         }
 
-        reloaded.right.flatMap { maybeClassLoader =>
+        reloaded.flatMap { maybeClassLoader =>
 
-          val maybeApplication: Option[Either[Throwable, Application]] = maybeClassLoader.map { projectClassloader =>
+          val maybeApplication: Option[Try[Application]] = maybeClassLoader.map { projectClassloader =>
             try {
 
-              if (lastState.isRight) {
+              if (lastState.isSuccess) {
                 println()
                 println(play.utils.Colors.magenta("--- (RELOAD) ---"))
                 println()
@@ -137,25 +138,25 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocLink: SBTDocLink) extends Ap
 
               Play.start(newApplication)
 
-              Right(newApplication)
+              Success(newApplication)
             } catch {
               case e: PlayException => {
-                lastState = Left(e)
+                lastState = Failure(e)
                 lastState
               }
               case NonFatal(e) => {
-                lastState = Left(UnexpectedException(unexpected = Some(e)))
+                lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 lastState
               }
               case e: LinkageError => {
-                lastState = Left(UnexpectedException(unexpected = Some(e)))
+                lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 lastState
               }
             }
           }
 
-          maybeApplication.flatMap(_.right.toOption).foreach { app =>
-            lastState = Right(app)
+          maybeApplication.flatMap(_.toOption).foreach { app =>
+            lastState = Success(app)
           }
 
           maybeApplication.getOrElse(lastState)
