@@ -83,6 +83,7 @@ trait PlayRun extends PlayInternalKeys {
         val extracted = Project.extract(state)
 
         val (_, hooks) = extracted.runTask(playRunHooks, state)
+        val interaction = extracted.get(playInteractionMode)
 
         val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
 
@@ -312,11 +313,8 @@ trait PlayRun extends PlayInternalKeys {
         val newState = maybeContinuous match {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
-            consoleReader.getTerminal.setEchoEnabled(false)
-            try {
+            interaction doWithoutEcho {
               executeContinuously(w, state, reloader, Some(WatchState.empty))
-            } finally {
-              consoleReader.getTerminal.setEchoEnabled(true)
             }
 
             // Remove state two first commands added by sbt ~
@@ -324,7 +322,7 @@ trait PlayRun extends PlayInternalKeys {
           }
           case _ => {
             // run mode
-            waitForKey()
+            interaction.waitForCancel()
             state
           }
         }
@@ -349,6 +347,7 @@ trait PlayRun extends PlayInternalKeys {
 
     val extracted = Project.extract(state)
 
+    val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -383,7 +382,7 @@ trait PlayRun extends PlayInternalKeys {
               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
               |""".stripMargin))
 
-          waitForKey()
+          interaction.waitForCancel()
 
           println()
 

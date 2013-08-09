@@ -168,6 +168,8 @@ trait PlaySettings {
       funcs map play.PlayRunHook.makeRunHookFromOnStopped
     },
 
+    playInteractionMode := play.PlayConsoleInteractionMode,
+
     // Assets
 
     playAssetsDirectories := Seq.empty[File],
