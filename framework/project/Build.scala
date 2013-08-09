@@ -83,7 +83,7 @@ object BuildSettings {
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     publishArtifact in packageDoc := buildWithDoc,
     publishArtifact in (Compile, packageSrc) := true,
-    ApiDocs.apiDocsInclude := true
+    Docs.apiDocsInclude := true
   )
 
   def PlaySbtProject(name: String, dir: String): Project = {
@@ -168,7 +168,7 @@ object PlayBuild extends Build {
       libraryDependencies := runtime,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
-      ApiDocs.apiDocsIncludeManaged := true,
+      Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
@@ -215,6 +215,12 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := javaDeps)
     .dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
+
+  lazy val PlayDocsProject = PlayRuntimeProject("Play-Docs", "play-docs")
+    .settings(Docs.settings: _*)
+    .settings(
+      libraryDependencies := playDocsDependencies
+    ).dependsOn(PlayProject)
   
   import ScriptedPlugin._
 
@@ -303,6 +309,7 @@ object PlayBuild extends Build {
     ConsoleProject,
     PlayTestProject,
     PlayExceptionsProject,
+    PlayDocsProject,
     PlayFiltersHelpersProject,
     PlayIntegrationTestProject
   )
@@ -311,9 +318,10 @@ object PlayBuild extends Build {
     "Root",
     file("."))
     .settings(playCommonSettings: _*)
-    .settings(ApiDocs.settings: _*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
+      Docs.apiDocsInclude := false,
+      Docs.apiDocsIncludeManaged := false,
       publish := {},
       generateDistTask
     )

@@ -24,8 +24,8 @@ object Tasks {
   // ----- Generate Distribution
   lazy val generateDist = TaskKey[Unit]("create-dist")
   val generateDistTask: Setting[_] = 
-    generateDist <<= (ApiDocs.apiDocs, RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target, version) map {
-      (_, repo, bd, t, v) =>
+    generateDist <<= (RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target, version) map {
+      (repo, bd, t, v) =>
         generateDistribution(repo, bd, t, v)
     }
 
@@ -101,12 +101,10 @@ object Tasks {
     }
     copyDist("framework")
     copyDist("samples")
-    copyDist("documentation")
 
     // Copy the core files
     copyMaintainPerms(coreFiles map (f => f -> (dist / f.getName)))
     IO.copyDirectory(repo, dist / "repository" / "local", true, false)
-    IO.move(target / "apidocs", dist / "documentation" / "api")
 
     // Update versions
     def updatePlayVersion(file: File) {
