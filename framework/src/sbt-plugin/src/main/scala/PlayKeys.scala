@@ -32,8 +32,13 @@ trait PlayKeys {
 
   val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
 
+  /** Our means of hooking the run task with additional behavior. */
+  val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks")
+
+  @deprecated("2.2", "Please use playRunHooks setting instead.")
   val playOnStarted = SettingKey[Seq[(java.net.InetSocketAddress) => Unit]]("play-onStarted")
 
+  @deprecated("2.2", "Please use playRunHooks setting instead.")
   val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
 
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")

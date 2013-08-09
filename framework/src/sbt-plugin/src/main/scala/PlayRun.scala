@@ -82,6 +82,8 @@ trait PlayRun extends PlayInternalKeys {
     ) map { (args, state, commonLoader, sharedAppClasspath, userAppClasspath, docsAppClasspath) =>
         val extracted = Project.extract(state)
 
+        val (_, hooks) = extracted.runTask(playRunHooks, state)
+
         val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
 
         require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -232,6 +234,9 @@ trait PlayRun extends PlayInternalKeys {
           factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[SBTDocLink]
         }
 
+        // Now we're about to start, let's call the hooks:
+        hooks.run(_.beforeStarted())
+
         val server = {
           val mainClass = sharedApplicationLoader.loadClass("play.core.server.NettyServer")
           if (httpPort.isDefined) {
@@ -244,7 +249,7 @@ trait PlayRun extends PlayInternalKeys {
         }
 
         // Notify hooks
-        extracted.get(playOnStarted).foreach(_(server.mainAddress))
+        hooks.run(_.afterStarted(server.mainAddress))
 
         println()
         println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -329,7 +334,7 @@ trait PlayRun extends PlayInternalKeys {
         reloader.clean()
 
         // Notify hooks
-        extracted.get(playOnStopped).foreach(_())
+        hooks.run(_.afterStopped())
 
         // Remove Java properties
         properties.foreach {
