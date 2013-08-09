@@ -39,8 +39,6 @@ package object json {
   val __ = JsPath
 
   import play.api.data.validation.{ Path, Validation, ValidationError }
-  // TODO: replace that by
-  // type JsResult[A] = VA[JsValue, O]
   type JsResult[O] = Validation[(JsPath, Seq[ValidationError]), O]
 
   // Backward compat

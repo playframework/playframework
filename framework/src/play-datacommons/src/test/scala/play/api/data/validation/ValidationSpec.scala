@@ -5,7 +5,7 @@ import scala.util.control.Exception._
 import play.api.libs.functional._
 import play.api.libs.functional.syntax._
 
-object JsonValidSpec extends Specification {
+object ValidationSpec extends Specification {
 
   "Validation" should {
 
@@ -99,7 +99,7 @@ object JsonValidSpec extends Specification {
       (for(x <- failure if x == 5) yield x + 2) must equalTo(failure)
     }
 
-    "has recovery methods" in {
+    "have recovery methods" in {
       success.recover {
         case _ => 42
       } must equalTo(success)

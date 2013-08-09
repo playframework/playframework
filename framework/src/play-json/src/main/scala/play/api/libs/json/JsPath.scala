@@ -1,6 +1,5 @@
 package play.api.libs.json
 
-// TODO: I should rename PathNodes to Js* in this package instead
 import play.api.data.validation.{ ValidationError, Path, PathNode => DPathNode, KeyPathNode => DKeyPathNode, IdxPathNode => DIdxPathNode, RecursiveSearch => DRecursiveSearch }
 
 sealed trait PathNode { self: DPathNode =>
