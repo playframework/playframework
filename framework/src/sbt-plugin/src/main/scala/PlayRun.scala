@@ -16,13 +16,6 @@ trait PlayRun extends PlayInternalKeys {
   this: PlayReloader =>
 
   /**
-   * Configuration for dependencies common to all Play applications. Used to build a classloader
-   * with classes common to the user's application and the Play docs application. Hidden so that
-   * it isn't exposed when the user application is published.
-   */
-  val SharedApplication = config("shared") hide
-
-  /**
    * Configuration for the Play docs application's dependencies. Used to build a classloader for
    * that application. Hidden so that it isn't exposed when the user application is published.
    */
@@ -75,12 +68,30 @@ trait PlayRun extends PlayInternalKeys {
     else (javaProperties, (maybePort.map(parsePort)).orElse(Some(defaultHttpPort)), maybeHttpsPort)
   }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
+
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    require(parent ne null)
+    override def getResources(name: String): java.util.Enumeration[java.net.URL] = getParent.getResources(name)
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
+
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+
+  def playRunTask(
+    runHooks: TaskKey[Seq[play.PlayRunHook]],
+    dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
     (
-      argsTask, state, playCommonClassloader, managedClasspath in SharedApplication,
-      dependencyClasspath in Runtime, managedClasspath in DocsApplication
-    ) map { (args, state, commonLoader, sharedAppClasspath, userAppClasspath, docsAppClasspath) =>
+      argsTask, state, playCommonClassloader, managedClasspath in DocsApplication,
+      dependencyClasspath, dependencyClassLoader, reloaderClassLoader
+    ) map { (args, state, commonLoader, docsAppClasspath, appDependencyClasspath, createClassLoader, createReloader) =>
         val extracted = Project.extract(state)
+
+        val (_, hooks) = extracted.runTask(runHooks, state)
+        val interaction = extracted.get(playInteractionMode)
 
         val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
 
@@ -96,42 +107,34 @@ trait PlayRun extends PlayInternalKeys {
         /*
        * We need to do a bit of classloader magic to run the Play application.
        *
-       * We begin with two classloaders and three classpaths.
+       * There are six classloaders:
        *
-       * 1. sbtClassLoader, the classloader of SBT and the Play SBT plugin.
-       * 2. commonClassloader, a classloader that persists across calls to run.
+       * 1. sbtLoader, the classloader of sbt and the Play sbt plugin.
+       * 2. commonLoader, a classloader that persists across calls to run.
        *    This classloader is stored inside the
        *    PlayInternalKeys.playCommonClassloader task. This classloader will
        *    load the classes for the H2 database if it finds them in the user's
        *    classpath. This allows H2's in-memory database state to survive across
        *    calls to run.
-       * 3. sharedAppClasspath, the classpath for Play and its dependencies.
-       * 4. userAppClasspath, the classpath for the current Play application.
-       *    This contains the user app's classes and dependencies. It will also
-       *    include Play, so it contain a superset of the classes in
-       *    sharedAppClasspath.
-       * 5. docsAppClasspath, the classpath for the special play-docs
-       *    application that is used to serve documentation when running in
-       *    development mode. Again this is a superset of sharedAppClasspath.
-       *
-       * We construct separate classloaders for the user app
-       * (applicationLoader) and for the docs app (docsLoader). They need to be
-       * isolated from each other because they might have conflicting
-       * dependencies. They both delegate to a classloader that includes the
-       * dependencies that are common to both (sharedApplicationLoader).
-       *
-       * The code is quite confusing, but here's an educated guess at the
-       * ordering of class loading for the user app classloader
-       * (applicationLoader). Don't trust this too much, but it might be
-       * helpful as a start for understanding the code.
-       *
-       * 1. classes on userAppClasspath that are in directories (not JARs) these
-       *    are the classes that will be reloaded if the application code
-       *    changes
-       * 2. classes persisted across runs in the commonLoader
-       * 3. a few whitelisted classes shared between SBT and Play in the sbtClassLoader
-       * 4. classes common to Play apps on the sharedAppClasspath
-       * 5. classes on the userAppClasspath that are in JARs
+       * 3. delegatingLoader, a special classloader that overrides class loading
+       *    to delegate shared classes for sbt link to the sbtLoader, and accesses
+       *    the reloader.currentApplicationClassLoader for resource loading to
+       *    make user resources available to dependency classes.
+       *    Has the commonLoader as its parent.
+       * 4. applicationLoader, contains the application dependencies. Has the
+       *    delegatingLoader as its parent. Classes from the commonLoader and
+       *    the delegatingLoader are checked for loading first.
+       * 5. docsLoader, the classloader for the special play-docs application
+       *    that is used to serve documentation when running in development mode.
+       *    Has the applicationLoader as its parent for Play dependencies and
+       *    delegation to the shared sbt doc link classes.
+       * 6. reloader.currentApplicationClassLoader, contains the user classes
+       *    and resources. Has applicationLoader as its parent, where the
+       *    application dependencies are found, and which will delegate through
+       *    to the sbtLoader via the delegatingLoader for the shared link.
+       *    Resources are actually loaded by the delegatingLoader, where they
+       *    are available to both the reloader and the applicationLoader.
+       *    This classloader is recreated on reload. See PlayReloader.
        *
        * Someone working on this code in the future might want to tidy things up
        * by splitting some of the custom logic out of the URLClassLoaders and into
@@ -149,12 +152,11 @@ trait PlayRun extends PlayInternalKeys {
         val sbtLoader = this.getClass.getClassLoader
 
         /**
-         * The ClassLoader holding the common Play classes. Loads classes in this order:
-         * - classes persisted across runs in the commonLoader
-         * - a few whitelisted classes shared between SBT and Play in the sbtClassLoader
-         * - classes common to Play apps on the sharedAppClasspath
+         * ClassLoader that delegates loading of shared sbt link classes to the
+         * sbtLoader. Also accesses the reloader resources to make these available
+         * to the applicationLoader, creating a full circle for resource loading.
          */
-        val sharedApplicationLoader: ClassLoader = new URLClassLoader(urls(sharedAppClasspath), commonLoader) {
+        lazy val delegatingLoader: ClassLoader = new ClassLoader(commonLoader) {
 
           private val sbtSharedClasses = Seq(
             classOf[play.core.SBTLink].getName,
@@ -167,29 +169,14 @@ trait PlayRun extends PlayInternalKeys {
             classOf[play.api.PlayException.ExceptionSource].getName,
             classOf[play.api.PlayException.ExceptionAttachment].getName)
 
-          override def findClass(name: String): Class[_] = {
-            if (sbtSharedClasses.contains(name)) sbtLoader.loadClass(name) else super.findClass(name)
+          override def loadClass(name: String, resolve: Boolean): Class[_] = {
+            if (sbtSharedClasses.contains(name)) {
+              sbtLoader.loadClass(name)
+            } else {
+              super.loadClass(name, resolve)
+            }
           }
 
-          override def toString = {
-            "SBT/Play shared ClassLoader, with: " + (getURLs.toSeq) + ", using parent: " + (getParent)
-          }
-
-        }
-
-        /**
-         * The ClassLoader holding the user app's classes. Loads:
-         * - classes on userAppClasspath that are in directories (not JARs) these
-         *   are the classes that will be reloaded if the application code
-         *   changes
-         * - classes in sharedApplicationLoader
-         * - classes on the userAppClasspath that are in JARs
-         *
-         * Note that this class delegates to the reloader.currentApplicationClassLoader, but
-         * currentApplicationClassLoader is a URLClassLoader that delegates back to this class,
-         * forming a cycle. Somehow it seems to work...
-         */
-        lazy val applicationLoader: ClassLoader = new URLClassLoader(urls(userAppClasspath).filter(_.toString.endsWith(".jar")), sharedApplicationLoader) {
           // -- Delegate resource loading. We have to hack here because the default implementation is already recursive.
           private val findResource = classOf[ClassLoader].getDeclaredMethod("findResource", classOf[String])
           findResource.setAccessible(true)
@@ -213,15 +200,21 @@ trait PlayRun extends PlayInternalKeys {
           }
 
           override def toString = {
-            "Play application reloadable ClassLoader, with: " + (getURLs.toSeq) + ", using parent: " + (getParent)
+            "DelegatingClassLoader, using parent: " + (getParent)
           }
 
         }
-        lazy val reloader = newReloader(state, playReload, applicationLoader)
+
+        lazy val applicationLoader = createClassLoader("PlayDependencyClassLoader", urls(appDependencyClasspath), delegatingLoader)
+
+        lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, applicationLoader)
+
+        // Now we're about to start, let's call the hooks:
+        hooks.run(_.beforeStarted())
 
         // Get a handler for the documentation. The documentation content lives in play/docs/content
         // within the play-docs JAR.
-        val docsLoader = new URLClassLoader(urls(docsAppClasspath), sharedApplicationLoader)
+        val docsLoader = new URLClassLoader(urls(docsAppClasspath), applicationLoader)
         val docsJarFile = {
           val f = docsAppClasspath.map(_.data).filter(_.getName.startsWith("play-docs")).head
           new JarFile(f)
@@ -233,7 +226,7 @@ trait PlayRun extends PlayInternalKeys {
         }
 
         val server = {
-          val mainClass = sharedApplicationLoader.loadClass("play.core.server.NettyServer")
+          val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
           if (httpPort.isDefined) {
             val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[SBTLink], classOf[SBTDocLink], classOf[Int])
             mainDev.invoke(null, reloader, sbtDocLink, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
@@ -244,7 +237,7 @@ trait PlayRun extends PlayInternalKeys {
         }
 
         // Notify hooks
-        extracted.get(playOnStarted).foreach(_(server.mainAddress))
+        hooks.run(_.afterStarted(server.mainAddress))
 
         println()
         println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -307,11 +300,8 @@ trait PlayRun extends PlayInternalKeys {
         val newState = maybeContinuous match {
           case (true, w: sbt.Watched, ws) => {
             // ~ run mode
-            consoleReader.getTerminal.setEchoEnabled(false)
-            try {
+            interaction doWithoutEcho {
               executeContinuously(w, state, reloader, Some(WatchState.empty))
-            } finally {
-              consoleReader.getTerminal.setEchoEnabled(true)
             }
 
             // Remove state two first commands added by sbt ~
@@ -319,7 +309,7 @@ trait PlayRun extends PlayInternalKeys {
           }
           case _ => {
             // run mode
-            waitForKey()
+            interaction.waitForCancel()
             state
           }
         }
@@ -329,7 +319,7 @@ trait PlayRun extends PlayInternalKeys {
         reloader.clean()
 
         // Notify hooks
-        extracted.get(playOnStopped).foreach(_())
+        hooks.run(_.afterStopped())
 
         // Remove Java properties
         properties.foreach {
@@ -344,6 +334,7 @@ trait PlayRun extends PlayInternalKeys {
 
     val extracted = Project.extract(state)
 
+    val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -378,7 +369,7 @@ trait PlayRun extends PlayInternalKeys {
               |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
               |""".stripMargin))
 
-          waitForKey()
+          interaction.waitForCancel()
 
           println()
 
