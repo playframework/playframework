@@ -149,7 +149,7 @@ trait PlaySettings {
 
     playReload <<= playReloadTask,
 
-    logManager <<= extraLoggers(PlayLogManager.default(playPositionMapper)),
+    sourcePositionMappers += playPositionMapper,
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
