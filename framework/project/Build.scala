@@ -265,18 +265,6 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := playCacheDeps)
     .dependsOn(PlayProject)
 
-  lazy val TwitterBootstrapProject = PlayRuntimeProject("Twitter-Bootstrap", "twitter-bootstrap")
-    .settings(
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-      mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
-      sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime,
-        packageBin in TemplatesCompilerProject in Compile,
-        scalaSource in Compile,
-        sourceManaged in Compile,
-        streams) map ScalaTemplates
-    )
-    .dependsOn(PlayProject)
-
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
@@ -310,7 +298,6 @@ object PlayBuild extends Build {
     PlayJpaProject,
     SbtPluginProject,
     ConsoleProject,
-    TwitterBootstrapProject,
     PlayTestProject,
     PlayExceptionsProject,
     PlayFiltersHelpersProject,

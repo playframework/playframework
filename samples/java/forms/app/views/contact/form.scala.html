@@ -1,7 +1,7 @@
 @(contactForm: Form[Contact])
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+@import helper.twitterBootstrap._
 
 @title = {
     Add a new contact <small><a href="@routes.Contacts.edit">Or edit an existing contact</a></small>

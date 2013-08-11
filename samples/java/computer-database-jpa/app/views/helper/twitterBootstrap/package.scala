@@ -18,7 +18,7 @@ package object twitterBootstrap {
    * }}}
    */
   implicit val twitterBootstrapField = new FieldConstructor {
-    def apply(elts: FieldElements) = views.html.helper.twitterBootstrap.twitterBootstrapFieldConstructor(elts)
+    def apply(elts: FieldElements) = twitterBootstrapFieldConstructor(elts)
   }
 
 }
