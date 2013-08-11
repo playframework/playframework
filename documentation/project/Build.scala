@@ -3,7 +3,7 @@ import play.core.server.ServerWithStop
 import sbt._
 import sbt.Keys._
 import PlayKeys._
-import play.core.{ SBTDocLink, SBTLink, PlayVersion }
+import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
 import PlaySourceGenerators._
 import scala.Some
 
@@ -82,7 +82,7 @@ object ApplicationBuild extends Build {
       val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
         val sharedClasses = Seq(
           classOf[play.core.SBTLink].getName,
-          classOf[play.core.SBTDocLink].getName,
+          classOf[play.core.SBTDocHandler].getName,
           classOf[play.core.server.ServerWithStop].getName,
           classOf[play.api.UsefulException].getName,
           classOf[play.api.PlayException].getName,
@@ -101,15 +101,15 @@ object ApplicationBuild extends Build {
       }
 
       val projectPath = extracted.get(baseDirectory)
-      val sbtDocLink = {
-        val docLinkFactoryClass = classloader.loadClass("play.docs.SBTDocLinkFactory")
-        val fromDirectoryMethod = docLinkFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
+      val sbtDocHandler = {
+        val docHandlerFactoryClass = classloader.loadClass("play.docs.SBTDocHandlerFactory")
+        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
         fromDirectoryMethod.invoke(null, projectPath)
       }
 
       val clazz = classloader.loadClass("play.docs.DocumentationServer")
-      val constructor = clazz.getConstructor(classOf[File], classOf[SBTDocLink], classOf[java.lang.Integer])
-      val server = constructor.newInstance(projectPath, sbtDocLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+      val constructor = clazz.getConstructor(classOf[File], classOf[SBTDocHandler], classOf[java.lang.Integer])
+      val server = constructor.newInstance(projectPath, sbtDocHandler, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
 
       println()
       println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
