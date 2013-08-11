@@ -2,7 +2,7 @@ package sbt
 
 import sbt.Keys._
 import sbt.PlayKeys._
-import play.core.{ SBTLink, SBTDocLink }
+import play.core.{ SBTLink, SBTDocHandler }
 import play.console.Colors
 import annotation.tailrec
 import scala.collection.JavaConverters._
@@ -160,7 +160,7 @@ trait PlayRun extends PlayInternalKeys {
 
           private val sbtSharedClasses = Seq(
             classOf[play.core.SBTLink].getName,
-            classOf[play.core.SBTDocLink].getName,
+            classOf[play.core.SBTDocHandler].getName,
             classOf[play.core.server.ServerWithStop].getName,
             classOf[play.api.UsefulException].getName,
             classOf[play.api.PlayException].getName,
@@ -219,20 +219,20 @@ trait PlayRun extends PlayInternalKeys {
           val f = docsAppClasspath.map(_.data).filter(_.getName.startsWith("play-docs")).head
           new JarFile(f)
         }
-        val sbtDocLink = {
-          val docLinkFactoryClass = docsLoader.loadClass("play.docs.SBTDocLinkFactory")
-          val factoryMethod = docLinkFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
-          factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[SBTDocLink]
+        val sbtDocHandler = {
+          val docHandlerFactoryClass = docsLoader.loadClass("play.docs.SBTDocHandlerFactory")
+          val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
+          factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[SBTDocHandler]
         }
 
         val server = {
           val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
           if (httpPort.isDefined) {
-            val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[SBTLink], classOf[SBTDocLink], classOf[Int])
-            mainDev.invoke(null, reloader, sbtDocLink, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+            val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
+            mainDev.invoke(null, reloader, sbtDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
           } else {
-            val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[SBTLink], classOf[SBTDocLink], classOf[Int])
-            mainDev.invoke(null, reloader, sbtDocLink, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+            val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
+            mainDev.invoke(null, reloader, sbtDocHandler, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
           }
         }
 

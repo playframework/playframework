@@ -70,7 +70,7 @@ class TestApplication(application: Application) extends ApplicationProvider {
 /**
  * represents an application that can be reloaded in Dev Mode
  */
-class ReloadableApplication(sbtLink: SBTLink, sbtDocLink: SBTDocLink) extends ApplicationProvider {
+class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) extends ApplicationProvider {
 
   // Use plain Java call here in case of scala classloader mess
   {
@@ -168,7 +168,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocLink: SBTDocLink) extends Ap
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[SimpleResult] = {
 
-    sbtDocLink.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
+    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
       for {
         app <- Play.maybeApplication
         result <- app.plugins.foldLeft(Option.empty[SimpleResult]) {
