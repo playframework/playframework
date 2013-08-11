@@ -16,7 +16,7 @@
 	<input type="hidden" name="password" value="@signupForm("password").value">
 	<fieldset>
         
-        <legend>Contact informations</legend>
+        <legend>Contact information</legend>
         
         @select(
             signupForm("profile.country"), 
@@ -43,14 +43,14 @@
         
         @checkbox(
             signupForm("accept"), 
-            '_label -> None, '_text -> "You agree the Terms and conditions",
+            '_label -> None, '_text -> "You agree to the terms and conditions",
             '_showConstraints -> false
         )
         
     </fieldset>
     
     <div class="actions">
-        <input type="submit" name="action" class="btn primary" value="Sign Up !">
+        <input type="submit" name="action" class="btn primary" value="Sign Up!">
         <input type="submit" name="action" class="btn" value="Previous">
     </div>
   }
