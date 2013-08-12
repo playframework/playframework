@@ -136,6 +136,11 @@ trait WithDefaultPlugins {
             val plugin = classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
             if (plugin.enabled) Some(plugin) else { Play.logger.warn("Plugin [" + className + "] is disabled"); None }
           } catch {
+            case e: java.lang.NoSuchMethodException =>
+              throw new PlayException("Cannot load plugin",
+                "Could not find an appropriate constructor to instantiate plugin [" + className +
+                  "]. All Play plugins must define a constructor that accepts a single argument either of type " +
+                  "play.Application for Java plugins or play.api.Application for Scala plugins.")
             case e: PlayException => throw e
             case e: VirtualMachineError => throw e
             case e: ThreadDeath => throw e
