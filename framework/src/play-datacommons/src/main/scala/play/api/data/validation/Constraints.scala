@@ -4,7 +4,7 @@ object Constraints {
   import scala.util.matching.Regex
 
   def validateWith[From](msg: String, args: Any*)(pred: From => Boolean): Constraint[From] =
-    v => if(!pred(v)) Failure(Seq(ValidationError(msg, args))) else Success(v)
+    v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)
 
   def optional[O](c: Constraint[O]): Constraint[Option[O]] =
     _.map(v => c(v).map(Some.apply)).getOrElse(Success(None))
