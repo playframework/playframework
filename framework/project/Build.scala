@@ -285,7 +285,8 @@ object PlayBuild extends Build {
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion,
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt,
         "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
-      )
+      ),
+      publish := {}
     )
     
   lazy val publishedProjects = Seq[ProjectReference](
