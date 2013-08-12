@@ -548,7 +548,7 @@ package play.api.mvc {
     val emptyCookie = new Session
     override val isSigned = true
     override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
-    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge"))
+    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getMilliseconds("session.maxAge") / 1000)
     override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
     override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
     override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
