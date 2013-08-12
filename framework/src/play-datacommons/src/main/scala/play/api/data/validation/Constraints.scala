@@ -37,6 +37,6 @@ object Constraints {
   def minLength(l: Int) = validateWith("validation.minLength", l){(_: String).size >= l}
   def maxLength(l: Int) = validateWith("validation.maxLength", l){(_: String).size < l}
   def pattern(regex: Regex) = validateWith("validation.pattern", regex){regex.unapplySeq(_: String).isDefined}
-  def email = pattern("""\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r)(_: String).fail.map(_ => Seq("validation.email"))
+  def email = pattern("""\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r)(_: String).fail.map(_ => Seq(ValidationError("validation.email")))
   def noConstraint[From]: Constraint[From] = Success(_)
 }
