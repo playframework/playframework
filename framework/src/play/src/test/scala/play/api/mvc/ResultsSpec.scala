@@ -6,6 +6,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
+import play.api.i18n.Lang
+import play.api.{FakeApplication, Play}
 
 object ResultsSpec extends Specification {
 
@@ -67,6 +69,19 @@ object ResultsSpec extends Specification {
       setCookies("logged").maxAge.get must be_<=(-86000)
     }
 
+    "support adding a language cookie using withLang" in {
+      implicit val app = new FakeApplication()
+      val cookie = Cookies.decode(Ok.withLang(Lang("en-AU")).header.headers("Set-Cookie")).head
+      cookie.name must_== Play.langCookieName
+      cookie.value must_== "en-AU"
+    }
+
+    "support clearing a language cookie using clearingLang" in {
+      implicit val app = new FakeApplication()
+      val cookie = Cookies.decode(Ok.clearingLang.header.headers("Set-Cookie")).head
+      cookie.name must_== Play.langCookieName
+      cookie.value must_== ""
+    }
 
     "allow discarding a cookie by deprecated names method" in {
       Cookies.decode(Ok.discardingCookies("blah").header.headers("Set-Cookie")).head.name must_== "blah"

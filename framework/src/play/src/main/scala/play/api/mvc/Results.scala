@@ -124,7 +124,7 @@ sealed trait WithHeaders[+A <: Result] {
   def withNewSession: A
 
   /**
-   * Sets the users language permanently for future requests by storing it in a cookie.
+   * Sets the user's language permanently for future requests by storing it in a cookie.
    *
    * For example:
    * {{{
@@ -136,6 +136,18 @@ sealed trait WithHeaders[+A <: Result] {
    * @return the new result
    */
   def withLang(lang: Lang)(implicit app: Application): A = withCookies(Cookie(Play.langCookieName, lang.code))
+
+  /**
+   * Clears the user's language by discarding the language cookie set by withLang
+   *
+   * For example:
+   * {{{
+   * Ok(Messages("hello.world")).clearingLang
+   * }}}
+   *
+   * @return the new result
+   */
+  def clearingLang(implicit app: Application): A = discardingCookies(DiscardingCookie(Play.langCookieName))
 
   /**
    * Adds values to the flash scope for this result.
