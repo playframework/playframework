@@ -8,6 +8,7 @@ import java.text.ParseException
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 
+
 object JsonValidSpec extends Specification {
   "JSON reads" should {
     "validate simple types" in {
@@ -295,8 +296,10 @@ object JsonValidSpec extends Specification {
       )(User, unlift(User.unapply)) }
 
       val js = Json.toJson(bobby)
+      val invalid = Json.obj("name" -> "bobby")
 
       js.validate[User] must equalTo(JsSuccess(bobby))
+      invalid.validate[User] must equalTo(JsError(__ \ 'age, "error.path.missing"))
     }
 
     "Format simpler syntax with constraints" in {
@@ -323,6 +326,12 @@ object JsonValidSpec extends Specification {
       val reads2 = ((__ \ 'field32).read[Int] and (__ \ 'field31).read[String]).tupled
 
       js.validate(reads1 andThen reads2).get must beEqualTo(345 -> "beta")
+
+      val invalid = Json.obj(
+        "field1" -> "alpha",
+        "field2" -> 123L)
+
+      invalid.validate(reads1 andThen reads2) must beEqualTo(JsError(__ \ 'field3, "error.path.missing"))
     }
 
     "Apply min/max correctly on any numeric type" in {
@@ -342,10 +351,10 @@ object JsonValidSpec extends Specification {
       val jsFail = Json.toJson(fail)
 
       jsOk.validate[Numbers] must equalTo(JsSuccess(ok))
-      jsFail.validate[Numbers] must equalTo(JsError(Seq(
-        (__ \ 'f) -> Seq(ValidationError("error.min", 13.0F)),
-        (__ \ 'd) -> Seq(ValidationError("error.max", 1.0))
-      )))
+      jsFail.validate[Numbers] must equalTo(
+        JsError((__ \ 'f), ValidationError("error.min", 13.0F)) ++
+        JsError((__ \ 'd), ValidationError("error.max", 1.0))
+      )
     }
 
   }
@@ -505,11 +514,7 @@ object JsonValidSpec extends Specification {
 
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 50).validate[User] must beEqualTo(JsSuccess(User(123L, "john.doe@blibli.com", 50)))
       Json.obj( "id" -> 123L, "email" -> "john.doe@blibli.com", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
-      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(
-        JsError((__ \ 'email), ValidationError("error.email")) ++
-        JsError((__ \ 'age), ValidationError("error.max", 55)) ++
-        JsError((__ \ 'age), ValidationError("error.min", 65))
-      )
+      Json.obj( "id" -> 123L, "email" -> "john.doe", "age" -> 60).validate[User] must beEqualTo(JsError((__ \ 'email), ValidationError("error.email")) ++ JsError((__ \ 'age), ValidationError("error.max", 55)) ++ JsError((__ \ 'age), ValidationError("error.min", 65)))
     }
 
     "verifyingIf reads" in {
