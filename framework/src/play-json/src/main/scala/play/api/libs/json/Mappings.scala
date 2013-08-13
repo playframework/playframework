@@ -19,9 +19,54 @@ object Mappings {
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "String")))
   }
 
+  // Note: Mappings of JsNumber to Number are validating that the JsNumber is indeed valid
+  // in the target type. i.e: JsNumber(4.5) is not considered parseable as an Int.
+  // That's a bit stricter than the "old" Read, which just cast to the target type, possibly loosing data.
   implicit def jsonAsInt: Mapping[ValidationError, JsValue, Int] = {
-    case JsNumber(v) => Success(v.toInt) // XXX
+    case JsNumber(v) if v.isValidInt => Success(v.toInt)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Int")))
+  }
+
+  implicit def jsonAsShort: Mapping[ValidationError, JsValue, Short] = {
+    case JsNumber(v) if v.isValidShort => Success(v.toShort)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Short")))
+  }
+
+  implicit def jsonAsLong: Mapping[ValidationError, JsValue, Long] = {
+    case JsNumber(v) if v.isValidLong => Success(v.toLong)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Long")))
+  }
+
+  // BidDecimal.isValidFloat is buggy, see [SI-6699]
+  private def isValidFloat(bd: BigDecimal) = {
+    val d = bd.toFloat
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Float.toString(d), bd.mc)) == 0
+  }
+  implicit def jsonAsFloat: Mapping[ValidationError, JsValue, Float] = {
+    case JsNumber(v) if isValidFloat(v) => Success(v.toFloat)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Float")))
+  }
+
+  // BidDecimal.isValidDouble is buggy, see [SI-6699]
+  private def isValidDouble(bd: BigDecimal) = {
+    val d = bd.toDouble
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Double.toString(d), bd.mc)) == 0
+  }
+
+  implicit def jsonADouble: Mapping[ValidationError, JsValue, Double] = {
+    case JsNumber(v) if isValidDouble(v) => Success(v.toDouble)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Double")))
+  }
+
+  implicit def jsonAsBigDecimal: Mapping[ValidationError, JsValue, BigDecimal] = {
+    case JsNumber(v) => Success(v)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "BigDecimal")))
+  }
+
+  import java.math.{ BigDecimal => jBigDecimal }
+  implicit def jsonAsJavaBigDecimal: Mapping[ValidationError, JsValue, jBigDecimal] = {
+    case JsNumber(v) => Success(v.bigDecimal)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "java.math.BigDecimal")))
   }
 
   implicit def jsonAsSeq[O](implicit m: Mapping[ValidationError, JsValue, O]): Mapping[ValidationError, JsValue, Seq[O]] = {

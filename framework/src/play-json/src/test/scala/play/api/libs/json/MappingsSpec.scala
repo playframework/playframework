@@ -42,6 +42,68 @@ object MappingsSpec extends Specification {
       errPath.read[String].validate(invalid) mustEqual(error)
     }
 
+    "support all types of Json values" in {
+      val __ = Path[JsValue]()
+
+      "Int" in {
+        (__ \ "n").read[Int].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read[Int].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n").read[Int].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+      }
+
+      "Short" in {
+        (__ \ "n").read[Short].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read[Short].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Short")))))
+        (__ \ "n").read[Short].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Short")))))
+      }
+
+      "Long" in {
+        (__ \ "n").read[Long].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read[Long].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Long")))))
+        (__ \ "n").read[Long].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Long")))))
+      }
+
+      "Float" in {
+        (__ \ "n").read[Float].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read[Float].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Float")))))
+        (__ \ "n").read[Float].validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8F))
+      }
+
+      "Double" in {
+        (__ \ "n").read[Double].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read[Double].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Double")))))
+        (__ \ "n").read[Double].validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8))
+      }
+
+      "java BigDecimal" in {
+        import java.math.{ BigDecimal => jBigDecimal }
+        (__ \ "n").read[jBigDecimal].validate(Json.obj("n" -> 4)) mustEqual(Success(new jBigDecimal("4")))
+        (__ \ "n").read[jBigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "java.math.BigDecimal")))))
+        (__ \ "n").read[jBigDecimal].validate(Json.obj("n" -> 4.8)) mustEqual(Success(new jBigDecimal("4.8")))
+      }
+
+      "scala BigDecimal" in {
+        (__ \ "n").read[BigDecimal].validate(Json.obj("n" -> 4)) mustEqual(Success(BigDecimal(4)))
+        (__ \ "n").read[BigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "BigDecimal")))))
+        (__ \ "n").read[BigDecimal].validate(Json.obj("n" -> 4.8)) mustEqual(Success(BigDecimal(4.8)))
+      }
+
+      "date" in { skipped }
+      "joda date" in { skipped }
+      "joda local data" in { skipped }
+      "dql date" in { skipped }
+      "Boolean" in { skipped }
+      "String" in { skipped }
+      "JsObject" in { skipped }
+      "JsString" in { skipped }
+      "JsNumber" in { skipped }
+      "JsBoolean" in { skipped }
+      "Option" in { skipped }
+      "Map[String, V]" in { skipped }
+      "Traversable" in { skipped }
+      "Array" in { skipped }
+    }
+
     "validate data" in {
       (__ \ "firstname").read(nonEmptyText).validate(valid) mustEqual(Success("Julien"))
 
