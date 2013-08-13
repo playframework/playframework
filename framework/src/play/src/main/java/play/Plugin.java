@@ -2,6 +2,20 @@ package play;
 
 /**
  * A Play plugin.
+ *
+ * A plugin must define a single argument constructor that accepts an {@link play.Application}, for example:
+ *
+ * <pre>
+ * public class MyPlugin extends Plugin {
+ *     private final Application app;
+ *     public MyPlugin(Application app) {
+ *         this.app = app;
+ *     }
+ *     public void onStart() {
+ *         Logger.info("Plugin started!");
+ *     }
+ * }
+ * </pre>
  */
 public class Plugin implements play.api.Plugin {
     
