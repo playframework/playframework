@@ -63,7 +63,7 @@ class Path[I](val path: List[PathNode]) {
   * @return A Rule validating the presence and validity of data at this Path
   */
   def read[O](v: Constraint[O])(implicit m: Path[I] => Mapping[ValidationError, I, O]): Rule[I, O] =
-    Rule(this, (p: Path[I]) => (d: I) => m(p)(d).fail.map{ errs => Seq(p -> errs) }, v) // XXX: DRY "fail.map" thingy
+    Rule(this, (p: Path[I]) => Mapping{ (d: I) => m(p)(d).fail.map{ errs => Seq(p -> errs) }}, v) // XXX: DRY "fail.map" thingy
 
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
@@ -84,14 +84,14 @@ class Path[I](val path: List[PathNode]) {
   */
   def read[J, O](sub: Rule[J, O])(implicit l: Path[I] => Mapping[ValidationError, I, J]): Rule[I, O] = {
     val parent = this
-    Rule(parent compose Path[I](sub.p.path), { p => d =>
+    Rule(parent compose Path[I](sub.p.path), { p => Mapping { d =>
       val v = l(parent)(d)
       v.fold(
         es => Failure(Seq(parent -> es)),
         s  => sub.m(sub.p)(s)).fail.map{ _.map {
           case (path, errs) => (parent compose Path[I](path.path)) -> errs
         }}
-    }, sub.v)
+    }}, sub.v)
   }
 
   /**

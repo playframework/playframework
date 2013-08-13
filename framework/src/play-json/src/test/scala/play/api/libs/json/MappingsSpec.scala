@@ -96,7 +96,13 @@ object MappingsSpec extends Specification {
       "String" in { skipped }
       "JsObject" in { skipped }
       "JsString" in { skipped }
-      "JsNumber" in { skipped }
+
+      "JsNumber" in {
+        (__ \ "n").read[JsNumber].validate(Json.obj("n" -> 4)) mustEqual(Success(JsNumber(4)))
+        (__ \ "n").read[JsNumber].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsNumber")))))
+        (__ \ "n").read[JsNumber].validate(Json.obj("n" -> 4.8)) mustEqual(Success(JsNumber(4.8)))
+      }
+
       "JsBoolean" in { skipped }
       "Option" in { skipped }
       "Map[String, V]" in { skipped }

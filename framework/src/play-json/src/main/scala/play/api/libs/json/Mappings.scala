@@ -14,7 +14,7 @@ object Mappings {
       case IdxPathNode(i) => JIdxPathNode(i)
     })
 
-  implicit def jsonAsString: Mapping[ValidationError, JsValue, String] = {
+  implicit def jsonAsString = Mapping[ValidationError, JsValue, String] {
     case JsString(v) => Success(v)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "String")))
   }
@@ -22,19 +22,24 @@ object Mappings {
   // Note: Mappings of JsNumber to Number are validating that the JsNumber is indeed valid
   // in the target type. i.e: JsNumber(4.5) is not considered parseable as an Int.
   // That's a bit stricter than the "old" Read, which just cast to the target type, possibly loosing data.
-  implicit def jsonAsInt: Mapping[ValidationError, JsValue, Int] = {
+  implicit def jsonAsInt = Mapping[ValidationError, JsValue, Int] {
     case JsNumber(v) if v.isValidInt => Success(v.toInt)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Int")))
   }
 
-  implicit def jsonAsShort: Mapping[ValidationError, JsValue, Short] = {
+  implicit def jsonAsShort = Mapping[ValidationError, JsValue, Short] {
     case JsNumber(v) if v.isValidShort => Success(v.toShort)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Short")))
   }
 
-  implicit def jsonAsLong: Mapping[ValidationError, JsValue, Long] = {
+  implicit def jsonAsLong = Mapping[ValidationError, JsValue, Long] {
     case JsNumber(v) if v.isValidLong => Success(v.toLong)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Long")))
+  }
+
+  implicit def jsonAsJsNumber = Mapping[ValidationError, JsValue, JsNumber] {
+   case v@JsNumber(_) => Success(v)
+   case _ => Failure(Seq(ValidationError("validation.type-mismatch", "JsNumber")))
   }
 
   // BidDecimal.isValidFloat is buggy, see [SI-6699]
@@ -42,7 +47,7 @@ object Mappings {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Float.toString(d), bd.mc)) == 0
   }
-  implicit def jsonAsFloat: Mapping[ValidationError, JsValue, Float] = {
+  implicit def jsonAsFloat = Mapping[ValidationError, JsValue, Float] {
     case JsNumber(v) if isValidFloat(v) => Success(v.toFloat)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Float")))
   }
@@ -52,29 +57,28 @@ object Mappings {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Double.toString(d), bd.mc)) == 0
   }
-
-  implicit def jsonADouble: Mapping[ValidationError, JsValue, Double] = {
+  implicit def jsonADouble = Mapping[ValidationError, JsValue, Double] {
     case JsNumber(v) if isValidDouble(v) => Success(v.toDouble)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Double")))
   }
 
-  implicit def jsonAsBigDecimal: Mapping[ValidationError, JsValue, BigDecimal] = {
+  implicit def jsonAsBigDecimal = Mapping[ValidationError, JsValue, BigDecimal] {
     case JsNumber(v) => Success(v)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "BigDecimal")))
   }
 
   import java.math.{ BigDecimal => jBigDecimal }
-  implicit def jsonAsJavaBigDecimal: Mapping[ValidationError, JsValue, jBigDecimal] = {
+  implicit def jsonAsJavaBigDecimal = Mapping[ValidationError, JsValue, jBigDecimal] {
     case JsNumber(v) => Success(v.bigDecimal)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "java.math.BigDecimal")))
   }
 
-  implicit def jsonAsSeq[O](implicit m: Mapping[ValidationError, JsValue, O]): Mapping[ValidationError, JsValue, Seq[O]] = {
+  implicit def jsonAsSeq[O](implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, Seq[O]] {
     case JsArray(vs) => Validation.sequence(vs.map(m))
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Array")))
   }
 
-  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Mapping[ValidationError, JsValue, O]): Mapping[ValidationError, JsValue, O] = { json =>
+  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, O] { json =>
     val v: Validation[ValidationError, JsValue] = pathToJsPath(p)(json) match {
       case Nil => Failure(Seq(ValidationError("validation.required")))
       case js :: _ => Success(js)

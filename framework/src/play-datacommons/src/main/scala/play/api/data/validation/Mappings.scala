@@ -7,20 +7,23 @@ object Mappings {
   /*import play.api.mvc.Request*/
 
   implicit def monoidConstraint[T] = new Monoid[Constraint[T]] {
-    def append(c1: Constraint[T], c2: Constraint[T]) = v => c1(v) *> (c2(v))
+    def append(c1: Constraint[T], c2: Constraint[T]) = Mapping(v => c1(v) *> (c2(v)))
     def identity = Constraints.noConstraint[T]
   }
 
-  implicit def IasI[I]: Mapping[ValidationError, I, I] = Success(_)
+  implicit def IasI[I]: Mapping[ValidationError, I, I] = Mapping(Success(_))
 
-  implicit def seqAsO[O](implicit m: Mapping[ValidationError, String, O]): Mapping[ValidationError, Seq[String], O] =
+  implicit def seqAsO[O](implicit m: Mapping[ValidationError, String, O]) = Mapping[ValidationError, Seq[String], O] {
     _.headOption.map(Success[ValidationError, String](_)).getOrElse(Failure[ValidationError, String](Seq(ValidationError("validation.required")))).flatMap(m)
+  }
 
-  implicit def seqAsSeq[O](implicit m: Mapping[ValidationError, String, O]): Mapping[ValidationError, Seq[String], Seq[O]] =
+  implicit def seqAsSeq[O](implicit m: Mapping[ValidationError, String, O]) = Mapping[ValidationError, Seq[String], Seq[O]] {
     data => Validation.sequence(data.map(m))
+  }
 
-  implicit def stringAsInt: Mapping[ValidationError, String, Int] =
-    Constraints.validateWith("validation.type-mismatch", "Int"){ (_: String).matches("-?[0-9]+") }(_).map(_.toInt)
+  implicit def stringAsInt = Mapping[ValidationError, String, Int] {
+    Constraints.validateWith("validation.type-mismatch", "Int"){ (_: String).matches("-?[0-9]+") }(_: String).map(_.toInt)
+  }
 
   /*
   import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode, _ }
@@ -51,8 +54,9 @@ object Mappings {
     request => pick(Path[I](p.path))(request.body)
   */
 
-  implicit def pickOptional[I, O](p: Path[I])(implicit pick: Path[I] => Mapping[ValidationError, I, O]): Mapping[ValidationError, I, Option[O]] =
+  implicit def pickOptional[I, O](p: Path[I])(implicit pick: Path[I] => Mapping[ValidationError, I, O]) = Mapping[ValidationError, I, Option[O]] {
     d => pick(p)(d).map(Some.apply) | Success(None)
+  }
 
   /*
   implicit def pickInJson[O](p: Path[JsValue])(implicit m: Mapping[String, JsValue, O]): Mapping[String, JsValue, O] = { json =>
@@ -71,7 +75,7 @@ object Mappings {
     case (path, KeyPathNode(k)) => path + "." + k
   }
 
-  implicit def pickInMap[O](p: Path[M])(implicit m: Mapping[ValidationError, Seq[String], O]): Mapping[ValidationError, M, O] = {
+  implicit def pickInMap[O](p: Path[M])(implicit m: Mapping[ValidationError, Seq[String], O]) = Mapping[ValidationError, M, O] {
     data =>
       val key = toMapKey(p)
       val validation: Validation[ValidationError, Seq[String]] =
@@ -79,7 +83,7 @@ object Mappings {
       validation.flatMap(m)
   }
 
-  implicit def pickSInMap[O](p: Path[M])(implicit m: Mapping[ValidationError, String, O]): Mapping[ValidationError, M, Seq[O]] = { data =>
+  implicit def pickSInMap[O](p: Path[M])(implicit m: Mapping[ValidationError, String, O]) = Mapping[ValidationError, M, Seq[O]] { data =>
     val prefix = toMapKey(p)
     val r = prefix + """\[([0-9]+)\]"""
 
@@ -92,7 +96,7 @@ object Mappings {
     Validation.sequence(ss.map(m))
   }
 
-  implicit def mapPickMap(p: Path[M]): Mapping[ValidationError, M, M] = { data =>
+  implicit def mapPickMap(p: Path[M]) = Mapping[ValidationError, M, M] { data =>
     val prefix = toMapKey(p) + "."
     val submap = data.filterKeys(_.startsWith(prefix)).map { case (k, v) =>
       k.substring(prefix.length) -> v
@@ -100,7 +104,7 @@ object Mappings {
     Success(submap)
   }
 
-  implicit def mapPickSeqMap(p: Path[M]): Mapping[ValidationError, M, Seq[M]] = { data =>
+  implicit def mapPickSeqMap(p: Path[M]) = Mapping[ValidationError, M, Seq[M]] { data =>
     val prefix = toMapKey(p)
     val r = prefix + """\[([0-9]+)\]*\.(.*)"""
 
