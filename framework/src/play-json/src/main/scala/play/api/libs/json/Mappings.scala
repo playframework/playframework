@@ -38,11 +38,26 @@ object Mappings {
   }
 
   implicit def jsonAsJsNumber = Mapping[ValidationError, JsValue, JsNumber] {
-   case v@JsNumber(_) => Success(v)
-   case _ => Failure(Seq(ValidationError("validation.type-mismatch", "JsNumber")))
+    case v@JsNumber(_) => Success(v)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "JsNumber")))
   }
 
-  // BidDecimal.isValidFloat is buggy, see [SI-6699]
+  implicit def jsonAsJsBoolean = Mapping[ValidationError, JsValue, JsBoolean] {
+    case v@JsBoolean(_) => Success(v)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "JsBoolean")))
+  }
+
+  implicit def jsonAsJsString = Mapping[ValidationError, JsValue, JsString] {
+    case v@JsString(_) => Success(v)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "JsString")))
+  }
+
+  implicit def jsonAsJsObject = Mapping[ValidationError, JsValue, JsObject] {
+    case v@JsObject(_) => Success(v)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "JsObject")))
+  }
+
+  // BigDecimal.isValidFloat is buggy, see [SI-6699]
   private def isValidFloat(bd: BigDecimal) = {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Float.toString(d), bd.mc)) == 0
@@ -52,7 +67,7 @@ object Mappings {
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Float")))
   }
 
-  // BidDecimal.isValidDouble is buggy, see [SI-6699]
+  // BigDecimal.isValidDouble is buggy, see [SI-6699]
   private def isValidDouble(bd: BigDecimal) = {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Double.toString(d), bd.mc)) == 0

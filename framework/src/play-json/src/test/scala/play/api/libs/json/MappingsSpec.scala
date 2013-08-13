@@ -94,8 +94,18 @@ object MappingsSpec extends Specification {
       "dql date" in { skipped }
       "Boolean" in { skipped }
       "String" in { skipped }
-      "JsObject" in { skipped }
-      "JsString" in { skipped }
+
+      "JsObject" in {
+        (__ \ "o").read[JsObject].validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Success(JsObject(Seq("n" -> JsString("foo")))))
+        (__ \ "n").read[JsObject].validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsObject")))))
+        (__ \ "n").read[JsObject].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsObject")))))
+        (__ \ "n").read[JsObject].validate(Json.obj("n" -> Seq("foo"))) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsObject")))))
+      }
+
+      "JsString" in {
+        (__ \ "n").read[JsString].validate(Json.obj("n" -> "foo")) mustEqual(Success(JsString("foo")))
+        (__ \ "n").read[JsString].validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsString")))))
+      }
 
       "JsNumber" in {
         (__ \ "n").read[JsNumber].validate(Json.obj("n" -> 4)) mustEqual(Success(JsNumber(4)))
@@ -103,7 +113,11 @@ object MappingsSpec extends Specification {
         (__ \ "n").read[JsNumber].validate(Json.obj("n" -> 4.8)) mustEqual(Success(JsNumber(4.8)))
       }
 
-      "JsBoolean" in { skipped }
+      "JsBoolean" in {
+        (__ \ "n").read[JsBoolean].validate(Json.obj("n" -> true)) mustEqual(Success(JsBoolean(true)))
+        (__ \ "n").read[JsBoolean].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsBoolean")))))
+      }
+
       "Option" in { skipped }
       "Map[String, V]" in { skipped }
       "Traversable" in { skipped }
