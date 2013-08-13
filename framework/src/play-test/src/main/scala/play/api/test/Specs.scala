@@ -32,7 +32,7 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
-  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult(t))
+  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult.effectively(t))
 }
 
 /**
