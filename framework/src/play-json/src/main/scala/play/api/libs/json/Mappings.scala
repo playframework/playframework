@@ -93,7 +93,15 @@ object Mappings {
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "java.math.BigDecimal")))
   }
 
-  implicit def jsonAsSeq[O](implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, Seq[O]] {
+  implicit def jsonAsArray[O](implicit m: Mapping[ValidationError, JsValue, O], c: scala.reflect.ClassTag[O]) = Mapping[ValidationError, JsValue, Array[O]] {
+    jsonAsSeq(m)(_).map(_.toArray)
+  }
+
+  implicit def jsonAsTraversable[O](implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, Traversable[O]] {
+    jsonAsSeq(m)(_).map(_.toTraversable)
+  }
+
+  implicit def jsonAsSeq[O](implicit m: Mapping[ValidationError, JsValue, O]): Mapping[ValidationError, JsValue, Seq[O]] = Mapping[ValidationError, JsValue, Seq[O]] {
     case JsArray(vs) => Validation.sequence(vs.map(m))
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Array")))
   }

@@ -137,8 +137,18 @@ object MappingsSpec extends Specification {
       }
 
       "Map[String, V]" in { skipped }
-      "Traversable" in { skipped }
-      "Array" in { skipped }
+
+      "Traversable" in {
+        (__ \ "n").read[Traversable[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
+        (__ \ "n").read[Traversable[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
+        (__ \ "n").read[Traversable[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+      }
+
+      "Array" in {
+        (__ \ "n").read[Array[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
+        (__ \ "n").read[Array[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
+        (__ \ "n").read[Array[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+      }
     }
 
     "validate data" in {

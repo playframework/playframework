@@ -26,30 +26,6 @@ object Mappings {
   }
 
   /*
-  import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode, _ }
-  private def pathToJsPath(p: Path[JsValue]) =
-    play.api.libs.json.JsPath(p.path.map{
-      case KeyPathNode(key) => JSKeyPathNode(key)
-      case IdxPathNode(i) => JIdxPathNode(i)
-    })
-
-  implicit def jsonAsString: Mapping[String, JsValue, String] = {
-    case JsString(v) => Success(v)
-    case _ => Failure(Seq("validation.type-mismatch"))
-  }
-
-  implicit def jsonAsInt: Mapping[String, JsValue, Int] = {
-    case JsNumber(v) => Success(v.toInt) // XXX
-    case _ => Failure(Seq("validation.type-mismatch"))
-  }
-
-  implicit def jsonAsSeq[O](implicit m: Mapping[String, JsValue, O]): Mapping[String, JsValue, Seq[O]] = {
-    case JsArray(vs) => Validation.sequence(vs.map(m))
-    case _ => Failure(Seq("validation.type-mismatch"))
-  }
-  */
-
-  /*
   implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
     request => pick(Path[I](p.path))(request.body)
   */
@@ -61,16 +37,6 @@ object Mappings {
         case Some(i) => c(i).map(Some.apply)
       }
   }
-
-  /*
-  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Mapping[String, JsValue, O]): Mapping[String, JsValue, O] = { json =>
-    val v: Validation[String, JsValue] = pathToJsPath(p)(json) match {
-      case Nil => Failure(Seq("validation.required"))
-      case js :: _ => Success(js)
-    }
-    v.flatMap(m)
-  }
-  */
 
   type M = Map[String, Seq[String]]
 
