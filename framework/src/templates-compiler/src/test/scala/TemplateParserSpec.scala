@@ -20,10 +20,10 @@ object TemplateParserSpec extends Specification {
       parser.parser(get(templateName))
     }
 
-    def failAt(message: String, line: Int, column: Int): PartialFunction[parser.ParseResult[ScalaTemplateCompiler.Template], Boolean] = {
-      case parser.NoSuccess(msg, rest) => {
-        message == msg && rest.pos.line == line && rest.pos.column == column
-      }
+    def parseString(template: String) = parser.parser(new CharSequenceReader(template))
+
+    def parseStringSuccess(template: String) = parseString(template) must beLike {
+      case parser.Success(_, rest) if rest.atEnd => ok
     }
 
     "succeed for" in {
@@ -40,6 +40,10 @@ object TemplateParserSpec extends Specification {
         parse("complicated.scala.html") must beLike({ case parser.Success(_, rest) => if (rest.atEnd) ok else ko })
       }
 
+      "brackets in strings" in {
+        "open" in parseStringSuccess("""@foo("(")""")
+        "close" in parseStringSuccess("""@foo(")@")""")
+      }
     }
 
     "fail for" in {
