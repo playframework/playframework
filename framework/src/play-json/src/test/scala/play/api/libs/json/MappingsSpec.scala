@@ -91,9 +91,19 @@ object MappingsSpec extends Specification {
       "date" in { skipped }
       "joda date" in { skipped }
       "joda local data" in { skipped }
-      "dql date" in { skipped }
-      "Boolean" in { skipped }
-      "String" in { skipped }
+      "sql date" in { skipped }
+
+      "Boolean" in {
+        (__ \ "n").read[Boolean].validate(Json.obj("n" -> true)) mustEqual(Success(true))
+        (__ \ "n").read[Boolean].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
+      }
+
+      "String" in {
+        (__ \ "n").read[String].validate(Json.obj("n" -> "foo")) mustEqual(Success("foo"))
+        (__ \ "n").read[String].validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "n").read[String].validate(Json.obj("n" -> Seq("foo"))) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "o").read[String].validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Failure(Seq(__ \ "o" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+      }
 
       "JsObject" in {
         (__ \ "o").read[JsObject].validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Success(JsObject(Seq("n" -> JsString("foo")))))
@@ -118,7 +128,14 @@ object MappingsSpec extends Specification {
         (__ \ "n").read[JsBoolean].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "JsBoolean")))))
       }
 
-      "Option" in { skipped }
+      "Option" in {
+        skipped("There's a problem here. How to handle JsNull ?? Empty values ??")
+        (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> true)) mustEqual(Success(Some(true)))
+        (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> JsNull)) mustEqual(Success(None))
+        (__ \ "n").read[Option[Boolean]].validate(Json.obj("foo" -> "bar")) mustEqual(Success(None))
+        (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> "bar")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Option[Boolean]")))))
+      }
+
       "Map[String, V]" in { skipped }
       "Traversable" in { skipped }
       "Array" in { skipped }

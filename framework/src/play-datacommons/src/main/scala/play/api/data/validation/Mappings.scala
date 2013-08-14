@@ -54,8 +54,12 @@ object Mappings {
     request => pick(Path[I](p.path))(request.body)
   */
 
-  implicit def pickOptional[I, O](p: Path[I])(implicit pick: Path[I] => Mapping[ValidationError, I, O]) = Mapping[ValidationError, I, Option[O]] {
-    d => pick(p)(d).map(Some.apply) | Success(None)
+  implicit def pickOptional[I, O](p: Path[I])(implicit pick: Path[I] => Mapping[ValidationError, I, I], c:  Mapping[ValidationError, I, O]) = Mapping[ValidationError, I, Option[O]] {
+    d =>
+      (pick(p)(d).map(Some.apply) | Success(None)).flatMap {
+        case None => Success(None)
+        case Some(i) => c(i).map(Some.apply)
+      }
   }
 
   /*

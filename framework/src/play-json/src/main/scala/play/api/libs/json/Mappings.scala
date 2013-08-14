@@ -19,6 +19,11 @@ object Mappings {
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "String")))
   }
 
+  implicit def jsonAsBoolean = Mapping[ValidationError, JsValue, Boolean] {
+    case JsBoolean(v) => Success(v)
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Boolean")))
+  }
+
   // Note: Mappings of JsNumber to Number are validating that the JsNumber is indeed valid
   // in the target type. i.e: JsNumber(4.5) is not considered parseable as an Int.
   // That's a bit stricter than the "old" Read, which just cast to the target type, possibly loosing data.
