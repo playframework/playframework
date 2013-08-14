@@ -21,6 +21,7 @@ import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
 import java.net.URI
+import java.nio.channels.ClosedChannelException
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
@@ -36,9 +37,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
    */
   val nettyExceptionLogger = Logger("play.nettyException")
 
-  override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    nettyExceptionLogger.error("Exception caught in Netty", e.getCause)
-    e.getChannel.close()
+  override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
+    event.getCause match {
+      case e: ClosedChannelException => nettyExceptionLogger.trace("Benign exception caught in Netty", e)
+      case e => nettyExceptionLogger.error("Exception caught in Netty", e)
+    }
+    event.getChannel.close()
   }
 
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
