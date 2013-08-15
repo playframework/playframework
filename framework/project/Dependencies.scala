@@ -107,7 +107,7 @@ object Dependencies {
     specsBuild % "test",
 
     "org.mockito" % "mockito-all" % "1.9.5" % "test",
-    "com.novocode" % "junit-interface" % "0.10" % "test",
+    "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
 
     ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.0" % "test")
       .exclude("org.jboss.netty", "netty")
@@ -190,7 +190,7 @@ object Dependencies {
   val testDependencies = Seq(
     "junit" % "junit" % "4.11",
     specsBuild,
-    "com.novocode" % "junit-interface" % "0.10",
+    "com.novocode" % "junit-interface" % "0.10" exclude("junit", "junit-dep"),
     guava,
     findBugs,
     ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0")
