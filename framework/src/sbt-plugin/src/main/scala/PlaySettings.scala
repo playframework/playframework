@@ -147,7 +147,15 @@ trait PlaySettings {
 
     playVersion := play.core.PlayVersion.current,
 
+    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
+
+    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
+
     playCommonClassloader <<= playCommonClassloaderTask,
+
+    playDependencyClassLoader := createURLClassLoader,
+
+    playReloaderClassLoader := createDelegatedResourcesClassLoader,
 
     playCopyAssets <<= playCopyAssetsTask,
 
@@ -171,9 +179,23 @@ trait PlaySettings {
 
     playDefaultPort := 9000,
 
+    // Default hooks
+
     playOnStarted := Nil,
 
     playOnStopped := Nil,
+
+    playRunHooks := Nil,
+
+    playRunHooks <++= playOnStarted map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStarted
+    },
+
+    playRunHooks <++= playOnStopped map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStopped
+    },
+
+    playInteractionMode := play.PlayConsoleInteractionMode,
 
     // Assets
 

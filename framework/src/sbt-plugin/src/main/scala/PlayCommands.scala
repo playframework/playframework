@@ -28,25 +28,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   val SCALA = "scala"
   val NONE = "none"
 
-  // ----- We need this later
-
-  private val consoleReader = new jline.ConsoleReader
-
-  private def waitForKey() = {
-    consoleReader.getTerminal.disableEcho()
-    def waitEOF() {
-      consoleReader.readVirtualKey() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    waitEOF()
-    consoleReader.getTerminal.enableEcho()
-  }
-
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     inAllProjects(Dag.topologicalSort(base)(deps), key, data)
@@ -62,6 +43,8 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
   }
 
   // ----- Play specific tasks
+
+  // Classloaders
 
   private[this] var commonClassLoader: ClassLoader = _
 
@@ -79,6 +62,25 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse {
 
     commonClassLoader
   }
+
+  val playDependencyClasspath = TaskKey[Keys.Classpath]("play-dependency-classpath")
+  val playReloaderClasspath = TaskKey[Keys.Classpath]("play-reloader-classpath")
+
+  type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
+  val playDependencyClassLoader = TaskKey[ClassLoaderCreator]("play-dependency-classloader")
+  val playReloaderClassLoader = TaskKey[ClassLoaderCreator]("play-reloader-classloader")
+
+  val createURLClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
+
+  val createDelegatedResourcesClassLoader: ClassLoaderCreator = (name, urls, parent) => new java.net.URLClassLoader(urls, parent) {
+    require(parent ne null)
+    override def getResources(name: String): java.util.Enumeration[java.net.URL] = getParent.getResources(name)
+    override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
+  }
+
+  // Compile
 
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
@@ -484,9 +486,23 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
     (javaProperties, port)
   }
 
-  val playRunCommand = Command.args("run", "<args>") { (state: State, args: Seq[String]) =>
+  val playRunCommand = createPlayRunCommand("run", playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+
+  def createPlayRunCommand(
+    name: String,
+    runHooks: TaskKey[Seq[play.PlayRunHook]],
+    dependencyClasspath: TaskKey[Classpath],
+    dependencyClassLoader: TaskKey[ClassLoaderCreator],
+    reloaderClasspath: TaskKey[Classpath],
+    reloaderClassLoader: TaskKey[ClassLoaderCreator]) = Command.args(name, "<args>") { (state: State, args: Seq[String]) =>
 
     val extracted = Project.extract(state)
+
+    val (_, hooks) = extracted.runTask(runHooks, state)
+    val interaction = extracted.get(playInteractionMode)
+
+    val (_, createClassLoader) = extracted.runTask(dependencyClassLoader, state)
+    val (_, createReloader) = extracted.runTask(reloaderClassLoader, state)
 
     // Parse HTTP port argument
     val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
@@ -504,10 +520,10 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       state.log.warn("some of the dependencies were not recompiled properly, so classloader is not avaialable")
       throw commonLoaderEither.left.get
     }
-    val maybeNewState = Project.runTask(dependencyClasspath in Compile, state).get._2.toEither.right.map { dependencies =>
+    val maybeNewState = Project.runTask(dependencyClasspath, state).get._2.toEither.right.map { dependencies =>
 
       // All jar dependencies. They will not been reloaded and must be part of this top classloader
-      val classpath = dependencies.map(_.data.toURI.toURL).filter(_.toString.endsWith(".jar")).toArray
+      val classpath = Path.toURLs(dependencies.files)
 
       /**
        * Create a temporary classloader to run the application.
@@ -516,7 +532,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
        * It also uses the same Scala classLoader as SBT allowing to share any
        * values coming from the Scala library between both.
        */
-      lazy val applicationLoader: ClassLoader = new java.net.URLClassLoader(classpath, commonLoader) {
+      lazy val delegatingLoader: ClassLoader = new ClassLoader(commonLoader) {
 
         val sharedClasses = Seq(
           classOf[play.core.SBTLink].getName,
@@ -528,11 +544,11 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
           classOf[play.api.PlayException.ExceptionSource].getName,
           classOf[play.api.PlayException.ExceptionAttachment].getName)
 
-        override def loadClass(name: String): Class[_] = {
+        override def loadClass(name: String, resolve: Boolean): Class[_] = {
           if (sharedClasses.contains(name)) {
             sbtLoader.loadClass(name)
           } else {
-            super.loadClass(name)
+            super.loadClass(name, resolve)
           }
         }
 
@@ -561,12 +577,17 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
         }
 
         override def toString = {
-          "SBT/Play shared ClassLoader, with: " + (getURLs.toSeq) + ", using parent: " + (getParent)
+          "SBT/Play shared ClassLoader, using parent: " + (getParent)
         }
 
       }
 
-      lazy val reloader = newReloader(state, playReload, applicationLoader)
+      lazy val applicationLoader = createClassLoader("PlayDependencyClassLoader", classpath, delegatingLoader)
+
+      lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, applicationLoader)
+
+      // Now we're about to start, let's call the hooks:
+      hooks.run(_.beforeStarted())
 
       val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
       val mainDev = mainClass.getMethod("mainDev", classOf[SBTLink], classOf[Int])
@@ -575,7 +596,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       val server = mainDev.invoke(null, reloader, port: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
 
       // Notify hooks
-      extracted.get(playOnStarted).foreach(_(server.mainAddress))
+      hooks.run(_.afterStarted(server.mainAddress))
 
       println()
       println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
@@ -638,16 +659,16 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       val newState = maybeContinuous match {
         case (true, w: sbt.Watched, ws) => {
           // ~ run mode
-          consoleReader.getTerminal.disableEcho()
-          executeContinuously(w, state, reloader)
-          consoleReader.getTerminal.enableEcho()
+          interaction doWithoutEcho {
+            executeContinuously(w, state, reloader)
+          }
 
           // Remove state two first commands added by sbt ~
           state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)
         }
         case _ => {
           // run mode
-          waitForKey()
+          interaction.waitForCancel()
           state
         }
       }
@@ -656,7 +677,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
       reloader.clean()
 
       // Notify hooks
-      extracted.get(playOnStopped).foreach(_())
+      hooks.run(_.afterStopped())
 
       newState
     }
@@ -677,6 +698,8 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
     val extracted = Project.extract(state)
+
+    val interaction = extracted.get(playInteractionMode)
 
     // Parse HTTP port argument
     val (properties, port) = filterArgs(args, defaultPort = extracted.get(playDefaultPort))
@@ -711,7 +734,7 @@ exec java $* -cp $classpath """ + customFileName.map(fn => "-Dconfig.file=`dirna
                |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
                |""".stripMargin))
 
-          waitForKey()
+          interaction.waitForCancel()
 
           println()
 
