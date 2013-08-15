@@ -2,9 +2,9 @@ import play.console.Colors
 import play.core.server.ServerWithStop
 import sbt._
 import sbt.Keys._
-import PlayKeys._
+import play.Keys._
 import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
-import PlaySourceGenerators._
+import play.PlaySourceGenerators._
 import scala.Some
 
 object ApplicationBuild extends Build {

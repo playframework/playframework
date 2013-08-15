@@ -1,7 +1,7 @@
-package sbt
+package play
 
+import sbt._
 import play.api._
-import play.core._
 
 trait PlayExceptions {
 

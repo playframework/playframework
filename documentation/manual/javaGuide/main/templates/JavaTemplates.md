@@ -190,12 +190,10 @@ To make an absolute resolution, use **_root_** prefix in the import statement.
 @import _root_.company.product.core._
 ```
 
-If you have common imports, which you need in all templates, you can declare in `project/Build.scala`
+If you have common imports, which you need in all templates, you can declare in `build.sbt`
 
-```
-val main = play.Project(…).settings(
-  templatesImport += "com.abc.backend._"
-)
+```scala
+templatesImport += "com.abc.backend._"
 ```
 
 ## Comments

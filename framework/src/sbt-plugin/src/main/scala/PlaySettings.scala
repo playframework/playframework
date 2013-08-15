@@ -1,23 +1,13 @@
-package sbt
+package play
 
+import sbt.{ Project => SbtProject, _ }
+import sbt.Keys._
 import Keys._
-import PlayKeys._
 import PlayEclipse._
-import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.SbtNativePackager._
 
-trait PlaySettings {
+trait Settings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
-
-  protected def whichLang(name: String): Seq[Setting[_]] = {
-    if (name == JAVA) {
-      defaultJavaSettings
-    } else if (name == SCALA) {
-      defaultScalaSettings
-    } else {
-      Seq.empty
-    }
-  }
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
@@ -217,7 +207,7 @@ trait PlaySettings {
 
     templatesImport := defaultTemplatesImport,
 
-    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) },
+    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, SbtProject structure s, baseDir) },
 
     templatesTypes := Map(
       "html" -> "play.api.templates.HtmlFormat",
@@ -262,5 +252,4 @@ trait PlaySettings {
     }
 
   )
-
 }

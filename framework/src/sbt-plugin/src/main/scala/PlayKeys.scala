@@ -1,6 +1,9 @@
-package sbt
+package play
 
-trait PlayKeys {
+import sbt._
+import sbt.Keys._
+
+trait Keys {
 
   val jdbc = "com.typesafe.play" %% "play-jdbc" % play.core.PlayVersion.current
 
@@ -118,13 +121,13 @@ trait PlayKeys {
   val defaultTemplatesImport = Seq("play.api.templates._", "play.api.templates.PlayMagic._")
 
 }
-object PlayKeys extends PlayKeys
+object Keys extends Keys
 
 trait PlayInternalKeys {
   type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
 
-  val playDependencyClasspath = TaskKey[Keys.Classpath]("play-dependency-classpath")
-  val playReloaderClasspath = TaskKey[Keys.Classpath]("play-reloader-classpath")
+  val playDependencyClasspath = TaskKey[Classpath]("play-dependency-classpath")
+  val playReloaderClasspath = TaskKey[Classpath]("play-reloader-classpath")
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
   val playDependencyClassLoader = TaskKey[ClassLoaderCreator]("play-dependency-classloader")
   val playReloaderClassLoader = TaskKey[ClassLoaderCreator]("play-reloader-classloader")

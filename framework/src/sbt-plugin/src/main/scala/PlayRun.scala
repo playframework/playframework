@@ -1,7 +1,8 @@
-package sbt
+package play
 
+import sbt.{ Project => SbtProject, _ }
 import sbt.Keys._
-import sbt.PlayKeys._
+import Keys._
 import play.core.{ SBTLink, SBTDocHandler }
 import play.console.Colors
 import annotation.tailrec
@@ -78,17 +79,17 @@ trait PlayRun extends PlayInternalKeys {
     override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+  val playRunSetting: SbtProject.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
 
   def playRunTask(
     runHooks: TaskKey[Seq[play.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
-    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): SbtProject.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
     (
       argsTask, state, playCommonClassloader, managedClasspath in DocsApplication,
       dependencyClasspath, dependencyClassLoader, reloaderClassLoader
     ) map { (args, state, commonLoader, docsAppClasspath, appDependencyClasspath, createClassLoader, createReloader) =>
-        val extracted = Project.extract(state)
+        val extracted = SbtProject.extract(state)
 
         val (_, hooks) = extracted.runTask(runHooks, state)
         val interaction = extracted.get(playInteractionMode)
@@ -144,7 +145,7 @@ trait PlayRun extends PlayInternalKeys {
        */
 
         // Get the URLs for the resources in a classpath
-        def urls(cp: Keys.Classpath): Array[URL] = cp.map(_.data.toURI.toURL).toArray
+        def urls(cp: Classpath): Array[URL] = cp.map(_.data.toURI.toURL).toArray
         // Support method to merge the output of two calls to ClassLoader.getResources(String) into a single result
         def combineResources(resources1: java.util.Enumeration[URL], resources2: java.util.Enumeration[URL]) =
           new java.util.Vector[java.net.URL]((resources1.asScala ++ resources2.asScala).toSeq.distinct.asJava).elements
@@ -265,9 +266,9 @@ trait PlayRun extends PlayInternalKeys {
 
           if (triggered) {
             //Then launch compile
-            play.Project.synchronized {
+            Project.synchronized {
               val start = System.currentTimeMillis
-              Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
+              SbtProject.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
                 val duration = System.currentTimeMillis - start
                 val formatted = duration match {
                   case ms if ms < 1000 => ms + "ms"
@@ -332,14 +333,14 @@ trait PlayRun extends PlayInternalKeys {
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
-    val extracted = Project.extract(state)
+    val extracted = SbtProject.extract(state)
 
     val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
-    Project.runTask(compile in Compile, state).get._2.toEither match {
+    SbtProject.runTask(compile in Compile, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot start with errors.")
@@ -348,9 +349,9 @@ trait PlayRun extends PlayInternalKeys {
       }
       case Right(_) => {
 
-        Project.runTask(dependencyClasspath in Runtime, state).get._2.toEither.right.map { dependencies =>
+        SbtProject.runTask(dependencyClasspath in Runtime, state).get._2.toEither.right.map { dependencies =>
           //trigger a require build if needed
-          Project.runTask(buildRequire, state).get._2
+          SbtProject.runTask(buildRequire, state).get._2
 
           val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
 
