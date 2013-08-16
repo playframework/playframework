@@ -35,7 +35,7 @@ class ServerBenchmark {
   @Test
   @PerfTest(threads = 1, duration = 35000, warmUp = 30000)
   def makeHelloWordRequest() {
-    for (i <- 1 until 100) {
+    for (i <- 1 to 100) {
       val f = withDefaultUpstreamHandler(SimpleRequest)
       Await.ready(f, 2 seconds)
     }
