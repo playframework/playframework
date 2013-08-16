@@ -138,7 +138,7 @@ The signature of the `call` method in `play.mvc.Action` has changed to now retur
 Iteratees, enumeratees and enumerators that execute application supplied code now require an implicit execution context.  For example:
 
 ```scala
-import play.api.libs.concurrent.Exceution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits._
 
 Iteratee.foreach[String] { msg =>
   println(msg)
