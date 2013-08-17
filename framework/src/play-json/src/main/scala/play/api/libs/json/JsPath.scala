@@ -270,7 +270,7 @@ case class JsPath(path: List[PathNode] = List()) {
    * It runs through JsValue following all JsPath nodes on JsValue except last node:
    * - If one node in JsPath is not found before last node => returns JsError( "missing-path" )
    * - If all nodes are found till last node, it runs through JsValue with last node =>
-   *   - If last node if not found => returns None
+   *   - If last node is not found => returns None
    *   - If last node is found with value "null" => returns None
    *   - If last node is found => applies implicit Reads[T]
    */
