@@ -88,5 +88,8 @@ object FlashCookieSpec extends Specification {
       val m = Flash.decode(es)
       m.size must_== 0
     }
+    "encode with null value properly" in {
+      "foo=bar&x" must be_==(Flash.encode(Map("foo" -> "bar", "x" -> null)))
+    }
   }
 }
