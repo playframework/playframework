@@ -62,8 +62,11 @@ class Path[I](val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence and validity of data at this Path
   */
-  def read[O](v: Constraint[O])(implicit m: Path[I] => Mapping[ValidationError, I, O]): Rule[I, O] =
-    Rule(this, (p: Path[I]) => Mapping{ (d: I) => m(p)(d).fail.map{ errs => Seq(p -> errs) }}, v) // XXX: DRY "fail.map" thingy
+  import Mappings._
+  def read[O](c: Constraint[O])(implicit m: Path[I] => Mapping[ValidationError, I, O]): Rule[I, O] = {
+    val p = this
+    Rule(Mapping{ m(p)(_).flatMap(o => c(o)).fail.map(errs => Seq(p -> errs)) })
+  }
 
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
@@ -84,14 +87,14 @@ class Path[I](val path: List[PathNode]) {
   */
   def read[J, O](sub: Rule[J, O])(implicit l: Path[I] => Mapping[ValidationError, I, J]): Rule[I, O] = {
     val parent = this
-    Rule(parent compose Path[I](sub.p.path), { p => Mapping { d =>
+    Rule(Mapping { d =>
       val v = l(parent)(d)
       v.fold(
         es => Failure(Seq(parent -> es)),
-        s  => sub.m(sub.p)(s)).fail.map{ _.map {
-          case (path, errs) => (parent compose Path[I](path.path)) -> errs
-        }}
-    }}, sub.v)
+        s  => sub.validate(s).fail.map{ _.map {
+          case (path, errs) => (parent compose path.as[I]) -> errs
+        }})
+    })
   }
 
   /**

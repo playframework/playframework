@@ -9,24 +9,19 @@ object Constraints {
   def optional[O](c: Constraint[O]): Constraint[Option[O]] =
     Mapping(_.map(v => c(v).map(Some.apply)).getOrElse(Success(None)))
 
-  //TODO: keep index in path
   def seq[O](c: Constraint[O]): Constraint[Seq[O]] =
     Mapping(vs => Validation.sequence(vs.map(c)))
 
-  def seq[I, O](r: Rule[I, O]): Rule[Seq[I], Seq[O]] = {
-    Rule(Path[Seq[I]](), { p => Mapping{ d =>
-        val vs = d.map(r.validate)
-
-        val withI = vs.zipWithIndex.map { case (v, i) =>
+  def seq[I, O](r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
+    Rule(Mapping{ is: Seq[I] =>
+      val vs = is.map(r.validate _)
+      val withI = vs.zipWithIndex.map { case (v, i) =>
           v.fail.map { errs =>
-            errs.map { case (path, es) => (p.as[Seq[I]] \ i).compose(path.as[Seq[I]]) -> es }
+            errs.map { case (path, es) => (Path[Seq[I]]() \ i).compose(path.as[Seq[I]]) -> es }
           }
         }
-
-        Validation.sequence(withI)
-      }
-    }, seq(r.v))
-  }
+      Validation.sequence(withI)
+    })
 
   def list[O](c: Constraint[O]): Constraint[List[O]] =
     Mapping(seq(c)(_).map(_.toList))
