@@ -63,10 +63,8 @@ class Path[I](val path: List[PathNode]) {
   * @return A Rule validating the presence and validity of data at this Path
   */
   import Mappings._
-  def read[O](c: Constraint[O])(implicit m: Path[I] => Mapping[ValidationError, I, O]): Rule[I, O] = {
-    val p = this
-    Rule(Mapping{ m(p)(_).flatMap(o => c(o)).fail.map(errs => Seq(p -> errs)) })
-  }
+  def read[J, O](c: Mapping[ValidationError, J, O])(implicit m: Path[I] => Rule[I, J]): Rule[I, O] =
+    read(Rule(c))(m)
 
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
@@ -85,17 +83,8 @@ class Path[I](val path: List[PathNode]) {
   * @param l a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence and validity of data at this Path
   */
-  def read[J, O](sub: Rule[J, O])(implicit l: Path[I] => Mapping[ValidationError, I, J]): Rule[I, O] = {
-    val parent = this
-    Rule(Mapping { d =>
-      val v = l(parent)(d)
-      v.fold(
-        es => Failure(Seq(parent -> es)),
-        s  => sub.validate(s).fail.map{ _.map {
-          case (path, errs) => (parent compose path.as[I]) -> errs
-        }})
-    })
-  }
+  def read[J, O](sub: Rule[J, O])(implicit r: Path[I] => Rule[I, J]): Rule[I, O] =
+    r(this) compose sub
 
   /**
   * Creates a Rule searching data in a stucture of type I
@@ -109,8 +98,9 @@ class Path[I](val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path
   */
-  def read[O](implicit m: Path[I] => Mapping[ValidationError, I, O]): Rule[I, O] =
-    read(Constraints.noConstraint[O])
+  def read[O](implicit r: Path[I] => Rule[I, O]): Rule[I, O] =
+    read(Rule[O, O]((o: O) => Success(o)))(r)
+
 
   /**
   * Creates a Writes the serialize data to the desired type

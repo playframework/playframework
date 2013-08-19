@@ -7,8 +7,8 @@ trait Mapping[E, I, O] extends (I => Validation[E, O])
 object Mapping {
 	def apply[E, I, O](f: I => Validation[E, O]) = new Mapping[E, I, O] {
 		override def apply(i: I) = f(i)
-	}
-
+	}/*
+	// PROBABLY USELESS
 	import play.api.libs.functional._
 
 	implicit def applicativeMapping[E, I] = new Applicative[({type λ[O] = Mapping[E, I, O]})#λ] {
@@ -35,4 +35,5 @@ object Mapping {
   import play.api.libs.functional.syntax._
   implicit def cba[E, I] = functionalCanBuildApplicative[({type λ[O] = Mapping[E, I, O]})#λ]
   implicit def fbo[E, I, O] = toFunctionalBuilderOps[({type λ[O] = Mapping[E, I, O]})#λ, O] _
+*/
 }

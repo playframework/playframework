@@ -13,11 +13,11 @@ object Constraints {
     Mapping(vs => Validation.sequence(vs.map(c)))
 
   def seq[I, O](r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
-    Rule(Mapping{ is: Seq[I] =>
+    Rule(Path[Seq[I]](), (p: Path[Seq[I]]) => Mapping{ is: Seq[I] =>
       val vs = is.map(r.validate _)
       val withI = vs.zipWithIndex.map { case (v, i) =>
           v.fail.map { errs =>
-            errs.map { case (path, es) => (Path[Seq[I]]() \ i).compose(path.as[Seq[I]]) -> es }
+            errs.map { case (path, es) => (p.as[Seq[I]] \ i).compose(path.as[Seq[I]]) -> es }
           }
         }
       Validation.sequence(withI)

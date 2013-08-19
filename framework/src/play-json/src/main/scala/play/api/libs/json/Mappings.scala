@@ -4,6 +4,7 @@ object Mappings {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
+
   import play.api.data.validation._
   import play.api.data.validation.Mappings._
 
@@ -14,9 +15,12 @@ object Mappings {
       case IdxPathNode(i) => JIdxPathNode(i)
     })
 
-  private def jsonAs[T](f: PartialFunction[JsValue, Validation[ValidationError, T]])(args: Any*) = Mapping[ValidationError, JsValue, T] {
-    f.orElse{ case _ => Failure(Seq(ValidationError("validation.type-mismatch", args: _*))) }
-  }
+  private def jsonAs[T](f: PartialFunction[JsValue, Validation[ValidationError, T]])(args: Any*) =
+    Rule[JsValue, T] (
+      f.orElse{ case j =>
+        Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
+      }: PartialFunction[JsValue, Validation[ValidationError, T]]
+    )
 
   implicit def jsonAsString = jsonAs[String] {
     case JsString(v) => Success(v)
@@ -43,19 +47,23 @@ object Mappings {
 
   implicit def jsonAsJsNumber = jsonAs[JsNumber]{
     case v@JsNumber(_) => Success(v)
-  }("JsNumber")
+  }("Number")
 
   implicit def jsonAsJsBoolean = jsonAs[JsBoolean]{
     case v@JsBoolean(_) => Success(v)
-  }("JsBoolean")
+  }("Boolean")
 
   implicit def jsonAsJsString = jsonAs[JsString] {
     case v@JsString(_) => Success(v)
-  }("JsString")
+  }("String")
 
   implicit def jsonAsJsObject = jsonAs[JsObject] {
     case v@JsObject(_) => Success(v)
-  }("JsObject")
+  }("Object")
+
+  implicit def jsonAsJsArray = jsonAs[JsArray] {
+    case v@JsArray(_) => Success(v)
+  }("Array")
 
   // BigDecimal.isValidFloat is buggy, see [SI-6699]
   private def isValidFloat(bd: BigDecimal) = {
@@ -84,6 +92,7 @@ object Mappings {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
+  /*
   implicit def jsonAsArray[O](implicit m: Mapping[ValidationError, JsValue, O], c: scala.reflect.ClassTag[O]) = Mapping[ValidationError, JsValue, Array[O]] {
     jsonAsSeq(m)(_).map(_.toArray)
   }
@@ -106,13 +115,28 @@ object Mappings {
         .map { os => fields.map(_._1).zip(os).toMap }
     }
   }
+  */
 
-  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, O] { json =>
-    val v: Validation[ValidationError, JsValue] = pathToJsPath(p)(json) match {
-      case Nil => Failure(Seq(ValidationError("validation.required")))
-      case js :: _ => Success(js)
-    }
-    v.flatMap(m)
-  }
+
+  implicit def jsonAsSeq[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Seq[O]] =
+    jsonAsJsArray compose
+    Rule(Path[JsArray](), (path: Path[JsArray]) => Mapping{ case JsArray(is) =>
+        val vs = is.map(r.validate _)
+        val withI = vs.zipWithIndex.map { case (v, i) =>
+            v.fail.map { errs =>
+              errs.map { case (p, es) => (path \ i).compose(p.as[JsArray]) -> es } // XXX: not a bi fan of this "as". Feels like casting
+            }
+          }
+        Validation.sequence(withI)
+      })
+
+  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Rule[JsValue, O]) = Rule[JsValue, O](p, (path: Path[JsValue]) => Mapping { (json: JsValue) =>
+    val v: Validation[(Path[JsValue], Seq[ValidationError]), JsValue] =
+      pathToJsPath(p)(json) match {
+        case Nil => Failure(Seq(path -> Seq(ValidationError("validation.required"))))
+        case js :: _ => Success(js)
+      }
+    v.flatMap(m.validate _)
+  })
 
 }
