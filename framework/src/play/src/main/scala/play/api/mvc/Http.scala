@@ -521,7 +521,10 @@ package play.api.mvc {
      * @param kv the key-value pair to add
      * @return the modified session
      */
-    def +(kv: (String, String)) = copy(data + kv)
+    def +(kv: (String, String)) = {
+      require(kv._2 != null, "Cookie values cannot be null")
+      copy(data + kv)
+    }
 
     /**
      * Removes any value from the session.
@@ -589,7 +592,10 @@ package play.api.mvc {
      * @param kv the key-value pair to add
      * @return the modified flash scope
      */
-    def +(kv: (String, String)) = copy(data + kv)
+    def +(kv: (String, String)) = {
+      require(kv._2 != null, "Cookie values cannot be null")
+      copy(data + kv)
+    }
 
     /**
      * Removes a value from the flash scope.
