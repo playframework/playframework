@@ -31,6 +31,7 @@ object Path {
 	def unapply[I](p: Path[I]): Option[List[PathNode]] = Some(p.path)
 }
 
+// XXX: There's variance going on on I to get rid if `as`
 class Path[I](val path: List[PathNode]) {
 
   def \(key: String): Path[I] = this \ KeyPathNode(key)
@@ -63,8 +64,8 @@ class Path[I](val path: List[PathNode]) {
   * @return A Rule validating the presence and validity of data at this Path
   */
   import Mappings._
-  def read[J, O](c: Mapping[ValidationError, J, O])(implicit m: Path[I] => Rule[I, J]): Rule[I, O] =
-    read(Rule(c))(m)
+  def read[O](c: Constraint[O])(implicit m: Path[I] => Rule[I, O]): Rule[I, O] =
+    read(Rule.fromMapping[O, O](c))(m)
 
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
@@ -84,7 +85,7 @@ class Path[I](val path: List[PathNode]) {
   * @return A Rule validating the presence and validity of data at this Path
   */
   def read[J, O](sub: Rule[J, O])(implicit r: Path[I] => Rule[I, J]): Rule[I, O] =
-    r(this) compose sub
+    r(this).compose(this)(sub)
 
   /**
   * Creates a Rule searching data in a stucture of type I
@@ -99,7 +100,7 @@ class Path[I](val path: List[PathNode]) {
   * @return A Rule validating the presence of data at this Path
   */
   def read[O](implicit r: Path[I] => Rule[I, O]): Rule[I, O] =
-    read(Rule[O, O]((o: O) => Success(o)))(r)
+    read(Rule.zero[O])(r)
 
 
   /**

@@ -16,11 +16,9 @@ object Mappings {
     })
 
   private def jsonAs[T](f: PartialFunction[JsValue, Validation[ValidationError, T]])(args: Any*) =
-    Rule[JsValue, T] (
-      f.orElse{ case j =>
-        Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
-      }: PartialFunction[JsValue, Validation[ValidationError, T]]
-    )
+    Rule.fromMapping[JsValue, T](
+      f.orElse{ case j => Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
+    })
 
   implicit def jsonAsString = jsonAs[String] {
     case JsString(v) => Success(v)
@@ -66,9 +64,10 @@ object Mappings {
   }("Array")
 
   // BigDecimal.isValidFloat is buggy, see [SI-6699]
+  import java.{lang => jl}
   private def isValidFloat(bd: BigDecimal) = {
     val d = bd.toFloat
-    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Float.toString(d), bd.mc)) == 0
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
   implicit def jsonAsFloat = jsonAs[Float] {
     case JsNumber(v) if isValidFloat(v) => Success(v.toFloat)
@@ -77,7 +76,7 @@ object Mappings {
   // BigDecimal.isValidDouble is buggy, see [SI-6699]
   private def isValidDouble(bd: BigDecimal) = {
     val d = bd.toDouble
-    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(java.lang.Double.toString(d), bd.mc)) == 0
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
   }
   implicit def jsonADouble =jsonAs[Double] {
     case JsNumber(v) if isValidDouble(v) => Success(v.toDouble)
@@ -117,26 +116,18 @@ object Mappings {
   }
   */
 
-
   implicit def jsonAsSeq[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Seq[O]] =
-    jsonAsJsArray compose
-    Rule(Path[JsArray](), (path: Path[JsArray]) => Mapping{ case JsArray(is) =>
-        val vs = is.map(r.validate _)
-        val withI = vs.zipWithIndex.map { case (v, i) =>
-            v.fail.map { errs =>
-              errs.map { case (p, es) => (path \ i).compose(p.as[JsArray]) -> es } // XXX: not a bi fan of this "as". Feels like casting
-            }
-          }
-        Validation.sequence(withI)
-      })
+    jsonAsJsArray // XXX: jsonAsJsArray should not be explicit ?
+      .compose(Path[JsValue]())(Rule { case JsArray(is) => Success(is) })
+        .compose(Path[JsValue]())(Constraints.seq(r))
 
-  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Rule[JsValue, O]) = Rule[JsValue, O](p, (path: Path[JsValue]) => Mapping { (json: JsValue) =>
-    val v: Validation[(Path[JsValue], Seq[ValidationError]), JsValue] =
+  // Is that thing really just a Lens ?
+  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Rule[JsValue, O]): Rule[JsValue, O] =
+    Rule { (json: JsValue) =>
       pathToJsPath(p)(json) match {
-        case Nil => Failure(Seq(path -> Seq(ValidationError("validation.required"))))
+        case Nil => Failure(Seq(Path[JsValue]() -> Seq(ValidationError("validation.required"))))
         case js :: _ => Success(js)
       }
-    v.flatMap(m.validate _)
-  })
+    }.compose(Path[JsValue]())(m)
 
 }

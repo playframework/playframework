@@ -7,11 +7,11 @@ object Mappings {
   /*import play.api.mvc.Request*/
 
   implicit def monoidConstraint[T] = new Monoid[Constraint[T]] {
-    def append(c1: Constraint[T], c2: Constraint[T]) = Mapping(v => c1(v) *> (c2(v)))
+    def append(c1: Constraint[T], c2: Constraint[T]) = v => c1(v) *> (c2(v))
     def identity = Constraints.noConstraint[T]
   }
 
-  implicit def IasI[I]: Rule[I, I] = Rule(Success(_))
+  implicit def IasI[I] = Rule[I, I](i => Success(i))
 
 
   // implicit def seqAsO[O](implicit m: Mapping[ValidationError, String, O]) = Mapping[ValidationError, Seq[String], O] {
@@ -31,14 +31,15 @@ object Mappings {
     request => pick(Path[I](p.path))(request.body)
   */
 
-  implicit def pickOptional[I, O](p: Path[I])(implicit pick: Path[I] => Rule[I, I], c:  Rule[I, O]) = Rule[I, Option[O]](p, (path: Path[I]) => Mapping {
-    (d: I) =>
-      (pick(path).validate(d).map(Some.apply) | Success(None))
-        .flatMap {
-          case None => Success(None)
-          case Some(i) => c.validate(i).map(Some.apply)
-        }
-  })
+  implicit def pickOptional[I, O](path: Path[I])(implicit pick: Path[I] => Rule[I, I], c:  Rule[I, O]) =
+    Rule[I, Option[O]] {
+      (d: I) =>
+        (pick(path).validate(d).map(Some.apply) | Success(None))
+          .flatMap {
+            case None => Success(None)
+            case Some(i) => c.validate(i).map(Some.apply)
+          }
+    }
 
   type M = Map[String, Seq[String]]
 

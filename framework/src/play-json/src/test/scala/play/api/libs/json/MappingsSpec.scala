@@ -33,7 +33,6 @@ object MappingsSpec extends Specification {
         "email" -> "fakecontact@gmail.com",
         "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10")))
 
-
     "extract data" in {
       (__ \ "firstname").read[String].validate(valid) mustEqual(Success("Julien"))
       val errPath = __ \ "foo"
@@ -42,12 +41,18 @@ object MappingsSpec extends Specification {
     }
 
     "support all types of Json values" in {
+
       val __ = Path[JsValue]()
 
       "Int" in {
         (__ \ "n").read[Int].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
         (__ \ "n").read[Int].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
         (__ \ "n").read[Int].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n" \ "o").read[Int].validate(Json.obj("n" -> Json.obj("o" -> 4))) mustEqual(Success(4))
+        (__ \ "n" \ "o").read[Int].validate(Json.obj("n" -> Json.obj("o" -> "foo"))) mustEqual(Failure(Seq(__ \ "n" \ "o" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+
+        (__ \ "n" \ "o" \ "p" ).read[Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> 4)))) mustEqual(Success(4))
+        (__ \ "n" \ "o" \ "p").read[Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> "foo")))) mustEqual(Failure(Seq(__ \ "n" \ "o" \ "p" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
 
         val errPath = __ \ "foo"
         val error = Failure(Seq(errPath -> Seq(ValidationError("validation.required"))))
@@ -138,8 +143,7 @@ object MappingsSpec extends Specification {
         (__ \ "n").read[Option[Boolean]].validate(Json.obj("foo" -> "bar")) mustEqual(Success(None))
         (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> "bar")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Option[Boolean]")))))
       }
-
-    /*
+/*
       "Map[String, V]" in {
         (__ \ "n").read[Map[String, String]].validate(Json.obj("n" -> Json.obj("foo" -> "bar"))) mustEqual(Success(Map("foo" -> "bar")))
         (__ \ "n").read[Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> 5))) mustEqual(Success(Map("foo" -> 4, "bar" -> 5)))
@@ -157,7 +161,7 @@ object MappingsSpec extends Specification {
         (__ \ "n").read[Array[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
         (__ \ "n").read[Array[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
       }
-  */
+*/
       "Seq" in {
         (__ \ "n").read[Seq[String]].validate(Json.obj("n" -> Seq("foo"))).get must haveTheSameElementsAs(Seq("foo"))
         (__ \ "n").read[Seq[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get must haveTheSameElementsAs(Seq(1, 2, 3))
@@ -166,8 +170,6 @@ object MappingsSpec extends Specification {
       }
 
     }
-
-
 
     "validate data" in {
       (__ \ "firstname").read(nonEmptyText).validate(valid) mustEqual(Success("Julien"))
@@ -220,7 +222,19 @@ object MappingsSpec extends Specification {
        .validate(invalid) mustEqual Failure(Seq((__ \ "informations" \ "label") -> Seq(ValidationError("validation.nonemptytext"))))
     }
 
-    /*
+    "lift validations to seq validations" in {
+      (__ \ "foo").read(seq(nonEmptyText)).validate(Json.obj("foo" -> Seq("bar")))
+        .get must haveTheSameElementsAs(Seq("bar"))
+
+      (__ \ "foo").read(
+        (__ \ "foo").read(seq(nonEmptyText)))
+          .validate(Json.obj("foo" -> Json.obj("foo" -> Seq("bar"))))
+            .get must haveTheSameElementsAs(Seq("bar"))
+
+      (__ \ "n").read(seq(nonEmptyText))
+        .validate(Json.parse("""{"n":["foo", ""]}""")) mustEqual(Failure(Seq(__ \ "n" \ 1 -> Seq(ValidationError("validation.nonemptytext")))))
+    }
+
     "perform complex validation" in {
       import play.api.libs.functional.syntax._
 
@@ -272,7 +286,6 @@ object MappingsSpec extends Specification {
       contactValidation.validate(invalidJson) mustEqual(Failure(Seq(
         (__ \ "informations" \ 0 \"label") -> Seq(ValidationError("validation.nonemptytext")))))
     }
-    */
 
   }
 }

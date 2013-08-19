@@ -225,7 +225,7 @@ object Validation {
   import play.api.libs.functional._
   import scala.language.reflectiveCalls
 
-  implicit def applicativeValidation[E] = new Applicative[({type f[A] = Validation[E, A]})#f] {
+  implicit def applicativeValidation[E] = new Applicative[({type λ[A] = Validation[E, A]})#λ] {
 
     def pure[A](a: A): Validation[E, A] = Success(a)
 
@@ -239,7 +239,7 @@ object Validation {
     }
   }
 
-  implicit def alternativeValidation[E](implicit a: Applicative[({type f[A] = Validation[E, A]})#f]) = new Alternative[({type f[A] = Validation[E, A]})#f] {
+  implicit def alternativeValidation[E](implicit a: Applicative[({type λ[A] = Validation[E, A]})#λ]) = new Alternative[({type λ[A] = Validation[E, A]})#λ] {
     val app = a
     def |[A, B >: A](alt1: Validation[E, A], alt2: Validation[E, B]): Validation[E, B] = (alt1, alt2) match {
       case (Success(v), _) => Success(v)
@@ -251,9 +251,9 @@ object Validation {
 
    // Helps the compiler a bit
   import play.api.libs.functional.syntax._
-  implicit def cba[E] = functionalCanBuildApplicative[({type f[A] = Validation[E, A]})#f]
-  implicit def ao[E, A](a: Validation[E, A])(implicit alt: Alternative[({type f[A] = Validation[E, A]})#f]) =
-    toAlternativeOps[({type f[A] = Validation[E, A]})#f, A](a)(alt)
+  implicit def cba[E] = functionalCanBuildApplicative[({type λ[A] = Validation[E, A]})#λ]
+  implicit def ao[E, A](a: Validation[E, A])(implicit alt: Alternative[({type λ[A] = Validation[E, A]})#λ]) =
+    toAlternativeOps[({type λ[A] = Validation[E, A]})#λ, A](a)(alt)
 
   // TODO
   /*
