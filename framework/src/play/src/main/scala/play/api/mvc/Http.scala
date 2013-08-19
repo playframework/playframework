@@ -404,7 +404,7 @@ package play.api.mvc {
      */
     def encode(data: Map[String, String]): String = {
       val encoded = data.map {
-        case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
+        case (k, v) => URLEncoder.encode(k, "UTF-8") + Option(v).map("=" + URLEncoder.encode(_, "UTF-8")).getOrElse("")
       }.mkString("&")
       if (isSigned)
         Crypto.sign(encoded) + "-" + encoded
