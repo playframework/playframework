@@ -88,5 +88,9 @@ object FlashCookieSpec extends Specification {
       val m = Flash.decode(es)
       m.size must_== 0
     }
+    "put disallows null values" in {
+      val c = Flash(Map("foo" -> "bar"))
+      c + (("x", null)) must throwA(new IllegalArgumentException("requirement failed: Cookie values cannot be null"))
+    }
   }
 }
