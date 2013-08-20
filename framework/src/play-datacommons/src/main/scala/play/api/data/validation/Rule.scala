@@ -14,16 +14,20 @@ case class Rule[I, O](m: Mapping[(Path[I], Seq[ValidationError]), I, O]) {
         }})
     }
   }
+
+  //TODO: repath
 }
 
-
 object Rule {
+
   import play.api.libs.functional._
 
   def zero[O] = Rule[O, O](Success.apply)
 
   def fromMapping[I, O](f: Mapping[ValidationError, I, O]) =
     new Rule(f(_: I).fail.map(errs => Seq(Path[I]() -> errs)))
+
+  implicit def IasI[I] = Rule[I, I](i => Success(i))
 
   implicit def applicativeRule[I] = new Applicative[({type λ[O] = Rule[I, O]})#λ] {
     override def pure[A](a: A): Rule[I, A] =
@@ -44,9 +48,10 @@ object Rule {
     def fmap[A, B](m: Rule[I, A], f: A => B): Rule[I, B] = applicativeRule[I].map(m, f)
   }
 
-  // Helps the compiler a bit
+  // XXX: Helps the compiler a bit
   import play.api.libs.functional.syntax._
   implicit def cba[I] = functionalCanBuildApplicative[({type λ[O] = Rule[I, O]})#λ]
   implicit def fbo[I, O] = toFunctionalBuilderOps[({type λ[O] = Rule[I, O]})#λ, O] _
   implicit def ao[I, O] = toApplicativeOps[({type λ[O] = Rule[I, O]})#λ, O] _
+  implicit def f[I, O] = toFunctorOps[({type λ[O] = Rule[I, O]})#λ, O] _
 }

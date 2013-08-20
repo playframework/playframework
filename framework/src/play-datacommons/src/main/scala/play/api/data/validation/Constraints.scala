@@ -18,8 +18,8 @@ object Constraints {
       val withI = vs.zipWithIndex.map { case (v, i) =>
           v.fail.map { errs =>
             errs.map { case (p, es) =>
-              ((Path[Seq[I]]() \ i) ++ p.as[Seq[I]]) -> es
-            } // XXX: not a big fan of this "as". Feels like casting
+              ((Path[Seq[I]]() \ i) ++ p.as[Seq[I]]) -> es // XXX: not a big fan of this "as". Feels like casting
+            }
           }
         }
       Validation.sequence(withI)

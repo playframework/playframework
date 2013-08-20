@@ -74,8 +74,15 @@ object PathSpec extends Specification {
       p.read(nonEmptyText).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
     }
 
+    "validate seq" in {
+      val __ = Path[M]()
+      (__ \ "firstname").read[Seq[String]].validate(valid) mustEqual(Success(Seq("Julien")))
+      (__ \ "foobar").read[Seq[String]].validate(valid) mustEqual(Failure(Seq(__ \ "foobar" -> Seq(ValidationError("validation.required")))))
+    }
+
     "validate optional" in {
       val __ = Path[M]()
+
       (__ \ "firstname").read[Option[String]].validate(valid) mustEqual(Success(Some("Julien")))
       (__ \ "foobar").read[Option[String]].validate(valid) mustEqual(Success(None))
     }

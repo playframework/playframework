@@ -91,39 +91,40 @@ object Mappings {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
-  /*
-  implicit def jsonAsArray[O](implicit m: Mapping[ValidationError, JsValue, O], c: scala.reflect.ClassTag[O]) = Mapping[ValidationError, JsValue, Array[O]] {
-    jsonAsSeq(m)(_).map(_.toArray)
+  implicit def jsonAsArray[O: scala.reflect.ClassTag](implicit r: Rule[JsValue, O]): Rule[JsValue, Array[O]] =
+    jsonAsSeq(r).fmap(_.toArray)
+
+
+  implicit def jsonAsTraversable[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Traversable[O]] =
+    jsonAsSeq(r).fmap(_.toTraversable)
+
+
+  //TODO: refactor
+  implicit def jsonAsMap[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] = {
+    jsonAsJsObject
+      .fmap{ case JsObject(fs) => fs }
+      .compose(Path[JsValue]())(Rule{ fs =>
+        val validations = fs.map{ f =>
+          r.validate(f._2)
+            .fail.map { _.map { case (p, es) =>
+              ((Path[Seq[(String, JsValue)]]() \ f._1) ++ p.as[Seq[(String, JsValue)]]) -> es
+            }}
+            .map(f._1 -> _)
+        }
+        Validation.sequence(validations)
+          .map(_.toMap)
+      })
   }
 
-  implicit def jsonAsTraversable[O](implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, Traversable[O]] {
-    jsonAsSeq(m)(_).map(_.toTraversable)
-  }
-
-  implicit def jsonAsSeq[O](implicit m: Mapping[ValidationError, JsValue, O]): Mapping[ValidationError, JsValue, Seq[O]] = Mapping[ValidationError, JsValue, Seq[O]] {
-    case JsArray(vs) => Validation.sequence(vs.map(m))
-    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "Array")))
-  }
-
-  // TODO: should key exact path of the error(s)
-  // It seems that this mapping should not exist.
-  // instead, we should have a rule.
-  implicit def jsonAsMap[O](implicit m: Mapping[ValidationError, JsValue, O]) = Mapping[ValidationError, JsValue, Map[String, O]] {
-    jsonAsJsObject(_).flatMap { case JsObject(fields) =>
-      Validation.sequence(fields.map(f => m(f._2)))
-        .map { os => fields.map(_._1).zip(os).toMap }
-    }
-  }
-  */
 
   implicit def jsonAsSeq[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Seq[O]] =
-    jsonAsJsArray // XXX: jsonAsJsArray should not be explicit ?
-      .compose(Path[JsValue]())(Rule { case JsArray(is) => Success(is) })
-        .compose(Path[JsValue]())(Constraints.seq(r))
+    jsonAsJsArray
+      .fmap{ case JsArray(is) => is }
+      .compose(Path[JsValue]())(Constraints.seq(r))
 
   // Is that thing really just a Lens ?
   implicit def pickInJson[O](p: Path[JsValue])(implicit m: Rule[JsValue, O]): Rule[JsValue, O] =
-    Rule { (json: JsValue) =>
+    Rule[JsValue, JsValue] { json =>
       pathToJsPath(p)(json) match {
         case Nil => Failure(Seq(Path[JsValue]() -> Seq(ValidationError("validation.required"))))
         case js :: _ => Success(js)
