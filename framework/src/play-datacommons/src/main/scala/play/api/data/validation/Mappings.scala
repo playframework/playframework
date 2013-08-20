@@ -15,9 +15,6 @@ object Mappings {
     _.headOption.map(Success[ValidationError, String](_)).getOrElse(Failure[ValidationError, String](Seq(ValidationError("validation.required"))))
   }.compose(Path[Seq[String]]())(r)
 
-  implicit def seqAsSeq[O](implicit r: Rule[String, O]): Rule[Seq[String], Seq[O]] =
-    Constraints.seq(r)
-
   private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
     Rule.fromMapping[String, T]{
       val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
