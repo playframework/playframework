@@ -70,7 +70,7 @@ public @interface Verbose {
 You can then use your new annotation with an action method:
 
 ```java
-@Verbose(false)
+@Verbose(true)
 public static Result index() {
   return ok("It works!");
 }
