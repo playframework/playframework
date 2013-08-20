@@ -18,9 +18,53 @@ object Mappings {
   implicit def seqAsSeq[O](implicit r: Rule[String, O]): Rule[Seq[String], Seq[O]] =
     Constraints.seq(r)
 
-  implicit def stringAsInt = Rule.fromMapping[String, Int] {
-    Constraints.validateWith("validation.type-mismatch", "Int"){ (_: String).matches("-?[0-9]+") }(_: String).map(_.toInt)
+  private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
+    Rule.fromMapping[String, T]{
+      val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
+      toB.lift(_)
+        .flatMap(f.lift)
+        .getOrElse(Failure(Seq(ValidationError("validation.type-mismatch", args: _*))))
+    }
+
+  implicit def stringAsInt = stringAs {
+    case s if s.isValidInt => Success(s.toInt)
+  }("Int")
+
+  implicit def stringAsShort = stringAs {
+    case s if s.isValidShort => Success(s.toShort)
+  }("Short")
+
+  implicit def stringAsLong = stringAs {
+    case s if s.isValidLong => Success(s.toLong)
+  }("Long")
+
+   // BigDecimal.isValidFloat is buggy, see [SI-6699]
+  import java.{lang => jl}
+  private def isValidFloat(bd: BigDecimal) = {
+    val d = bd.toFloat
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
+  implicit def stringAsFloat = stringAs {
+    case s if isValidFloat(s) => Success(s.toFloat)
+  }("Float")
+
+  // BigDecimal.isValidDouble is buggy, see [SI-6699]
+  private def isValidDouble(bd: BigDecimal) = {
+    val d = bd.toDouble
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
+  }
+  implicit def stringAsDouble = stringAs {
+    case s if isValidDouble(s) => Success(s.toDouble)
+  }("Double")
+
+  import java.{ math => jm }
+  implicit def stringAsJavaBigDecimal = stringAs {
+    case s => Success(s.bigDecimal)
+  }("BigDecimal")
+
+   implicit def stringAsBigDecimal = stringAs {
+    case s => Success(s)
+  }("BigDecimal")
 
 
   // implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
@@ -49,16 +93,13 @@ object Mappings {
     case (path, KeyPathNode(k)) => path + "." + k
   }
 
-  implicit def pickInMap[O](p: Path[M])(implicit r: Rule[Seq[String], O]): Rule[M, O] =
-    pickSInMap[String](p).compose(Path[M]())(r)
-
-  def pickSInMap[O](p: Path[M])(implicit r: Rule[String, O]): Rule[M, Seq[O]] = Rule.fromMapping[M, Seq[String]] {
+  implicit def pickInMap[O](p: Path[M])(implicit r: Rule[Seq[String], O]): Rule[M, O] = Rule.fromMapping[M, Seq[String]] {
     data =>
       val key = toMapKey(p)
       val validation: Validation[ValidationError, Seq[String]] =
         data.get(key).map(Success[ValidationError, Seq[String]](_)).getOrElse{ Failure[ValidationError, Seq[String]](Seq(ValidationError("validation.required"))) }
       validation
-  }.compose(Path[M]())(Constraints.seq(r))
+  }.compose(Path[M]())(r)
 
   implicit def mapPickMap(p: Path[M]) = Rule.fromMapping[M, M] { data =>
     val prefix = toMapKey(p) + "."
