@@ -118,7 +118,9 @@ class EhCachePlugin(app: Application) extends CachePlugin {
   import net.sf.ehcache._
 
   lazy val (manager, cache) = {
-    val manager = CacheManager.create()
+    val ehcacheXml = Option(app.classloader.getResource("ehcache.xml"))
+      .getOrElse(app.classloader.getResource("ehcache-default.xml"))
+    val manager = CacheManager.create(ehcacheXml)
     manager.addCache("play")
     (manager, manager.getCache("play"))
   }
