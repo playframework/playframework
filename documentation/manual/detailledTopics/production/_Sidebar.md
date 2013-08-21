@@ -4,6 +4,7 @@
 - [[Creating a standalone version | ProductionDist]]
 - [[Additional configuration | ProductionConfiguration]]
 - [[Set-up a front-end HTTP server | HTTPServer]]
+- [[Configuring HTTPS|ConfiguringHttps]]
 - [[Deploying to Heroku | ProductionHeroku]]
 - [[Deploying to Cloudbees | Deploying-to-CloudBees]]
 - [[Deploying to Cloud Foundry | Deploying-CloudFoundry]]
