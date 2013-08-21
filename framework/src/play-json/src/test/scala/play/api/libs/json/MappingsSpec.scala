@@ -5,7 +5,6 @@ import scala.util.control.Exception._
 import play.api.libs.functional._
 import play.api.libs.functional.syntax._
 import play.api.data.validation._
-import play.api.data.validation.Constraints._
 
 object MappingsSpec extends Specification {
 

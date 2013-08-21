@@ -120,7 +120,7 @@ object Rules {
   implicit def jsonAsSeq[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Seq[O]] =
     jsonAsJsArray
       .fmap{ case JsArray(is) => is }
-      .compose(Path[JsValue]())(Constraints.seq(r))
+      .compose(Path[JsValue]())(seq(r))
 
   // Is that thing really just a Lens ?
   implicit def pickInJson[O](p: Path[JsValue])(implicit m: Rule[JsValue, O]): Rule[JsValue, O] =
