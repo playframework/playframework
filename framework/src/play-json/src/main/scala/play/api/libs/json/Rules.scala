@@ -1,14 +1,12 @@
 package play.api.libs.json
 
-object Rules {
+object Rules extends play.api.data.validation.DefaultRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
 
-  import play.api.data.validation._
-  import play.api.data.validation.Rules._
-
-  import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode, _ }
+  import play.api.data.validation._ // We need that import to shadow Json PathNodes types
+  import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode}
   private def pathToJsPath(p: Path[JsValue]) =
     play.api.libs.json.JsPath(p.path.map{
       case KeyPathNode(key) => JSKeyPathNode(key)

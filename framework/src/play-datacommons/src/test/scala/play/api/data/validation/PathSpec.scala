@@ -38,8 +38,7 @@ object PathSpec extends Specification {
       t2 must equalTo(__ \ "baz")
     }
 
-    import Mappings._
-    import Constraints._
+    import Rules._
     val valid: M = Map(
       "firstname" -> Seq("Julien"),
       "lastname" -> Seq("Tournay"),
