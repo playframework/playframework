@@ -63,7 +63,6 @@ class Path[I](val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence and validity of data at this Path
   */
-  import Mappings._
   def read[O](c: Constraint[O])(implicit m: Path[I] => Rule[I, O]): Rule[I, O] =
     read(Rule.fromMapping[O, O](c))(m)
 

@@ -11,8 +11,8 @@ object MappingsSpec extends Specification {
 
   "Json Mappings" should {
 
-    import play.api.data.validation.Mappings._
-    import play.api.libs.json.Mappings._
+    import play.api.data.validation.Rules._
+    import play.api.libs.json.Rules._
     val __ = Path[JsValue]()
 
     val valid = Json.obj(

@@ -1,6 +1,6 @@
 package play.api.data.validation
 
-object Mappings {
+object Rules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._

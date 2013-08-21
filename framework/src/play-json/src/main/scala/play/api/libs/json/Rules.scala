@@ -1,12 +1,12 @@
 package play.api.libs.json
 
-object Mappings {
+object Rules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
 
   import play.api.data.validation._
-  import play.api.data.validation.Mappings._
+  import play.api.data.validation.Rules._
 
   import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode, _ }
   private def pathToJsPath(p: Path[JsValue]) =
