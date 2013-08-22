@@ -6,7 +6,7 @@ import play.api.libs.functional._
 import play.api.libs.functional.syntax._
 
 object PathSpec extends Specification {
-  val __ = Path()
+
   "Path" should {
     "be compareable" in {
       (__ \ "foo" \ "bar") must equalTo((__ \ "foo" \ "bar"))

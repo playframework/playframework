@@ -10,7 +10,6 @@ object MappingsSpec extends Specification {
 
   "Json Mappings" should {
     import play.api.libs.json.Rules._
-    val __ = Path()
 
     val valid = Json.obj(
     "firstname" -> "Julien",

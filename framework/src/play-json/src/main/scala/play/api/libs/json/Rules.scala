@@ -1,6 +1,6 @@
 package play.api.libs.json
 
-object Rules extends play.api.data.validation.DefaultRules[JsValue, JsValue] {
+object Rules extends play.api.data.validation.DefaultRules[JsValue] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._

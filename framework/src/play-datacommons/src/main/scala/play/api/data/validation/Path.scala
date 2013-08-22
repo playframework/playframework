@@ -3,6 +3,8 @@ package play.api.data.validation
 import scala.language.higherKinds
 import scala.language.implicitConversions
 
+object __ extends Path(Nil)
+
 sealed trait PathNode
 case class KeyPathNode(key: String) extends PathNode {
   override def toString = key

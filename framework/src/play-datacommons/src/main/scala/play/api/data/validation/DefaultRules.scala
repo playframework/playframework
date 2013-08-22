@@ -1,6 +1,6 @@
 package play.api.data.validation
 
-trait DefaultRules[I, J] {
+trait DefaultRules[I] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
 
@@ -11,7 +11,7 @@ trait DefaultRules[I, J] {
     def identity = noConstraint[T]
   }
 
-  def option[O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
+  def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
         val isNone = not(noneValues.foldLeft(Rule.zero[J])(_ compose not(_))).fmap(_ => None)
@@ -25,13 +25,13 @@ trait DefaultRules[I, J] {
   def validateWith[From](msg: String, args: Any*)(pred: From => Boolean): Constraint[From] =
     v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)
 
-  def array[O: scala.reflect.ClassTag](r: Rule[I, O]): Rule[Seq[I], Array[O]] =
-    seq[O](r).fmap(_.toArray)
+  def array[In, O: scala.reflect.ClassTag](r: Rule[In, O]): Rule[Seq[In], Array[O]] =
+    seq[In, O](r).fmap(_.toArray)
 
-  def traversable[O](r: Rule[I, O]): Rule[Seq[I], Traversable[O]] =
-    seq[O](r).fmap(_.toTraversable)
+  def traversable[In, O](r: Rule[In, O]): Rule[Seq[In], Traversable[O]] =
+    seq[In, O](r).fmap(_.toTraversable)
 
-  def seq[O](r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
+  def seq[In, O](r: Rule[In, O]): Rule[Seq[In], Seq[O]] =
     Rule { case is =>
       val withI = is.zipWithIndex.map { case (v, i) =>
         r.repath((Path() \ i) ++ _).validate(v)
