@@ -1,19 +1,23 @@
 package play.api.data.validation
 
-case class Rule[I, O](m: Mapping[(Path[I], Seq[ValidationError]), I, O]) {
+case class Rule[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) {
   def validate(data: I): VA[I, O] = m(data)
 
-  def compose[P](path: Path[I])(sub: Rule[O, P]): Rule[I, P] = {
+  def compose[P](path: Path)(sub: Rule[O, P]): Rule[I, P] = {
     val rp = this
     Rule{ d =>
       val v = rp.validate(d)
       v.fold(
-        es => Failure(es.map{ case (p, errs) => (path ++ p.as[I]) -> errs }),
+        es => Failure(es.map{ case (p, errs) => (path ++ p) -> errs }),
         s  => sub.validate(s).fail.map{ _.map {
-          case (p, errs) => (path ++ p.as[I]) -> errs
+          case (p, errs) => (path ++ p) -> errs
         }})
     }
   }
+
+  // would be nie to have Kleisli in play
+  def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
+  def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
   //TODO: repath
 }
@@ -25,9 +29,7 @@ object Rule {
   def zero[O] = Rule[O, O](Success.apply)
 
   def fromMapping[I, O](f: Mapping[ValidationError, I, O]) =
-    new Rule(f(_: I).fail.map(errs => Seq(Path[I]() -> errs)))
-
-  implicit def IasI[I] = Rule[I, I](i => Success(i))
+    new Rule[I, O](f(_).fail.map(errs => Seq(Path() -> errs)))
 
   implicit def applicativeRule[I] = new Applicative[({type λ[O] = Rule[I, O]})#λ] {
     override def pure[A](a: A): Rule[I, A] =

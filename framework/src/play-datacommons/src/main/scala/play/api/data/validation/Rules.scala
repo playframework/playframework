@@ -6,9 +6,7 @@ object Rules extends DefaultRules {
   import play.api.libs.functional.syntax._
   // import play.api.mvc.Request
 
-  implicit def seqAsO[O](implicit r: Rule[String, O]) = Rule.fromMapping[Seq[String], String] {
-    _.headOption.map(Success[ValidationError, String](_)).getOrElse(Failure[ValidationError, String](Seq(ValidationError("validation.required"))))
-  }.compose(Path[Seq[String]]())(r)
+  def string: Rule[String, String] = IasI
 
   private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
     Rule.fromMapping[String, T]{
@@ -18,15 +16,21 @@ object Rules extends DefaultRules {
         .getOrElse(Failure(Seq(ValidationError("validation.type-mismatch", args: _*))))
     }
 
-  implicit def stringAsInt = stringAs {
+  def int = stringAs {
     case s if s.isValidInt => Success(s.toInt)
   }("Int")
 
-  implicit def stringAsShort = stringAs {
+  def short = stringAs {
     case s if s.isValidShort => Success(s.toShort)
   }("Short")
 
-  implicit def stringAsLong = stringAs {
+  def boolean = Rule.fromMapping[String, Boolean]{
+    pattern("""(?iu)true|false""".r)(_: String)
+      .map(java.lang.Boolean.parseBoolean)
+      .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
+  }
+
+  def long = stringAs {
     case s if s.isValidLong => Success(s.toLong)
   }("Long")
 
@@ -36,7 +40,7 @@ object Rules extends DefaultRules {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
-  implicit def stringAsFloat = stringAs {
+  def float = stringAs {
     case s if isValidFloat(s) => Success(s.toFloat)
   }("Float")
 
@@ -45,16 +49,16 @@ object Rules extends DefaultRules {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
   }
-  implicit def stringAsDouble = stringAs {
+  def double = stringAs {
     case s if isValidDouble(s) => Success(s.toDouble)
   }("Double")
 
   import java.{ math => jm }
-  implicit def stringAsJavaBigDecimal = stringAs {
+  def javaBigDecimal = stringAs {
     case s => Success(s.bigDecimal)
   }("BigDecimal")
 
-   implicit def stringAsBigDecimal = stringAs {
+  def bigDecimal = stringAs {
     case s => Success(s)
   }("BigDecimal")
 
@@ -64,23 +68,27 @@ object Rules extends DefaultRules {
 
   type M = Map[String, Seq[String]]
 
-  implicit def optMap[O](path: Path[M])(implicit pick: Path[M] => Rule[M, Seq[String]], c:  Rule[Seq[String], O]) =
-    opt[M, Seq[String], O](path)(pick, c)
-
-  private def toMapKey(p: Path[M]) = p.path.head.toString + p.path.tail.foldLeft("") {
+  private def toMapKey(p: Path) = p.path.head.toString + p.path.tail.foldLeft("") {
     case (path, IdxPathNode(i)) => path + s"[$i]"
     case (path, KeyPathNode(k)) => path + "." + k
   }
 
-  implicit def pickInMap[O](p: Path[M])(implicit r: Rule[Seq[String], O]): Rule[M, O] = Rule.fromMapping[M, Seq[String]] {
+  implicit def pickInMap(p: Path) = Rule.fromMapping[M, Seq[String]] {
     data =>
       val key = toMapKey(p)
       val validation: Validation[ValidationError, Seq[String]] =
         data.get(key).map(Success[ValidationError, Seq[String]](_)).getOrElse{ Failure[ValidationError, Seq[String]](Seq(ValidationError("validation.required"))) }
       validation
-  }.compose(Path[M]())(r)
+  }
 
-  implicit def mapPickMap(p: Path[M]) = Rule.fromMapping[M, M] { data =>
+  private def seqAsString = Rule.fromMapping[Seq[String], String] {
+    _.headOption.map(Success[ValidationError, String](_)).getOrElse(Failure[ValidationError, String](Seq(ValidationError("validation.required"))))
+  }
+
+  implicit def pickOne[O](p: Path) =  pickInMap(p) compose seqAsString
+
+
+  implicit def mapPickMap(p: Path) = Rule.fromMapping[M, M] { data =>
     val prefix = toMapKey(p) + "."
     val submap = data.filterKeys(_.startsWith(prefix)).map { case (k, v) =>
       k.substring(prefix.length) -> v

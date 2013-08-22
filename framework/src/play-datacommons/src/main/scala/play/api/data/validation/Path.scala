@@ -17,28 +17,26 @@ case class RecursiveSearch(key: String) extends PathNode {
 }
 
 object \: {
-  def unapply[I](path: Path[I]): Option[(PathNode, Path[I])] = {
+  def unapply(path: Path): Option[(PathNode, Path)] = {
     path match {
       case Path(Nil) => None
-      case Path(n :: ns) => Some(n -> Path[I](ns))
+      case Path(n :: ns) => Some(n -> Path(ns))
     }
   }
 }
 
 object Path {
-  def apply[I](path: String) = new Path[I](KeyPathNode(path) :: Nil)
-	def apply[I](path: List[PathNode] = Nil) = new Path[I](path)
-	def unapply[I](p: Path[I]): Option[List[PathNode]] = Some(p.path)
+  def apply(path: String) = new Path(KeyPathNode(path) :: Nil)
+	def apply(path: List[PathNode] = Nil) = new Path(path)
+	def unapply(p: Path): Option[List[PathNode]] = Some(p.path)
 }
 
 // XXX: There's variance going on on I to get rid if `as`
-class Path[I](val path: List[PathNode]) {
+class Path(val path: List[PathNode]) {
 
-  def \(key: String): Path[I] = this \ KeyPathNode(key)
-  def \(idx: Int): Path[I] = this \ IdxPathNode(idx)
-  def \(child: PathNode): Path[I] = Path(path :+ child)
-
-  def as[J] = Path[J](path)
+  def \(key: String): Path = this \ KeyPathNode(key)
+  def \(idx: Int): Path = this \ IdxPathNode(idx)
+  def \(child: PathNode): Path = Path(path :+ child)
 
   /**
   * Aggregate 2 paths
@@ -47,24 +45,8 @@ class Path[I](val path: List[PathNode]) {
   *   (__ \ "foo" \ "bar").compose(__ \ "baz") == (__ \ "foo" \ "bar" \ "baz")
   * }}}
   */
-  def compose(p: Path[I]): Path[I] = Path(this.path ++ p.path)
-  def ++(other: Path[I]) = this compose other
-
-  /**
-  * Creates a Rule searching and validating data in a stucture of type I
-  * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
-  * {{{
-  *   val __ = Path[JsValue]()
-  *   val json = Json.parse("""{"firstname": "Julien"}""")
-  *   val r = (__ \ "firstame").read(nonEmptyText)
-  *   r.validate(json) == Success("Julien")
-  * }}}
-  * @param v the constraint to apply on data
-  * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
-  * @return A Rule validating the presence and validity of data at this Path
-  */
-  def read[O](c: Constraint[O])(implicit m: Path[I] => Rule[I, O]): Rule[I, O] =
-    read(Rule.fromMapping[O, O](c))(m)
+  def compose(p: Path): Path = Path(this.path ++ p.path)
+  def ++(other: Path) = this compose other
 
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
@@ -83,24 +65,11 @@ class Path[I](val path: List[PathNode]) {
   * @param l a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence and validity of data at this Path
   */
-  def read[J, O](sub: Rule[J, O])(implicit r: Path[I] => Rule[I, J]): Rule[I, O] =
+  def read[I, J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
     r(this).compose(this)(sub)
 
-  /**
-  * Creates a Rule searching data in a stucture of type I
-  * When applied, the rule will lookup for data at the given path, and coerce it to type O
-  * {{{
-  *   val __ = Path[JsValue]()
-  *   val json = Json.parse("""{"company": "typesafe"}""")
-  *   val r = (__ \ "company").read[Option[String]]
-  *   r.validate(validJson) == Success(Some("typesafe"))
-  * }}}
-  * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
-  * @return A Rule validating the presence of data at this Path
-  */
-  def read[O](implicit r: Path[I] => Rule[I, O]): Rule[I, O] =
+  def read[I, O](r: Path => Rule[I, O]): Rule[I, O] =
     read(Rule.zero[O])(r)
-
 
   /**
   * Creates a Writes the serialize data to the desired type
@@ -113,7 +82,7 @@ class Path[I](val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path
   */
-  def write[In](implicit w: Path[I] => Writes[In, I]) = w(this)
+  def write[In, O](implicit w: Path => Writes[In, O]) = w(this)
 
   override def toString = this.path match {
     case Nil => "/"
@@ -127,11 +96,11 @@ class Path[I](val path: List[PathNode]) {
   override def hashCode = path.hashCode
   override def equals(o: Any) = {
     if(canEqual(o)) {
-      val j = o.asInstanceOf[Path[I]]
+      val j = o.asInstanceOf[Path]
       this.path == j.path
     }
     else
       false
   }
-  def canEqual(o: Any) = o.isInstanceOf[Path[I]]
+  def canEqual(o: Any) = o.isInstanceOf[Path]
 }

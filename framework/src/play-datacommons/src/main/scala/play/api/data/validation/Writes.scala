@@ -18,7 +18,7 @@ trait DefaultMonoids {
 trait DefaultWrites {
   import play.api.libs.functional.Monoid
 
-  def asKey(p: Path[Map[String, Seq[String]]]) = p.path.head.toString + p.path.tail.foldLeft("") {
+  def asKey(p: Path) = p.path.head.toString + p.path.tail.foldLeft("") {
     case (path, IdxPathNode(i)) => path + s"[$i]"
     case (path, KeyPathNode(k)) => path + "." + k
   }
@@ -41,15 +41,15 @@ trait DefaultWrites {
   implicit def writeOpt[I, O](implicit w: Writes[I, O]): Writes[Option[I], Seq[O]] =
     Writes((i: Option[I]) => i.map(w.writes).toSeq)
 
-  implicit def writeToMap[I](p: Path[Map[String, Seq[String]]])(implicit w: Writes[I, Seq[String]]) =
+  implicit def writeToMap[I](p: Path)(implicit w: Writes[I, Seq[String]]) =
     Writes((i: I) => Map(asKey(p) -> w.writes(i)))
 
-  implicit def writeFromMapToMap[I](p: Path[Map[String, Seq[String]]])(implicit w: Writes[I, Map[String, Seq[String]]]): Writes[I, Map[String, Seq[String]]] =
+  implicit def writeFromMapToMap[I](p: Path)(implicit w: Writes[I, Map[String, Seq[String]]]): Writes[I, Map[String, Seq[String]]] =
     Writes((i: I) => w.writes(i).map { case (k, v) =>
       (asKey(p) + "." + k) -> v
     })
 
-  implicit def writeSeq[I](p: Path[Map[String, Seq[String]]])(implicit w: Writes[I, Seq[String]]): Writes[Seq[I], Map[String, Seq[String]]] =
+  implicit def writeSeq[I](p: Path)(implicit w: Writes[I, Seq[String]]): Writes[Seq[I], Map[String, Seq[String]]] =
     Writes{(is: Seq[I]) =>
       is.zipWithIndex.map { case (i, index) =>
         val prefix = asKey(p \ index)
@@ -59,7 +59,7 @@ trait DefaultWrites {
 
   // implicit def writeJson[I](p: Path[JsValue])(implicit w: Writes[I, JsValue]): Writes[I, JsValue] = ???
 
-  implicit def writeSeqToMap[I](p: Path[Map[String, Seq[String]]])(implicit w: Writes[I, Map[String, Seq[String]]]): Writes[Seq[I], Map[String, Seq[String]]] =
+  implicit def writeSeqToMap[I](p: Path)(implicit w: Writes[I, Map[String, Seq[String]]]): Writes[Seq[I], Map[String, Seq[String]]] =
     Writes{(is: Seq[I]) =>
       val ms = is.zipWithIndex.map { case (i, index) =>
         val prefix = asKey(p \ index)

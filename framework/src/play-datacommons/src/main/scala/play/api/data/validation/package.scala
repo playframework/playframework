@@ -15,5 +15,5 @@ package object validation {
 	@annotation.implicitNotFound("No implicit Mapping found from ${I} to ${O}. Try to define an implicit Mapping[${E}, ${I}, ${O}].")
 	type Mapping[E, I, O] = I => Validation[E, O]
 	type Constraint[T] = Mapping[ValidationError, T, T]
-	type VA[I, O] = Validation[(Path[I], Seq[ValidationError]), O]
+	type VA[I, O] = Validation[(Path, Seq[ValidationError]), O]
 }
