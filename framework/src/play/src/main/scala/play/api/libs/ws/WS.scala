@@ -314,14 +314,14 @@ object WS {
    * A WS Request builder.
    */
   case class WSRequestHolder(url: String,
-                             headers: Map[String, Seq[String]],
-                             queryString: Map[String, Seq[String]],
-                             calc: Option[SignatureCalculator],
-                             auth: Option[Tuple3[String, String, AuthScheme]],
-                             followRedirects: Option[Boolean],
-                             timeout: Option[Int],
-                             virtualHost: Option[String],
-                             parts: Option[Seq[Part]]) {
+      headers: Map[String, Seq[String]],
+      queryString: Map[String, Seq[String]],
+      calc: Option[SignatureCalculator],
+      auth: Option[Tuple3[String, String, AuthScheme]],
+      followRedirects: Option[Boolean],
+      timeout: Option[Int],
+      virtualHost: Option[String],
+      parts: Option[Seq[Part]]) {
 
     /**
      * sets the signature calculator for the request
@@ -731,7 +731,7 @@ trait StringPart extends Part {
 /**
  * Ning implementation of FilePart.
  */
-private class NingFilePart(ahcFilePart:AHCFilePart) extends FilePart {
+private class NingFilePart(ahcFilePart: AHCFilePart) extends FilePart {
   /** The name of the part. */
   def name: String = ahcFilePart.getName
 
@@ -759,7 +759,7 @@ private class NingFilePart(ahcFilePart:AHCFilePart) extends FilePart {
 /**
  * Ning implementation of ByteArrayPart.
  */
-private class NingByteArrayPart(ahcByteArrayPart:AHCByteArrayPart) extends ByteArrayPart {
+private class NingByteArrayPart(ahcByteArrayPart: AHCByteArrayPart) extends ByteArrayPart {
   /** The name of the part. */
   def name: String = ahcByteArrayPart.getName
 
@@ -792,7 +792,7 @@ private class NingByteArrayPart(ahcByteArrayPart:AHCByteArrayPart) extends ByteA
 /**
  * Ning implementation of StringPart.
  */
-private class NingStringPart(ahcStringPart:AHCStringPart) extends StringPart {
+private class NingStringPart(ahcStringPart: AHCStringPart) extends StringPart {
 
   /**
    * The underlying "raw" class implementation.
@@ -807,7 +807,6 @@ private class NingStringPart(ahcStringPart:AHCStringPart) extends StringPart {
    */
   def value: String = ahcStringPart.getValue
 }
-
 
 /**
  * A WS HTTP response.
